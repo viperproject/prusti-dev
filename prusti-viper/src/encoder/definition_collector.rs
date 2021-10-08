@@ -63,11 +63,11 @@ struct Collector<'p, 'v: 'p, 'tcx: 'v> {
     /// functions.
     method_names: HashSet<String>,
     /// The set of all predicates that are mentioned in the method.
-    used_predicates: HashSet<String>,
+    used_predicates: HashSet<vir::Type>,
     /// The set of predicates whose bodies have to be included because they are
     /// unfolded in the method.
-    unfolded_predicates: HashSet<String>,
-    new_unfolded_predicates: HashSet<String>,
+    unfolded_predicates: HashSet<vir::Type>,
+    new_unfolded_predicates: HashSet<vir::Type>,
     used_fields: HashSet<vir::Field>,
     used_domains: HashSet<String>,
     used_snap_domain_functions: HashSet<vir::FunctionIdentifier>,
@@ -148,8 +148,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> Collector<'p, 'v, 'tcx> {
     }
     fn get_used_predicates(&mut self) -> SpannedEncodingResult<Vec<vir::Predicate>> {
         let mut predicates = Vec::new();
+        let aux_ref = vir::Type::typed_ref("AuxRef");
         for name in &self.used_predicates {
-            if name == "AuxRef" {
+            if name == &aux_ref {
                 // This is not a real type
                 continue;
             }
@@ -178,7 +179,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> Collector<'p, 'v, 'tcx> {
             predicates.push(predicate);
         }
         predicates.push(vir::Predicate::Bodyless(
-            "DeadBorrowToken$".to_string(),
+            vir::Type::typed_ref("DeadBorrowToken$"),
             vir_local! { borrow: Int },
         ));
         predicates.sort_by_key(|f| f.get_identifier());
@@ -216,9 +217,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> Collector<'p, 'v, 'tcx> {
             .map(|snapshot_name| {
                 let mut domain = self.encoder.get_domain(snapshot_name);
                 if let Some(predicate_name) = snapshot_name.strip_prefix("Snap$") {
-                    // We have a snapshot for some type.
-                    if !self.unfolded_predicates.contains(predicate_name)
-                        && !self.new_unfolded_predicates.contains(predicate_name)
+                    // We have a snapshot for some type
+                    if !contains(&self.unfolded_predicates, predicate_name)
+                        && !contains(&self.new_unfolded_predicates, predicate_name)
                         && !predicate_name.starts_with("Slice$")
                         && !predicate_name.starts_with("Array$")
                     {
@@ -257,13 +258,18 @@ impl<'p, 'v: 'p, 'tcx: 'v> Collector<'p, 'v, 'tcx> {
     }
     fn contains_unfolded_parameters(&self, formal_args: &[vir::LocalVar]) -> bool {
         formal_args.iter().any(|parameter| {
-            if let vir::Type::Snapshot(..) = &parameter.typ {
-                self.unfolded_predicates.contains(&parameter.typ.name())
+            if let vir::Type::Snapshot(snapshot_type) = &parameter.typ {
+                let typ = vir::Type::TypedRef(snapshot_type.clone().into());
+                self.unfolded_predicates.contains(&typ)
             } else {
                 false
             }
         })
     }
+}
+
+fn contains(container: &HashSet<vir::Type>, predicate_name: &str) -> bool {
+    container.iter().any(|typ| typ.name() == predicate_name)
 }
 
 impl<'p, 'v: 'p, 'tcx: 'v> FallibleStmtWalker for Collector<'p, 'v, 'tcx> {
@@ -305,23 +311,20 @@ impl<'p, 'v: 'p, 'tcx: 'v> FallibleExprWalker for Collector<'p, 'v, 'tcx> {
             ..
         }: &vir::PredicateAccessPredicate,
     ) -> SpannedEncodingResult<()> {
-        self.used_predicates.insert(predicate_type.name());
+        self.used_predicates.insert(predicate_type.clone());
         FallibleExprWalker::fallible_walk(self, argument)
     }
     fn fallible_walk_unfolding(
         &mut self,
         vir::Unfolding {
-            predicate_name,
+            predicate: predicate_type,
             arguments,
             base,
             ..
         }: &vir::Unfolding,
     ) -> SpannedEncodingResult<()> {
-        if self
-            .new_unfolded_predicates
-            .insert(predicate_name.to_string())
-        {
-            let predicate = self.encoder.get_viper_predicate(predicate_name)?;
+        if self.new_unfolded_predicates.insert(predicate_type.clone()) {
+            let predicate = self.encoder.get_viper_predicate(predicate_type)?;
             // make sure we include all the fields
             if let Some(body) = predicate.body().as_ref() {
                 self.fallible_walk_expr(body)?;
@@ -423,7 +426,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> FallibleExprWalker for Collector<'p, 'v, 'tcx> {
                 self.fallible_walk_type(typ)?;
             }
             vir::Type::TypedRef(..) | vir::Type::TypeVar(..) => {
-                self.used_predicates.insert(typ.name());
+                self.used_predicates.insert(typ.clone());
             }
             vir::Type::Domain(..) => {
                 let name = typ.name();
@@ -443,7 +446,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> FallibleExprWalker for Collector<'p, 'v, 'tcx> {
 /// Collects all predicates that are unfolded.
 struct UnfoldedPredicateCollector {
     /// The predicates that are explicitly unfolded in the program.
-    unfolded_predicates: HashSet<String>,
+    unfolded_predicates: HashSet<vir::Type>,
 }
 
 impl StmtWalker for UnfoldedPredicateCollector {
@@ -454,12 +457,12 @@ impl StmtWalker for UnfoldedPredicateCollector {
     fn walk_fold(
         &mut self,
         vir::Fold {
-            predicate_name,
+            predicate,
             arguments,
             ..
         }: &vir::Fold,
     ) {
-        self.unfolded_predicates.insert(predicate_name.to_string());
+        self.unfolded_predicates.insert(predicate.clone());
         for arg in arguments {
             self.walk_expr(arg);
         }
@@ -468,12 +471,12 @@ impl StmtWalker for UnfoldedPredicateCollector {
     fn walk_unfold(
         &mut self,
         vir::Unfold {
-            predicate_name,
+            predicate,
             arguments,
             ..
         }: &vir::Unfold,
     ) {
-        self.unfolded_predicates.insert(predicate_name.to_string());
+        self.unfolded_predicates.insert(predicate.clone());
         for arg in arguments {
             self.walk_expr(arg);
         }
@@ -484,13 +487,13 @@ impl ExprWalker for UnfoldedPredicateCollector {
     fn walk_unfolding(
         &mut self,
         vir::Unfolding {
-            predicate_name,
+            predicate,
             arguments,
             base,
             ..
         }: &vir::Unfolding,
     ) {
-        self.unfolded_predicates.insert(predicate_name.to_string());
+        self.unfolded_predicates.insert(predicate.clone());
         for arg in arguments {
             ExprWalker::walk(self, arg);
         }
@@ -499,7 +502,7 @@ impl ExprWalker for UnfoldedPredicateCollector {
 }
 
 struct UnfoldedPredicateChecker<'a> {
-    unfolded_predicates: &'a HashSet<String>,
+    unfolded_predicates: &'a HashSet<vir::Type>,
     found: bool,
 }
 
@@ -508,7 +511,7 @@ impl<'a> ExprWalker for UnfoldedPredicateChecker<'a> {
         &mut self,
         vir::PredicateAccessPredicate { predicate_type, .. }: &vir::PredicateAccessPredicate,
     ) {
-        if self.unfolded_predicates.contains(&predicate_type.name()) {
+        if self.unfolded_predicates.contains(&predicate_type) {
             self.found = true;
         }
     }

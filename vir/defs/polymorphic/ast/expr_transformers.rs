@@ -202,7 +202,7 @@ pub trait ExprFolder: Sized {
 
     fn fold_unfolding(&mut self, expr: Unfolding) -> Expr {
         let Unfolding {
-            predicate_name,
+            predicate,
             arguments,
             base,
             permission,
@@ -210,7 +210,7 @@ pub trait ExprFolder: Sized {
             position,
         } = expr;
         Expr::Unfolding(Unfolding {
-            predicate_name,
+            predicate,
             arguments: arguments.into_iter().map(|e| self.fold(e)).collect(),
             base: self.fold_boxed(base),
             permission,
@@ -801,7 +801,7 @@ pub trait FallibleExprFolder: Sized {
 
     fn fallible_fold_unfolding(&mut self, expr: Unfolding) -> Result<Expr, Self::Error> {
         let Unfolding {
-            predicate_name,
+            predicate,
             arguments,
             base,
             permission,
@@ -809,7 +809,7 @@ pub trait FallibleExprFolder: Sized {
             position,
         } = expr;
         Ok(Expr::Unfolding(Unfolding {
-            predicate_name,
+            predicate,
             arguments: arguments
                 .into_iter()
                 .map(|e| self.fallible_fold(e))

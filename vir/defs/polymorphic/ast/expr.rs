@@ -205,14 +205,14 @@ impl Expr {
                 position,
             }),
             Expr::Unfolding(Unfolding {
-                predicate_name,
+                predicate,
                 arguments,
                 base,
                 permission,
                 variant,
                 ..
             }) => Expr::Unfolding(Unfolding {
-                predicate_name,
+                predicate,
                 arguments,
                 base,
                 permission,
@@ -587,14 +587,14 @@ impl Expr {
     }
 
     pub fn unfolding(
-        pred_name: String,
+        predicate: Type,
         args: Vec<Expr>,
         expr: Expr,
         perm: PermAmount,
         variant: MaybeEnumVariantIndex,
     ) -> Self {
         Expr::Unfolding(Unfolding {
-            predicate_name: pred_name,
+            predicate,
             arguments: args,
             base: Box::new(expr),
             permission: perm,
@@ -604,7 +604,7 @@ impl Expr {
     }
 
     pub fn unfolding_with_pos(
-        pred_name: String,
+        predicate: Type,
         args: Vec<Expr>,
         expr: Expr,
         perm: PermAmount,
@@ -612,7 +612,7 @@ impl Expr {
         position: Position,
     ) -> Self {
         Expr::Unfolding(Unfolding {
-            predicate_name: pred_name,
+            predicate,
             arguments: args,
             base: Box::new(expr),
             permission: perm,
@@ -623,10 +623,10 @@ impl Expr {
 
     /// Create `unfolding T(arg) in body` where `T` is the type of `arg`.
     pub fn wrap_in_unfolding(arg: Expr, body: Expr) -> Expr {
-        let type_name = arg.get_type().name();
+        let typ = arg.get_type();
         let pos = body.pos();
         Expr::Unfolding(Unfolding {
-            predicate_name: type_name,
+            predicate: typ.clone(),
             arguments: vec![arg],
             base: Box::new(body),
             permission: PermAmount::Read,
@@ -2266,7 +2266,7 @@ impl Hash for Seq {
 
 #[derive(Debug, Clone, Eq, Serialize, Deserialize)]
 pub struct Unfolding {
-    pub predicate_name: String,
+    pub predicate: Type,
     pub arguments: Vec<Expr>,
     pub base: Box<Expr>,
     pub permission: PermAmount,
@@ -2280,9 +2280,9 @@ impl fmt::Display for Unfolding {
             f,
             "(unfolding acc({}({}), {}) in {})",
             if let Some(variant_index) = &self.variant {
-                format!("{}<variant {}>", &self.predicate_name, variant_index)
+                format!("{}<variant {}>", &self.predicate, variant_index)
             } else {
-                (&self.predicate_name).to_string()
+                (&self.predicate).to_string()
             },
             &(self.arguments)
                 .iter()
@@ -2298,13 +2298,13 @@ impl fmt::Display for Unfolding {
 impl PartialEq for Unfolding {
     fn eq(&self, other: &Self) -> bool {
         (
-            &self.predicate_name,
+            &self.predicate,
             &self.arguments,
             &*self.base,
             self.permission,
             &self.variant,
         ) == (
-            &other.predicate_name,
+            &other.predicate,
             &other.arguments,
             &*other.base,
             other.permission,
@@ -2316,7 +2316,7 @@ impl PartialEq for Unfolding {
 impl Hash for Unfolding {
     fn hash<H: Hasher>(&self, state: &mut H) {
         (
-            &self.predicate_name,
+            &self.predicate,
             &self.arguments,
             &*self.base,
             self.permission,

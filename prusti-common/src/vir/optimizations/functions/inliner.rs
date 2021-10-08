@@ -113,13 +113,13 @@ impl<'a> ast::ExprFolder for ConstantFunctionInliner<'a> {
             })
         }
     }
-    fn fold_unfolding(&mut self, ast::Unfolding {predicate_name, arguments, mut base, permission, variant, position}: ast::Unfolding) -> ast::Expr {
+    fn fold_unfolding(&mut self, ast::Unfolding {predicate, arguments, mut base, permission, variant, position}: ast::Unfolding) -> ast::Expr {
         base = self.fold_boxed(base);
         if base.is_constant() {
             *base
         } else {
             ast::Expr::Unfolding( ast::Unfolding {
-                predicate_name,
+                predicate,
                 arguments: arguments.into_iter().map(|e| self.fold(e)).collect(),
                 base,
                 permission,

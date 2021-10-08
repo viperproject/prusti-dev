@@ -225,7 +225,7 @@ impl From<polymorphic::Expr> for legacy::Expr {
                 seq.position.into(),
             ),
             polymorphic::Expr::Unfolding(unfolding) => legacy::Expr::Unfolding(
-                unfolding.predicate_name,
+                unfolding.predicate.name(),
                 unfolding
                     .arguments
                     .into_iter()
@@ -417,8 +417,8 @@ impl From<polymorphic::Predicate> for legacy::Predicate {
             polymorphic::Predicate::Enum(enum_predicate) => {
                 legacy::Predicate::Enum(enum_predicate.into())
             }
-            polymorphic::Predicate::Bodyless(label, local_var) => {
-                legacy::Predicate::Bodyless(label, local_var.into())
+            polymorphic::Predicate::Bodyless(typ, local_var) => {
+                legacy::Predicate::Bodyless(typ.encode_as_string(), local_var.into())
             }
         }
     }
@@ -490,7 +490,7 @@ impl From<polymorphic::Stmt> for legacy::Stmt {
                 assign.kind.into(),
             ),
             polymorphic::Stmt::Fold(fold) => legacy::Stmt::Fold(
-                fold.predicate_name,
+                fold.predicate.name(),
                 fold.arguments
                     .into_iter()
                     .map(|argument| argument.into())
@@ -501,7 +501,7 @@ impl From<polymorphic::Stmt> for legacy::Stmt {
                 fold.position.into(),
             ),
             polymorphic::Stmt::Unfold(unfold) => legacy::Stmt::Unfold(
-                unfold.predicate_name,
+                unfold.predicate.name(),
                 unfold
                     .arguments
                     .into_iter()

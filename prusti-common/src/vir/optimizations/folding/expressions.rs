@@ -83,7 +83,7 @@ impl ast::StmtFolder for StmtOptimizer {
     }
 }
 
-type UnfoldingMap = HashMap<ast::Expr, (String, ast::PermAmount, ast::MaybeEnumVariantIndex)>;
+type UnfoldingMap = HashMap<ast::Expr, (ast::Type, ast::PermAmount, ast::MaybeEnumVariantIndex)>;
 type RequirementSet = HashSet<ast::Expr>;
 
 struct ExprOptimizer {
@@ -335,7 +335,7 @@ impl ast::FallibleExprFolder for ExprOptimizer {
                 }
                 expr
             },
-            ast::Expr::Unfolding( ast::Unfolding {predicate_name: name, arguments: mut args, base: box body, permission: perm, variant, ..}) => {
+            ast::Expr::Unfolding( ast::Unfolding {predicate: name, arguments: mut args, base: box body, permission: perm, variant, ..}) => {
                 assert!(args.len() == 1);
                 let new_expr = self.fallible_fold(body)?;
                 self.unfoldings.insert(args.pop().unwrap(), (name, perm, variant));

@@ -30,7 +30,7 @@ impl Action {
     pub fn to_expr(&self, inner_expr: vir::Expr) -> Result<vir::Expr, FoldUnfoldError> {
         match self {
             Action::Fold(Fold {
-                predicate_name,
+                predicate,
                 arguments,
                 permission,
                 enum_variant,
@@ -38,7 +38,7 @@ impl Action {
             }) => {
                 // Currently unsupported in Viper
                 Err(FoldUnfoldError::RequiresFolding(
-                    predicate_name.clone(),
+                    predicate.clone(),
                     arguments.clone(),
                     *permission,
                     enum_variant.clone(),
@@ -47,12 +47,12 @@ impl Action {
             }
 
             Action::Unfold(Unfold {
-                predicate_name,
+                predicate,
                 arguments,
                 permission,
                 enum_variant,
             }) => Ok(vir::Expr::unfolding(
-                predicate_name.clone(),
+                predicate.clone(),
                 arguments.clone(),
                 inner_expr,
                 *permission,

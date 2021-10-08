@@ -10,18 +10,13 @@ use vir_crate::{high as vir_high, polymorphic as vir_poly};
 #[derive(Default)]
 pub(crate) struct HighTypeEncoderState<'tcx> {
     /// A mapping from Rust MIR types to corresponding `vir::polymorphic`
-    /// predicates.
-    ///
-    /// Note: this is only for caching.
-    type_predicates: RefCell<HashMap<ty::TyKind<'tcx>, String>>,
-    /// A mapping from Rust MIR types to corresponding `vir::polymorphic`
     /// types.
     ///
     /// Note: this is only for caching.
     encoded_types: RefCell<HashMap<ty::TyKind<'tcx>, vir_poly::Type>>,
     /// A mapping from predicate names to information needed for encoding them.
     viper_predicate_descriptions: RefCell<HashMap<String, ViperPredicateDescription>>,
-    viper_predicates: RefCell<HashMap<String, vir_poly::Predicate>>,
+    viper_predicates: RefCell<HashMap<vir_poly::Type, vir_poly::Predicate>>,
 }
 
 /// All necessary information for encoding a Viper predicate.
@@ -33,11 +28,11 @@ struct ViperPredicateDescription {
 }
 
 trait Private {
-    fn ensure_viper_predicate_encoded(&self, name: &str) -> SpannedEncodingResult<()>;
+    fn ensure_viper_predicate_encoded(&self, name: &vir_poly::Type) -> SpannedEncodingResult<()>;
 }
 
 impl<'v, 'tcx: 'v> Private for super::super::super::Encoder<'v, 'tcx> {
-    fn ensure_viper_predicate_encoded(&self, name: &str) -> SpannedEncodingResult<()> {
+    fn ensure_viper_predicate_encoded(&self, name: &vir_poly::Type) -> SpannedEncodingResult<()> {
         if !self
             .high_type_encoder_state
             .viper_predicates
@@ -53,9 +48,12 @@ impl<'v, 'tcx: 'v> Private for super::super::super::Encoder<'v, 'tcx> {
 pub(crate) trait HighTypeEncoderInterface<'tcx> {
     fn get_used_viper_predicates_map(
         &self,
-    ) -> SpannedEncodingResult<HashMap<String, vir_poly::Predicate>>;
-    fn get_viper_predicate(&self, name: &str) -> SpannedEncodingResult<vir_poly::Predicate>;
-    fn encode_type_predicate_use(&self, ty: ty::Ty<'tcx>) -> EncodingResult<String>;
+    ) -> SpannedEncodingResult<HashMap<vir_poly::Type, vir_poly::Predicate>>;
+    fn get_viper_predicate(
+        &self,
+        name: &vir_poly::Type,
+    ) -> SpannedEncodingResult<vir_poly::Predicate>;
+    fn encode_type_predicate_use(&self, ty: ty::Ty<'tcx>) -> EncodingResult<vir_poly::Type>;
     fn encode_type_predicate_def(&self, ty: ty::Ty<'tcx>) -> EncodingResult<vir_poly::Predicate>;
     fn ensure_type_predicate_encoded(&self, ty: ty::Ty<'tcx>) -> EncodingResult<()>;
     fn encode_type(&self, ty: ty::Ty<'tcx>) -> EncodingResult<vir_poly::Type>;
@@ -64,7 +62,7 @@ pub(crate) trait HighTypeEncoderInterface<'tcx> {
 impl<'v, 'tcx: 'v> HighTypeEncoderInterface<'tcx> for super::super::super::Encoder<'v, 'tcx> {
     fn get_used_viper_predicates_map(
         &self,
-    ) -> SpannedEncodingResult<HashMap<String, vir_poly::Predicate>> {
+    ) -> SpannedEncodingResult<HashMap<vir_poly::Type, vir_poly::Predicate>> {
         // let predicate_names = self.high_type_encoder_state.viper_predicate_descriptions.borrow().keys().map(|key: &String| key.to_owned()).collect::<Vec<String>>();
         // let mut predicates = HashMap::new();
         // for predicate_name in predicate_names {
@@ -78,7 +76,10 @@ impl<'v, 'tcx: 'v> HighTypeEncoderInterface<'tcx> for super::super::super::Encod
             .clone();
         Ok(predicates)
     }
-    fn get_viper_predicate(&self, name: &str) -> SpannedEncodingResult<vir_poly::Predicate> {
+    fn get_viper_predicate(
+        &self,
+        name: &vir_poly::Type,
+    ) -> SpannedEncodingResult<vir_poly::Predicate> {
         self.ensure_viper_predicate_encoded(name)?;
         Ok(self.high_type_encoder_state.viper_predicates.borrow()[name].clone())
     }
@@ -104,24 +105,8 @@ impl<'v, 'tcx: 'v> HighTypeEncoderInterface<'tcx> for super::super::super::Encod
         }
         Ok(self.high_type_encoder_state.encoded_types.borrow()[ty_kind].clone())
     }
-    fn encode_type_predicate_use(&self, ty: ty::Ty<'tcx>) -> EncodingResult<String> {
-        let ty_kind = ty.kind();
-        if !self
-            .high_type_encoder_state
-            .type_predicates
-            .borrow()
-            .contains_key(ty_kind)
-        {
-            let mut type_predicates = self.high_type_encoder_state.type_predicates.borrow_mut();
-            let polymorphic_type = self.encode_type(ty)?;
-            let name = polymorphic_type.encode_as_string();
-            type_predicates.insert(ty_kind.clone(), name.clone());
-            self.high_type_encoder_state
-                .viper_predicate_descriptions
-                .borrow_mut()
-                .insert(name, ViperPredicateDescription { polymorphic_type });
-        }
-        Ok(self.high_type_encoder_state.type_predicates.borrow()[ty_kind].clone())
+    fn encode_type_predicate_use(&self, ty: ty::Ty<'tcx>) -> EncodingResult<vir_poly::Type> {
+        self.encode_type(ty)
     }
     fn encode_type_predicate_def(&self, ty: ty::Ty<'tcx>) -> EncodingResult<vir_poly::Predicate> {
         let predicate_name = self.encode_type_predicate_use(ty)?;
@@ -151,7 +136,7 @@ impl<'v, 'tcx: 'v> HighTypeEncoderInterface<'tcx> for super::super::super::Encod
                 self.high_type_encoder_state
                     .viper_predicates
                     .borrow_mut()
-                    .insert(predicate_name.to_string(), predicate);
+                    .insert(predicate.get_type().clone(), predicate);
             }
         }
         Ok(())

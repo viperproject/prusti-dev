@@ -4,7 +4,10 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use super::places_utils::{union, union3};
+use super::{
+    places_utils::{union, union3},
+    Predicates,
+};
 use crate::encoder::foldunfold::{
     footprint::*,
     perm::{Perm::*, *},
@@ -21,7 +24,7 @@ pub trait RequiredPermissionsGetter {
     /// The result might be an over-approximation, as in the `vir::Expr::FuncApp` case.
     fn get_required_permissions(
         &self,
-        predicates: &HashMap<String, vir::Predicate>,
+        predicates: &Predicates,
         old_exprs: &HashMap<String, Vec<vir::Expr>>,
     ) -> HashSet<Perm>;
 }
@@ -29,7 +32,7 @@ pub trait RequiredPermissionsGetter {
 impl<'a, A: RequiredPermissionsGetter> RequiredPermissionsGetter for &'a A {
     fn get_required_permissions(
         &self,
-        predicates: &HashMap<String, vir::Predicate>,
+        predicates: &Predicates,
         old_exprs: &HashMap<String, Vec<vir::Expr>>,
     ) -> HashSet<Perm> {
         (*self).get_required_permissions(predicates, old_exprs)
@@ -39,7 +42,7 @@ impl<'a, A: RequiredPermissionsGetter> RequiredPermissionsGetter for &'a A {
 impl<'a, A: RequiredPermissionsGetter> RequiredPermissionsGetter for Vec<A> {
     fn get_required_permissions(
         &self,
-        predicates: &HashMap<String, vir::Predicate>,
+        predicates: &Predicates,
         old_exprs: &HashMap<String, Vec<vir::Expr>>,
     ) -> HashSet<Perm> {
         self.iter().fold(HashSet::new(), |res, x| {
@@ -53,7 +56,7 @@ impl<'a, A: RequiredPermissionsGetter> RequiredPermissionsGetter for Vec<A> {
 impl RequiredPermissionsGetter for vir::Stmt {
     fn get_required_permissions(
         &self,
-        predicates: &HashMap<String, vir::Predicate>,
+        predicates: &Predicates,
         old_exprs: &HashMap<String, Vec<vir::Expr>>,
     ) -> HashSet<Perm> {
         match self {
@@ -132,8 +135,8 @@ impl RequiredPermissionsGetter for vir::Stmt {
                 debug_assert!(place.is_place());
 
                 // We want to temporarily unfold place
-                let predicate_name = place.typed_ref_name().unwrap();
-                let predicate = predicates.get(&predicate_name).unwrap();
+                let predicate_type = place.get_type();
+                let predicate = predicates.get(&predicate_type).unwrap();
 
                 let pred_self_place: vir::Expr = predicate.self_place();
                 let places_in_pred: HashSet<Perm> = predicate
@@ -224,7 +227,7 @@ impl RequiredPermissionsGetter for vir::Stmt {
 impl RequiredPermissionsGetter for vir::Expr {
     fn get_required_permissions(
         &self,
-        predicates: &HashMap<String, vir::Predicate>,
+        predicates: &Predicates,
         old_exprs: &HashMap<String, Vec<vir::Expr>>,
     ) -> HashSet<Perm> {
         trace!("[enter] get_required_permissions(expr={})", self);
@@ -243,8 +246,8 @@ impl RequiredPermissionsGetter for vir::Expr {
                 debug_assert!(place.is_place());
 
                 // We want to temporarly unfold place
-                let predicate_name = place.typed_ref_name().unwrap();
-                let predicate = predicates.get(&predicate_name).unwrap();
+                let predicate_type = place.get_type();
+                let predicate = predicates.get(&predicate_type).unwrap();
 
                 let pred_self_place: vir::Expr = predicate.self_place();
                 let places_in_pred: HashSet<Perm> = predicate
@@ -431,8 +434,8 @@ impl RequiredPermissionsGetter for vir::Expr {
             vir::Expr::InhaleExhale(..) => HashSet::new(),
 
             vir::Expr::Downcast(vir::DowncastExpr { ref enum_place, .. }) => {
-                let predicate_name = enum_place.typed_ref_name().unwrap();
-                let predicate = predicates.get(&predicate_name).unwrap();
+                let predicate_type = enum_place.get_type();
+                let predicate = predicates.get(&predicate_type).unwrap();
                 if let vir::Predicate::Enum(enum_predicate) = predicate {
                     // We want to have the enum unfolded
                     enum_place

@@ -224,7 +224,7 @@ impl<'a> vir::ExprFolder for Replacer<'a> {
 
 struct UnfoldingExtractor {
     unfoldings: HashMap<
-        (String, Vec<vir::Expr>),
+        (vir::Type, Vec<vir::Expr>),
         (vir::PermAmount, vir::MaybeEnumVariantIndex, vir::Position),
     >,
     in_quantifier: bool,
@@ -251,10 +251,10 @@ impl vir::ExprFolder for UnfoldingExtractor {
 
         let unfoldings = mem::take(&mut self.unfoldings);
 
-        for ((name, args), (perm_amount, variant, _)) in unfoldings {
+        for ((typ, args), (perm_amount, variant, _)) in unfoldings {
             forall =
                 vir::Expr::Unfolding( vir::Unfolding {
-                    predicate_name: name,
+                    predicate: typ,
                     arguments: args,
                     base: box forall,
                     permission: perm_amount,
@@ -266,13 +266,13 @@ impl vir::ExprFolder for UnfoldingExtractor {
 
         forall
     }
-    fn fold_unfolding(&mut self, vir::Unfolding {predicate_name, arguments, base, permission, variant, position}: vir::Unfolding) -> vir::Expr {
+    fn fold_unfolding(&mut self, vir::Unfolding {predicate, arguments, base, permission, variant, position}: vir::Unfolding) -> vir::Expr {
         if self.in_quantifier {
-            self.unfoldings.insert((predicate_name, arguments), (permission, variant, position));
+            self.unfoldings.insert((predicate, arguments), (permission, variant, position));
             self.fold(*base)
         } else {
             vir::Expr::Unfolding( vir::Unfolding {
-                predicate_name,
+                predicate,
                 arguments,
                 base,
                 permission,

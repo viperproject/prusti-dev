@@ -42,13 +42,15 @@ mod requirements;
 mod semantics;
 mod state;
 
+pub type Predicates = HashMap<vir::Type, vir::Predicate>;
+
 #[derive(Clone, Debug)]
 pub enum FoldUnfoldError {
     /// The algorithm failed to obtain a permission
     FailedToObtain(Perm),
     /// The algorithm tried to generate a "folding .. in .." Viper expression
     RequiresFolding(
-        String,
+        vir::Type,
         Vec<vir::Expr>,
         PermAmount,
         vir::MaybeEnumVariantIndex,
@@ -59,7 +61,7 @@ pub enum FoldUnfoldError {
     /// The algorithm tried to add permissions in an invalid way.
     InvalidPermAmountSub(String),
     /// The algorithm couldn' find a predicate definition.
-    MissingPredicate(String),
+    MissingPredicate(vir::Type),
     /// The algorithms tried to remove a predicate that is not in the
     /// fold-unfold state.
     FailedToRemovePred(vir::Expr),
@@ -104,7 +106,7 @@ pub fn add_folding_unfolding_to_expr(
 
 pub fn add_folding_unfolding_to_function(
     function: vir::Function,
-    predicates: HashMap<String, vir::Predicate>,
+    predicates: HashMap<vir::Type, vir::Predicate>,
 ) -> Result<vir::Function, FoldUnfoldError> {
     if config::dump_debug_info() {
         prusti_common::report::log::report(
@@ -1119,7 +1121,7 @@ impl<'b, 'a: 'b> FallibleExprFolder for ExprReplacer<'b, 'a> {
     fn fallible_fold_unfolding(
         &mut self,
         vir::Unfolding {
-            predicate_name,
+            predicate,
             arguments,
             base,
             permission,
@@ -1129,7 +1131,7 @@ impl<'b, 'a: 'b> FallibleExprFolder for ExprReplacer<'b, 'a> {
     ) -> Result<vir::Expr, Self::Error> {
         trace!(
             "[enter] fold_unfolding {}, {}, {}, {}",
-            predicate_name,
+            predicate,
             arguments[0],
             base,
             permission
@@ -1137,7 +1139,7 @@ impl<'b, 'a: 'b> FallibleExprFolder for ExprReplacer<'b, 'a> {
 
         let res = if self.wait_old_expr {
             vir::Expr::Unfolding(vir::Unfolding {
-                predicate_name,
+                predicate,
                 arguments,
                 base: self.fallible_fold_boxed(base)?,
                 permission,
@@ -1149,7 +1151,7 @@ impl<'b, 'a: 'b> FallibleExprFolder for ExprReplacer<'b, 'a> {
             let mut inner_pctxt = self.curr_pctxt.clone();
             let inner_state = inner_pctxt.mut_state();
             vir::Stmt::Unfold(vir::Unfold {
-                predicate_name: predicate_name.clone(),
+                predicate: predicate.clone(),
                 arguments: arguments.clone(),
                 permission,
                 enum_variant: variant.clone(),
@@ -1166,7 +1168,7 @@ impl<'b, 'a: 'b> FallibleExprFolder for ExprReplacer<'b, 'a> {
             std::mem::swap(&mut self.curr_pctxt, &mut tmp_curr_pctxt);
 
             vir::Expr::Unfolding(vir::Unfolding {
-                predicate_name,
+                predicate,
                 arguments,
                 base: inner_expr,
                 permission,
