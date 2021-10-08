@@ -4,7 +4,10 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use super::places_utils::{union, union3};
+use super::{
+    places_utils::{union, union3},
+    Predicates,
+};
 use crate::encoder::foldunfold::{
     perm::{Perm::*, *},
     requirements::*,
@@ -19,11 +22,11 @@ use vir_crate::polymorphic::{self as vir, PermAmount};
 pub trait ExprFootprintGetter {
     /// Returns the precise footprint of an expression, that is the permissions that must be
     /// added/removed when executing an `inhale/exhale expr` statement.
-    fn get_footprint(&self, predicates: &HashMap<String, vir::Predicate>) -> HashSet<Perm>;
+    fn get_footprint(&self, predicates: &Predicates) -> HashSet<Perm>;
 }
 
 impl ExprFootprintGetter for vir::Expr {
-    fn get_footprint(&self, predicates: &HashMap<String, vir::Predicate>) -> HashSet<Perm> {
+    fn get_footprint(&self, predicates: &Predicates) -> HashSet<Perm> {
         trace!("get_footprint {}", self);
         let res = match self {
             vir::Expr::Local(_)
@@ -48,8 +51,8 @@ impl ExprFootprintGetter for vir::Expr {
                 debug_assert!(place.is_place());
 
                 // We want to temporarly unfold place
-                let predicate_name = place.typed_ref_name().unwrap();
-                let predicate = predicates.get(&predicate_name).unwrap();
+                let predicate_type = place.get_type();
+                let predicate = predicates.get(&predicate_type).unwrap();
 
                 let pred_self_place: vir::Expr = predicate.self_place();
                 let places_in_pred: HashSet<Perm> = predicate

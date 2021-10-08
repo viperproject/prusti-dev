@@ -226,7 +226,7 @@ impl fmt::Display for Assign {
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Hash)]
 pub struct Fold {
-    pub predicate_name: String,
+    pub predicate: Type,
     pub arguments: Vec<Expr>,
     pub permission: PermAmount,
     pub enum_variant: MaybeEnumVariantIndex,
@@ -239,9 +239,9 @@ impl fmt::Display for Fold {
             f,
             "fold acc({}({}), {})",
             if let Some(variant_index) = &self.enum_variant {
-                format!("{}<variant {}>", self.predicate_name, variant_index)
+                format!("{}<variant {}>", self.predicate, variant_index)
             } else {
-                self.predicate_name.to_string()
+                self.predicate.to_string()
             },
             self.arguments
                 .iter()
@@ -255,7 +255,7 @@ impl fmt::Display for Fold {
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Hash)]
 pub struct Unfold {
-    pub predicate_name: String,
+    pub predicate: Type,
     pub arguments: Vec<Expr>,
     pub permission: PermAmount,
     pub enum_variant: MaybeEnumVariantIndex,
@@ -267,9 +267,9 @@ impl fmt::Display for Unfold {
             f,
             "unfold acc({}({}), {})",
             if let Some(variant_index) = &self.enum_variant {
-                format!("{}<variant {}>", self.predicate_name, variant_index)
+                format!("{}<variant {}>", self.predicate, variant_index)
             } else {
-                self.predicate_name.to_string()
+                self.predicate.to_string()
             },
             self.arguments
                 .iter()
@@ -618,14 +618,14 @@ pub trait StmtFolder {
     }
     fn fold_fold(&mut self, statement: Fold) -> Stmt {
         let Fold {
-            predicate_name,
+            predicate,
             arguments,
             permission,
             enum_variant,
             position,
         } = statement;
         Stmt::Fold(Fold {
-            predicate_name,
+            predicate,
             arguments: arguments.into_iter().map(|e| self.fold_expr(e)).collect(),
             permission,
             enum_variant,
@@ -635,13 +635,13 @@ pub trait StmtFolder {
 
     fn fold_unfold(&mut self, statement: Unfold) -> Stmt {
         let Unfold {
-            predicate_name,
+            predicate,
             arguments,
             permission,
             enum_variant,
         } = statement;
         Stmt::Unfold(Unfold {
-            predicate_name,
+            predicate,
             arguments: arguments.into_iter().map(|e| self.fold_expr(e)).collect(),
             permission,
             enum_variant,
@@ -830,14 +830,14 @@ pub trait FallibleStmtFolder {
 
     fn fallible_fold_fold(&mut self, statement: Fold) -> Result<Stmt, Self::Error> {
         let Fold {
-            predicate_name,
+            predicate,
             arguments,
             permission,
             enum_variant,
             position,
         } = statement;
         Ok(Stmt::Fold(Fold {
-            predicate_name,
+            predicate,
             arguments: arguments
                 .into_iter()
                 .map(|e| self.fallible_fold_expr(e))
@@ -850,13 +850,13 @@ pub trait FallibleStmtFolder {
 
     fn fallible_fold_unfold(&mut self, statement: Unfold) -> Result<Stmt, Self::Error> {
         let Unfold {
-            predicate_name,
+            predicate,
             arguments,
             permission,
             enum_variant,
         } = statement;
         Ok(Stmt::Unfold(Unfold {
-            predicate_name,
+            predicate,
             arguments: arguments
                 .into_iter()
                 .map(|e| self.fallible_fold_expr(e))
