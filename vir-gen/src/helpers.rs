@@ -23,6 +23,13 @@ pub fn prefixed_method_name_from_camel(prefix: &str, ident: &syn::Ident) -> syn:
             new_ident.push(c);
         }
     }
+    let new_ident = match new_ident.as_ref() {
+        "struct" | "enum" | "union" | "type" => {
+            new_ident.push('_');
+            new_ident
+        }
+        _ => new_ident,
+    };
     syn::Ident::new(&new_ident, ident.span())
 }
 
