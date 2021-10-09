@@ -1,4 +1,4 @@
-use syn::parse_quote;
+use syn::{parse_quote, spanned::Spanned};
 
 use crate::{ast::PathList, helpers::unbox_type};
 
@@ -48,11 +48,13 @@ fn derive_new<'a>(
     ignore_field: Option<&str>,
 ) -> syn::Item {
     let name = syn::Ident::new(name, struct_ident.span());
-    let mut parameters: Vec<syn::FnArg> = Vec::new();
-    let mut fields: Vec<syn::FieldValue> = Vec::new();
-    for field in fields_iter {
+    let mut parameters = Vec::<syn::FnArg>::new();
+    let mut fields = Vec::<syn::FieldValue>::new();
+    let mut generics = Vec::<syn::GenericParam>::new();
+    for (i, field) in fields_iter.enumerate() {
         let name = field.ident.as_ref().unwrap();
         let parameter_type = unbox_type(&field.ty);
+        let generic_type = syn::Ident::new(&format!("G{}", i), parameter_type.span());
         if ignore_field
             .map(|ignored_name| name == ignored_name)
             .unwrap_or(false)
@@ -61,23 +63,26 @@ fn derive_new<'a>(
                 #name: #parameter_type::default()
             ));
         } else {
+            generics.push(parse_quote! {
+                #generic_type: Into<#parameter_type>
+            });
             parameters.push(parse_quote!(
-                #name: #parameter_type
+                #name: #generic_type
             ));
             if parameter_type == field.ty {
                 fields.push(parse_quote!(
-                    #name
+                    #name: #name.into()
                 ));
             } else {
                 fields.push(parse_quote!(
-                    #name: Box::new(#name)
+                    #name: Box::new(#name.into())
                 ));
             }
         }
     }
     parse_quote! {
         impl #struct_ident {
-            pub fn #name(#(#parameters),*) -> Self {
+            pub fn #name<#(#generics),*>(#(#parameters),*) -> Self {
                 Self {
                     #(#fields),*
                 }
