@@ -1,7 +1,8 @@
 use super::common::DeriveInfo;
 use crate::{
     deriver::common::{
-        extract_variant_type, find_variant_struct, get_vec_type_arg, type_to_indent,
+        extract_variant_type, find_variant_enum, find_variant_struct, get_option_type_arg,
+        get_vec_type_arg, type_to_indent,
     },
     helpers::{append_ident, method_name_from_camel, prefixed_method_name_from_camel, unbox_type},
 };
@@ -31,23 +32,26 @@ pub(super) fn derive(
             if deriver.kind.is_folder() {
                 deriver.create_boxed_walk_method(&enum_ident);
             }
-            deriver.create_default_enum_function(&variants);
+            deriver.create_default_enum_function(&variants)?;
 
             let mut all_walked_types = HashSet::new();
             let mut all_created_methods = HashSet::new();
             all_created_methods.insert(enum_ident.clone());
 
             for variant in &variants {
-                let ty = extract_variant_type(variant)?;
-                all_created_methods.insert(ty.clone());
-                if deriver.kind.is_folder() {
-                    deriver.create_walk_method(ty, Some(variant));
-                    deriver.create_boxed_walk_method(ty);
+                if let Some(ty) = extract_variant_type(variant)? {
+                    all_created_methods.insert(ty.clone());
+                    if deriver.kind.is_folder() {
+                        deriver.create_walk_method(ty, Some(variant));
+                        deriver.create_boxed_walk_method(ty);
+                    } else {
+                        deriver.create_walk_method(ty, None);
+                    }
+                    let walked_types = deriver.create_default_struct_function(items, variant)?;
+                    all_walked_types.extend(walked_types);
                 } else {
-                    deriver.create_walk_method(ty, None);
+                    deriver.create_argless_walk_method(&variant.ident);
                 }
-                let walked_types = deriver.create_default_struct_function(items, variant)?;
-                all_walked_types.extend(walked_types);
             }
             for ty in all_walked_types.difference(&all_created_methods) {
                 deriver.create_empty_walk_method(ty);
@@ -169,6 +173,39 @@ impl Deriver {
         };
         self.trait_items.push(method);
     }
+    fn create_argless_walk_method(&mut self, ty: &syn::Ident) {
+        let method_name = self.create_method_name(ty);
+        let enum_ident = &self.enum_ident;
+        let result_type = self.create_result_type(enum_ident, false);
+        let result: syn::Expr = match self.kind {
+            DeriverKind::Walker => {
+                parse_quote! {
+                    ()
+                }
+            }
+            DeriverKind::FallibleWalker => {
+                parse_quote! {
+                    Ok(())
+                }
+            }
+            DeriverKind::Folder => {
+                parse_quote! {
+                    #enum_ident::#ty
+                }
+            }
+            DeriverKind::FallibleFolder => {
+                parse_quote! {
+                    Ok(#enum_ident::#ty)
+                }
+            }
+        };
+        let method = parse_quote! {
+            pub fn #method_name(&mut self) -> #result_type {
+                #result
+            }
+        };
+        self.trait_items.push(method);
+    }
     fn create_empty_walk_method(&mut self, ty: &syn::Ident) {
         let method_name = self.create_method_name(ty);
         let parameter_name = prefixed_method_name_from_camel("_", ty);
@@ -203,7 +240,10 @@ impl Deriver {
         };
         self.trait_items.push(method);
     }
-    fn create_default_enum_function(&mut self, variants: &[syn::Variant]) {
+    fn create_default_enum_function(
+        &mut self,
+        variants: &[syn::Variant],
+    ) -> Result<(), syn::Error> {
         let enum_ident = &self.enum_ident;
         let trait_ident = &self.trait_ident;
         let parameter_name = method_name_from_camel(enum_ident);
@@ -212,9 +252,18 @@ impl Deriver {
         for variant in variants {
             let variant_ident = &variant.ident;
             let variant_name = method_name_from_camel(variant_ident);
-            let method_call = self.create_method_call(&variant_name, variant_ident, false);
-            let arm = parse_quote! {
-                #enum_ident::#variant_ident(#variant_name) => #method_call,
+            let arm = if extract_variant_type(variant)?.is_some() {
+                let method_call = self.create_method_call(&variant_name, variant_ident, false);
+                parse_quote! {
+                    #enum_ident::#variant_ident(#variant_name) => #method_call,
+                }
+            } else {
+                let method_name = self.create_method_name(variant_ident);
+                if self.kind.is_fallible() {
+                    parse_quote! { #enum_ident::#variant_ident => this.#method_name()?, }
+                } else {
+                    parse_quote! { #enum_ident::#variant_ident => this.#method_name(), }
+                }
             };
             arms.push(arm);
         }
@@ -240,6 +289,51 @@ impl Deriver {
             }
         };
         self.default_functions.push(default_function);
+        Ok(())
+    }
+    fn create_default_empty_enum_function(
+        &mut self,
+        variant: &syn::Variant,
+    ) -> Result<Vec<syn::Ident>, syn::Error> {
+        let trait_ident = &self.trait_ident;
+        let variant_type = extract_variant_type(variant)?.unwrap();
+        let parameter_name = method_name_from_camel(variant_type);
+        let default_method_name = self.create_default_method_name(variant_type);
+        let parameter_type = self.create_parameter_type(variant_type);
+        let result_type = self.create_result_type(variant_type, true);
+        let result: syn::Expr = match self.kind {
+            DeriverKind::Walker => {
+                parse_quote! {
+                    ()
+                }
+            }
+            DeriverKind::FallibleWalker => {
+                parse_quote! {
+                    Ok(())
+                }
+            }
+            DeriverKind::Folder => {
+                parse_quote! {
+                    #parameter_name
+                }
+            }
+            DeriverKind::FallibleFolder => {
+                parse_quote! {
+                    Ok(#parameter_name)
+                }
+            }
+        };
+        let default_function = parse_quote! {
+            #[allow(unused_variables)]
+            pub fn #default_method_name<T: #trait_ident>(
+                this: &mut T,
+                #parameter_name: #parameter_type
+            ) -> #result_type {
+                #result
+            }
+        };
+        self.default_functions.push(default_function);
+        Ok(Vec::new())
     }
     fn create_default_struct_function(
         &mut self,
@@ -247,7 +341,10 @@ impl Deriver {
         variant: &syn::Variant,
     ) -> Result<Vec<syn::Ident>, syn::Error> {
         let trait_ident = &self.trait_ident;
-        let variant_type = extract_variant_type(variant)?;
+        let variant_type = extract_variant_type(variant)?.unwrap();
+        if let Some(_variant_enum) = find_variant_enum(items, variant_type) {
+            return self.create_default_empty_enum_function(variant);
+        }
         let variant_struct = find_variant_struct(items, variant_type)?;
         let parameter_name = method_name_from_camel(variant_type);
         let default_method_name = self.create_default_method_name(variant_type);
@@ -277,6 +374,25 @@ impl Deriver {
                     parse_quote! {
                         for element in #name {
                             #method_call;
+                        }
+                    }
+                }
+            } else if let Some(inner_type) = get_option_type_arg(&parameter_type) {
+                let element = syn::Ident::new("element", Span::call_site());
+                let method_call = self.create_method_call(&element, inner_type, false);
+                walked_types.push(inner_type.clone());
+                if self.kind.is_folder() {
+                    parse_quote! {
+                        let #name = if let Some(element) = #name {
+                            Some(#method_call)
+                        } else {
+                            None
+                        };
+                    }
+                } else {
+                    parse_quote! {
+                        if let Some(element) = #name {
+                            #method_call
                         }
                     }
                 }
@@ -330,6 +446,7 @@ impl Deriver {
             }
         };
         let default_function = parse_quote! {
+            #[allow(clippy::manual_map)]
             pub fn #default_method_name<T: #trait_ident>(this: &mut T, #parameter_name: #parameter_type) -> #result_type {
                 let #variant_type {
                     #(#field_names),*

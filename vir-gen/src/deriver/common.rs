@@ -26,8 +26,11 @@ pub(super) fn collect(items: &mut [syn::Item], macro_name: &str) -> Vec<DeriveIn
     helpers_to_derive
 }
 
-pub(super) fn extract_variant_type(variant: &syn::Variant) -> Result<&syn::Ident, syn::Error> {
+pub(super) fn extract_variant_type(
+    variant: &syn::Variant,
+) -> Result<Option<&syn::Ident>, syn::Error> {
     let path = match &variant.fields {
+        syn::Fields::Unit => None,
         syn::Fields::Unnamed(fields) if fields.unnamed.len() == 1 => match &fields.unnamed[0].ty {
             syn::Type::Path(syn::TypePath {
                 qself: None,
@@ -43,7 +46,7 @@ pub(super) fn extract_variant_type(variant: &syn::Variant) -> Result<&syn::Ident
                         "unsupported field shape for deriving helpers",
                     ));
                 }
-                &segments[0].ident
+                Some(&segments[0].ident)
             }
             _ => {
                 return Err(syn::Error::new(
@@ -60,6 +63,24 @@ pub(super) fn extract_variant_type(variant: &syn::Variant) -> Result<&syn::Ident
         }
     };
     Ok(path)
+}
+
+pub(super) fn find_variant_enum<'a>(
+    items: &'a [syn::Item],
+    variant_type: &syn::Ident,
+) -> Option<&'a syn::ItemEnum> {
+    let item = items.iter().find(|item| {
+        if let syn::Item::Enum(enum_item) = item {
+            variant_type == &enum_item.ident
+        } else {
+            false
+        }
+    });
+    if let Some(syn::Item::Enum(enum_item)) = item {
+        Some(enum_item)
+    } else {
+        None
+    }
 }
 
 pub(super) fn find_variant_struct<'a>(
@@ -111,7 +132,7 @@ pub(super) fn type_to_indent(ty: &syn::Type) -> Result<&syn::Ident, syn::Error> 
     }
 }
 
-pub(super) fn get_vec_type_arg(ty: &syn::Type) -> Option<&syn::Ident> {
+fn get_type_arg<'a>(ty: &'a syn::Type, main_type: &str) -> Option<&'a syn::Ident> {
     if let syn::Type::Path(syn::TypePath {
         qself: None,
         path: syn::Path {
@@ -120,7 +141,7 @@ pub(super) fn get_vec_type_arg(ty: &syn::Type) -> Option<&syn::Ident> {
         },
     }) = ty
     {
-        if segments.len() == 1 && segments[0].ident == "Vec" {
+        if segments.len() == 1 && segments[0].ident == main_type {
             if let syn::PathArguments::AngleBracketed(syn::AngleBracketedGenericArguments {
                 args,
                 ..
@@ -141,4 +162,12 @@ pub(super) fn get_vec_type_arg(ty: &syn::Type) -> Option<&syn::Ident> {
     } else {
         None
     }
+}
+
+pub(super) fn get_option_type_arg(ty: &syn::Type) -> Option<&syn::Ident> {
+    get_type_arg(ty, "Option")
+}
+
+pub(super) fn get_vec_type_arg(ty: &syn::Type) -> Option<&syn::Ident> {
+    get_type_arg(ty, "Vec")
 }
