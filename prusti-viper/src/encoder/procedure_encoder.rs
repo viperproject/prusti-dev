@@ -3015,7 +3015,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         let (target_value, mut stmts) = self.encode_pure_function_call_lhs_value(destination, location)
             .with_span(call_site_span)?;
 
-        let inhaled_expr = if return_type.is_domain() {
+        let inhaled_expr = if return_type.is_domain() || return_type.is_snapshot() {
             let (target_place, pre_stmts) = self.encode_pure_function_call_lhs_place(destination, location)?;
             stmts.extend(pre_stmts);
             vir::Expr::eq_cmp(
