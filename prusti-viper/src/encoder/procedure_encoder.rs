@@ -5678,6 +5678,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         let lookup_ret_ty = self.encoder.encode_snapshot_type(array_types.elem_ty_rs, &tymap)
             .with_span(span)?;
 
+        let inhaled_operand = if lookup_ret_ty.is_domain() || lookup_ret_ty.is_snapshot() {
+            vir::Expr::snap_app(encoded_operand)
+        } else {
+            encoded_operand
+        };
+
         let mut stmts = self.encode_havoc_and_allocation(&encoded_lhs);
         for i in 0..len {
             let idx = vir::Expr::from(i);
@@ -5689,7 +5695,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             );
 
             stmts.push(vir::Stmt::Inhale( vir::Inhale {
-                expr: vir_expr!{ [lookup_pure_call] == [encoded_operand] }
+                expr: vir_expr!{ [lookup_pure_call] == [inhaled_operand] }
             }));
         }
 
