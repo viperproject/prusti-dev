@@ -16,7 +16,7 @@ use crate::encoder::{
     mir::types::MirTypeEncoderInterface,
     mir_encoder::{MirEncoder, PlaceEncoder, PlaceEncoding, PRECONDITION_LABEL, WAND_LHS_LABEL},
     mir_interpreter::{
-        run_backward_interpretation, BackwardMirInterpreter, MultiExprBackwardInterpreterState,
+        run_backward_interpretation, BackwardMirInterpreter, ExprBackwardInterpreterState,
     },
     snapshot, Encoder,
 };
@@ -74,7 +74,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
 
         let state = run_backward_interpretation(self.mir, &self.interpreter)?
             .unwrap_or_else(|| panic!("Procedure {:?} contains a loop", self.proc_def_id));
-        let body_expr = state.into_expressions().remove(0);
+        let body_expr = state.into_expr();
         debug!(
             "Pure function {} has been encoded with expr: {}",
             function_name, body_expr
@@ -108,7 +108,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
             state.substitute_place(&target_place, new_place);
         }
 
-        let mut body_expr = state.into_expressions().remove(0);
+        let mut body_expr = state.into_expr();
         debug!(
             "Pure function {} has been encoded with expr: {}",
             function_name, body_expr
