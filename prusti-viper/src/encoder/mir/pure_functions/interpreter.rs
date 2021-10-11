@@ -11,7 +11,7 @@ use crate::encoder::{
     mir::types::MirTypeEncoderInterface,
     mir_encoder::{MirEncoder, PlaceEncoder, PlaceEncoding, PRECONDITION_LABEL, WAND_LHS_LABEL},
     mir_interpreter::{
-        run_backward_interpretation, BackwardMirInterpreter, MultiExprBackwardInterpreterState,
+        run_backward_interpretation, BackwardMirInterpreter, ExprBackwardInterpreterState,
     },
     snapshot, Encoder,
 };
@@ -27,18 +27,21 @@ use vir_crate::polymorphic::{self as vir, ExprIterator};
 
 pub(crate) struct PureFunctionBackwardInterpreter<'p, 'v: 'p, 'tcx: 'v> {
     encoder: &'p Encoder<'v, 'tcx>,
+    /// MIR of the pure function being encoded.
     mir: &'p mir::Body<'tcx>,
+    /// MirEncoder of the pure function being encoded.
     mir_encoder: MirEncoder<'p, 'v, 'tcx>,
-    /// True if the encoder is currently encoding an assertion and not a pure function body. This
-    /// flag is used to distinguish when assert terminators should be translated into `false` and
-    /// when to a undefined function calls. This distinction allows overflow checks to be checked
-    /// on the caller side and assumed on the definition side.
-    is_encoding_assertion: bool,
-    parent_def_id: DefId,
+    /// True if a panic should be encoded to a `false` boolean value.
+    /// This flag is used to distinguish whether an assert terminators generated e.g. for an
+    /// integer overflow should be translated into `false` and when to an "unreachable" function
+    /// call with a `false` precondition.
+    encode_panic_to_false: bool,
+    /// DefId of the caller. Used for error reporting.
+    caller_def_id: DefId,
     tymap: SubstMap<'tcx>,
 }
 
-/// XXX: This encoding works backward, but there is the risk of generating expressions whose length
+/// This encoding works backward, so there is the risk of generating expressions whose length
 /// is exponential in the number of branches. If this becomes a problem, consider doing a forward
 /// encoding (keeping path conditions expressions).
 impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionBackwardInterpreter<'p, 'v, 'tcx> {
@@ -46,16 +49,17 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionBackwardInterpreter<'p, 'v, 'tcx> {
         encoder: &'p Encoder<'v, 'tcx>,
         mir: &'p mir::Body<'tcx>,
         def_id: DefId,
-        is_encoding_assertion: bool,
-        parent_def_id: DefId,
+        encode_panic_to_false: bool,
+        caller_def_id: DefId,
         tymap: SubstMap<'tcx>,
     ) -> Self {
+        debug_assert!(!encode_panic_to_false || matches!(mir.return_ty().kind(), ty::TyKind::Bool));
         PureFunctionBackwardInterpreter {
             encoder,
             mir,
             mir_encoder: MirEncoder::new(encoder, mir, def_id),
-            is_encoding_assertion,
-            parent_def_id,
+            encode_panic_to_false,
+            caller_def_id,
             tymap,
         }
     }
@@ -68,32 +72,27 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionBackwardInterpreter<'p, 'v, 'tcx> {
     /// fold-unfold pass.
     fn apply_downcasts(
         &self,
-        state: &mut MultiExprBackwardInterpreterState,
+        state: &mut ExprBackwardInterpreterState,
         location: mir::Location,
     ) -> SpannedEncodingResult<()> {
-        // This assertion is just to check the time complexity.
-        // MultiExprBackwardInterpreterState is more generic than needed.
-        debug_assert_eq!(state.exprs().len(), 1);
-
         let span = self.mir_encoder.get_span_of_location(location);
-        for expr in state.exprs_mut() {
-            let downcasts = self.mir_encoder.get_downcasts_at_location(location);
-            // Reverse `downcasts` because the encoding works backward
-            for (place, variant_idx) in downcasts.into_iter().rev() {
-                let (encoded_place, place_ty, _) = self
-                    .encode_projection(place.local, &place.projection[..])
-                    .with_span(span)?;
-                let variant_field = if let ty::TyKind::Adt(adt_def, _subst) = place_ty.kind() {
-                    let variant_name = &adt_def.variants[variant_idx].ident.as_str();
-                    self.encoder.encode_enum_variant_field(variant_name)
-                } else {
-                    unreachable!()
-                };
-                // Replace two times to avoid cloning `expr`, which could be big.
-                let base = mem::replace(expr, true.into());
-                let new_expr = vir::Expr::downcast(base, encoded_place, variant_field);
-                let _ = mem::replace(expr, new_expr);
-            }
+        let expr = state.expr_mut();
+        let downcasts = self.mir_encoder.get_downcasts_at_location(location);
+        // Reverse `downcasts` because the encoding works backward
+        for (place, variant_idx) in downcasts.into_iter().rev() {
+            let (encoded_place, place_ty, _) = self
+                .encode_projection(place.local, &place.projection[..])
+                .with_span(span)?;
+            let variant_field = if let ty::TyKind::Adt(adt_def, _subst) = place_ty.kind() {
+                let variant_name = &adt_def.variants[variant_idx].ident.as_str();
+                self.encoder.encode_enum_variant_field(variant_name)
+            } else {
+                unreachable!()
+            };
+            // Replace two times to avoid cloning `expr`, which could be big.
+            let base = mem::replace(expr, true.into());
+            let new_expr = vir::Expr::downcast(base, encoded_place, variant_field);
+            let _ = mem::replace(expr, new_expr);
         }
         Ok(())
     }
@@ -194,7 +193,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionBackwardInterpreter<'p, 'v, 'tcx> {
 impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
     for PureFunctionBackwardInterpreter<'p, 'v, 'tcx>
 {
-    type State = MultiExprBackwardInterpreterState;
+    type State = ExprBackwardInterpreterState;
     type Error = SpannedEncodingError;
 
     fn apply_terminator(
@@ -240,11 +239,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                 let pos = self.encoder.error_manager().register(
                     term.source_info.span,
                     ErrorCtxt::Unexpected,
-                    self.parent_def_id,
+                    self.caller_def_id,
                 );
-                MultiExprBackwardInterpreterState::new_single(
-                    undef_expr(pos).with_span(term.source_info.span)?,
-                )
+                ExprBackwardInterpreterState::new(undef_expr(pos).with_span(term.source_info.span)?)
             }
 
             TerminatorKind::Abort | TerminatorKind::Resume { .. } => {
@@ -252,9 +249,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                 let pos = self.encoder.error_manager().register(
                     term.source_info.span,
                     ErrorCtxt::Unexpected,
-                    self.parent_def_id,
+                    self.caller_def_id,
                 );
-                MultiExprBackwardInterpreterState::new_single(
+                ExprBackwardInterpreterState::new(
                     unreachable_expr(pos).with_span(term.source_info.span)?,
                 )
             }
@@ -291,7 +288,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                     .encode_type(self.mir.return_ty())
                     .with_span(span)?;
                 let return_var = vir_local! { _0: {return_type} };
-                MultiExprBackwardInterpreterState::new_single(
+                ExprBackwardInterpreterState::new(
                     self.encoder
                         .encode_value_expr(vir::Expr::local(return_var), self.mir.return_ty())
                         .with_span(span)?,
@@ -359,24 +356,18 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
 
                 trace!("cfg_targets: {:?}", cfg_targets);
 
-                MultiExprBackwardInterpreterState::new(
-                    (0..states[&refined_default_target].exprs().len())
-                        .map(|expr_index| {
-                            cfg_targets.iter().fold(
-                                states[&refined_default_target].exprs()[expr_index].clone(),
-                                |else_expr, (guard, target)| {
-                                    let then_expr = states[target].exprs()[expr_index].clone();
-                                    if then_expr == else_expr {
-                                        // Optimization
-                                        else_expr
-                                    } else {
-                                        vir::Expr::ite(guard.clone(), then_expr, else_expr)
-                                    }
-                                },
-                            )
-                        })
-                        .collect(),
-                )
+                ExprBackwardInterpreterState::new(cfg_targets.iter().fold(
+                    states[&refined_default_target].expr().clone(),
+                    |else_expr, (guard, target)| {
+                        let then_expr = states[target].expr().clone();
+                        if then_expr == else_expr {
+                            // Optimization
+                            else_expr
+                        } else {
+                            vir::Expr::ite(guard.clone(), then_expr, else_expr)
+                        }
+                    },
+                ))
             }
 
             TerminatorKind::DropAndReplace { .. } => unimplemented!(),
@@ -567,7 +558,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                                     self.encoder
                                         .encode_pure_function_use(
                                             def_id,
-                                            self.parent_def_id,
+                                            self.caller_def_id,
                                             &tymap,
                                         )
                                         .with_span(term.source_info.span)?
@@ -596,7 +587,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                                 let pos = self.encoder.error_manager().register(
                                     term.source_info.span,
                                     ErrorCtxt::PureFunctionCall,
-                                    self.parent_def_id,
+                                    self.caller_def_id,
                                 );
                                 let encoded_rhs = vir::Expr::func_app(
                                     function_name,
@@ -632,9 +623,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                         let pos = self.encoder.error_manager().register(
                             term.source_info.span,
                             error_ctxt,
-                            self.parent_def_id,
+                            self.caller_def_id,
                         );
-                        MultiExprBackwardInterpreterState::new_single(
+                        ExprBackwardInterpreterState::new(
                             unreachable_expr(pos).with_span(term.source_info.span)?,
                         )
                     };
@@ -675,29 +666,24 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                 let pos = self.encoder.error_manager().register(
                     term.source_info.span,
                     error_ctxt,
-                    self.parent_def_id,
+                    self.caller_def_id,
                 );
 
-                MultiExprBackwardInterpreterState::new(
-                    states[target]
-                        .exprs()
-                        .iter()
-                        .map(|expr| {
-                            let failure_result = if self.is_encoding_assertion {
-                                // We are encoding an assertion, so all failures should be
-                                // equivalent to false.
-                                Ok(false.into())
-                            } else {
-                                // We are encoding a pure function, so all failures should
-                                // be unreachable.
-                                unreachable_expr(pos).with_span(term.source_info.span)
-                            };
-                            failure_result.map(|result| {
-                                vir::Expr::ite(viper_guard.clone(), expr.clone(), result)
-                            })
-                        })
-                        .collect::<Result<_, _>>()?,
-                )
+                let failure_encoding = if self.encode_panic_to_false {
+                    // We are encoding an assertion, so all failures should be
+                    // equivalent to false.
+                    false.into()
+                } else {
+                    // We are encoding a pure function, so all failures should
+                    // be unreachable.
+                    unreachable_expr(pos).with_span(term.source_info.span)?
+                };
+
+                ExprBackwardInterpreterState::new(vir::Expr::ite(
+                    viper_guard.clone(),
+                    states[target].expr().clone(),
+                    failure_encoding,
+                ))
             }
 
             TerminatorKind::Yield { .. }
@@ -1006,7 +992,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                                     let pos = self
                                         .encoder
                                         .error_manager()
-                                        .register(stmt.source_info.span, ErrorCtxt::Unexpected, self.parent_def_id);
+                                        .register(stmt.source_info.span, ErrorCtxt::Unexpected, self.caller_def_id);
                                     let function_name = self.encoder.encode_builtin_function_use(
                                         BuiltinFunctionKind::Unreachable(vir::Type::Int),
                                     );

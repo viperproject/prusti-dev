@@ -12,7 +12,7 @@ use crate::encoder::mir_encoder::{MirEncoder, PlaceEncoder, PlaceEncoding};
 use crate::encoder::mir_encoder::PRECONDITION_LABEL;
 use crate::encoder::mir_interpreter::{
     run_backward_interpretation_point_to_point, BackwardMirInterpreter,
-    MultiExprBackwardInterpreterState,
+    ExprBackwardInterpreterState,
 };
 use crate::encoder::mir::pure_functions::{PureFunctionBackwardInterpreter, PureFunctionEncoderInterface};
 use crate::encoder::Encoder;
@@ -592,7 +592,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
 
         // Translate an intermediate state to the state at the beginning of the method
         let substs = self.encoder.type_substitution_polymorphic_type_map(self.tymap).with_span(mir.span)?;
-        let state = MultiExprBackwardInterpreterState::new_single_with_substs(
+        let state = ExprBackwardInterpreterState::new_with_substs(
             expr,
             substs,
         );
@@ -609,9 +609,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
             expr_location.block,
             expr_location.statement_index,
             state,
-            MultiExprBackwardInterpreterState::new(vec![]),
         )?.unwrap_or_else(|| panic!("cannot encode {:?} because its CFG contains a loop", def_id));
-        let pre_state_expr = initial_state.into_expressions().remove(0);
+        let pre_state_expr = initial_state.into_expr();
 
         trace!("Expr at the beginning: {}", pre_state_expr);
         Ok(pre_state_expr)
@@ -756,7 +755,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> StraightLineBackwardInterpreter<'p, 'v, 'tcx> {
 impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
     for StraightLineBackwardInterpreter<'p, 'v, 'tcx>
 {
-    type State = MultiExprBackwardInterpreterState;
+    type State = ExprBackwardInterpreterState;
     type Error = SpannedEncodingError;
 
     fn apply_terminator(
@@ -766,15 +765,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
         states: HashMap<mir::BasicBlock, &Self::State>,
     ) -> Result<Self::State, Self::Error> {
         trace!("apply_terminator {:?}, states: {:?}", term, states);
-        if !states.is_empty() && states.values().all(|state| !state.exprs().is_empty()) {
-            // All states are initialized
-            self.interpreter.apply_terminator(bb, term, states)
-        } else {
-            // One of the states is not yet initialized
-            trace!("Skip terminator {:?}", term);
-            Ok(MultiExprBackwardInterpreterState::new(vec![]))
-        }
+        self.interpreter.apply_terminator(bb, term, states)
     }
+
     fn apply_statement(
         &self,
         bb: mir::BasicBlock,
@@ -783,14 +776,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
         state: &mut Self::State,
     ) -> Result<(), Self::Error> {
         trace!("apply_statement {:?}, state: {:?}", stmt, state);
-        if !state.exprs().is_empty() {
-            // The state is initialized
-            self.interpreter
-                .apply_statement(bb, stmt_index, stmt, state)?;
-        } else {
-            // The state is not yet initialized
-            trace!("Skip statement {:?}", stmt);
-        }
-        Ok(())
+        self.interpreter.apply_statement(bb, stmt_index, stmt, state)
     }
 }
