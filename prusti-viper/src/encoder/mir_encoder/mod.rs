@@ -438,15 +438,15 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
     ) -> EncodingResult<vir::Expr> {
         trace!("Encode operand expr {:?}", operand);
         Ok(match operand {
-            &mir::Operand::Constant(box mir::Constant {
+            mir::Operand::Constant(box mir::Constant {
                 literal: mir::ConstantKind::Ty(ty::Const { ty, val }),
                 ..
             }) => self.encoder.encode_const_expr(ty, val)?,
-            &mir::Operand::Constant(box mir::Constant {
+            mir::Operand::Constant(box mir::Constant {
                 literal: mir::ConstantKind::Val(val, ty),
                 ..
-            }) => self.encoder.encode_const_expr(ty, &ty::ConstKind::Value(val))?,
-            &mir::Operand::Copy(ref place) | &mir::Operand::Move(ref place) => {
+            }) => self.encoder.encode_const_expr(ty, &ty::ConstKind::Value(*val))?,
+            mir::Operand::Copy(ref place) | &mir::Operand::Move(ref place) => {
                 // let val_place = self.eval_place(&place)?;
                 // inlined to do try_into_expr
                 let (encoded_place, place_ty, _) = self.encode_place(place)?;
