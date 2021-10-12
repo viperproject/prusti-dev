@@ -125,7 +125,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionBackwardInterpreter<'p, 'v, 'tcx> {
                 Ok((self.encode_place(place)?.0, false))
             }
             mir::Operand::Constant(constant) => {
-                Ok((self.encoder.encode_snapshot_constant(&constant)?, true))
+                Ok((self.encoder.encode_snapshot_constant(constant)?, true))
             }
         }
     }
@@ -1088,7 +1088,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                     }
 
                     mir::Rvalue::Repeat(ref operand, times) => {
-                        let (encoded_operand, _) = self.encode_operand(&operand).with_span(span)?;
+                        let (encoded_operand, _) = self.encode_operand(operand).with_span(span)?;
                         let len: usize = self.encoder.const_eval_intlike(&times.val).with_span(span)?
                             .to_u64().unwrap().try_into().unwrap();
                         let elem_ty = operand.ty(self.mir, self.encoder.env().tcx());
