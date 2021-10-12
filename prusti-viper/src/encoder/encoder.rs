@@ -713,6 +713,8 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         self.snapshot_encoder.borrow_mut().encode_type(self, ty, tymap)
     }
 
+    /// Encodes a snapshot constructor directly. Can only be used on ADTs with
+    /// a single variant.
     pub fn encode_snapshot_constructor(
         &self,
         ty: ty::Ty<'tcx>,
