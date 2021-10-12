@@ -5,7 +5,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use rustc_span::MultiSpan;
-use log::debug;
+use log::trace;
 use prusti_interface::PrustiError;
 use crate::encoder::errors::EncodingError;
 use crate::encoder::errors::EncodingErrorKind;
@@ -46,7 +46,7 @@ impl SpannedEncodingError {
 
     /// Usage of an unsupported Rust feature (e.g. dereferencing raw pointers)
     pub fn unsupported<M: ToString, S: Into<MultiSpan>>(message: M, span: S) -> Self {
-        debug!("Constructing unsupported error at:\n{:?}", Backtrace::new());
+        trace!("Constructing unsupported error at:\n{:?}", Backtrace::new());
         SpannedEncodingError::new(
             EncodingErrorKind::unsupported(message),
             span
@@ -55,7 +55,7 @@ impl SpannedEncodingError {
 
     /// An incorrect usage of Prusti (e.g. call an impure function in a contract)
     pub fn incorrect<M: ToString, S: Into<MultiSpan>>(message: M, span: S) -> Self {
-        debug!("Constructing incorrect error at:\n{:?}", Backtrace::new());
+        trace!("Constructing incorrect error at:\n{:?}", Backtrace::new());
         SpannedEncodingError::new(
             EncodingErrorKind::incorrect(message),
             span
@@ -64,7 +64,7 @@ impl SpannedEncodingError {
 
     /// An internal error of Prusti (e.g. failure of the fold-unfold)
     pub fn internal<M: ToString, S: Into<MultiSpan>>(message: M, span: S) -> Self {
-        debug!("Constructing internal error at:\n{:?}", Backtrace::new());
+        trace!("Constructing internal error at:\n{:?}", Backtrace::new());
         SpannedEncodingError::new(
             EncodingErrorKind::internal(message),
             span
