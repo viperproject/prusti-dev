@@ -1,8 +1,31 @@
 use super::super::ast::{
     expression::{visitors::ExpressionFolder, *},
-    ty::*,
+    ty::{visitors::TypeFolder, *},
 };
 use std::collections::HashMap;
+
+impl Type {
+    /// Return a type that represents a variant of the given enum.
+    pub fn variant(self, variant: VariantIndex) -> Self {
+        match self {
+            Type::Enum(Enum {
+                name,
+                arguments,
+                variant: None,
+            }) => Type::Enum(Enum {
+                name,
+                arguments,
+                variant: Some(variant),
+            }),
+            Type::Enum(Enum { .. }) => {
+                unreachable!("setting variant on enum type that already has variant set");
+            }
+            _ => {
+                unreachable!("setting variant on non-enum type");
+            }
+        }
+    }
+}
 
 pub trait Generic {
     fn substitute_types(self, substs: &HashMap<TypeVar, Type>) -> Self;
@@ -25,47 +48,68 @@ impl Generic for Expression {
 
 impl Generic for Type {
     fn substitute_types(self, substs: &HashMap<TypeVar, Type>) -> Self {
-        match self {
-            Type::Int | Type::Bool | Type::FnPointer => self,
-            Type::TypeVar(ref var) => substs.get(var).cloned().unwrap_or(self),
-            Type::Struct(Struct { name, arguments }) => Type::Struct(Struct {
-                name,
-                arguments: arguments
-                    .into_iter()
-                    .map(|arg| arg.substitute_types(substs))
-                    .collect(),
-            }),
-            Type::Enum(Enum {
-                name,
-                arguments,
-                variant,
-            }) => Type::Enum(Enum {
-                name,
-                arguments: arguments
-                    .into_iter()
-                    .map(|arg| arg.substitute_types(substs))
-                    .collect(),
-                variant,
-            }),
-            Type::Array(Array {
-                length,
-                element_type,
-            }) => Type::Array(Array {
-                length,
-                element_type: Box::new(element_type.substitute_types(substs)),
-            }),
-            Type::Slice(Slice { element_type }) => Type::Slice(Slice {
-                element_type: Box::new(element_type.substitute_types(substs)),
-            }),
-            Type::Reference(Reference { target_type }) => Type::Reference(Reference {
-                target_type: Box::new(target_type.substitute_types(substs)),
-            }),
-            Type::Pointer(Pointer { target_type }) => Type::Pointer(Pointer {
-                target_type: Box::new(target_type.substitute_types(substs)),
-            }),
+        struct TypeSubstitutor<'a> {
+            substs: &'a HashMap<TypeVar, Type>,
         }
+        impl<'a> TypeFolder for TypeSubstitutor<'a> {
+            fn fold_type_var(&mut self, var: TypeVar) -> Type {
+                if let Some(new_type) = self.substs.get(&var).cloned() {
+                    new_type
+                } else {
+                    Type::TypeVar(var)
+                }
+            }
+        }
+        let mut substitutor = TypeSubstitutor { substs };
+        substitutor.fold_type(self)
     }
 }
+
+// impl Generic for Vec<Type> {
+//     fn substitute_types(self, substs: &HashMap<TypeVar, Type>) -> Self {
+//         self.into_iter()
+//                     .map(|arg| arg.substitute_types(substs))
+//                     .collect()
+//     }
+// }
+
+// impl Generic for Type {
+//     fn substitute_types(self, substs: &HashMap<TypeVar, Type>) -> Self {
+//         match self {
+//             Type::Bool | Type::Int(_)  | Type::FnPointer | Type::Never | Type::Str => self,
+//             Type::TypeVar(ref var) => substs.get(var).cloned().unwrap_or(self),
+//             Type::Struct(Struct { name, arguments }) => Type::Struct(Struct {
+//                 name,
+//                 arguments: arguments.substitute_types(substs),
+//             }),
+//             Type::Enum(Enum {
+//                 name,
+//                 arguments,
+//                 variant,
+//             }) => Type::Enum(Enum {
+//                 name,
+//                 arguments: arguments.substitute_types(substs),
+//                 variant,
+//             }),
+//             Type::Array(Array {
+//                 length,
+//                 element_type,
+//             }) => Type::Array(Array {
+//                 length,
+//                 element_type: Box::new(element_type.substitute_types(substs)),
+//             }),
+//             Type::Slice(Slice { element_type }) => Type::Slice(Slice {
+//                 element_type: Box::new(element_type.substitute_types(substs)),
+//             }),
+//             Type::Reference(Reference { target_type }) => Type::Reference(Reference {
+//                 target_type: Box::new(target_type.substitute_types(substs)),
+//             }),
+//             Type::Pointer(Pointer { target_type }) => Type::Pointer(Pointer {
+//                 target_type: Box::new(target_type.substitute_types(substs)),
+//             }),
+//         }
+//     }
+// }
 
 pub trait Typed {
     fn get_type(&self) -> &Type;
@@ -132,11 +176,7 @@ impl Typed for LabelledOld {
 
 impl Typed for Constant {
     fn get_type(&self) -> &Type {
-        match &self.value {
-            ConstantValue::Bool(_) => &Type::Bool,
-            ConstantValue::Int(_) | ConstantValue::BigInt(_) => &Type::Int,
-            ConstantValue::FnPtr => &Type::FnPointer,
-        }
+        &self.ty
     }
 }
 

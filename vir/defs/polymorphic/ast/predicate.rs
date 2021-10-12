@@ -50,19 +50,19 @@ impl Predicate {
     pub fn new_primitive_value(
         typ: Type,
         field: Field,
-        bounds: Option<(Expr, Expr)>,
-        is_unsigned: bool,
+        lower_bound: Option<Expr>,
+        upper_bound: Option<Expr>,
     ) -> Predicate {
         let this = Self::construct_this(typ.clone());
         let val_field = Expr::from(this.clone()).field(field);
         let perm = Expr::acc_permission(val_field.clone(), PermAmount::Write);
         let mut conjuncts = vec![perm];
-        if let Some((lower, upper)) = bounds {
+        if let Some(lower) = lower_bound {
             conjuncts.push(Expr::le_cmp(lower, val_field.clone()));
+        }
+        if let Some(upper) = upper_bound {
             conjuncts.push(Expr::le_cmp(val_field, upper));
-        } else if is_unsigned {
-            conjuncts.push(Expr::le_cmp(0.into(), val_field));
-        };
+        }
         let body = conjuncts.into_iter().conjoin();
         Predicate::Struct(StructPredicate {
             typ,
@@ -128,6 +128,12 @@ impl Predicate {
             Predicate::Struct(struct_predicate) => struct_predicate.body.clone(),
             Predicate::Enum(enum_predicate) => Some(enum_predicate.body()),
             Predicate::Bodyless(_, _) => None,
+        }
+    }
+    pub fn is_struct_with_empty_body(&self) -> bool {
+        match self {
+            Predicate::Struct(struct_predicate) => struct_predicate.has_empty_body(),
+            _ => false,
         }
     }
 }
