@@ -433,6 +433,10 @@ impl SnapshotEncoder {
     ) -> EncodingResult<Expr> {
         let snapshot = self.encode_snapshot(encoder, ty, tymap)?;
         match snapshot {
+            Snapshot::Unit => {
+                assert!(args.is_empty());
+                Ok(self.domains[UNIT_DOMAIN_NAME].functions[0].apply(args))
+            },
             Snapshot::Complex { ref variants, .. } => {
                 assert_eq!(variants.len(), 1);
                 Ok(variants[0].0.apply(args))

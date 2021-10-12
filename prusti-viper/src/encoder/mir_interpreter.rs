@@ -11,6 +11,8 @@ use std::fmt::{self, Debug, Display};
 use std::iter::FromIterator;
 use std::marker::Sized;
 use log::trace;
+use std::mem;
+use crate::encoder::errors::EncodingError;
 
 /// Backward interpreter for a loop-less MIR
 pub trait BackwardMirInterpreter<'tcx> {
@@ -111,17 +113,17 @@ pub fn run_backward_interpretation_point_to_point<
     final_bbi: mir::BasicBlock,
     final_stmt_index: usize,
     final_state: S,
-    empty_state: S,
+    undef_state: S,
 ) -> Result<Option<S>, E> {
     let basic_blocks = mir.basic_blocks();
     let mut heads: HashMap<mir::BasicBlock, S> = HashMap::new();
     trace!(
-        "[start] run_backward_interpretation_point_to_point:\n - from final block {:?}, statement {}\n - and state {:?}\n - to initial block {:?}\n - using empty state {:?}",
+        "[start] run_backward_interpretation_point_to_point:\n - from final block {:?}, statement {}\n - and state {:?}\n - to initial block {:?}\n - using undef state {:?}",
         final_bbi,
         final_stmt_index,
         final_state,
         initial_bbi,
-        empty_state
+        undef_state,
     );
 
     // Find the final basic blocks
@@ -137,12 +139,13 @@ pub fn run_backward_interpretation_point_to_point<
         let terminator = bb_data.terminator();
         let terminator_index = bb_data.statements.len();
         let states = {
-            // HACK: define the state even if only one successor is defined
+            // HACK: when a successor is undefined, clone the first defined successor.
+            // This happens for example when Prusti skips the encoding of a cleanup CFG edge.
             let default_state = terminator
                 .successors()
                 .flat_map(|bb| heads.get(bb))
                 .next()
-                .unwrap_or(&empty_state);
+                .unwrap_or(&undef_state);
             HashMap::from_iter(
                 terminator
                     .successors()
@@ -150,6 +153,7 @@ pub fn run_backward_interpretation_point_to_point<
             )
         };
         trace!("States before: {:?}", states);
+        debug_assert_eq!(states.len(), terminator.successors().count());
         trace!("Apply terminator {:?}", terminator);
         let mut curr_state = interpreter.apply_terminator(
             curr_bb,
@@ -197,102 +201,83 @@ pub fn run_backward_interpretation_point_to_point<
     }
 
     trace!(
-        "[end] run_backward_interpretation_point_to_point:\n - from final final block {:?}, statement {}\n - and state {:?}\n - to initial block {:?}\n - using empty state {:?}\n - resulted in state {:?}",
+        "[end] run_backward_interpretation_point_to_point:\n - from final final block {:?}, statement {}\n - and state {:?}\n - to initial block {:?}\n - using undef state {:?}\n - resulted in state {:?}",
         final_bbi,
         final_stmt_index,
         final_state,
         initial_bbi,
-        empty_state,
+        undef_state,
         result
     );
 
     Ok(result)
 }
 
-/// Forward interpreter for a loop-less MIR
-pub trait ForwardMirInterpreter<'tcx> {
-    type State: Sized;
-    fn initial_state(&self) -> Self::State;
-    fn apply_statement(&self, stmt: &mir::Statement<'tcx>, state: &mut Self::State);
-    fn apply_terminator(
-        &self,
-        terminator: &mir::Terminator<'tcx>,
-        state: &Self::State,
-    ) -> (HashMap<mir::BasicBlock, Self::State>, Option<Self::State>);
-    fn join(&self, states: &[&Self::State]) -> Self::State;
-}
-
 #[derive(Clone, Debug)]
-pub struct MultiExprBackwardInterpreterState {
-    exprs: Vec<vir::Expr>,
+pub struct ExprBackwardInterpreterState {
+    /// None if the expression is undefined.
+    expr: Option<vir::Expr>,
     substs: HashMap<vir::TypeVar, vir::Type>,
 }
 
-impl Display for MultiExprBackwardInterpreterState {
+impl Display for ExprBackwardInterpreterState {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(
-            f,
-            "exprs={}",
-            self.exprs
-                .iter()
-                .map(|e| format!("{},", e))
-                .collect::<String>()
-        )
+        if let Some(expr) = self.expr.as_ref() {
+            write!(f, "expr={}", expr)
+        } else {
+            write!(f, "expr=undefined")
+        }
     }
 }
 
-impl MultiExprBackwardInterpreterState {
-    pub fn new(exprs: Vec<vir::Expr>) -> Self {
-        MultiExprBackwardInterpreterState { exprs, substs: HashMap::new() }
+impl ExprBackwardInterpreterState {
+    pub fn new(expr: Option<vir::Expr>) -> Self {
+        ExprBackwardInterpreterState { expr, substs: HashMap::new() }
     }
 
-    pub fn new_single(expr: vir::Expr) -> Self {
-        MultiExprBackwardInterpreterState { exprs: vec![expr], substs: HashMap::new() }
+    pub fn new_defined(expr: vir::Expr) -> Self {
+        ExprBackwardInterpreterState { expr: Some(expr), substs: HashMap::new() }
     }
 
-    pub fn new_single_with_substs(
+    pub fn new_undefined() -> Self {
+        ExprBackwardInterpreterState { expr: None, substs: HashMap::new() }
+    }
+
+    pub fn new_defined_with_substs(
         expr: vir::Expr,
         substs: HashMap<vir::TypeVar, vir::Type>,
     ) -> Self {
-        MultiExprBackwardInterpreterState { exprs: vec![expr], substs }
+        ExprBackwardInterpreterState { expr: Some(expr), substs }
     }
 
-    pub fn exprs(&self) -> &Vec<vir::Expr> {
-        &self.exprs
+    pub fn expr(&self) -> Option<&vir::Expr> {
+        self.expr.as_ref()
     }
 
-    pub fn exprs_mut(&mut self) -> &mut Vec<vir::Expr> {
-        &mut self.exprs
+    pub fn expr_mut(&mut self) -> Option<&mut vir::Expr> {
+        self.expr.as_mut()
     }
 
-    pub fn into_expressions(self) -> Vec<vir::Expr> {
-        self.exprs
+    pub fn into_expr(self) -> Option<vir::Expr> {
+        self.expr
     }
 
-    pub fn substitute_place(&mut self, sub_target: &vir::Expr, replacement: vir::Expr) {
-        trace!("substitute_place {:?} --> {:?}", sub_target, replacement);
-        let sub_target = sub_target.clone().patch_types(&self.substs);
+    pub fn substitute_value(&mut self, target: &vir::Expr, replacement: vir::Expr) {
+        trace!("substitute_value {:?} --> {:?}", target, replacement);
+        let target = target.clone().patch_types(&self.substs);
         let replacement = replacement.patch_types(&self.substs);
 
-
-        for expr in &mut self.exprs {
-            let new_expr = expr.clone().replace_place(&sub_target, &replacement);
-            *expr = new_expr.simplify_addr_of();
+        if let Some(curr_expr) = self.expr.as_mut() {
+            // Replace two times to avoid cloning `expr`, which could be big.
+            let expr = mem::replace(curr_expr, true.into());
+            let new_expr = expr.replace_place(&target, &replacement).simplify_addr_of();
+            let _ = mem::replace(curr_expr, new_expr);
         }
     }
 
-    pub fn substitute_value(&mut self, exact_target: &vir::Expr, replacement: vir::Expr) {
-        trace!("substitute_value {:?} --> {:?}", exact_target, replacement);
-        let exact_target = exact_target.clone().patch_types(&self.substs);
-        let replacement = replacement.patch_types(&self.substs);
-        for expr in &mut self.exprs {
-            *expr = expr.clone().replace_place(&exact_target, &replacement);
-        }
-    }
-
-    pub fn use_place(&self, sub_target: &vir::Expr) -> bool {
+    pub fn uses_place(&self, sub_target: &vir::Expr) -> bool {
         trace!("use_place {:?}", sub_target);
         let sub_target = sub_target.clone().patch_types(&self.substs);
-        self.exprs.iter().any(|expr| expr.find(&sub_target))
+        self.expr.as_ref().map(|expr| expr.find(&sub_target)).unwrap_or(false)
     }
 }

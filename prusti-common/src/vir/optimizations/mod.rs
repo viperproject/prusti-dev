@@ -50,7 +50,7 @@ fn log_methods(
 pub fn optimize_program(p: Program, source_file_name: &str) -> Program {
     let mut program = p;
     let optimizations = config::optimizations();
-    info!("Enabled optimisations: {:?}", optimizations);
+    debug!("Enabled optimisations: {:?}", optimizations);
 
     // can't borrow self because we need to move fields
     if optimizations.inline_constant_functions {
