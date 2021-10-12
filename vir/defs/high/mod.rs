@@ -3,9 +3,12 @@ pub mod operations;
 
 pub use self::{
     ast::{
-        expression::Expression,
+        expression::{self, visitors, Expression},
         field::FieldDecl,
-        ty::{Type, TypeVar},
+        function::FunctionDecl,
+        position::Position,
+        ty::{self, Type},
+        type_decl::{self, TypeDecl},
         variable::VariableDecl,
     },
     operations::ty::Generic,

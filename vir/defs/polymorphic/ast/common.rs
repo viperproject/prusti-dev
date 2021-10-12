@@ -337,6 +337,12 @@ impl Type {
                         arguments.len(),
                         Self::hash_arguments(arguments)
                     ),
+                    adt if adt.starts_with("enum") => format!(
+                        "{}${}{}",
+                        &adt[5..],
+                        Self::encode_substs(arguments),
+                        variant
+                    ),
                     adt if adt.starts_with("adt") => format!(
                         "{}${}{}",
                         &adt[4..],
@@ -426,6 +432,16 @@ pub struct TypedRef {
     pub label: String,
     pub arguments: Vec<Type>,
     pub variant: String,
+}
+
+impl TypedRef {
+    pub fn new<S: Into<String>>(label: S, arguments: Vec<Type>) -> Self {
+        Self {
+            label: label.into(),
+            arguments,
+            variant: String::from(""),
+        }
+    }
 }
 
 impl PartialEq for TypedRef {

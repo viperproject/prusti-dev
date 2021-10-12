@@ -15,4 +15,5 @@ pub mod field;
 pub mod function;
 pub mod position;
 pub mod ty;
+pub mod type_decl;
 pub mod variable;

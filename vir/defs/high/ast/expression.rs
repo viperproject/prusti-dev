@@ -87,10 +87,10 @@ pub struct LabelledOld {
 #[display(fmt = "{}", value)]
 pub struct Constant {
     pub value: ConstantValue,
+    pub ty: Type,
     pub position: Position,
 }
 
-#[derive(derive_more::From)]
 pub enum ConstantValue {
     Bool(bool),
     Int(i64),
@@ -153,7 +153,7 @@ pub struct ContainerOp {
 
 #[display(fmt = "Seq({})", "display::cjoin(elements)")]
 pub struct Seq {
-    pub typ: Type,
+    pub ty: Type,
     pub elements: Vec<Expression>,
     pub position: Position,
 }
@@ -203,16 +203,15 @@ pub struct LetExpr {
 pub struct FuncApp {
     pub function_name: String,
     pub arguments: Vec<Expression>,
-    pub formal_arguments: Vec<VariableDecl>,
+    pub parameters: Vec<VariableDecl>,
     pub return_type: Type,
     pub position: Position,
 }
 
-#[display(fmt = "(downcast {} to {} in {})", enum_place, field_name, base)]
+#[display(fmt = "(downcast {} to {} in {})", enum_place, "field.name", base)]
 pub struct Downcast {
     pub base: Box<Expression>,
     pub enum_place: Box<Expression>,
-    pub field_name: String,
-    pub ty: Type,
+    pub field: FieldDecl,
     pub position: Position,
 }

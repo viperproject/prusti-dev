@@ -90,18 +90,3 @@ impl Expression {
         finder.found
     }
 }
-
-impl From<bool> for Constant {
-    fn from(value: bool) -> Self {
-        Self {
-            value: value.into(),
-            position: Position::default(),
-        }
-    }
-}
-
-impl From<bool> for Expression {
-    fn from(value: bool) -> Self {
-        Self::Constant(value.into())
-    }
-}
