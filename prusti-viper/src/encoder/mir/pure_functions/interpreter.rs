@@ -826,7 +826,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                                 let num_variants = adt_def.variants.len();
                                 let variant_def = &adt_def.variants[variant_index];
                                 let mut encoded_lhs_variant = encoded_lhs.clone();
-                                if num_variants != 1 {
+                                if num_variants > 1 {
                                     let discr_field = self.encoder.encode_discriminant_field();
                                     state.substitute_value(
                                         &encoded_lhs.clone().field(discr_field),
@@ -869,12 +869,15 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                                         }
                                     }
                                 }
-                                let snapshot = self.encoder.encode_snapshot_constructor(
-                                    ty,
-                                    field_exprs,
-                                    &self.tymap,
-                                ).with_span(span)?;
-                                state.substitute_value(&encoded_lhs, snapshot);
+                                // TODO: construct snapshot for enumerations
+                                if num_variants == 1 {
+                                    let snapshot = self.encoder.encode_snapshot_constructor(
+                                        ty,
+                                        field_exprs,
+                                        &self.tymap,
+                                    ).with_span(span)?;
+                                    state.substitute_value(&encoded_lhs, snapshot);
+                                }
                             }
 
                             &mir::AggregateKind::Array(elem_ty) => {
