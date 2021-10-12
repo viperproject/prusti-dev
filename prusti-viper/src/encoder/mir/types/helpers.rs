@@ -1,28 +1,25 @@
 use crate::encoder::{
+    builtin_encoder::BuiltinFunctionKind,
+    errors::{EncodingError, EncodingResult},
     foldunfold,
     utils::{range_extract, PlusOne},
     Encoder,
 };
-use prusti_common::{config, vir_local};
-use vir_crate::polymorphic::{self as vir, ExprFolder, ExprIterator};
-// use prusti_interface::specifications::*;
-// use rustc::middle::const_val::ConstVal;
-use rustc_middle::{ty, ty::layout::IntegerExt};
-use rustc_target::abi;
-// use rustc_data_structures::indexed_vec::Idx;
-// use std;
-use crate::encoder::{
-    builtin_encoder::BuiltinFunctionKind,
-    errors::{EncodingError, EncodingResult},
-};
 use log::{debug, trace};
+use prusti_common::{config, vir_local};
 use prusti_interface::specs::typed;
 use rustc_attr::IntType::SignedInt;
-use rustc_target::abi::Integer;
+use rustc_middle::{ty, ty::layout::IntegerExt};
+use rustc_target::{abi, abi::Integer};
 use std::{
     collections::HashMap,
     convert::TryInto,
     hash::{Hash, Hasher},
+};
+use vir_crate::{
+    common::expression::{and, equals, less_equals},
+    high as vir_high,
+    polymorphic::{self as vir, ExprFolder},
 };
 
 /// Compute the values that a discriminant can take.
@@ -41,6 +38,46 @@ pub(crate) fn compute_discriminant_values<'tcx>(
 }
 
 /// Encode a disjunction that lists all possible discrimintant values.
+pub(super) fn compute_discriminant_bounds_high<'tcx>(
+    adt_def: &'tcx ty::AdtDef,
+    tcx: ty::TyCtxt<'tcx>,
+    discriminant: &vir_high::Expression,
+) -> vir_high::Expression {
+    /// Try to produce the minimal disjunction.
+    fn build_discr_range_expr<
+        T: Ord + PartialEq + Eq + Copy + Into<vir_high::Expression> + PlusOne,
+    >(
+        discriminant: &vir_high::Expression,
+        discr_values: Vec<T>,
+    ) -> vir_high::Expression {
+        if discr_values.is_empty() {
+            // FIXME: A `false` here is unsound. See issues #38 and #158.
+            return true.into();
+        }
+        use vir_crate::common::expression::ExpressionIterator;
+        range_extract(discr_values)
+            .into_iter()
+            .map(|(from, to)| {
+                if from == to {
+                    equals(discriminant.clone(), from.into())
+                } else {
+                    and(
+                        less_equals(from.into(), discriminant.clone()),
+                        less_equals(discriminant.clone(), to.into()),
+                    )
+                }
+            })
+            .disjoin()
+    }
+
+    // Handle *signed* discriminats
+    let discr_values = compute_discriminant_values(adt_def, tcx);
+    build_discr_range_expr(discriminant, discr_values)
+}
+
+/// Encode a disjunction that lists all possible discrimintant values.
+///
+/// FIXME: Remove this code duplication once snapshots are refactored.
 pub(crate) fn compute_discriminant_bounds<'tcx>(
     adt_def: &'tcx ty::AdtDef,
     tcx: ty::TyCtxt<'tcx>,
@@ -55,6 +92,7 @@ pub(crate) fn compute_discriminant_bounds<'tcx>(
             // A `false` here is unsound. See issues #38 and #158.
             return true.into();
         }
+        use vir_crate::polymorphic::ExprIterator;
         range_extract(discr_values)
             .into_iter()
             .map(|(from, to)| {

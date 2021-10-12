@@ -720,7 +720,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             ty::TyKind::Tuple(substs) if substs.is_empty() => vec![],
             _ => {
                 let const_val = match expr.literal {
-                    mir::ConstantKind::Ty(ty::Const { val, .. }) => val.clone(),
+                    mir::ConstantKind::Ty(ty::Const { val, .. }) => *val,
                     mir::ConstantKind::Val(val, _) => ty::ConstKind::Value(val),
                 };
                 vec![self.encode_const_expr(expr.ty(), &const_val)?]
@@ -868,6 +868,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         ty: ty::Ty<'tcx>,
         encoded_arg: vir::Expr
     ) -> EncodingResult<vir::Expr> {
+        trace!("encode_invariant_func_app: {:?}", ty.kind());
         let type_pred = self.encode_type(ty)
             .expect("failed to encode unsupported type");
         Ok(vir::Expr::FuncApp( vir::FuncApp {

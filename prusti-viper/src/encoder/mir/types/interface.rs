@@ -1,38 +1,31 @@
+use super::TypeEncoder;
 use crate::encoder::{
     encoder::SubstMap,
-    errors::{EncodingError, EncodingResult},
+    errors::{EncodingError, EncodingResult, SpannedEncodingResult},
     high::types::HighTypeEncoderInterface,
     utils::transpose,
 };
+#[rustfmt::skip]
+use ::log::trace;
 use prusti_common::{config, report::log};
 use rustc_middle::ty;
+use rustc_span::MultiSpan;
 use std::{cell::RefCell, collections::HashMap};
-use vir_crate::{high as vir_high, polymorphic as vir};
-
-use super::TypeEncoder;
+use vir_crate::{common::expression::less_equals, high as vir_high, polymorphic as vir};
 
 #[derive(Default)]
 pub(crate) struct MirTypeEncoderState<'tcx> {
-    type_predicate_types: RefCell<HashMap<ty::TyKind<'tcx>, vir::Type>>,
-    predicate_types: RefCell<HashMap<vir::Type, ty::Ty<'tcx>>>,
-    type_predicates: RefCell<HashMap<String, vir::Predicate>>,
-    type_invariant_names: RefCell<HashMap<ty::TyKind<'tcx>, String>>,
+    encoded_types: RefCell<HashMap<ty::TyKind<'tcx>, vir_high::Type>>,
+    encoded_types_inverse: RefCell<HashMap<vir_high::Type, ty::Ty<'tcx>>>,
+    encoded_type_decls: RefCell<HashMap<vir_high::Type, vir_high::TypeDecl>>,
+
     type_tag_names: RefCell<HashMap<ty::TyKind<'tcx>, String>>,
-    type_invariants: RefCell<HashMap<String, vir::FunctionIdentifier>>,
     type_tags: RefCell<HashMap<String, vir::FunctionIdentifier>>,
-
-    /// A mapping from `vir_high` types to information needed for encoding them.
-    type_descriptions: RefCell<HashMap<vir_high::Type, TypeDescription<'tcx>>>,
-}
-
-/// All necessary information for encoding a `vir::high` type.
-struct TypeDescription<'tcx> {
-    /// Original MIR type.
-    mir_type: ty::Ty<'tcx>,
 }
 
 pub(crate) trait MirTypeEncoderInterface<'tcx> {
-    fn encode_value_field(&self, ty: ty::Ty<'tcx>) -> EncodingResult<vir::Field>;
+    fn get_type_definition_span(&self, ty: &vir_high::Type) -> MultiSpan;
+    // fn encode_value_field_high(&self, ty: ty::Ty<'tcx>) -> EncodingResult<vir_high::FieldDecl>;
     fn encode_raw_ref_field(
         &self,
         viper_field_name: String,
@@ -41,28 +34,27 @@ pub(crate) trait MirTypeEncoderInterface<'tcx> {
     fn encode_enum_variant_field(&self, index: &str) -> vir::Field;
     fn encode_discriminant_field(&self) -> vir::Field;
     // TODO: Change the type to vir_high.
-    fn encode_type_high(&self, ty: ty::Ty<'tcx>) -> EncodingResult<vir::Type>;
-    fn encode_type_bounds(&self, var: &vir::Expr, ty: ty::Ty<'tcx>) -> Vec<vir::Expr>;
-    fn decode_type_predicate_type(&self, typ: &vir::Type) -> EncodingResult<ty::Ty<'tcx>>;
-    fn encode_type_def(&self, ty: ty::Ty<'tcx>) -> EncodingResult<Vec<vir::Predicate>>;
-    fn encode_type_invariant_use(&self, ty: ty::Ty<'tcx>) -> EncodingResult<String>;
-    fn encode_type_invariant_def(
+    fn encode_type_high(&self, ty: ty::Ty<'tcx>) -> SpannedEncodingResult<vir_high::Type>;
+    fn decode_type_high(&self, ty: &vir_high::Type) -> ty::Ty<'tcx>;
+    fn get_integer_type_bounds(
         &self,
         ty: ty::Ty<'tcx>,
-    ) -> EncodingResult<vir::FunctionIdentifier>;
+    ) -> Option<(vir_high::Expression, vir_high::Expression)>;
+    fn encode_type_def(&self, ty: &vir_high::Type) -> SpannedEncodingResult<vir_high::TypeDecl>;
+    fn encode_type_invariant_def_high(
+        &self,
+        ty: ty::Ty<'tcx>,
+        invariant_name: &str,
+    ) -> EncodingResult<vir_high::FunctionDecl>;
     fn encode_type_tag_use(&self, ty: ty::Ty<'tcx>) -> String;
     fn encode_type_tag_def(&self, ty: ty::Ty<'tcx>);
-    fn type_substitution_polymorphic_type_map(
-        &self,
-        tymap: &SubstMap<'tcx>,
-    ) -> EncodingResult<HashMap<vir::TypeVar, vir::Type>>;
 }
 
 impl<'v, 'tcx: 'v> MirTypeEncoderInterface<'tcx> for super::super::super::Encoder<'v, 'tcx> {
-    fn encode_value_field(&self, ty: ty::Ty<'tcx>) -> EncodingResult<vir::Field> {
-        let type_encoder = TypeEncoder::new(self, ty);
-        let field = type_encoder.encode_value_field()?;
-        Ok(field)
+    fn get_type_definition_span(&self, ty: &vir_high::Type) -> MultiSpan {
+        let original_ty = self.mir_type_encoder_state.encoded_types_inverse.borrow()[ty];
+        let type_encoder = TypeEncoder::new(self, original_ty);
+        type_encoder.get_definition_span()
     }
     fn encode_raw_ref_field(
         &self,
@@ -75,113 +67,77 @@ impl<'v, 'tcx: 'v> MirTypeEncoderInterface<'tcx> for super::super::super::Encode
     /// Creates a field that corresponds to the enum variant ``index``.
     fn encode_enum_variant_field(&self, index: &str) -> vir::Field {
         let name = format!("enum_{}", index);
-        vir::Field::new(name.clone(), vir::Type::typed_ref(""))
+        vir::Field::new(name, vir::Type::typed_ref(""))
     }
     fn encode_discriminant_field(&self) -> vir::Field {
         let name = "discriminant";
-        let field = vir::Field::new(name, vir::Type::Int);
-        field
+        vir::Field::new(name, vir::Type::Int)
     }
-    fn encode_type_high(&self, ty: ty::Ty<'tcx>) -> EncodingResult<vir::Type> {
+    fn encode_type_high(&self, ty: ty::Ty<'tcx>) -> SpannedEncodingResult<vir_high::Type> {
         if !self
             .mir_type_encoder_state
-            .type_predicate_types
+            .encoded_types
             .borrow()
             .contains_key(ty.kind())
         {
             let type_encoder = TypeEncoder::new(self, ty);
             let encoded_type = type_encoder.encode_type()?;
-            self.mir_type_encoder_state
-                .type_predicate_types
+            assert!(self
+                .mir_type_encoder_state
+                .encoded_types
                 .borrow_mut()
-                .insert(ty.kind().clone(), encoded_type.clone());
+                .insert(ty.kind().clone(), encoded_type.clone())
+                .is_none());
+            // Note: Multiple ty::Ty<'tcx> types are mapped to the same
+            // vir_high::Type type. However, this should not be the problem for
+            // using the inverse because we care only between differences that
+            // are not dropped in the translation.
             self.mir_type_encoder_state
-                .predicate_types
+                .encoded_types_inverse
                 .borrow_mut()
                 .insert(encoded_type, ty);
         }
-        let predicate_type =
-            self.mir_type_encoder_state.type_predicate_types.borrow()[ty.kind()].clone();
-        Ok(predicate_type)
+        let encoded_type = self.mir_type_encoder_state.encoded_types.borrow()[ty.kind()].clone();
+        Ok(encoded_type)
     }
-    fn encode_type_bounds(&self, var: &vir::Expr, ty: ty::Ty<'tcx>) -> Vec<vir::Expr> {
-        let type_encoder = TypeEncoder::new(self, ty);
-        type_encoder.encode_bounds(var)
+    fn decode_type_high(&self, ty: &vir_high::Type) -> ty::Ty<'tcx> {
+        self.mir_type_encoder_state.encoded_types_inverse.borrow()[ty]
     }
-    fn decode_type_predicate_type(&self, typ: &vir::Type) -> EncodingResult<ty::Ty<'tcx>> {
-        let check = |typ: &vir::Type| {
-            if let Some(ty) = self
-                .mir_type_encoder_state
-                .predicate_types
-                .borrow()
-                .get(typ)
-            {
-                Ok(*ty)
-            } else {
-                Err(EncodingError::internal(format!(
-                    "type predicate not known: {:?}",
-                    typ.name()
-                )))
-            }
-        };
-        match typ {
-            vir::Type::TypeVar(_) | vir::Type::TypedRef(_) => check(typ),
-            vir::Type::Snapshot(snapshot) => check(&vir::Type::TypedRef(snapshot.clone().into())),
-            _ => Err(EncodingError::internal(format!(
-                "type predicate not known: {:?}",
-                typ.name()
-            ))),
-        }
-    }
-    // TODO: Change the return type to vir_high::TypeDef
-    fn encode_type_def(&self, ty: ty::Ty<'tcx>) -> EncodingResult<Vec<vir::Predicate>> {
-        let type_encoder = TypeEncoder::new(self, ty);
-        let predicates = type_encoder.encode_predicate_def()?;
-        Ok(predicates)
-    }
-    fn encode_type_invariant_use(&self, ty: ty::Ty<'tcx>) -> EncodingResult<String> {
-        // TODO we could use type_predicate_names instead (see TypeEncoder::encode_invariant_use)
-        if !self
-            .mir_type_encoder_state
-            .type_invariant_names
-            .borrow()
-            .contains_key(ty.kind())
-        {
-            let type_encoder = TypeEncoder::new(self, ty);
-            let invariant_name = type_encoder
-                .encode_invariant_use()
-                .expect("failed to encode unsupported type");
-            self.mir_type_encoder_state
-                .type_invariant_names
-                .borrow_mut()
-                .insert(ty.kind().clone(), invariant_name);
-            // Trigger encoding of definition
-            self.encode_type_invariant_def(ty)?;
-        }
-        let invariant_name =
-            self.mir_type_encoder_state.type_invariant_names.borrow()[ty.kind()].clone();
-        Ok(invariant_name)
-    }
-    fn encode_type_invariant_def(
+    fn get_integer_type_bounds(
         &self,
         ty: ty::Ty<'tcx>,
-    ) -> EncodingResult<vir::FunctionIdentifier> {
-        let invariant_name = self.encode_type_invariant_use(ty)?;
+    ) -> Option<(vir_high::Expression, vir_high::Expression)> {
+        let type_encoder = TypeEncoder::new(self, ty);
+        // FIXME: This should replaced with the type invariant.
+        type_encoder.get_integer_bounds()
+    }
+    fn encode_type_def(&self, ty: &vir_high::Type) -> SpannedEncodingResult<vir_high::TypeDecl> {
         if !self
             .mir_type_encoder_state
-            .type_invariants
+            .encoded_type_decls
             .borrow()
-            .contains_key(&invariant_name)
+            .contains_key(ty)
         {
-            let type_encoder = TypeEncoder::new(self, ty);
-            let invariant = type_encoder.encode_invariant_def()?;
-            let identifier = self.insert_function(invariant);
+            let original_ty = self.mir_type_encoder_state.encoded_types_inverse.borrow()[ty];
+            let type_encoder = TypeEncoder::new(self, original_ty);
+            let encoded_type = type_encoder.encode_type_def()?;
             self.mir_type_encoder_state
-                .type_invariants
+                .encoded_type_decls
                 .borrow_mut()
-                .insert(invariant_name.clone(), identifier);
+                .insert(ty.clone(), encoded_type);
         }
-        Ok(self.mir_type_encoder_state.type_invariants.borrow()[&invariant_name].clone())
+        let encoded_type = self.mir_type_encoder_state.encoded_type_decls.borrow()[ty].clone();
+        Ok(encoded_type)
+    }
+    fn encode_type_invariant_def_high(
+        &self,
+        ty: ty::Ty<'tcx>,
+        invariant_name: &str,
+    ) -> EncodingResult<vir_high::FunctionDecl> {
+        trace!("encode_type_invariant_def_high: {:?}", ty.kind());
+        let type_encoder = TypeEncoder::new(self, ty);
+        let invariant = type_encoder.encode_invariant_def(invariant_name)?;
+        Ok(invariant)
     }
     fn encode_type_tag_use(&self, ty: ty::Ty<'tcx>) -> String {
         if !self
@@ -213,30 +169,13 @@ impl<'v, 'tcx: 'v> MirTypeEncoderInterface<'tcx> for super::super::super::Encode
             .contains_key(&tag_name)
         {
             let type_encoder = TypeEncoder::new(self, ty);
-            let tag = type_encoder.encode_tag_def();
-            let identifier = self.insert_function(tag);
-            self.mir_type_encoder_state
-                .type_tags
-                .borrow_mut()
-                .insert(tag_name, identifier);
+            let _tag = type_encoder.encode_tag_def();
+            unimplemented!();
+            // let identifier = self.insert_function(tag);
+            // self.mir_type_encoder_state
+            //     .type_tags
+            //     .borrow_mut()
+            //     .insert(tag_name, identifier);
         }
-    }
-    fn type_substitution_polymorphic_type_map(
-        &self,
-        tymap: &SubstMap<'tcx>,
-    ) -> EncodingResult<HashMap<vir::TypeVar, vir::Type>> {
-        tymap
-            .iter()
-            .map(|(typ, subst)| {
-                let typ_encoder = TypeEncoder::new(self, typ);
-                let subst_encoder = TypeEncoder::new(self, subst);
-
-                transpose((
-                    Ok(typ_encoder.encode_type()?.get_type_var().unwrap()),
-                    subst_encoder.encode_type(),
-                ))
-                // FIXME: unwrap
-            })
-            .collect::<Result<_, _>>()
     }
 }

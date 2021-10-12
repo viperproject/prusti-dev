@@ -511,7 +511,7 @@ impl<'a> ExprWalker for UnfoldedPredicateChecker<'a> {
         &mut self,
         vir::PredicateAccessPredicate { predicate_type, .. }: &vir::PredicateAccessPredicate,
     ) {
-        if self.unfolded_predicates.contains(&predicate_type) {
+        if self.unfolded_predicates.contains(predicate_type) {
             self.found = true;
         }
     }

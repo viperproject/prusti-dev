@@ -24,6 +24,7 @@ pub enum Type {
     Never,
     Str,
     Closure(Closure),
+    FunctionDef(FunctionDef),
     Projection(Projection),
     Unsupported(Unsupported),
 }
@@ -112,6 +113,14 @@ pub struct Pointer {
 
 #[display(fmt = "{}", name)]
 pub struct Closure {
+    pub name: String,
+    // /// Type arguments.
+    // FIXME: We are currently ignoring type arguments.
+    // pub arguments: Vec<Type>,
+}
+
+#[display(fmt = "{}", name)]
+pub struct FunctionDef {
     pub name: String,
     // /// Type arguments.
     // FIXME: We are currently ignoring type arguments.
