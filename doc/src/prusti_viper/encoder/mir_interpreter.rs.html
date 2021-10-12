@@ -281,21 +281,6 @@
 <span id="281">281</span>
 <span id="282">282</span>
 <span id="283">283</span>
-<span id="284">284</span>
-<span id="285">285</span>
-<span id="286">286</span>
-<span id="287">287</span>
-<span id="288">288</span>
-<span id="289">289</span>
-<span id="290">290</span>
-<span id="291">291</span>
-<span id="292">292</span>
-<span id="293">293</span>
-<span id="294">294</span>
-<span id="295">295</span>
-<span id="296">296</span>
-<span id="297">297</span>
-<span id="298">298</span>
 </pre><pre class="rust"><code><span class="comment">// © 2019, ETH Zurich</span>
 <span class="comment">//</span>
 <span class="comment">// This Source Code Form is subject to the terms of the Mozilla Public</span>
@@ -309,6 +294,8 @@
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.FromIterator.html">std::iter::FromIterator</a>;
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">std::marker::Sized</a>;
 <span class="kw">use</span> <span class="ident">log::trace</span>;
+<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/index.html">std::mem</a>;
+<span class="kw">use</span> <a class="ident" href="../../../src/prusti_viper/encoder/errors/encoding_error.rs.html#15-18"><span class="kw">crate</span>::encoder::errors::EncodingError</a>;
 
 <span class="doccomment">/// Backward interpreter for a loop-less MIR</span>
 <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">BackwardMirInterpreter</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> {
@@ -339,60 +326,60 @@
     <span class="ident">E</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">Debug</a>,
     <span class="ident">I</span>: <span class="ident">BackwardMirInterpreter</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span>, <span class="ident">State</span> <span class="op">=</span> <span class="ident">S</span>, <span class="ident">Error</span> <span class="op">=</span> <span class="ident">E</span><span class="op">&gt;</span>
 {
-    <span class="kw">let</span> <span class="ident">basic_blocks</span> <span class="op">=</span> <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#37">mir</a>.<span class="ident">basic_blocks</span>();
+    <span class="kw">let</span> <span class="ident">basic_blocks</span> <span class="op">=</span> <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#39">mir</a>.<span class="ident">basic_blocks</span>();
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">heads</span>: <span class="ident">HashMap</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">mir::BasicBlock</a>, <span class="ident">S</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">HashMap::new</span>();
 
     <span class="comment">// Find the final basic blocks</span>
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">pending_blocks</span>: <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">mir::BasicBlock</a><span class="op">&gt;</span> <span class="op">=</span> <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#44">basic_blocks</a>
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">pending_blocks</span>: <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">mir::BasicBlock</a><span class="op">&gt;</span> <span class="op">=</span> <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#46">basic_blocks</a>
         .<span class="ident">iter_enumerated</span>()
-        .<span class="ident">filter</span>(<span class="op">|</span>(<span class="kw">_</span>, <span class="ident">bb_data</span>)<span class="op">|</span> <span class="kw">match</span> <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#50">bb_data</a>.<span class="ident">terminator</span> {
-            <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">term</span>) <span class="op">=</span><span class="op">&gt;</span> <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#51">term</a>.<span class="ident">successors</span>().<span class="ident">next</span>().<span class="ident">is_none</span>(),
+        .<span class="ident">filter</span>(<span class="op">|</span>(<span class="kw">_</span>, <span class="ident">bb_data</span>)<span class="op">|</span> <span class="kw">match</span> <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#52">bb_data</a>.<span class="ident">terminator</span> {
+            <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">term</span>) <span class="op">=</span><span class="op">&gt;</span> <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#53">term</a>.<span class="ident">successors</span>().<span class="ident">next</span>().<span class="ident">is_none</span>(),
             <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
         })
-        .<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">bb</span>, <span class="kw">_</span>)<span class="op">|</span> <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#54">bb</a>)
+        .<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">bb</span>, <span class="kw">_</span>)<span class="op">|</span> <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#56">bb</a>)
         .<span class="ident">collect</span>();
 
     <span class="comment">// Interpret all the blocks in `pending_blocks`</span>
-    <span class="kw">while</span> <span class="op">!</span><a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#48">pending_blocks</a>.<span class="ident">is_empty</span>() {
-        <span class="kw">let</span> <span class="ident">curr_bb</span> <span class="op">=</span> <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#48">pending_blocks</a>.<span class="ident">pop</span>().<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">bb_data</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#44">basic_blocks</a>[<a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#59">curr_bb</a>];
+    <span class="kw">while</span> <span class="op">!</span><a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#50">pending_blocks</a>.<span class="ident">is_empty</span>() {
+        <span class="kw">let</span> <span class="ident">curr_bb</span> <span class="op">=</span> <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#50">pending_blocks</a>.<span class="ident">pop</span>().<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="ident">bb_data</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#46">basic_blocks</a>[<a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#61">curr_bb</a>];
 
         <span class="comment">// Apply the terminator</span>
-        <span class="kw">let</span> <span class="ident">terminator</span> <span class="op">=</span> <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#60">bb_data</a>.<span class="ident">terminator</span>();
-        <span class="kw">let</span> <span class="ident">states</span> <span class="op">=</span> <span class="ident">HashMap::from_iter</span>(<a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#63">terminator</a>.<span class="ident">successors</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">bb</span><span class="op">|</span> (<span class="kw-2">*</span><a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#64">bb</a>, <span class="kw-2">&amp;</span><a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#45">heads</a>[<a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#64">bb</a>])));
-        <span class="macro">trace!</span>(<span class="string">&quot;States before: {:?}&quot;</span>, <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#64">states</a>);
-        <span class="macro">trace!</span>(<span class="string">&quot;Apply terminator {:?}&quot;</span>, <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#63">terminator</a>);
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">curr_state</span> <span class="op">=</span> <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#38">interpreter</a>.<a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#19-24">apply_terminator</a>(<a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#59">curr_bb</a>, <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#63">terminator</a>, <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#64">states</a>)<span class="question-mark">?</span>;
-        <span class="macro">trace!</span>(<span class="string">&quot;State after: {:?}&quot;</span>, <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#67">curr_state</a>);
+        <span class="kw">let</span> <span class="ident">terminator</span> <span class="op">=</span> <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#62">bb_data</a>.<span class="ident">terminator</span>();
+        <span class="kw">let</span> <span class="ident">states</span> <span class="op">=</span> <span class="ident">HashMap::from_iter</span>(<a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#65">terminator</a>.<span class="ident">successors</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">bb</span><span class="op">|</span> (<span class="kw-2">*</span><a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#66">bb</a>, <span class="kw-2">&amp;</span><a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#47">heads</a>[<a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#66">bb</a>])));
+        <span class="macro">trace!</span>(<span class="string">&quot;States before: {:?}&quot;</span>, <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#66">states</a>);
+        <span class="macro">trace!</span>(<span class="string">&quot;Apply terminator {:?}&quot;</span>, <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#65">terminator</a>);
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">curr_state</span> <span class="op">=</span> <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#40">interpreter</a>.<a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#21-26">apply_terminator</a>(<a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#61">curr_bb</a>, <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#65">terminator</a>, <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#66">states</a>)<span class="question-mark">?</span>;
+        <span class="macro">trace!</span>(<span class="string">&quot;State after: {:?}&quot;</span>, <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#69">curr_state</a>);
 
         <span class="comment">// Apply each statement, from the last</span>
-        <span class="kw">for</span> (<span class="ident">stmt_index</span>, <span class="ident">stmt</span>) <span class="kw">in</span> <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#60">bb_data</a>.<span class="ident">statements</span>.<span class="ident">iter</span>().<span class="ident">enumerate</span>().<span class="ident">rev</span>() {
-            <span class="macro">trace!</span>(<span class="string">&quot;State before: {:?}&quot;</span>, <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#67">curr_state</a>);
-            <span class="macro">trace!</span>(<span class="string">&quot;Apply statement {:?}&quot;</span>, <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#71">stmt</a>);
-            <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#38">interpreter</a>.<a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#25-31">apply_statement</a>(<a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#59">curr_bb</a>, <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#71">stmt_index</a>, <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#71">stmt</a>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#67">curr_state</a>)<span class="question-mark">?</span>;
-            <span class="macro">trace!</span>(<span class="string">&quot;State after: {:?}&quot;</span>, <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#67">curr_state</a>);
+        <span class="kw">for</span> (<span class="ident">stmt_index</span>, <span class="ident">stmt</span>) <span class="kw">in</span> <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#62">bb_data</a>.<span class="ident">statements</span>.<span class="ident">iter</span>().<span class="ident">enumerate</span>().<span class="ident">rev</span>() {
+            <span class="macro">trace!</span>(<span class="string">&quot;State before: {:?}&quot;</span>, <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#69">curr_state</a>);
+            <span class="macro">trace!</span>(<span class="string">&quot;Apply statement {:?}&quot;</span>, <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#73">stmt</a>);
+            <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#40">interpreter</a>.<a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#27-33">apply_statement</a>(<a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#61">curr_bb</a>, <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#73">stmt_index</a>, <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#73">stmt</a>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#69">curr_state</a>)<span class="question-mark">?</span>;
+            <span class="macro">trace!</span>(<span class="string">&quot;State after: {:?}&quot;</span>, <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#69">curr_state</a>);
         }
 
         <span class="comment">// Store the state at the beginning of block `curr_bb`</span>
-        <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#45">heads</a>.<span class="ident">insert</span>(<a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#59">curr_bb</a>, <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#67">curr_state</a>);
+        <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#47">heads</a>.<span class="ident">insert</span>(<a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#61">curr_bb</a>, <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#69">curr_state</a>);
 
         <span class="comment">// Put the preceding basic blocks</span>
-        <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="ident">pred_bb</span> <span class="kw">in</span> <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#37">mir</a>.<span class="ident">predecessors</span>()[<a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#59">curr_bb</a>].<span class="ident">iter</span>() {
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">term</span>) <span class="op">=</span> <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#44">basic_blocks</a>[<a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#82">pred_bb</a>].<span class="ident">terminator</span> {
-                <span class="kw">if</span> <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#83">term</a>.<span class="ident">successors</span>().<span class="ident">all</span>(<span class="op">|</span><span class="ident">succ_bb</span><span class="op">|</span> <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#45">heads</a>.<span class="ident">contains_key</span>(<a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#84">succ_bb</a>)) {
-                    <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#48">pending_blocks</a>.<span class="ident">push</span>(<a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#82">pred_bb</a>);
+        <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="ident">pred_bb</span> <span class="kw">in</span> <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#39">mir</a>.<span class="ident">predecessors</span>()[<a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#61">curr_bb</a>].<span class="ident">iter</span>() {
+            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">term</span>) <span class="op">=</span> <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#46">basic_blocks</a>[<a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#84">pred_bb</a>].<span class="ident">terminator</span> {
+                <span class="kw">if</span> <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#85">term</a>.<span class="ident">successors</span>().<span class="ident">all</span>(<span class="op">|</span><span class="ident">succ_bb</span><span class="op">|</span> <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#47">heads</a>.<span class="ident">contains_key</span>(<a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#86">succ_bb</a>)) {
+                    <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#50">pending_blocks</a>.<span class="ident">push</span>(<a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#84">pred_bb</a>);
                 }
             }
         }
     }
 
-    <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#45">heads</a>.<span class="ident">remove</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#44">basic_blocks</a>.<span class="ident">indices</span>().<span class="ident">next</span>().<span class="ident">unwrap</span>());
+    <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#47">heads</a>.<span class="ident">remove</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#46">basic_blocks</a>.<span class="ident">indices</span>().<span class="ident">next</span>().<span class="ident">unwrap</span>());
 
-    <span class="kw">if</span> <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#91">result</a>.<span class="ident">is_none</span>() {
-        <span class="macro">trace!</span>(<span class="string">&quot;heads: {:?}&quot;</span>, <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#45">heads</a>);
+    <span class="kw">if</span> <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#93">result</a>.<span class="ident">is_none</span>() {
+        <span class="macro">trace!</span>(<span class="string">&quot;heads: {:?}&quot;</span>, <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#47">heads</a>);
     }
 
-    <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#91">result</a>)
+    <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#93">result</a>)
 }
 
 <span class="doccomment">/// Interpret a loop-less MIR starting from the end and return the **initial** state.</span>
@@ -409,189 +396,172 @@
     <span class="ident">final_bbi</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">mir::BasicBlock</a>,
     <span class="ident">final_stmt_index</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
     <span class="ident">final_state</span>: <span class="ident">S</span>,
-    <span class="ident">empty_state</span>: <span class="ident">S</span>,
+    <span class="ident">undef_state</span>: <span class="ident">S</span>,
 ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>, <span class="ident">E</span><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="ident">basic_blocks</span> <span class="op">=</span> <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#108">mir</a>.<span class="ident">basic_blocks</span>();
+    <span class="kw">let</span> <span class="ident">basic_blocks</span> <span class="op">=</span> <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#110">mir</a>.<span class="ident">basic_blocks</span>();
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">heads</span>: <span class="ident">HashMap</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">mir::BasicBlock</a>, <span class="ident">S</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">HashMap::new</span>();
     <span class="macro">trace!</span>(
-        <span class="string">&quot;[start] run_backward_interpretation_point_to_point:\n - from final block {:?}, statement {}\n - and state {:?}\n - to initial block {:?}\n - using empty state {:?}&quot;</span>,
-        <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#111">final_bbi</a>,
-        <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#112">final_stmt_index</a>,
-        <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#113">final_state</a>,
-        <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#110">initial_bbi</a>,
-        <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#114">empty_state</a>
+        <span class="string">&quot;[start] run_backward_interpretation_point_to_point:\n - from final block {:?}, statement {}\n - and state {:?}\n - to initial block {:?}\n - using undef state {:?}&quot;</span>,
+        <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#113">final_bbi</a>,
+        <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#114">final_stmt_index</a>,
+        <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#115">final_state</a>,
+        <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#112">initial_bbi</a>,
+        <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#116">undef_state</a>,
     );
 
     <span class="comment">// Find the final basic blocks</span>
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">pending_blocks</span>: <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">mir::BasicBlock</a><span class="op">&gt;</span> <span class="op">=</span> <span class="macro">vec!</span>[<a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#111">final_bbi</a>];
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">pending_blocks</span>: <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">mir::BasicBlock</a><span class="op">&gt;</span> <span class="op">=</span> <span class="macro">vec!</span>[<a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#113">final_bbi</a>];
 
     <span class="comment">// Interpret all the blocks in `pending_blocks`</span>
-    <span class="kw">while</span> <span class="op">!</span><a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#128">pending_blocks</a>.<span class="ident">is_empty</span>() {
-        <span class="kw">let</span> <span class="ident">curr_bb</span> <span class="op">=</span> <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#128">pending_blocks</a>.<span class="ident">pop</span>().<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">bb_data</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#116">basic_blocks</a>[<a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#132">curr_bb</a>];
-        <span class="macro">trace!</span>(<span class="string">&quot;curr_bb: {:?}&quot;</span>, <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#132">curr_bb</a>);
+    <span class="kw">while</span> <span class="op">!</span><a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#130">pending_blocks</a>.<span class="ident">is_empty</span>() {
+        <span class="kw">let</span> <span class="ident">curr_bb</span> <span class="op">=</span> <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#130">pending_blocks</a>.<span class="ident">pop</span>().<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="ident">bb_data</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#118">basic_blocks</a>[<a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#134">curr_bb</a>];
+        <span class="macro">trace!</span>(<span class="string">&quot;curr_bb: {:?}&quot;</span>, <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#134">curr_bb</a>);
 
         <span class="comment">// Apply the terminator</span>
-        <span class="kw">let</span> <span class="ident">terminator</span> <span class="op">=</span> <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#133">bb_data</a>.<span class="ident">terminator</span>();
-        <span class="kw">let</span> <span class="ident">terminator_index</span> <span class="op">=</span> <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#133">bb_data</a>.<span class="ident">statements</span>.<span class="ident">len</span>();
+        <span class="kw">let</span> <span class="ident">terminator</span> <span class="op">=</span> <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#135">bb_data</a>.<span class="ident">terminator</span>();
+        <span class="kw">let</span> <span class="ident">terminator_index</span> <span class="op">=</span> <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#135">bb_data</a>.<span class="ident">statements</span>.<span class="ident">len</span>();
         <span class="kw">let</span> <span class="ident">states</span> <span class="op">=</span> {
-            <span class="comment">// HACK: define the state even if only one successor is defined</span>
-            <span class="kw">let</span> <span class="ident">default_state</span> <span class="op">=</span> <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#137">terminator</a>
+            <span class="comment">// HACK: when a successor is undefined, clone the first defined successor.</span>
+            <span class="comment">// This happens for example when Prusti skips the encoding of a cleanup CFG edge.</span>
+            <span class="kw">let</span> <span class="ident">default_state</span> <span class="op">=</span> <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#139">terminator</a>
                 .<span class="ident">successors</span>()
-                .<span class="ident">flat_map</span>(<span class="op">|</span><span class="ident">bb</span><span class="op">|</span> <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#117">heads</a>.<span class="ident">get</span>(<a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#143">bb</a>))
+                .<span class="ident">flat_map</span>(<span class="op">|</span><span class="ident">bb</span><span class="op">|</span> <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#119">heads</a>.<span class="ident">get</span>(<a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#146">bb</a>))
                 .<span class="ident">next</span>()
-                .<span class="ident">unwrap_or</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#114">empty_state</a>);
+                .<span class="ident">unwrap_or</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#116">undef_state</a>);
             <span class="ident">HashMap::from_iter</span>(
-                <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#137">terminator</a>
+                <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#139">terminator</a>
                     .<span class="ident">successors</span>()
-                    .<span class="ident">map</span>(<span class="op">|</span><span class="ident">bb</span><span class="op">|</span> (<span class="kw-2">*</span><a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#149">bb</a>, <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#117">heads</a>.<span class="ident">get</span>(<a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#149">bb</a>).<span class="ident">unwrap_or</span>(<a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#141">default_state</a>))),
+                    .<span class="ident">map</span>(<span class="op">|</span><span class="ident">bb</span><span class="op">|</span> (<span class="kw-2">*</span><a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#152">bb</a>, <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#119">heads</a>.<span class="ident">get</span>(<a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#152">bb</a>).<span class="ident">unwrap_or</span>(<a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#144">default_state</a>))),
             )
         };
-        <span class="macro">trace!</span>(<span class="string">&quot;States before: {:?}&quot;</span>, <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#139">states</a>);
-        <span class="macro">trace!</span>(<span class="string">&quot;Apply terminator {:?}&quot;</span>, <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#137">terminator</a>);
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">curr_state</span> <span class="op">=</span> <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#109">interpreter</a>.<a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#19-24">apply_terminator</a>(
-            <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#132">curr_bb</a>,
-            <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#137">terminator</a>,
-            <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#139">states</a>
+        <span class="macro">trace!</span>(<span class="string">&quot;States before: {:?}&quot;</span>, <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#141">states</a>);
+        <span class="macro">debug_assert_eq!</span>(<a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#141">states</a>.<span class="ident">len</span>(), <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#139">terminator</a>.<span class="ident">successors</span>().<span class="ident">count</span>());
+        <span class="macro">trace!</span>(<span class="string">&quot;Apply terminator {:?}&quot;</span>, <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#139">terminator</a>);
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">curr_state</span> <span class="op">=</span> <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#111">interpreter</a>.<a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#21-26">apply_terminator</a>(
+            <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#134">curr_bb</a>,
+            <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#139">terminator</a>,
+            <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#141">states</a>
         )<span class="question-mark">?</span>;
-        <span class="macro">trace!</span>(<span class="string">&quot;State after: {:?}&quot;</span>, <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#154">curr_state</a>);
-        <span class="kw">if</span> <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#132">curr_bb</a> <span class="op">=</span><span class="op">=</span> <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#111">final_bbi</a> <span class="op">&amp;&amp;</span> <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#112">final_stmt_index</a> <span class="op">=</span><span class="op">=</span> <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#138">terminator_index</a> {
+        <span class="macro">trace!</span>(<span class="string">&quot;State after: {:?}&quot;</span>, <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#158">curr_state</a>);
+        <span class="kw">if</span> <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#134">curr_bb</a> <span class="op">=</span><span class="op">=</span> <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#113">final_bbi</a> <span class="op">&amp;&amp;</span> <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#114">final_stmt_index</a> <span class="op">=</span><span class="op">=</span> <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#140">terminator_index</a> {
             <span class="macro">trace!</span>(<span class="string">&quot;Final location reached in terminator&quot;</span>);
-            <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#154">curr_state</a> <span class="op">=</span> <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#113">final_state</a>.<span class="ident">clone</span>();
-            <span class="macro">trace!</span>(<span class="string">&quot;State after: {:?}&quot;</span>, <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#154">curr_state</a>);
+            <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#158">curr_state</a> <span class="op">=</span> <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#115">final_state</a>.<span class="ident">clone</span>();
+            <span class="macro">trace!</span>(<span class="string">&quot;State after: {:?}&quot;</span>, <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#158">curr_state</a>);
         }
 
         <span class="comment">// Apply each statement, from the last</span>
-        <span class="kw">for</span> (<span class="ident">stmt_index</span>, <span class="ident">stmt</span>) <span class="kw">in</span> <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#133">bb_data</a>.<span class="ident">statements</span>.<span class="ident">iter</span>().<span class="ident">enumerate</span>().<span class="ident">rev</span>() {
-            <span class="macro">trace!</span>(<span class="string">&quot;State before: {:?}&quot;</span>, <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#154">curr_state</a>);
-            <span class="macro">trace!</span>(<span class="string">&quot;Apply statement {:?}&quot;</span>, <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#167">stmt</a>);
-            <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#109">interpreter</a>.<a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#25-31">apply_statement</a>(<a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#132">curr_bb</a>, <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#167">stmt_index</a>, <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#167">stmt</a>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#154">curr_state</a>)<span class="question-mark">?</span>;
-            <span class="macro">trace!</span>(<span class="string">&quot;State after: {:?}&quot;</span>, <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#154">curr_state</a>);
-            <span class="kw">if</span> <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#132">curr_bb</a> <span class="op">=</span><span class="op">=</span> <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#111">final_bbi</a> <span class="op">&amp;&amp;</span> <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#112">final_stmt_index</a> <span class="op">=</span><span class="op">=</span> <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#167">stmt_index</a> {
+        <span class="kw">for</span> (<span class="ident">stmt_index</span>, <span class="ident">stmt</span>) <span class="kw">in</span> <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#135">bb_data</a>.<span class="ident">statements</span>.<span class="ident">iter</span>().<span class="ident">enumerate</span>().<span class="ident">rev</span>() {
+            <span class="macro">trace!</span>(<span class="string">&quot;State before: {:?}&quot;</span>, <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#158">curr_state</a>);
+            <span class="macro">trace!</span>(<span class="string">&quot;Apply statement {:?}&quot;</span>, <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#171">stmt</a>);
+            <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#111">interpreter</a>.<a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#27-33">apply_statement</a>(<a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#134">curr_bb</a>, <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#171">stmt_index</a>, <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#171">stmt</a>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#158">curr_state</a>)<span class="question-mark">?</span>;
+            <span class="macro">trace!</span>(<span class="string">&quot;State after: {:?}&quot;</span>, <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#158">curr_state</a>);
+            <span class="kw">if</span> <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#134">curr_bb</a> <span class="op">=</span><span class="op">=</span> <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#113">final_bbi</a> <span class="op">&amp;&amp;</span> <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#114">final_stmt_index</a> <span class="op">=</span><span class="op">=</span> <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#171">stmt_index</a> {
                 <span class="macro">trace!</span>(<span class="string">&quot;Final location reached in statement&quot;</span>);
-                <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#154">curr_state</a> <span class="op">=</span> <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#113">final_state</a>.<span class="ident">clone</span>();
-                <span class="macro">trace!</span>(<span class="string">&quot;State after: {:?}&quot;</span>, <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#154">curr_state</a>);
+                <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#158">curr_state</a> <span class="op">=</span> <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#115">final_state</a>.<span class="ident">clone</span>();
+                <span class="macro">trace!</span>(<span class="string">&quot;State after: {:?}&quot;</span>, <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#158">curr_state</a>);
             }
         }
 
         <span class="comment">// Store the state at the beginning of block `curr_bb`</span>
-        <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#117">heads</a>.<span class="ident">insert</span>(<a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#132">curr_bb</a>, <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#154">curr_state</a>);
+        <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#119">heads</a>.<span class="ident">insert</span>(<a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#134">curr_bb</a>, <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#158">curr_state</a>);
 
-        <span class="kw">if</span> <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#132">curr_bb</a> <span class="op">!</span><span class="op">=</span> <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#110">initial_bbi</a> {
+        <span class="kw">if</span> <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#134">curr_bb</a> <span class="op">!</span><span class="op">=</span> <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#112">initial_bbi</a> {
             <span class="comment">// Put the preceding basic blocks</span>
-            <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="ident">pred_bb</span> <span class="kw">in</span> <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#108">mir</a>.<span class="ident">predecessors</span>()[<a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#132">curr_bb</a>].<span class="ident">iter</span>() {
+            <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="ident">pred_bb</span> <span class="kw">in</span> <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#110">mir</a>.<span class="ident">predecessors</span>()[<a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#134">curr_bb</a>].<span class="ident">iter</span>() {
                 <span class="comment">// Note: here we don&#39;t check that all the successors of `pred_bb` has been visited.</span>
                 <span class="comment">// It&#39;s a known limitation, because this is the point-to-point interpretation.</span>
                 <span class="comment">// Use `run_backward_interpretation` if the check is important.</span>
-                <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#128">pending_blocks</a>.<span class="ident">push</span>(<a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#184">pred_bb</a>);
+                <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#130">pending_blocks</a>.<span class="ident">push</span>(<a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#188">pred_bb</a>);
             }
         }
     }
 
-    <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#117">heads</a>.<span class="ident">remove</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#110">initial_bbi</a>);
+    <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#119">heads</a>.<span class="ident">remove</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#112">initial_bbi</a>);
 
-    <span class="kw">if</span> <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#193">result</a>.<span class="ident">is_none</span>() {
-        <span class="macro">trace!</span>(<span class="string">&quot;heads: {:?}&quot;</span>, <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#117">heads</a>);
+    <span class="kw">if</span> <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#197">result</a>.<span class="ident">is_none</span>() {
+        <span class="macro">trace!</span>(<span class="string">&quot;heads: {:?}&quot;</span>, <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#119">heads</a>);
     }
 
     <span class="macro">trace!</span>(
-        <span class="string">&quot;[end] run_backward_interpretation_point_to_point:\n - from final final block {:?}, statement {}\n - and state {:?}\n - to initial block {:?}\n - using empty state {:?}\n - resulted in state {:?}&quot;</span>,
-        <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#111">final_bbi</a>,
-        <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#112">final_stmt_index</a>,
-        <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#113">final_state</a>,
-        <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#110">initial_bbi</a>,
-        <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#114">empty_state</a>,
-        <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#193">result</a>
+        <span class="string">&quot;[end] run_backward_interpretation_point_to_point:\n - from final final block {:?}, statement {}\n - and state {:?}\n - to initial block {:?}\n - using undef state {:?}\n - resulted in state {:?}&quot;</span>,
+        <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#113">final_bbi</a>,
+        <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#114">final_stmt_index</a>,
+        <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#115">final_state</a>,
+        <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#112">initial_bbi</a>,
+        <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#116">undef_state</a>,
+        <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#197">result</a>
     );
 
-    <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#193">result</a>)
-}
-
-<span class="doccomment">/// Forward interpreter for a loop-less MIR</span>
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">ForwardMirInterpreter</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> {
-    <span class="kw">type</span> <span class="ident">State</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>;
-    <span class="kw">fn</span> <span class="ident">initial_state</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::State</span>;
-    <span class="kw">fn</span> <span class="ident">apply_statement</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">stmt</span>: <span class="kw-2">&amp;</span><span class="ident">mir::Statement</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident"><span class="self">Self</span>::State</span>);
-    <span class="kw">fn</span> <span class="ident">apply_terminator</span>(
-        <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">terminator</span>: <span class="kw-2">&amp;</span><span class="ident">mir::Terminator</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
-        <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="ident"><span class="self">Self</span>::State</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> (<span class="ident">HashMap</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">mir::BasicBlock</a>, <span class="ident"><span class="self">Self</span>::State</span><span class="op">&gt;</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::State</span><span class="op">&gt;</span>);
-    <span class="kw">fn</span> <span class="ident">join</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">states</span>: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span><span class="ident"><span class="self">Self</span>::State</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::State</span>;
+    <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#197">result</a>)
 }
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">MultiExprBackwardInterpreterState</span> {
-    <span class="ident">exprs</span>: <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a><span class="op">&gt;</span>,
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ExprBackwardInterpreterState</span> {
+    <span class="doccomment">/// None if the expression is undefined.</span>
+    <span class="ident">expr</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a><span class="op">&gt;</span>,
     <span class="ident">substs</span>: <span class="ident">HashMap</span><span class="op">&lt;</span><a class="ident" href="../../../vir/gen/polymorphic/ast/common/struct.TypeVar.html">vir::TypeVar</a>, <a class="ident" href="../../../vir/gen/polymorphic/ast/common/enum.Type.html">vir::Type</a><span class="op">&gt;</span>,
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">Display</a> <span class="kw">for</span> <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#226-229">MultiExprBackwardInterpreterState</a> {
+<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">Display</a> <span class="kw">for</span> <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#217-221">ExprBackwardInterpreterState</a> {
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <span class="macro">write!</span>(
-            <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#232">f</a>,
-            <span class="string">&quot;exprs={}&quot;</span>,
-            <a class="self" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#232">self</a>.<span class="ident">exprs</span>
-                .<span class="ident">iter</span>()
-                .<span class="ident">map</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="macro">format!</span>(<span class="string">&quot;{},&quot;</span>, <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#238">e</a>))
-                .<span class="ident">collect</span>::<span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a><span class="op">&gt;</span>()
-        )
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">expr</span>) <span class="op">=</span> <a class="self" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#224">self</a>.<span class="ident">expr</span>.<span class="ident">as_ref</span>() {
+            <span class="macro">write!</span>(<a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#224">f</a>, <span class="string">&quot;expr={}&quot;</span>, <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#225">expr</a>)
+        } <span class="kw">else</span> {
+            <span class="macro">write!</span>(<a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#224">f</a>, <span class="string">&quot;expr=undefined&quot;</span>)
+        }
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#226-229">MultiExprBackwardInterpreterState</a> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">exprs</span>: <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#226-229">MultiExprBackwardInterpreterState</a> { <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#245">exprs</a>, <span class="ident">substs</span>: <span class="ident">HashMap::new</span>() }
+<span class="kw">impl</span> <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#217-221">ExprBackwardInterpreterState</a> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">expr</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+        <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#217-221">ExprBackwardInterpreterState</a> { <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#234">expr</a>, <span class="ident">substs</span>: <span class="ident">HashMap::new</span>() }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_single</span>(<span class="ident">expr</span>: <a class="ident" href="../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#226-229">MultiExprBackwardInterpreterState</a> { <span class="ident">exprs</span>: <span class="macro">vec!</span>[<a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#249">expr</a>], <span class="ident">substs</span>: <span class="ident">HashMap::new</span>() }
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_defined</span>(<span class="ident">expr</span>: <a class="ident" href="../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+        <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#217-221">ExprBackwardInterpreterState</a> { <span class="ident">expr</span>: <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#238">expr</a>), <span class="ident">substs</span>: <span class="ident">HashMap::new</span>() }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_single_with_substs</span>(
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_undefined</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+        <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#217-221">ExprBackwardInterpreterState</a> { <span class="ident">expr</span>: <span class="prelude-val">None</span>, <span class="ident">substs</span>: <span class="ident">HashMap::new</span>() }
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_defined_with_substs</span>(
         <span class="ident">expr</span>: <a class="ident" href="../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>,
         <span class="ident">substs</span>: <span class="ident">HashMap</span><span class="op">&lt;</span><a class="ident" href="../../../vir/gen/polymorphic/ast/common/struct.TypeVar.html">vir::TypeVar</a>, <a class="ident" href="../../../vir/gen/polymorphic/ast/common/enum.Type.html">vir::Type</a><span class="op">&gt;</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#226-229">MultiExprBackwardInterpreterState</a> { <span class="ident">exprs</span>: <span class="macro">vec!</span>[<a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#254">expr</a>], <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#255">substs</a> }
+        <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#217-221">ExprBackwardInterpreterState</a> { <span class="ident">expr</span>: <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#247">expr</a>), <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#248">substs</a> }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">exprs</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a><span class="op">&gt;</span> {
-        <span class="kw-2">&amp;</span><a class="self" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#260">self</a>.<span class="ident">exprs</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">expr</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><a class="ident" href="../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a><span class="op">&gt;</span> {
+        <a class="self" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#253">self</a>.<span class="ident">expr</span>.<span class="ident">as_ref</span>()
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">exprs_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a><span class="op">&gt;</span> {
-        <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="self" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#264">self</a>.<span class="ident">exprs</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">expr_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a><span class="op">&gt;</span> {
+        <a class="self" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#257">self</a>.<span class="ident">expr</span>.<span class="ident">as_mut</span>()
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_expressions</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a><span class="op">&gt;</span> {
-        <a class="self" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#268">self</a>.<span class="ident">exprs</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_expr</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a><span class="op">&gt;</span> {
+        <a class="self" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#261">self</a>.<span class="ident">expr</span>
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">substitute_place</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">sub_target</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>, <span class="ident">replacement</span>: <a class="ident" href="../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>) {
-        <span class="macro">trace!</span>(<span class="string">&quot;substitute_place {:?} --&gt; {:?}&quot;</span>, <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#272">sub_target</a>, <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#272">replacement</a>);
-        <span class="kw">let</span> <span class="ident">sub_target</span> <span class="op">=</span> <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#272">sub_target</a>.<span class="ident">clone</span>().<span class="ident">patch_types</span>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#272">self</a>.<span class="ident">substs</span>);
-        <span class="kw">let</span> <span class="ident">replacement</span> <span class="op">=</span> <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#272">replacement</a>.<span class="ident">patch_types</span>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#272">self</a>.<span class="ident">substs</span>);
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">substitute_value</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">target</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>, <span class="ident">replacement</span>: <a class="ident" href="../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>) {
+        <span class="macro">trace!</span>(<span class="string">&quot;substitute_value {:?} --&gt; {:?}&quot;</span>, <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#265">target</a>, <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#265">replacement</a>);
+        <span class="kw">let</span> <span class="ident">target</span> <span class="op">=</span> <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#265">target</a>.<span class="ident">clone</span>().<span class="ident">patch_types</span>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#265">self</a>.<span class="ident">substs</span>);
+        <span class="kw">let</span> <span class="ident">replacement</span> <span class="op">=</span> <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#265">replacement</a>.<span class="ident">patch_types</span>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#265">self</a>.<span class="ident">substs</span>);
 
-
-        <span class="kw">for</span> <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#278">expr</a> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="self" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#272">self</a>.<span class="ident">exprs</span> {
-            <span class="kw">let</span> <span class="ident">new_expr</span> <span class="op">=</span> <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#278">expr</a>.<span class="ident">clone</span>().<span class="ident">replace_place</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#274">sub_target</a>, <span class="kw-2">&amp;</span><a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#275">replacement</a>);
-            <span class="kw-2">*</span><a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#278">expr</a> <span class="op">=</span> <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#279">new_expr</a>.<span class="ident">simplify_addr_of</span>();
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">curr_expr</span>) <span class="op">=</span> <a class="self" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#265">self</a>.<span class="ident">expr</span>.<span class="ident">as_mut</span>() {
+            <span class="comment">// Replace two times to avoid cloning `expr`, which could be big.</span>
+            <span class="kw">let</span> <span class="ident">expr</span> <span class="op">=</span> <span class="ident">mem::replace</span>(<a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#270">curr_expr</a>, <span class="bool-val">true</span>.<span class="ident">into</span>());
+            <span class="kw">let</span> <span class="ident">new_expr</span> <span class="op">=</span> <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#272">expr</a>.<span class="ident">replace_place</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#267">target</a>, <span class="kw-2">&amp;</span><a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#268">replacement</a>).<span class="ident">simplify_addr_of</span>();
+            <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">mem::replace</span>(<a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#270">curr_expr</a>, <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#273">new_expr</a>);
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">substitute_value</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">exact_target</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>, <span class="ident">replacement</span>: <a class="ident" href="../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>) {
-        <span class="macro">trace!</span>(<span class="string">&quot;substitute_value {:?} --&gt; {:?}&quot;</span>, <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#284">exact_target</a>, <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#284">replacement</a>);
-        <span class="kw">let</span> <span class="ident">exact_target</span> <span class="op">=</span> <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#284">exact_target</a>.<span class="ident">clone</span>().<span class="ident">patch_types</span>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#284">self</a>.<span class="ident">substs</span>);
-        <span class="kw">let</span> <span class="ident">replacement</span> <span class="op">=</span> <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#284">replacement</a>.<span class="ident">patch_types</span>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#284">self</a>.<span class="ident">substs</span>);
-        <span class="kw">for</span> <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#288">expr</a> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="self" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#284">self</a>.<span class="ident">exprs</span> {
-            <span class="kw-2">*</span><a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#288">expr</a> <span class="op">=</span> <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#288">expr</a>.<span class="ident">clone</span>().<span class="ident">replace_place</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#286">exact_target</a>, <span class="kw-2">&amp;</span><a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#287">replacement</a>);
-        }
-    }
-
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">use_place</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">sub_target</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="macro">trace!</span>(<span class="string">&quot;use_place {:?}&quot;</span>, <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#293">sub_target</a>);
-        <span class="kw">let</span> <span class="ident">sub_target</span> <span class="op">=</span> <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#293">sub_target</a>.<span class="ident">clone</span>().<span class="ident">patch_types</span>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#293">self</a>.<span class="ident">substs</span>);
-        <a class="self" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#293">self</a>.<span class="ident">exprs</span>.<span class="ident">iter</span>().<span class="ident">any</span>(<span class="op">|</span><span class="ident">expr</span><span class="op">|</span> <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#296">expr</a>.<span class="ident">find</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#295">sub_target</a>))
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">uses_place</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">sub_target</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <span class="macro">trace!</span>(<span class="string">&quot;use_place {:?}&quot;</span>, <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#278">sub_target</a>);
+        <span class="kw">let</span> <span class="ident">sub_target</span> <span class="op">=</span> <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#278">sub_target</a>.<span class="ident">clone</span>().<span class="ident">patch_types</span>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#278">self</a>.<span class="ident">substs</span>);
+        <a class="self" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#278">self</a>.<span class="ident">expr</span>.<span class="ident">as_ref</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">expr</span><span class="op">|</span> <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#281">expr</a>.<span class="ident">find</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#280">sub_target</a>)).<span class="ident">unwrap_or</span>(<span class="bool-val">false</span>)
     }
 }
 </code></pre></div>
