@@ -4,8 +4,6 @@ pub trait VariableHelpers {
 }
 
 pub trait ConstantHelpers {
-    type Constant;
-    fn constant(value: Self::Constant) -> Self;
     fn bool(value: bool) -> Self;
     fn int(value: i64) -> Self;
 }
@@ -34,6 +32,49 @@ pub trait BinaryOperationHelpers {
     fn and(left: Self, right: Self) -> Self;
     fn or(left: Self, right: Self) -> Self;
     fn implies(left: Self, right: Self) -> Self;
+}
+
+pub fn equals<E: BinaryOperationHelpers>(left: E, right: E) -> E {
+    BinaryOperationHelpers::equals(left, right)
+}
+pub fn not_equals<E: BinaryOperationHelpers>(left: E, right: E) -> E {
+    BinaryOperationHelpers::not_equals(left, right)
+}
+pub fn greater_than<E: BinaryOperationHelpers>(left: E, right: E) -> E {
+    BinaryOperationHelpers::greater_than(left, right)
+}
+pub fn greater_equals<E: BinaryOperationHelpers>(left: E, right: E) -> E {
+    BinaryOperationHelpers::greater_equals(left, right)
+}
+pub fn less_than<E: BinaryOperationHelpers>(left: E, right: E) -> E {
+    BinaryOperationHelpers::less_than(left, right)
+}
+pub fn less_equals<E: BinaryOperationHelpers>(left: E, right: E) -> E {
+    BinaryOperationHelpers::less_equals(left, right)
+}
+pub fn add<E: BinaryOperationHelpers>(left: E, right: E) -> E {
+    BinaryOperationHelpers::add(left, right)
+}
+pub fn subtract<E: BinaryOperationHelpers>(left: E, right: E) -> E {
+    BinaryOperationHelpers::subtract(left, right)
+}
+pub fn multiply<E: BinaryOperationHelpers>(left: E, right: E) -> E {
+    BinaryOperationHelpers::multiply(left, right)
+}
+pub fn divide<E: BinaryOperationHelpers>(left: E, right: E) -> E {
+    BinaryOperationHelpers::divide(left, right)
+}
+pub fn module<E: BinaryOperationHelpers>(left: E, right: E) -> E {
+    BinaryOperationHelpers::module(left, right)
+}
+pub fn and<E: BinaryOperationHelpers>(left: E, right: E) -> E {
+    BinaryOperationHelpers::and(left, right)
+}
+pub fn or<E: BinaryOperationHelpers>(left: E, right: E) -> E {
+    BinaryOperationHelpers::or(left, right)
+}
+pub fn implies<E: BinaryOperationHelpers>(left: E, right: E) -> E {
+    BinaryOperationHelpers::implies(left, right)
 }
 
 pub trait QuantifierHelpers {
