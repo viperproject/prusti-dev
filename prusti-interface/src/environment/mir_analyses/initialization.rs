@@ -37,7 +37,7 @@ pub fn compute_definitely_initialized<'a, 'tcx: 'a>(
     body: &'a mir::Body<'tcx>,
     tcx: TyCtxt<'tcx>,
 ) -> DefinitelyInitializedAnalysisResult<'tcx> {
-    let stopwatch = Stopwatch::start("prusti-client", "initialization analysis");
+    let stopwatch = Stopwatch::start_debug("prusti-client", "initialization analysis");
     let analyzer = Analyzer::new(tcx);
     let pointwise_state = analyzer.run_fwd_analysis::<DefinitelyInitializedState>(body)
         .map_err(|e| panic!("Error while analyzing function at {:?}: {}", body.span, e.to_pretty_str(body)))

@@ -170,7 +170,8 @@ impl<'v, 'tcx> Verifier<'v, 'tcx> {
             let proc_name = self.env.get_absolute_item_name(proc_id);
             let proc_def_path = self.env.get_item_def_path(proc_id);
             let proc_span = self.env.get_item_span(proc_id);
-            info!(" - {} from {:?} ({})", proc_name, proc_span, proc_def_path);
+            info!(" - {} ({})", proc_name, proc_def_path);
+            info!("   Source: {:?}", proc_span);
         }
 
         // // Check support status, and queue encoding

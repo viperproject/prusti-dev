@@ -277,6 +277,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         self.procedures.borrow_mut().drain().map(|(_, value)| value).collect()
     }
 
+    /// Return, if there is any, the unique instantiation of the given closure.
     pub fn get_single_closure_instantiation(
         &self,
         closure_def_id: DefId,
@@ -893,11 +894,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             let proc_name = self.env.get_absolute_item_name(proc_def_id);
             let proc_def_path = self.env.get_item_def_path(proc_def_id);
             let wrapper_def_id = self.get_wrapper_def_id(proc_def_id);
-            let proc_span = self.env.get_item_span(wrapper_def_id);
-            info!(
-                "Encoding: {} from {:?} ({})",
-                proc_name, proc_span, proc_def_path
-            );
+            info!("Encoding: {} ({})", proc_name, proc_def_path);
             assert!(substs.is_empty());
             if self.is_pure(proc_def_id) {
                 // Check that the pure Rust function satisfies the basic
