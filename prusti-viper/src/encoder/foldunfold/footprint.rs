@@ -32,12 +32,16 @@ impl ExprFootprintGetter for vir::Expr {
             vir::Expr::Local(_)
             | vir::Expr::Field(_)
             | vir::Expr::Variant(_)
-            | vir::Expr::AddrOf(_)
             | vir::Expr::LabelledOld(_)
             | vir::Expr::Const(_)
             | vir::Expr::FuncApp(_)
             | vir::Expr::DomainFuncApp(_)
             | vir::Expr::InhaleExhale(_) => HashSet::new(),
+
+            vir::Expr::AddrOf(..) => {
+                //HashSet::new()
+                unreachable!()
+            }
 
             vir::Expr::Unfolding(vir::Unfolding {
                 arguments,

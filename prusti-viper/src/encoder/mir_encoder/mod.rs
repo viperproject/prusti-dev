@@ -306,25 +306,16 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
         Ok(match base_ty.kind() {
             ty::TyKind::RawPtr(ty::TypeAndMut { ty, .. })
             | ty::TyKind::Ref(_, ty, _) => {
-                let access = if encoded_base.is_addr_of() {
-                    // Simplify `*&<expr>` ==> `<expr>`
-                    encoded_base.get_parent().unwrap()
-                } else {
-                    let ref_field = self.encoder()
-                        .encode_dereference_field(ty)?;
-                    encoded_base.field(ref_field)
-                };
+                let ref_field = self.encoder()
+                    .encode_dereference_field(ty)?;
+                let access = encoded_base.field(ref_field);
                 (access, ty, None)
             }
             ty::TyKind::Adt(adt_def, _subst) if adt_def.is_box() => {
-                let access = if encoded_base.is_addr_of() {
-                    encoded_base.get_parent().unwrap()
-                } else {
-                    let field_ty = base_ty.boxed_ty();
-                    let ref_field = self.encoder()
-                        .encode_dereference_field(field_ty)?;
-                    encoded_base.field(ref_field)
-                };
+                let field_ty = base_ty.boxed_ty();
+                let ref_field = self.encoder()
+                    .encode_dereference_field(field_ty)?;
+                let access = encoded_base.field(ref_field);
                 (access, base_ty.boxed_ty(), None)
             }
             ref x => {
