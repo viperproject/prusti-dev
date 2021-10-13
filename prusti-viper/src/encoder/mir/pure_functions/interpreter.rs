@@ -1039,20 +1039,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                     | &mir::Rvalue::Ref(_, mir::BorrowKind::Mut { .. }, ref place)
                     | &mir::Rvalue::Ref(_, mir::BorrowKind::Shared, ref place) => {
                         let (encoded_place, _, _) = self.encode_place(place).with_span(span)?;
-                        let encoded_ref = match encoded_place {
-                            vir::Expr::Field( vir::FieldExpr {
-                                box ref base,
-                                field: vir::Field { ref name, .. },
-                                ..
-                            }) if name == "val_ref" => {
-                                // Simplify "address of reference"
-                                base.clone()
-                            }
-                            other_place => other_place.addr_of(),
-                        };
-
-                        // Substitute the place
-                        state.substitute_value(&encoded_lhs, encoded_ref);
+                        let snapshot = self.encoder.encode_snapshot_constructor(
+                            ty,
+                            vec![encoded_place],
+                            &self.tymap
+                        ).with_span(span)?;
+                        state.substitute_value(&encoded_lhs, snapshot);
                     }
 
                     &mir::Rvalue::Cast(mir::CastKind::Misc, ref operand, dst_ty) => {
