@@ -872,7 +872,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                                 }
                                 let snapshot = self.encoder.encode_snapshot(
                                     ty,
-                                    Some(variant_index),
+                                    Some(variant_index.as_usize()),
                                     field_exprs,
                                     &self.tymap,
                                 ).with_span(span)?;
