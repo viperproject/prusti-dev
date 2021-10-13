@@ -814,8 +814,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                                         }
                                     }
                                 }
-                                let snapshot = self.encoder.encode_snapshot_constructor(
+                                let snapshot = self.encoder.encode_snapshot(
                                     ty,
+                                    None,
                                     field_exprs,
                                     &self.tymap,
                                 ).with_span(span)?;
@@ -869,15 +870,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                                         }
                                     }
                                 }
-                                // TODO: construct snapshot for enumerations
-                                if num_variants == 1 {
-                                    let snapshot = self.encoder.encode_snapshot_constructor(
-                                        ty,
-                                        field_exprs,
-                                        &self.tymap,
-                                    ).with_span(span)?;
-                                    state.substitute_value(&encoded_lhs, snapshot);
-                                }
+                                let snapshot = self.encoder.encode_snapshot(
+                                    ty,
+                                    Some(variant_index),
+                                    field_exprs,
+                                    &self.tymap,
+                                ).with_span(span)?;
+                                state.substitute_value(&encoded_lhs, snapshot);
                             }
 
                             &mir::AggregateKind::Array(elem_ty) => {
@@ -903,8 +902,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                                     position: vir::Position::default(),
                                 });
 
-                                let snapshot = self.encoder.encode_snapshot_constructor(
+                                let snapshot = self.encoder.encode_snapshot(
                                     ty,
+                                    None,
                                     vec![elems],
                                     &self.tymap,
                                 ).with_span(span)?;
@@ -1039,8 +1039,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                     | &mir::Rvalue::Ref(_, mir::BorrowKind::Mut { .. }, ref place)
                     | &mir::Rvalue::Ref(_, mir::BorrowKind::Shared, ref place) => {
                         let (encoded_place, _, _) = self.encode_place(place).with_span(span)?;
-                        let snapshot = self.encoder.encode_snapshot_constructor(
+                        let snapshot = self.encoder.encode_snapshot(
                             ty,
+                            None,
                             vec![encoded_place],
                             &self.tymap
                         ).with_span(span)?;
@@ -1113,7 +1114,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                             position: vir::Position::default(),
                         });
 
-                        let slice_snap = self.encoder.encode_snapshot_constructor(ty, vec![elems_seq], &self.tymap,).with_span(span)?;
+                        let slice_snap = self.encoder.encode_snapshot(ty, None, vec![elems_seq], &self.tymap).with_span(span)?;
 
                         state.substitute_value(&opt_lhs_value_place.unwrap(), slice_snap);
 

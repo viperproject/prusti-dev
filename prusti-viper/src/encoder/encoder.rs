@@ -713,17 +713,18 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         self.snapshot_encoder.borrow_mut().encode_type(self, ty, tymap)
     }
 
-    /// Encodes a snapshot constructor directly. Can only be used on ADTs with
-    /// a single variant.
-    pub fn encode_snapshot_constructor(
+    /// Constructs a snapshot. The `variant` is needed only if `ty` is an enum.
+    /// The result is not necessarily a domain; it could be a primitive type.
+    pub fn encode_snapshot(
         &self,
         ty: ty::Ty<'tcx>,
+        variant: Option<usize>,
         args: Vec<vir::Expr>,
         tymap: &SubstMap<'tcx>,
     )
         -> EncodingResult<vir::Expr>
     {
-        self.snapshot_encoder.borrow_mut().encode_constructor(self, ty, args, tymap)
+        self.snapshot_encoder.borrow_mut().encode_constructor(self, ty, variant, args, tymap)
     }
 
     pub fn encode_snapshot_array_idx(
@@ -774,7 +775,6 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     pub fn is_quantifiable(&self, ty: ty::Ty<'tcx>, tymap: &SubstMap<'tcx>,) -> EncodingResult<bool> {
         self.snapshot_encoder.borrow_mut().is_quantifiable(self, ty, tymap)
     }
-
 
     pub fn encode_const_expr(
         &self,

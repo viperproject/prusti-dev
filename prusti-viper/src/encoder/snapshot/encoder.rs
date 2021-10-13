@@ -422,24 +422,29 @@ impl SnapshotEncoder {
         }
     }
 
-    /// Encodes a snapshot constructor directly. Can only be used on ADTs with
-    /// a single variant.
+    /// Constructs a snapshot. The `variant` is needed only if `ty` is an enum.
+    /// The result is not necessarily a domain; it could be a primitive type.
     pub fn encode_constructor<'p, 'v: 'p, 'tcx: 'v>(
         &mut self,
         encoder: &'p Encoder<'v, 'tcx>,
         ty: ty::Ty<'tcx>,
-        args: Vec<Expr>,
+        variant: Option<usize>,
+        mut args: Vec<Expr>,
         tymap: &SubstMap<'tcx>,
     ) -> EncodingResult<Expr> {
         let snapshot = self.encode_snapshot(encoder, ty, tymap)?;
         match snapshot {
+            Snapshot::Primitive(..) => {
+                assert_eq!(args.len(), 1);
+                Ok(args.pop().unwrap())
+            },
             Snapshot::Unit => {
                 assert!(args.is_empty());
                 Ok(self.domains[UNIT_DOMAIN_NAME].functions[0].apply(args))
             },
             Snapshot::Complex { ref variants, .. } => {
-                assert_eq!(variants.len(), 1);
-                Ok(variants[0].0.apply(args))
+                assert!(variants.len() != 1 || variant.is_none());
+                Ok(variants[variant.unwrap_or(0)].0.apply(args))
             },
             Snapshot::Array { cons, .. } => {
                 // the caller must have created a vir::Expr::Seq already
