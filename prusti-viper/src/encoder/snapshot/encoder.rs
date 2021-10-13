@@ -61,44 +61,6 @@ pub struct SnapshotEncoder {
     domains: HashMap<String, vir::Domain>,
 }
 
-/// Snapshot encoding flattens references and boxes. This function removes any
-/// [Box<...>] or reference (mutable or shared) wrappers.
-fn strip_refs_and_boxes(ty: ty::Ty) -> ty::Ty {
-    match ty.kind() {
-        _ if ty.is_box() => strip_refs_and_boxes(ty.boxed_ty()),
-        ty::TyKind::Ref(_, sub_ty, _) => strip_refs_and_boxes(sub_ty),
-        _ => ty,
-    }
-}
-
-/// Same as [strip_refs_and_boxes], but also performs the needed field accesses
-/// on the given expression to deref/unbox it.
-fn strip_refs_and_boxes_expr<'p, 'v: 'p, 'tcx: 'v>(
-    encoder: &'p Encoder<'v, 'tcx>,
-    ty: ty::Ty<'tcx>,
-    expr: Expr,
-) -> EncodingResult<(ty::Ty<'tcx>, Expr)> {
-    match ty.kind() {
-        _ if ty.is_box() => strip_refs_and_boxes_expr(
-            encoder,
-            ty.boxed_ty(),
-            Expr::field(
-                expr,
-                encoder.encode_dereference_field(ty.boxed_ty())?,
-            ),
-        ),
-        ty::TyKind::Ref(_, sub_ty, _) => strip_refs_and_boxes_expr(
-            encoder,
-            sub_ty,
-            Expr::field(
-                expr,
-                encoder.encode_dereference_field(sub_ty)?,
-            ),
-        ),
-        _ => Ok((ty, expr)),
-    }
-}
-
 /// Returns a `forall` quantifier if `vars` is not empty, otherwise returns
 /// the `body` directly.
 fn forall_or_body(
@@ -236,7 +198,6 @@ impl SnapshotEncoder {
             Type::TypeVar(..) |
             Type::TypedRef(..) => {
                 let ty = encoder.decode_type_predicate_type(vir_ty)?;
-                let (ty, expr) = strip_refs_and_boxes_expr(encoder, ty, expr)?;
                 Ok(match ty.kind() {
                     ty::TyKind::Int(_)
                     | ty::TyKind::Uint(_)
@@ -590,7 +551,6 @@ impl SnapshotEncoder {
         ty: ty::Ty<'tcx>,
         tymap: &SubstMap<'tcx>,
     ) -> EncodingResult<Snapshot> {
-        let ty = encoder.resolve_typaram(strip_refs_and_boxes(ty), tymap);
         let predicate_type = encoder.encode_type(ty)?;
 
         // was the snapshot for the type already encoded?
@@ -655,10 +615,42 @@ impl SnapshotEncoder {
         let arg_expr = Expr::local(arg_self.clone());
 
         match ty.kind() {
-            // since all encoding goes through [encode_type] first, we should
-            // never get a box or reference here
-            _ if ty.is_box() => unreachable!(),
-            ty::TyKind::Ref(_, _, _) => unreachable!(),
+            _ if ty.is_box() => {
+                let field_name = "val_ref";
+                let field_ty = ty.boxed_ty();
+                let field = SnapshotField {
+                    name: field_name.to_string(),
+                    access: self.snap_app(encoder, Expr::field(
+                        arg_expr.clone(),
+                        encoder.encode_raw_ref_field(field_name.to_string(), field_ty)?,
+                    ), tymap)?,
+                    mir_type: field_ty,
+                    typ: self.encode_type(encoder, field_ty, tymap)?,
+                };
+                self.encode_complex(encoder, vec![SnapshotVariant {
+                    discriminant: -1,
+                    fields: vec![field],
+                    name: None,
+                }], predicate_type)
+            }
+
+            ty::TyKind::Ref(_, field_ty, _) => {
+                let field_name = "val_ref";
+                let field = SnapshotField {
+                    name: field_name.to_string(),
+                    access: self.snap_app(encoder, Expr::field(
+                        arg_expr.clone(),
+                        encoder.encode_raw_ref_field(field_name.to_string(), field_ty)?,
+                    ), tymap)?,
+                    mir_type: field_ty,
+                    typ: self.encode_type(encoder, field_ty, tymap)?,
+                };
+                self.encode_complex(encoder, vec![SnapshotVariant {
+                    discriminant: -1,
+                    fields: vec![field],
+                    name: None,
+                }], predicate_type)
+            }
 
             ty::TyKind::Int(_)
             | ty::TyKind::Uint(_)
