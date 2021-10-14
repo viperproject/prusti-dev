@@ -10,8 +10,9 @@ use rustc_span::source_map::SourceMap;
 use rustc_span::MultiSpan;
 use viper::VerificationError;
 use prusti_interface::PrustiError;
-use log::debug;
+use log::{debug, trace};
 use prusti_interface::data::ProcedureDefId;
+use backtrace::trace;
 
 /// The cause of a panic!()
 #[derive(Clone, Debug)]
@@ -119,7 +120,7 @@ impl<'tcx> ErrorManager<'tcx>
 
     pub fn register<T: Into<MultiSpan>>(&mut self, span: T, error_ctxt: ErrorCtxt, def_id: ProcedureDefId) -> Position {
         let pos = self.register_span(span);
-        debug!("Register error at: {:?}", pos.id());
+        trace!("Register error {:?} of {:?} at position id {:?}", error_ctxt, def_id, pos.id());
         self.error_contexts.insert(pos.id(), (error_ctxt, def_id));
         pos
     }
@@ -128,7 +129,7 @@ impl<'tcx> ErrorManager<'tcx>
         let span = span.into();
         let pos_id = self.next_pos_id;
         self.next_pos_id += 1;
-        debug!("Register position {:?} at span {:?}", pos_id, span);
+        trace!("Register span {:?} at position id {:?}", span, pos_id);
         let pos = if let Some(primary_span) = span.primary_span() {
             let lines_info_res = self
                 .codemap
