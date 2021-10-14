@@ -117,10 +117,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionBackwardInterpreter<'p, 'v, 'tcx> {
         Ok((encoded_expr, ty, variant_idx))
     }
 
-    fn encode_operand(
-        &self,
-        operand: &mir::Operand<'tcx>,
-    ) -> EncodingResult<(vir::Expr, bool)> {
+    fn encode_operand(&self, operand: &mir::Operand<'tcx>) -> EncodingResult<(vir::Expr, bool)> {
         // TODO: De-duplicate with mir_encoder.encode_operand_place.
         //   Maybe returning `None` from mir_encoder.encode_operand_place for arrays in general?
         match operand {
