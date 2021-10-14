@@ -24,6 +24,7 @@ use rustc_middle::{mir, span_bug, ty};
 use rustc_span::Span;
 use std::{collections::HashMap, mem};
 use vir_crate::polymorphic::{self as vir, ExprIterator};
+use std::convert::TryInto;
 
 pub(crate) struct PureFunctionBackwardInterpreter<'p, 'v: 'p, 'tcx: 'v> {
     encoder: &'p Encoder<'v, 'tcx>,
@@ -751,7 +752,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                 };
 
                 match rhs {
-                    &mir::Rvalue::Use(ref operand) => {
+                    mir::Rvalue::Use(ref operand) => {
                         let (encoded_rhs, is_value) = self.encode_operand(operand).with_span(span)?;
                         if is_value {
                             if let Some(lhs_value_place) = &opt_lhs_value_place {
@@ -762,7 +763,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                         }
                     }
 
-                    &mir::Rvalue::Aggregate(ref aggregate, ref operands) => {
+                    mir::Rvalue::Aggregate(ref aggregate, ref operands) => {
                         debug!("Encode aggregate {:?}, {:?}", aggregate, operands);
                         match aggregate.as_ref() {
                             &mir::AggregateKind::Tuple => {
@@ -958,9 +959,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                         state.substitute_value(&opt_lhs_value_place.unwrap(), encoded_value);
                     }
 
-                    &mir::Rvalue::NullaryOp(_op, _op_ty) => unimplemented!(),
+                    mir::Rvalue::NullaryOp(_op, _op_ty) => unimplemented!(),
 
-                    &mir::Rvalue::Discriminant(ref src) => {
+                    mir::Rvalue::Discriminant(ref src) => {
                         let (encoded_src, src_ty, _) = self.encode_place(src).with_span(span)?;
                         match src_ty.kind() {
                             ty::TyKind::Adt(adt_def, _) if !adt_def.is_box() => {
@@ -997,9 +998,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                         }
                     }
 
-                    &mir::Rvalue::Ref(_, mir::BorrowKind::Unique, ref place)
-                    | &mir::Rvalue::Ref(_, mir::BorrowKind::Mut { .. }, ref place)
-                    | &mir::Rvalue::Ref(_, mir::BorrowKind::Shared, ref place) => {
+                    mir::Rvalue::Ref(_, mir::BorrowKind::Unique, ref place)
+                    | mir::Rvalue::Ref(_, mir::BorrowKind::Mut { .. }, ref place)
+                    | mir::Rvalue::Ref(_, mir::BorrowKind::Shared, ref place) => {
                         let (encoded_place, _, _) = self.encode_place(place).with_span(span)?;
                         // TODO: Instead of generating an `AddrOf(..)` expression, here we could
                         // generate a shapshot representing a reference. If we do so, we should
@@ -1021,7 +1022,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                         state.substitute_value(&encoded_lhs, encoded_ref);
                     }
 
-                    &mir::Rvalue::Cast(mir::CastKind::Misc, ref operand, dst_ty) => {
+                    mir::Rvalue::Cast(mir::CastKind::Misc, ref operand, dst_ty) => {
                         let encoded_val = self.mir_encoder
                             .encode_cast_expr(operand, dst_ty, stmt.source_info.span, &self.tymap)?;
 
@@ -1029,7 +1030,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                         state.substitute_value(&opt_lhs_value_place.unwrap(), encoded_val);
                     }
 
-                    &mir::Rvalue::Len(ref place) => {
+                    mir::Rvalue::Len(ref place) => {
                         let place_ty = self.encode_place(place).with_span(span)?.1;
                         match place_ty.kind() {
                             ty::TyKind::Array(..) => {
@@ -1049,7 +1050,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                         }
                     }
 
-                    &mir::Rvalue::Cast(mir::CastKind::Pointer(ty::adjustment::PointerCast::Unsize), ref operand, ty) => {
+                    mir::Rvalue::Cast(mir::CastKind::Pointer(ty::adjustment::PointerCast::Unsize), ref operand, ty) => {
                         if !ty.is_slice() {
                             return Err(EncodingError::unsupported(
                                 "unsizing a pointer or reference value is not supported"
@@ -1085,7 +1086,29 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                         let slice_snap = self.encoder.encode_snapshot(ty, None, vec![elems_seq], &self.tymap).with_span(span)?;
 
                         state.substitute_value(&opt_lhs_value_place.unwrap(), slice_snap);
+                    }
 
+                    mir::Rvalue::Repeat(ref operand, times) => {
+                        let (encoded_operand, _) = self.encode_operand(&operand).with_span(span)?;
+                        let len: usize = self.encoder.const_eval_intlike(&times.val).with_span(span)?
+                            .to_u64().unwrap().try_into().unwrap();
+                        let elem_ty = operand.ty(self.mir, self.encoder.env().tcx());
+                        let encoded_elem_ty = self.encoder.encode_snapshot_type(elem_ty, &self.tymap)
+                            .with_span(span)?;
+                        let elems = vir::Expr::Seq(vir::Seq {
+                            typ: vir::Type::Seq(vir::SeqType{ typ: box encoded_elem_ty }),
+                            elements: (0..len).map(|_| encoded_operand.clone()).collect(),
+                            position: vir::Position::default(),
+                        });
+
+                        let snapshot = self.encoder.encode_snapshot(
+                            ty,
+                            None,
+                            vec![elems],
+                            &self.tymap,
+                        ).with_span(span)?;
+
+                        state.substitute_value(&encoded_lhs, snapshot);
                     }
 
                     ref rhs => {
