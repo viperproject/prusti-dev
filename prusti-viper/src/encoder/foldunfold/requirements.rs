@@ -136,7 +136,7 @@ impl RequiredPermissionsGetter for vir::Stmt {
 
                 // We want to temporarily unfold place
                 let predicate_type = place.get_type();
-                let predicate = predicates.get(&predicate_type).unwrap();
+                let predicate = predicates.get(predicate_type).unwrap();
 
                 let pred_self_place: vir::Expr = predicate.self_place();
                 let places_in_pred: HashSet<Perm> = predicate
@@ -247,7 +247,7 @@ impl RequiredPermissionsGetter for vir::Expr {
 
                 // We want to temporarly unfold place
                 let predicate_type = place.get_type();
-                let predicate = predicates.get(&predicate_type).unwrap();
+                let predicate = predicates.get(predicate_type).unwrap();
 
                 let pred_self_place: vir::Expr = predicate.self_place();
                 let places_in_pred: HashSet<Perm> = predicate
@@ -435,7 +435,7 @@ impl RequiredPermissionsGetter for vir::Expr {
 
             vir::Expr::Downcast(vir::DowncastExpr { ref enum_place, .. }) => {
                 let predicate_type = enum_place.get_type();
-                let predicate = predicates.get(&predicate_type).unwrap();
+                let predicate = predicates.get(predicate_type).unwrap();
                 if let vir::Predicate::Enum(enum_predicate) = predicate {
                     // We want to have the enum unfolded
                     enum_place

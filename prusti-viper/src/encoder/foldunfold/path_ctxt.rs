@@ -102,7 +102,7 @@ impl<'a> PathCtxt<'a> {
         let predicate_type = pred_place.get_type();
         let predicate = self
             .predicates
-            .get(&predicate_type)
+            .get(predicate_type)
             .map(Ok)
             .unwrap_or_else(|| Err(FoldUnfoldError::MissingPredicate(predicate_type.clone())))?;
 
@@ -580,7 +580,7 @@ impl<'a> PathCtxt<'a> {
             let predicate_type = req.get_type();
             let predicate = self
                 .predicates
-                .get(&predicate_type)
+                .get(predicate_type)
                 .unwrap_or_else(|| panic!("not found: {}", predicate_type));
 
             let variant = find_unfolded_variant(&self.state, req.get_place());

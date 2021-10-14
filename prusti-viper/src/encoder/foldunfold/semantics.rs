@@ -194,7 +194,7 @@ impl ApplyOnState for vir::Stmt {
 
                 // We want to fold place
                 let predicate_type = place.get_type();
-                let predicate = predicates.get(&predicate_type).unwrap();
+                let predicate = predicates.get(predicate_type).unwrap();
 
                 let pred_self_place: vir::Expr = predicate.self_place();
                 let places_in_pred: Vec<Perm> = predicate
@@ -230,7 +230,7 @@ impl ApplyOnState for vir::Stmt {
 
                 // We want to unfold place
                 let predicate_type = place.get_type();
-                let predicate = predicates.get(&predicate_type).unwrap();
+                let predicate = predicates.get(predicate_type).unwrap();
 
                 let pred_self_place: vir::Expr = predicate.self_place();
                 let places_in_pred: Vec<_> = predicate
@@ -421,7 +421,7 @@ impl ApplyOnState for vir::Stmt {
                 } else {
                     trace!("Downcast {} to {}", enum_place, field);
                     let predicate_type = enum_place.get_type();
-                    let predicate = predicates.get(&predicate_type).unwrap();
+                    let predicate = predicates.get(predicate_type).unwrap();
                     if let vir::Predicate::Enum(enum_predicate) = predicate {
                         let discriminant_place = enum_place
                             .clone()
