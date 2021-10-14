@@ -101,7 +101,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionBackwardInterpreter<'p, 'v, 'tcx> {
         &self,
         place: &mir::Place<'tcx>,
     ) -> EncodingResult<(vir::Expr, ty::Ty<'tcx>, Option<usize>)> {
-        let (encoded_place, ty, variant_idx) = self.mir_encoder().encode_place(place)?;
+        let (encoded_place, ty, variant_idx) = self.mir_encoder.encode_place(place)?;
         let encoded_expr = self.postprocess_place_encoding(encoded_place)?;
         Ok((encoded_expr, ty, variant_idx))
     }
@@ -117,19 +117,20 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionBackwardInterpreter<'p, 'v, 'tcx> {
         Ok((encoded_expr, ty, variant_idx))
     }
 
-    fn encode_operand_place(
+    fn encode_operand(
         &self,
         operand: &mir::Operand<'tcx>,
-    ) -> EncodingResult<Option<vir::Expr>> {
+    ) -> EncodingResult<(vir::Expr, bool)> {
         // TODO: De-duplicate with mir_encoder.encode_operand_place.
         //   Maybe returning `None` from mir_encoder.encode_operand_place for arrays in general?
-        Ok(match operand {
+        match operand {
             mir::Operand::Move(ref place) | &mir::Operand::Copy(ref place) => {
-                Some(self.encode_place(place)?.0)
+                Ok((self.encode_place(place)?.0, false))
             }
-
-            mir::Operand::Constant(_) => None,
-        })
+            mir::Operand::Constant(constant) => {
+                Ok((self.encoder.encode_snapshot_constant(&constant)?, true))
+            }
+        }
     }
 
     fn postprocess_place_encoding(
@@ -754,24 +755,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
 
                 match rhs {
                     &mir::Rvalue::Use(ref operand) => {
-                        let opt_encoded_rhs = self.encode_operand_place(operand)
-                            .with_span(span)?;
-
-                        match opt_encoded_rhs {
-                            Some(encoded_rhs) => {
-                                // Substitute a place
-                                state.substitute_value(&encoded_lhs, encoded_rhs);
+                        let (encoded_rhs, is_value) = self.encode_operand(operand).with_span(span)?;
+                        if is_value {
+                            if let Some(lhs_value_place) = &opt_lhs_value_place {
+                                state.substitute_value(lhs_value_place, encoded_rhs);
                             }
-                            None => {
-                                // Substitute a place of a value with an expression
-                                if let Some(lhs_value_place) = &opt_lhs_value_place {
-                                    // opt_lhs_value_place can be none in trigger generation code.
-                                    let rhs_expr = self.mir_encoder
-                                        .encode_operand_expr(operand)
-                                        .with_span(span)?;
-                                    state.substitute_value(lhs_value_place, rhs_expr);
-                                }
-                            }
+                        } else {
+                            state.substitute_value(&encoded_lhs, encoded_rhs);
                         }
                     }
 
@@ -793,29 +783,20 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                                         .with_span(span)?;
                                     let field_place = encoded_lhs.clone().field(encoded_field);
 
-                                    let encoded_operand = self.encode_operand_place(operand)
-                                        .with_span(span)?;
-                                    match encoded_operand {
-                                        Some(encoded_rhs) => {
-                                            // Substitute a place
-                                            field_exprs.push(encoded_rhs.clone());
-                                            state.substitute_value(&field_place, encoded_rhs);
-                                        }
-                                        None => {
-                                            // Substitute a place of a value with an expression
-                                            let rhs_expr =
-                                                self.mir_encoder.encode_operand_expr(operand)
-                                                    .with_span(span)?;
-                                            field_exprs.push(rhs_expr.clone());
-                                            state.substitute_value(
-                                                &self.encoder.encode_value_expr(field_place, field_ty.expect_ty()).with_span(span)?,
-                                                rhs_expr,
-                                            );
-                                        }
+                                    let (encoded_rhs, is_value) = self.encode_operand(operand).with_span(span)?;
+                                    if is_value {
+                                        state.substitute_value(
+                                            &self.encoder.encode_value_expr(field_place, field_ty.expect_ty())                                                  .with_span(span)?,
+                                            encoded_rhs.clone(),
+                                        );
+                                    } else {
+                                        state.substitute_value(&field_place, encoded_rhs.clone());
                                     }
+                                    field_exprs.push(encoded_rhs);
                                 }
-                                let snapshot = self.encoder.encode_snapshot_constructor(
+                                let snapshot = self.encoder.encode_snapshot(
                                     ty,
+                                    None,
                                     field_exprs,
                                     &self.tymap,
                                 ).with_span(span)?;
@@ -848,50 +829,33 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                                     let field_place =
                                         encoded_lhs_variant.clone().field(encoded_field);
 
-                                    let encoded_operand = self.encode_operand_place(operand)
+                                    let (encoded_rhs, is_value) = self.encode_operand(operand)
                                         .with_span(span)?;
-                                    match encoded_operand {
-                                        Some(encoded_rhs) => {
-                                            // Substitute a place
-                                            field_exprs.push(encoded_rhs.clone());
-                                            state.substitute_value(&field_place, encoded_rhs);
-                                        }
-                                        None => {
-                                            // Substitute a place of a value with an expression
-                                            let rhs_expr =
-                                                self.mir_encoder.encode_operand_expr(operand)
-                                                    .with_span(span)?;
-                                            field_exprs.push(rhs_expr.clone());
-                                            state.substitute_value(
-                                                &self.encoder.encode_value_expr(field_place, field_ty).with_span(span)?,
-                                                rhs_expr,
-                                            );
-                                        }
+                                    if is_value {
+                                        state.substitute_value(
+                                            &self.encoder.encode_value_expr(field_place, field_ty)
+                                                .with_span(span)?,
+                                            encoded_rhs.clone(),
+                                        );
+                                    } else {
+                                        state.substitute_value(&field_place, encoded_rhs.clone());
                                     }
+                                    field_exprs.push(encoded_rhs);
                                 }
-                                // TODO: construct snapshot for enumerations
-                                if num_variants == 1 {
-                                    let snapshot = self.encoder.encode_snapshot_constructor(
-                                        ty,
-                                        field_exprs,
-                                        &self.tymap,
-                                    ).with_span(span)?;
-                                    state.substitute_value(&encoded_lhs, snapshot);
-                                }
+                                let snapshot = self.encoder.encode_snapshot(
+                                    ty,
+                                    Some(variant_index.as_usize()),
+                                    field_exprs,
+                                    &self.tymap,
+                                ).with_span(span)?;
+                                state.substitute_value(&encoded_lhs, snapshot);
                             }
 
                             &mir::AggregateKind::Array(elem_ty) => {
                                 let mut encoded_operands = Vec::with_capacity(operands.len());
-                                for oper in operands {
-                                    let encoded_oper = self.encode_operand_place(oper)
+                                for operand in operands {
+                                    let (encoded_oper, _) = self.encode_operand(operand)
                                         .with_span(span)?;
-                                    let encoded_oper = match encoded_oper {
-                                        Some(encoded_rhs) => encoded_rhs,
-                                        None => {
-                                            self.mir_encoder.encode_operand_expr(oper)
-                                                .with_span(span)?
-                                        }
-                                    };
                                     encoded_operands.push(encoded_oper);
                                 }
 
@@ -903,8 +867,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                                     position: vir::Position::default(),
                                 });
 
-                                let snapshot = self.encoder.encode_snapshot_constructor(
+                                let snapshot = self.encoder.encode_snapshot(
                                     ty,
+                                    None,
                                     vec![elems],
                                     &self.tymap,
                                 ).with_span(span)?;
@@ -1039,6 +1004,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                     | &mir::Rvalue::Ref(_, mir::BorrowKind::Mut { .. }, ref place)
                     | &mir::Rvalue::Ref(_, mir::BorrowKind::Shared, ref place) => {
                         let (encoded_place, _, _) = self.encode_place(place).with_span(span)?;
+                        // TODO: Instead of generating an `AddrOf(..)` expression, here we could
+                        // generate a shapshot representing a reference. If we do so, we should
+                        // also migrate the simplification done by `Expr::simplify_addr_of` to
+                        // snapshots.
                         let encoded_ref = match encoded_place {
                             vir::Expr::Field( vir::FieldExpr {
                                 box ref base,
@@ -1091,12 +1060,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                         }
 
                         let rhs_array_ref_ty = self.mir_encoder.get_operand_ty(operand);
-                        let encoded_rhs = if let Some(encoded_place) = self.encode_operand_place(operand).with_span(span)? {
-                            encoded_place
-                        } else {
-                            self.mir_encoder.encode_operand_expr(operand)
-                                .with_span(span)?
-                        };
+                        let (encoded_rhs, _) = self.encode_operand(operand).with_span(span)?;
                         // encoded_rhs is something like ref$Array$.. or ref$Slice$.. but we want .val_ref: Array$..
                         let encoded_rhs = self.encoder.encode_value_expr(encoded_rhs, rhs_array_ref_ty).with_span(span)?;
                         let rhs_array_ty = if let ty::TyKind::Ref(_, array_ty, _) = rhs_array_ref_ty.kind() {
@@ -1121,7 +1085,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                             position: vir::Position::default(),
                         });
 
-                        let slice_snap = self.encoder.encode_snapshot_constructor(ty, vec![elems_seq], &self.tymap,).with_span(span)?;
+                        let slice_snap = self.encoder.encode_snapshot(ty, None, vec![elems_seq], &self.tymap).with_span(span)?;
 
                         state.substitute_value(&opt_lhs_value_place.unwrap(), slice_snap);
 
