@@ -52,7 +52,7 @@ impl ExprFootprintGetter for vir::Expr {
 
                 // We want to temporarly unfold place
                 let predicate_type = place.get_type();
-                let predicate = predicates.get(&predicate_type).unwrap();
+                let predicate = predicates.get(predicate_type).unwrap();
 
                 let pred_self_place: vir::Expr = predicate.self_place();
                 let places_in_pred: HashSet<Perm> = predicate
