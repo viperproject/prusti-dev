@@ -130,7 +130,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         let tcx = encoder.env().tcx();
         let mir_encoder = MirEncoder::new(encoder, mir, def_id);
         let init_info = InitInfo::new(mir, tcx, def_id, &mir_encoder)
-            .with_span(procedure.get_span())?;
+            .with_default_span(procedure.get_span())?;
 
         let cfg_method = vir::CfgMethod::new(
             // method name
