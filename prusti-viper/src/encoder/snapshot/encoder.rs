@@ -443,7 +443,7 @@ impl SnapshotEncoder {
                 Ok(self.domains[UNIT_DOMAIN_NAME].functions[0].apply(args))
             },
             Snapshot::Complex { ref variants, .. } => {
-                assert!(variants.len() != 1 || variant.is_none());
+                assert!(variant.is_some() || variants.len() == 1);
                 Ok(variants[variant.unwrap_or(0)].0.apply(args))
             },
             Snapshot::Array { cons, .. } => {
