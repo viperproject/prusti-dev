@@ -117,7 +117,7 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
                     PrustiError::incorrect(
                         format!("external specification provided for {}, which already has a specification",
                             env.get_item_name(*real_id)),
-                        MultiSpan::from_span(env.get_item_span(*spec_id)),
+                        MultiSpan::from_span(env.get_def_span(*spec_id)),
                     ).emit(env);
                 }
             }

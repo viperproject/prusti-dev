@@ -211,10 +211,9 @@ impl<'tcx> Environment<'tcx> {
         crate_name
     }
 
-    /// Get the span of a definition
-    /// Note: panics on non-local `def_id`
-    pub fn get_item_span(&self, def_id: DefId) -> Span {
-        self.tcx.hir().span_if_local(def_id).unwrap()
+    /// Get the span of the given definition.
+    pub fn get_def_span(&self, def_id: DefId) -> Span {
+        self.tcx.def_span(def_id)
     }
 
     pub fn get_absolute_item_name(&self, def_id: DefId) -> String {
