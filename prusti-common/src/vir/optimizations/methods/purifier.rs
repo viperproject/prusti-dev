@@ -105,7 +105,7 @@ impl ast::ExprWalker for VarCollector {
     }
     fn walk_predicate_access_predicate(&mut self, ast::PredicateAccessPredicate {predicate_type, box argument, ..}: &ast::PredicateAccessPredicate) {
         let old_pure_context = self.is_pure_context;
-        if is_purifiable_predicate(&predicate_type) {
+        if is_purifiable_predicate(predicate_type) {
             if let ast::Expr::Local( ast::Local {variable: var, ..}) = argument {
                 let mut new_var = var.clone();
                 let original = var.clone();
@@ -280,7 +280,7 @@ impl ast::ExprFolder for VarPurifier {
     }
     fn fold_field_access_predicate(&mut self, ast::FieldAccessPredicate {base: receiver, permission, position}: ast::FieldAccessPredicate) -> ast::Expr {
         if let box ast::Expr::Field( ast::FieldExpr {base: box ast::Expr::Local( ast::Local {variable: var, ..} ), ..}) = &receiver {
-            if self.pure_vars.contains(&var) {
+            if self.pure_vars.contains(var) {
                 return true.into();
             }
         }
