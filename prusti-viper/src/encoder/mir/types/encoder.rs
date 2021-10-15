@@ -524,15 +524,14 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
                         vir::Expr::from(self_local_var.clone()).field(discriminant_field.clone());
                     adt_def.variants.iter().zip(discriminant_values).for_each(
                         |(variant_def, variant_index)| {
-                            let variant_name = variant_def.ident.to_string();
+                            let variant_name = variant_def.ident(tcx).to_string();
                             let variant_loc =
                                 vir::Expr::from(self_local_var.clone()).variant(&variant_name);
-                            let variant_predicate =
-                                typ.clone().variant(&variant_name).encode_as_string();
+                            let variant_predicate = typ.clone().variant(&variant_name);
                             let guard =
                                 vir::Expr::eq_cmp(discriminant_loc.clone(), variant_index.into());
                             variant_def.fields.iter().for_each(|field| {
-                                let field_name = field.ident.to_string();
+                                let field_name = field.ident(tcx).to_string();
                                 let field_ty = field.ty(tcx, subst);
                                 let vir_field = self
                                     .encoder
@@ -557,11 +556,11 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
 
                                 // Make the variant accessible
                                 let invariant_expr = vir::Expr::unfolding(
-                                    predicate_name.clone(),
+                                    typ.clone(),
                                     vec![vir::Expr::from(self_local_var.clone())],
                                     invariant_expr,
                                     vir::PermAmount::Read,
-                                    Some(vir::EnumVariantIndex::new(variant_name))
+                                    Some(vir::EnumVariantIndex::new(variant_name.clone()))
                                 );
                                 let implication = vir::Expr::implies(guard.clone(), invariant_expr);
                                 exprs.push(implication);
@@ -607,7 +606,7 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
         self.encoder
             .log_vir_program_before_foldunfold(function.to_string());
 
-        let predicates_map = self.encoder.get_used_viper_predicates_map();
+        let predicates_map = self.encoder.get_used_viper_predicates_map()?;
 
         // Add folding/unfolding
         let function = function; /* foldunfold::add_folding_unfolding_to_function(
