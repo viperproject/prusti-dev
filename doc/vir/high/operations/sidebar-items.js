@@ -1,1 +1,1 @@
-initSidebarItems({"mod":[["expression",""],["ty",""]]});
+initSidebarItems({"mod":[["constants",""],["expression",""],["helpers",""],["special_variables",""],["ty",""]]});

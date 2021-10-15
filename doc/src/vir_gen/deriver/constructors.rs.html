@@ -85,9 +85,14 @@
 <span id="85">85</span>
 <span id="86">86</span>
 <span id="87">87</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">syn::parse_quote</span>;
+<span id="88">88</span>
+<span id="89">89</span>
+<span id="90">90</span>
+<span id="91">91</span>
+<span id="92">92</span>
+</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">syn</span>::{<span class="ident">parse_quote</span>, <a class="ident" href="../../../syn/spanned/trait.Spanned.html">spanned::Spanned</a>};
 
-<span class="kw">use</span> <span class="kw">crate</span>::{<a class="ident" href="../../../src/vir_gen/ast/mod.rs.html#33-35">ast::PathList</a>, <a class="ident" href="../../../src/vir_gen/helpers.rs.html#35">helpers::unbox_type</a>};
+<span class="kw">use</span> <span class="kw">crate</span>::{<a class="ident" href="../../../src/vir_gen/ast/mod.rs.html#33-35">ast::PathList</a>, <a class="ident" href="../../../src/vir_gen/helpers.rs.html#42">helpers::unbox_type</a>};
 
 <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">derive</span>(<span class="ident">items</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../../syn/item/enum.Item.html">syn::Item</a><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../../syn/error/struct.Error.html">syn::Error</a><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">derived_items</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
@@ -135,36 +140,41 @@
     <span class="ident">ignore_field</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a><span class="op">&gt;</span>,
 ) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="../../../syn/item/enum.Item.html">syn::Item</a> {
     <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="ident">syn::Ident::new</span>(<a class="ident" href="../../../src/vir_gen/deriver/constructors.rs.html#45">name</a>, <a class="ident" href="../../../src/vir_gen/deriver/constructors.rs.html#46">struct_ident</a>.<span class="ident">span</span>());
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">parameters</span>: <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../../syn/item/enum.FnArg.html">syn::FnArg</a><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">fields</span>: <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../../syn/expr/struct.FieldValue.html">syn::FieldValue</a><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
-    <span class="kw">for</span> <a class="ident" href="../../../src/vir_gen/deriver/constructors.rs.html#53">field</a> <span class="kw">in</span> <a class="ident" href="../../../src/vir_gen/deriver/constructors.rs.html#47">fields_iter</a> {
-        <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <a class="ident" href="../../../src/vir_gen/deriver/constructors.rs.html#53">field</a>.<span class="ident">ident</span>.<span class="ident">as_ref</span>().<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">parameter_type</span> <span class="op">=</span> <a class="ident" href="../../../src/vir_gen/helpers.rs.html#35">unbox_type</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/vir_gen/deriver/constructors.rs.html#53">field</a>.<span class="ident">ty</span>);
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">parameters</span> <span class="op">=</span> <span class="ident">Vec</span>::<span class="op">&lt;</span><a class="ident" href="../../../syn/item/enum.FnArg.html">syn::FnArg</a><span class="op">&gt;</span><span class="ident">::new</span>();
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">fields</span> <span class="op">=</span> <span class="ident">Vec</span>::<span class="op">&lt;</span><a class="ident" href="../../../syn/expr/struct.FieldValue.html">syn::FieldValue</a><span class="op">&gt;</span><span class="ident">::new</span>();
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">generics</span> <span class="op">=</span> <span class="ident">Vec</span>::<span class="op">&lt;</span><a class="ident" href="../../../syn/generics/enum.GenericParam.html">syn::GenericParam</a><span class="op">&gt;</span><span class="ident">::new</span>();
+    <span class="kw">for</span> (<span class="ident">i</span>, <span class="ident">field</span>) <span class="kw">in</span> <a class="ident" href="../../../src/vir_gen/deriver/constructors.rs.html#47">fields_iter</a>.<span class="ident">enumerate</span>() {
+        <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <a class="ident" href="../../../src/vir_gen/deriver/constructors.rs.html#54">field</a>.<span class="ident">ident</span>.<span class="ident">as_ref</span>().<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="ident">parameter_type</span> <span class="op">=</span> <a class="ident" href="../../../src/vir_gen/helpers.rs.html#42">unbox_type</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/vir_gen/deriver/constructors.rs.html#54">field</a>.<span class="ident">ty</span>);
+        <span class="kw">let</span> <span class="ident">generic_type</span> <span class="op">=</span> <span class="ident">syn::Ident::new</span>(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;G{}&quot;</span>, <a class="ident" href="../../../src/vir_gen/deriver/constructors.rs.html#54">i</a>), <a class="ident" href="../../../src/vir_gen/deriver/constructors.rs.html#56">parameter_type</a>.<span class="ident">span</span>());
         <span class="kw">if</span> <a class="ident" href="../../../src/vir_gen/deriver/constructors.rs.html#48">ignore_field</a>
-            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">ignored_name</span><span class="op">|</span> <a class="ident" href="../../../src/vir_gen/deriver/constructors.rs.html#54">name</a> <span class="op">=</span><span class="op">=</span> <a class="ident" href="../../../src/vir_gen/deriver/constructors.rs.html#57">ignored_name</a>)
+            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">ignored_name</span><span class="op">|</span> <a class="ident" href="../../../src/vir_gen/deriver/constructors.rs.html#55">name</a> <span class="op">=</span><span class="op">=</span> <a class="ident" href="../../../src/vir_gen/deriver/constructors.rs.html#59">ignored_name</a>)
             .<span class="ident">unwrap_or</span>(<span class="bool-val">false</span>)
         {
             <a class="ident" href="../../../src/vir_gen/deriver/constructors.rs.html#52">fields</a>.<span class="ident">push</span>(<span class="macro">parse_quote!</span>(
                 #<span class="ident">name</span>: #<span class="ident">parameter_type::default</span>()
             ));
         } <span class="kw">else</span> {
+            <a class="ident" href="../../../src/vir_gen/deriver/constructors.rs.html#53">generics</a>.<span class="ident">push</span>(<span class="macro">parse_quote!</span> {
+                #<span class="ident">generic_type</span>: <span class="ident">Into</span><span class="op">&lt;</span>#<span class="ident">parameter_type</span><span class="op">&gt;</span>
+            });
             <a class="ident" href="../../../src/vir_gen/deriver/constructors.rs.html#51">parameters</a>.<span class="ident">push</span>(<span class="macro">parse_quote!</span>(
-                #<span class="ident">name</span>: #<span class="ident">parameter_type</span>
+                #<span class="ident">name</span>: #<span class="ident">generic_type</span>
             ));
-            <span class="kw">if</span> <a class="ident" href="../../../src/vir_gen/deriver/constructors.rs.html#55">parameter_type</a> <span class="op">=</span><span class="op">=</span> <a class="ident" href="../../../src/vir_gen/deriver/constructors.rs.html#53">field</a>.<span class="ident">ty</span> {
+            <span class="kw">if</span> <a class="ident" href="../../../src/vir_gen/deriver/constructors.rs.html#56">parameter_type</a> <span class="op">=</span><span class="op">=</span> <a class="ident" href="../../../src/vir_gen/deriver/constructors.rs.html#54">field</a>.<span class="ident">ty</span> {
                 <a class="ident" href="../../../src/vir_gen/deriver/constructors.rs.html#52">fields</a>.<span class="ident">push</span>(<span class="macro">parse_quote!</span>(
-                    #<span class="ident">name</span>
+                    #<span class="ident">name</span>: #<span class="ident">name</span>.<span class="ident">into</span>()
                 ));
             } <span class="kw">else</span> {
                 <a class="ident" href="../../../src/vir_gen/deriver/constructors.rs.html#52">fields</a>.<span class="ident">push</span>(<span class="macro">parse_quote!</span>(
-                    #<span class="ident">name</span>: <span class="ident">Box::new</span>(#<span class="ident">name</span>)
+                    #<span class="ident">name</span>: <span class="ident">Box::new</span>(#<span class="ident">name</span>.<span class="ident">into</span>())
                 ));
             }
         }
     }
     <span class="macro">parse_quote!</span> {
         <span class="kw">impl</span> #<span class="ident">struct_ident</span> {
-            <span class="kw">pub</span> <span class="kw">fn</span> #<span class="ident">name</span>(#(#<span class="ident">parameters</span>),<span class="kw-2">*</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+            <span class="kw">pub</span> <span class="kw">fn</span> #<span class="ident">name</span><span class="op">&lt;</span>#(#<span class="ident">generics</span>),<span class="kw-2">*</span><span class="op">&gt;</span>(#(#<span class="ident">parameters</span>),<span class="kw-2">*</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
                 <span class="self">Self</span> {
                     #(#<span class="ident">fields</span>),<span class="op">*</span>
                 }

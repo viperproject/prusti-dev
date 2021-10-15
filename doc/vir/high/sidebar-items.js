@@ -1,1 +1,1 @@
-initSidebarItems({"enum":[["Expression",""],["Type",""]],"mod":[["ast",""],["operations",""]],"struct":[["FieldDecl",""],["TypeVar",""],["VariableDecl",""]],"trait":[["Generic",""]]});
+initSidebarItems({"enum":[["Expression",""],["Type",""],["TypeDecl",""]],"mod":[["ast",""],["expression",""],["operations",""],["ty",""],["type_decl",""],["visitors",""]],"struct":[["FieldDecl",""],["FunctionDecl",""],["Position",""],["VariableDecl",""]],"trait":[["Generic",""]]});
