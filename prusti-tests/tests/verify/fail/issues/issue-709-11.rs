@@ -4,7 +4,7 @@ use prusti_contracts::*;
 
 #[derive(Clone, Copy)]
 pub struct A {
-    inner: usize
+    _inner: usize
 }
 
 #[repr(transparent)]
