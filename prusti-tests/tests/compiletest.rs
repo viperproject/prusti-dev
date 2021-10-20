@@ -178,6 +178,15 @@ fn test_runner(_tests: &[&()]) {
     println!("[verify_overflow]");
     run_verification_overflow("verify_overflow", &filter);
 
+    // Test the verifier with test cases that only partially verify due to known open issues.
+    // The purpose of these tests is two-fold: 1. these tests help prevent potential further
+    // regressions, because the tests also test code paths not covered by other tests; and
+    // 2. a failing test without any errors notifies the developer when a proper fix is in
+    // place. In this case, these test can be moved to the `verify/pass/` or
+    // `verify_overflow/pass` folders.
+    println!("[verify_partial]");
+    run_verification_overflow("verify_partial", &filter);
+
     // Test the verifier with panic checks disabled (i.e. verify only the core proof).
     println!("[core_proof]");
     run_verification_core_proof("core_proof", &filter);
