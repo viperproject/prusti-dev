@@ -20,4 +20,4 @@ pub fn test(b: &mut B) { //~ ERROR generating fold-unfold Viper statements faile
     b.get_mut(1)[0] = A(1);
 }
 
-pub fn main() {}
+fn main() {}

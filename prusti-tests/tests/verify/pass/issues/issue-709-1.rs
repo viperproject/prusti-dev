@@ -15,4 +15,4 @@ impl B {
     }
 }
 
-pub fn main() {}
+fn main() {}
