@@ -19,7 +19,8 @@ use crate::encoder::{
     mir_interpreter::{
         run_backward_interpretation, BackwardMirInterpreter, ExprBackwardInterpreterState,
     },
-    snapshot, Encoder,
+    snapshot::{self, interface::SnapshotEncoderInterface},
+    Encoder,
 };
 use log::{debug, trace};
 use prusti_common::{config, vir::optimizations::functions::Simplifier, vir_local};
