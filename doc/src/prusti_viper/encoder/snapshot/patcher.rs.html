@@ -249,22 +249,82 @@
 <span id="249">249</span>
 <span id="250">250</span>
 <span id="251">251</span>
+<span id="252">252</span>
+<span id="253">253</span>
+<span id="254">254</span>
+<span id="255">255</span>
+<span id="256">256</span>
+<span id="257">257</span>
+<span id="258">258</span>
+<span id="259">259</span>
+<span id="260">260</span>
+<span id="261">261</span>
+<span id="262">262</span>
+<span id="263">263</span>
+<span id="264">264</span>
+<span id="265">265</span>
+<span id="266">266</span>
+<span id="267">267</span>
+<span id="268">268</span>
+<span id="269">269</span>
+<span id="270">270</span>
+<span id="271">271</span>
+<span id="272">272</span>
+<span id="273">273</span>
+<span id="274">274</span>
+<span id="275">275</span>
+<span id="276">276</span>
+<span id="277">277</span>
+<span id="278">278</span>
+<span id="279">279</span>
+<span id="280">280</span>
+<span id="281">281</span>
+<span id="282">282</span>
+<span id="283">283</span>
+<span id="284">284</span>
+<span id="285">285</span>
+<span id="286">286</span>
+<span id="287">287</span>
+<span id="288">288</span>
+<span id="289">289</span>
+<span id="290">290</span>
+<span id="291">291</span>
+<span id="292">292</span>
+<span id="293">293</span>
+<span id="294">294</span>
+<span id="295">295</span>
+<span id="296">296</span>
+<span id="297">297</span>
+<span id="298">298</span>
+<span id="299">299</span>
+<span id="300">300</span>
+<span id="301">301</span>
+<span id="302">302</span>
+<span id="303">303</span>
+<span id="304">304</span>
+<span id="305">305</span>
+<span id="306">306</span>
+<span id="307">307</span>
+<span id="308">308</span>
+<span id="309">309</span>
 </pre><pre class="rust"><code><span class="comment">// © 2021, ETH Zurich</span>
 <span class="comment">//</span>
 <span class="comment">// This Source Code Form is subject to the terms of the Mozilla Public</span>
 <span class="comment">// License, v. 2.0. If a copy of the MPL was not distributed with this</span>
 <span class="comment">// file, You can obtain one at http://mozilla.org/MPL/2.0/.</span>
 
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::encoder</span>::{
+    <a class="ident" href="../../../../src/prusti_viper/encoder/encoder.rs.html#102">encoder::SubstMap</a>,
+    <span class="ident">errors</span>::{<a class="ident" href="../../../../src/prusti_viper/encoder/errors/encoding_error.rs.html#15-18">EncodingError</a>, <a class="ident" href="../../../../src/prusti_viper/encoder/errors/encoding_error.rs.html#20">EncodingResult</a>},
+    <a class="ident" href="../../../../src/prusti_viper/encoder/high/types/interface.rs.html#114-142">high::types::HighTypeEncoderInterface</a>,
+    <a class="ident" href="../../../../src/prusti_viper/encoder/mir/types/interface.rs.html#26-51">mir::types::MirTypeEncoderInterface</a>,
+    <span class="ident">snapshot::encoder</span>::{<a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/encoder.rs.html#40-57">SnapshotEncoder</a>, <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/encoder.rs.html#35">UNIT_DOMAIN_NAME</a>},
+    <a class="ident" href="../../../../src/prusti_viper/encoder/encoder.rs.html#68-99">Encoder</a>,
+};
 <span class="kw">use</span> <span class="ident">vir_crate::polymorphic</span>::{<a class="self" href="../../../../vir/gen/polymorphic/index.html">self</a> <span class="kw">as</span> <span class="ident">vir</span>, <a class="ident" href="../../../../vir/gen/polymorphic/ast/expr_transformers/trait.ExprFolder.html">ExprFolder</a>, <a class="ident" href="../../../../vir/gen/polymorphic/ast/expr_transformers/trait.FallibleExprFolder.html">FallibleExprFolder</a>, <a class="ident" href="../../../../vir/gen/polymorphic/ast/stmt/trait.FallibleStmtFolder.html">FallibleStmtFolder</a>};
-<span class="kw">use</span> <a class="ident" href="../../../../src/prusti_viper/encoder/encoder.rs.html#68-99"><span class="kw">crate</span>::encoder::Encoder</a>;
-<span class="kw">use</span> <a class="ident" href="../../../../src/prusti_viper/encoder/encoder.rs.html#102"><span class="kw">crate</span>::encoder::encoder::SubstMap</a>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::encoder::errors</span>::{<a class="ident" href="../../../../src/prusti_viper/encoder/errors/encoding_error.rs.html#15-18">EncodingError</a>, <a class="ident" href="../../../../src/prusti_viper/encoder/errors/encoding_error.rs.html#20">EncodingResult</a>};
-<span class="kw">use</span> <a class="ident" href="../../../../src/prusti_viper/encoder/high/types/interface.rs.html#114-142"><span class="kw">crate</span>::encoder::high::types::HighTypeEncoderInterface</a>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::encoder::snapshot::encoder</span>::{<a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/encoder.rs.html#39">UNIT_DOMAIN_NAME</a>, <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/encoder.rs.html#44-62">SnapshotEncoder</a>};
-<span class="kw">use</span> <a class="ident" href="../../../../src/prusti_viper/encoder/mir/types/interface.rs.html#26-51"><span class="kw">crate</span>::encoder::mir::types::MirTypeEncoderInterface</a>;
 
 <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct</span> <span class="ident">SnapshotPatcher</span><span class="op">&lt;</span><span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;v</span><span class="op">&gt;</span> {
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">snapshot_encoder</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;v</span> <span class="kw-2">mut</span> <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/encoder.rs.html#44-62">SnapshotEncoder</a>,
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">snapshot_encoder</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;v</span> <span class="kw-2">mut</span> <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/encoder.rs.html#40-57">SnapshotEncoder</a>,
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">encoder</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;v</span> <span class="ident">Encoder</span><span class="op">&lt;</span><span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">tymap</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;v</span> <span class="ident">SubstMap</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
 }
@@ -272,130 +332,193 @@
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;v</span><span class="op">&gt;</span> <a class="ident" href="../../../../vir/gen/polymorphic/ast/expr_transformers/trait.FallibleExprFolder.html">FallibleExprFolder</a> <span class="kw">for</span> <span class="ident">SnapshotPatcher</span><span class="op">&lt;</span><span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> {
     <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <a class="ident" href="../../../../src/prusti_viper/encoder/errors/encoding_error.rs.html#15-18">EncodingError</a>;
 
-    <span class="kw">fn</span> <span class="ident">fallible_fold_snap_app</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <a class="ident" href="../../../../vir/gen/polymorphic/ast/expr/struct.SnapApp.html">vir::SnapApp</a> {<span class="kw-2">mut</span> <span class="ident">base</span>, ..}: <a class="ident" href="../../../../vir/gen/polymorphic/ast/expr/struct.SnapApp.html">vir::SnapApp</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
-        <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#24">base</a> <span class="op">=</span> <a class="self" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#24">self</a>.<span class="ident">fallible_fold_boxed</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#24">base</a>)<span class="question-mark">?</span>;
-        <a class="self" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#24">self</a>.<span class="ident">snapshot_encoder</span>.<a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/encoder.rs.html#228-233">snap_app</a>(<a class="self" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#24">self</a>.<span class="ident">encoder</span>, <span class="kw-2">*</span><a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#24">base</a>, <a class="self" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#24">self</a>.<span class="ident">tymap</span>)
+    <span class="kw">fn</span> <span class="ident">fallible_fold_snap_app</span>(
+        <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
+        <a class="ident" href="../../../../vir/gen/polymorphic/ast/expr/struct.SnapApp.html">vir::SnapApp</a> { <span class="kw-2">mut</span> <span class="ident">base</span>, .. }: <a class="ident" href="../../../../vir/gen/polymorphic/ast/expr/struct.SnapApp.html">vir::SnapApp</a>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#28">base</a> <span class="op">=</span> <a class="self" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#27">self</a>.<span class="ident">fallible_fold_boxed</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#28">base</a>)<span class="question-mark">?</span>;
+        <a class="self" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#27">self</a>.<span class="ident">snapshot_encoder</span>
+            .<a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/encoder.rs.html#225-230">snap_app</a>(<a class="self" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#27">self</a>.<span class="ident">encoder</span>, <span class="kw-2">*</span><a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#28">base</a>, <a class="self" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#27">self</a>.<span class="ident">tymap</span>)
     }
 
-    <span class="kw">fn</span> <span class="ident">fallible_fold_func_app</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <a class="ident" href="../../../../vir/gen/polymorphic/ast/expr/struct.FuncApp.html">vir::FuncApp</a> {<span class="ident">function_name</span>, <span class="kw-2">mut</span> <span class="ident">arguments</span>, <span class="ident">formal_arguments</span>, <span class="ident">return_type</span>, <span class="ident">position</span>}: <a class="ident" href="../../../../vir/gen/polymorphic/ast/expr/struct.FuncApp.html">vir::FuncApp</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
-        <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#29">arguments</a> <span class="op">=</span> <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#29">arguments</a>.<span class="ident">into_iter</span>()
-            .<span class="ident">zip</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#29">formal_arguments</a>.<span class="ident">iter</span>())
+    <span class="kw">fn</span> <span class="ident">fallible_fold_func_app</span>(
+        <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
+        <a class="ident" href="../../../../vir/gen/polymorphic/ast/expr/struct.FuncApp.html">vir::FuncApp</a> {
+            <span class="ident">function_name</span>,
+            <span class="kw-2">mut</span> <span class="ident">arguments</span>,
+            <span class="ident">formal_arguments</span>,
+            <span class="ident">return_type</span>,
+            <span class="ident">position</span>,
+        }: <a class="ident" href="../../../../vir/gen/polymorphic/ast/expr/struct.FuncApp.html">vir::FuncApp</a>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#39">arguments</a> <span class="op">=</span> <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#39">arguments</a>
+            .<span class="ident">into_iter</span>()
+            .<span class="ident">zip</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#40">formal_arguments</a>.<span class="ident">iter</span>())
             .<span class="ident">map</span>(<span class="op">|</span>(<span class="kw-2">mut</span> <span class="ident">arg</span>, <span class="ident">formal_arg</span>)<span class="op">|</span> {
-                <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#32">arg</a> <span class="op">=</span> <span class="ident">FallibleExprFolder::fallible_fold</span>(<a class="self" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#29">self</a>, <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#32">arg</a>)<span class="question-mark">?</span>;
+                <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#48">arg</a> <span class="op">=</span> <span class="ident">FallibleExprFolder::fallible_fold</span>(<a class="self" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#36">self</a>, <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#48">arg</a>)<span class="question-mark">?</span>;
                 <span class="comment">// TODO: this patches more than it should</span>
                 <span class="comment">// so it could cover up/muddle some type errors in the VIR</span>
-                <span class="kw">if</span> <span class="kw-2">*</span><a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#32">arg</a>.<span class="ident">get_type</span>() <span class="op">!</span><span class="op">=</span> <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#32">formal_arg</a>.<span class="ident">typ</span> {
-                    <a class="self" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#29">self</a>.<span class="ident">snapshot_encoder</span>.<a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/encoder.rs.html#228-233">snap_app</a>(<a class="self" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#29">self</a>.<span class="ident">encoder</span>, <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#32">arg</a>, <a class="self" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#29">self</a>.<span class="ident">tymap</span>)
+                <span class="kw">if</span> <span class="kw-2">*</span><a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#48">arg</a>.<span class="ident">get_type</span>() <span class="op">!</span><span class="op">=</span> <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#48">formal_arg</a>.<span class="ident">typ</span> {
+                    <a class="self" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#36">self</a>.<span class="ident">snapshot_encoder</span>
+                        .<a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/encoder.rs.html#225-230">snap_app</a>(<a class="self" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#36">self</a>.<span class="ident">encoder</span>, <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#48">arg</a>, <a class="self" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#36">self</a>.<span class="ident">tymap</span>)
                 } <span class="kw">else</span> {
-                    <span class="prelude-val">Ok</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#32">arg</a>)
+                    <span class="prelude-val">Ok</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#48">arg</a>)
                 }
             })
             .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="kw">_</span>, <span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>()<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<span class="ident">vir::Expr::FuncApp</span>( <a class="ident" href="../../../../vir/gen/polymorphic/ast/expr/struct.FuncApp.html">vir::FuncApp</a> {
-            <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#29">function_name</a>,
-            <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#29">arguments</a>,
-            <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#29">formal_arguments</a>,
-            <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#29">return_type</a>,
-            <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#29">position</a>,
+        <span class="prelude-val">Ok</span>(<span class="ident">vir::Expr::FuncApp</span>(<a class="ident" href="../../../../vir/gen/polymorphic/ast/expr/struct.FuncApp.html">vir::FuncApp</a> {
+            <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#38">function_name</a>,
+            <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#39">arguments</a>,
+            <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#40">formal_arguments</a>,
+            <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#41">return_type</a>,
+            <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#42">position</a>,
         }))
     }
 
-    <span class="kw">fn</span> <span class="ident">fallible_fold_domain_func_app</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <a class="ident" href="../../../../vir/gen/polymorphic/ast/expr/struct.DomainFuncApp.html">vir::DomainFuncApp</a> {<span class="ident">domain_function</span>, <span class="ident">arguments</span>, <span class="ident">position</span>}: <a class="ident" href="../../../../vir/gen/polymorphic/ast/expr/struct.DomainFuncApp.html">vir::DomainFuncApp</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">folded_args</span> <span class="op">=</span> <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#52">arguments</a>.<span class="ident">into_iter</span>()
-            .<span class="ident">zip</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#52">domain_function</a>.<span class="ident">formal_args</span>.<span class="ident">iter</span>())
+    <span class="kw">fn</span> <span class="ident">fallible_fold_domain_func_app</span>(
+        <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
+        <a class="ident" href="../../../../vir/gen/polymorphic/ast/expr/struct.DomainFuncApp.html">vir::DomainFuncApp</a> {
+            <span class="ident">domain_function</span>,
+            <span class="ident">arguments</span>,
+            <span class="ident">position</span>,
+        }: <a class="ident" href="../../../../vir/gen/polymorphic/ast/expr/struct.DomainFuncApp.html">vir::DomainFuncApp</a>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="ident">folded_args</span> <span class="op">=</span> <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#73">arguments</a>
+            .<span class="ident">into_iter</span>()
+            .<span class="ident">zip</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#72">domain_function</a>.<span class="ident">formal_args</span>.<span class="ident">iter</span>())
             .<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">arg</span>, <span class="ident">formal_arg</span>)<span class="op">|</span> {
-                <span class="kw">let</span> <span class="ident">folded_arg</span> <span class="op">=</span> <span class="ident">FallibleExprFolder::fallible_fold</span>(<a class="self" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#52">self</a>, <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#55">arg</a>)<span class="question-mark">?</span>;
+                <span class="kw">let</span> <span class="ident">folded_arg</span> <span class="op">=</span> <span class="ident">FallibleExprFolder::fallible_fold</span>(<a class="self" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#70">self</a>, <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#80">arg</a>)<span class="question-mark">?</span>;
                 <span class="comment">// TODO: same note as for fallible_fold_func_app applies</span>
-                <span class="kw">if</span> <span class="kw-2">*</span><a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#56">folded_arg</a>.<span class="ident">get_type</span>() <span class="op">!</span><span class="op">=</span> <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#55">formal_arg</a>.<span class="ident">typ</span> {
-                    <a class="self" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#52">self</a>.<span class="ident">snapshot_encoder</span>.<a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/encoder.rs.html#228-233">snap_app</a>(<a class="self" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#52">self</a>.<span class="ident">encoder</span>, <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#56">folded_arg</a>, <a class="self" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#52">self</a>.<span class="ident">tymap</span>)
+                <span class="kw">if</span> <span class="kw-2">*</span><a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#81">folded_arg</a>.<span class="ident">get_type</span>() <span class="op">!</span><span class="op">=</span> <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#80">formal_arg</a>.<span class="ident">typ</span> {
+                    <a class="self" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#70">self</a>.<span class="ident">snapshot_encoder</span>
+                        .<a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/encoder.rs.html#225-230">snap_app</a>(<a class="self" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#70">self</a>.<span class="ident">encoder</span>, <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#81">folded_arg</a>, <a class="self" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#70">self</a>.<span class="ident">tymap</span>)
                 } <span class="kw">else</span> {
-                    <span class="prelude-val">Ok</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#56">folded_arg</a>)
+                    <span class="prelude-val">Ok</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#81">folded_arg</a>)
                 }
             })
             .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span>, <span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>()<span class="question-mark">?</span>;
 
-        <span class="prelude-val">Ok</span>(<span class="ident">vir::Expr::DomainFuncApp</span>( <a class="ident" href="../../../../vir/gen/polymorphic/ast/expr/struct.DomainFuncApp.html">vir::DomainFuncApp</a> {
-            <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#52">domain_function</a>,
-            <span class="ident">arguments</span>: <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#53">folded_args</a>,
-            <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#52">position</a>,
+        <span class="prelude-val">Ok</span>(<span class="ident">vir::Expr::DomainFuncApp</span>(<a class="ident" href="../../../../vir/gen/polymorphic/ast/expr/struct.DomainFuncApp.html">vir::DomainFuncApp</a> {
+            <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#72">domain_function</a>,
+            <span class="ident">arguments</span>: <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#77">folded_args</a>,
+            <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#74">position</a>,
         }))
     }
 
-    <span class="kw">fn</span> <span class="ident">fallible_fold_field</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <a class="ident" href="../../../../vir/gen/polymorphic/ast/expr/struct.FieldExpr.html">vir::FieldExpr</a> {<span class="ident">base</span>: <span class="ident">receiver</span>, <span class="ident">field</span>, <span class="ident">position</span>}: <a class="ident" href="../../../../vir/gen/polymorphic/ast/expr/struct.FieldExpr.html">vir::FieldExpr</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#73">receiver</a> {
-            <span class="kw">box</span> <span class="ident">vir::Expr::Variant</span>( <a class="ident" href="../../../../vir/gen/polymorphic/ast/expr/struct.Variant.html">vir::Variant</a> {<span class="ident">base</span>: <span class="ident">receiver</span>, <span class="ident">variant_index</span>: <span class="ident">variant</span>, <span class="ident">position</span>: <span class="ident">pos2</span>} ) <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="kw">let</span> <span class="ident">receiver</span> <span class="op">=</span> <a class="self" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#73">self</a>.<span class="ident">fallible_fold_boxed</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#75">receiver</a>)<span class="question-mark">?</span>;
-                <span class="kw">match</span> <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#76">receiver</a>.<span class="ident">get_type</span>() {
-                    <span class="ident">vir::Type::Snapshot</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <a class="self" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#73">self</a>.<span class="ident">snapshot_encoder</span>.<a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/encoder.rs.html#296-303">snap_variant_field</a>(
-                        <a class="self" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#73">self</a>.<span class="ident">encoder</span>,
-                        <span class="kw-2">*</span><a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#76">receiver</a>,
-                        <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#75">variant</a>,
-                        <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#73">field</a>,
-                        <a class="self" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#73">self</a>.<span class="ident">tymap</span>,
+    <span class="kw">fn</span> <span class="ident">fallible_fold_field</span>(
+        <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
+        <a class="ident" href="../../../../vir/gen/polymorphic/ast/expr/struct.FieldExpr.html">vir::FieldExpr</a> {
+            <span class="ident">base</span>: <span class="ident">receiver</span>,
+            <span class="ident">field</span>,
+            <span class="ident">position</span>,
+        }: <a class="ident" href="../../../../vir/gen/polymorphic/ast/expr/struct.FieldExpr.html">vir::FieldExpr</a>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
+        <span class="kw">match</span> <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#102">receiver</a> {
+            <span class="kw">box</span> <span class="ident">vir::Expr::Variant</span>(<a class="ident" href="../../../../vir/gen/polymorphic/ast/expr/struct.Variant.html">vir::Variant</a> {
+                <span class="ident">base</span>: <span class="ident">receiver</span>,
+                <span class="ident">variant_index</span>: <span class="ident">variant</span>,
+                <span class="ident">position</span>: <span class="ident">pos2</span>,
+            }) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="kw">let</span> <span class="ident">receiver</span> <span class="op">=</span> <a class="self" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#100">self</a>.<span class="ident">fallible_fold_boxed</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#109">receiver</a>)<span class="question-mark">?</span>;
+                <span class="kw">match</span> <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#113">receiver</a>.<span class="ident">get_type</span>() {
+                    <span class="ident">vir::Type::Snapshot</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <a class="self" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#100">self</a>.<span class="ident">snapshot_encoder</span>.<a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/encoder.rs.html#289-296">snap_variant_field</a>(
+                        <a class="self" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#100">self</a>.<span class="ident">encoder</span>,
+                        <span class="kw-2">*</span><a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#113">receiver</a>,
+                        <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#110">variant</a>,
+                        <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#103">field</a>,
+                        <a class="self" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#100">self</a>.<span class="ident">tymap</span>,
                     ),
-                    <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">vir::Expr::Field</span>( <a class="ident" href="../../../../vir/gen/polymorphic/ast/expr/struct.FieldExpr.html">vir::FieldExpr</a> {
-                        <span class="ident">base</span>: <span class="kw">box</span> <span class="ident">vir::Expr::Variant</span>( <a class="ident" href="../../../../vir/gen/polymorphic/ast/expr/struct.Variant.html">vir::Variant</a> {
-                            <span class="ident">base</span>: <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#76">receiver</a>,
-                            <span class="ident">variant_index</span>: <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#75">variant</a>,
-                            <span class="ident">position</span>: <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#75">pos2</a>,
+                    <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">vir::Expr::Field</span>(<a class="ident" href="../../../../vir/gen/polymorphic/ast/expr/struct.FieldExpr.html">vir::FieldExpr</a> {
+                        <span class="ident">base</span>: <span class="kw">box</span> <span class="ident">vir::Expr::Variant</span>(<a class="ident" href="../../../../vir/gen/polymorphic/ast/expr/struct.Variant.html">vir::Variant</a> {
+                            <span class="ident">base</span>: <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#113">receiver</a>,
+                            <span class="ident">variant_index</span>: <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#110">variant</a>,
+                            <span class="ident">position</span>: <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#111">pos2</a>,
                         }),
-                        <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#73">field</a>,
-                        <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#73">position</a>,
+                        <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#103">field</a>,
+                        <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#104">position</a>,
                     })),
                 }
-            },
+            }
             <span class="ident">receiver</span> <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="kw">let</span> <span class="ident">receiver</span> <span class="op">=</span> <a class="self" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#73">self</a>.<span class="ident">fallible_fold_boxed</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#96">receiver</a>)<span class="question-mark">?</span>;
-                <span class="kw">match</span> <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#97">receiver</a>.<span class="ident">get_type</span>() {
-                    <span class="ident">vir::Type::Int</span> <span class="kw">if</span> <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#73">field</a>.<span class="ident">name</span> <span class="op">=</span><span class="op">=</span> <span class="string">&quot;val_int&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="kw-2">*</span><a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#97">receiver</a>),
-                    <span class="ident">vir::Type::Bool</span> <span class="kw">if</span> <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#73">field</a>.<span class="ident">name</span> <span class="op">=</span><span class="op">=</span> <span class="string">&quot;val_bool&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="kw-2">*</span><a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#97">receiver</a>),
+                <span class="kw">let</span> <span class="ident">receiver</span> <span class="op">=</span> <a class="self" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#100">self</a>.<span class="ident">fallible_fold_boxed</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#133">receiver</a>)<span class="question-mark">?</span>;
+                <span class="kw">match</span> <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#134">receiver</a>.<span class="ident">get_type</span>() {
+                    <span class="ident">vir::Type::Int</span> <span class="kw">if</span> <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#103">field</a>.<span class="ident">name</span> <span class="op">=</span><span class="op">=</span> <span class="string">&quot;val_int&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="kw-2">*</span><a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#134">receiver</a>),
+                    <span class="ident">vir::Type::Bool</span> <span class="kw">if</span> <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#103">field</a>.<span class="ident">name</span> <span class="op">=</span><span class="op">=</span> <span class="string">&quot;val_bool&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="kw-2">*</span><a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#134">receiver</a>),
                     <span class="ident">vir::Type::Snapshot</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                        <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#73">field</a>.<span class="ident">name</span>.<span class="ident">as_str</span>() {
-                            <span class="string">&quot;val_ref&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="kw-2">*</span><a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#97">receiver</a>),
-                            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <a class="self" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#73">self</a>.<span class="ident">snapshot_encoder</span>.<a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/encoder.rs.html#330-336">snap_field</a>(<a class="self" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#73">self</a>.<span class="ident">encoder</span>, <span class="kw-2">*</span><a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#97">receiver</a>, <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#73">field</a>, <a class="self" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#73">self</a>.<span class="ident">tymap</span>),
+                        <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#103">field</a>.<span class="ident">name</span>.<span class="ident">as_str</span>() {
+                            <span class="string">&quot;val_ref&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="kw-2">*</span><a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#134">receiver</a>),
+                            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <a class="self" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#100">self</a>.<span class="ident">snapshot_encoder</span>.<a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/encoder.rs.html#329-335">snap_field</a>(
+                                <a class="self" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#100">self</a>.<span class="ident">encoder</span>,
+                                <span class="kw-2">*</span><a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#134">receiver</a>,
+                                <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#103">field</a>,
+                                <a class="self" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#100">self</a>.<span class="ident">tymap</span>,
+                            ),
                         }<span class="question-mark">?</span>;
-                        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#102">res</a>)
+                        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#139">res</a>)
                     }
-                    <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">vir::Expr::Field</span>( <a class="ident" href="../../../../vir/gen/polymorphic/ast/expr/struct.FieldExpr.html">vir::FieldExpr</a> {
-                        <span class="ident">base</span>: <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#97">receiver</a>,
-                        <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#73">field</a>,
-                        <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#73">position</a>,
+                    <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">vir::Expr::Field</span>(<a class="ident" href="../../../../vir/gen/polymorphic/ast/expr/struct.FieldExpr.html">vir::FieldExpr</a> {
+                        <span class="ident">base</span>: <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#134">receiver</a>,
+                        <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#103">field</a>,
+                        <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#104">position</a>,
                     })),
                 }
             }
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">fallible_fold_forall</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <a class="ident" href="../../../../vir/gen/polymorphic/ast/expr/struct.ForAll.html">vir::ForAll</a> {<span class="ident">variables</span>, <span class="ident">triggers</span>, <span class="ident">body</span>, <span class="ident">position</span>}: <a class="ident" href="../../../../vir/gen/polymorphic/ast/expr/struct.ForAll.html">vir::ForAll</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> (<span class="ident">patched_vars</span>, <span class="ident">triggers</span>, <span class="ident">expr</span>) <span class="op">=</span> <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#175-184">fix_quantifier</a>(<a class="self" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#118">self</a>, <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#118">variables</a>, <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#118">triggers</a>, <span class="kw-2">*</span><a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#118">body</a>)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<span class="ident">vir::Expr::ForAll</span>( <a class="ident" href="../../../../vir/gen/polymorphic/ast/expr/struct.ForAll.html">vir::ForAll</a> {
-            <span class="ident">variables</span>: <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#119">patched_vars</a>,
-            <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#119">triggers</a>,
-            <span class="ident">body</span>: <span class="kw">box</span> <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#119">expr</a>,
-            <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#118">position</a>,
+    <span class="kw">fn</span> <span class="ident">fallible_fold_forall</span>(
+        <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
+        <a class="ident" href="../../../../vir/gen/polymorphic/ast/expr/struct.ForAll.html">vir::ForAll</a> {
+            <span class="ident">variables</span>,
+            <span class="ident">triggers</span>,
+            <span class="ident">body</span>,
+            <span class="ident">position</span>,
+        }: <a class="ident" href="../../../../vir/gen/polymorphic/ast/expr/struct.ForAll.html">vir::ForAll</a>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
+        <span class="kw">let</span> (<span class="ident">patched_vars</span>, <span class="ident">triggers</span>, <span class="ident">expr</span>) <span class="op">=</span> <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#240-245">fix_quantifier</a>(<a class="self" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#161">self</a>, <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#163">variables</a>, <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#164">triggers</a>, <span class="kw-2">*</span><a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#165">body</a>)<span class="question-mark">?</span>;
+        <span class="prelude-val">Ok</span>(<span class="ident">vir::Expr::ForAll</span>(<a class="ident" href="../../../../vir/gen/polymorphic/ast/expr/struct.ForAll.html">vir::ForAll</a> {
+            <span class="ident">variables</span>: <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#169">patched_vars</a>,
+            <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#169">triggers</a>,
+            <span class="ident">body</span>: <span class="kw">box</span> <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#169">expr</a>,
+            <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#166">position</a>,
         }))
     }
 
-    <span class="kw">fn</span> <span class="ident">fallible_fold_exists</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <a class="ident" href="../../../../vir/gen/polymorphic/ast/expr/struct.Exists.html">vir::Exists</a> {<span class="ident">variables</span>, <span class="ident">triggers</span>, <span class="ident">body</span>, <span class="ident">position</span>}: <a class="ident" href="../../../../vir/gen/polymorphic/ast/expr/struct.Exists.html">vir::Exists</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> (<span class="ident">patched_vars</span>, <span class="ident">triggers</span>, <span class="ident">expr</span>) <span class="op">=</span> <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#175-184">fix_quantifier</a>(<a class="self" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#128">self</a>, <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#128">variables</a>, <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#128">triggers</a>, <span class="kw-2">*</span><a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#128">body</a>)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<span class="ident">vir::Expr::Exists</span>( <a class="ident" href="../../../../vir/gen/polymorphic/ast/expr/struct.Exists.html">vir::Exists</a> {
-            <span class="ident">variables</span>: <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#129">patched_vars</a>,
-            <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#129">triggers</a>,
-            <span class="ident">body</span>: <span class="kw">box</span> <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#129">expr</a>,
-            <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#128">position</a>,
+    <span class="kw">fn</span> <span class="ident">fallible_fold_exists</span>(
+        <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
+        <a class="ident" href="../../../../vir/gen/polymorphic/ast/expr/struct.Exists.html">vir::Exists</a> {
+            <span class="ident">variables</span>,
+            <span class="ident">triggers</span>,
+            <span class="ident">body</span>,
+            <span class="ident">position</span>,
+        }: <a class="ident" href="../../../../vir/gen/polymorphic/ast/expr/struct.Exists.html">vir::Exists</a>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
+        <span class="kw">let</span> (<span class="ident">patched_vars</span>, <span class="ident">triggers</span>, <span class="ident">expr</span>) <span class="op">=</span> <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#240-245">fix_quantifier</a>(<a class="self" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#179">self</a>, <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#181">variables</a>, <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#182">triggers</a>, <span class="kw-2">*</span><a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#183">body</a>)<span class="question-mark">?</span>;
+        <span class="prelude-val">Ok</span>(<span class="ident">vir::Expr::Exists</span>(<a class="ident" href="../../../../vir/gen/polymorphic/ast/expr/struct.Exists.html">vir::Exists</a> {
+            <span class="ident">variables</span>: <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#187">patched_vars</a>,
+            <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#187">triggers</a>,
+            <span class="ident">body</span>: <span class="kw">box</span> <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#187">expr</a>,
+            <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#184">position</a>,
         }))
     }
 
-    <span class="kw">fn</span> <span class="ident">fallible_fold_downcast</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <a class="ident" href="../../../../vir/gen/polymorphic/ast/expr/struct.DowncastExpr.html">vir::DowncastExpr</a> {<span class="ident">base</span>, <span class="ident">enum_place</span>, <span class="ident">field</span>}: <a class="ident" href="../../../../vir/gen/polymorphic/ast/expr/struct.DowncastExpr.html">vir::DowncastExpr</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">base</span> <span class="op">=</span> <span class="ident">FallibleExprFolder::fallible_fold</span>(<a class="self" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#138">self</a>, <span class="kw-2">*</span><a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#138">base</a>)<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">enum_expr</span> <span class="op">=</span> <span class="ident">FallibleExprFolder::fallible_fold</span>(<a class="self" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#138">self</a>, <span class="kw-2">*</span><a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#138">enum_place</a>)<span class="question-mark">?</span>;
-        <span class="kw">if</span> <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#139">base</a>.<span class="ident">get_type</span>().<span class="ident">is_snapshot</span>() <span class="op">|</span><span class="op">|</span> <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#140">enum_expr</a>.<span class="ident">get_type</span>().<span class="ident">is_snapshot</span>() {
-            <span class="prelude-val">Ok</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#139">base</a>)
+    <span class="kw">fn</span> <span class="ident">fallible_fold_downcast</span>(
+        <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
+        <a class="ident" href="../../../../vir/gen/polymorphic/ast/expr/struct.DowncastExpr.html">vir::DowncastExpr</a> {
+            <span class="ident">base</span>,
+            <span class="ident">enum_place</span>,
+            <span class="ident">field</span>,
+        }: <a class="ident" href="../../../../vir/gen/polymorphic/ast/expr/struct.DowncastExpr.html">vir::DowncastExpr</a>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="ident">base</span> <span class="op">=</span> <span class="ident">FallibleExprFolder::fallible_fold</span>(<a class="self" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#197">self</a>, <span class="kw-2">*</span><a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#199">base</a>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">enum_expr</span> <span class="op">=</span> <span class="ident">FallibleExprFolder::fallible_fold</span>(<a class="self" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#197">self</a>, <span class="kw-2">*</span><a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#200">enum_place</a>)<span class="question-mark">?</span>;
+        <span class="kw">if</span> <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#204">base</a>.<span class="ident">get_type</span>().<span class="ident">is_snapshot</span>() <span class="op">|</span><span class="op">|</span> <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#205">enum_expr</a>.<span class="ident">get_type</span>().<span class="ident">is_snapshot</span>() {
+            <span class="prelude-val">Ok</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#204">base</a>)
         } <span class="kw">else</span> {
-            <span class="prelude-val">Ok</span>(<span class="ident">vir::Expr::Downcast</span>( <a class="ident" href="../../../../vir/gen/polymorphic/ast/expr/struct.DowncastExpr.html">vir::DowncastExpr</a> {
-                <span class="ident">base</span>: <span class="kw">box</span> <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#139">base</a>,
-                <span class="ident">enum_place</span>: <span class="kw">box</span> <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#140">enum_expr</a>,
-                <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#138">field</a>,
+            <span class="prelude-val">Ok</span>(<span class="ident">vir::Expr::Downcast</span>(<a class="ident" href="../../../../vir/gen/polymorphic/ast/expr/struct.DowncastExpr.html">vir::DowncastExpr</a> {
+                <span class="ident">base</span>: <span class="kw">box</span> <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#204">base</a>,
+                <span class="ident">enum_place</span>: <span class="kw">box</span> <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#205">enum_expr</a>,
+                <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#201">field</a>,
             }))
         }
     }
@@ -404,85 +527,78 @@
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;v</span><span class="op">&gt;</span> <a class="ident" href="../../../../vir/gen/polymorphic/ast/stmt/trait.FallibleStmtFolder.html">FallibleStmtFolder</a> <span class="kw">for</span> <span class="ident">SnapshotPatcher</span><span class="op">&lt;</span><span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> {
     <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <a class="ident" href="../../../../src/prusti_viper/encoder/errors/encoding_error.rs.html#15-18">EncodingError</a>;
 
-    <span class="kw">fn</span> <span class="ident">fallible_fold_expr</span>(
-        <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
-        <span class="ident">expr</span>: <a class="ident" href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
-        <span class="ident">FallibleExprFolder::fallible_fold</span>(<a class="self" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#157">self</a>, <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#158">expr</a>)
+    <span class="kw">fn</span> <span class="ident">fallible_fold_expr</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">expr</span>: <a class="ident" href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
+        <span class="ident">FallibleExprFolder::fallible_fold</span>(<a class="self" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#221">self</a>, <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#221">expr</a>)
     }
 
-    <span class="kw">fn</span> <span class="ident">fallible_fold_downcast</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <a class="ident" href="../../../../vir/gen/polymorphic/ast/stmt/struct.Downcast.html">vir::Downcast</a> {<span class="ident">base</span>, <span class="ident">field</span>}: <a class="ident" href="../../../../vir/gen/polymorphic/ast/stmt/struct.Downcast.html">vir::Downcast</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../../../vir/gen/polymorphic/ast/stmt/enum.Stmt.html">vir::Stmt</a>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#163">base</a>.<span class="ident">get_type</span>().<span class="ident">is_snapshot</span>() {
+    <span class="kw">fn</span> <span class="ident">fallible_fold_downcast</span>(
+        <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
+        <a class="ident" href="../../../../vir/gen/polymorphic/ast/stmt/struct.Downcast.html">vir::Downcast</a> { <span class="ident">base</span>, <span class="ident">field</span> }: <a class="ident" href="../../../../vir/gen/polymorphic/ast/stmt/struct.Downcast.html">vir::Downcast</a>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../../../vir/gen/polymorphic/ast/stmt/enum.Stmt.html">vir::Stmt</a>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
+        <span class="kw">if</span> <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#227">base</a>.<span class="ident">get_type</span>().<span class="ident">is_snapshot</span>() {
             <span class="prelude-val">Ok</span>(<span class="ident">vir::Stmt::comment</span>(<span class="string">&quot;patched out Downcast stmt&quot;</span>))
         } <span class="kw">else</span> {
-            <span class="prelude-val">Ok</span>(<span class="ident">vir::Stmt::Downcast</span>( <a class="ident" href="../../../../vir/gen/polymorphic/ast/stmt/struct.Downcast.html">vir::Downcast</a> {
-                <span class="ident">base</span>: <a class="self" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#163">self</a>.<span class="ident">fallible_fold_expr</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#163">base</a>)<span class="question-mark">?</span>,
-                <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#163">field</a>,
+            <span class="prelude-val">Ok</span>(<span class="ident">vir::Stmt::Downcast</span>(<a class="ident" href="../../../../vir/gen/polymorphic/ast/stmt/struct.Downcast.html">vir::Downcast</a> {
+                <span class="ident">base</span>: <a class="self" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#226">self</a>.<span class="ident">fallible_fold_expr</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#227">base</a>)<span class="question-mark">?</span>,
+                <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#227">field</a>,
             }))
         }
     }
 }
 
 <span class="kw">fn</span> <span class="ident">fix_quantifier</span>(
-    <span class="ident">patcher</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#15-19">SnapshotPatcher</a>,
+    <span class="ident">patcher</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#17-21">SnapshotPatcher</a>,
     <span class="ident">vars</span>: <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../../../vir/gen/polymorphic/ast/common/struct.LocalVar.html">vir::LocalVar</a><span class="op">&gt;</span>,
     <span class="ident">triggers</span>: <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../../../vir/gen/polymorphic/ast/trigger/struct.Trigger.html">vir::Trigger</a><span class="op">&gt;</span>,
     <span class="kw-2">mut</span> <span class="ident">expr</span>: <a class="ident" href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>,
-) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">EncodingResult</span><span class="op">&lt;</span>(
-    <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../../../vir/gen/polymorphic/ast/common/struct.LocalVar.html">vir::LocalVar</a><span class="op">&gt;</span>,
-    <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../../../vir/gen/polymorphic/ast/trigger/struct.Trigger.html">vir::Trigger</a><span class="op">&gt;</span>,
-    <a class="ident" href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>,
-)<span class="op">&gt;</span> {
+) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">EncodingResult</span><span class="op">&lt;</span>(<span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../../../vir/gen/polymorphic/ast/common/struct.LocalVar.html">vir::LocalVar</a><span class="op">&gt;</span>, <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../../../vir/gen/polymorphic/ast/trigger/struct.Trigger.html">vir::Trigger</a><span class="op">&gt;</span>, <a class="ident" href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>)<span class="op">&gt;</span> {
     <span class="comment">// TODO: check is_quantifiable</span>
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">patched_vars</span> <span class="op">=</span> <span class="macro">vec!</span>[];
 
     <span class="comment">// unpack triggers into Vec&lt;Vec&lt;Expr&gt;&gt;</span>
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">trigger_exprs</span> <span class="op">=</span> <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#178">triggers</a>
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">trigger_exprs</span> <span class="op">=</span> <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#243">triggers</a>
         .<span class="ident">into_iter</span>()
-        .<span class="ident">map</span>(<span class="op">|</span><span class="ident">trigger</span><span class="op">|</span> <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#191">trigger</a>
-            .<span class="ident">elements</span>().<span class="ident">to_vec</span>())
+        .<span class="ident">map</span>(<span class="op">|</span><span class="ident">trigger</span><span class="op">|</span> <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#252">trigger</a>.<span class="ident">elements</span>().<span class="ident">to_vec</span>())
         .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>();
 
-    <span class="kw">for</span> <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#195">var</a> <span class="kw">in</span> <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#177">vars</a> {
-        <span class="kw">match</span> <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#195">var</a>.<span class="ident">typ</span> {
+    <span class="kw">for</span> <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#255">var</a> <span class="kw">in</span> <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#242">vars</a> {
+        <span class="kw">match</span> <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#255">var</a>.<span class="ident">typ</span> {
             <span class="ident">vir::Type::TypedRef</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="kw">let</span> <span class="ident">ty</span> <span class="op">=</span> <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#176">patcher</a>.<span class="ident">encoder</span>.<a class="ident" href="../../../../src/prusti_viper/encoder/high/types/interface.rs.html#126">decode_type_predicate_type</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#195">var</a>.<span class="ident">typ</span>)<span class="question-mark">?</span>;
+                <span class="kw">let</span> <span class="ident">ty</span> <span class="op">=</span> <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#241">patcher</a>.<span class="ident">encoder</span>.<a class="ident" href="../../../../src/prusti_viper/encoder/high/types/interface.rs.html#126">decode_type_predicate_type</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#255">var</a>.<span class="ident">typ</span>)<span class="question-mark">?</span>;
                 <span class="kw">let</span> <span class="ident">patched_var</span> <span class="op">=</span> <span class="ident">vir::LocalVar::new</span>(
-                    <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#195">var</a>.<span class="ident">name</span>,
-                    <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#176">patcher</a>.<span class="ident">snapshot_encoder</span>.<a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/encoder.rs.html#570-575">encode_type</a>(<a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#176">patcher</a>.<span class="ident">encoder</span>, <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#198">ty</a>, <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#176">patcher</a>.<span class="ident">tymap</span>)<span class="question-mark">?</span>,
+                    <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#255">var</a>.<span class="ident">name</span>,
+                    <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#241">patcher</a>
+                        .<span class="ident">snapshot_encoder</span>
+                        .<a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/encoder.rs.html#585-590">encode_type</a>(<a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#241">patcher</a>.<span class="ident">encoder</span>, <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#258">ty</a>, <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#241">patcher</a>.<span class="ident">tymap</span>)<span class="question-mark">?</span>,
                 );
-                <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#186">patched_vars</a>.<span class="ident">push</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#199">patched_var</a>.<span class="ident">clone</span>());
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">fixer</span> <span class="op">=</span> <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#238-241">QuantifierFixer</a> {
-                    <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#195">var</a>,
-                    <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#199">patched_var</a>,
-                };
-                <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#179">expr</a> <span class="op">=</span> <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#204">fixer</a>.<span class="ident">fold</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#179">expr</a>);
-                <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#189">trigger_exprs</a> <span class="op">=</span> <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#189">trigger_exprs</a>
+                <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#247">patched_vars</a>.<span class="ident">push</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#259">patched_var</a>.<span class="ident">clone</span>());
+                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">fixer</span> <span class="op">=</span> <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#296-299">QuantifierFixer</a> { <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#255">var</a>, <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#259">patched_var</a> };
+                <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#244">expr</a> <span class="op">=</span> <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#266">fixer</a>.<span class="ident">fold</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#244">expr</a>);
+                <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#250">trigger_exprs</a> <span class="op">=</span> <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#250">trigger_exprs</a>
                     .<span class="ident">into_iter</span>()
-                    .<span class="ident">map</span>(<span class="op">|</span><span class="ident">trigger</span><span class="op">|</span> <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#211">trigger</a>
-                        .<span class="ident">into_iter</span>()
-                        .<span class="ident">map</span>(<span class="op">|</span><span class="ident">expr</span><span class="op">|</span> <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#204">fixer</a>.<span class="ident">fold</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#213">expr</a>))
-                        .<span class="ident">collect</span>())
+                    .<span class="ident">map</span>(<span class="op">|</span><span class="ident">trigger</span><span class="op">|</span> <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#270">trigger</a>.<span class="ident">into_iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">expr</span><span class="op">|</span> <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#266">fixer</a>.<span class="ident">fold</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#270">expr</a>)).<span class="ident">collect</span>())
                     .<span class="ident">collect</span>();
             }
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#186">patched_vars</a>.<span class="ident">push</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#195">var</a>.<span class="ident">clone</span>()),
+            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#247">patched_vars</a>.<span class="ident">push</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#255">var</a>.<span class="ident">clone</span>()),
         }
     }
-    <span class="kw">let</span> <span class="ident">expr</span> <span class="op">=</span> <span class="ident">FallibleExprFolder::fallible_fold</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#176">patcher</a>, <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#179">expr</a>)<span class="question-mark">?</span>;
+    <span class="kw">let</span> <span class="ident">expr</span> <span class="op">=</span> <span class="ident">FallibleExprFolder::fallible_fold</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#241">patcher</a>, <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#244">expr</a>)<span class="question-mark">?</span>;
 
     <span class="prelude-val">Ok</span>((
-        <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#186">patched_vars</a>,
-        <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#189">trigger_exprs</a>
+        <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#247">patched_vars</a>,
+        <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#250">trigger_exprs</a>
             .<span class="ident">into_iter</span>()
-            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">trigger</span><span class="op">|</span> <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#226">trigger</a>
-                .<span class="ident">into_iter</span>()
-                .<span class="ident">map</span>(<span class="op">|</span><span class="ident">expr</span><span class="op">|</span> <span class="ident">FallibleExprFolder::fallible_fold</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#176">patcher</a>, <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#228">expr</a>))
-                .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span>, <span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>())
+            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">trigger</span><span class="op">|</span> {
+                <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#282">trigger</a>
+                    .<span class="ident">into_iter</span>()
+                    .<span class="ident">map</span>(<span class="op">|</span><span class="ident">expr</span><span class="op">|</span> <span class="ident">FallibleExprFolder::fallible_fold</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#241">patcher</a>, <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#285">expr</a>))
+                    .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span>, <span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>()
+            })
             .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span>, <span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>()<span class="question-mark">?</span>
             .<span class="ident">into_iter</span>()
             .<span class="ident">map</span>(<span class="ident">vir::Trigger::new</span>)
             .<span class="ident">collect</span>(),
-        <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#220">expr</a>,
+        <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#276">expr</a>,
     ))
 }
 
@@ -491,12 +607,12 @@
     <span class="ident">patched_var</span>: <a class="ident" href="../../../../vir/gen/polymorphic/ast/common/struct.LocalVar.html">vir::LocalVar</a>,
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../../vir/gen/polymorphic/ast/expr_transformers/trait.ExprFolder.html">ExprFolder</a> <span class="kw">for</span> <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#238-241">QuantifierFixer</a> {
-    <span class="kw">fn</span> <span class="ident">fold_local</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <a class="ident" href="../../../../vir/gen/polymorphic/ast/expr/struct.Local.html">vir::Local</a> {<span class="ident">variable</span>, <span class="ident">position</span>}: <a class="ident" href="../../../../vir/gen/polymorphic/ast/expr/struct.Local.html">vir::Local</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a> {
-        <span class="kw">if</span> <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#244">variable</a>.<span class="ident">name</span> <span class="op">=</span><span class="op">=</span> <a class="self" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#244">self</a>.<span class="ident">var</span>.<span class="ident">name</span> {
-            <span class="ident">vir::Expr::local_with_pos</span>(<a class="self" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#244">self</a>.<span class="ident">patched_var</span>.<span class="ident">clone</span>(), <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#244">position</a>)
+<span class="kw">impl</span> <a class="ident" href="../../../../vir/gen/polymorphic/ast/expr_transformers/trait.ExprFolder.html">ExprFolder</a> <span class="kw">for</span> <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#296-299">QuantifierFixer</a> {
+    <span class="kw">fn</span> <span class="ident">fold_local</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <a class="ident" href="../../../../vir/gen/polymorphic/ast/expr/struct.Local.html">vir::Local</a> { <span class="ident">variable</span>, <span class="ident">position</span> }: <a class="ident" href="../../../../vir/gen/polymorphic/ast/expr/struct.Local.html">vir::Local</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a> {
+        <span class="kw">if</span> <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#302">variable</a>.<span class="ident">name</span> <span class="op">=</span><span class="op">=</span> <a class="self" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#302">self</a>.<span class="ident">var</span>.<span class="ident">name</span> {
+            <span class="ident">vir::Expr::local_with_pos</span>(<a class="self" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#302">self</a>.<span class="ident">patched_var</span>.<span class="ident">clone</span>(), <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#302">position</a>)
         } <span class="kw">else</span> {
-            <span class="ident">vir::Expr::local_with_pos</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#244">variable</a>, <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#244">position</a>)
+            <span class="ident">vir::Expr::local_with_pos</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#302">variable</a>, <a class="ident" href="../../../../src/prusti_viper/encoder/snapshot/patcher.rs.html#302">position</a>)
         }
     }
 }
