@@ -24,4 +24,4 @@ pub fn test(b: &mut B) {
     }
 }
 
-pub fn main() {}
+fn main() {}

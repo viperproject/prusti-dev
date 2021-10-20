@@ -20,4 +20,4 @@ pub fn test(b: &mut B) {
     *b.get_mut(1) = A(1);
 }
 
-pub fn main() {}
+fn main() {}
