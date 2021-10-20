@@ -9,6 +9,7 @@ use super::encoder::{FunctionCallInfo, PureFunctionEncoder};
 use crate::encoder::{
     encoder::SubstMap,
     errors::{SpannedEncodingResult, WithSpan},
+    snapshot::interface::SnapshotEncoderInterface,
     stub_function_encoder::StubFunctionEncoder,
 };
 use log::{debug, trace};
@@ -175,9 +176,7 @@ impl<'v, 'tcx: 'v> PureFunctionEncoderInterface<'tcx> for super::super::super::E
                 }
 
                 function = self
-                    .snapshot_encoder
-                    .borrow_mut()
-                    .patch_snapshots_function(self, function, tymap)
+                    .patch_snapshots_function(function, tymap)
                     .with_span(procedure.get_span())?;
 
                 self.log_vir_program_before_viper(function.to_string());

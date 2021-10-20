@@ -1,5 +1,6 @@
 use super::{
     errors::{SpannedEncodingError, SpannedEncodingResult},
+    snapshot::interface::SnapshotEncoderInterface,
     Encoder,
 };
 use crate::encoder::{high::types::HighTypeEncoderInterface, mir::types::MirTypeEncoderInterface};

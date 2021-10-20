@@ -13,6 +13,7 @@ use crate::encoder::errors::{
     SpannedEncodingResult, EncodingResult
 };
 use crate::encoder::Encoder;
+use crate::encoder::snapshot::interface::SnapshotEncoderInterface;
 use crate::utils;
 use prusti_common::vir_expr;
 use vir_crate::{polymorphic as vir};

@@ -7,6 +7,7 @@
 use crate::encoder::high::types::HighTypeEncoderInterface;
 use crate::encoder::mir_encoder::{MirEncoder, PlaceEncoder};
 use crate::encoder::Encoder;
+use crate::encoder::snapshot::interface::SnapshotEncoderInterface;
 use vir_crate::polymorphic as vir;
 use rustc_hir::def_id::DefId;
 use rustc_middle::mir;

@@ -19,6 +19,7 @@ use crate::encoder::mir_encoder::PRECONDITION_LABEL;
 use crate::encoder::mir_successor::MirSuccessor;
 use crate::encoder::places::{Local, LocalVariableManager, Place};
 use crate::encoder::Encoder;
+use crate::encoder::snapshot::interface::SnapshotEncoderInterface;
 use prusti_common::{
     config,
     report::log,
