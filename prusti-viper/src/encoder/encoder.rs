@@ -53,7 +53,7 @@ use crate::encoder::errors::EncodingResult;
 use crate::encoder::errors::SpannedEncodingResult;
 use crate::encoder::mirror_function_encoder;
 use crate::encoder::mirror_function_encoder::MirrorEncoder;
-use crate::encoder::snapshot::encoder::SnapshotEncoder;
+use crate::encoder::snapshot::interface::{SnapshotEncoderInterface, SnapshotEncoderState};
 use crate::encoder::purifier;
 use crate::encoder::array_encoder::{ArrayTypesEncoder, EncodedArrayTypes, EncodedSliceTypes};
 use super::mir::{
@@ -85,7 +85,7 @@ pub struct Encoder<'v, 'tcx: 'v> {
     spec_functions: RefCell<HashMap<ProcedureDefId, Vec<vir::FunctionIdentifier>>>,
     type_discriminant_funcs: RefCell<HashMap<String, vir::FunctionIdentifier>>,
     type_cast_functions: RefCell<HashMap<(ty::Ty<'tcx>, ty::Ty<'tcx>), vir::FunctionIdentifier>>,
-    pub(super) snapshot_encoder: RefCell<SnapshotEncoder>,
+    pub(super) snapshot_encoder_state: SnapshotEncoderState,
     pub(super) mirror_encoder: RefCell<MirrorEncoder>,
     array_types_encoder: RefCell<ArrayTypesEncoder<'tcx>>,
     closures_collector: RefCell<SpecsClosuresCollector<'tcx>>,
@@ -155,7 +155,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             encoding_queue: RefCell::new(vec![]),
             vir_program_before_foldunfold_writer,
             vir_program_before_viper_writer,
-            snapshot_encoder: RefCell::new(SnapshotEncoder::new()),
+            snapshot_encoder_state: Default::default(),
             mirror_encoder: RefCell::new(MirrorEncoder::new()),
             array_types_encoder: RefCell::new(ArrayTypesEncoder::new()),
             encoding_errors_counter: RefCell::new(0),
@@ -235,15 +235,6 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         *self.encoding_errors_counter.borrow()
     }
 
-
-    pub(super) fn get_domain(&self, name: &str) -> vir::Domain {
-        if let Some(domain) = self.snapshot_encoder.borrow().get_domain(name) {
-            domain.clone()
-        } else {
-            unreachable!("Domain not found: {}", name);
-        }
-    }
-
     pub(super) fn get_mirror_domain(&self) -> Option<vir::Domain> {
         self.mirror_encoder.borrow().get_domain().cloned()
     }
@@ -259,9 +250,8 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         if self.functions.borrow().contains_key(identifier) {
             let map = self.functions.borrow();
             Ok(map[identifier].clone())
-        } else if self.snapshot_encoder.borrow().contains_function(identifier) {
-            let encoder = self.snapshot_encoder.borrow();
-            Ok(encoder.get_function(identifier))
+        } else if self.contains_snapshot_function(identifier) {
+            Ok(self.get_snapshot_function(identifier))
         } else {
             unreachable!("Not found function: {:?}", identifier)
         }
@@ -471,11 +461,10 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
                 pres: vec![precondition],
                 posts: vec![
                     postcondition,
-                    self.snapshot_encoder.borrow_mut().encode_discriminant_post(
-                        self,
+                    self.encode_discriminant_postcondition(
                         self_local_var_expr.clone(),
                         vir::Expr::local(result),
-                        tymap,
+                        tymap
                     ).unwrap(), // TODO: no unwrap
                 ],
                 body: Some(self_local_var_expr.field(discr_field)),
@@ -565,28 +554,6 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             self.type_cast_functions.borrow_mut().insert((src_ty, dst_ty), identifier);
         }
         Ok(function_name)
-    }
-
-    pub fn patch_snapshots_method(&self, method: vir::CfgMethod)
-        -> EncodingResult<vir::CfgMethod>
-    {
-        self.snapshot_encoder
-            .borrow_mut()
-            .patch_snapshots_method(self, method)
-    }
-
-    pub fn patch_snapshots_function(&self, function: vir::Function, tymap: &SubstMap<'tcx>)
-        -> EncodingResult<vir::Function>
-    {
-        self.snapshot_encoder
-            .borrow_mut()
-            .patch_snapshots_function(self, function, tymap)
-    }
-
-    pub fn patch_snapshots(&self, expr: vir::Expr, tymap: &SubstMap<'tcx>) -> EncodingResult<vir::Expr> {
-        self.snapshot_encoder
-            .borrow_mut()
-            .patch_snapshots_expr(self, expr, tymap)
     }
 
     /// This encodes the Rust function as a Viper method for verification. It
@@ -705,91 +672,6 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             }
             _ => false,
         }
-    }
-
-    pub fn encode_snapshot_type(&self, ty: ty::Ty<'tcx>, tymap: &SubstMap<'tcx>)
-        -> EncodingResult<vir::Type>
-    {
-        self.snapshot_encoder.borrow_mut().encode_type(self, ty, tymap)
-    }
-
-    /// Constructs a snapshot of a constant.
-    /// The result is not necessarily a domain; it could be a primitive type.
-    pub fn encode_snapshot_constant(&self, expr: &mir::Constant<'tcx>) -> EncodingResult<vir::Expr> {
-        let args = match expr.ty().kind() {
-            ty::TyKind::Tuple(substs) if substs.is_empty() => vec![],
-            _ => {
-                let const_val = match expr.literal {
-                    mir::ConstantKind::Ty(ty::Const { val, .. }) => *val,
-                    mir::ConstantKind::Val(val, _) => ty::ConstKind::Value(val),
-                };
-                vec![self.encode_const_expr(expr.ty(), &const_val)?]
-            },
-        };
-        self.encode_snapshot(expr.ty(), None, args, &SubstMap::new())
-    }
-
-    /// Constructs a snapshot. The `variant` is needed only if `ty` is an enum.
-    /// The result is not necessarily a domain; it could be a primitive type.
-    pub fn encode_snapshot(
-        &self,
-        ty: ty::Ty<'tcx>,
-        variant: Option<usize>,
-        args: Vec<vir::Expr>,
-        tymap: &SubstMap<'tcx>,
-    )
-        -> EncodingResult<vir::Expr>
-    {
-        self.snapshot_encoder.borrow_mut().encode_constructor(self, ty, variant, args, tymap)
-    }
-
-    pub fn encode_snapshot_array_idx(
-        &self,
-        ty: ty::Ty<'tcx>,
-        array: vir::Expr,
-        idx: vir::Expr,
-        tymap: &SubstMap<'tcx>,
-    ) -> EncodingResult<vir::Expr> {
-        self.snapshot_encoder.borrow_mut().encode_array_idx(self, ty, array, idx, tymap)
-    }
-
-    pub fn encode_snapshot_slice_idx(
-        &self,
-        ty: ty::Ty<'tcx>,
-        slice: vir::Expr,
-        idx: vir::Expr,
-        tymap: &SubstMap<'tcx>,
-    ) -> EncodingResult<vir::Expr> {
-        self.snapshot_encoder.borrow_mut().encode_slice_idx(self, ty, slice, idx, tymap)
-    }
-
-    pub fn encode_snapshot_slice_len(
-        &self,
-        ty: ty::Ty<'tcx>,
-        slice: vir::Expr,
-        tymap: &SubstMap<'tcx>,
-    ) -> EncodingResult<vir::Expr> {
-        self.snapshot_encoder.borrow_mut().encode_slice_len(self, ty, slice, tymap)
-    }
-
-    pub fn encode_snapshot_slicing(
-        &self,
-        base_ty: ty::Ty<'tcx>,
-        base: vir::Expr,
-        slice_ty: ty::Ty<'tcx>,
-        lo: vir::Expr,
-        hi: vir::Expr,
-        tymap: &SubstMap<'tcx>,
-    ) -> EncodingResult<vir::Expr> {
-        self.snapshot_encoder.borrow_mut().encode_slicing(self, base_ty, base, slice_ty, lo, hi, tymap)
-    }
-
-    pub fn supports_snapshot_equality(&self, ty: ty::Ty<'tcx>, tymap: &SubstMap<'tcx>,) -> EncodingResult<bool> {
-        self.snapshot_encoder.borrow_mut().supports_equality(self, ty, tymap)
-    }
-
-    pub fn is_quantifiable(&self, ty: ty::Ty<'tcx>, tymap: &SubstMap<'tcx>,) -> EncodingResult<bool> {
-        self.snapshot_encoder.borrow_mut().is_quantifiable(self, ty, tymap)
     }
 
     pub fn encode_const_expr(

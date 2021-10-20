@@ -1,3 +1,4 @@
+use crate::encoder::snapshot::interface::SnapshotEncoderInterface;
 use crate::encoder::{Encoder, borrows::ProcedureContract};
 use crate::encoder::errors::{SpannedEncodingResult, ErrorCtxt, WithSpan};
 use crate::encoder::borrows::compute_procedure_contract;
