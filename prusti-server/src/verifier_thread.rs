@@ -13,25 +13,23 @@ use std::{
     sync::{mpsc, Arc, Mutex},
     thread,
 };
-use viper::ProgramVerificationResult;
+use viper::VerificationResult;
 
-pub type FutVerificationResult =
-    Box<dyn Future<Item = ProgramVerificationResult, Error = Canceled>>;
+pub type FutVerificationResult = Box<dyn Future<Item = VerificationResult, Error = Canceled>>;
 
-struct VerificationRequest {
-    pub programs: Vec<Program>,
-    pub program_name: String,
-    pub sender: oneshot::Sender<ProgramVerificationResult>,
+struct SenderVerificationRequest {
+    pub program: Program,
+    pub sender: oneshot::Sender<VerificationResult>,
 }
 
 pub struct VerifierThread {
     pub backend_config: ViperBackendConfig,
-    request_sender: Mutex<mpsc::Sender<VerificationRequest>>,
+    request_sender: Mutex<mpsc::Sender<SenderVerificationRequest>>,
 }
 
 impl VerifierThread {
     pub fn new(verifier_builder: Arc<VerifierBuilder>, backend_config: ViperBackendConfig) -> Self {
-        let (request_sender, request_receiver) = mpsc::channel::<VerificationRequest>();
+        let (request_sender, request_receiver) = mpsc::channel::<SenderVerificationRequest>();
 
         let builder = thread::Builder::new().name(format!(
             "Verifier thread running {}",
@@ -55,10 +53,10 @@ impl VerifierThread {
 
     fn listen_for_requests(
         runner: VerifierRunner,
-        request_receiver: mpsc::Receiver<VerificationRequest>,
+        request_receiver: mpsc::Receiver<SenderVerificationRequest>,
     ) {
         while let Ok(request) = request_receiver.recv() {
-            let result = runner.verify(request.programs, request.program_name.as_str());
+            let result = runner.verify(request.program);
             request.sender.send(result).unwrap_or_else(|err| {
                 error!(
                     "verifier thread attempting to send result to dropped receiver: {:?}",
@@ -68,14 +66,13 @@ impl VerifierThread {
         }
     }
 
-    pub fn verify(&self, programs: Vec<Program>, program_name: String) -> FutVerificationResult {
+    pub fn verify(&self, program: Program) -> FutVerificationResult {
         let (tx, rx) = oneshot::channel();
         self.request_sender
             .lock()
             .unwrap()
-            .send(VerificationRequest {
-                programs,
-                program_name,
+            .send(SenderVerificationRequest {
+                program,
                 sender: tx,
             })
             .unwrap();

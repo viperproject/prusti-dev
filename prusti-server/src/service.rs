@@ -17,7 +17,7 @@ use std::{
     thread,
 };
 use tokio;
-use viper::ProgramVerificationResult;
+use viper::VerificationResult;
 use warp::{self, Buf, Filter};
 
 #[derive(Clone)]
@@ -34,14 +34,11 @@ impl Default for ServerSideService {
 
 impl ServerSideService {
     pub fn new() -> Self {
-        // FIXME: since viper seems to dislike using verifiers in parallel, this is what we're doing to ensure correctness for now.
-        // Eventually, we should lock only specific parts, instantiate multiple JVMs, or even address the root cause.
-        let _max_concurrency = config::server_max_concurrency().unwrap_or_else(num_cpus::get);
-        let max_concurrency = 1;
+        let max_concurrency = config::server_max_concurrency().unwrap_or_else(num_cpus::get);
 
         let cache_size = config::server_max_stored_verifiers().unwrap_or(max_concurrency);
         if cache_size < max_concurrency {
-            warn!("PRUSTI_SERVER_MAX_STORED_VERIFIERS is lower than PRUSTI_SERVER_MAX_CONCURRENCY—you probably don't want to do this, since it means the server will likely have to keep creating new verifiers, reducing the performance gained from reuse.");
+            warn!("PRUSTI_SERVER_MAX_STORED_VERIFIERS is lower than PRUSTI_SERVER_MAX_CONCURRENCY. You probably don't want to do this, since it means the server will likely have to keep creating new verifiers, reducing the performance gained from reuse.");
         }
 
         Self {
@@ -130,7 +127,7 @@ impl ServerSideService {
     }
 
     fn verify(&self, request: VerificationRequest) -> RemoteVerificationResult {
-        info!("Handling verification request for {}", request.program_name);
+        info!("Handling verification request for {}", request.program.name);
         self.server.run_verifier(request)
     }
 }
@@ -179,7 +176,7 @@ impl PrustiServerConnection {
 
 impl VerificationService for PrustiServerConnection {
     /// panics if the verification request fails
-    fn verify(&self, request: VerificationRequest) -> ProgramVerificationResult {
+    fn verify(&self, request: VerificationRequest) -> VerificationResult {
         self.verify_checked(request)
             .expect("Verification request to server failed!")
             .expect("Server panicked while processing request!")

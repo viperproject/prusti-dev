@@ -12,9 +12,6 @@ use prusti_common::{
     vir::{Program, ToViper},
     Stopwatch,
 };
-use viper::{
-    self, ConsistencyError, JavaExceptionWithOrigin, ProgramVerificationResult, VerificationResult,
-};
 
 pub struct VerifierRunner<'v> {
     verifier: viper::Verifier<'v, viper::state::Started>,
@@ -57,43 +54,20 @@ impl<'v> VerifierRunner<'v> {
         }
     }
 
-    pub fn verify(&self, programs: Vec<Program>, program_name: &str) -> ProgramVerificationResult {
-        let mut results = ProgramVerificationResult::default();
-        for program in programs {
-            let mut stopwatch = Stopwatch::start("prusti-server", "construction of JVM objects");
-            let viper_program = program.to_viper(&self.ast_factory);
-            if config::dump_viper_program() {
-                stopwatch.start_next("dumping viper program");
-                self.dump(viper_program, program_name, &program.name);
-            }
-            stopwatch.start_next("verification");
-            match self.verifier.verify(viper_program) {
-                VerificationResult::Success => {}
-                VerificationResult::Failure(errors) => {
-                    results.verification_errors.extend(errors);
-                }
-                VerificationResult::ConsistencyErrors(errors) => {
-                    results
-                        .consistency_errors
-                        .extend(errors.into_iter().map(|error| ConsistencyError {
-                            method: program.name.clone(),
-                            error,
-                        }));
-                }
-                VerificationResult::JavaException(exception) => {
-                    results.java_exceptions.push(JavaExceptionWithOrigin {
-                        method: program.name.clone(),
-                        exception,
-                    });
-                }
-            }
+    pub fn verify(&self, program: Program) -> viper::VerificationResult {
+        let mut stopwatch = Stopwatch::start("prusti-server", "construction of JVM objects");
+        let viper_program = program.to_viper(&self.ast_factory);
+        if config::dump_viper_program() {
+            stopwatch.start_next("dumping viper program");
+            self.dump(viper_program, &program.name);
         }
-        results
+        stopwatch.start_next("verification");
+        self.verifier.verify(viper_program)
     }
 
-    fn dump(&self, program: viper::Program, program_name: &str, method_name: &str) {
+    fn dump(&self, program: viper::Program, program_name: &str) {
         let namespace = "viper_program";
-        let filename = format!("{}-{}.vpr", program_name, method_name);
+        let filename = format!("{}.vpr", program_name);
         info!("Dumping Viper program to '{}/{}'", namespace, filename);
         log::report(namespace, filename, self.ast_utils.pretty_print(program));
     }
