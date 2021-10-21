@@ -12,7 +12,7 @@ lazy_static! {
 }
 
 /// Regression test for the following bug:
-/// <https://bitbucket.org/viperproject/silicon/issues/315/exception-while-building-silicon-instances>
+/// https://github.com/viperproject/silicon/issues/315
 #[test]
 fn concurrent_verifier_initialization() {
     env_logger::init();
