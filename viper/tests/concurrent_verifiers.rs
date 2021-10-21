@@ -11,8 +11,8 @@ lazy_static! {
     static ref VIPER: Viper = Viper::new();
 }
 
-/// Regression test for the following bug:
-/// https://github.com/viperproject/silicon/issues/315
+/// Regression test for https://github.com/viperproject/silicon/issues/315
+#[ignore] // Open issue: https://github.com/viperproject/silicon/issues/578
 #[test]
 fn concurrent_verifier_initialization() {
     env_logger::init();
