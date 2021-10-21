@@ -5,13 +5,12 @@ use viper::{self, VerificationBackend};
 use crate::vir::Program;
 
 pub trait VerificationService {
-    fn verify(&self, request: VerificationRequest) -> viper::ProgramVerificationResult;
+    fn verify(&self, request: VerificationRequest) -> viper::VerificationResult;
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct VerificationRequest {
-    pub programs: Vec<Program>,
-    pub program_name: String,
+    pub program: Program,
     pub backend_config: ViperBackendConfig,
 }
 
