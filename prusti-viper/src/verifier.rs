@@ -262,7 +262,7 @@ impl<'v, 'tcx> Verifier<'v, 'tcx> {
         };
 
         stopwatch.start_next("verifying Viper program");
-        let verification_results = verify_programs(&self.env, programs);
+        let verification_results = verify_programs(self.env, programs);
         stopwatch.finish();
 
         // Group verification results
