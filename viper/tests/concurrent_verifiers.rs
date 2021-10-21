@@ -70,10 +70,8 @@ fn concurrent_verifier_initialization() {
 
                     let verifier = verification_context.new_verifier_with_args(
                         viper::VerificationBackend::Silicon,
-                        vec![
-                            "--numberOfParallelVerifiers=1".to_string(),
-                        ],
-                        None
+                        vec!["--numberOfParallelVerifiers=1".to_string()],
+                        None,
                     );
 
                     let verification_result = verifier.verify(program);
