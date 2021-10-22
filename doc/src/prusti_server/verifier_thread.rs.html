@@ -79,16 +79,13 @@
 <span id="79">79</span>
 <span id="80">80</span>
 <span id="81">81</span>
-<span id="82">82</span>
-<span id="83">83</span>
-<span id="84">84</span>
 </pre><pre class="rust"><code><span class="comment">// © 2020, ETH Zurich</span>
 <span class="comment">//</span>
 <span class="comment">// This Source Code Form is subject to the terms of the Mozilla Public</span>
 <span class="comment">// License, v. 2.0. If a copy of the MPL was not distributed with this</span>
 <span class="comment">// file, You can obtain one at http://mozilla.org/MPL/2.0/.</span>
 
-<span class="kw">use</span> <a class="ident" href="../../src/prusti_server/verifier_runner.rs.html#19-23"><span class="kw">super</span>::VerifierRunner</a>;
+<span class="kw">use</span> <a class="ident" href="../../src/prusti_server/verifier_runner.rs.html#16-20"><span class="kw">super</span>::VerifierRunner</a>;
 <span class="kw">use</span> <span class="ident">futures</span>::{<a class="ident" href="../../futures/sync/oneshot/index.html">sync::oneshot</a>, <span class="ident">Canceled</span>, <a class="ident" href="../../futures/future/trait.Future.html">Future</a>};
 <span class="kw">use</span> <span class="ident">prusti_common</span>::{
     <a class="ident" href="../../prusti_common/verification_context/struct.VerifierBuilder.html">verification_context::VerifierBuilder</a>, <a class="ident" href="../../prusti_common/verification_service/struct.ViperBackendConfig.html">verification_service::ViperBackendConfig</a>, <a class="ident" href="../../vir/legacy/program/struct.Program.html">vir::Program</a>,
@@ -97,73 +94,70 @@
     <span class="ident">sync</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/std/sync/mpsc/index.html">mpsc</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/sync/struct.Arc.html">Arc</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/sync/mutex/struct.Mutex.html">Mutex</a>},
     <a class="ident" href="https://doc.rust-lang.org/nightly/std/thread/index.html">thread</a>,
 };
-<span class="kw">use</span> <a class="ident" href="../../viper/verification_result/struct.ProgramVerificationResult.html">viper::ProgramVerificationResult</a>;
+<span class="kw">use</span> <a class="ident" href="../../viper/verification_result/enum.VerificationResult.html">viper::VerificationResult</a>;
 
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">FutVerificationResult</span> <span class="op">=</span>
-    <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">dyn</span> <span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <a class="ident" href="../../viper/verification_result/struct.ProgramVerificationResult.html">ProgramVerificationResult</a>, <span class="ident">Error</span> <span class="op">=</span> <a class="ident" href="../../futures/sync/oneshot/struct.Canceled.html">Canceled</a><span class="op">&gt;</span><span class="op">&gt;</span>;
+<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">FutVerificationResult</span> <span class="op">=</span> <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">dyn</span> <span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <a class="ident" href="../../viper/verification_result/enum.VerificationResult.html">VerificationResult</a>, <span class="ident">Error</span> <span class="op">=</span> <a class="ident" href="../../futures/sync/oneshot/struct.Canceled.html">Canceled</a><span class="op">&gt;</span><span class="op">&gt;</span>;
 
-<span class="kw">struct</span> <span class="ident">VerificationRequest</span> {
-    <span class="kw">pub</span> <span class="ident">programs</span>: <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../vir/legacy/program/struct.Program.html">Program</a><span class="op">&gt;</span>,
-    <span class="kw">pub</span> <span class="ident">program_name</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>,
-    <span class="kw">pub</span> <span class="ident">sender</span>: <span class="ident">oneshot::Sender</span><span class="op">&lt;</span><a class="ident" href="../../viper/verification_result/struct.ProgramVerificationResult.html">ProgramVerificationResult</a><span class="op">&gt;</span>,
+<span class="kw">struct</span> <span class="ident">SenderVerificationRequest</span> {
+    <span class="kw">pub</span> <span class="ident">program</span>: <a class="ident" href="../../vir/legacy/program/struct.Program.html">Program</a>,
+    <span class="kw">pub</span> <span class="ident">sender</span>: <span class="ident">oneshot::Sender</span><span class="op">&lt;</span><a class="ident" href="../../viper/verification_result/enum.VerificationResult.html">VerificationResult</a><span class="op">&gt;</span>,
 }
 
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">VerifierThread</span> {
     <span class="kw">pub</span> <span class="ident">backend_config</span>: <a class="ident" href="../../prusti_common/verification_service/struct.ViperBackendConfig.html">ViperBackendConfig</a>,
-    <span class="ident">request_sender</span>: <span class="ident">Mutex</span><span class="op">&lt;</span><span class="ident">mpsc::Sender</span><span class="op">&lt;</span><a class="ident" href="../../src/prusti_server/verifier_thread.rs.html#21-25">VerificationRequest</a><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="ident">request_sender</span>: <span class="ident">Mutex</span><span class="op">&lt;</span><span class="ident">mpsc::Sender</span><span class="op">&lt;</span><a class="ident" href="../../src/prusti_server/verifier_thread.rs.html#20-23">SenderVerificationRequest</a><span class="op">&gt;</span><span class="op">&gt;</span>,
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../src/prusti_server/verifier_thread.rs.html#27-30">VerifierThread</a> {
+<span class="kw">impl</span> <a class="ident" href="../../src/prusti_server/verifier_thread.rs.html#25-28">VerifierThread</a> {
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">verifier_builder</span>: <span class="ident">Arc</span><span class="op">&lt;</span><a class="ident" href="../../prusti_common/verification_context/struct.VerifierBuilder.html">VerifierBuilder</a><span class="op">&gt;</span>, <span class="ident">backend_config</span>: <a class="ident" href="../../prusti_common/verification_service/struct.ViperBackendConfig.html">ViperBackendConfig</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="kw">let</span> (<span class="ident">request_sender</span>, <span class="ident">request_receiver</span>) <span class="op">=</span> <span class="ident">mpsc::channel</span>::<span class="op">&lt;</span><a class="ident" href="../../src/prusti_server/verifier_thread.rs.html#21-25">VerificationRequest</a><span class="op">&gt;</span>();
+        <span class="kw">let</span> (<span class="ident">request_sender</span>, <span class="ident">request_receiver</span>) <span class="op">=</span> <span class="ident">mpsc::channel</span>::<span class="op">&lt;</span><a class="ident" href="../../src/prusti_server/verifier_thread.rs.html#20-23">SenderVerificationRequest</a><span class="op">&gt;</span>();
 
         <span class="kw">let</span> <span class="ident">builder</span> <span class="op">=</span> <span class="ident">thread::Builder::new</span>().<span class="ident">name</span>(<span class="macro">format!</span>(
             <span class="string">&quot;Verifier thread running {}&quot;</span>,
-            <a class="ident" href="../../src/prusti_server/verifier_thread.rs.html#33">backend_config</a>.<span class="ident">backend</span>
+            <a class="ident" href="../../src/prusti_server/verifier_thread.rs.html#31">backend_config</a>.<span class="ident">backend</span>
         ));
 
-        <span class="kw">let</span> <span class="ident">config</span> <span class="op">=</span> <a class="ident" href="../../src/prusti_server/verifier_thread.rs.html#33">backend_config</a>.<span class="ident">clone</span>();
-        <a class="ident" href="../../src/prusti_server/verifier_thread.rs.html#36">builder</a>
+        <span class="kw">let</span> <span class="ident">config</span> <span class="op">=</span> <a class="ident" href="../../src/prusti_server/verifier_thread.rs.html#31">backend_config</a>.<span class="ident">clone</span>();
+        <a class="ident" href="../../src/prusti_server/verifier_thread.rs.html#34">builder</a>
             .<span class="ident">spawn</span>(<span class="kw">move</span> <span class="op">|</span><span class="op">|</span> {
-                <span class="ident">VerifierRunner::with_runner</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/prusti_server/verifier_thread.rs.html#33">verifier_builder</a>, <span class="kw-2">&amp;</span><a class="ident" href="../../src/prusti_server/verifier_thread.rs.html#41">config</a>, <span class="op">|</span><span class="ident">runner</span><span class="op">|</span> {
-                    <span class="ident"><span class="self">Self</span>::listen_for_requests</span>(<a class="ident" href="../../src/prusti_server/verifier_thread.rs.html#44">runner</a>, <a class="ident" href="../../src/prusti_server/verifier_thread.rs.html#34">request_receiver</a>)
+                <span class="ident">VerifierRunner::with_runner</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/prusti_server/verifier_thread.rs.html#31">verifier_builder</a>, <span class="kw-2">&amp;</span><a class="ident" href="../../src/prusti_server/verifier_thread.rs.html#39">config</a>, <span class="op">|</span><span class="ident">runner</span><span class="op">|</span> {
+                    <span class="ident"><span class="self">Self</span>::listen_for_requests</span>(<a class="ident" href="../../src/prusti_server/verifier_thread.rs.html#42">runner</a>, <a class="ident" href="../../src/prusti_server/verifier_thread.rs.html#32">request_receiver</a>)
                 });
             })
             .<span class="ident">unwrap</span>();
 
         <span class="self">Self</span> {
-            <a class="ident" href="../../src/prusti_server/verifier_thread.rs.html#33">backend_config</a>,
-            <span class="ident">request_sender</span>: <span class="ident">Mutex::new</span>(<a class="ident" href="../../src/prusti_server/verifier_thread.rs.html#34">request_sender</a>),
+            <a class="ident" href="../../src/prusti_server/verifier_thread.rs.html#31">backend_config</a>,
+            <span class="ident">request_sender</span>: <span class="ident">Mutex::new</span>(<a class="ident" href="../../src/prusti_server/verifier_thread.rs.html#32">request_sender</a>),
         }
     }
 
     <span class="kw">fn</span> <span class="ident">listen_for_requests</span>(
-        <span class="ident">runner</span>: <a class="ident" href="../../src/prusti_server/verifier_runner.rs.html#19-23">VerifierRunner</a>,
-        <span class="ident">request_receiver</span>: <span class="ident">mpsc::Receiver</span><span class="op">&lt;</span><a class="ident" href="../../src/prusti_server/verifier_thread.rs.html#21-25">VerificationRequest</a><span class="op">&gt;</span>,
+        <span class="ident">runner</span>: <a class="ident" href="../../src/prusti_server/verifier_runner.rs.html#16-20">VerifierRunner</a>,
+        <span class="ident">request_receiver</span>: <span class="ident">mpsc::Receiver</span><span class="op">&lt;</span><a class="ident" href="../../src/prusti_server/verifier_thread.rs.html#20-23">SenderVerificationRequest</a><span class="op">&gt;</span>,
     ) {
-        <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">request</span>) <span class="op">=</span> <a class="ident" href="../../src/prusti_server/verifier_thread.rs.html#58">request_receiver</a>.<span class="ident">recv</span>() {
-            <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <a class="ident" href="../../src/prusti_server/verifier_thread.rs.html#57">runner</a>.<a class="ident" href="../../src/prusti_server/verifier_runner.rs.html#60">verify</a>(<a class="ident" href="../../src/prusti_server/verifier_thread.rs.html#60">request</a>.<span class="ident">programs</span>, <a class="ident" href="../../src/prusti_server/verifier_thread.rs.html#60">request</a>.<span class="ident">program_name</span>.<span class="ident">as_str</span>());
-            <a class="ident" href="../../src/prusti_server/verifier_thread.rs.html#60">request</a>.<span class="ident">sender</span>.<span class="ident">send</span>(<a class="ident" href="../../src/prusti_server/verifier_thread.rs.html#61">result</a>).<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="ident">err</span><span class="op">|</span> {
+        <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">request</span>) <span class="op">=</span> <a class="ident" href="../../src/prusti_server/verifier_thread.rs.html#56">request_receiver</a>.<span class="ident">recv</span>() {
+            <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <a class="ident" href="../../src/prusti_server/verifier_thread.rs.html#55">runner</a>.<a class="ident" href="../../src/prusti_server/verifier_runner.rs.html#57">verify</a>(<a class="ident" href="../../src/prusti_server/verifier_thread.rs.html#58">request</a>.<span class="ident">program</span>);
+            <a class="ident" href="../../src/prusti_server/verifier_thread.rs.html#58">request</a>.<span class="ident">sender</span>.<span class="ident">send</span>(<a class="ident" href="../../src/prusti_server/verifier_thread.rs.html#59">result</a>).<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="ident">err</span><span class="op">|</span> {
                 <span class="macro">error!</span>(
                     <span class="string">&quot;verifier thread attempting to send result to dropped receiver: {:?}&quot;</span>,
-                    <a class="ident" href="../../src/prusti_server/verifier_thread.rs.html#62">err</a>
+                    <a class="ident" href="../../src/prusti_server/verifier_thread.rs.html#60">err</a>
                 );
             });
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">verify</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">programs</span>: <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../vir/legacy/program/struct.Program.html">Program</a><span class="op">&gt;</span>, <span class="ident">program_name</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="../../src/prusti_server/verifier_thread.rs.html#18-19">FutVerificationResult</a> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">verify</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">program</span>: <a class="ident" href="../../vir/legacy/program/struct.Program.html">Program</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="../../src/prusti_server/verifier_thread.rs.html#18">FutVerificationResult</a> {
         <span class="kw">let</span> (<span class="ident">tx</span>, <span class="ident">rx</span>) <span class="op">=</span> <span class="ident">oneshot::channel</span>();
-        <a class="self" href="../../src/prusti_server/verifier_thread.rs.html#71">self</a>.<span class="ident">request_sender</span>
+        <a class="self" href="../../src/prusti_server/verifier_thread.rs.html#69">self</a>.<span class="ident">request_sender</span>
             .<span class="ident">lock</span>()
             .<span class="ident">unwrap</span>()
-            .<span class="ident">send</span>(<a class="ident" href="../../src/prusti_server/verifier_thread.rs.html#21-25">VerificationRequest</a> {
-                <a class="ident" href="../../src/prusti_server/verifier_thread.rs.html#71">programs</a>,
-                <a class="ident" href="../../src/prusti_server/verifier_thread.rs.html#71">program_name</a>,
-                <span class="ident">sender</span>: <a class="ident" href="../../src/prusti_server/verifier_thread.rs.html#72">tx</a>,
+            .<span class="ident">send</span>(<a class="ident" href="../../src/prusti_server/verifier_thread.rs.html#20-23">SenderVerificationRequest</a> {
+                <a class="ident" href="../../src/prusti_server/verifier_thread.rs.html#69">program</a>,
+                <span class="ident">sender</span>: <a class="ident" href="../../src/prusti_server/verifier_thread.rs.html#70">tx</a>,
             })
             .<span class="ident">unwrap</span>();
-        <span class="ident">Box::new</span>(<a class="ident" href="../../src/prusti_server/verifier_thread.rs.html#72">rx</a>)
+        <span class="ident">Box::new</span>(<a class="ident" href="../../src/prusti_server/verifier_thread.rs.html#70">rx</a>)
     }
 }
 </code></pre></div>

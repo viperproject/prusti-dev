@@ -369,6 +369,46 @@
 <span id="369">369</span>
 <span id="370">370</span>
 <span id="371">371</span>
+<span id="372">372</span>
+<span id="373">373</span>
+<span id="374">374</span>
+<span id="375">375</span>
+<span id="376">376</span>
+<span id="377">377</span>
+<span id="378">378</span>
+<span id="379">379</span>
+<span id="380">380</span>
+<span id="381">381</span>
+<span id="382">382</span>
+<span id="383">383</span>
+<span id="384">384</span>
+<span id="385">385</span>
+<span id="386">386</span>
+<span id="387">387</span>
+<span id="388">388</span>
+<span id="389">389</span>
+<span id="390">390</span>
+<span id="391">391</span>
+<span id="392">392</span>
+<span id="393">393</span>
+<span id="394">394</span>
+<span id="395">395</span>
+<span id="396">396</span>
+<span id="397">397</span>
+<span id="398">398</span>
+<span id="399">399</span>
+<span id="400">400</span>
+<span id="401">401</span>
+<span id="402">402</span>
+<span id="403">403</span>
+<span id="404">404</span>
+<span id="405">405</span>
+<span id="406">406</span>
+<span id="407">407</span>
+<span id="408">408</span>
+<span id="409">409</span>
+<span id="410">410</span>
+<span id="411">411</span>
 </pre><pre class="rust"><code><span class="comment">// © 2019, ETH Zurich</span>
 <span class="comment">//</span>
 <span class="comment">// This Source Code Form is subject to the terms of the Mozilla Public</span>
@@ -620,7 +660,7 @@
 
         <span class="kw">let</span> <span class="ident">polymorphic_programs</span> <span class="op">=</span> <a class="self" href="../../src/prusti_viper/verifier.rs.html#156">self</a>.<span class="ident">encoder</span>.<a class="ident" href="../../src/prusti_viper/encoder/encoder.rs.html#221">get_viper_programs</a>();
 
-        <span class="kw">let</span> <span class="ident">programs</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">config::simplify_encoding</span>() {
+        <span class="kw">let</span> <span class="ident">programs</span>: <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../vir/legacy/program/struct.Program.html">vir::Program</a><span class="op">&gt;</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">config::simplify_encoding</span>() {
             <a class="ident" href="../../src/prusti_viper/verifier.rs.html#162">stopwatch</a>.<span class="ident">start_next</span>(<span class="string">&quot;optimizing Viper program&quot;</span>);
             <span class="kw">let</span> <span class="ident">source_file_name</span> <span class="op">=</span> <a class="self" href="../../src/prusti_viper/verifier.rs.html#156">self</a>.<span class="ident">encoder</span>.<a class="ident" href="../../src/prusti_viper/encoder/encoder.rs.html#205">env</a>().<span class="ident">source_file_name</span>();
             <a class="ident" href="../../src/prusti_viper/verifier.rs.html#250">polymorphic_programs</a>.<span class="ident">into_iter</span>().<span class="ident">map</span>(
@@ -633,111 +673,151 @@
         };
 
         <a class="ident" href="../../src/prusti_viper/verifier.rs.html#162">stopwatch</a>.<span class="ident">start_next</span>(<span class="string">&quot;verifying Viper program&quot;</span>);
-        <span class="kw">let</span> <span class="ident">source_path</span> <span class="op">=</span> <a class="self" href="../../src/prusti_viper/verifier.rs.html#156">self</a>.<span class="ident">env</span>.<span class="ident">source_path</span>();
-        <span class="kw">let</span> <span class="ident">program_name</span> <span class="op">=</span> <a class="ident" href="../../src/prusti_viper/verifier.rs.html#265">source_path</a>
-            .<span class="ident">file_name</span>()
-            .<span class="ident">unwrap</span>()
-            .<span class="ident">to_str</span>()
-            .<span class="ident">unwrap</span>()
-            .<span class="ident">to_owned</span>();
-        <span class="kw">let</span> <span class="ident">verification_result</span>: <a class="ident" href="../../viper/verification_result/struct.ProgramVerificationResult.html">viper::ProgramVerificationResult</a> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">server_address</span>) <span class="op">=</span>
-            <span class="ident">config::server_address</span>()
-        {
-            <span class="kw">let</span> <span class="ident">server_address</span> <span class="op">=</span> <span class="kw">if</span> <a class="ident" href="../../src/prusti_viper/verifier.rs.html#272">server_address</a> <span class="op">=</span><span class="op">=</span> <span class="string">&quot;MOCK&quot;</span> {
-                <span class="ident">ServerSideService::spawn_off_thread</span>().<span class="ident">to_string</span>()
-            } <span class="kw">else</span> {
-                <a class="ident" href="../../src/prusti_viper/verifier.rs.html#272">server_address</a>
-            };
-            <span class="macro">info!</span>(<span class="string">&quot;Connecting to Prusti server at {}&quot;</span>, <a class="ident" href="../../src/prusti_viper/verifier.rs.html#275">server_address</a>);
-            <span class="kw">let</span> <span class="ident">service</span> <span class="op">=</span> <span class="ident">PrustiServerConnection::new</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/prusti_viper/verifier.rs.html#275">server_address</a>).<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="ident">error</span><span class="op">|</span> {
-                <span class="macro">panic!</span>(
-                    <span class="string">&quot;Could not parse server address ({}) due to {:?}&quot;</span>,
-                    <a class="ident" href="../../src/prusti_viper/verifier.rs.html#275">server_address</a>, <a class="ident" href="../../src/prusti_viper/verifier.rs.html#281">error</a>
-                )
-            });
-
-            <span class="kw">let</span> <span class="ident">request</span> <span class="op">=</span> <a class="ident" href="../../prusti_common/verification_service/struct.VerificationRequest.html">VerificationRequest</a> {
-                <a class="ident" href="../../src/prusti_viper/verifier.rs.html#252">programs</a>,
-                <a class="ident" href="../../src/prusti_viper/verifier.rs.html#266">program_name</a>,
-                <span class="ident">backend_config</span>: <span class="ident">Default::default</span>(),
-            };
-            <a class="ident" href="../../src/prusti_viper/verifier.rs.html#281">service</a>.<span class="ident">verify</span>(<a class="ident" href="../../src/prusti_viper/verifier.rs.html#288">request</a>)
-        } <span class="kw">else</span> {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">stopwatch</span> <span class="op">=</span> <span class="ident">Stopwatch::start</span>(<span class="string">&quot;prusti-viper&quot;</span>, <span class="string">&quot;JVM startup&quot;</span>);
-            <span class="kw">let</span> <span class="ident">verifier_builder</span> <span class="op">=</span> <span class="ident">VerifierBuilder::new</span>();
-            <a class="ident" href="../../src/prusti_viper/verifier.rs.html#295">stopwatch</a>.<span class="ident">start_next</span>(<span class="string">&quot;running verifier&quot;</span>);
-            <span class="ident">VerifierRunner::with_default_configured_runner</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/prusti_viper/verifier.rs.html#296">verifier_builder</a>, <span class="op">|</span><span class="ident">runner</span><span class="op">|</span> {
-                <a class="ident" href="../../src/prusti_viper/verifier.rs.html#298">runner</a>.<span class="ident">verify</span>(<a class="ident" href="../../src/prusti_viper/verifier.rs.html#252">programs</a>, <a class="ident" href="../../src/prusti_viper/verifier.rs.html#266">program_name</a>.<span class="ident">as_str</span>())
-            })
-        };
-
+        <span class="kw">let</span> <span class="ident">verification_results</span> <span class="op">=</span> <a class="ident" href="../../src/prusti_viper/verifier.rs.html#362-363">verify_programs</a>(<a class="self" href="../../src/prusti_viper/verifier.rs.html#156">self</a>.<span class="ident">env</span>, <a class="ident" href="../../src/prusti_viper/verifier.rs.html#252">programs</a>);
         <a class="ident" href="../../src/prusti_viper/verifier.rs.html#162">stopwatch</a>.<span class="ident">finish</span>();
 
-        <span class="kw">let</span> <a class="ident" href="../../viper/verification_result/struct.ProgramVerificationResult.html">viper::ProgramVerificationResult</a> {
-            <span class="ident">verification_errors</span>,
-            <span class="ident">consistency_errors</span>,
-            <span class="ident">java_exceptions</span>
-        } <span class="op">=</span> <a class="ident" href="../../src/prusti_viper/verifier.rs.html#272">verification_result</a>;
+        <span class="comment">// Group verification results</span>
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">verification_errors</span> : <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <span class="macro">vec!</span>[];
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">consistency_errors</span> : <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <span class="macro">vec!</span>[];
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">java_exceptions</span> : <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <span class="macro">vec!</span>[];
+        <span class="kw">for</span> (<span class="ident">method_name</span>, <span class="ident">result</span>) <span class="kw">in</span> <a class="ident" href="../../src/prusti_viper/verifier.rs.html#265">verification_results</a>.<span class="ident">into_iter</span>() {
+            <span class="kw">match</span> <a class="ident" href="../../src/prusti_viper/verifier.rs.html#272">result</a> {
+                <span class="ident">viper::VerificationResult::Success</span> <span class="op">=</span><span class="op">&gt;</span> {}
+                <span class="ident">viper::VerificationResult::ConsistencyErrors</span>(<span class="ident">errors</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="kw">for</span> <a class="ident" href="../../src/prusti_viper/verifier.rs.html#276">error</a> <span class="kw">in</span> <a class="ident" href="../../src/prusti_viper/verifier.rs.html#275">errors</a>.<span class="ident">into_iter</span>() {
+                        <a class="ident" href="../../src/prusti_viper/verifier.rs.html#270">consistency_errors</a>.<span class="ident">push</span>((<a class="ident" href="../../src/prusti_viper/verifier.rs.html#272">method_name</a>.<span class="ident">clone</span>(), <a class="ident" href="../../src/prusti_viper/verifier.rs.html#276">error</a>));
+                    }
+                }
+                <span class="ident">viper::VerificationResult::Failure</span>(<span class="ident">errors</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="kw">for</span> <a class="ident" href="../../src/prusti_viper/verifier.rs.html#281">error</a> <span class="kw">in</span> <a class="ident" href="../../src/prusti_viper/verifier.rs.html#280">errors</a>.<span class="ident">into_iter</span>() {
+                        <a class="ident" href="../../src/prusti_viper/verifier.rs.html#269">verification_errors</a>.<span class="ident">push</span>((<a class="ident" href="../../src/prusti_viper/verifier.rs.html#272">method_name</a>.<span class="ident">clone</span>(), <a class="ident" href="../../src/prusti_viper/verifier.rs.html#281">error</a>));
+                    }
+                }
+                <span class="ident">viper::VerificationResult::JavaException</span>(<span class="ident">exception</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                    <a class="ident" href="../../src/prusti_viper/verifier.rs.html#271">java_exceptions</a>.<span class="ident">push</span>((<a class="ident" href="../../src/prusti_viper/verifier.rs.html#272">method_name</a>, <a class="ident" href="../../src/prusti_viper/verifier.rs.html#285">exception</a>));
+                }
+            }
+        }
 
+        <span class="comment">// Convert verification results to Prusti errors</span>
+        <span class="kw">let</span> <span class="ident">error_manager</span> <span class="op">=</span> <a class="self" href="../../src/prusti_viper/verifier.rs.html#156">self</a>.<span class="ident">encoder</span>.<a class="ident" href="../../src/prusti_viper/encoder/encoder.rs.html#213">error_manager</a>();
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">VerificationResult::Success</span>;
 
-        <span class="kw">for</span> <a class="ident" href="../../viper/verification_result/struct.ConsistencyError.html">viper::ConsistencyError</a> { <span class="ident">method</span>, <span class="ident">error</span>} <span class="kw">in</span> <a class="ident" href="../../src/prusti_viper/verifier.rs.html#307">consistency_errors</a> {
+        <span class="kw">for</span> (<span class="ident">method</span>, <span class="ident">error</span>) <span class="kw">in</span> <a class="ident" href="../../src/prusti_viper/verifier.rs.html#270">consistency_errors</a>.<span class="ident">into_iter</span>() {
             <span class="ident">PrustiError::internal</span>(
-                <span class="macro">format!</span>(<span class="string">&quot;consistency error in {}: {}&quot;</span>, <a class="ident" href="../../src/prusti_viper/verifier.rs.html#313">method</a>, <a class="ident" href="../../src/prusti_viper/verifier.rs.html#313">error</a>), <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/span_encoding/constant.DUMMY_SP.html">DUMMY_SP</a>.<span class="ident">into</span>()
+                <span class="macro">format!</span>(<span class="string">&quot;consistency error in {}: {}&quot;</span>, <a class="ident" href="../../src/prusti_viper/verifier.rs.html#295">method</a>, <a class="ident" href="../../src/prusti_viper/verifier.rs.html#295">error</a>), <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/span_encoding/constant.DUMMY_SP.html">DUMMY_SP</a>.<span class="ident">into</span>()
             ).<span class="ident">emit</span>(<a class="self" href="../../src/prusti_viper/verifier.rs.html#156">self</a>.<span class="ident">env</span>);
-            <a class="ident" href="../../src/prusti_viper/verifier.rs.html#311">result</a> <span class="op">=</span> <span class="ident">VerificationResult::Failure</span>;
+            <a class="ident" href="../../src/prusti_viper/verifier.rs.html#293">result</a> <span class="op">=</span> <span class="ident">VerificationResult::Failure</span>;
         }
 
-        <span class="kw">for</span> <a class="ident" href="../../viper/verification_result/struct.JavaExceptionWithOrigin.html">viper::JavaExceptionWithOrigin</a> { <span class="ident">method</span>, <span class="ident">exception</span> } <span class="kw">in</span> <a class="ident" href="../../src/prusti_viper/verifier.rs.html#308">java_exceptions</a> {
-            <span class="macro">error!</span>(<span class="string">&quot;Java exception: {}&quot;</span>, <a class="ident" href="../../src/prusti_viper/verifier.rs.html#320">exception</a>.<span class="ident">get_stack_trace</span>());
+        <span class="kw">for</span> (<span class="ident">method</span>, <span class="ident">exception</span>) <span class="kw">in</span> <a class="ident" href="../../src/prusti_viper/verifier.rs.html#271">java_exceptions</a>.<span class="ident">into_iter</span>() {
+            <span class="macro">error!</span>(<span class="string">&quot;Java exception: {}&quot;</span>, <a class="ident" href="../../src/prusti_viper/verifier.rs.html#302">exception</a>.<span class="ident">get_stack_trace</span>());
             <span class="ident">PrustiError::internal</span>(
-                <span class="macro">format!</span>(<span class="string">&quot;in {}: {}&quot;</span>, <a class="ident" href="../../src/prusti_viper/verifier.rs.html#320">method</a>, <a class="ident" href="../../src/prusti_viper/verifier.rs.html#320">exception</a>), <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/span_encoding/constant.DUMMY_SP.html">DUMMY_SP</a>.<span class="ident">into</span>()
+                <span class="macro">format!</span>(<span class="string">&quot;in {}: {}&quot;</span>, <a class="ident" href="../../src/prusti_viper/verifier.rs.html#302">method</a>, <a class="ident" href="../../src/prusti_viper/verifier.rs.html#302">exception</a>), <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/span_encoding/constant.DUMMY_SP.html">DUMMY_SP</a>.<span class="ident">into</span>()
             ).<span class="ident">emit</span>(<a class="self" href="../../src/prusti_viper/verifier.rs.html#156">self</a>.<span class="ident">env</span>);
-            <a class="ident" href="../../src/prusti_viper/verifier.rs.html#311">result</a> <span class="op">=</span> <span class="ident">VerificationResult::Failure</span>;
+            <a class="ident" href="../../src/prusti_viper/verifier.rs.html#293">result</a> <span class="op">=</span> <span class="ident">VerificationResult::Failure</span>;
         }
 
-        <span class="kw">let</span> <span class="ident">error_manager</span> <span class="op">=</span> <a class="self" href="../../src/prusti_viper/verifier.rs.html#156">self</a>.<span class="ident">encoder</span>.<a class="ident" href="../../src/prusti_viper/encoder/encoder.rs.html#213">error_manager</a>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">prusti_errors</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <a class="ident" href="../../src/prusti_viper/verifier.rs.html#306">verification_errors</a>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">verification_error</span><span class="op">|</span> {
-            <span class="macro">debug!</span>(<span class="string">&quot;Verification error: {:?}&quot;</span>, <a class="ident" href="../../src/prusti_viper/verifier.rs.html#329">verification_error</a>);
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">prusti_error</span> <span class="op">=</span> <a class="ident" href="../../src/prusti_viper/verifier.rs.html#328">error_manager</a>.<a class="ident" href="../../src/prusti_viper/encoder/errors/error_manager.rs.html#163">translate_verification_error</a>(<a class="ident" href="../../src/prusti_viper/verifier.rs.html#329">verification_error</a>);
+        <span class="comment">// Report verification errors</span>
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">prusti_errors</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <span class="macro">vec!</span>[];
+        <span class="kw">for</span> (<span class="ident">method</span>, <span class="ident">verification_error</span>) <span class="kw">in</span> <a class="ident" href="../../src/prusti_viper/verifier.rs.html#269">verification_errors</a>.<span class="ident">into_iter</span>() {
+            <span class="macro">debug!</span>(<span class="string">&quot;Verification error in {}: {:?}&quot;</span>, <a class="ident" href="../../src/prusti_viper/verifier.rs.html#312">method</a>, <a class="ident" href="../../src/prusti_viper/verifier.rs.html#312">verification_error</a>);
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">prusti_error</span> <span class="op">=</span> <a class="ident" href="../../src/prusti_viper/verifier.rs.html#292">error_manager</a>.<a class="ident" href="../../src/prusti_viper/encoder/errors/error_manager.rs.html#163">translate_verification_error</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/prusti_viper/verifier.rs.html#312">verification_error</a>);
 
             <span class="comment">// annotate with counterexample, if requested</span>
             <span class="kw">if</span> <span class="ident">config::produce_counterexample</span>() {
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">silicon_counterexample</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><a class="ident" href="../../src/prusti_viper/verifier.rs.html#329">verification_error</a>.<span class="ident">counterexample</span> {
-                    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">def_id</span>) <span class="op">=</span> <a class="ident" href="../../src/prusti_viper/verifier.rs.html#328">error_manager</a>.<a class="ident" href="../../src/prusti_viper/encoder/errors/error_manager.rs.html#156">get_def_id</a>(<a class="ident" href="../../src/prusti_viper/verifier.rs.html#329">verification_error</a>) {
+                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">silicon_counterexample</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><a class="ident" href="../../src/prusti_viper/verifier.rs.html#312">verification_error</a>.<span class="ident">counterexample</span> {
+                    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">def_id</span>) <span class="op">=</span> <a class="ident" href="../../src/prusti_viper/verifier.rs.html#292">error_manager</a>.<a class="ident" href="../../src/prusti_viper/encoder/errors/error_manager.rs.html#156">get_def_id</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/prusti_viper/verifier.rs.html#312">verification_error</a>) {
                         <span class="kw">let</span> <span class="ident">counterexample</span> <span class="op">=</span> <a class="ident" href="../../src/prusti_viper/encoder/counterexample_translation.rs.html#15-19">counterexample_translation::backtranslate</a>(
                             <span class="kw-2">&amp;</span><a class="self" href="../../src/prusti_viper/verifier.rs.html#156">self</a>.<span class="ident">encoder</span>,
-                            <span class="kw-2">*</span><a class="ident" href="../../src/prusti_viper/verifier.rs.html#336">def_id</a>,
-                            <a class="ident" href="../../src/prusti_viper/verifier.rs.html#335">silicon_counterexample</a>,
+                            <span class="kw-2">*</span><a class="ident" href="../../src/prusti_viper/verifier.rs.html#319">def_id</a>,
+                            <a class="ident" href="../../src/prusti_viper/verifier.rs.html#318">silicon_counterexample</a>,
                         );
-                        <a class="ident" href="../../src/prusti_viper/verifier.rs.html#331">prusti_error</a> <span class="op">=</span> <a class="ident" href="../../src/prusti_viper/verifier.rs.html#337">counterexample</a>.<a class="ident" href="../../src/prusti_viper/encoder/counterexample.rs.html#82">annotate_error</a>(<a class="ident" href="../../src/prusti_viper/verifier.rs.html#331">prusti_error</a>);
+                        <a class="ident" href="../../src/prusti_viper/verifier.rs.html#314">prusti_error</a> <span class="op">=</span> <a class="ident" href="../../src/prusti_viper/verifier.rs.html#320">counterexample</a>.<a class="ident" href="../../src/prusti_viper/encoder/counterexample.rs.html#82">annotate_error</a>(<a class="ident" href="../../src/prusti_viper/verifier.rs.html#314">prusti_error</a>);
                     } <span class="kw">else</span> {
-                        <a class="ident" href="../../src/prusti_viper/verifier.rs.html#331">prusti_error</a> <span class="op">=</span> <a class="ident" href="../../src/prusti_viper/verifier.rs.html#331">prusti_error</a>.<span class="ident">add_note</span>(
-                            <span class="string">&quot;the verifier produced a counterexample, but it could not be mapped to source code&quot;</span>,
+                        <a class="ident" href="../../src/prusti_viper/verifier.rs.html#314">prusti_error</a> <span class="op">=</span> <a class="ident" href="../../src/prusti_viper/verifier.rs.html#314">prusti_error</a>.<span class="ident">add_note</span>(
+                            <span class="macro">format!</span>(
+                                <span class="string">&quot;the verifier produced a counterexample for {}, but it could not be mapped to source code&quot;</span>,
+                                <a class="ident" href="../../src/prusti_viper/verifier.rs.html#312">method</a>
+                            ),
                             <span class="prelude-val">None</span>,
                         );
                     }
                 }
             }
 
-            <a class="ident" href="../../src/prusti_viper/verifier.rs.html#331">prusti_error</a>
-        }).<span class="ident">collect</span>();
-        <a class="ident" href="../../src/prusti_viper/verifier.rs.html#329">prusti_errors</a>.<span class="ident">sort</span>();
-        <span class="kw">for</span> <a class="ident" href="../../src/prusti_viper/verifier.rs.html#355">prusti_error</a> <span class="kw">in</span> <a class="ident" href="../../src/prusti_viper/verifier.rs.html#329">prusti_errors</a> {
-            <span class="macro">debug!</span>(<span class="string">&quot;Prusti error: {:?}&quot;</span>, <a class="ident" href="../../src/prusti_viper/verifier.rs.html#355">prusti_error</a>);
-            <span class="kw">if</span> <a class="ident" href="../../src/prusti_viper/verifier.rs.html#355">prusti_error</a>.<span class="ident">is_disabled</span>() {
-                <a class="ident" href="../../src/prusti_viper/verifier.rs.html#355">prusti_error</a>.<span class="ident">cancel</span>();
+            <a class="ident" href="../../src/prusti_viper/verifier.rs.html#311">prusti_errors</a>.<span class="ident">push</span>(<a class="ident" href="../../src/prusti_viper/verifier.rs.html#314">prusti_error</a>);
+        }
+        <a class="ident" href="../../src/prusti_viper/verifier.rs.html#311">prusti_errors</a>.<span class="ident">sort</span>();
+
+        <span class="kw">for</span> <a class="ident" href="../../src/prusti_viper/verifier.rs.html#342">prusti_error</a> <span class="kw">in</span> <a class="ident" href="../../src/prusti_viper/verifier.rs.html#311">prusti_errors</a> {
+            <span class="macro">debug!</span>(<span class="string">&quot;Prusti error: {:?}&quot;</span>, <a class="ident" href="../../src/prusti_viper/verifier.rs.html#342">prusti_error</a>);
+            <span class="kw">if</span> <a class="ident" href="../../src/prusti_viper/verifier.rs.html#342">prusti_error</a>.<span class="ident">is_disabled</span>() {
+                <a class="ident" href="../../src/prusti_viper/verifier.rs.html#342">prusti_error</a>.<span class="ident">cancel</span>();
             } <span class="kw">else</span> {
-                <a class="ident" href="../../src/prusti_viper/verifier.rs.html#355">prusti_error</a>.<span class="ident">emit</span>(<a class="self" href="../../src/prusti_viper/verifier.rs.html#156">self</a>.<span class="ident">env</span>);
+                <a class="ident" href="../../src/prusti_viper/verifier.rs.html#342">prusti_error</a>.<span class="ident">emit</span>(<a class="self" href="../../src/prusti_viper/verifier.rs.html#156">self</a>.<span class="ident">env</span>);
             }
-            <a class="ident" href="../../src/prusti_viper/verifier.rs.html#311">result</a> <span class="op">=</span> <span class="ident">VerificationResult::Failure</span>;
+            <a class="ident" href="../../src/prusti_viper/verifier.rs.html#293">result</a> <span class="op">=</span> <span class="ident">VerificationResult::Failure</span>;
         }
 
         <span class="kw">if</span> <a class="ident" href="../../src/prusti_viper/verifier.rs.html#248">encoding_errors_count</a> <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {
-            <a class="ident" href="../../src/prusti_viper/verifier.rs.html#311">result</a> <span class="op">=</span> <span class="ident">VerificationResult::Failure</span>;
+            <a class="ident" href="../../src/prusti_viper/verifier.rs.html#293">result</a> <span class="op">=</span> <span class="ident">VerificationResult::Failure</span>;
         }
 
-        <a class="ident" href="../../src/prusti_viper/verifier.rs.html#311">result</a>
+        <a class="ident" href="../../src/prusti_viper/verifier.rs.html#293">result</a>
+    }
+}
+
+<span class="doccomment">/// Verify a list of programs.</span>
+<span class="doccomment">/// Returns a list of (program_name, verification_result) tuples.</span>
+<span class="kw">fn</span> <span class="ident">verify_programs</span>(<span class="ident">env</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../prusti_interface/environment/struct.Environment.html">Environment</a>, <span class="ident">programs</span>: <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../vir/legacy/program/struct.Program.html">vir::Program</a><span class="op">&gt;</span>)
+    <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Vec</span><span class="op">&lt;</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <a class="ident" href="../../viper/verification_result/enum.VerificationResult.html">viper::VerificationResult</a>)<span class="op">&gt;</span>
+{
+    <span class="kw">let</span> <span class="ident">source_path</span> <span class="op">=</span> <a class="ident" href="../../src/prusti_viper/verifier.rs.html#362">env</a>.<span class="ident">source_path</span>();
+    <span class="kw">let</span> <span class="ident">rust_program_name</span> <span class="op">=</span> <a class="ident" href="../../src/prusti_viper/verifier.rs.html#365">source_path</a>
+        .<span class="ident">file_name</span>()
+        .<span class="ident">unwrap</span>()
+        .<span class="ident">to_str</span>()
+        .<span class="ident">unwrap</span>()
+        .<span class="ident">to_owned</span>();
+    <span class="comment">// Prepend the Rust file name to the program.</span>
+    <span class="kw">let</span> <span class="ident">renamed_programs</span> <span class="op">=</span> <a class="ident" href="../../src/prusti_viper/verifier.rs.html#362">programs</a>.<span class="ident">into_iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">program</span><span class="op">|</span> {
+        <span class="kw">let</span> <span class="ident">program_name</span> <span class="op">=</span> <a class="ident" href="../../src/prusti_viper/verifier.rs.html#373">program</a>.<span class="ident">name</span>.<span class="ident">clone</span>();
+        <span class="kw">let</span> <span class="ident">renamed_program</span> <span class="op">=</span> <a class="ident" href="../../vir/legacy/program/struct.Program.html">vir::Program</a> {
+            <span class="ident">name</span>: <span class="macro">format!</span>(<span class="string">&quot;{}_{}&quot;</span>, <a class="ident" href="../../src/prusti_viper/verifier.rs.html#366">rust_program_name</a>, <a class="ident" href="../../src/prusti_viper/verifier.rs.html#374">program_name</a>),
+            ..<a class="ident" href="../../src/prusti_viper/verifier.rs.html#373">program</a>
+        };
+        (<a class="ident" href="../../src/prusti_viper/verifier.rs.html#374">program_name</a>, <a class="ident" href="../../src/prusti_viper/verifier.rs.html#375">renamed_program</a>)
+    });
+    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">server_address</span>) <span class="op">=</span> <span class="ident">config::server_address</span>() {
+        <span class="kw">let</span> <span class="ident">server_address</span> <span class="op">=</span> <span class="kw">if</span> <a class="ident" href="../../src/prusti_viper/verifier.rs.html#381">server_address</a> <span class="op">=</span><span class="op">=</span> <span class="string">&quot;MOCK&quot;</span> {
+            <span class="ident">ServerSideService::spawn_off_thread</span>().<span class="ident">to_string</span>()
+        } <span class="kw">else</span> {
+            <a class="ident" href="../../src/prusti_viper/verifier.rs.html#381">server_address</a>
+        };
+        <span class="macro">info!</span>(<span class="string">&quot;Connecting to Prusti server at {}&quot;</span>, <a class="ident" href="../../src/prusti_viper/verifier.rs.html#382">server_address</a>);
+        <span class="kw">let</span> <span class="ident">service</span> <span class="op">=</span> <span class="ident">PrustiServerConnection::new</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/prusti_viper/verifier.rs.html#382">server_address</a>).<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="ident">error</span><span class="op">|</span> {
+            <span class="macro">panic!</span>(
+                <span class="string">&quot;Could not parse server address ({}) due to {:?}&quot;</span>,
+                <a class="ident" href="../../src/prusti_viper/verifier.rs.html#382">server_address</a>, <a class="ident" href="../../src/prusti_viper/verifier.rs.html#388">error</a>
+            )
+        });
+        <a class="ident" href="../../src/prusti_viper/verifier.rs.html#373">renamed_programs</a>.<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">program_name</span>, <span class="ident">program</span>)<span class="op">|</span> {
+            <span class="kw">let</span> <span class="ident">request</span> <span class="op">=</span> <a class="ident" href="../../prusti_common/verification_service/struct.VerificationRequest.html">VerificationRequest</a> {
+                <a class="ident" href="../../src/prusti_viper/verifier.rs.html#394">program</a>,
+                <span class="ident">backend_config</span>: <span class="ident">Default::default</span>(),
+            };
+            (<a class="ident" href="../../src/prusti_viper/verifier.rs.html#394">program_name</a>, <a class="ident" href="../../src/prusti_viper/verifier.rs.html#388">service</a>.<span class="ident">verify</span>(<a class="ident" href="../../src/prusti_viper/verifier.rs.html#395">request</a>))
+        }).<span class="ident">collect</span>()
+    } <span class="kw">else</span> {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">stopwatch</span> <span class="op">=</span> <span class="ident">Stopwatch::start</span>(<span class="string">&quot;prusti-viper&quot;</span>, <span class="string">&quot;JVM startup&quot;</span>);
+        <span class="kw">let</span> <span class="ident">verifier_builder</span> <span class="op">=</span> <span class="ident">VerifierBuilder::new</span>();
+        <a class="ident" href="../../src/prusti_viper/verifier.rs.html#402">stopwatch</a>.<span class="ident">start_next</span>(<span class="string">&quot;running verifier&quot;</span>);
+        <span class="ident">VerifierRunner::with_default_configured_runner</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/prusti_viper/verifier.rs.html#403">verifier_builder</a>, <span class="op">|</span><span class="ident">runner</span><span class="op">|</span> {
+            <a class="ident" href="../../src/prusti_viper/verifier.rs.html#373">renamed_programs</a>.<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">program_name</span>, <span class="ident">program</span>)<span class="op">|</span> {
+                (<a class="ident" href="../../src/prusti_viper/verifier.rs.html#406">program_name</a>, <a class="ident" href="../../src/prusti_viper/verifier.rs.html#405">runner</a>.<span class="ident">verify</span>(<a class="ident" href="../../src/prusti_viper/verifier.rs.html#406">program</a>))
+            }).<span class="ident">collect</span>()
+        })
     }
 }
 </code></pre></div>

@@ -57,7 +57,6 @@
 <span id="57">57</span>
 <span id="58">58</span>
 <span id="59">59</span>
-<span id="60">60</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/str/traits/trait.FromStr.html">std::str::FromStr</a>;
 
 <span class="kw">use</span> <a class="ident" href="../../src/prusti_common/lib.rs.html#28"><span class="kw">crate</span>::config</a>;
@@ -65,14 +64,13 @@
 <span class="kw">use</span> <a class="ident" href="../../prusti_common/vir/struct.Program.html"><span class="kw">crate</span>::vir::Program</a>;
 
 <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">VerificationService</span> {
-    <span class="kw">fn</span> <span class="ident">verify</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">request</span>: <a class="ident" href="../../src/prusti_common/verification_service.rs.html#12-16">VerificationRequest</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="../../viper/verification_result/struct.ProgramVerificationResult.html">viper::ProgramVerificationResult</a>;
+    <span class="kw">fn</span> <span class="ident">verify</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">request</span>: <a class="ident" href="../../src/prusti_common/verification_service.rs.html#12-15">VerificationRequest</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="../../viper/verification_result/enum.VerificationResult.html">viper::VerificationResult</a>;
 }
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Serialize</span>, <span class="ident">Deserialize</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <a class="ident" href="../../src/prusti_common/verification_service.rs.html#12-16">VerificationRequest</a> {
-    <span class="kw">pub</span> <span class="ident">programs</span>: <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../prusti_common/vir/struct.Program.html">Program</a><span class="op">&gt;</span>,
-    <span class="kw">pub</span> <span class="ident">program_name</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>,
-    <span class="kw">pub</span> <span class="ident">backend_config</span>: <a class="ident" href="../../src/prusti_common/verification_service.rs.html#23-26">ViperBackendConfig</a>,
+<span class="kw">pub</span> <span class="kw">struct</span> <a class="ident" href="../../src/prusti_common/verification_service.rs.html#12-15">VerificationRequest</a> {
+    <span class="kw">pub</span> <span class="ident">program</span>: <a class="ident" href="../../prusti_common/vir/struct.Program.html">Program</a>,
+    <span class="kw">pub</span> <span class="ident">backend_config</span>: <a class="ident" href="../../src/prusti_common/verification_service.rs.html#22-25">ViperBackendConfig</a>,
 }
 
 <span class="doccomment">/**
@@ -80,26 +78,26 @@ The configuration for the viper backend, (i.e. verifier).
 Expresses which backend (silicon or carbon) should be used, and provides command-line arguments to the viper verifier.
 */</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Serialize</span>, <span class="ident">Deserialize</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>, <span class="ident">Hash</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <a class="ident" href="../../src/prusti_common/verification_service.rs.html#23-26">ViperBackendConfig</a> {
+<span class="kw">pub</span> <span class="kw">struct</span> <a class="ident" href="../../src/prusti_common/verification_service.rs.html#22-25">ViperBackendConfig</a> {
     <span class="kw">pub</span> <span class="ident">backend</span>: <a class="ident" href="../../viper/verification_backend/enum.VerificationBackend.html">VerificationBackend</a>,
     <span class="kw">pub</span> <span class="ident">verifier_args</span>: <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a><span class="op">&gt;</span>,
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for</span> <a class="ident" href="../../src/prusti_common/verification_service.rs.html#23-26">ViperBackendConfig</a> {
+<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for</span> <a class="ident" href="../../src/prusti_common/verification_service.rs.html#22-25">ViperBackendConfig</a> {
     <span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="kw">let</span> <span class="ident">backend</span> <span class="op">=</span> <span class="ident">VerificationBackend::from_str</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/prusti_common/config.rs.html#207">config::viper_backend</a>()).<span class="ident">unwrap</span>();
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">verifier_args</span> <span class="op">=</span> <a class="ident" href="../../src/prusti_common/config.rs.html#291">config::extra_verifier_args</a>();
-        <span class="kw">match</span> <a class="ident" href="../../src/prusti_common/verification_service.rs.html#30">backend</a> {
+        <span class="kw">match</span> <a class="ident" href="../../src/prusti_common/verification_service.rs.html#29">backend</a> {
             <span class="ident">VerificationBackend::Silicon</span> <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">if</span> <a class="ident" href="../../src/prusti_common/config.rs.html#306">config::use_more_complete_exhale</a>() {
-                    <a class="ident" href="../../src/prusti_common/verification_service.rs.html#31">verifier_args</a>.<span class="ident">push</span>(<span class="string">&quot;--enableMoreCompleteExhale&quot;</span>.<span class="ident">to_string</span>());
+                    <a class="ident" href="../../src/prusti_common/verification_service.rs.html#30">verifier_args</a>.<span class="ident">push</span>(<span class="string">&quot;--enableMoreCompleteExhale&quot;</span>.<span class="ident">to_string</span>());
                 }
                 <span class="kw">if</span> <a class="ident" href="../../src/prusti_common/config.rs.html#331">config::produce_counterexample</a>() {
-                    <a class="ident" href="../../src/prusti_common/verification_service.rs.html#31">verifier_args</a>.<span class="ident">push</span>(<span class="string">&quot;--counterexample&quot;</span>.<span class="ident">to_string</span>());
-                    <a class="ident" href="../../src/prusti_common/verification_service.rs.html#31">verifier_args</a>.<span class="ident">push</span>(<span class="string">&quot;mapped&quot;</span>.<span class="ident">to_string</span>());
+                    <a class="ident" href="../../src/prusti_common/verification_service.rs.html#30">verifier_args</a>.<span class="ident">push</span>(<span class="string">&quot;--counterexample&quot;</span>.<span class="ident">to_string</span>());
+                    <a class="ident" href="../../src/prusti_common/verification_service.rs.html#30">verifier_args</a>.<span class="ident">push</span>(<span class="string">&quot;mapped&quot;</span>.<span class="ident">to_string</span>());
                 }
 
-                <a class="ident" href="../../src/prusti_common/verification_service.rs.html#31">verifier_args</a>.<span class="ident">extend</span>(<span class="macro">vec!</span>[
+                <a class="ident" href="../../src/prusti_common/verification_service.rs.html#30">verifier_args</a>.<span class="ident">extend</span>(<span class="macro">vec!</span>[
                     <span class="string">&quot;--assertTimeout&quot;</span>.<span class="ident">to_string</span>(),
                     <a class="ident" href="../../src/prusti_common/config.rs.html#301">config::assert_timeout</a>().<span class="ident">to_string</span>(),
                     <span class="string">&quot;--logLevel&quot;</span>.<span class="ident">to_string</span>(),
@@ -107,14 +105,14 @@ Expresses which backend (silicon or carbon) should be used, and provides command
                 ]);
             }
             <span class="ident">VerificationBackend::Carbon</span> <span class="op">=</span><span class="op">&gt;</span> {
-                <a class="ident" href="../../src/prusti_common/verification_service.rs.html#31">verifier_args</a>.<span class="ident">extend</span>(<span class="macro">vec!</span>[
+                <a class="ident" href="../../src/prusti_common/verification_service.rs.html#30">verifier_args</a>.<span class="ident">extend</span>(<span class="macro">vec!</span>[
                     <span class="string">&quot;--disableAllocEncoding&quot;</span>.<span class="ident">to_string</span>(),
                 ]);
             }
         }
         <span class="self">Self</span> {
-            <a class="ident" href="../../src/prusti_common/verification_service.rs.html#30">backend</a>,
-            <a class="ident" href="../../src/prusti_common/verification_service.rs.html#31">verifier_args</a>,
+            <a class="ident" href="../../src/prusti_common/verification_service.rs.html#29">backend</a>,
+            <a class="ident" href="../../src/prusti_common/verification_service.rs.html#30">verifier_args</a>,
         }
     }
 }
