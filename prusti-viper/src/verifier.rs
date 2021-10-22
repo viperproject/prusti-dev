@@ -249,7 +249,7 @@ impl<'v, 'tcx> Verifier<'v, 'tcx> {
 
         let polymorphic_programs = self.encoder.get_viper_programs();
 
-        let programs = if config::simplify_encoding() {
+        let programs: Vec<vir::Program> = if config::simplify_encoding() {
             stopwatch.start_next("optimizing Viper program");
             let source_file_name = self.encoder.env().source_file_name();
             polymorphic_programs.into_iter().map(
@@ -262,62 +262,44 @@ impl<'v, 'tcx> Verifier<'v, 'tcx> {
         };
 
         stopwatch.start_next("verifying Viper program");
-        let source_path = self.env.source_path();
-        let program_name = source_path
-            .file_name()
-            .unwrap()
-            .to_str()
-            .unwrap()
-            .to_owned();
-        let verification_result: viper::ProgramVerificationResult = if let Some(server_address) =
-            config::server_address()
-        {
-            let server_address = if server_address == "MOCK" {
-                ServerSideService::spawn_off_thread().to_string()
-            } else {
-                server_address
-            };
-            info!("Connecting to Prusti server at {}", server_address);
-            let service = PrustiServerConnection::new(&server_address).unwrap_or_else(|error| {
-                panic!(
-                    "Could not parse server address ({}) due to {:?}",
-                    server_address, error
-                )
-            });
-
-            let request = VerificationRequest {
-                programs,
-                program_name,
-                backend_config: Default::default(),
-            };
-            service.verify(request)
-        } else {
-            let mut stopwatch = Stopwatch::start("prusti-viper", "JVM startup");
-            let verifier_builder = VerifierBuilder::new();
-            stopwatch.start_next("running verifier");
-            VerifierRunner::with_default_configured_runner(&verifier_builder, |runner| {
-                runner.verify(programs, program_name.as_str())
-            })
-        };
-
+        let verification_results = verify_programs(self.env, programs);
         stopwatch.finish();
 
-        let viper::ProgramVerificationResult {
-            verification_errors,
-            consistency_errors,
-            java_exceptions
-        } = verification_result;
+        // Group verification results
+        let mut verification_errors : Vec<_> = vec![];
+        let mut consistency_errors : Vec<_> = vec![];
+        let mut java_exceptions : Vec<_> = vec![];
+        for (method_name, result) in verification_results.into_iter() {
+            match result {
+                viper::VerificationResult::Success => {}
+                viper::VerificationResult::ConsistencyErrors(errors) => {
+                    for error in errors.into_iter() {
+                        consistency_errors.push((method_name.clone(), error));
+                    }
+                }
+                viper::VerificationResult::Failure(errors) => {
+                    for error in errors.into_iter() {
+                        verification_errors.push((method_name.clone(), error));
+                    }
+                }
+                viper::VerificationResult::JavaException(exception) => {
+                    java_exceptions.push((method_name, exception));
+                }
+            }
+        }
 
+        // Convert verification results to Prusti errors
+        let error_manager = self.encoder.error_manager();
         let mut result = VerificationResult::Success;
 
-        for viper::ConsistencyError { method, error} in consistency_errors {
+        for (method, error) in consistency_errors.into_iter() {
             PrustiError::internal(
                 format!("consistency error in {}: {}", method, error), DUMMY_SP.into()
             ).emit(self.env);
             result = VerificationResult::Failure;
         }
 
-        for viper::JavaExceptionWithOrigin { method, exception } in java_exceptions {
+        for (method, exception) in java_exceptions.into_iter() {
             error!("Java exception: {}", exception.get_stack_trace());
             PrustiError::internal(
                 format!("in {}: {}", method, exception), DUMMY_SP.into()
@@ -325,15 +307,16 @@ impl<'v, 'tcx> Verifier<'v, 'tcx> {
             result = VerificationResult::Failure;
         }
 
-        let error_manager = self.encoder.error_manager();
-        let mut prusti_errors: Vec<_> = verification_errors.iter().map(|verification_error| {
-            debug!("Verification error: {:?}", verification_error);
-            let mut prusti_error = error_manager.translate_verification_error(verification_error);
+        // Report verification errors
+        let mut prusti_errors: Vec<_> = vec![];
+        for (method, verification_error) in verification_errors.into_iter() {
+            debug!("Verification error in {}: {:?}", method, verification_error);
+            let mut prusti_error = error_manager.translate_verification_error(&verification_error);
 
             // annotate with counterexample, if requested
             if config::produce_counterexample() {
                 if let Some(silicon_counterexample) = &verification_error.counterexample {
-                    if let Some(def_id) = error_manager.get_def_id(verification_error) {
+                    if let Some(def_id) = error_manager.get_def_id(&verification_error) {
                         let counterexample = counterexample_translation::backtranslate(
                             &self.encoder,
                             *def_id,
@@ -342,16 +325,20 @@ impl<'v, 'tcx> Verifier<'v, 'tcx> {
                         prusti_error = counterexample.annotate_error(prusti_error);
                     } else {
                         prusti_error = prusti_error.add_note(
-                            "the verifier produced a counterexample, but it could not be mapped to source code",
+                            format!(
+                                "the verifier produced a counterexample for {}, but it could not be mapped to source code",
+                                method
+                            ),
                             None,
                         );
                     }
                 }
             }
 
-            prusti_error
-        }).collect();
+            prusti_errors.push(prusti_error);
+        }
         prusti_errors.sort();
+
         for prusti_error in prusti_errors {
             debug!("Prusti error: {:?}", prusti_error);
             if prusti_error.is_disabled() {
@@ -367,5 +354,58 @@ impl<'v, 'tcx> Verifier<'v, 'tcx> {
         }
 
         result
+    }
+}
+
+/// Verify a list of programs.
+/// Returns a list of (program_name, verification_result) tuples.
+fn verify_programs(env: &Environment, programs: Vec<vir::Program>)
+    -> Vec<(String, viper::VerificationResult)>
+{
+    let source_path = env.source_path();
+    let rust_program_name = source_path
+        .file_name()
+        .unwrap()
+        .to_str()
+        .unwrap()
+        .to_owned();
+    // Prepend the Rust file name to the program.
+    let renamed_programs = programs.into_iter().map(|program| {
+        let program_name = program.name.clone();
+        let renamed_program = vir::Program {
+            name: format!("{}_{}", rust_program_name, program_name),
+            ..program
+        };
+        (program_name, renamed_program)
+    });
+    if let Some(server_address) = config::server_address() {
+        let server_address = if server_address == "MOCK" {
+            ServerSideService::spawn_off_thread().to_string()
+        } else {
+            server_address
+        };
+        info!("Connecting to Prusti server at {}", server_address);
+        let service = PrustiServerConnection::new(&server_address).unwrap_or_else(|error| {
+            panic!(
+                "Could not parse server address ({}) due to {:?}",
+                server_address, error
+            )
+        });
+        renamed_programs.map(|(program_name, program)| {
+            let request = VerificationRequest {
+                program,
+                backend_config: Default::default(),
+            };
+            (program_name, service.verify(request))
+        }).collect()
+    } else {
+        let mut stopwatch = Stopwatch::start("prusti-viper", "JVM startup");
+        let verifier_builder = VerifierBuilder::new();
+        stopwatch.start_next("running verifier");
+        VerifierRunner::with_default_configured_runner(&verifier_builder, |runner| {
+            renamed_programs.map(|(program_name, program)| {
+                (program_name, runner.verify(program))
+            }).collect()
+        })
     }
 }
