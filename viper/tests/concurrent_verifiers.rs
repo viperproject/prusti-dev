@@ -11,9 +11,8 @@ lazy_static! {
     static ref VIPER: Viper = Viper::new();
 }
 
-/// Regression test for the following bug:
-/// <https://bitbucket.org/viperproject/silicon/issues/315/exception-while-building-silicon-instances>
-#[ignore] // Ignored because Prusti doesn't need to concurrently verify programs
+/// Regression test for https://github.com/viperproject/silicon/issues/315
+#[ignore] // Open issue: https://github.com/viperproject/silicon/issues/578
 #[test]
 fn concurrent_verifier_initialization() {
     env_logger::init();
@@ -21,7 +20,7 @@ fn concurrent_verifier_initialization() {
     const MIN_NUM_THREADS: u32 = 2;
     const MAX_NUM_THREADS: u32 = 10;
 
-    for iteration in 0..100 {
+    for iteration in 0..10 {
         println!("Iteration #{}...", iteration);
         for num_threads in MIN_NUM_THREADS..(MAX_NUM_THREADS + 1) {
             let mut handlers: Vec<JoinHandle<()>> = vec![];
@@ -69,8 +68,11 @@ fn concurrent_verifier_initialization() {
 
                     let program = ast.program(&[], &[], &[], &[], &[method]);
 
-                    let verifier = verification_context
-                        .new_verifier(viper::VerificationBackend::Silicon, None);
+                    let verifier = verification_context.new_verifier_with_args(
+                        viper::VerificationBackend::Silicon,
+                        vec!["--numberOfParallelVerifiers=1".to_string()],
+                        None,
+                    );
 
                     let verification_result = verifier.verify(program);
 

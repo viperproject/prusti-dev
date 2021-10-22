@@ -15,9 +15,7 @@ use clap::{App, Arg};
 use prusti_server::ServerSideService;
 
 fn main() {
-    env_logger::init_from_env(
-        env_logger::Env::new().filter_or("RUST_LOG", "info"), // seems to be the cleanest way to set an overridable default for this
-    );
+    env_logger::init_from_env(env_logger::Env::new().filter_or("PRUSTI_LOG", "info"));
 
     let matches = App::new("Prusti Server")
         .arg(

@@ -9,7 +9,7 @@ use prusti_common::{
     vir::*,
 };
 use prusti_server::{PrustiServerConnection, ServerSideService};
-use viper::ProgramVerificationResult;
+use viper::VerificationResult;
 
 lazy_static! {
     // only start the jvm & server once
@@ -25,35 +25,29 @@ fn consistency_error() {
         });
     });
 
-    let ProgramVerificationResult {
-        verification_errors,
-        mut consistency_errors,
-        java_exceptions,
-    } = result;
-
-    assert!(verification_errors.is_empty());
-    assert!(java_exceptions.is_empty());
-    let consistency_error = consistency_errors.pop().unwrap();
-    assert!(consistency_errors.is_empty());
-    println!("consistency error: {:?}", consistency_error);
+    match result {
+        VerificationResult::ConsistencyErrors(errors) => assert_eq!(errors.len(), 1),
+        other => panic!(
+            "consistency errors not identified, instead found {:?}",
+            other
+        ),
+    }
 }
 
 #[test]
 fn empty_program() {
     let result = process_program(|_| ());
 
-    let ProgramVerificationResult {
-        verification_errors,
-        consistency_errors,
-        java_exceptions,
-    } = result;
-
-    assert!(verification_errors.is_empty());
-    assert!(java_exceptions.is_empty());
-    assert!(consistency_errors.is_empty());
+    match result {
+        VerificationResult::Success => {}
+        other => panic!(
+            "empty program not verified successfully, instead found {:?}",
+            other
+        ),
+    }
 }
 
-fn process_program<F>(configure: F) -> ProgramVerificationResult
+fn process_program<F>(configure: F) -> VerificationResult
 where
     F: FnOnce(&mut Program),
 {
@@ -61,7 +55,7 @@ where
         PrustiServerConnection::new(SERVER_ADDRESS.clone()).expect("Could not connect to server!");
 
     let mut program = Program {
-        name: "very_dummy".to_string(),
+        name: "dummy".to_string(),
         domains: vec![],
         fields: vec![],
         builtin_methods: vec![],
@@ -72,8 +66,7 @@ where
     configure(&mut program);
 
     let request = VerificationRequest {
-        programs: vec![program],
-        program_name: "dummy".to_string(),
+        program,
         backend_config: Default::default(),
     };
 
