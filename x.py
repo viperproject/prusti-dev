@@ -32,7 +32,7 @@ RUSTFMT_CRATES = [
     'prusti-launch',
     'prusti-server',
     #'prusti-specs',
-    #'prusti-tests',
+    'prusti-tests',
     'prusti-utils',
     #'prusti-viper',
     'viper',
