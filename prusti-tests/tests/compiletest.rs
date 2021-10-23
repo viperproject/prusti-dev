@@ -27,11 +27,15 @@ fn find_prusti_rustc_path() -> PathBuf {
     } else {
         "prusti-rustc"
     };
-    let local_prusti_rustc_path: PathBuf = ["target", target_directory, executable_name].iter().collect();
+    let local_prusti_rustc_path: PathBuf = ["target", target_directory, executable_name]
+        .iter()
+        .collect();
     if local_prusti_rustc_path.exists() {
         return local_prusti_rustc_path;
     }
-    let workspace_prusti_rustc_path: PathBuf = ["..", "target", target_directory, executable_name].iter().collect();
+    let workspace_prusti_rustc_path: PathBuf = ["..", "target", target_directory, executable_name]
+        .iter()
+        .collect();
     if workspace_prusti_rustc_path.exists() {
         return workspace_prusti_rustc_path;
     }
@@ -82,10 +86,7 @@ fn run_prusti_tests(group_name: &str, filter: &Option<String>, rustc_flags: Opti
     }
 
     // Add compilation flags
-    config.target_rustcflags = Some(format!(
-        "--edition=2018 {}",
-        rustc_flags.unwrap_or("")
-    ));
+    config.target_rustcflags = Some(format!("--edition=2018 {}", rustc_flags.unwrap_or("")));
 
     let path: PathBuf = ["tests", group_name, "ui"].iter().collect();
     if path.exists() {
@@ -134,9 +135,7 @@ fn run_verification_base(group_name: &str, filter: &Option<String>) {
 }
 
 fn run_verification_no_overflow(group_name: &str, filter: &Option<String>) {
-    let _temporary_env_vars = (
-        TemporaryEnvVar::set("PRUSTI_CHECK_OVERFLOWS", "false"),
-    );
+    let _temporary_env_vars = (TemporaryEnvVar::set("PRUSTI_CHECK_OVERFLOWS", "false"),);
 
     run_verification_base(group_name, filter);
 }
