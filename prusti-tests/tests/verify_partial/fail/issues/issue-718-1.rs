@@ -23,4 +23,4 @@ pub fn test(b: &mut B) -> usize {
     b.len()
 }
 
-pub fn main() {}
+fn main() {}
