@@ -32,7 +32,7 @@ RUSTFMT_CRATES = [
     'prusti-launch',
     'prusti-server',
     #'prusti-specs',
-    # 'prusti-tests',
+    'prusti-tests',
     'prusti-utils',
     #'prusti-viper',
     'viper',
@@ -479,10 +479,7 @@ def fmt_all():
         fmt_in(crate)
     for path in RUSTFMT_PATHS:
         for file in glob.glob(path, recursive=True):
-            if file.startswith('prusti-tests/'):
-                run_command(['rustfmt', '--config-path', './prusti-tests/', file])
-            else:
-                run_command(['rustfmt', file])
+            run_command(['rustfmt', file])
 
 def fmt_check_in(cwd):
     """Run cargo fmt check in the given subproject."""
@@ -494,10 +491,7 @@ def fmt_check_all():
         fmt_check_in(crate)
     for path in RUSTFMT_PATHS:
         for file in glob.glob(path, recursive=True):
-            if file.startswith('prusti-tests/'):
-                run_command(['rustfmt', '--config-path', './prusti-tests/', '--check', file])
-            else:
-                run_command(['rustfmt', '--check', file])
+            run_command(['rustfmt', '--check', file])
 
 def main(argv):
     global verbose
