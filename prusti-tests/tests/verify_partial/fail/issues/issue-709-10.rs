@@ -4,16 +4,17 @@ use prusti_contracts::*;
 
 #[derive(Clone, Copy)]
 pub struct A {
-    inner: usize
+    inner: usize,
 }
 pub struct B {
-    inner: [A]
+    inner: [A],
 }
 
 impl B {
     /// Mutably reference an ADT within a slice
     #[requires(index < self.inner.len())]
-    pub fn get_mut(&mut self, index: usize) -> &mut A { //~ ERROR generating fold-unfold Viper statements failed
+    pub fn get_mut(&mut self, index: usize) -> &mut A {
+        //~^ ERROR generating fold-unfold Viper statements failed
         &mut self.inner[index]
     }
 }

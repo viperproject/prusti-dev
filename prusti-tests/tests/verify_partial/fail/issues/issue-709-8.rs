@@ -17,14 +17,16 @@ impl B {
 
     /// Lookup an ADT from a slice
     #[requires(index < self.len())]
-    pub const fn get(&self, index: usize) -> A { //~ ERROR generating fold-unfold Viper statements failed
+    pub const fn get(&self, index: usize) -> A {
+        //~^ ERROR generating fold-unfold Viper statements failed
         self.inner[index]
     }
 
     /// Lookup an ADT from a slice
     #[pure]
     #[requires(index < self.len())]
-    pub const fn get_pure(&self, index: usize) -> A { //~ ERROR generating fold-unfold Viper statements failed
+    pub const fn get_pure(&self, index: usize) -> A {
+        //~^ ERROR generating fold-unfold Viper statements failed
         self.inner[index]
     }
 }
