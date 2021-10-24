@@ -11,7 +11,8 @@ pub struct B(pub [A; 16]);
 impl B {
     /// Mutably reference an ADT within an array
     #[requires(index < self.0.len())]
-    pub fn get_mut(&mut self, index: usize) -> &mut A { //~ ERROR generating fold-unfold Viper statements failed
+    pub fn get_mut(&mut self, index: usize) -> &mut A {
+        //~^ ERROR generating fold-unfold Viper statements failed
         &mut self.0[index]
     }
 }
