@@ -16,7 +16,8 @@ impl B {
     }
 }
 
-pub fn test(b: &mut B) { //~ ERROR generating fold-unfold Viper statements failed
+pub fn test(b: &mut B) {
+    //~^ ERROR generating fold-unfold Viper statements failed
     b.get_mut(1)[0] = A(1);
 }
 

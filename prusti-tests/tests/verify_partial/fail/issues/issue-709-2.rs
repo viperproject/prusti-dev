@@ -11,14 +11,16 @@ pub struct B([A; 16]);
 impl B {
     /// Lookup an ADT from an array
     #[requires(index < self.0.len())]
-    pub const fn get(&self, index: usize) -> A { //~ ERROR generating fold-unfold Viper statements failed
+    pub const fn get(&self, index: usize) -> A {
+        //~^ ERROR generating fold-unfold Viper statements failed
         self.0[index]
     }
 
     /// Lookup an ADT from an array
     #[pure]
     #[requires(index < self.0.len())]
-    pub const fn get_pure(&self, index: usize) -> A { //~ ERROR generating fold-unfold Viper statements failed
+    pub const fn get_pure(&self, index: usize) -> A {
+        //~^ ERROR generating fold-unfold Viper statements failed
         self.0[index]
     }
 }
