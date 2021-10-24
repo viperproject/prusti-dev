@@ -6,12 +6,12 @@ pub const SIZE_A: usize = core::mem::size_of::<A>();
 
 #[derive(Clone, Copy)]
 pub struct A {
-    _inner: usize
+    _inner: usize,
 }
 
 #[repr(transparent)]
 pub struct B {
-    inner: [A]
+    inner: [A],
 }
 
 impl B {
