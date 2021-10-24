@@ -4,17 +4,18 @@ use prusti_contracts::*;
 
 #[derive(Clone, Copy)]
 pub struct A {
-    _inner: usize
+    _inner: usize,
 }
 pub struct B {
-    inner: [A]
+    inner: [A],
 }
 
 impl B {
     /// Obtain the length of a slice.
     #[pure]
     // FIXME: https://github.com/viperproject/prusti-dev/issues/718
-    pub const fn len(&self) -> usize { //~ ERROR unhandled verification error
+    pub const fn len(&self) -> usize {
+        //~^ ERROR unhandled verification error
         self.inner.len()
     }
 }
