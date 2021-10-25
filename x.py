@@ -51,6 +51,7 @@ RUSTFMT_PATHS = [
     'vir/defs/high/mod.rs',
     'vir/defs/polymorphic/mod.rs',
     'vir/defs/components/mod.rs',
+    'vir/defs/snapshot/mod.rs',
 ]
 
 def default_linux_java_loc():
