@@ -66,7 +66,7 @@ pub struct Enum {
 #[display(fmt = "Array({}, {})", length, element_type)]
 pub struct Array {
     pub length: u64,
-    pub element_type: Box<Type>,
+    pub element_type: Type,
 }
 
 #[display(fmt = "&{}", target_type)]
