@@ -11,6 +11,7 @@ use std::collections::{BTreeSet, HashSet};
 
 use serde::{ser::SerializeSeq, Serialize, Serializer};
 use std::{fmt, mem};
+use crate::analysis::AnalysisResult;
 
 pub struct DefinitelyInitializedAnalysis<'mir, 'tcx: 'mir> {
     tcx: TyCtxt<'tcx>,
@@ -42,7 +43,7 @@ impl<'mir, 'tcx: 'mir> DefinitelyInitializedAnalysis<'mir, 'tcx> {
 }
 
 impl<'mir, 'tcx: 'mir> Analysis<'mir, 'tcx> for DefinitelyInitializedAnalysis<'mir, 'tcx> {
-    type Domain = DefinitelyInitializedState<'mir, 'tcx>;
+    type State = DefinitelyInitializedState<'mir, 'tcx>;
 
     fn def_id(&self) -> DefId {
         self.def_id
@@ -54,7 +55,7 @@ impl<'mir, 'tcx: 'mir> Analysis<'mir, 'tcx> for DefinitelyInitializedAnalysis<'m
 
     /// The bottom element of the lattice contains all possible places,
     /// meaning all locals (which includes all their fields)
-    fn new_bottom(&self) -> Self::Domain {
+    fn new_bottom(&self) -> Self::State {
         let mut places = HashSet::new();
         for local in self.mir.local_decls.indices() {
             places.insert(local.into());
@@ -67,7 +68,7 @@ impl<'mir, 'tcx: 'mir> Analysis<'mir, 'tcx> for DefinitelyInitializedAnalysis<'m
         }
     }
 
-    fn new_initial(&self) -> Self::Domain {
+    fn new_initial(&self) -> Self::State {
         // Top = empty set
         let mut places = HashSet::new();
         // join/insert places in arguments
@@ -86,6 +87,22 @@ impl<'mir, 'tcx: 'mir> Analysis<'mir, 'tcx> for DefinitelyInitializedAnalysis<'m
 
     fn need_to_widen(_counter: u32) -> bool {
         false //TODO: check
+    }
+
+    fn apply_statement_effect(
+        &self,
+        state: &mut Self::State,
+        location: mir::Location
+    ) -> AnalysisResult<()> {
+        state.apply_statement_effect(location)
+    }
+
+    fn apply_terminator_effect(
+        &self,
+        state: &Self::State,
+        location: mir::Location,
+    ) -> AnalysisResult<Vec<(mir::BasicBlock, Self::State)>> {
+        state.apply_terminator_effect(location)
     }
 }
 
@@ -251,58 +268,6 @@ impl<'mir, 'tcx: 'mir> DefinitelyInitializedState<'mir, 'tcx> {
             self.set_place_uninitialised(place);
         }
     }
-}
-
-impl<'mir, 'tcx: 'mir> AbstractState for DefinitelyInitializedState<'mir, 'tcx> {
-    fn is_bottom(&self) -> bool {
-        if self.def_init_places.len() == self.mir.local_decls.len() {
-            self.mir
-                .local_decls
-                .indices()
-                .all(|local| self.def_init_places.contains(&local.into()))
-        } else {
-            false
-        }
-    }
-
-    /// The lattice join intersects the two place sets
-    fn join(&mut self, other: &Self) {
-        if cfg!(debug_assertions) {
-            self.check_invariant();
-            other.check_invariant();
-        }
-
-        let mut intersection = HashSet::new();
-        // TODO: make more efficient/modify self directly?
-        let mut propagate_places_fn =
-            |place_set1: &HashSet<mir::Place<'tcx>>, place_set2: &HashSet<mir::Place<'tcx>>| {
-                for place in place_set1.iter() {
-                    // find matching place in place_set2:
-                    // if there is a matching place that contains exactly the same or more memory
-                    // locations, place can be added to the resulting intersection
-                    for potential_prefix in place_set2.iter() {
-                        if is_prefix(place, potential_prefix) {
-                            intersection.insert(*place);
-                            break;
-                        }
-                    }
-                }
-            };
-
-        let self_places = &self.def_init_places;
-        let other_places = &other.def_init_places;
-        propagate_places_fn(self_places, other_places);
-        propagate_places_fn(other_places, self_places);
-        self.def_init_places = intersection;
-
-        if cfg!(debug_assertions) {
-            self.check_invariant();
-        }
-    }
-
-    fn widen(&mut self, _previous: &Self) {
-        unimplemented!()
-    }
 
     fn apply_statement_effect(&mut self, location: mir::Location) -> Result<(), AnalysisError> {
         let statement = &self.mir[location.block].statements[location.statement_index];
@@ -442,5 +407,57 @@ impl<'mir, 'tcx: 'mir> AbstractState for DefinitelyInitializedState<'mir, 'tcx> 
         }
 
         Ok(res_vec)
+    }
+}
+
+impl<'mir, 'tcx: 'mir> AbstractState for DefinitelyInitializedState<'mir, 'tcx> {
+    fn is_bottom(&self) -> bool {
+        if self.def_init_places.len() == self.mir.local_decls.len() {
+            self.mir
+                .local_decls
+                .indices()
+                .all(|local| self.def_init_places.contains(&local.into()))
+        } else {
+            false
+        }
+    }
+
+    /// The lattice join intersects the two place sets
+    fn join(&mut self, other: &Self) {
+        if cfg!(debug_assertions) {
+            self.check_invariant();
+            other.check_invariant();
+        }
+
+        let mut intersection = HashSet::new();
+        // TODO: make more efficient/modify self directly?
+        let mut propagate_places_fn =
+            |place_set1: &HashSet<mir::Place<'tcx>>, place_set2: &HashSet<mir::Place<'tcx>>| {
+                for place in place_set1.iter() {
+                    // find matching place in place_set2:
+                    // if there is a matching place that contains exactly the same or more memory
+                    // locations, place can be added to the resulting intersection
+                    for potential_prefix in place_set2.iter() {
+                        if is_prefix(place, potential_prefix) {
+                            intersection.insert(*place);
+                            break;
+                        }
+                    }
+                }
+            };
+
+        let self_places = &self.def_init_places;
+        let other_places = &other.def_init_places;
+        propagate_places_fn(self_places, other_places);
+        propagate_places_fn(other_places, self_places);
+        self.def_init_places = intersection;
+
+        if cfg!(debug_assertions) {
+            self.check_invariant();
+        }
+    }
+
+    fn widen(&mut self, _previous: &Self) {
+        unimplemented!()
     }
 }

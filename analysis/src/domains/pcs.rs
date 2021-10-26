@@ -8,6 +8,7 @@ use crate::{AbstractState, AnalysisError, Analysis};
 use rustc_middle::{mir, ty::TyCtxt};
 use rustc_span::def_id::DefId;
 use serde::{Serialize, Serializer};
+use crate::analysis::AnalysisResult;
 
 pub struct PCSAnalysis<'mir, 'tcx: 'mir> {
     def_id: DefId,
@@ -27,7 +28,7 @@ impl<'mir, 'tcx: 'mir> PCSAnalysis<'mir, 'tcx> {
 }
 
 impl<'mir, 'tcx: 'mir> Analysis<'mir, 'tcx> for PCSAnalysis<'mir, 'tcx> {
-    type Domain = PCSState;
+    type State = PCSState;
 
     fn def_id(&self) -> DefId {
         self.def_id
@@ -37,15 +38,27 @@ impl<'mir, 'tcx: 'mir> Analysis<'mir, 'tcx> for PCSAnalysis<'mir, 'tcx> {
         self.mir
     }
 
-    fn new_bottom(&self) -> Self::Domain {
+    fn new_bottom(&self) -> Self::State {
         unimplemented!()
     }
 
-    fn new_initial(&self) -> Self::Domain {
+    fn new_initial(&self) -> Self::State {
         unimplemented!()
     }
 
     fn need_to_widen(_counter: u32) -> bool {
+        unimplemented!()
+    }
+
+    fn apply_statement_effect(&self, _state: &mut Self::State, _location: mir::Location)
+        -> AnalysisResult<()>
+    {
+        unimplemented!()
+    }
+
+    fn apply_terminator_effect(&self, _state: &Self::State, _location: mir::Location)
+        -> AnalysisResult<Vec<(mir::BasicBlock, Self::State)>>
+    {
         unimplemented!()
     }
 }
@@ -68,17 +81,6 @@ impl AbstractState for PCSState {
     }
 
     fn widen(&mut self, previous: &Self) {
-        unimplemented!()
-    }
-
-    fn apply_statement_effect(&mut self, location: mir::Location) -> Result<(), AnalysisError> {
-        unimplemented!()
-    }
-
-    fn apply_terminator_effect(
-        &self,
-        location: mir::Location,
-    ) -> Result<Vec<(mir::BasicBlock, Self)>, AnalysisError> {
         unimplemented!()
     }
 }

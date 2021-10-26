@@ -16,6 +16,7 @@ use std::{
     fmt,
 };
 use rustc_span::def_id::DefId;
+use crate::analysis::AnalysisResult;
 
 pub struct ReachingDefsAnalysis<'mir, 'tcx: 'mir> {
     tcx: TyCtxt<'tcx>,
@@ -54,7 +55,7 @@ impl<'mir, 'tcx: 'mir> ReachingDefsAnalysis<'mir, 'tcx> {
 }
 
 impl<'mir, 'tcx: 'mir> Analysis<'mir, 'tcx> for ReachingDefsAnalysis<'mir, 'tcx> {
-    type Domain = ReachingDefsState<'mir, 'tcx>;
+    type State = ReachingDefsState<'mir, 'tcx>;
 
     fn def_id(&self) -> DefId {
         self.def_id
@@ -68,7 +69,7 @@ impl<'mir, 'tcx: 'mir> Analysis<'mir, 'tcx> for ReachingDefsAnalysis<'mir, 'tcx>
     /// i.e. all sets of reaching definitions are empty
     ///
     /// For a completely new bottom element we do not even insert any locals with sets into the map.
-    fn new_bottom(&self) -> Self::Domain {
+    fn new_bottom(&self) -> Self::State {
         ReachingDefsState {
             reaching_defs: HashMap::new(),
             mir: self.mir,
@@ -76,7 +77,7 @@ impl<'mir, 'tcx: 'mir> Analysis<'mir, 'tcx> for ReachingDefsAnalysis<'mir, 'tcx>
         }
     }
 
-    fn new_initial(&self) -> Self::Domain {
+    fn new_initial(&self) -> Self::State {
         let mut reaching_defs: HashMap<mir::Local, HashSet<DefLocation>> = HashMap::new();
         // insert parameters
         for (idx, local) in self.mir.args_iter().enumerate() {
@@ -93,6 +94,22 @@ impl<'mir, 'tcx: 'mir> Analysis<'mir, 'tcx> for ReachingDefsAnalysis<'mir, 'tcx>
     fn need_to_widen(_counter: u32) -> bool {
         // only consider static information (assignments) => no lattice of infinite height
         false
+    }
+
+    fn apply_statement_effect(
+        &self,
+        state: &mut Self::State,
+        location: mir::Location
+    ) -> AnalysisResult<()> {
+        state.apply_statement_effect(location)
+    }
+
+    fn apply_terminator_effect(
+        &self,
+        state: &Self::State,
+        location: mir::Location,
+    ) -> AnalysisResult<Vec<(mir::BasicBlock, Self::State)>> {
+        state.apply_terminator_effect(location)
     }
 }
 
@@ -155,26 +172,7 @@ impl<'mir, 'tcx: 'mir> Serialize for ReachingDefsState<'mir, 'tcx> {
     }
 }
 
-impl<'mir, 'tcx: 'mir> AbstractState for ReachingDefsState<'mir, 'tcx> {
-    fn is_bottom(&self) -> bool {
-        self.reaching_defs.iter().all(|(_, set)| set.is_empty())
-    }
-
-    fn join(&mut self, other: &Self) {
-        for (local, other_locations) in other.reaching_defs.iter() {
-            let location_set = self
-                .reaching_defs
-                .entry(*local)
-                .or_insert_with(HashSet::new);
-            location_set.extend(other_locations);
-        }
-    }
-
-    fn widen(&mut self, _previous: &Self) {
-        // assignments are static info => cannot grow infinitely => widening should not be needed
-        unimplemented!()
-    }
-
+impl<'mir, 'tcx: 'mir> ReachingDefsState<'mir, 'tcx> {
     fn apply_statement_effect(&mut self, location: mir::Location) -> Result<(), AnalysisError> {
         let stmt = &self.mir[location.block].statements[location.statement_index];
         if let mir::StatementKind::Assign(box (ref target, _)) = stmt.kind {
@@ -241,5 +239,26 @@ impl<'mir, 'tcx: 'mir> AbstractState for ReachingDefsState<'mir, 'tcx> {
         }
 
         Ok(res_vec)
+    }
+}
+
+impl<'mir, 'tcx: 'mir> AbstractState for ReachingDefsState<'mir, 'tcx> {
+    fn is_bottom(&self) -> bool {
+        self.reaching_defs.iter().all(|(_, set)| set.is_empty())
+    }
+
+    fn join(&mut self, other: &Self) {
+        for (local, other_locations) in other.reaching_defs.iter() {
+            let location_set = self
+                .reaching_defs
+                .entry(*local)
+                .or_insert_with(HashSet::new);
+            location_set.extend(other_locations);
+        }
+    }
+
+    fn widen(&mut self, _previous: &Self) {
+        // assignments are static info => cannot grow infinitely => widening should not be needed
+        unimplemented!()
     }
 }
