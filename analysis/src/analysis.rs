@@ -1,12 +1,12 @@
-// © 2020, ETH Zurich
+// © 2021, ETH Zurich
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-pub use crate::{abstract_domains::*, AnalysisError, PointwiseState};
+pub use crate::{domains::*, AnalysisError, PointwiseState};
 use crate::{analysis_error::AnalysisError::SuccessorWithoutState, AbstractState};
-use rustc_middle::{mir, ty::TyCtxt};
+use rustc_middle::mir;
 use std::{
     collections::{BTreeSet, HashMap},
     iter::FromIterator,
@@ -15,24 +15,35 @@ use rustc_span::def_id::DefId;
 
 type Result<T> = std::result::Result<T, AnalysisError>;
 
-pub struct Analyzer<'tcx> {
-    tcx: TyCtxt<'tcx>,
-}
+/// Trait to be used to define the static analysis of a MIR body.
+pub trait Analysis<'mir, 'tcx: 'mir> {
+    type Domain: AbstractState;
 
-impl<'a, 'tcx: 'a> Analyzer<'tcx> {
-    pub fn new(tcx: TyCtxt<'tcx>) -> Self {
-        Analyzer { tcx }
-    }
+    /// Return the DefId of the MIR body to be analyzed.
+    fn def_id(&self) -> DefId;
+
+    /// Return the MIR body to be analyzed.
+    fn body(&self) -> &'mir mir::Body<'tcx>;
+
+    /// Creates a new abstract state which corresponds to the bottom element in the lattice
+    fn new_bottom(&self) -> Self::Domain;
+
+    //fn new_top(&self) -> Self::Domain;
+
+    /// Creates the abstract state at the beginning of the `mir` body.
+    /// In particular this should take the arguments into account.
+    fn new_initial(&self) -> Self::Domain;
+
+    /// Determines if the number of times a block was traversed by the analyzer given in `counter`
+    /// is large enough to widen the state
+    fn need_to_widen(counter: u32) -> bool;
 
     /// Produces an abstract state for every program point in `mir` by iterating over all statements
     /// in program order until a fixed point is reached (i.e. by abstract interpretation).
     // TODO: add tracing like in initialization.rs?
-    pub fn run_fwd_analysis<S: AbstractState<'a, 'tcx>>(
-        &self,
-        def_id: DefId,
-        mir: &'a mir::Body<'tcx>,
-    ) -> Result<PointwiseState<'a, 'tcx, S>> {
-        let mut p_state = PointwiseState::new(def_id, mir, self.tcx);
+    fn run_fwd_analysis(&self) -> Result<PointwiseState<'mir, 'tcx, Self::Domain>> {
+        let mir = self.body();
+        let mut p_state = PointwiseState::new(mir);
         // use https://crates.io/crates/linked_hash_set for set preserving insertion order?
         let mut work_set: BTreeSet<mir::BasicBlock> =
             BTreeSet::from_iter(mir.basic_blocks().indices());
@@ -49,9 +60,9 @@ impl<'a, 'tcx: 'a> Analyzer<'tcx> {
             let mut state_before_block;
             if bb == mir::START_BLOCK {
                 // entry block
-                state_before_block = S::new_initial(def_id, mir, self.tcx);
+                state_before_block = self.new_initial();
             } else {
-                state_before_block = S::new_bottom(def_id, mir, self.tcx);
+                state_before_block = self.new_bottom();
             }
 
             for &pred_bb in &mir.predecessors()[bb] {
@@ -67,7 +78,7 @@ impl<'a, 'tcx: 'a> Analyzer<'tcx> {
             let counter = counters.entry(bb).or_insert(0);
             *counter += 1;
 
-            if S::need_to_widen(counter) {
+            if Self::need_to_widen(*counter) {
                 let location = mir::Location {
                     block: bb,
                     statement_index: 0,
@@ -108,7 +119,7 @@ impl<'a, 'tcx: 'a> Analyzer<'tcx> {
 
             let next_states = current_state.apply_terminator_effect(location)?;
 
-            let mut new_map: HashMap<mir::BasicBlock, S> = HashMap::new();
+            let mut new_map: HashMap<mir::BasicBlock,  Self::Domain> = HashMap::new();
             for (next_bb, state) in next_states {
                 if let Some(s) = new_map.get_mut(&next_bb) {
                     // join states with same destination for Map

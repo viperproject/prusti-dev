@@ -4,7 +4,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use crate::{abstract_domains::place_utils::*, AbstractState, AnalysisError};
+use crate::{domains::place_utils::*, AbstractState, AnalysisError, Analysis};
 use rustc_middle::{mir, ty::TyCtxt};
 use rustc_span::def_id::DefId;
 use std::collections::{BTreeSet, HashSet};
@@ -12,20 +12,84 @@ use std::collections::{BTreeSet, HashSet};
 use serde::{ser::SerializeSeq, Serialize, Serializer};
 use std::{fmt, mem};
 
+pub struct DefinitelyInitializedAnalysis<'mir, 'tcx: 'mir> {
+    tcx: TyCtxt<'tcx>,
+    def_id: DefId,
+    mir: &'mir mir::Body<'tcx>,
+}
+
 /// A set of MIR places that are definitely initialized at a program point
 ///
 /// Invariant: we never have a place and any of its descendants in the
 /// set at the same time. For example, having `x.f` and `x.f.g` in the
 /// set at the same time is illegal.
 #[derive(Clone)]
-pub struct DefinitelyInitializedState<'a, 'tcx: 'a> {
+pub struct DefinitelyInitializedState<'mir, 'tcx: 'mir> {
     def_init_places: HashSet<mir::Place<'tcx>>,
     def_id: DefId,
-    mir: &'a mir::Body<'tcx>,
+    mir: &'mir mir::Body<'tcx>,
     tcx: TyCtxt<'tcx>,
 }
 
-impl<'a, 'tcx: 'a> fmt::Debug for DefinitelyInitializedState<'a, 'tcx> {
+impl<'mir, 'tcx: 'mir> DefinitelyInitializedAnalysis<'mir, 'tcx> {
+    pub fn new(tcx: TyCtxt<'tcx>, def_id: DefId, mir: &'mir mir::Body<'tcx>) -> Self {
+        DefinitelyInitializedAnalysis {
+            tcx,
+            def_id,
+            mir
+        }
+    }
+}
+
+impl<'mir, 'tcx: 'mir> Analysis<'mir, 'tcx> for DefinitelyInitializedAnalysis<'mir, 'tcx> {
+    type Domain = DefinitelyInitializedState<'mir, 'tcx>;
+
+    fn def_id(&self) -> DefId {
+        self.def_id
+    }
+
+    fn body(&self) -> &'mir mir::Body<'tcx> {
+        self.mir
+    }
+
+    /// The bottom element of the lattice contains all possible places,
+    /// meaning all locals (which includes all their fields)
+    fn new_bottom(&self) -> Self::Domain {
+        let mut places = HashSet::new();
+        for local in self.mir.local_decls.indices() {
+            places.insert(local.into());
+        }
+        DefinitelyInitializedState {
+            def_init_places: places,
+            def_id: self.def_id,
+            mir: self.mir,
+            tcx: self.tcx,
+        }
+    }
+
+    fn new_initial(&self) -> Self::Domain {
+        // Top = empty set
+        let mut places = HashSet::new();
+        // join/insert places in arguments
+        // they are guaranteed to be disjoint and not prefixes of each other,
+        // therefore insert them directly
+        for local in self.mir.args_iter() {
+            places.insert(local.into());
+        }
+        DefinitelyInitializedState {
+            def_init_places: places,
+            def_id: self.def_id,
+            mir: self.mir,
+            tcx: self.tcx,
+        }
+    }
+
+    fn need_to_widen(_counter: u32) -> bool {
+        false //TODO: check
+    }
+}
+
+impl<'mir, 'tcx: 'mir> fmt::Debug for DefinitelyInitializedState<'mir, 'tcx> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         // ignore tcx & mir
         f.debug_struct("DefinitelyInitializedState")
@@ -34,7 +98,7 @@ impl<'a, 'tcx: 'a> fmt::Debug for DefinitelyInitializedState<'a, 'tcx> {
     }
 }
 
-impl<'a, 'tcx: 'a> PartialEq for DefinitelyInitializedState<'a, 'tcx> {
+impl<'mir, 'tcx: 'mir> PartialEq for DefinitelyInitializedState<'mir, 'tcx> {
     fn eq(&self, other: &Self) -> bool {
         // TODO: This assert is commented out because the stable hasher crashes
         // on MIR that has region ids.
@@ -61,9 +125,9 @@ impl<'a, 'tcx: 'a> PartialEq for DefinitelyInitializedState<'a, 'tcx> {
     }
 }
 
-impl<'a, 'tcx: 'a> Eq for DefinitelyInitializedState<'a, 'tcx> {}
+impl<'mir, 'tcx: 'mir> Eq for DefinitelyInitializedState<'mir, 'tcx> {}
 
-impl<'a, 'tcx: 'a> Serialize for DefinitelyInitializedState<'a, 'tcx> {
+impl<'mir, 'tcx: 'mir> Serialize for DefinitelyInitializedState<'mir, 'tcx> {
     fn serialize<Se: Serializer>(&self, serializer: Se) -> Result<Se::Ok, Se::Error> {
         let mut seq = serializer.serialize_seq(Some(self.def_init_places.len()))?;
         let ordered_place_set: BTreeSet<_> = self.def_init_places.iter().collect();
@@ -74,13 +138,13 @@ impl<'a, 'tcx: 'a> Serialize for DefinitelyInitializedState<'a, 'tcx> {
     }
 }
 
-impl<'a, 'tcx: 'a> DefinitelyInitializedState<'a, 'tcx> {
+impl<'mir, 'tcx: 'mir> DefinitelyInitializedState<'mir, 'tcx> {
     pub fn get_def_init_places(&self) -> &HashSet<mir::Place<'tcx>> {
         &self.def_init_places
     }
 
     /// The top element of the lattice contains no places
-    pub fn new_top(def_id: DefId, mir: &'a mir::Body<'tcx>, tcx: TyCtxt<'tcx>) -> Self {
+    pub fn new_top(def_id: DefId, mir: &'mir mir::Body<'tcx>, tcx: TyCtxt<'tcx>) -> Self {
         Self {
             def_init_places: HashSet::new(),
             def_id,
@@ -189,22 +253,7 @@ impl<'a, 'tcx: 'a> DefinitelyInitializedState<'a, 'tcx> {
     }
 }
 
-impl<'a, 'tcx: 'a> AbstractState<'a, 'tcx> for DefinitelyInitializedState<'a, 'tcx> {
-    /// The bottom element of the lattice contains all possible places,
-    /// meaning all locals (which includes all their fields)
-    fn new_bottom(def_id: DefId, mir: &'a mir::Body<'tcx>, tcx: TyCtxt<'tcx>) -> Self {
-        let mut places = HashSet::new();
-        for local in mir.local_decls.indices() {
-            places.insert(local.into());
-        }
-        Self {
-            def_init_places: places,
-            def_id,
-            mir,
-            tcx,
-        }
-    }
-
+impl<'mir, 'tcx: 'mir> AbstractState for DefinitelyInitializedState<'mir, 'tcx> {
     fn is_bottom(&self) -> bool {
         if self.def_init_places.len() == self.mir.local_decls.len() {
             self.mir
@@ -214,27 +263,6 @@ impl<'a, 'tcx: 'a> AbstractState<'a, 'tcx> for DefinitelyInitializedState<'a, 't
         } else {
             false
         }
-    }
-
-    fn new_initial(def_id: DefId, mir: &'a mir::Body<'tcx>, tcx: TyCtxt<'tcx>) -> Self {
-        // Top = empty set
-        let mut places = HashSet::new();
-        // join/insert places in arguments
-        // they are guaranteed to be disjoint and not prefixes of each other,
-        // therefore insert them directly
-        for local in mir.args_iter() {
-            places.insert(local.into());
-        }
-        Self {
-            def_init_places: places,
-            def_id,
-            mir,
-            tcx,
-        }
-    }
-
-    fn need_to_widen(_counter: &u32) -> bool {
-        false //TODO: check
     }
 
     /// The lattice join intersects the two place sets

@@ -72,11 +72,11 @@ fn test_runner(_tests: &[&()]) {
     run_tests(
         "ui",
         "tests/test_cases/reaching_definitions",
-        vec!["--ADdomain=ReachingDefsState".into()],
+        vec!["--analysis=ReachingDefsAnalysis".into()],
     );
     run_tests(
         "ui",
         "tests/test_cases/definitely_initialized",
-        vec!["--ADdomain=DefinitelyInitializedState".into()],
+        vec!["--analysis=DefinitelyInitializedAnalysis".into()],
     );
 }

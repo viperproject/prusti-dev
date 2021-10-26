@@ -27,8 +27,8 @@ use rustc_index::vec::Idx;
 use std::path::Path;
 use log::trace;
 use serde::{Serialize, Deserialize};
-use analysis::{Analyzer, AbstractState};
-use analysis::abstract_domains::DefinitelyInitializedState;
+use analysis::domains::DefinitelyInitializedAnalysis;
+use analysis::{Analysis, AbstractState};
 use std::collections::HashMap;
 
 pub struct AnalysisResult<T> {
@@ -71,8 +71,9 @@ pub fn compute_definitely_initialized<'a, 'tcx: 'a>(
     tcx: TyCtxt<'tcx>,
 ) -> DefinitelyInitializedAnalysisResult<'tcx> {
     let stopwatch = Stopwatch::start_debug("prusti-client", "initialization analysis");
-    let analyzer = Analyzer::new(tcx);
-    let pointwise_state = analyzer.run_fwd_analysis::<DefinitelyInitializedState>(def_id, body)
+    let analysis = DefinitelyInitializedAnalysis::new(tcx, def_id, body);
+    let pointwise_state = analysis
+        .run_fwd_analysis()
         .map_err(|e| panic!("Error while analyzing function at {:?}: {}", body.span, e.to_pretty_str(body)))
         .unwrap();
 
@@ -103,9 +104,7 @@ pub fn compute_definitely_initialized<'a, 'tcx: 'a>(
                 curr_state.join(state);
             }
         }
-        let state_after_block = opt_state_after_block.unwrap_or_else(
-            || DefinitelyInitializedState::new_bottom(def_id, body, tcx)
-        );
+        let state_after_block = opt_state_after_block.unwrap_or_else(|| analysis.new_bottom());
         analysis_result.after_statement.insert(
             location,
             state_after_block.get_def_init_places().clone().into()
