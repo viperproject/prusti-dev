@@ -79,4 +79,9 @@ fn test_runner(_tests: &[&()]) {
         "tests/test_cases/definitely_initialized",
         vec!["--analysis=DefinitelyInitializedAnalysis".into()],
     );
+    run_tests(
+        "ui",
+        "tests/test_cases/relaxed_definitely_initialized",
+        vec!["--analysis=RelaxedDefinitelyInitializedAnalysis".into()],
+    );
 }

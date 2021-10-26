@@ -4,10 +4,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use crate::AnalysisError;
-use rustc_middle::mir;
 use serde::Serialize;
-use std::vec::Vec;
 
 /// Trait to be used to define an abstract domain by defining the type of its elements.
 /// These elements can be used in the ``Analyzer`` to represent an abstraction of the concrete

@@ -125,6 +125,19 @@ impl rustc_driver::Callbacks for OurCompilerCalls {
                             Err(e) => eprintln!("{}", e.to_pretty_str(&body)),
                         }
                     }
+                    "RelaxedDefinitelyInitializedAnalysis" => {
+                        let result = DefinitelyInitializedAnalysis::new_relaxed(
+                            tcx,
+                            local_def_id.to_def_id(),
+                            &body,
+                        ).run_fwd_analysis();
+                        match result {
+                            Ok(state) => {
+                                print!("{}", serde_json::to_string_pretty(&state).unwrap())
+                            }
+                            Err(e) => eprintln!("{}", e.to_pretty_str(&body)),
+                        }
+                    }
                     _ => panic!("Unknown domain argument: {}", abstract_domain),
                 }
             }
