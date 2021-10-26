@@ -13,14 +13,9 @@ extern crate rustc_middle;
 extern crate rustc_span;
 extern crate serde;
 
-mod abstract_state;
-mod analysis;
+pub mod abstract_interpretation;
 mod analysis_error;
 pub mod domains;
-mod pointwise_state;
-mod serialization_utils;
+mod mir_utils;
 
-pub use crate::analysis::Analysis;
-pub use abstract_state::AbstractState;
 pub use analysis_error::AnalysisError;
-pub use pointwise_state::PointwiseState;
