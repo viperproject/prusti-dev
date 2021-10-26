@@ -136,7 +136,7 @@ pub trait Analysis<'mir, 'tcx: 'mir> {
             */
             p_state.set_before(location, current_state.clone());
 
-            let next_states = self.apply_terminator_effect(&mut current_state, location)?;
+            let next_states = self.apply_terminator_effect(&current_state, location)?;
 
             let mut new_map: HashMap<mir::BasicBlock, Self::State> = HashMap::new();
             for (next_bb, state) in next_states {
