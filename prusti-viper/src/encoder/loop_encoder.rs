@@ -32,6 +32,7 @@ impl<'p, 'tcx: 'p> LoopEncoder<'p, 'tcx> {
             procedure,
             tcx,
             initialization: compute_definitely_initialized(
+                procedure.get_id(),
                 procedure.get_mir(),
                 tcx,
             ),
