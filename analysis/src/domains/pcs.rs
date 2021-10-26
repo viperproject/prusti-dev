@@ -4,11 +4,10 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use crate::{AbstractState, Analysis};
+use crate::{analysis::AnalysisResult, AbstractState, Analysis};
 use rustc_middle::{mir, ty::TyCtxt};
 use rustc_span::def_id::DefId;
 use serde::{Serialize, Serializer};
-use crate::analysis::AnalysisResult;
 
 pub struct PCSAnalysis<'mir, 'tcx: 'mir> {
     def_id: DefId,
@@ -20,10 +19,7 @@ pub struct PCSState {}
 
 impl<'mir, 'tcx: 'mir> PCSAnalysis<'mir, 'tcx> {
     pub fn new(_tcx: TyCtxt<'tcx>, def_id: DefId, mir: &'mir mir::Body<'tcx>) -> Self {
-        PCSAnalysis {
-            def_id,
-            mir
-        }
+        PCSAnalysis { def_id, mir }
     }
 }
 
@@ -50,15 +46,19 @@ impl<'mir, 'tcx: 'mir> Analysis<'mir, 'tcx> for PCSAnalysis<'mir, 'tcx> {
         unimplemented!()
     }
 
-    fn apply_statement_effect(&self, _state: &mut Self::State, _location: mir::Location)
-        -> AnalysisResult<()>
-    {
+    fn apply_statement_effect(
+        &self,
+        _state: &mut Self::State,
+        _location: mir::Location,
+    ) -> AnalysisResult<()> {
         unimplemented!()
     }
 
-    fn apply_terminator_effect(&self, _state: &Self::State, _location: mir::Location)
-        -> AnalysisResult<Vec<(mir::BasicBlock, Self::State)>>
-    {
+    fn apply_terminator_effect(
+        &self,
+        _state: &Self::State,
+        _location: mir::Location,
+    ) -> AnalysisResult<Vec<(mir::BasicBlock, Self::State)>> {
         unimplemented!()
     }
 }

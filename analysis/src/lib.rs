@@ -8,19 +8,19 @@
 #![feature(box_patterns)]
 
 extern crate rustc_data_structures;
-extern crate rustc_middle;
 extern crate rustc_index;
+extern crate rustc_middle;
 extern crate rustc_span;
 extern crate serde;
 
-pub mod domains;
 mod abstract_state;
-mod analysis_error;
 mod analysis;
+mod analysis_error;
+pub mod domains;
 mod pointwise_state;
 mod serialization_utils;
 
 pub use abstract_state::AbstractState;
-pub use analysis_error::AnalysisError;
 pub use analysis::Analysis;
+pub use analysis_error::AnalysisError;
 pub use pointwise_state::PointwiseState;

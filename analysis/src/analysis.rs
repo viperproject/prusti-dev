@@ -4,14 +4,14 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-pub use crate::{domains::*, AnalysisError, PointwiseState};
 use crate::{analysis_error::AnalysisError::SuccessorWithoutState, AbstractState};
+pub use crate::{domains::*, AnalysisError, PointwiseState};
 use rustc_middle::mir;
+use rustc_span::def_id::DefId;
 use std::{
     collections::{BTreeSet, HashMap},
     iter::FromIterator,
 };
-use rustc_span::def_id::DefId;
 
 pub type AnalysisResult<T> = std::result::Result<T, AnalysisError>;
 
@@ -45,7 +45,7 @@ pub trait Analysis<'mir, 'tcx: 'mir> {
     fn apply_statement_effect(
         &self,
         state: &mut Self::State,
-        location: mir::Location
+        location: mir::Location,
     ) -> AnalysisResult<()>;
 
     /// Compute the states after a terminator at `location`.
