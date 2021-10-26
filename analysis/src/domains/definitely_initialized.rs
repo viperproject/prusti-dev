@@ -1,15 +1,25 @@
-// © 2020, ETH Zurich
+// © 2021, ETH Zurich
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use crate::{abstract_domains::place_utils::*, AbstractState, AnalysisError};
+use crate::{domains::place_utils::*, AbstractState, Analysis, AnalysisError};
 use rustc_middle::{mir, ty::TyCtxt};
+use rustc_span::def_id::DefId;
 use std::collections::{BTreeSet, HashSet};
 
+use crate::analysis::AnalysisResult;
 use serde::{ser::SerializeSeq, Serialize, Serializer};
 use std::{fmt, mem};
+
+pub struct DefinitelyInitializedAnalysis<'mir, 'tcx: 'mir> {
+    tcx: TyCtxt<'tcx>,
+    def_id: DefId,
+    mir: &'mir mir::Body<'tcx>,
+    /// If the place is a Copy type, uninitialise the place iif `move_out_copy_types` is true.
+    move_out_copy_types: bool,
+}
 
 /// A set of MIR places that are definitely initialized at a program point
 ///
@@ -17,13 +27,99 @@ use std::{fmt, mem};
 /// set at the same time. For example, having `x.f` and `x.f.g` in the
 /// set at the same time is illegal.
 #[derive(Clone)]
-pub struct DefinitelyInitializedState<'a, 'tcx: 'a> {
+pub struct DefinitelyInitializedState<'mir, 'tcx: 'mir> {
     def_init_places: HashSet<mir::Place<'tcx>>,
-    mir: &'a mir::Body<'tcx>,
+    def_id: DefId,
+    mir: &'mir mir::Body<'tcx>,
     tcx: TyCtxt<'tcx>,
 }
 
-impl<'a, 'tcx: 'a> fmt::Debug for DefinitelyInitializedState<'a, 'tcx> {
+impl<'mir, 'tcx: 'mir> DefinitelyInitializedAnalysis<'mir, 'tcx> {
+    pub fn new(tcx: TyCtxt<'tcx>, def_id: DefId, mir: &'mir mir::Body<'tcx>) -> Self {
+        DefinitelyInitializedAnalysis {
+            tcx,
+            def_id,
+            mir,
+            move_out_copy_types: true,
+        }
+    }
+
+    /// This analysis will not uninitialize Copy types when they are moved.
+    pub fn new_relaxed(tcx: TyCtxt<'tcx>, def_id: DefId, mir: &'mir mir::Body<'tcx>) -> Self {
+        DefinitelyInitializedAnalysis {
+            tcx,
+            def_id,
+            mir,
+            move_out_copy_types: false,
+        }
+    }
+}
+
+impl<'mir, 'tcx: 'mir> Analysis<'mir, 'tcx> for DefinitelyInitializedAnalysis<'mir, 'tcx> {
+    type State = DefinitelyInitializedState<'mir, 'tcx>;
+
+    fn def_id(&self) -> DefId {
+        self.def_id
+    }
+
+    fn body(&self) -> &'mir mir::Body<'tcx> {
+        self.mir
+    }
+
+    /// The bottom element of the lattice contains all possible places,
+    /// meaning all locals (which includes all their fields)
+    fn new_bottom(&self) -> Self::State {
+        let mut places = HashSet::new();
+        for local in self.mir.local_decls.indices() {
+            places.insert(local.into());
+        }
+        DefinitelyInitializedState {
+            def_init_places: places,
+            def_id: self.def_id,
+            mir: self.mir,
+            tcx: self.tcx,
+        }
+    }
+
+    fn new_initial(&self) -> Self::State {
+        // Top = empty set
+        let mut places = HashSet::new();
+        // join/insert places in arguments
+        // they are guaranteed to be disjoint and not prefixes of each other,
+        // therefore insert them directly
+        for local in self.mir.args_iter() {
+            places.insert(local.into());
+        }
+        DefinitelyInitializedState {
+            def_init_places: places,
+            def_id: self.def_id,
+            mir: self.mir,
+            tcx: self.tcx,
+        }
+    }
+
+    fn need_to_widen(_counter: u32) -> bool {
+        false //TODO: check
+    }
+
+    fn apply_statement_effect(
+        &self,
+        state: &mut Self::State,
+        location: mir::Location,
+    ) -> AnalysisResult<()> {
+        state.apply_statement_effect(location, self.move_out_copy_types)
+    }
+
+    fn apply_terminator_effect(
+        &self,
+        state: &Self::State,
+        location: mir::Location,
+    ) -> AnalysisResult<Vec<(mir::BasicBlock, Self::State)>> {
+        state.apply_terminator_effect(location, self.move_out_copy_types)
+    }
+}
+
+impl<'mir, 'tcx: 'mir> fmt::Debug for DefinitelyInitializedState<'mir, 'tcx> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         // ignore tcx & mir
         f.debug_struct("DefinitelyInitializedState")
@@ -32,7 +128,7 @@ impl<'a, 'tcx: 'a> fmt::Debug for DefinitelyInitializedState<'a, 'tcx> {
     }
 }
 
-impl<'a, 'tcx: 'a> PartialEq for DefinitelyInitializedState<'a, 'tcx> {
+impl<'mir, 'tcx: 'mir> PartialEq for DefinitelyInitializedState<'mir, 'tcx> {
     fn eq(&self, other: &Self) -> bool {
         // TODO: This assert is commented out because the stable hasher crashes
         // on MIR that has region ids.
@@ -59,9 +155,9 @@ impl<'a, 'tcx: 'a> PartialEq for DefinitelyInitializedState<'a, 'tcx> {
     }
 }
 
-impl<'a, 'tcx: 'a> Eq for DefinitelyInitializedState<'a, 'tcx> {}
+impl<'mir, 'tcx: 'mir> Eq for DefinitelyInitializedState<'mir, 'tcx> {}
 
-impl<'a, 'tcx: 'a> Serialize for DefinitelyInitializedState<'a, 'tcx> {
+impl<'mir, 'tcx: 'mir> Serialize for DefinitelyInitializedState<'mir, 'tcx> {
     fn serialize<Se: Serializer>(&self, serializer: Se) -> Result<Se::Ok, Se::Error> {
         let mut seq = serializer.serialize_seq(Some(self.def_init_places.len()))?;
         let ordered_place_set: BTreeSet<_> = self.def_init_places.iter().collect();
@@ -72,15 +168,16 @@ impl<'a, 'tcx: 'a> Serialize for DefinitelyInitializedState<'a, 'tcx> {
     }
 }
 
-impl<'a, 'tcx: 'a> DefinitelyInitializedState<'a, 'tcx> {
+impl<'mir, 'tcx: 'mir> DefinitelyInitializedState<'mir, 'tcx> {
     pub fn get_def_init_places(&self) -> &HashSet<mir::Place<'tcx>> {
         &self.def_init_places
     }
 
     /// The top element of the lattice contains no places
-    pub fn new_top(mir: &'a mir::Body<'tcx>, tcx: TyCtxt<'tcx>) -> Self {
+    pub fn new_top(def_id: DefId, mir: &'mir mir::Body<'tcx>, tcx: TyCtxt<'tcx>) -> Self {
         Self {
             def_init_places: HashSet::new(),
+            def_id,
             mir,
             tcx,
         }
@@ -140,7 +237,7 @@ impl<'a, 'tcx: 'a> DefinitelyInitializedState<'a, 'tcx> {
         }
     }
 
-    /// Sets `place` as (possibly) uninitialized (see place_set/remove())
+    /// Sets `place` as (possibly) uninitialised (see place_set/remove())
     fn set_place_uninitialised(&mut self, place: &mir::Place<'tcx>) {
         if cfg!(debug_assertions) {
             self.check_invariant();
@@ -165,7 +262,7 @@ impl<'a, 'tcx: 'a> DefinitelyInitializedState<'a, 'tcx> {
 
         // Check that place is properly removed
         for place1 in self.def_init_places.iter() {
-            assert!(
+            debug_assert!(
                 !is_prefix(place1, place) && !is_prefix(place, place1),
                 "Bug: failed to ensure that there are no prefixes: place={:?} place1={:?}",
                 place,
@@ -178,29 +275,178 @@ impl<'a, 'tcx: 'a> DefinitelyInitializedState<'a, 'tcx> {
         }
     }
 
-    /// If the operand is move, make the place uninitialized
-    fn apply_operand_effect(&mut self, operand: &mir::Operand<'tcx>) {
+    /// If the operand is move, make the place uninitialised
+    /// If the place is a Copy type, uninitialise the place iif `move_out_copy_types` is true.
+    fn apply_operand_effect(
+        &mut self,
+        operand: &mir::Operand<'tcx>,
+        location: mir::Location,
+        move_out_copy_types: bool,
+    ) {
         if let mir::Operand::Move(place) = operand {
-            self.set_place_uninitialised(place);
+            let mut uninitialise = true;
+            if !move_out_copy_types {
+                let ty = place.ty(&self.mir.local_decls, self.tcx).ty;
+                let span = self.mir.source_info(location).span;
+                let param_env = self.tcx.param_env(self.def_id);
+                let is_copy = ty.is_copy_modulo_regions(self.tcx.at(span), param_env);
+                uninitialise = !is_copy;
+            }
+            if uninitialise {
+                self.set_place_uninitialised(place);
+            }
         }
+    }
+
+    /// If the place is a Copy type, uninitialise the place iif `move_out_copy_types` is true.
+    fn apply_statement_effect(
+        &mut self,
+        location: mir::Location,
+        move_out_copy_types: bool,
+    ) -> Result<(), AnalysisError> {
+        let statement = &self.mir[location.block].statements[location.statement_index];
+        if let mir::StatementKind::Assign(box (ref target, ref source)) = statement.kind {
+            match source {
+                mir::Rvalue::Repeat(ref operand, _)
+                | mir::Rvalue::Cast(_, ref operand, _)
+                | mir::Rvalue::UnaryOp(_, ref operand)
+                | mir::Rvalue::Use(ref operand) => {
+                    self.apply_operand_effect(operand, location, move_out_copy_types);
+                }
+                mir::Rvalue::BinaryOp(_, box (ref operand1, ref operand2))
+                | mir::Rvalue::CheckedBinaryOp(_, box (ref operand1, ref operand2)) => {
+                    self.apply_operand_effect(operand1, location, move_out_copy_types);
+                    self.apply_operand_effect(operand2, location, move_out_copy_types);
+                }
+                mir::Rvalue::Aggregate(_, ref operands) => {
+                    for operand in operands.iter() {
+                        self.apply_operand_effect(operand, location, move_out_copy_types);
+                    }
+                }
+                _ => {}
+            }
+
+            self.set_place_initialised(target);
+        }
+
+        Ok(())
+    }
+
+    /// If the place is a Copy type, uninitialise the place iif `move_out_copy_types` is true.
+    fn apply_terminator_effect(
+        &self,
+        location: mir::Location,
+        move_out_copy_types: bool,
+    ) -> Result<Vec<(mir::BasicBlock, Self)>, AnalysisError> {
+        let mut new_state = self.clone();
+        let mut res_vec = Vec::new();
+        let terminator = self.mir[location.block].terminator();
+        match terminator.kind {
+            mir::TerminatorKind::SwitchInt { ref discr, .. } => {
+                // only operand has an effect on definitely initialized places, all successors
+                // get the same state
+                new_state.apply_operand_effect(discr, location, move_out_copy_types);
+
+                for &bb in terminator.successors() {
+                    res_vec.push((bb, new_state.clone()));
+                }
+            }
+            mir::TerminatorKind::Drop {
+                ref place,
+                target,
+                unwind,
+            } => {
+                new_state.set_place_uninitialised(place);
+                res_vec.push((target, new_state));
+
+                if let Some(bb) = unwind {
+                    // imprecision for error states
+                    res_vec.push((bb, Self::new_top(self.def_id, self.mir, self.tcx)));
+                }
+            }
+            mir::TerminatorKind::DropAndReplace {
+                ref place,
+                ref value,
+                target,
+                unwind,
+            } => {
+                new_state.set_place_uninitialised(place);
+                new_state.apply_operand_effect(value, location, move_out_copy_types);
+                new_state.set_place_initialised(place);
+                res_vec.push((target, new_state));
+
+                if let Some(bb) = unwind {
+                    // imprecision for error states
+                    res_vec.push((bb, Self::new_top(self.def_id, self.mir, self.tcx)));
+                }
+            }
+            mir::TerminatorKind::Call {
+                ref func,
+                ref args,
+                ref destination,
+                cleanup,
+                ..
+            } => {
+                for arg in args.iter() {
+                    new_state.apply_operand_effect(arg, location, move_out_copy_types);
+                }
+                new_state.apply_operand_effect(func, location, move_out_copy_types);
+                if let Some((place, bb)) = destination {
+                    new_state.set_place_initialised(place);
+                    res_vec.push((*bb, new_state));
+                }
+
+                if let Some(bb) = cleanup {
+                    // imprecision for error states
+                    res_vec.push((bb, Self::new_top(self.def_id, self.mir, self.tcx)));
+                }
+            }
+            mir::TerminatorKind::Assert {
+                ref cond,
+                target,
+                cleanup,
+                ..
+            } => {
+                new_state.apply_operand_effect(cond, location, move_out_copy_types);
+                res_vec.push((target, new_state));
+
+                if let Some(bb) = cleanup {
+                    // imprecision for error states
+                    res_vec.push((bb, Self::new_top(self.def_id, self.mir, self.tcx)));
+                }
+            }
+            mir::TerminatorKind::Yield {
+                ref value,
+                resume,
+                drop,
+                ..
+            } => {
+                // TODO: resume_arg?
+                new_state.apply_operand_effect(value, location, move_out_copy_types);
+                res_vec.push((resume, new_state));
+
+                if let Some(bb) = drop {
+                    // imprecision for error states
+                    res_vec.push((bb, Self::new_top(self.def_id, self.mir, self.tcx)));
+                }
+            }
+            mir::TerminatorKind::InlineAsm { .. } => {
+                return Err(AnalysisError::UnsupportedStatement(location))
+            }
+
+            _ => {
+                for &bb in terminator.successors() {
+                    // no operation -> no change of state
+                    res_vec.push((bb, self.clone()));
+                }
+            }
+        }
+
+        Ok(res_vec)
     }
 }
 
-impl<'a, 'tcx: 'a> AbstractState<'a, 'tcx> for DefinitelyInitializedState<'a, 'tcx> {
-    /// The bottom element of the lattice contains all possible places,
-    /// meaning all locals (which includes all their fields)
-    fn new_bottom(mir: &'a mir::Body<'tcx>, tcx: TyCtxt<'tcx>) -> Self {
-        let mut places = HashSet::new();
-        for local in mir.local_decls.indices() {
-            places.insert(local.into());
-        }
-        Self {
-            def_init_places: places,
-            mir,
-            tcx,
-        }
-    }
-
+impl<'mir, 'tcx: 'mir> AbstractState for DefinitelyInitializedState<'mir, 'tcx> {
     fn is_bottom(&self) -> bool {
         if self.def_init_places.len() == self.mir.local_decls.len() {
             self.mir
@@ -210,26 +456,6 @@ impl<'a, 'tcx: 'a> AbstractState<'a, 'tcx> for DefinitelyInitializedState<'a, 't
         } else {
             false
         }
-    }
-
-    fn new_initial(mir: &'a mir::Body<'tcx>, tcx: TyCtxt<'tcx>) -> Self {
-        // Top = empty set
-        let mut places = HashSet::new();
-        // join/insert places in arguments
-        // they are guaranteed to be disjoint and not prefixes of each other,
-        // therefore insert them directly
-        for local in mir.args_iter() {
-            places.insert(local.into());
-        }
-        Self {
-            def_init_places: places,
-            mir,
-            tcx,
-        }
-    }
-
-    fn need_to_widen(_counter: &u32) -> bool {
-        false //TODO: check
     }
 
     /// The lattice join intersects the two place sets
@@ -269,145 +495,5 @@ impl<'a, 'tcx: 'a> AbstractState<'a, 'tcx> for DefinitelyInitializedState<'a, 't
 
     fn widen(&mut self, _previous: &Self) {
         unimplemented!()
-    }
-
-    fn apply_statement_effect(&mut self, location: mir::Location) -> Result<(), AnalysisError> {
-        let statement = &self.mir[location.block].statements[location.statement_index];
-        if let mir::StatementKind::Assign(box (ref target, ref source)) = statement.kind {
-            match source {
-                mir::Rvalue::Repeat(ref operand, _)
-                | mir::Rvalue::Cast(_, ref operand, _)
-                | mir::Rvalue::UnaryOp(_, ref operand)
-                | mir::Rvalue::Use(ref operand) => {
-                    self.apply_operand_effect(operand);
-                }
-                mir::Rvalue::BinaryOp(_, box (ref operand1, ref operand2))
-                | mir::Rvalue::CheckedBinaryOp(_, box (ref operand1, ref operand2)) => {
-                    self.apply_operand_effect(operand1);
-                    self.apply_operand_effect(operand2);
-                }
-                mir::Rvalue::Aggregate(_, ref operands) => {
-                    for operand in operands.iter() {
-                        self.apply_operand_effect(operand);
-                    }
-                }
-                _ => {}
-            }
-
-            self.set_place_initialised(target);
-        }
-
-        Ok(())
-    }
-
-    fn apply_terminator_effect(
-        &self,
-        location: mir::Location,
-    ) -> Result<Vec<(mir::BasicBlock, Self)>, AnalysisError> {
-        let mut new_state = self.clone();
-        let mut res_vec = Vec::new();
-        let terminator = self.mir[location.block].terminator();
-        match terminator.kind {
-            mir::TerminatorKind::SwitchInt { ref discr, .. } => {
-                // only operand has an effect on definitely initialized places, all successors
-                // get the same state
-                new_state.apply_operand_effect(discr);
-
-                for &bb in terminator.successors() {
-                    res_vec.push((bb, new_state.clone()));
-                }
-            }
-            mir::TerminatorKind::Drop {
-                ref place,
-                target,
-                unwind,
-            } => {
-                new_state.set_place_uninitialised(place);
-                res_vec.push((target, new_state));
-
-                if let Some(bb) = unwind {
-                    // imprecision for error states
-                    res_vec.push((bb, Self::new_top(self.mir, self.tcx)));
-                }
-            }
-            mir::TerminatorKind::DropAndReplace {
-                ref place,
-                ref value,
-                target,
-                unwind,
-            } => {
-                new_state.set_place_uninitialised(place);
-                new_state.apply_operand_effect(value);
-                new_state.set_place_initialised(place);
-                res_vec.push((target, new_state));
-
-                if let Some(bb) = unwind {
-                    // imprecision for error states
-                    res_vec.push((bb, Self::new_top(self.mir, self.tcx)));
-                }
-            }
-            mir::TerminatorKind::Call {
-                ref func,
-                ref args,
-                ref destination,
-                cleanup,
-                ..
-            } => {
-                for arg in args.iter() {
-                    new_state.apply_operand_effect(arg);
-                }
-                new_state.apply_operand_effect(func);
-                if let Some((place, bb)) = destination {
-                    new_state.set_place_initialised(place);
-                    res_vec.push((*bb, new_state));
-                }
-
-                if let Some(bb) = cleanup {
-                    // imprecision for error states
-                    res_vec.push((bb, Self::new_top(self.mir, self.tcx)));
-                }
-            }
-            mir::TerminatorKind::Assert {
-                ref cond,
-                target,
-                cleanup,
-                ..
-            } => {
-                new_state.apply_operand_effect(cond);
-                res_vec.push((target, new_state));
-
-                if let Some(bb) = cleanup {
-                    // imprecision for error states
-                    res_vec.push((bb, Self::new_top(self.mir, self.tcx)));
-                }
-            }
-            mir::TerminatorKind::Yield {
-                ref value,
-                resume,
-                drop,
-                ..
-            } => {
-                // TODO: resume_arg?
-                new_state.apply_operand_effect(value);
-                res_vec.push((resume, new_state));
-
-                if let Some(bb) = drop {
-                    // imprecision for error states
-                    res_vec.push((bb, Self::new_top(self.mir, self.tcx)));
-                }
-            }
-            mir::TerminatorKind::InlineAsm { .. } => {
-                return Err(AnalysisError::UnsupportedStatement(location))
-            }
-
-            _ => {
-                for &bb in terminator.successors() {
-                    // no operation -> no change of state
-                    res_vec.push((bb, self.clone()));
-                }
-            }
-        }
-
-        Ok(res_vec)
     }
 }

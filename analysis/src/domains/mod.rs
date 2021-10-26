@@ -1,4 +1,4 @@
-// © 2020, ETH Zurich
+// © 2021, ETH Zurich
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -9,6 +9,6 @@ mod pcs;
 mod place_utils;
 mod reaching_definitions;
 
-pub use definitely_initialized::DefinitelyInitializedState;
-pub use pcs::PCSState;
-pub use reaching_definitions::ReachingDefsState;
+pub use definitely_initialized::*;
+pub use pcs::*;
+pub use reaching_definitions::*;

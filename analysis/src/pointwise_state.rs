@@ -1,11 +1,11 @@
-// © 2020, ETH Zurich
+// © 2021, ETH Zurich
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use crate::AbstractState;
-use rustc_middle::{mir, ty::TyCtxt};
+use rustc_middle::mir;
 use serde::{ser::SerializeMap, Serialize, Serializer};
 use std::{
     collections::{BTreeMap, HashMap},
@@ -13,19 +13,17 @@ use std::{
 };
 
 /// Records the abstract state at every program point and CFG edge of `mir`.
-pub struct PointwiseState<'a, 'tcx: 'a, S: AbstractState<'a, 'tcx>> {
+pub struct PointwiseState<'mir, 'tcx: 'mir, S: AbstractState> {
     state_before: HashMap<mir::Location, S>,
     /// Maps each basic block to a map of its successor blocks to the state on the CFG edge.
     state_after_block: HashMap<mir::BasicBlock, HashMap<mir::BasicBlock, S>>,
     // Needed for translation of location to statement/terminator in serialization.
-    mir: &'a mir::Body<'tcx>,
-    // Needed for construction of bottom element in serialization.
-    tcx: TyCtxt<'tcx>,
+    mir: &'mir mir::Body<'tcx>,
 }
 
-impl<'a, 'tcx: 'a, S> fmt::Debug for PointwiseState<'a, 'tcx, S>
+impl<'mir, 'tcx: 'mir, S> fmt::Debug for PointwiseState<'mir, 'tcx, S>
 where
-    S: AbstractState<'a, 'tcx> + fmt::Debug,
+    S: AbstractState + fmt::Debug,
 {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         // ignore tcx
@@ -37,12 +35,10 @@ where
     }
 }
 
-impl<'a, 'tcx: 'a, S: AbstractState<'a, 'tcx>> Serialize for PointwiseState<'a, 'tcx, S> {
+impl<'mir, 'tcx: 'mir, S: AbstractState> Serialize for PointwiseState<'mir, 'tcx, S> {
     /// Serialize PointwiseState by translating it to a combination of vectors, tuples and maps,
     /// such that serde can automatically translate it.
     fn serialize<Se: Serializer>(&self, serializer: Se) -> Result<Se::Ok, Se::Error> {
-        let bottom = S::new_bottom(self.mir, self.tcx);
-
         let mut map = serializer.serialize_map(Some(self.mir.basic_blocks().len()))?;
 
         for bb in self.mir.basic_blocks().indices() {
@@ -53,14 +49,14 @@ impl<'a, 'tcx: 'a, S: AbstractState<'a, 'tcx>> Serialize for PointwiseState<'a, 
                     block: bb,
                     statement_index,
                 };
+                let state = self.lookup_before(location).unwrap();
 
-                let state = self.lookup_before(location).unwrap_or(&bottom);
                 // output statement
                 stmt_vec.push(("state:", state, format!("statement: {:?}", stmt)));
             }
 
             let term_location = self.mir.terminator_loc(bb);
-            let state_before = self.lookup_before(term_location).unwrap_or(&bottom);
+            let state_before = self.lookup_before(term_location).unwrap();
 
             let terminator_str = format!("terminator: {:?}", self.mir[bb].terminator().kind);
 
@@ -86,13 +82,12 @@ impl<'a, 'tcx: 'a, S: AbstractState<'a, 'tcx>> Serialize for PointwiseState<'a, 
     }
 }
 
-impl<'a, 'tcx: 'a, S: AbstractState<'a, 'tcx>> PointwiseState<'a, 'tcx, S> {
-    pub fn new(mir: &'a mir::Body<'tcx>, tcx: TyCtxt<'tcx>) -> Self {
+impl<'mir, 'tcx: 'mir, S: AbstractState> PointwiseState<'mir, 'tcx, S> {
+    pub fn new(mir: &'mir mir::Body<'tcx>) -> Self {
         Self {
             state_before: HashMap::new(),
             state_after_block: HashMap::new(),
             mir,
-            tcx,
         }
     }
 
