@@ -5,8 +5,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use crate::{
-    analysis::AnalysisResult, serialization_utils::location_to_stmt_str, AbstractState, Analysis,
-    AnalysisError,
+    abstract_interpretation::AbstractState, mir_utils::location_to_stmt_str, AnalysisError,
 };
 use rustc_data_structures::{
     fingerprint::Fingerprint,
@@ -14,18 +13,11 @@ use rustc_data_structures::{
     stable_hasher::{HashStable, StableHasher},
 };
 use rustc_middle::{mir, ty::TyCtxt};
-use rustc_span::def_id::DefId;
 use serde::{ser::SerializeMap, Serialize, Serializer};
 use std::{
     collections::{BTreeMap, BTreeSet},
     fmt,
 };
-
-pub struct ReachingDefsAnalysis<'mir, 'tcx: 'mir> {
-    tcx: TyCtxt<'tcx>,
-    def_id: DefId,
-    mir: &'mir mir::Body<'tcx>,
-}
 
 /// A set of definition locations and function parameter indices per Local,
 /// meaning that the Local might still have the value
@@ -35,9 +27,9 @@ pub struct ReachingDefsAnalysis<'mir, 'tcx: 'mir> {
 #[derive(Clone)]
 pub struct ReachingDefsState<'mir, 'tcx: 'mir> {
     // Local -> Location OR index of function parameter
-    reaching_defs: FxHashMap<mir::Local, FxHashSet<DefLocation>>,
-    mir: &'mir mir::Body<'tcx>, // just for context
-    tcx: TyCtxt<'tcx>,
+    pub(super) reaching_defs: FxHashMap<mir::Local, FxHashSet<DefLocation>>,
+    pub(super) mir: &'mir mir::Body<'tcx>, // just for context
+    pub(super) tcx: TyCtxt<'tcx>,
 }
 
 #[derive(Hash, Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
@@ -45,73 +37,6 @@ pub enum DefLocation {
     Assignment(mir::Location),
     /// The value is the index of the function parameter in ``mir.args_iter()``
     Parameter(usize),
-}
-
-impl<'mir, 'tcx: 'mir> ReachingDefsAnalysis<'mir, 'tcx> {
-    pub fn new(tcx: TyCtxt<'tcx>, def_id: DefId, mir: &'mir mir::Body<'tcx>) -> Self {
-        ReachingDefsAnalysis { tcx, def_id, mir }
-    }
-}
-
-impl<'mir, 'tcx: 'mir> Analysis<'mir, 'tcx> for ReachingDefsAnalysis<'mir, 'tcx> {
-    type State = ReachingDefsState<'mir, 'tcx>;
-
-    fn def_id(&self) -> DefId {
-        self.def_id
-    }
-
-    fn body(&self) -> &'mir mir::Body<'tcx> {
-        self.mir
-    }
-
-    /// The bottom element of the lattice contains no definitions,
-    /// i.e. all sets of reaching definitions are empty
-    ///
-    /// For a completely new bottom element we do not even insert any locals with sets into the map.
-    fn new_bottom(&self) -> Self::State {
-        ReachingDefsState {
-            reaching_defs: FxHashMap::default(),
-            mir: self.mir,
-            tcx: self.tcx,
-        }
-    }
-
-    fn new_initial(&self) -> Self::State {
-        let mut reaching_defs: FxHashMap<mir::Local, FxHashSet<DefLocation>> = FxHashMap::default();
-        // insert parameters
-        for (idx, local) in self.mir.args_iter().enumerate() {
-            let location_set = reaching_defs
-                .entry(local)
-                .or_insert_with(FxHashSet::default);
-            location_set.insert(DefLocation::Parameter(idx));
-        }
-        ReachingDefsState {
-            reaching_defs,
-            mir: self.mir,
-            tcx: self.tcx,
-        }
-    }
-
-    fn need_to_widen(_counter: u32) -> bool {
-        // only consider static information (assignments) => no lattice of infinite height
-        false
-    }
-
-    fn apply_statement_effect(
-        &self,
-        state: &mut Self::State,
-        location: mir::Location,
-    ) -> AnalysisResult<()> {
-        state.apply_statement_effect(location)
-    }
-
-    fn apply_terminator_effect(
-        &self,
-        state: &Self::State,
-        location: mir::Location,
-    ) -> AnalysisResult<Vec<(mir::BasicBlock, Self::State)>> {
-        state.apply_terminator_effect(location)
-    }
 }
 
 impl<'mir, 'tcx: 'mir> fmt::Debug for ReachingDefsState<'mir, 'tcx> {
@@ -174,7 +99,10 @@ impl<'mir, 'tcx: 'mir> Serialize for ReachingDefsState<'mir, 'tcx> {
 }
 
 impl<'mir, 'tcx: 'mir> ReachingDefsState<'mir, 'tcx> {
-    fn apply_statement_effect(&mut self, location: mir::Location) -> Result<(), AnalysisError> {
+    pub(super) fn apply_statement_effect(
+        &mut self,
+        location: mir::Location,
+    ) -> Result<(), AnalysisError> {
         let stmt = &self.mir[location.block].statements[location.statement_index];
         if let mir::StatementKind::Assign(box (ref target, _)) = stmt.kind {
             if let Some(local) = target.as_local() {
@@ -190,7 +118,7 @@ impl<'mir, 'tcx: 'mir> ReachingDefsState<'mir, 'tcx> {
         Ok(())
     }
 
-    fn apply_terminator_effect(
+    pub(super) fn apply_terminator_effect(
         &self,
         location: mir::Location,
     ) -> Result<Vec<(mir::BasicBlock, Self)>, AnalysisError> {
