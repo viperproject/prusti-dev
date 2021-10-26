@@ -20,7 +20,7 @@ pub mod domains;
 mod pointwise_state;
 mod serialization_utils;
 
-pub use abstract_state::AbstractState;
 pub use crate::analysis::Analysis;
+pub use abstract_state::AbstractState;
 pub use analysis_error::AnalysisError;
 pub use pointwise_state::PointwiseState;
