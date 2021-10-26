@@ -39,8 +39,6 @@ use super::borrowck::regions;
 use super::loops;
 use super::mir_analyses::initialization::compute_definitely_initialized;
 use super::mir_analyses::initialization::DefinitelyInitializedAnalysisResult;
-use super::mir_analyses::liveness::compute_liveness;
-use super::mir_analyses::liveness::LivenessAnalysisResult;
 use super::procedure::Procedure;
 use super::Environment;
 use prusti_common::config;

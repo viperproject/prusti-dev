@@ -15,6 +15,7 @@ use std::{
     collections::{BTreeMap, BTreeSet, HashMap, HashSet},
     fmt,
 };
+use rustc_span::def_id::DefId;
 
 #[derive(Hash, Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub enum DefLocation {
@@ -101,7 +102,7 @@ impl<'a, 'tcx: 'a> AbstractState<'a, 'tcx> for ReachingDefsState<'a, 'tcx> {
     /// i.e. all sets of reaching definitions are empty
     ///
     /// For a completely new bottom element we do not even insert any locals with sets into the map.
-    fn new_bottom(mir: &'a mir::Body<'tcx>, tcx: TyCtxt<'tcx>) -> Self {
+    fn new_bottom(_def_id: DefId, mir: &'a mir::Body<'tcx>, tcx: TyCtxt<'tcx>) -> Self {
         Self {
             reaching_defs: HashMap::new(),
             mir,
@@ -113,7 +114,7 @@ impl<'a, 'tcx: 'a> AbstractState<'a, 'tcx> for ReachingDefsState<'a, 'tcx> {
         self.reaching_defs.iter().all(|(_, set)| set.is_empty())
     }
 
-    fn new_initial(mir: &'a mir::Body<'tcx>, tcx: TyCtxt<'tcx>) -> Self {
+    fn new_initial(_def_id: DefId, mir: &'a mir::Body<'tcx>, tcx: TyCtxt<'tcx>) -> Self {
         let mut reaching_defs: HashMap<mir::Local, HashSet<DefLocation>> = HashMap::new();
         // insert parameters
         for (idx, local) in mir.args_iter().enumerate() {

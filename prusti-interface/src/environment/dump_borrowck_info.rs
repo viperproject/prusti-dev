@@ -11,7 +11,6 @@ use super::loops_utils::*;
 use super::mir_analyses::initialization::{
     compute_definitely_initialized, DefinitelyInitializedAnalysisResult,
 };
-use super::mir_analyses::liveness::{compute_liveness, LivenessAnalysisResult};
 use super::polonius_info::PoloniusInfo;
 use super::procedure::Procedure;
 use crate::data::ProcedureDefId;
@@ -83,8 +82,7 @@ impl<'a, 'tcx: 'a> InfoPrinter<'a, 'tcx> {
         let graph_file = File::create(graph_path).expect("Unable to create file");
         let graph = BufWriter::new(graph_file);
 
-        let initialization = compute_definitely_initialized(mir, self.tcx);
-        let liveness = compute_liveness(mir);
+        let initialization = compute_definitely_initialized(def_id, mir, self.tcx);
 
         // FIXME: this computes the wrong loop invariant permission
         let loop_invariant_block = HashMap::new();
@@ -97,7 +95,6 @@ impl<'a, 'tcx: 'a> InfoPrinter<'a, 'tcx> {
             graph: cell::RefCell::new(graph),
             loops: loop_info,
             initialization,
-            liveness,
             polonius_info: PoloniusInfo::new(self.env, &procedure, &loop_invariant_block).ok().unwrap(),
         };
         mir_info_printer.print_info().unwrap();
@@ -114,7 +111,6 @@ struct MirInfoPrinter<'a, 'tcx: 'a> {
     pub graph: cell::RefCell<BufWriter<File>>,
     pub loops: loops::ProcedureLoops,
     pub initialization: DefinitelyInitializedAnalysisResult<'tcx>,
-    pub liveness: LivenessAnalysisResult,
     pub polonius_info: PoloniusInfo<'a, 'tcx>,
 }
 
@@ -456,9 +452,6 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
         write_graph!(self, "<td>{:?}</td>", bb);
         write_graph!(self, "<td colspan=\"7\"></td>");
         write_graph!(self, "<td>Definitely Initialized</td>");
-        if self.show_liveness() {
-            write_graph!(self, "<td>Liveness</td>");
-        }
         write_graph!(self, "</th>");
 
         // Is this the entry point of a procedure?
@@ -609,42 +602,17 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
                     );
                     write_graph!(self, "</tr>");
 
-                    let liveness = self.liveness.get_before_block(bb);
-                    let mut root_loans = Vec::new();
-                    for assignment in liveness.iter() {
-                        debug!(
-                            "assignment={:?} target={:?} var={:?} equal={:?}",
-                            assignment,
-                            assignment.target,
-                            magic_wand.variable,
-                            assignment.target == magic_wand.variable
-                        );
-                        if assignment.target == magic_wand.variable {
-                            for loan in loop_loans.iter() {
-                                debug!(
-                                    "loan: {:?} position: {:?}",
-                                    loan, self.polonius_info.loan_position[loan]
-                                );
-                                if assignment.location == self.polonius_info.loan_position[loan] {
-                                    root_loans.push(*loan);
-                                }
-                            }
-                        }
-                    }
-
                     write_graph!(self, "<tr>");
                     write_graph!(
                         self,
-                        "<td colspan=\"2\">{:?} (root loans):</td>",
+                        "<td colspan=\"2\">{:?}</td>",
                         magic_wand.variable
                     );
                     write_graph!(
                         self,
-                        "<td colspan=\"8\">{}</td>",
-                        to_sorted_string!(root_loans)
+                        "<td colspan=\"8\"></td>"
                     );
                     write_graph!(self, "</tr>");
-                    assert_eq!(root_loans.len(), 1);
 
                     let dag = self.polonius_info.construct_reborrowing_dag_loop_body(
                         &loop_loans,
@@ -677,9 +645,6 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
             "<td>{}</td>",
             self.get_definitely_initialized_before_block(bb)
         );
-        if self.show_liveness() {
-            write_graph!(self, "<td>{}</td>", self.get_live_before_block(bb));
-        }
         write_graph!(self, "</th>");
 
         let mir::BasicBlockData {
@@ -716,9 +681,6 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
             "<td>{}</td>",
             self.get_definitely_initialized_after_statement(location)
         );
-        if self.show_liveness() {
-            write_graph!(self, "<td>{}</td>", self.get_live_after_statement(location));
-        }
         write_graph!(self, "</tr>");
         if let Some(ref term) = &terminator {
             if let mir::TerminatorKind::Return = term.kind {
@@ -949,9 +911,6 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
             "<td>{}</td>",
             self.get_definitely_initialized_after_statement(location)
         );
-        if self.show_liveness() {
-            write_graph!(self, "<td>{}</td>", self.get_live_after_statement(location));
-        }
 
         write_graph!(self, "</tr>");
         Ok(())
@@ -1067,11 +1026,6 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
         unimplemented!("Should use SETTINGS.");
         // get_config_option("PRUSTI_DUMP_SHOW_RESTRICTS", false)
     }
-
-    fn show_liveness(&self) -> bool {
-        unimplemented!("Should use SETTINGS.");
-        // get_config_option("PRUSTI_DUMP_SHOW_LIVENESS", false)
-    }
 }
 
 /// Definitely initialized analysis.
@@ -1084,19 +1038,6 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
     fn get_definitely_initialized_after_statement(&self, location: mir::Location) -> String {
         let place_set = self.initialization.get_after_statement(location);
         to_sorted_string!(place_set)
-    }
-}
-
-/// Liveness analysis.
-impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
-    fn get_live_before_block(&self, bb: mir::BasicBlock) -> String {
-        let set = self.liveness.get_before_block(bb);
-        to_sorted_string!(set)
-    }
-
-    fn get_live_after_statement(&self, location: mir::Location) -> String {
-        let set = self.liveness.get_after_statement(location);
-        to_sorted_string!(set)
     }
 }
 

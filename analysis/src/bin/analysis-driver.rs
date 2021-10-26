@@ -104,7 +104,10 @@ impl rustc_driver::Callbacks for OurCompilerCalls {
 
                 match abstract_domain {
                     "ReachingDefsState" => {
-                        let result = analyzer.run_fwd_analysis::<ReachingDefsState>(&body);
+                        let result = analyzer.run_fwd_analysis::<ReachingDefsState>(
+                            local_def_id.to_def_id(),
+                            &body,
+                        );
                         match result {
                             Ok(state) => {
                                 print!("{}", serde_json::to_string_pretty(&state).unwrap())
@@ -113,7 +116,10 @@ impl rustc_driver::Callbacks for OurCompilerCalls {
                         }
                     }
                     "DefinitelyInitializedState" => {
-                        let result = analyzer.run_fwd_analysis::<DefinitelyInitializedState>(&body);
+                        let result = analyzer.run_fwd_analysis::<DefinitelyInitializedState>(
+                            local_def_id.to_def_id(),
+                            &body,
+                        );
                         match result {
                             Ok(state) => {
                                 print!("{}", serde_json::to_string_pretty(&state).unwrap())

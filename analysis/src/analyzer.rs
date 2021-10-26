@@ -11,6 +11,7 @@ use std::{
     collections::{BTreeSet, HashMap},
     iter::FromIterator,
 };
+use rustc_span::def_id::DefId;
 
 type Result<T> = std::result::Result<T, AnalysisError>;
 
@@ -28,9 +29,10 @@ impl<'a, 'tcx: 'a> Analyzer<'tcx> {
     // TODO: add tracing like in initialization.rs?
     pub fn run_fwd_analysis<S: AbstractState<'a, 'tcx>>(
         &self,
+        def_id: DefId,
         mir: &'a mir::Body<'tcx>,
     ) -> Result<PointwiseState<'a, 'tcx, S>> {
-        let mut p_state = PointwiseState::new(mir, self.tcx);
+        let mut p_state = PointwiseState::new(def_id, mir, self.tcx);
         // use https://crates.io/crates/linked_hash_set for set preserving insertion order?
         let mut work_set: BTreeSet<mir::BasicBlock> =
             BTreeSet::from_iter(mir.basic_blocks().indices());
@@ -47,9 +49,9 @@ impl<'a, 'tcx: 'a> Analyzer<'tcx> {
             let mut state_before_block;
             if bb == mir::START_BLOCK {
                 // entry block
-                state_before_block = S::new_initial(mir, self.tcx);
+                state_before_block = S::new_initial(def_id, mir, self.tcx);
             } else {
-                state_before_block = S::new_bottom(mir, self.tcx);
+                state_before_block = S::new_bottom(def_id, mir, self.tcx);
             }
 
             for &pred_bb in &mir.predecessors()[bb] {

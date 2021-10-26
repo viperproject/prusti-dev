@@ -6,6 +6,7 @@
 
 use crate::AnalysisError;
 use rustc_middle::{mir, ty::TyCtxt};
+use rustc_span::def_id::DefId;
 use serde::Serialize;
 use std::vec::Vec;
 
@@ -50,7 +51,7 @@ pub trait AbstractState<'a, 'tcx: 'a>: Clone + Eq + Sized + Serialize {
     //fn make_bottom(&mut self) -> Self;
 
     /// Creates a new abstract state which corresponds to the bottom element in the lattice
-    fn new_bottom(mir: &'a mir::Body<'tcx>, tcx: TyCtxt<'tcx>) -> Self;
+    fn new_bottom(def_id: DefId, mir: &'a mir::Body<'tcx>, tcx: TyCtxt<'tcx>) -> Self;
 
     /// Checks if the current state corresponds to the bottom element in the lattice
     fn is_bottom(&self) -> bool;
@@ -60,7 +61,7 @@ pub trait AbstractState<'a, 'tcx: 'a>: Clone + Eq + Sized + Serialize {
 
     /// Creates the abstract state at the beginning of the `mir` body.
     /// In particular this should take the arguments into account.
-    fn new_initial(mir: &'a mir::Body<'tcx>, tcx: TyCtxt<'tcx>) -> Self;
+    fn new_initial(def_id: DefId, mir: &'a mir::Body<'tcx>, tcx: TyCtxt<'tcx>) -> Self;
 
     //fn less_equal(&self, other: &Self) -> bool;
 

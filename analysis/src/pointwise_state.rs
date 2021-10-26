@@ -11,12 +11,14 @@ use std::{
     collections::{BTreeMap, HashMap},
     fmt,
 };
+use rustc_span::def_id::DefId;
 
 /// Records the abstract state at every program point and CFG edge of `mir`.
 pub struct PointwiseState<'a, 'tcx: 'a, S: AbstractState<'a, 'tcx>> {
     state_before: HashMap<mir::Location, S>,
     /// Maps each basic block to a map of its successor blocks to the state on the CFG edge.
     state_after_block: HashMap<mir::BasicBlock, HashMap<mir::BasicBlock, S>>,
+    def_id: DefId,
     // Needed for translation of location to statement/terminator in serialization.
     mir: &'a mir::Body<'tcx>,
     // Needed for construction of bottom element in serialization.
@@ -41,7 +43,7 @@ impl<'a, 'tcx: 'a, S: AbstractState<'a, 'tcx>> Serialize for PointwiseState<'a, 
     /// Serialize PointwiseState by translating it to a combination of vectors, tuples and maps,
     /// such that serde can automatically translate it.
     fn serialize<Se: Serializer>(&self, serializer: Se) -> Result<Se::Ok, Se::Error> {
-        let bottom = S::new_bottom(self.mir, self.tcx);
+        let bottom = S::new_bottom(self.def_id, self.mir, self.tcx);
 
         let mut map = serializer.serialize_map(Some(self.mir.basic_blocks().len()))?;
 
@@ -87,10 +89,11 @@ impl<'a, 'tcx: 'a, S: AbstractState<'a, 'tcx>> Serialize for PointwiseState<'a, 
 }
 
 impl<'a, 'tcx: 'a, S: AbstractState<'a, 'tcx>> PointwiseState<'a, 'tcx, S> {
-    pub fn new(mir: &'a mir::Body<'tcx>, tcx: TyCtxt<'tcx>) -> Self {
+    pub fn new(def_id: DefId, mir: &'a mir::Body<'tcx>, tcx: TyCtxt<'tcx>) -> Self {
         Self {
             state_before: HashMap::new(),
             state_after_block: HashMap::new(),
+            def_id,
             mir,
             tcx,
         }
