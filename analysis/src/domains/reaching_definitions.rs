@@ -4,19 +4,21 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use crate::{serialization_utils::location_to_stmt_str, AbstractState, AnalysisError, Analysis};
+use crate::{
+    analysis::AnalysisResult, serialization_utils::location_to_stmt_str, AbstractState, Analysis,
+    AnalysisError,
+};
 use rustc_data_structures::{
     fingerprint::Fingerprint,
     stable_hasher::{HashStable, StableHasher},
 };
 use rustc_middle::{ich::StableHashingContextProvider, mir, ty::TyCtxt};
+use rustc_span::def_id::DefId;
 use serde::{ser::SerializeMap, Serialize, Serializer};
 use std::{
     collections::{BTreeMap, BTreeSet, HashMap, HashSet},
     fmt,
 };
-use rustc_span::def_id::DefId;
-use crate::analysis::AnalysisResult;
 
 pub struct ReachingDefsAnalysis<'mir, 'tcx: 'mir> {
     tcx: TyCtxt<'tcx>,
@@ -46,11 +48,7 @@ pub enum DefLocation {
 
 impl<'mir, 'tcx: 'mir> ReachingDefsAnalysis<'mir, 'tcx> {
     pub fn new(tcx: TyCtxt<'tcx>, def_id: DefId, mir: &'mir mir::Body<'tcx>) -> Self {
-        ReachingDefsAnalysis {
-            tcx,
-            def_id,
-            mir
-        }
+        ReachingDefsAnalysis { tcx, def_id, mir }
     }
 }
 
@@ -99,7 +97,7 @@ impl<'mir, 'tcx: 'mir> Analysis<'mir, 'tcx> for ReachingDefsAnalysis<'mir, 'tcx>
     fn apply_statement_effect(
         &self,
         state: &mut Self::State,
-        location: mir::Location
+        location: mir::Location,
     ) -> AnalysisResult<()> {
         state.apply_statement_effect(location)
     }

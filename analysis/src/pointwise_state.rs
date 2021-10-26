@@ -18,7 +18,7 @@ pub struct PointwiseState<'mir, 'tcx: 'mir, S: AbstractState> {
     /// Maps each basic block to a map of its successor blocks to the state on the CFG edge.
     state_after_block: HashMap<mir::BasicBlock, HashMap<mir::BasicBlock, S>>,
     // Needed for translation of location to statement/terminator in serialization.
-    mir: &'mir mir::Body<'tcx>
+    mir: &'mir mir::Body<'tcx>,
 }
 
 impl<'mir, 'tcx: 'mir, S> fmt::Debug for PointwiseState<'mir, 'tcx, S>

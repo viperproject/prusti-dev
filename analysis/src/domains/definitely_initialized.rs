@@ -4,14 +4,14 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use crate::{domains::place_utils::*, AbstractState, AnalysisError, Analysis};
+use crate::{domains::place_utils::*, AbstractState, Analysis, AnalysisError};
 use rustc_middle::{mir, ty::TyCtxt};
 use rustc_span::def_id::DefId;
 use std::collections::{BTreeSet, HashSet};
 
+use crate::analysis::AnalysisResult;
 use serde::{ser::SerializeSeq, Serialize, Serializer};
 use std::{fmt, mem};
-use crate::analysis::AnalysisResult;
 
 pub struct DefinitelyInitializedAnalysis<'mir, 'tcx: 'mir> {
     tcx: TyCtxt<'tcx>,
@@ -105,7 +105,7 @@ impl<'mir, 'tcx: 'mir> Analysis<'mir, 'tcx> for DefinitelyInitializedAnalysis<'m
     fn apply_statement_effect(
         &self,
         state: &mut Self::State,
-        location: mir::Location
+        location: mir::Location,
     ) -> AnalysisResult<()> {
         state.apply_statement_effect(location, self.move_out_copy_types)
     }

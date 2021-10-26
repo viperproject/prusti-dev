@@ -15,8 +15,10 @@ use rustc_interface::{interface, Queries};
 use rustc_middle::ty;
 use rustc_session::Attribute;
 
-use analysis::Analysis;
-use analysis::domains::{DefinitelyInitializedAnalysis, ReachingDefsAnalysis};
+use analysis::{
+    domains::{DefinitelyInitializedAnalysis, ReachingDefsAnalysis},
+    Analysis,
+};
 
 struct OurCompilerCalls {
     args: Vec<String>,
@@ -100,11 +102,9 @@ impl rustc_driver::Callbacks for OurCompilerCalls {
 
                 match abstract_domain {
                     "ReachingDefsAnalysis" => {
-                        let result = ReachingDefsAnalysis::new(
-                            tcx,
-                            local_def_id.to_def_id(),
-                            &body,
-                        ).run_fwd_analysis();
+                        let result =
+                            ReachingDefsAnalysis::new(tcx, local_def_id.to_def_id(), &body)
+                                .run_fwd_analysis();
                         match result {
                             Ok(state) => {
                                 print!("{}", serde_json::to_string_pretty(&state).unwrap())
@@ -117,7 +117,8 @@ impl rustc_driver::Callbacks for OurCompilerCalls {
                             tcx,
                             local_def_id.to_def_id(),
                             &body,
-                        ).run_fwd_analysis();
+                        )
+                        .run_fwd_analysis();
                         match result {
                             Ok(state) => {
                                 print!("{}", serde_json::to_string_pretty(&state).unwrap())
@@ -130,7 +131,8 @@ impl rustc_driver::Callbacks for OurCompilerCalls {
                             tcx,
                             local_def_id.to_def_id(),
                             &body,
-                        ).run_fwd_analysis();
+                        )
+                        .run_fwd_analysis();
                         match result {
                             Ok(state) => {
                                 print!("{}", serde_json::to_string_pretty(&state).unwrap())
