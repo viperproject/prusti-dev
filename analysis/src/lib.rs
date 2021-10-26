@@ -13,14 +13,14 @@ extern crate rustc_index;
 extern crate rustc_span;
 extern crate serde;
 
-pub mod abstract_domains;
+pub mod domains;
 mod abstract_state;
 mod analysis_error;
-mod analyzer;
+mod analysis;
 mod pointwise_state;
 mod serialization_utils;
 
 pub use abstract_state::AbstractState;
 pub use analysis_error::AnalysisError;
-pub use analyzer::Analyzer;
+pub use analysis::Analysis;
 pub use pointwise_state::PointwiseState;

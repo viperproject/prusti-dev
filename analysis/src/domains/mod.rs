@@ -9,6 +9,6 @@ mod pcs;
 mod place_utils;
 mod reaching_definitions;
 
-pub use definitely_initialized::DefinitelyInitializedState;
-pub use pcs::PCSState;
-pub use reaching_definitions::ReachingDefsState;
+pub use definitely_initialized::*;
+pub use pcs::*;
+pub use reaching_definitions::*;

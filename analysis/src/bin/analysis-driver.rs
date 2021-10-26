@@ -15,10 +15,8 @@ use rustc_interface::{interface, Queries};
 use rustc_middle::ty;
 use rustc_session::Attribute;
 
-use analysis::{
-    abstract_domains::{DefinitelyInitializedState, ReachingDefsState},
-    Analyzer,
-};
+use analysis::Analysis;
+use analysis::domains::{DefinitelyInitializedAnalysis, ReachingDefsAnalysis};
 
 struct OurCompilerCalls {
     args: Vec<String>,
@@ -63,7 +61,7 @@ impl rustc_driver::Callbacks for OurCompilerCalls {
         let abstract_domain: &str = self
             .args
             .iter()
-            .filter(|a| a.starts_with("--ADdomain"))
+            .filter(|a| a.starts_with("--analysis"))
             .flat_map(|a| a.rsplit('='))
             .next()
             .unwrap();
@@ -89,8 +87,6 @@ impl rustc_driver::Callbacks for OurCompilerCalls {
                     .span
             });
 
-            let analyzer = Analyzer::new(tcx);
-
             for &local_def_id in local_def_ids {
                 println!(
                     "Result for function {}():",
@@ -103,11 +99,12 @@ impl rustc_driver::Callbacks for OurCompilerCalls {
                     .borrow();
 
                 match abstract_domain {
-                    "ReachingDefsState" => {
-                        let result = analyzer.run_fwd_analysis::<ReachingDefsState>(
+                    "ReachingDefsAnalysis" => {
+                        let result = ReachingDefsAnalysis::new(
+                            tcx,
                             local_def_id.to_def_id(),
                             &body,
-                        );
+                        ).run_fwd_analysis();
                         match result {
                             Ok(state) => {
                                 print!("{}", serde_json::to_string_pretty(&state).unwrap())
@@ -115,11 +112,12 @@ impl rustc_driver::Callbacks for OurCompilerCalls {
                             Err(e) => eprintln!("{}", e.to_pretty_str(&body)),
                         }
                     }
-                    "DefinitelyInitializedState" => {
-                        let result = analyzer.run_fwd_analysis::<DefinitelyInitializedState>(
+                    "DefinitelyInitializedAnalysis" => {
+                        let result = DefinitelyInitializedAnalysis::new(
+                            tcx,
                             local_def_id.to_def_id(),
                             &body,
-                        );
+                        ).run_fwd_analysis();
                         match result {
                             Ok(state) => {
                                 print!("{}", serde_json::to_string_pretty(&state).unwrap())
@@ -140,14 +138,14 @@ impl rustc_driver::Callbacks for OurCompilerCalls {
 
 /// Run an analysis by calling like it rustc
 ///
-/// Give arguments to the analyzer by prefixing them with '--AD'
-/// A abstract domain has to be provided by using '--ADdomain=' (without spaces), e.g.:
-/// --ADdomain=ReachingDefsState or --ADdomain=DefinitelyInitializedState
+/// Give arguments to the analyzer by prefixing them with '--analysis'
+/// A abstract domain has to be provided by using '--analysis=' (without spaces), e.g.:
+/// --analysis=ReachingDefsState or --analysis=DefinitelyInitializedAnalysis
 fn main() {
     let mut compiler_args = Vec::new();
     let mut callback_args = Vec::new();
     for arg in std::env::args() {
-        if arg.starts_with("--AD") {
+        if arg.starts_with("--analysis") {
             callback_args.push(arg);
         } else {
             compiler_args.push(arg);
