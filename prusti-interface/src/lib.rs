@@ -35,6 +35,7 @@ extern crate rustc_data_structures;
 extern crate rustc_index;
 extern crate rustc_trait_selection;
 extern crate polonius_engine;
+extern crate rustc_mir_dataflow;
 #[macro_use]
 extern crate lazy_static;
 
