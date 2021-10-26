@@ -13,11 +13,11 @@ use std::{
 };
 use rustc_span::def_id::DefId;
 
-type Result<T> = std::result::Result<T, AnalysisError>;
+pub type AnalysisResult<T> = std::result::Result<T, AnalysisError>;
 
 /// Trait to be used to define the static analysis of a MIR body.
 pub trait Analysis<'mir, 'tcx: 'mir> {
-    type Domain: AbstractState;
+    type State: AbstractState;
 
     /// Return the DefId of the MIR body to be analyzed.
     fn def_id(&self) -> DefId;
@@ -26,22 +26,41 @@ pub trait Analysis<'mir, 'tcx: 'mir> {
     fn body(&self) -> &'mir mir::Body<'tcx>;
 
     /// Creates a new abstract state which corresponds to the bottom element in the lattice
-    fn new_bottom(&self) -> Self::Domain;
+    fn new_bottom(&self) -> Self::State;
 
-    //fn new_top(&self) -> Self::Domain;
+    //fn new_top(&self) -> Self::State;
 
     /// Creates the abstract state at the beginning of the `mir` body.
     /// In particular this should take the arguments into account.
-    fn new_initial(&self) -> Self::Domain;
+    fn new_initial(&self) -> Self::State;
 
     /// Determines if the number of times a block was traversed by the analyzer given in `counter`
     /// is large enough to widen the state
     fn need_to_widen(counter: u32) -> bool;
 
+    /// Modify a state according to the statement at `location`.
+    ///
+    /// The statement can be extracted using
+    /// `self.mir[location.block].statements[location.statement_index]`.
+    fn apply_statement_effect(
+        &self,
+        state: &mut Self::State,
+        location: mir::Location
+    ) -> AnalysisResult<()>;
+
+    /// Compute the states after a terminator at `location`.
+    ///
+    /// The statement can be extracted using `self.mir[location.block].terminator()`.
+    fn apply_terminator_effect(
+        &self,
+        state: &Self::State,
+        location: mir::Location,
+    ) -> AnalysisResult<Vec<(mir::BasicBlock, Self::State)>>;
+
     /// Produces an abstract state for every program point in `mir` by iterating over all statements
     /// in program order until a fixed point is reached (i.e. by abstract interpretation).
     // TODO: add tracing like in initialization.rs?
-    fn run_fwd_analysis(&self) -> Result<PointwiseState<'mir, 'tcx, Self::Domain>> {
+    fn run_fwd_analysis(&self) -> AnalysisResult<PointwiseState<'mir, 'tcx, Self::State>> {
         let mir = self.body();
         let mut p_state = PointwiseState::new(mir);
         // use https://crates.io/crates/linked_hash_set for set preserving insertion order?
@@ -103,7 +122,7 @@ pub trait Analysis<'mir, 'tcx: 'mir> {
                 */
                 p_state.set_before(location, current_state.clone());
                 // normal statement
-                current_state.apply_statement_effect(location)?;
+                self.apply_statement_effect(&mut current_state, location)?;
             }
 
             // terminator effect
@@ -117,9 +136,9 @@ pub trait Analysis<'mir, 'tcx: 'mir> {
             */
             p_state.set_before(location, current_state.clone());
 
-            let next_states = current_state.apply_terminator_effect(location)?;
+            let next_states = self.apply_terminator_effect(&mut current_state, location)?;
 
-            let mut new_map: HashMap<mir::BasicBlock,  Self::Domain> = HashMap::new();
+            let mut new_map: HashMap<mir::BasicBlock, Self::State> = HashMap::new();
             for (next_bb, state) in next_states {
                 if let Some(s) = new_map.get_mut(&next_bb) {
                     // join states with same destination for Map
@@ -152,6 +171,6 @@ pub trait Analysis<'mir, 'tcx: 'mir> {
                 }
             }
         }
-        Result::Ok(p_state)
+        AnalysisResult::Ok(p_state)
     }
 }
