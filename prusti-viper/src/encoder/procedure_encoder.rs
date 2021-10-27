@@ -2713,7 +2713,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         //
         // [x] inhale Array$lookup_pure == Slice$lookup_pure with quantifier from start to end
         // [?] label, encode_transfer_permissions?
-        // [x] look at the other range types (at least those from the stdlib?
         // [ ] what if the index is not a range? should support Index<usize> for arrays and slices maybe, mostly implemented anyway i guess
 
         Ok(stmts)
