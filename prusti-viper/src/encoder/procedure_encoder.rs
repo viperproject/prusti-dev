@@ -2547,6 +2547,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         let (encoded_lhs, encode_stmts, lhs_ty, _) = self.encode_place(
             &destination.as_ref().unwrap().0,
             ArrayAccessKind::Mutable(None, location),
+            location,
         )?;
         stmts.extend(encode_stmts);
         if !lhs_ty.is_slice() {
