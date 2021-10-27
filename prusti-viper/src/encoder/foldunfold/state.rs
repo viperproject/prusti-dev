@@ -113,9 +113,10 @@ impl State {
                 if acc_place.is_simple_place()
                     && pred_place.is_simple_place()
                     && acc_place.has_proper_prefix(pred_place)
+                    && matches!(self.pred[pred_place], PermAmount::Write)
                 {
                     panic!(
-                        "Consistency error: state has acc {}, but also pred {}",
+                        "Consistency error: state has acc {}, but also a full pred {}",
                         acc_place, pred_place
                     );
                 }
