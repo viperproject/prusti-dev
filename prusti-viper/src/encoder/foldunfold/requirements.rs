@@ -11,6 +11,7 @@ use super::{
 use crate::encoder::foldunfold::{
     footprint::*,
     perm::{Perm::*, *},
+    places_utils::ancestors,
 };
 use log::{debug, trace};
 use std::{

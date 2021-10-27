@@ -105,7 +105,7 @@ pub enum UnaryOpKind {
     Minus,
 }
 
-#[display(fmt = "{}{}", op_kind, argument)]
+#[display(fmt = "{}({})", op_kind, argument)]
 pub struct UnaryOp {
     pub op_kind: UnaryOpKind,
     pub argument: Box<Expression>,
@@ -129,7 +129,7 @@ pub enum BinOpKind {
     Implies,
 }
 
-#[display(fmt = "{}{}{}", left, op_kind, right)]
+#[display(fmt = "({}) {} ({})", left, op_kind, right)]
 pub struct BinOp {
     pub op_kind: BinOpKind,
     pub left: Box<Expression>,
