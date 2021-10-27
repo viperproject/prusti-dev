@@ -223,20 +223,25 @@ impl ApplyOnState for vir::Stmt {
                 ..
             }) => {
                 assert_eq!(arguments.len(), 1);
-                let place = &arguments[0];
-                debug_assert!(place.is_place());
-                assert!(state.contains_pred(place));
-                assert!(!state.is_prefix_of_some_moved(place));
+                let self_place = &arguments[0];
+                debug_assert!(self_place.is_place());
+                assert!(state.contains_pred(self_place));
+                assert!(!state.is_prefix_of_some_moved(self_place));
 
                 // We want to unfold place
-                let predicate_type = place.get_type();
+                let predicate_type = self_place.get_type();
                 let predicate = predicates.get(predicate_type).unwrap();
 
                 let pred_self_place: vir::Expr = predicate.self_place();
                 let places_in_pred: Vec<_> = predicate
                     .get_body_footprint(enum_variant)
                     .into_iter()
-                    .map(|aop| aop.map_place(|p| p.replace_place(&pred_self_place, place)))
+                    .map(|perm| {
+                        debug_assert_eq!(perm.get_perm_amount(), vir::PermAmount::Write);
+                        // Scale permission
+                        perm.map_place(|place| place.replace_place(&pred_self_place, self_place))
+                            .update_perm_amount(permission)
+                    })
                     .collect();
 
                 for contained_place in &places_in_pred {
@@ -244,7 +249,7 @@ impl ApplyOnState for vir::Stmt {
                 }
 
                 // Simulate unfolding of `place`
-                state.remove_pred(place, permission)?;
+                state.remove_pred(self_place, permission)?;
                 state.insert_all_perms(places_in_pred.into_iter())?;
             }
 
