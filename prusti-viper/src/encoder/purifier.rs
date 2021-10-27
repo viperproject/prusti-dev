@@ -7,6 +7,9 @@ use vir_crate::polymorphic::{self as vir, ExprWalker, ExprFolder, StmtWalker, St
 use std::collections::{BTreeMap, BTreeSet, HashMap, HashSet};
 use log::{debug, trace};
 use crate::encoder::Encoder;
+use crate::encoder::high::types::HighTypeEncoderInterface;
+use crate::encoder::mir::types::MirTypeEncoderInterface;
+use crate::encoder::snapshot::interface::SnapshotEncoderInterface;
 
 use super::encoder::SubstMap;
 

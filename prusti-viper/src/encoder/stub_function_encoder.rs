@@ -4,8 +4,10 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+use crate::encoder::high::types::HighTypeEncoderInterface;
 use crate::encoder::mir_encoder::{MirEncoder, PlaceEncoder};
 use crate::encoder::Encoder;
+use crate::encoder::snapshot::interface::SnapshotEncoderInterface;
 use vir_crate::polymorphic as vir;
 use rustc_hir::def_id::DefId;
 use rustc_middle::mir;
@@ -14,6 +16,7 @@ use crate::encoder::errors::SpannedEncodingError;
 use crate::encoder::errors::WithSpan;
 use crate::encoder::errors::EncodingResult;
 use crate::encoder::errors::SpannedEncodingResult;
+use crate::encoder::mir::types::MirTypeEncoderInterface;
 
 use super::encoder::SubstMap;
 
@@ -83,10 +86,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> StubFunctionEncoder<'p, 'v, 'tcx> {
     }
 
     pub fn encode_function_name(&self) -> String {
-        let base_name = self.encoder.encode_item_name(self.proc_def_id);
         // TODO: It would be nice to somehow mark that this function is a stub
         // in the encoding.
-        base_name
+        self.encoder.encode_item_name(self.proc_def_id)
     }
 
     pub fn encode_function_return_type(&self) -> SpannedEncodingResult<vir::Type> {

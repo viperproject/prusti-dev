@@ -5,6 +5,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use rustc_middle::ty;
+use rustc_middle::mir;
 
 pub mod to_string;
 pub mod type_visitor;

@@ -27,6 +27,6 @@ impl Point {
 
 fn main() {
     let mut ts = Point(3, 2);
-    let x = ts.max();   //~ ERROR: precondition of pure function call might not hold
+    let x = ts.max();
     assert!(x == 3)
 }

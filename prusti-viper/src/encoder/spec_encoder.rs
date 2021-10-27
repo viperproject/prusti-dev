@@ -7,13 +7,14 @@
 use crate::encoder::errors::{
     ErrorCtxt, SpannedEncodingResult, SpannedEncodingError, EncodingError, WithSpan
 };
+use crate::encoder::high::types::HighTypeEncoderInterface;
 use crate::encoder::mir_encoder::{MirEncoder, PlaceEncoder, PlaceEncoding};
 use crate::encoder::mir_encoder::PRECONDITION_LABEL;
 use crate::encoder::mir_interpreter::{
     run_backward_interpretation_point_to_point, BackwardMirInterpreter,
-    MultiExprBackwardInterpreterState,
+    ExprBackwardInterpreterState,
 };
-use crate::encoder::pure_function_encoder::PureFunctionBackwardInterpreter;
+use crate::encoder::mir::pure_functions::{PureFunctionBackwardInterpreter, PureFunctionEncoderInterface};
 use crate::encoder::Encoder;
 use prusti_common::config;
 use crate::encoder::SpecFunctionKind;
@@ -28,6 +29,7 @@ use std::collections::HashMap;
 use rustc_ast::ast;
 use log::{debug, trace};
 use prusti_interface::utils::read_prusti_attr;
+use crate::encoder::mir::types::MirTypeEncoderInterface;
 
 use super::encoder::SubstMap;
 
@@ -190,8 +192,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
         }
         for var in &bounded_vars {
             if !found_bounded_vars.contains(var) {
+                debug!("bounded_vars: {:?}", bounded_vars);
+                debug!("encoded_expressions: {:?}", encoded_expressions);
+                debug!("found_bounded_vars: {:?}", found_bounded_vars);
+                debug!("var: {:?}", var);
                 // FIXME: We should mention the missing variable in the error message.
-                let msg = "A trigger must mention all bounded variables.";
+                let msg = "a trigger must mention all bounded variables.";
                 let span = rustc_span::MultiSpan::from_spans(
                     trigger.terms().iter().map(|term| self.encoder.env().tcx().def_span(term.expr)).collect()
                 );
@@ -590,7 +596,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
 
         // Translate an intermediate state to the state at the beginning of the method
         let substs = self.encoder.type_substitution_polymorphic_type_map(self.tymap).with_span(mir.span)?;
-        let state = MultiExprBackwardInterpreterState::new_single_with_substs(
+        let state = ExprBackwardInterpreterState::new_defined_with_substs(
             expr,
             substs,
         );
@@ -607,9 +613,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
             expr_location.block,
             expr_location.statement_index,
             state,
-            MultiExprBackwardInterpreterState::new(vec![]),
+            ExprBackwardInterpreterState::new_undefined(),
         )?.unwrap_or_else(|| panic!("cannot encode {:?} because its CFG contains a loop", def_id));
-        let pre_state_expr = initial_state.into_expressions().remove(0);
+        let pre_state_expr = initial_state.into_expr().unwrap();
 
         trace!("Expr at the beginning: {}", pre_state_expr);
         Ok(pre_state_expr)
@@ -732,7 +738,7 @@ struct StraightLineBackwardInterpreter<'p, 'v: 'p, 'tcx: 'v> {
     interpreter: PureFunctionBackwardInterpreter<'p, 'v, 'tcx>,
 }
 
-/// XXX: This encoding works backward, but there is the risk of generating expressions whose length
+/// This encoding works backward, so there is the risk of generating expressions whose length
 /// is exponential in the number of branches. If this becomes a problem, consider doing a forward
 /// encoding (keeping path conditions expressions).
 impl<'p, 'v: 'p, 'tcx: 'v> StraightLineBackwardInterpreter<'p, 'v, 'tcx> {
@@ -754,7 +760,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> StraightLineBackwardInterpreter<'p, 'v, 'tcx> {
 impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
     for StraightLineBackwardInterpreter<'p, 'v, 'tcx>
 {
-    type State = MultiExprBackwardInterpreterState;
+    type State = ExprBackwardInterpreterState;
     type Error = SpannedEncodingError;
 
     fn apply_terminator(
@@ -764,15 +770,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
         states: HashMap<mir::BasicBlock, &Self::State>,
     ) -> Result<Self::State, Self::Error> {
         trace!("apply_terminator {:?}, states: {:?}", term, states);
-        if !states.is_empty() && states.values().all(|state| !state.exprs().is_empty()) {
-            // All states are initialized
-            self.interpreter.apply_terminator(bb, term, states)
-        } else {
-            // One of the states is not yet initialized
-            trace!("Skip terminator {:?}", term);
-            Ok(MultiExprBackwardInterpreterState::new(vec![]))
-        }
+        self.interpreter.apply_terminator(bb, term, states)
     }
+
     fn apply_statement(
         &self,
         bb: mir::BasicBlock,
@@ -781,14 +781,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
         state: &mut Self::State,
     ) -> Result<(), Self::Error> {
         trace!("apply_statement {:?}, state: {:?}", stmt, state);
-        if !state.exprs().is_empty() {
-            // The state is initialized
-            self.interpreter
-                .apply_statement(bb, stmt_index, stmt, state)?;
-        } else {
-            // The state is not yet initialized
-            trace!("Skip statement {:?}", stmt);
-        }
-        Ok(())
+        self.interpreter.apply_statement(bb, stmt_index, stmt, state)
     }
 }

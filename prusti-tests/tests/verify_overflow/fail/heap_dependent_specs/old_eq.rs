@@ -52,7 +52,7 @@ impl Point {
     pub fn move1(self) -> Self {
         self
     }
-    #[ensures(equal_points3(old(self), result))]    //~ ERROR: precondition of pure function call might not hold.
+    #[ensures(equal_points3(old(self), result))]    //~ ERROR: pure function parameters must be Copy
     pub fn move2(self) -> Self {
         self
     }

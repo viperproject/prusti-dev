@@ -10,7 +10,7 @@ use std::{
     collections::{HashMap, HashSet},
     fmt,
 };
-use vir_crate::polymorphic::{Expr, PermAmount, Position};
+use vir_crate::polymorphic::{Expr, PermAmount, Position, Type};
 
 /// An access or predicate permission to a place
 #[derive(Clone, PartialEq, Eq, Hash)]
@@ -44,8 +44,8 @@ impl Perm {
         self.get_place().is_local()
     }
 
-    pub fn typed_ref_name(&self) -> Option<String> {
-        self.get_place().typed_ref_name()
+    pub fn get_type(&self) -> &Type {
+        self.get_place().get_type()
     }
 
     pub fn get_label(&self) -> Option<&String> {

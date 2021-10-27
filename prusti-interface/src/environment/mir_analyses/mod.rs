@@ -5,7 +5,6 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 //! This module defines various MIR analyses.
+//! Consider using the new `analysis` crate instead of this module.
 
-pub mod common;
 pub mod initialization;
-pub mod liveness;

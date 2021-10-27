@@ -75,10 +75,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> InitInfo {
     pub fn new(
         mir: &'p mir::Body<'tcx>,
         tcx: ty::TyCtxt<'tcx>,
-        _def_id: DefId,
+        def_id: DefId,
         mir_encoder: &MirEncoder<'p, 'v, 'tcx>,
     ) -> EncodingResult<Self> {
-        let initialisation = compute_definitely_initialized(mir, tcx);
+        let initialisation = compute_definitely_initialized(def_id, mir, tcx);
         let mir_acc_before_block: HashMap<_, _> = initialisation
             .before_block
             .into_iter()

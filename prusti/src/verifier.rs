@@ -36,7 +36,7 @@ pub fn verify<'tcx>(env: Environment<'tcx>, def_spec: typed::DefSpecificationMap
                 println!(
                     "procedure: {} at {:?}",
                     env.get_item_def_path(*procedure),
-                    env.get_item_span(*procedure)
+                    env.get_def_span(*procedure)
                 );
             }
         }

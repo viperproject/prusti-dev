@@ -14,7 +14,7 @@ use std::{
 pub enum Predicate {
     Struct(StructPredicate),
     Enum(EnumPredicate),
-    Bodyless(String, LocalVar),
+    Bodyless(Type, LocalVar),
 }
 
 impl fmt::Display for Predicate {
@@ -50,19 +50,19 @@ impl Predicate {
     pub fn new_primitive_value(
         typ: Type,
         field: Field,
-        bounds: Option<(Expr, Expr)>,
-        is_unsigned: bool,
+        lower_bound: Option<Expr>,
+        upper_bound: Option<Expr>,
     ) -> Predicate {
         let this = Self::construct_this(typ.clone());
         let val_field = Expr::from(this.clone()).field(field);
         let perm = Expr::acc_permission(val_field.clone(), PermAmount::Write);
         let mut conjuncts = vec![perm];
-        if let Some((lower, upper)) = bounds {
+        if let Some(lower) = lower_bound {
             conjuncts.push(Expr::le_cmp(lower, val_field.clone()));
+        }
+        if let Some(upper) = upper_bound {
             conjuncts.push(Expr::le_cmp(val_field, upper));
-        } else if is_unsigned {
-            conjuncts.push(Expr::le_cmp(0.into(), val_field));
-        };
+        }
         let body = conjuncts.into_iter().conjoin();
         Predicate::Struct(StructPredicate {
             typ,
@@ -107,12 +107,20 @@ impl Predicate {
             Predicate::Bodyless(_, this) => this.clone().into(),
         }
     }
+    /// The predicate type getter.
+    pub fn get_type(&self) -> &Type {
+        match self {
+            Predicate::Struct(p) => &p.typ,
+            Predicate::Enum(p) => &p.typ,
+            Predicate::Bodyless(typ, _) => typ,
+        }
+    }
     /// The predicate name getter.
     pub fn name(&self) -> String {
         match self {
             Predicate::Struct(p) => p.typ.name(),
             Predicate::Enum(p) => p.typ.name(),
-            Predicate::Bodyless(ref name, _) => name.clone(),
+            Predicate::Bodyless(ref typ, _) => typ.name(),
         }
     }
     pub fn body(&self) -> Option<Expr> {
@@ -122,6 +130,12 @@ impl Predicate {
             Predicate::Bodyless(_, _) => None,
         }
     }
+    pub fn is_struct_with_empty_body(&self) -> bool {
+        match self {
+            Predicate::Struct(struct_predicate) => struct_predicate.has_empty_body(),
+            _ => false,
+        }
+    }
 }
 
 impl WithIdentifier for Predicate {
@@ -129,7 +143,7 @@ impl WithIdentifier for Predicate {
         match self {
             Predicate::Struct(p) => p.get_identifier(),
             Predicate::Enum(p) => p.get_identifier(),
-            Predicate::Bodyless(name, _) => name.clone(),
+            Predicate::Bodyless(typ, _) => typ.encode_as_string(),
         }
     }
 }

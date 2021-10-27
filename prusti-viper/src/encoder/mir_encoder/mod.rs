@@ -13,6 +13,7 @@ use crate::encoder::errors::{
     SpannedEncodingResult, EncodingResult
 };
 use crate::encoder::Encoder;
+use crate::encoder::snapshot::interface::SnapshotEncoderInterface;
 use crate::utils;
 use prusti_common::vir_expr;
 use vir_crate::{polymorphic as vir};
@@ -28,11 +29,13 @@ use std::{
     convert::TryInto,
 };
 use prusti_interface::environment::mir_utils::MirPlace;
+use crate::encoder::mir::types::MirTypeEncoderInterface;
 
 use downcast_detector::detect_downcasts;
 pub use place_encoding::{PlaceEncoding, ExprOrArrayBase};
 
 use super::encoder::SubstMap;
+use super::high::types::HighTypeEncoderInterface;
 
 pub static PRECONDITION_LABEL: &str = "pre";
 pub static WAND_LHS_LABEL: &str = "lhs";
@@ -436,15 +439,15 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
     ) -> EncodingResult<vir::Expr> {
         trace!("Encode operand expr {:?}", operand);
         Ok(match operand {
-            &mir::Operand::Constant(box mir::Constant {
+            mir::Operand::Constant(box mir::Constant {
                 literal: mir::ConstantKind::Ty(ty::Const { ty, val }),
                 ..
             }) => self.encoder.encode_const_expr(ty, val)?,
-            &mir::Operand::Constant(box mir::Constant {
+            mir::Operand::Constant(box mir::Constant {
                 literal: mir::ConstantKind::Val(val, ty),
                 ..
-            }) => self.encoder.encode_const_expr(ty, &ty::ConstKind::Value(val))?,
-            &mir::Operand::Copy(ref place) | &mir::Operand::Move(ref place) => {
+            }) => self.encoder.encode_const_expr(ty, &ty::ConstKind::Value(*val))?,
+            mir::Operand::Copy(ref place) | &mir::Operand::Move(ref place) => {
                 // let val_place = self.eval_place(&place)?;
                 // inlined to do try_into_expr
                 let (encoded_place, place_ty, _) = self.encode_place(place)?;

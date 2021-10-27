@@ -28,3 +28,8 @@ pub(crate) struct RawBlock {
     /// The contents of the block.
     pub(crate) content: Vec<syn::Item>,
 }
+
+/// A list of identifiers
+pub(crate) struct PathList {
+    pub(crate) paths: syn::punctuated::Punctuated<syn::Path, syn::Token![,]>,
+}
