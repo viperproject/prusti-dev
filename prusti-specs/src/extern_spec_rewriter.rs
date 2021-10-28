@@ -205,8 +205,6 @@ fn rewrite_method_inputs(item_ty: &syn::Type, method: &mut ImplItemMethod) ->
     args
 }
 
-type CommaPunct<T> = syn::punctuated::Punctuated<T, syn::token::Comma>;
-
 /// Generate an empty struct to be able to define impl blocks (in
 /// `rewrite_impl`) on it for its specification functions.
 pub fn generate_new_struct(item: &syn::ItemImpl) -> syn::Result<syn::ItemStruct> {
@@ -228,7 +226,7 @@ pub fn generate_new_struct(item: &syn::ItemImpl) -> syn::Result<syn::ItemStruct>
     new_struct.generics = item.generics.clone();
     let generics = &new_struct.generics;
 
-    let mut fields = CommaPunct::<syn::Field>::new();
+    let mut fields = Vec::<syn::Field>::new();
 
     // Add `PhantomData` markers for each type parameter to silence errors
     // about unused type parameters.
@@ -236,11 +234,11 @@ pub fn generate_new_struct(item: &syn::ItemImpl) -> syn::Result<syn::ItemStruct>
         let field: ParsableUnnamedField = match param {
             syn::GenericParam::Type(tp) => {
                 let ident = tp.ident.clone();
-                syn::parse_quote!{ core::marker::PhantomData<#ident> }
+                syn::parse_quote!{ ::core::marker::PhantomData<#ident> }
             }
             syn::GenericParam::Lifetime(ld) => {
                 let ident = ld.lifetime.clone();
-                syn::parse_quote!{ &#ident core::marker::PhantomData<()> }
+                syn::parse_quote!{ &#ident ::core::marker::PhantomData<()> }
             }
             syn::GenericParam::Const(_cp) => continue,
         };
@@ -248,7 +246,7 @@ pub fn generate_new_struct(item: &syn::ItemImpl) -> syn::Result<syn::ItemStruct>
         fields.push(field.0);
     }
 
-    new_struct.fields = syn::Fields::Unnamed( syn::parse_quote!{ (#fields) } );
+    new_struct.fields = syn::Fields::Unnamed( syn::parse_quote!{ ( #(#fields),* ) } );
     Ok(new_struct)
 }
 
@@ -266,13 +264,13 @@ impl syn::parse::Parse for ParsableUnnamedField {
 /// but then need to pass those as arguments: `SomeStruct<...>`. This function translates from
 /// the syntax of one to the other; e.g. `<T: Bound, 'l: Bound, const C: usize>` -> `<T, 'l, C>`
 pub fn rewrite_generics(gens: &syn::Generics) -> syn::AngleBracketedGenericArguments {
-    let args: CommaPunct::<syn::GenericArgument> = gens.params.clone().iter().map(|gp| {
+    let args: Vec<syn::GenericArgument> = gens.params.clone().iter().map(|gp| {
         let ts = match gp {
             syn::GenericParam::Type(syn::TypeParam { ident, .. }) |
             syn::GenericParam::Const(syn::ConstParam { ident, .. }) => ident.into_token_stream(),
             syn::GenericParam::Lifetime(ld) => ld.lifetime.clone().into_token_stream(),
         };
-        let res: syn::GenericArgument = syn::parse_quote!{#ts}; res
+        syn::parse2::<syn::GenericArgument>(ts).unwrap()
     }).collect();
-    syn::parse_quote!{ < #args > }
+    syn::parse_quote!{ < #(#args),* > }
 }
