@@ -259,12 +259,7 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
                 Some(bounds)
             }
             ty::TyKind::Char => Some((0.into(), std::char::MAX.into())),
-            ty::TyKind::Bool | ty::TyKind::Ref(_, _, _) => None,
-            ty::TyKind::Adt(_, _) => {
-                assert!(self.encoder.env().type_is_copy(self.ty));
-                None
-            }
-            ref x => unreachable!("{:?}", x),
+            _ => None,
         }
     }
 
