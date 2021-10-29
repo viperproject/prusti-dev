@@ -393,6 +393,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
 
             let encoded_arg = self.encode_quantifier_arg(*arg, ty, &format!("{}_{}", vars.spec_id, vars.id));
             if config::check_overflows() {
+                debug_assert!(self.encoder.env().type_is_copy(ty));
                 bounds.extend(self.encoder.encode_type_bounds(&encoded_arg.clone().into(), ty));
             } else if config::encode_unsigned_num_constraint() {
                 if let ty::TyKind::Uint(_) = ty.kind() {
