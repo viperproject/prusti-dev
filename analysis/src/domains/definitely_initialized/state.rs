@@ -236,7 +236,7 @@ impl<'mir, 'tcx: 'mir> DefinitelyInitializedState<'mir, 'tcx> {
             }
             mir::StatementKind::StorageDead(local) => {
                 let place = mir::Place { local, projection: ty::List::empty() };
-                self.set_place_uninitialised(&place);
+                self.set_place_uninitialised(place);
             }
             _ => {}
         }
