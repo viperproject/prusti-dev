@@ -6,7 +6,7 @@
 
 use crate::{abstract_interpretation::AbstractState, mir_utils::*, AnalysisError};
 use rustc_data_structures::fx::FxHashSet;
-use rustc_middle::{mir, ty::TyCtxt};
+use rustc_middle::{mir, ty, ty::TyCtxt};
 use rustc_span::def_id::DefId;
 use serde::{ser::SerializeSeq, Serialize, Serializer};
 use std::{collections::BTreeSet, fmt, mem};
@@ -210,28 +210,35 @@ impl<'mir, 'tcx: 'mir> DefinitelyInitializedState<'mir, 'tcx> {
         move_out_copy_types: bool,
     ) -> Result<(), AnalysisError> {
         let statement = &self.mir[location.block].statements[location.statement_index];
-        if let mir::StatementKind::Assign(box (target, ref source)) = statement.kind {
-            match source {
-                mir::Rvalue::Repeat(ref operand, _)
-                | mir::Rvalue::Cast(_, ref operand, _)
-                | mir::Rvalue::UnaryOp(_, ref operand)
-                | mir::Rvalue::Use(ref operand) => {
-                    self.apply_operand_effect(operand, location, move_out_copy_types);
-                }
-                mir::Rvalue::BinaryOp(_, box (ref operand1, ref operand2))
-                | mir::Rvalue::CheckedBinaryOp(_, box (ref operand1, ref operand2)) => {
-                    self.apply_operand_effect(operand1, location, move_out_copy_types);
-                    self.apply_operand_effect(operand2, location, move_out_copy_types);
-                }
-                mir::Rvalue::Aggregate(_, ref operands) => {
-                    for operand in operands.iter() {
+        match statement.kind {
+            mir::StatementKind::Assign(box (target, ref source)) => {
+                match source {
+                    mir::Rvalue::Repeat(ref operand, _)
+                    | mir::Rvalue::Cast(_, ref operand, _)
+                    | mir::Rvalue::UnaryOp(_, ref operand)
+                    | mir::Rvalue::Use(ref operand) => {
                         self.apply_operand_effect(operand, location, move_out_copy_types);
                     }
+                    mir::Rvalue::BinaryOp(_, box (ref operand1, ref operand2))
+                    | mir::Rvalue::CheckedBinaryOp(_, box (ref operand1, ref operand2)) => {
+                        self.apply_operand_effect(operand1, location, move_out_copy_types);
+                        self.apply_operand_effect(operand2, location, move_out_copy_types);
+                    }
+                    mir::Rvalue::Aggregate(_, ref operands) => {
+                        for operand in operands.iter() {
+                            self.apply_operand_effect(operand, location, move_out_copy_types);
+                        }
+                    }
+                    _ => {}
                 }
-                _ => {}
-            }
 
-            self.set_place_initialised(target);
+                self.set_place_initialised(target);
+            }
+            mir::StatementKind::StorageDead(local) => {
+                let place = mir::Place { local, projection: ty::List::empty() };
+                self.set_place_uninitialised(&place);
+            }
+            _ => {}
         }
 
         Ok(())

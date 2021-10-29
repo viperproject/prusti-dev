@@ -7,5 +7,5 @@
 mod analysis;
 mod state;
 
-pub use analysis::*;
+pub use self::analysis::*;
 pub use state::*;
