@@ -217,6 +217,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
         let pure_fn_return_variable = vir_local! { __result: {return_type.clone()} };
         // Add value range of the arguments and return value to the pre/postconditions
         if config::check_overflows() {
+            debug_assert!(self.encoder.env().type_is_copy(self.mir.return_ty()));
             let return_bounds: Vec<_> = self
                 .encoder
                 .encode_type_bounds(
@@ -230,6 +231,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
 
             for (formal_arg, local) in formal_args.iter().zip(self.mir.args_iter()) {
                 let typ = self.interpreter.mir_encoder().get_local_ty(local);
+                debug_assert!(self.encoder.env().type_is_copy(typ));
                 let bounds = self
                     .encoder
                     .encode_type_bounds(&vir::Expr::local(formal_arg.clone()), typ);
