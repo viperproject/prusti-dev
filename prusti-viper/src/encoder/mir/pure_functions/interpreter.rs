@@ -540,7 +540,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                                     "std::ops::RangeInclusive" | "core::ops::RangeInclusive" => return Err(
                                         SpannedEncodingError::unsupported("slicing with RangeInclusive (e.g. [x..=y]) currently not supported".to_string(), span)
                                     ),
-                                    "std::ops::RangeToInclusive" => {
+                                    "std::ops::RangeToInclusive" | "core::ops::RangeToInclusive" => {
                                         let end_expr = self.encoder.encode_struct_field_value(encoded_idx.clone(), "end", usize_ty).with_span(span)?;
                                         vir::Expr::add(end_expr, vir::Expr::from(1))
                                     }
