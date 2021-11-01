@@ -226,7 +226,7 @@ pub fn generate_new_struct(item: &syn::ItemImpl) -> syn::Result<syn::ItemStruct>
     new_struct.generics = item.generics.clone();
     let generics = &new_struct.generics;
 
-    let mut fields = Vec::<syn::Field>::new();
+    let mut fields = vec![];
 
     // Add `PhantomData` markers for each type parameter to silence errors
     // about unused type parameters.
