@@ -2627,12 +2627,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         let end = match &*idx_ident {
             "std::ops::Range" | "core::ops::Range" |
             "std::ops::RangeTo" | "core::ops::RangeTo" =>
-                self.encoder.encode_struct_field_value(encoded_idx.clone(), "end", usize_ty)?,
+                self.encoder.encode_struct_field_value(encoded_idx, "end", usize_ty)?,
             "std::ops::RangeInclusive" | "core::ops::RangeInclusive" => return Err(
                 EncodingError::unsupported("slicing with RangeInclusive (e.g. [x..=y]) currently not supported".to_string())
             ),
             "std::ops::RangeToInclusive" | "core::ops::RangeToInclusive" => {
-                let end_expr = self.encoder.encode_struct_field_value(encoded_idx.clone(), "end", usize_ty)?;
+                let end_expr = self.encoder.encode_struct_field_value(encoded_idx, "end", usize_ty)?;
                 vir_expr!{ [end_expr] + [vir::Expr::from(1)] }
             }
             "std::ops::RangeFrom" | "core::ops::RangeFrom" |
@@ -2667,7 +2667,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         // lookup_pure: contents
         let i = vir_local!{ i: Int };
         let i_var: vir::Expr = i.clone().into();
-        let j_var: vir::Expr = j.clone().into();
+        let j_var: vir::Expr = j.into();
 
         let lhs_lookup_i = {
             slice_types_lhs.encode_lookup_pure_call(
