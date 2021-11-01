@@ -470,8 +470,14 @@ impl<'p, 'v: 'p, 'tcx: 'v> vir::CfgReplacer<PathCtxt<'p>, ActionVec> for FoldUnf
 
         if let vir::Stmt::ExpireBorrows(vir::ExpireBorrows { ref dag }) = stmt {
             let mut stmts = vec![vir::Stmt::comment(format!("{}", stmt))];
+            trace!("State acc {{\n{}\n}}", pctxt.state().display_acc());
+            trace!("State pred {{\n{}\n}}", pctxt.state().display_pred());
+            trace!("State moved {{\n{}\n}}", pctxt.state().display_moved());
             let expire_borrow_statements =
                 self.process_expire_borrows(dag, pctxt, curr_block_index, new_cfg, label)?;
+            trace!("State acc {{\n{}\n}}", pctxt.state().display_acc());
+            trace!("State pred {{\n{}\n}}", pctxt.state().display_pred());
+            trace!("State moved {{\n{}\n}}", pctxt.state().display_moved());
             stmts.extend(expire_borrow_statements);
             return Ok(stmts);
         }
