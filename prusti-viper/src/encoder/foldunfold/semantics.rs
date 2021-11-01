@@ -351,7 +351,7 @@ impl ApplyOnState for vir::Stmt {
                                         .clone()
                                         .replace_place(target_base, repl_labelled.base.as_ref()),
                                     label: repl_labelled.label.clone(),
-                                    position: repl_labelled.position.clone(),
+                                    position: repl_labelled.position,
                                 });
                             } else {
                                 return this_base.clone().replace_place(target_base, replacement);
