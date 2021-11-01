@@ -220,7 +220,7 @@ pub fn generate_new_struct(item: &syn::ItemImpl) -> syn::Result<syn::ItemStruct>
                                        item.span());
 
     let mut new_struct: syn::ItemStruct = parse_quote_spanned! {item.span()=>
-        struct #struct_ident {}
+        #[allow(non_camel_case_types)] struct #struct_ident {}
     };
 
     new_struct.generics = item.generics.clone();
