@@ -519,7 +519,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                                 // manually re-do them here when we probably just encoded the type and the
                                 // construction of the fields..
                                 // Also, duplication with procedure_encoder.rs
-                                let usize_ty = self.encoder.env().tcx().mk_ty(ty::TyKind::Uint(ty::UintTy::Usize));
+                                let usize_ty = self
+                                    .encoder
+                                    .env()
+                                    .tcx()
+                                    .mk_ty(ty::TyKind::Uint(ty::UintTy::Usize));
                                 let start = match &*idx_ident {
                                     "std::ops::Range" | "core::ops::Range" |
                                     "std::ops::RangeFrom" | "core::ops::RangeFrom" =>
