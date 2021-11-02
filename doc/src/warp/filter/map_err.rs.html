@@ -60,14 +60,14 @@
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">F</span>, <span class="ident">E</span><span class="op">&gt;</span> <a class="ident" href="../../../src/warp/filter/mod.rs.html#34-54">FilterBase</a> <span class="kw">for</span> <span class="ident">MapErr</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">F</span><span class="op">&gt;</span>
 <span class="kw">where</span>
     <span class="ident">T</span>: <a class="ident" href="../../../src/warp/filter/mod.rs.html#92-403">Filter</a>,
-    <span class="ident">F</span>: <span class="ident">Fn</span>(<span class="ident">T::Error</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">E</span> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>,
+    <span class="ident">F</span>: <span class="ident">Fn</span>(<span class="ident">T::Error</span>) -&gt; <span class="ident">E</span> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>,
     <span class="ident">E</span>: <a class="ident" href="../../../src/warp/reject.rs.html#671-677">Reject</a>,
 {
     <span class="kw">type</span> <span class="ident">Extract</span> <span class="op">=</span> <span class="ident">T::Extract</span>;
     <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <span class="ident">E</span>;
     <span class="kw">type</span> <span class="ident">Future</span> <span class="op">=</span> <span class="ident">MapErrFuture</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">F</span><span class="op">&gt;</span>;
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">filter</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::Future</span> {
+    <span class="kw">fn</span> <span class="ident">filter</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident"><span class="self">Self</span>::Future</span> {
         <a class="ident" href="../../../src/warp/filter/map_err.rs.html#31-34">MapErrFuture</a> {
             <span class="ident">extract</span>: <a class="self" href="../../../src/warp/filter/map_err.rs.html#22">self</a>.<span class="ident">filter</span>.<a class="ident" href="../../../src/warp/filter/mod.rs.html#39">filter</a>(),
             <span class="ident">callback</span>: <a class="self" href="../../../src/warp/filter/map_err.rs.html#22">self</a>.<span class="ident">callback</span>.<span class="ident">clone</span>(),
@@ -84,13 +84,13 @@
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">F</span>, <span class="ident">E</span><span class="op">&gt;</span> <a class="ident" href="../../../futures/future/trait.Future.html">Future</a> <span class="kw">for</span> <span class="ident">MapErrFuture</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">F</span><span class="op">&gt;</span>
 <span class="kw">where</span>
     <span class="ident">T</span>: <a class="ident" href="../../../src/warp/filter/mod.rs.html#92-403">Filter</a>,
-    <span class="ident">F</span>: <span class="ident">Fn</span>(<span class="ident">T::Error</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">E</span>,
+    <span class="ident">F</span>: <span class="ident">Fn</span>(<span class="ident">T::Error</span>) -&gt; <span class="ident">E</span>,
 {
     <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="ident">T::Extract</span>;
     <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <span class="ident">E</span>;
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">poll</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">poll</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
         <a class="self" href="../../../src/warp/filter/map_err.rs.html#45">self</a>.<span class="ident">extract</span>.<span class="ident">poll</span>().<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">err</span><span class="op">|</span> (<a class="self" href="../../../src/warp/filter/map_err.rs.html#45">self</a>.<span class="ident">callback</span>)(<a class="ident" href="../../../src/warp/filter/map_err.rs.html#46">err</a>))
     }
 }

@@ -130,7 +130,7 @@
     <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">U::Error</span> <span class="kw">as</span> <span class="ident">CombineRejection</span><span class="op">&lt;</span><span class="ident">T::Error</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::Rejection</span>;
     <span class="kw">type</span> <span class="ident">Future</span> <span class="op">=</span> <span class="ident">EitherFuture</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">U</span><span class="op">&gt;</span>;
 
-    <span class="kw">fn</span> <span class="ident">filter</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::Future</span> {
+    <span class="kw">fn</span> <span class="ident">filter</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident"><span class="self">Self</span>::Future</span> {
         <span class="kw">let</span> <span class="ident">idx</span> <span class="op">=</span> <a class="ident" href="../../../src/warp/route.rs.html#23-25">route::with</a>(<span class="op">|</span><span class="ident">route</span><span class="op">|</span> <a class="ident" href="../../../src/warp/filter/or.rs.html#27">route</a>.<a class="ident" href="../../../src/warp/route.rs.html#111">matched_path_index</a>());
         <a class="ident" href="../../../src/warp/filter/or.rs.html#36-39">EitherFuture</a> {
             <span class="ident">state</span>: <a class="ident" href="../../../src/warp/filter/or.rs.html#42">State::First</a>(<a class="self" href="../../../src/warp/filter/or.rs.html#26">self</a>.<span class="ident">first</span>.<a class="ident" href="../../../src/warp/filter/mod.rs.html#39">filter</a>(), <a class="self" href="../../../src/warp/filter/or.rs.html#26">self</a>.<span class="ident">second</span>.<span class="ident">clone</span>()),
@@ -168,44 +168,44 @@
     <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> (<span class="ident">Either</span><span class="op">&lt;</span><span class="ident">T::Extract</span>, <span class="ident">U::Extract</span><span class="op">&gt;</span>,);
     <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">U::Error</span> <span class="kw">as</span> <span class="ident">CombineRejection</span><span class="op">&lt;</span><span class="ident">T::Error</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::Rejection</span>;
 
-    <span class="kw">fn</span> <span class="ident">poll</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">poll</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">err1</span> <span class="op">=</span> <span class="kw">match</span> <a class="self" href="../../../src/warp/filter/or.rs.html#64">self</a>.<span class="ident">state</span> {
-            <a class="ident" href="../../../src/warp/filter/or.rs.html#42">State::First</a>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">first</span>, <span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <a class="ident" href="../../../src/warp/filter/or.rs.html#66">first</a>.<span class="ident">poll</span>() {
-                <span class="prelude-val">Ok</span>(<span class="ident">Async::Ready</span>(<span class="ident">ex1</span>)) <span class="op">=</span><span class="op">&gt;</span> {
+            <a class="ident" href="../../../src/warp/filter/or.rs.html#42">State::First</a>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">first</span>, <span class="kw">_</span>) =&gt; <span class="kw">match</span> <a class="ident" href="../../../src/warp/filter/or.rs.html#66">first</a>.<span class="ident">poll</span>() {
+                <span class="prelude-val">Ok</span>(<span class="ident">Async::Ready</span>(<span class="ident">ex1</span>)) =&gt; {
                     <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Async::Ready</span>((<a class="ident" href="../../../src/warp/generic.rs.html#13">Either::A</a>(<a class="ident" href="../../../src/warp/filter/or.rs.html#67">ex1</a>),)));
                 }
-                <span class="prelude-val">Ok</span>(<span class="ident">Async::NotReady</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Async::NotReady</span>),
-                <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> <a class="ident" href="../../../src/warp/filter/or.rs.html#71">e</a>,
+                <span class="prelude-val">Ok</span>(<span class="ident">Async::NotReady</span>) =&gt; <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Async::NotReady</span>),
+                <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; <a class="ident" href="../../../src/warp/filter/or.rs.html#71">e</a>,
             },
-            <a class="ident" href="../../../src/warp/filter/or.rs.html#43">State::Second</a>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">err1</span>, <span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">second</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <a class="ident" href="../../../src/warp/filter/or.rs.html#43">State::Second</a>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">err1</span>, <span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">second</span>) =&gt; {
                 <span class="kw">return</span> <span class="kw">match</span> <a class="ident" href="../../../src/warp/filter/or.rs.html#73">second</a>.<span class="ident">poll</span>() {
-                    <span class="prelude-val">Ok</span>(<span class="ident">Async::Ready</span>(<span class="ident">ex2</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">Async::Ready</span>((<a class="ident" href="../../../src/warp/generic.rs.html#14">Either::B</a>(<a class="ident" href="../../../src/warp/filter/or.rs.html#75">ex2</a>),))),
-                    <span class="prelude-val">Ok</span>(<span class="ident">Async::NotReady</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">Async::NotReady</span>),
+                    <span class="prelude-val">Ok</span>(<span class="ident">Async::Ready</span>(<span class="ident">ex2</span>)) =&gt; <span class="prelude-val">Ok</span>(<span class="ident">Async::Ready</span>((<a class="ident" href="../../../src/warp/generic.rs.html#14">Either::B</a>(<a class="ident" href="../../../src/warp/filter/or.rs.html#75">ex2</a>),))),
+                    <span class="prelude-val">Ok</span>(<span class="ident">Async::NotReady</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="ident">Async::NotReady</span>),
 
-                    <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; {
                         <a class="self" href="../../../src/warp/filter/or.rs.html#64">self</a>.<span class="ident">original_path_index</span>.<a class="ident" href="../../../src/warp/filter/or.rs.html#50">reset_path</a>();
                         <span class="kw">let</span> <span class="ident">err1</span> <span class="op">=</span> <a class="ident" href="../../../src/warp/filter/or.rs.html#73">err1</a>.<span class="ident">take</span>().<span class="ident">expect</span>(<span class="string">&quot;polled after complete&quot;</span>);
                         <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/warp/filter/or.rs.html#78">e</a>.<a class="ident" href="../../../src/warp/reject.rs.html#686">combine</a>(<a class="ident" href="../../../src/warp/filter/or.rs.html#80">err1</a>))
                     }
                 };
             }
-            <a class="ident" href="../../../src/warp/filter/or.rs.html#44">State::Done</a> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic!</span>(<span class="string">&quot;polled after complete&quot;</span>),
+            <a class="ident" href="../../../src/warp/filter/or.rs.html#44">State::Done</a> =&gt; <span class="macro">panic!</span>(<span class="string">&quot;polled after complete&quot;</span>),
         };
 
         <a class="self" href="../../../src/warp/filter/or.rs.html#64">self</a>.<span class="ident">original_path_index</span>.<a class="ident" href="../../../src/warp/filter/or.rs.html#50">reset_path</a>();
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">second</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">mem::replace</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="self" href="../../../src/warp/filter/or.rs.html#64">self</a>.<span class="ident">state</span>, <a class="ident" href="../../../src/warp/filter/or.rs.html#44">State::Done</a>) {
-            <a class="ident" href="../../../src/warp/filter/or.rs.html#42">State::First</a>(<span class="kw">_</span>, <span class="ident">second</span>) <span class="op">=</span><span class="op">&gt;</span> <a class="ident" href="../../../src/warp/filter/or.rs.html#91">second</a>.<a class="ident" href="../../../src/warp/filter/mod.rs.html#39">filter</a>(),
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable!</span>(),
+            <a class="ident" href="../../../src/warp/filter/or.rs.html#42">State::First</a>(<span class="kw">_</span>, <span class="ident">second</span>) =&gt; <a class="ident" href="../../../src/warp/filter/or.rs.html#91">second</a>.<a class="ident" href="../../../src/warp/filter/mod.rs.html#39">filter</a>(),
+            <span class="kw">_</span> =&gt; <span class="macro">unreachable!</span>(),
         };
 
         <span class="kw">match</span> <a class="ident" href="../../../src/warp/filter/or.rs.html#90">second</a>.<span class="ident">poll</span>() {
-            <span class="prelude-val">Ok</span>(<span class="ident">Async::Ready</span>(<span class="ident">ex2</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">Async::Ready</span>((<a class="ident" href="../../../src/warp/generic.rs.html#14">Either::B</a>(<a class="ident" href="../../../src/warp/filter/or.rs.html#96">ex2</a>),))),
-            <span class="prelude-val">Ok</span>(<span class="ident">Async::NotReady</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="prelude-val">Ok</span>(<span class="ident">Async::Ready</span>(<span class="ident">ex2</span>)) =&gt; <span class="prelude-val">Ok</span>(<span class="ident">Async::Ready</span>((<a class="ident" href="../../../src/warp/generic.rs.html#14">Either::B</a>(<a class="ident" href="../../../src/warp/filter/or.rs.html#96">ex2</a>),))),
+            <span class="prelude-val">Ok</span>(<span class="ident">Async::NotReady</span>) =&gt; {
                 <a class="self" href="../../../src/warp/filter/or.rs.html#64">self</a>.<span class="ident">state</span> <span class="op">=</span> <a class="ident" href="../../../src/warp/filter/or.rs.html#43">State::Second</a>(<span class="prelude-val">Some</span>(<a class="ident" href="../../../src/warp/filter/or.rs.html#65">err1</a>), <a class="ident" href="../../../src/warp/filter/or.rs.html#90">second</a>);
                 <span class="prelude-val">Ok</span>(<span class="ident">Async::NotReady</span>)
             }
-            <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; {
                 <a class="self" href="../../../src/warp/filter/or.rs.html#64">self</a>.<span class="ident">original_path_index</span>.<a class="ident" href="../../../src/warp/filter/or.rs.html#50">reset_path</a>();
                 <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/warp/filter/or.rs.html#101">e</a>.<a class="ident" href="../../../src/warp/reject.rs.html#686">combine</a>(<a class="ident" href="../../../src/warp/filter/or.rs.html#65">err1</a>));
             }

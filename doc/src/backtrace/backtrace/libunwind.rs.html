@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;backtrace-0.3.61&#x2F;src&#x2F;backtrace&#x2F;libunwind.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>libunwind.rs - source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../backtrace/index.html'><div class='logo-container rust-logo'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;backtrace-0.3.63&#x2F;src&#x2F;backtrace&#x2F;libunwind.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>libunwind.rs - source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../backtrace/index.html'><div class='logo-container rust-logo'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -265,23 +265,6 @@
 <span id="265">265</span>
 <span id="266">266</span>
 <span id="267">267</span>
-<span id="268">268</span>
-<span id="269">269</span>
-<span id="270">270</span>
-<span id="271">271</span>
-<span id="272">272</span>
-<span id="273">273</span>
-<span id="274">274</span>
-<span id="275">275</span>
-<span id="276">276</span>
-<span id="277">277</span>
-<span id="278">278</span>
-<span id="279">279</span>
-<span id="280">280</span>
-<span id="281">281</span>
-<span id="282">282</span>
-<span id="283">283</span>
-<span id="284">284</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Backtrace support using libunwind/gcc_s/etc APIs.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! This module contains the ability to unwind the stack using libunwind-style</span>
@@ -303,7 +286,7 @@
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">core::ffi::c_void</a>;
 
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Frame</span> {
-    <span class="ident">Raw</span>(<span class="kw-2">*</span><span class="kw-2">mut</span> <a class="ident" href="../../../src/backtrace/backtrace/libunwind.rs.html#140">uw::_Unwind_Context</a>),
+    <span class="ident">Raw</span>(<span class="kw-2">*</span><span class="kw-2">mut</span> <a class="ident" href="../../../src/backtrace/backtrace/libunwind.rs.html#143">uw::_Unwind_Context</a>),
     <span class="ident">Cloned</span> {
         <span class="ident">ip</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>,
         <span class="ident">sp</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>,
@@ -319,77 +302,80 @@
 <span class="kw">unsafe</span> <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="kw">for</span> <a class="ident" href="../../../src/backtrace/backtrace/libunwind.rs.html#21-28">Frame</a> {}
 
 <span class="kw">impl</span> <a class="ident" href="../../../src/backtrace/backtrace/libunwind.rs.html#21-28">Frame</a> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ip</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ip</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">*</span><span class="kw-2">mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a> {
         <span class="kw">let</span> <span class="ident">ctx</span> <span class="op">=</span> <span class="kw">match</span> <span class="kw-2">*</span><a class="self" href="../../../src/backtrace/backtrace/libunwind.rs.html#38">self</a> {
-            <a class="ident" href="../../../src/backtrace/backtrace/libunwind.rs.html#22">Frame::Raw</a>(<span class="ident">ctx</span>) <span class="op">=</span><span class="op">&gt;</span> <a class="ident" href="../../../src/backtrace/backtrace/libunwind.rs.html#40">ctx</a>,
-            <a class="ident" href="../../../src/backtrace/backtrace/libunwind.rs.html#23-27">Frame::Cloned</a> { <span class="ident">ip</span>, .. } <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <a class="ident" href="../../../src/backtrace/backtrace/libunwind.rs.html#41">ip</a>,
+            <a class="ident" href="../../../src/backtrace/backtrace/libunwind.rs.html#22">Frame::Raw</a>(<span class="ident">ctx</span>) =&gt; <a class="ident" href="../../../src/backtrace/backtrace/libunwind.rs.html#40">ctx</a>,
+            <a class="ident" href="../../../src/backtrace/backtrace/libunwind.rs.html#23-27">Frame::Cloned</a> { <span class="ident">ip</span>, .. } =&gt; <span class="kw">return</span> <a class="ident" href="../../../src/backtrace/backtrace/libunwind.rs.html#41">ip</a>,
         };
-        <span class="kw">unsafe</span> { <a class="ident" href="../../../src/backtrace/backtrace/libunwind.rs.html#159">uw::_Unwind_GetIP</a>(<a class="ident" href="../../../src/backtrace/backtrace/libunwind.rs.html#39">ctx</a>) <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a> }
+        <span class="kw">unsafe</span> { <a class="ident" href="../../../src/backtrace/backtrace/libunwind.rs.html#164">uw::_Unwind_GetIP</a>(<a class="ident" href="../../../src/backtrace/backtrace/libunwind.rs.html#39">ctx</a>) <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a> }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">sp</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">sp</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">*</span><span class="kw-2">mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a> {
         <span class="kw">match</span> <span class="kw-2">*</span><a class="self" href="../../../src/backtrace/backtrace/libunwind.rs.html#46">self</a> {
-            <a class="ident" href="../../../src/backtrace/backtrace/libunwind.rs.html#22">Frame::Raw</a>(<span class="ident">ctx</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">unsafe</span> { <a class="ident" href="../../../src/backtrace/backtrace/libunwind.rs.html#180">uw::get_sp</a>(<a class="ident" href="../../../src/backtrace/backtrace/libunwind.rs.html#48">ctx</a>) <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a> },
-            <a class="ident" href="../../../src/backtrace/backtrace/libunwind.rs.html#23-27">Frame::Cloned</a> { <span class="ident">sp</span>, .. } <span class="op">=</span><span class="op">&gt;</span> <a class="ident" href="../../../src/backtrace/backtrace/libunwind.rs.html#49">sp</a>,
+            <a class="ident" href="../../../src/backtrace/backtrace/libunwind.rs.html#22">Frame::Raw</a>(<span class="ident">ctx</span>) =&gt; <span class="kw">unsafe</span> { <a class="ident" href="../../../src/backtrace/backtrace/libunwind.rs.html#174">uw::get_sp</a>(<a class="ident" href="../../../src/backtrace/backtrace/libunwind.rs.html#48">ctx</a>) <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a> },
+            <a class="ident" href="../../../src/backtrace/backtrace/libunwind.rs.html#23-27">Frame::Cloned</a> { <span class="ident">sp</span>, .. } =&gt; <a class="ident" href="../../../src/backtrace/backtrace/libunwind.rs.html#49">sp</a>,
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">symbol_address</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">symbol_address</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">*</span><span class="kw-2">mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a> {
         <span class="kw">if</span> <span class="kw">let</span> <a class="ident" href="../../../src/backtrace/backtrace/libunwind.rs.html#23-27">Frame::Cloned</a> { <span class="ident">symbol_address</span>, .. } <span class="op">=</span> <span class="kw-2">*</span><a class="self" href="../../../src/backtrace/backtrace/libunwind.rs.html#53">self</a> {
             <span class="kw">return</span> <a class="ident" href="../../../src/backtrace/backtrace/libunwind.rs.html#54">symbol_address</a>;
         }
 
-        <span class="comment">// It seems that on OSX `_Unwind_FindEnclosingFunction` returns a</span>
-        <span class="comment">// pointer to... something that&#39;s unclear. It&#39;s definitely not always</span>
-        <span class="comment">// the enclosing function for whatever reason. It&#39;s not entirely clear</span>
-        <span class="comment">// to me what&#39;s going on here, so pessimize this for now and just always</span>
+        <span class="comment">// The macOS linker emits a &quot;compact&quot; unwind table that only includes an</span>
+        <span class="comment">// entry for a function if that function either has an LSDA or its</span>
+        <span class="comment">// encoding differs from that of the previous entry.  Consequently, on</span>
+        <span class="comment">// macOS, `_Unwind_FindEnclosingFunction` is unreliable (it can return a</span>
+        <span class="comment">// pointer to some totally unrelated function).  Instead, we just always</span>
         <span class="comment">// return the ip.</span>
         <span class="comment">//</span>
-        <span class="comment">// Note the `skip_inner_frames.rs` test is skipped on OSX due to this</span>
-        <span class="comment">// clause, and if this is fixed that test in theory can be run on OSX!</span>
+        <span class="comment">// https://github.com/rust-lang/rust/issues/74771#issuecomment-664056788</span>
+        <span class="comment">//</span>
+        <span class="comment">// Note the `skip_inner_frames.rs` test is skipped on macOS due to this</span>
+        <span class="comment">// clause, and if this is fixed that test in theory can be run on macOS!</span>
         <span class="kw">if</span> <span class="macro">cfg!</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;macos&quot;</span>) <span class="op">|</span><span class="op">|</span> <span class="macro">cfg!</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;ios&quot;</span>) {
             <a class="self" href="../../../src/backtrace/backtrace/libunwind.rs.html#53">self</a>.<a class="ident" href="../../../src/backtrace/backtrace/libunwind.rs.html#38">ip</a>()
         } <span class="kw">else</span> {
-            <span class="kw">unsafe</span> { <a class="ident" href="../../../src/backtrace/backtrace/libunwind.rs.html#166">uw::_Unwind_FindEnclosingFunction</a>(<a class="self" href="../../../src/backtrace/backtrace/libunwind.rs.html#53">self</a>.<a class="ident" href="../../../src/backtrace/backtrace/libunwind.rs.html#38">ip</a>()) }
+            <span class="kw">unsafe</span> { <a class="ident" href="../../../src/backtrace/backtrace/libunwind.rs.html#165">uw::_Unwind_FindEnclosingFunction</a>(<a class="self" href="../../../src/backtrace/backtrace/libunwind.rs.html#53">self</a>.<a class="ident" href="../../../src/backtrace/backtrace/libunwind.rs.html#38">ip</a>()) }
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">module_base_address</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">*</span><span class="kw-2">mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">module_base_address</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">*</span><span class="kw-2">mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a><span class="op">&gt;</span> {
         <span class="prelude-val">None</span>
     }
 }
 
 <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> <span class="kw">for</span> <a class="ident" href="../../../src/backtrace/backtrace/libunwind.rs.html#21-28">Frame</a> {
-    <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="../../../src/backtrace/backtrace/libunwind.rs.html#21-28">Frame</a> {
+    <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="../../../src/backtrace/backtrace/libunwind.rs.html#21-28">Frame</a> {
         <a class="ident" href="../../../src/backtrace/backtrace/libunwind.rs.html#23-27">Frame::Cloned</a> {
-            <span class="ident">ip</span>: <a class="self" href="../../../src/backtrace/backtrace/libunwind.rs.html#79">self</a>.<a class="ident" href="../../../src/backtrace/backtrace/libunwind.rs.html#38">ip</a>(),
-            <span class="ident">sp</span>: <a class="self" href="../../../src/backtrace/backtrace/libunwind.rs.html#79">self</a>.<a class="ident" href="../../../src/backtrace/backtrace/libunwind.rs.html#46">sp</a>(),
-            <span class="ident">symbol_address</span>: <a class="self" href="../../../src/backtrace/backtrace/libunwind.rs.html#79">self</a>.<a class="ident" href="../../../src/backtrace/backtrace/libunwind.rs.html#53">symbol_address</a>(),
+            <span class="ident">ip</span>: <a class="self" href="../../../src/backtrace/backtrace/libunwind.rs.html#82">self</a>.<a class="ident" href="../../../src/backtrace/backtrace/libunwind.rs.html#38">ip</a>(),
+            <span class="ident">sp</span>: <a class="self" href="../../../src/backtrace/backtrace/libunwind.rs.html#82">self</a>.<a class="ident" href="../../../src/backtrace/backtrace/libunwind.rs.html#46">sp</a>(),
+            <span class="ident">symbol_address</span>: <a class="self" href="../../../src/backtrace/backtrace/libunwind.rs.html#82">self</a>.<a class="ident" href="../../../src/backtrace/backtrace/libunwind.rs.html#53">symbol_address</a>(),
         }
     }
 }
 
 <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-<span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">trace</span>(<span class="kw-2">mut</span> <span class="ident">cb</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw">dyn</span> <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/backtrace/backtrace/mod.rs.html#76-78"><span class="kw">super</span>::Frame</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) {
-    <a class="ident" href="../../../src/backtrace/backtrace/libunwind.rs.html#148-151">uw::_Unwind_Backtrace</a>(<a class="ident" href="../../../src/backtrace/backtrace/libunwind.rs.html#92-95">trace_fn</a>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../../src/backtrace/backtrace/libunwind.rs.html#89">cb</a> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw">_</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw">_</span>);
+<span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">trace</span>(<span class="kw-2">mut</span> <span class="ident">cb</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw">dyn</span> <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/backtrace/backtrace/mod.rs.html#76-78"><span class="kw">super</span>::Frame</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) {
+    <a class="ident" href="../../../src/backtrace/backtrace/libunwind.rs.html#149-152">uw::_Unwind_Backtrace</a>(<a class="ident" href="../../../src/backtrace/backtrace/libunwind.rs.html#95-98">trace_fn</a>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../../src/backtrace/backtrace/libunwind.rs.html#92">cb</a> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw">_</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw">_</span>);
 
     <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">trace_fn</span>(
-        <span class="ident">ctx</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <a class="ident" href="../../../src/backtrace/backtrace/libunwind.rs.html#140">uw::_Unwind_Context</a>,
+        <span class="ident">ctx</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <a class="ident" href="../../../src/backtrace/backtrace/libunwind.rs.html#143">uw::_Unwind_Context</a>,
         <span class="ident">arg</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="../../../src/backtrace/backtrace/libunwind.rs.html#127-138">uw::_Unwind_Reason_Code</a> {
-        <span class="kw">let</span> <span class="ident">cb</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">*</span>(<a class="ident" href="../../../src/backtrace/backtrace/libunwind.rs.html#94">arg</a> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw">dyn</span> <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/backtrace/backtrace/mod.rs.html#76-78"><span class="kw">super</span>::Frame</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) };
+    ) -&gt; <a class="ident" href="../../../src/backtrace/backtrace/libunwind.rs.html#130-141">uw::_Unwind_Reason_Code</a> {
+        <span class="kw">let</span> <span class="ident">cb</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">*</span>(<a class="ident" href="../../../src/backtrace/backtrace/libunwind.rs.html#97">arg</a> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw">dyn</span> <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/backtrace/backtrace/mod.rs.html#76-78"><span class="kw">super</span>::Frame</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) };
         <span class="kw">let</span> <span class="ident">cx</span> <span class="op">=</span> <a class="ident" href="../../../src/backtrace/backtrace/mod.rs.html#76-78"><span class="kw">super</span>::Frame</a> {
-            <span class="ident">inner</span>: <a class="ident" href="../../../src/backtrace/backtrace/libunwind.rs.html#22">Frame::Raw</a>(<a class="ident" href="../../../src/backtrace/backtrace/libunwind.rs.html#93">ctx</a>),
+            <span class="ident">inner</span>: <a class="ident" href="../../../src/backtrace/backtrace/libunwind.rs.html#22">Frame::Raw</a>(<a class="ident" href="../../../src/backtrace/backtrace/libunwind.rs.html#96">ctx</a>),
         };
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">bomb</span> <span class="op">=</span> <a class="ident" href="../../../src/backtrace/lib.rs.html#139-141">Bomb</a> { <span class="ident">enabled</span>: <span class="bool-val">true</span> };
-        <span class="kw">let</span> <span class="ident">keep_going</span> <span class="op">=</span> <a class="ident" href="../../../src/backtrace/backtrace/libunwind.rs.html#96">cb</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/backtrace/backtrace/libunwind.rs.html#97">cx</a>);
-        <a class="ident" href="../../../src/backtrace/backtrace/libunwind.rs.html#101">bomb</a>.<span class="ident">enabled</span> <span class="op">=</span> <span class="bool-val">false</span>;
+        <span class="kw">let</span> <span class="ident">keep_going</span> <span class="op">=</span> <a class="ident" href="../../../src/backtrace/backtrace/libunwind.rs.html#99">cb</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/backtrace/backtrace/libunwind.rs.html#100">cx</a>);
+        <a class="ident" href="../../../src/backtrace/backtrace/libunwind.rs.html#104">bomb</a>.<span class="ident">enabled</span> <span class="op">=</span> <span class="bool-val">false</span>;
 
-        <span class="kw">if</span> <a class="ident" href="../../../src/backtrace/backtrace/libunwind.rs.html#102">keep_going</a> {
-            <a class="ident" href="../../../src/backtrace/backtrace/libunwind.rs.html#128">uw::_URC_NO_REASON</a>
+        <span class="kw">if</span> <a class="ident" href="../../../src/backtrace/backtrace/libunwind.rs.html#105">keep_going</a> {
+            <a class="ident" href="../../../src/backtrace/backtrace/libunwind.rs.html#131">uw::_URC_NO_REASON</a>
         } <span class="kw">else</span> {
-            <a class="ident" href="../../../src/backtrace/backtrace/libunwind.rs.html#137">uw::_URC_FAILURE</a>
+            <a class="ident" href="../../../src/backtrace/backtrace/libunwind.rs.html#140">uw::_URC_FAILURE</a>
         }
     }
 }
@@ -403,7 +389,7 @@
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">non_snake_case</span>)]</span>
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">dead_code</span>)]</span>
 <span class="kw">mod</span> <span class="ident">uw</span> {
-    <span class="kw">pub</span> <span class="kw">use</span> <a class="ident" href="../../../src/backtrace/backtrace/libunwind.rs.html#127-138"><span class="self">self</span>::_Unwind_Reason_Code</a>::<span class="kw-2">*</span>;
+    <span class="kw">pub</span> <span class="kw">use</span> <a class="ident" href="../../../src/backtrace/backtrace/libunwind.rs.html#130-141"><span class="self">self</span>::_Unwind_Reason_Code</a>::<span class="kw-2">*</span>;
 
     <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">core::ffi::c_void</a>;
 
@@ -424,145 +410,125 @@
     <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">_Unwind_Context</span> {}
 
     <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">_Unwind_Trace_Fn</span> <span class="op">=</span>
-        <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span>(<span class="ident">ctx</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <a class="ident" href="../../../src/backtrace/backtrace/libunwind.rs.html#140">_Unwind_Context</a>, <span class="ident">arg</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="../../../src/backtrace/backtrace/libunwind.rs.html#127-138">_Unwind_Reason_Code</a>;
+        <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span>(<span class="ident">ctx</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <a class="ident" href="../../../src/backtrace/backtrace/libunwind.rs.html#143">_Unwind_Context</a>, <span class="ident">arg</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>) -&gt; <a class="ident" href="../../../src/backtrace/backtrace/libunwind.rs.html#130-141">_Unwind_Reason_Code</a>;
 
     <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
-        <span class="comment">// No native _Unwind_Backtrace on iOS</span>
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">all</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;ios&quot;</span>, <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;arm&quot;</span>)))]</span>
         <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">_Unwind_Backtrace</span>(
-            <span class="ident">trace</span>: <a class="ident" href="../../../src/backtrace/backtrace/libunwind.rs.html#142-143">_Unwind_Trace_Fn</a>,
+            <span class="ident">trace</span>: <a class="ident" href="../../../src/backtrace/backtrace/libunwind.rs.html#145-146">_Unwind_Trace_Fn</a>,
             <span class="ident">trace_argument</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>,
-        ) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="../../../src/backtrace/backtrace/libunwind.rs.html#127-138">_Unwind_Reason_Code</a>;
+        ) -&gt; <a class="ident" href="../../../src/backtrace/backtrace/libunwind.rs.html#130-141">_Unwind_Reason_Code</a>;
+    }
 
+    <span class="macro">cfg_if::cfg_if!</span> {
         <span class="comment">// available since GCC 4.2.0, should be fine for our purpose</span>
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(
-            <span class="ident">not</span>(<span class="ident">all</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>, <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;arm&quot;</span>)),
-            <span class="ident">not</span>(<span class="ident">all</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;freebsd&quot;</span>, <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;arm&quot;</span>)),
-            <span class="ident">not</span>(<span class="ident">all</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>, <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;arm&quot;</span>))
-        ))]</span>
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">_Unwind_GetIP</span>(<span class="ident">ctx</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <a class="ident" href="../../../src/backtrace/backtrace/libunwind.rs.html#140">_Unwind_Context</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="../../../libc/unix/type.uintptr_t.html">libc::uintptr_t</a>;
-
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(
-            <span class="ident">not</span>(<span class="ident">all</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>, <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;arm&quot;</span>)),
-            <span class="ident">not</span>(<span class="ident">all</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;freebsd&quot;</span>, <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;arm&quot;</span>)),
-            <span class="ident">not</span>(<span class="ident">all</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>, <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;arm&quot;</span>))
-        ))]</span>
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">_Unwind_FindEnclosingFunction</span>(<span class="ident">pc</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>;
-
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(
+        <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(
             <span class="ident">not</span>(<span class="ident">all</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>, <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;arm&quot;</span>)),
             <span class="ident">not</span>(<span class="ident">all</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;freebsd&quot;</span>, <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;arm&quot;</span>)),
             <span class="ident">not</span>(<span class="ident">all</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>, <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;arm&quot;</span>)),
-            <span class="ident">not</span>(<span class="ident">all</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>, <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;s390x&quot;</span>))
-        ))]</span>
-        <span class="comment">// This function is a misnomer: rather than getting this frame&#39;s</span>
-        <span class="comment">// Canonical Frame Address (aka the caller frame&#39;s SP) it</span>
-        <span class="comment">// returns this frame&#39;s SP.</span>
-        <span class="comment">//</span>
-        <span class="comment">// https://github.com/libunwind/libunwind/blob/d32956507cf29d9b1a98a8bce53c78623908f4fe/src/unwind/GetCFA.c#L28-L35</span>
-        <span class="attribute">#[<span class="ident">link_name</span> <span class="op">=</span> <span class="string">&quot;_Unwind_GetCFA&quot;</span>]</span>
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_sp</span>(<span class="ident">ctx</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <a class="ident" href="../../../src/backtrace/backtrace/libunwind.rs.html#140">_Unwind_Context</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="../../../libc/unix/type.uintptr_t.html">libc::uintptr_t</a>;
-    }
+            <span class="ident">not</span>(<span class="ident">all</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;horizon&quot;</span>, <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;arm&quot;</span>))
+        ))]</span> {
+            <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
+                <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">_Unwind_GetIP</span>(<span class="ident">ctx</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <a class="ident" href="../../../src/backtrace/backtrace/libunwind.rs.html#143">_Unwind_Context</a>) -&gt; <a class="ident" href="../../../libc/unix/type.uintptr_t.html">libc::uintptr_t</a>;
+                <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">_Unwind_FindEnclosingFunction</span>(<span class="ident">pc</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>) -&gt; <span class="kw-2">*</span><span class="kw-2">mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>;
 
-    <span class="comment">// s390x uses a biased CFA value, therefore we need to use</span>
-    <span class="comment">// _Unwind_GetGR to get the stack pointer register (%r15)</span>
-    <span class="comment">// instead of relying on _Unwind_GetCFA.</span>
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>, <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;s390x&quot;</span>))]</span>
-    <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">get_sp</span>(<span class="ident">ctx</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">_Unwind_Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">libc::uintptr_t</span> {
-        <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
-            <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">_Unwind_GetGR</span>(<span class="ident">ctx</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">_Unwind_Context</span>, <span class="ident">index</span>: <span class="ident">libc::c_int</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">libc::uintptr_t</span>;
-        }
-        <span class="ident">_Unwind_GetGR</span>(<span class="ident">ctx</span>, <span class="number">15</span>)
-    }
+                <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">all</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>, <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;s390x&quot;</span>)))]</span>
+                <span class="comment">// This function is a misnomer: rather than getting this frame&#39;s</span>
+                <span class="comment">// Canonical Frame Address (aka the caller frame&#39;s SP) it</span>
+                <span class="comment">// returns this frame&#39;s SP.</span>
+                <span class="comment">//</span>
+                <span class="comment">// https://github.com/libunwind/libunwind/blob/d32956507cf29d9b1a98a8bce53c78623908f4fe/src/unwind/GetCFA.c#L28-L35</span>
+                <span class="attribute">#[<span class="ident">link_name</span> <span class="op">=</span> <span class="string">&quot;_Unwind_GetCFA&quot;</span>]</span>
+                <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_sp</span>(<span class="ident">ctx</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <a class="ident" href="../../../src/backtrace/backtrace/libunwind.rs.html#143">_Unwind_Context</a>) -&gt; <a class="ident" href="../../../libc/unix/type.uintptr_t.html">libc::uintptr_t</a>;
 
-    <span class="comment">// On android and arm, the function `_Unwind_GetIP` and a bunch of others</span>
-    <span class="comment">// are macros, so we define functions containing the expansion of the</span>
-    <span class="comment">// macros.</span>
-    <span class="comment">//</span>
-    <span class="comment">// TODO: link to the header file that defines these macros, if you can find</span>
-    <span class="comment">// it. (I, fitzgen, cannot find the header file that some of these macro</span>
-    <span class="comment">// expansions were originally borrowed from.)</span>
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(
-        <span class="ident">all</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>, <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;arm&quot;</span>),
-        <span class="ident">all</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;freebsd&quot;</span>, <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;arm&quot;</span>),
-        <span class="ident">all</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>, <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;arm&quot;</span>)
-    ))]</span>
-    <span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="self">self</span>::arm</span>::<span class="kw-2">*</span>;
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(
-        <span class="ident">all</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>, <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;arm&quot;</span>),
-        <span class="ident">all</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;freebsd&quot;</span>, <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;arm&quot;</span>),
-        <span class="ident">all</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>, <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;arm&quot;</span>)
-    ))]</span>
-    <span class="kw">mod</span> <span class="ident">arm</span> {
-        <span class="kw">pub</span> <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
-        <span class="attribute">#[<span class="ident">repr</span>(<span class="ident">C</span>)]</span>
-        <span class="kw">enum</span> <span class="ident">_Unwind_VRS_Result</span> {
-            <span class="ident">_UVRSR_OK</span> <span class="op">=</span> <span class="number">0</span>,
-            <span class="ident">_UVRSR_NOT_IMPLEMENTED</span> <span class="op">=</span> <span class="number">1</span>,
-            <span class="ident">_UVRSR_FAILED</span> <span class="op">=</span> <span class="number">2</span>,
-        }
-        <span class="attribute">#[<span class="ident">repr</span>(<span class="ident">C</span>)]</span>
-        <span class="kw">enum</span> <span class="ident">_Unwind_VRS_RegClass</span> {
-            <span class="ident">_UVRSC_CORE</span> <span class="op">=</span> <span class="number">0</span>,
-            <span class="ident">_UVRSC_VFP</span> <span class="op">=</span> <span class="number">1</span>,
-            <span class="ident">_UVRSC_FPA</span> <span class="op">=</span> <span class="number">2</span>,
-            <span class="ident">_UVRSC_WMMXD</span> <span class="op">=</span> <span class="number">3</span>,
-            <span class="ident">_UVRSC_WMMXC</span> <span class="op">=</span> <span class="number">4</span>,
-        }
-        <span class="attribute">#[<span class="ident">repr</span>(<span class="ident">C</span>)]</span>
-        <span class="kw">enum</span> <span class="ident">_Unwind_VRS_DataRepresentation</span> {
-            <span class="ident">_UVRSD_UINT32</span> <span class="op">=</span> <span class="number">0</span>,
-            <span class="ident">_UVRSD_VFPX</span> <span class="op">=</span> <span class="number">1</span>,
-            <span class="ident">_UVRSD_FPAX</span> <span class="op">=</span> <span class="number">2</span>,
-            <span class="ident">_UVRSD_UINT64</span> <span class="op">=</span> <span class="number">3</span>,
-            <span class="ident">_UVRSD_FLOAT</span> <span class="op">=</span> <span class="number">4</span>,
-            <span class="ident">_UVRSD_DOUBLE</span> <span class="op">=</span> <span class="number">5</span>,
-        }
+            }
 
-        <span class="kw">type</span> <span class="ident">_Unwind_Word</span> <span class="op">=</span> <span class="ident">libc::c_uint</span>;
-        <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
-            <span class="kw">fn</span> <span class="ident">_Unwind_VRS_Get</span>(
-                <span class="ident">ctx</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">_Unwind_Context</span>,
-                <span class="ident">klass</span>: <span class="ident">_Unwind_VRS_RegClass</span>,
-                <span class="ident">word</span>: <span class="ident">_Unwind_Word</span>,
-                <span class="ident">repr</span>: <span class="ident">_Unwind_VRS_DataRepresentation</span>,
-                <span class="ident">data</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_void</span>,
-            ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">_Unwind_VRS_Result</span>;
-        }
+            <span class="comment">// s390x uses a biased CFA value, therefore we need to use</span>
+            <span class="comment">// _Unwind_GetGR to get the stack pointer register (%r15)</span>
+            <span class="comment">// instead of relying on _Unwind_GetCFA.</span>
+            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>, <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;s390x&quot;</span>))]</span>
+            <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">get_sp</span>(<span class="ident">ctx</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">_Unwind_Context</span>) -&gt; <span class="ident">libc::uintptr_t</span> {
+                <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
+                    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">_Unwind_GetGR</span>(<span class="ident">ctx</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">_Unwind_Context</span>, <span class="ident">index</span>: <span class="ident">libc::c_int</span>) -&gt; <span class="ident">libc::uintptr_t</span>;
+                }
+                <span class="ident">_Unwind_GetGR</span>(<span class="ident">ctx</span>, <span class="number">15</span>)
+            }
+        } <span class="kw">else</span> {
+            <span class="comment">// On android and arm, the function `_Unwind_GetIP` and a bunch of</span>
+            <span class="comment">// others are macros, so we define functions containing the</span>
+            <span class="comment">// expansion of the macros.</span>
+            <span class="comment">//</span>
+            <span class="comment">// TODO: link to the header file that defines these macros, if you</span>
+            <span class="comment">// can find it. (I, fitzgen, cannot find the header file that some</span>
+            <span class="comment">// of these macro expansions were originally borrowed from.)</span>
+            <span class="attribute">#[<span class="ident">repr</span>(<span class="ident">C</span>)]</span>
+            <span class="kw">enum</span> <span class="ident">_Unwind_VRS_Result</span> {
+                <span class="ident">_UVRSR_OK</span> <span class="op">=</span> <span class="number">0</span>,
+                <span class="ident">_UVRSR_NOT_IMPLEMENTED</span> <span class="op">=</span> <span class="number">1</span>,
+                <span class="ident">_UVRSR_FAILED</span> <span class="op">=</span> <span class="number">2</span>,
+            }
+            <span class="attribute">#[<span class="ident">repr</span>(<span class="ident">C</span>)]</span>
+            <span class="kw">enum</span> <span class="ident">_Unwind_VRS_RegClass</span> {
+                <span class="ident">_UVRSC_CORE</span> <span class="op">=</span> <span class="number">0</span>,
+                <span class="ident">_UVRSC_VFP</span> <span class="op">=</span> <span class="number">1</span>,
+                <span class="ident">_UVRSC_FPA</span> <span class="op">=</span> <span class="number">2</span>,
+                <span class="ident">_UVRSC_WMMXD</span> <span class="op">=</span> <span class="number">3</span>,
+                <span class="ident">_UVRSC_WMMXC</span> <span class="op">=</span> <span class="number">4</span>,
+            }
+            <span class="attribute">#[<span class="ident">repr</span>(<span class="ident">C</span>)]</span>
+            <span class="kw">enum</span> <span class="ident">_Unwind_VRS_DataRepresentation</span> {
+                <span class="ident">_UVRSD_UINT32</span> <span class="op">=</span> <span class="number">0</span>,
+                <span class="ident">_UVRSD_VFPX</span> <span class="op">=</span> <span class="number">1</span>,
+                <span class="ident">_UVRSD_FPAX</span> <span class="op">=</span> <span class="number">2</span>,
+                <span class="ident">_UVRSD_UINT64</span> <span class="op">=</span> <span class="number">3</span>,
+                <span class="ident">_UVRSD_FLOAT</span> <span class="op">=</span> <span class="number">4</span>,
+                <span class="ident">_UVRSD_DOUBLE</span> <span class="op">=</span> <span class="number">5</span>,
+            }
 
-        <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">_Unwind_GetIP</span>(<span class="ident">ctx</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">_Unwind_Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">libc::uintptr_t</span> {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">val</span>: <span class="ident">_Unwind_Word</span> <span class="op">=</span> <span class="number">0</span>;
-            <span class="kw">let</span> <span class="ident">ptr</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">val</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">_Unwind_Word</span>;
-            <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">_Unwind_VRS_Get</span>(
-                <span class="ident">ctx</span>,
-                <span class="ident">_Unwind_VRS_RegClass::_UVRSC_CORE</span>,
-                <span class="number">15</span>,
-                <span class="ident">_Unwind_VRS_DataRepresentation::_UVRSD_UINT32</span>,
-                <span class="ident">ptr</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_void</span>,
-            );
-            (<span class="ident">val</span> <span class="op">&amp;</span> <span class="op">!</span><span class="number">1</span>) <span class="kw">as</span> <span class="ident">libc::uintptr_t</span>
-        }
+            <span class="kw">type</span> <span class="ident">_Unwind_Word</span> <span class="op">=</span> <span class="ident">libc::c_uint</span>;
+            <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
+                <span class="kw">fn</span> <span class="ident">_Unwind_VRS_Get</span>(
+                    <span class="ident">ctx</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">_Unwind_Context</span>,
+                    <span class="ident">klass</span>: <span class="ident">_Unwind_VRS_RegClass</span>,
+                    <span class="ident">word</span>: <span class="ident">_Unwind_Word</span>,
+                    <span class="ident">repr</span>: <span class="ident">_Unwind_VRS_DataRepresentation</span>,
+                    <span class="ident">data</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_void</span>,
+                ) -&gt; <span class="ident">_Unwind_VRS_Result</span>;
+            }
 
-        <span class="comment">// R13 is the stack pointer on arm.</span>
-        <span class="kw">const</span> <span class="ident">SP</span>: <span class="ident">_Unwind_Word</span> <span class="op">=</span> <span class="number">13</span>;
+            <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">_Unwind_GetIP</span>(<span class="ident">ctx</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">_Unwind_Context</span>) -&gt; <span class="ident">libc::uintptr_t</span> {
+                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">val</span>: <span class="ident">_Unwind_Word</span> <span class="op">=</span> <span class="number">0</span>;
+                <span class="kw">let</span> <span class="ident">ptr</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">val</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">_Unwind_Word</span>;
+                <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">_Unwind_VRS_Get</span>(
+                    <span class="ident">ctx</span>,
+                    <span class="ident">_Unwind_VRS_RegClass::_UVRSC_CORE</span>,
+                    <span class="number">15</span>,
+                    <span class="ident">_Unwind_VRS_DataRepresentation::_UVRSD_UINT32</span>,
+                    <span class="ident">ptr</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_void</span>,
+                );
+                (<span class="ident">val</span> <span class="op">&amp;</span> <span class="op">!</span><span class="number">1</span>) <span class="kw">as</span> <span class="ident">libc::uintptr_t</span>
+            }
 
-        <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">get_sp</span>(<span class="ident">ctx</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">_Unwind_Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">libc::uintptr_t</span> {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">val</span>: <span class="ident">_Unwind_Word</span> <span class="op">=</span> <span class="number">0</span>;
-            <span class="kw">let</span> <span class="ident">ptr</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">val</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">_Unwind_Word</span>;
-            <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">_Unwind_VRS_Get</span>(
-                <span class="ident">ctx</span>,
-                <span class="ident">_Unwind_VRS_RegClass::_UVRSC_CORE</span>,
-                <span class="ident">SP</span>,
-                <span class="ident">_Unwind_VRS_DataRepresentation::_UVRSD_UINT32</span>,
-                <span class="ident">ptr</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_void</span>,
-            );
-            <span class="ident">val</span> <span class="kw">as</span> <span class="ident">libc::uintptr_t</span>
-        }
+            <span class="comment">// R13 is the stack pointer on arm.</span>
+            <span class="kw">const</span> <span class="ident">SP</span>: <span class="ident">_Unwind_Word</span> <span class="op">=</span> <span class="number">13</span>;
 
-        <span class="comment">// This function also doesn&#39;t exist on Android or ARM/Linux, so make it</span>
-        <span class="comment">// a no-op.</span>
-        <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">_Unwind_FindEnclosingFunction</span>(<span class="ident">pc</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_void</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_void</span> {
-            <span class="ident">pc</span>
+            <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">get_sp</span>(<span class="ident">ctx</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">_Unwind_Context</span>) -&gt; <span class="ident">libc::uintptr_t</span> {
+                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">val</span>: <span class="ident">_Unwind_Word</span> <span class="op">=</span> <span class="number">0</span>;
+                <span class="kw">let</span> <span class="ident">ptr</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">val</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">_Unwind_Word</span>;
+                <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">_Unwind_VRS_Get</span>(
+                    <span class="ident">ctx</span>,
+                    <span class="ident">_Unwind_VRS_RegClass::_UVRSC_CORE</span>,
+                    <span class="ident">SP</span>,
+                    <span class="ident">_Unwind_VRS_DataRepresentation::_UVRSD_UINT32</span>,
+                    <span class="ident">ptr</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_void</span>,
+                );
+                <span class="ident">val</span> <span class="kw">as</span> <span class="ident">libc::uintptr_t</span>
+            }
+
+            <span class="comment">// This function also doesn&#39;t exist on Android or ARM/Linux, so make it</span>
+            <span class="comment">// a no-op.</span>
+            <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">_Unwind_FindEnclosingFunction</span>(<span class="ident">pc</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_void</span>) -&gt; <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_void</span> {
+                <span class="ident">pc</span>
+            }
         }
     }
 }

@@ -914,14 +914,14 @@
 
 <span class="comment">// Calculate the number of leading 0s.</span>
 <span class="macro">macro_rules!</span> <span class="ident">cltz</span> {
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">value</span>:<span class="ident">ident</span>) <span class="op">=</span><span class="op">&gt;</span> {
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">value</span>:<span class="ident">ident</span>) =&gt; {
         <span class="macro-nonterminal">$</span><span class="macro-nonterminal">value</span>.<span class="ident">leading_zeros</span>().<span class="ident">as_usize</span>()
     };
 }
 
 <span class="comment">// Calculate the offset where the digits were first written.</span>
 <span class="macro">macro_rules!</span> <span class="ident">calculate_offset</span> {
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">value</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">digits</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">max_digits</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">size</span>:<span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> ({
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">value</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">digits</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">max_digits</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">size</span>:<span class="ident">expr</span>) =&gt; ({
         <span class="comment">// Get the log2 of the value to estimate the log10 quickly.</span>
         <span class="comment">// log2(0) is undefined, always ensure 1 bit is set.</span>
         <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">value</span> <span class="op">|</span> <span class="number">1</span>;
@@ -936,7 +936,7 @@
         <span class="kw">let</span> <span class="ident">digits</span> <span class="op">=</span> (<span class="ident">log2</span> <span class="op">*</span> <span class="number">1233</span>) <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">12</span>;
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">offset</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">max_digits</span> <span class="op">-</span> <span class="ident">digits</span> <span class="op">-</span> <span class="number">1</span>;
         <span class="macro">debug_assert!</span>(<span class="ident">offset</span> <span class="op">&lt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">digits</span>.<span class="ident">len</span>());
-        <span class="kw">if</span> <span class="ident">digits</span> <span class="op">!</span><span class="op">=</span> <span class="number">0</span> <span class="op">&amp;&amp;</span> <span class="macro">unchecked_index!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">digits</span>[<span class="ident">offset</span>]) <span class="op">=</span><span class="op">=</span> <span class="string">b&#39;0&#39;</span> {
+        <span class="kw">if</span> <span class="ident">digits</span> <span class="op">!</span><span class="op">=</span> <span class="number">0</span> <span class="op">&amp;&amp;</span> <span class="macro">unchecked_index!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">digits</span>[<span class="ident">offset</span>]) <span class="op">==</span> <span class="string">b&#39;0&#39;</span> {
             <span class="ident">offset</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
         }
 
@@ -949,12 +949,12 @@
 
 <span class="comment">// Convert sequential values to index.</span>
 <span class="macro">macro_rules!</span> <span class="ident">sequential_index</span> {
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">v0</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">v1</span>:<span class="ident">ident</span>) <span class="op">=</span><span class="op">&gt;</span> ((<span class="macro-nonterminal">$</span><span class="macro-nonterminal">v0</span> <span class="op">*</span> <span class="number">2</span> <span class="op">-</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">v1</span> <span class="op">*</span> <span class="number">200</span>).<span class="ident">as_usize</span>());
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">v0</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">v1</span>:<span class="ident">ident</span>) =&gt; ((<span class="macro-nonterminal">$</span><span class="macro-nonterminal">v0</span> <span class="op">*</span> <span class="number">2</span> <span class="op">-</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">v1</span> <span class="op">*</span> <span class="number">200</span>).<span class="ident">as_usize</span>());
 }
 
 <span class="comment">// Convert singular value to index.</span>
 <span class="macro">macro_rules!</span> <span class="ident">last_index</span> {
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">value</span>:<span class="ident">ident</span>) <span class="op">=</span><span class="op">&gt;</span> ((<span class="number">2</span> <span class="op">*</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">value</span>).<span class="ident">as_usize</span>());
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">value</span>:<span class="ident">ident</span>) =&gt; ((<span class="number">2</span> <span class="op">*</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">value</span>).<span class="ident">as_usize</span>());
 }
 
 <span class="comment">// WRITE</span>
@@ -1317,7 +1317,7 @@
 
 <span class="comment">// Write 1-3 digits (from a u8 value).</span>
 <span class="macro">perftools_inline!</span>{
-<span class="kw">fn</span> <span class="ident">write_1_3</span>(<span class="ident">value</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>, <span class="ident">buffer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
+<span class="kw">fn</span> <span class="ident">write_1_3</span>(<span class="ident">value</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>, <span class="ident">buffer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
     <span class="kw">if</span> <a class="ident" href="../../../src/lexical_core/itoa/decimal.rs.html#543">value</a> <span class="op">&lt;</span> <span class="number">10</span> {
         <a class="ident" href="../../../src/lexical_core/itoa/decimal.rs.html#191">write_1</a>(<a class="ident" href="../../../src/lexical_core/itoa/decimal.rs.html#543">value</a>, <a class="ident" href="../../../src/lexical_core/itoa/decimal.rs.html#543">buffer</a>);
         <span class="number">1</span>
@@ -1332,7 +1332,7 @@
 
 <span class="comment">// Write 1-3 digits (from a u16 value).</span>
 <span class="macro">perftools_inline!</span>{
-<span class="kw">fn</span> <span class="ident">write_1_5</span>(<span class="ident">value</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>, <span class="ident">buffer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
+<span class="kw">fn</span> <span class="ident">write_1_5</span>(<span class="ident">value</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>, <span class="ident">buffer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
     <span class="kw">if</span> <a class="ident" href="../../../src/lexical_core/itoa/decimal.rs.html#558">value</a> <span class="op">&lt;</span> <span class="number">10</span> {
         <a class="ident" href="../../../src/lexical_core/itoa/decimal.rs.html#191">write_1</a>(<a class="ident" href="../../../src/lexical_core/itoa/decimal.rs.html#558">value</a>, <a class="ident" href="../../../src/lexical_core/itoa/decimal.rs.html#558">buffer</a>);
         <span class="number">1</span>
@@ -1353,7 +1353,7 @@
 
 <span class="comment">// Write 5-10 digits (from a u32 value).</span>
 <span class="macro">perftools_inline!</span>{
-<span class="kw">fn</span> <span class="ident">write_5_10</span>(<span class="ident">value</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>, <span class="ident">buffer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
+<span class="kw">fn</span> <span class="ident">write_5_10</span>(<span class="ident">value</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>, <span class="ident">buffer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
     <span class="comment">// Use a temporary buffer so we only need a single code path.</span>
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">tmp_buf</span>: [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">16</span>] <span class="op">=</span> [<span class="string">b&#39;0&#39;</span>; <span class="number">16</span>];
     <span class="kw">let</span> <span class="ident">digits</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../../src/lexical_core/itoa/decimal.rs.html#581">tmp_buf</a>[..<span class="number">10</span>];
@@ -1364,7 +1364,7 @@
 
 <span class="comment">// Write 10-15 digits (from a u64 value).</span>
 <span class="macro">perftools_inline!</span>{
-<span class="kw">fn</span> <span class="ident">write_10_15</span>(<span class="ident">value</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>, <span class="ident">buffer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
+<span class="kw">fn</span> <span class="ident">write_10_15</span>(<span class="ident">value</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>, <span class="ident">buffer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
     <span class="comment">// Use a temporary buffer so we only need a single code path.</span>
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">tmp_buf</span>: [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">32</span>] <span class="op">=</span> [<span class="string">b&#39;0&#39;</span>; <span class="number">32</span>];
     <span class="kw">let</span> <span class="ident">digits</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../../src/lexical_core/itoa/decimal.rs.html#592">tmp_buf</a>[..<span class="number">15</span>];
@@ -1375,7 +1375,7 @@
 
 <span class="comment">// Write 15-20 digits (from a u64 value).</span>
 <span class="macro">perftools_inline!</span>{
-<span class="kw">fn</span> <span class="ident">write_15_20</span>(<span class="ident">value</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>, <span class="ident">buffer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
+<span class="kw">fn</span> <span class="ident">write_15_20</span>(<span class="ident">value</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>, <span class="ident">buffer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
     <span class="comment">// Use a temporary buffer so we only need a single code path.</span>
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">tmp_buf</span>: [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">32</span>] <span class="op">=</span> [<span class="string">b&#39;0&#39;</span>; <span class="number">32</span>];
     <span class="kw">let</span> <span class="ident">digits</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../../src/lexical_core/itoa/decimal.rs.html#603">tmp_buf</a>[..<span class="number">20</span>];
@@ -1386,7 +1386,7 @@
 
 <span class="comment">// Write 20-25 digits (from a u64 value).</span>
 <span class="macro">perftools_inline!</span>{
-<span class="kw">fn</span> <span class="ident">write_20_25</span>(<span class="ident">value</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u128.html">u128</a>, <span class="ident">buffer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
+<span class="kw">fn</span> <span class="ident">write_20_25</span>(<span class="ident">value</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u128.html">u128</a>, <span class="ident">buffer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
     <span class="comment">// Use a temporary buffer so we only need a single code path.</span>
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">tmp_buf</span>: [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">64</span>] <span class="op">=</span> [<span class="string">b&#39;0&#39;</span>; <span class="number">64</span>];
     <span class="kw">let</span> <span class="ident">digits</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../../src/lexical_core/itoa/decimal.rs.html#614">tmp_buf</a>[..<span class="number">25</span>];
@@ -1397,7 +1397,7 @@
 
 <span class="comment">// Write 25-29 digits (from a u64 value).</span>
 <span class="macro">perftools_inline!</span>{
-<span class="kw">fn</span> <span class="ident">write_25_29</span>(<span class="ident">value</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u128.html">u128</a>, <span class="ident">buffer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
+<span class="kw">fn</span> <span class="ident">write_25_29</span>(<span class="ident">value</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u128.html">u128</a>, <span class="ident">buffer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
     <span class="comment">// Use a temporary buffer so we only need a single code path.</span>
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">tmp_buf</span>: [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">64</span>] <span class="op">=</span> [<span class="string">b&#39;0&#39;</span>; <span class="number">64</span>];
     <span class="kw">let</span> <span class="ident">digits</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../../src/lexical_core/itoa/decimal.rs.html#625">tmp_buf</a>[..<span class="number">29</span>];
@@ -1408,7 +1408,7 @@
 
 <span class="comment">// Write 29-34 digits (from a u64 value).</span>
 <span class="macro">perftools_inline!</span>{
-<span class="kw">fn</span> <span class="ident">write_29_34</span>(<span class="ident">value</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u128.html">u128</a>, <span class="ident">buffer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
+<span class="kw">fn</span> <span class="ident">write_29_34</span>(<span class="ident">value</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u128.html">u128</a>, <span class="ident">buffer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
     <span class="comment">// Use a temporary buffer so we only need a single code path.</span>
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">tmp_buf</span>: [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">64</span>] <span class="op">=</span> [<span class="string">b&#39;0&#39;</span>; <span class="number">64</span>];
     <span class="kw">let</span> <span class="ident">digits</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../../src/lexical_core/itoa/decimal.rs.html#636">tmp_buf</a>[..<span class="number">34</span>];
@@ -1419,7 +1419,7 @@
 
 <span class="comment">// Write 34-39 digits (from a u64 value).</span>
 <span class="macro">perftools_inline!</span>{
-<span class="kw">fn</span> <span class="ident">write_34_39</span>(<span class="ident">value</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u128.html">u128</a>, <span class="ident">buffer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
+<span class="kw">fn</span> <span class="ident">write_34_39</span>(<span class="ident">value</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u128.html">u128</a>, <span class="ident">buffer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
     <span class="comment">// Use a temporary buffer so we only need a single code path.</span>
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">tmp_buf</span>: [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">64</span>] <span class="op">=</span> [<span class="string">b&#39;0&#39;</span>; <span class="number">64</span>];
     <span class="kw">let</span> <span class="ident">digits</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../../src/lexical_core/itoa/decimal.rs.html#647">tmp_buf</a>[..<span class="number">39</span>];
@@ -1438,20 +1438,20 @@
 
 <span class="comment">// Internal integer formatter for u8.</span>
 <span class="macro">perftools_inline!</span>{
-<span class="kw">fn</span> <span class="ident">u8toa</span>(<span class="ident">value</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, <span class="ident">buffer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
+<span class="kw">fn</span> <span class="ident">u8toa</span>(<span class="ident">value</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, <span class="ident">buffer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
     <a class="ident" href="../../../src/lexical_core/itoa/decimal.rs.html#543">write_1_3</a>(<a class="ident" href="../../../src/lexical_core/itoa/decimal.rs.html#664">value</a>.<a class="ident" href="../../../src/lexical_core/util/primitive.rs.html#10">as_u32</a>(), <a class="ident" href="../../../src/lexical_core/itoa/decimal.rs.html#664">buffer</a>)
 }}
 
 <span class="comment">// Internal integer formatter for u16.</span>
 <span class="macro">perftools_inline!</span>{
-<span class="kw">fn</span> <span class="ident">u16toa</span>(<span class="ident">value</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>, <span class="ident">buffer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
+<span class="kw">fn</span> <span class="ident">u16toa</span>(<span class="ident">value</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>, <span class="ident">buffer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
     <a class="ident" href="../../../src/lexical_core/itoa/decimal.rs.html#558">write_1_5</a>(<a class="ident" href="../../../src/lexical_core/itoa/decimal.rs.html#670">value</a>.<a class="ident" href="../../../src/lexical_core/util/primitive.rs.html#10">as_u32</a>(), <a class="ident" href="../../../src/lexical_core/itoa/decimal.rs.html#670">buffer</a>)
 }}
 
 <span class="comment">// Internal integer formatter for u32.</span>
 <span class="macro">perftools_inline!</span>{
-<span class="kw">fn</span> <span class="ident">u32toa</span>(<span class="ident">value</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>, <span class="ident">buffer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-    <span class="kw">if</span> <a class="ident" href="../../../src/lexical_core/itoa/decimal.rs.html#676">value</a> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">16</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
+<span class="kw">fn</span> <span class="ident">u32toa</span>(<span class="ident">value</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>, <span class="ident">buffer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
+    <span class="kw">if</span> <a class="ident" href="../../../src/lexical_core/itoa/decimal.rs.html#676">value</a> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">16</span> <span class="op">==</span> <span class="number">0</span> {
         <span class="comment">// [0, 2^16 - 1]</span>
         <a class="ident" href="../../../src/lexical_core/itoa/decimal.rs.html#558">write_1_5</a>(<a class="ident" href="../../../src/lexical_core/itoa/decimal.rs.html#676">value</a>, <a class="ident" href="../../../src/lexical_core/itoa/decimal.rs.html#676">buffer</a>)
     } <span class="kw">else</span> {
@@ -1462,14 +1462,14 @@
 
 <span class="comment">// Internal integer formatter for u64.</span>
 <span class="macro">perftools_inline!</span>{
-<span class="kw">fn</span> <span class="ident">u64toa</span>(<span class="ident">value</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>, <span class="ident">buffer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-    <span class="kw">if</span> <a class="ident" href="../../../src/lexical_core/itoa/decimal.rs.html#688">value</a> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">16</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
+<span class="kw">fn</span> <span class="ident">u64toa</span>(<span class="ident">value</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>, <span class="ident">buffer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
+    <span class="kw">if</span> <a class="ident" href="../../../src/lexical_core/itoa/decimal.rs.html#688">value</a> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">16</span> <span class="op">==</span> <span class="number">0</span> {
         <span class="comment">// [0, 2^16 - 1]</span>
         <a class="ident" href="../../../src/lexical_core/itoa/decimal.rs.html#558">write_1_5</a>(<a class="ident" href="../../../src/lexical_core/itoa/decimal.rs.html#688">value</a>.<a class="ident" href="../../../src/lexical_core/util/primitive.rs.html#10">as_u32</a>(), <a class="ident" href="../../../src/lexical_core/itoa/decimal.rs.html#688">buffer</a>)
-    } <span class="kw">else</span> <span class="kw">if</span> <a class="ident" href="../../../src/lexical_core/itoa/decimal.rs.html#688">value</a> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">32</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
+    } <span class="kw">else</span> <span class="kw">if</span> <a class="ident" href="../../../src/lexical_core/itoa/decimal.rs.html#688">value</a> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">32</span> <span class="op">==</span> <span class="number">0</span> {
         <span class="comment">// [2^16, 2^32 - 1]</span>
         <a class="ident" href="../../../src/lexical_core/itoa/decimal.rs.html#579">write_5_10</a>(<a class="ident" href="../../../src/lexical_core/itoa/decimal.rs.html#688">value</a>.<a class="ident" href="../../../src/lexical_core/util/primitive.rs.html#10">as_u32</a>(), <a class="ident" href="../../../src/lexical_core/itoa/decimal.rs.html#688">buffer</a>)
-    } <span class="kw">else</span> <span class="kw">if</span> <a class="ident" href="../../../src/lexical_core/itoa/decimal.rs.html#688">value</a> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">48</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
+    } <span class="kw">else</span> <span class="kw">if</span> <a class="ident" href="../../../src/lexical_core/itoa/decimal.rs.html#688">value</a> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">48</span> <span class="op">==</span> <span class="number">0</span> {
         <span class="comment">// [2^32, 2^48 - 1]</span>
         <a class="ident" href="../../../src/lexical_core/itoa/decimal.rs.html#590">write_10_15</a>(<a class="ident" href="../../../src/lexical_core/itoa/decimal.rs.html#688">value</a>, <a class="ident" href="../../../src/lexical_core/itoa/decimal.rs.html#688">buffer</a>)
     } <span class="kw">else</span> {
@@ -1480,26 +1480,26 @@
 
 <span class="comment">// Internal integer formatter for u128.</span>
 <span class="macro">perftools_inline!</span>{
-<span class="kw">fn</span> <span class="ident">u128toa</span>(<span class="ident">value</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u128.html">u128</a>, <span class="ident">buffer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-    <span class="kw">if</span> <a class="ident" href="../../../src/lexical_core/itoa/decimal.rs.html#706">value</a> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">16</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
+<span class="kw">fn</span> <span class="ident">u128toa</span>(<span class="ident">value</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u128.html">u128</a>, <span class="ident">buffer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
+    <span class="kw">if</span> <a class="ident" href="../../../src/lexical_core/itoa/decimal.rs.html#706">value</a> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">16</span> <span class="op">==</span> <span class="number">0</span> {
         <span class="comment">// [0, 2^16 - 1]</span>
         <a class="ident" href="../../../src/lexical_core/itoa/decimal.rs.html#558">write_1_5</a>(<a class="ident" href="../../../src/lexical_core/itoa/decimal.rs.html#706">value</a>.<a class="ident" href="../../../src/lexical_core/util/primitive.rs.html#10">as_u32</a>(), <a class="ident" href="../../../src/lexical_core/itoa/decimal.rs.html#706">buffer</a>)
-    } <span class="kw">else</span> <span class="kw">if</span> <a class="ident" href="../../../src/lexical_core/itoa/decimal.rs.html#706">value</a> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">32</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
+    } <span class="kw">else</span> <span class="kw">if</span> <a class="ident" href="../../../src/lexical_core/itoa/decimal.rs.html#706">value</a> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">32</span> <span class="op">==</span> <span class="number">0</span> {
         <span class="comment">// [2^16, 2^32 - 1]</span>
         <a class="ident" href="../../../src/lexical_core/itoa/decimal.rs.html#579">write_5_10</a>(<a class="ident" href="../../../src/lexical_core/itoa/decimal.rs.html#706">value</a>.<a class="ident" href="../../../src/lexical_core/util/primitive.rs.html#10">as_u32</a>(), <a class="ident" href="../../../src/lexical_core/itoa/decimal.rs.html#706">buffer</a>)
-    } <span class="kw">else</span> <span class="kw">if</span> <a class="ident" href="../../../src/lexical_core/itoa/decimal.rs.html#706">value</a> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">48</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
+    } <span class="kw">else</span> <span class="kw">if</span> <a class="ident" href="../../../src/lexical_core/itoa/decimal.rs.html#706">value</a> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">48</span> <span class="op">==</span> <span class="number">0</span> {
         <span class="comment">// [2^32, 2^48 - 1]</span>
         <a class="ident" href="../../../src/lexical_core/itoa/decimal.rs.html#590">write_10_15</a>(<a class="ident" href="../../../src/lexical_core/itoa/decimal.rs.html#706">value</a>.<a class="ident" href="../../../src/lexical_core/util/primitive.rs.html#11">as_u64</a>(), <a class="ident" href="../../../src/lexical_core/itoa/decimal.rs.html#706">buffer</a>)
-    } <span class="kw">else</span> <span class="kw">if</span> <a class="ident" href="../../../src/lexical_core/itoa/decimal.rs.html#706">value</a> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">64</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
+    } <span class="kw">else</span> <span class="kw">if</span> <a class="ident" href="../../../src/lexical_core/itoa/decimal.rs.html#706">value</a> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">64</span> <span class="op">==</span> <span class="number">0</span> {
         <span class="comment">// [2^48, 2^64 - 1]</span>
         <a class="ident" href="../../../src/lexical_core/itoa/decimal.rs.html#601">write_15_20</a>(<a class="ident" href="../../../src/lexical_core/itoa/decimal.rs.html#706">value</a>.<a class="ident" href="../../../src/lexical_core/util/primitive.rs.html#11">as_u64</a>(), <a class="ident" href="../../../src/lexical_core/itoa/decimal.rs.html#706">buffer</a>)
-    } <span class="kw">else</span> <span class="kw">if</span> <a class="ident" href="../../../src/lexical_core/itoa/decimal.rs.html#706">value</a> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">80</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
+    } <span class="kw">else</span> <span class="kw">if</span> <a class="ident" href="../../../src/lexical_core/itoa/decimal.rs.html#706">value</a> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">80</span> <span class="op">==</span> <span class="number">0</span> {
         <span class="comment">// [2^64, 2^80 - 1]</span>
         <a class="ident" href="../../../src/lexical_core/itoa/decimal.rs.html#612">write_20_25</a>(<a class="ident" href="../../../src/lexical_core/itoa/decimal.rs.html#706">value</a>, <a class="ident" href="../../../src/lexical_core/itoa/decimal.rs.html#706">buffer</a>)
-    } <span class="kw">else</span> <span class="kw">if</span> <a class="ident" href="../../../src/lexical_core/itoa/decimal.rs.html#706">value</a> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">96</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
+    } <span class="kw">else</span> <span class="kw">if</span> <a class="ident" href="../../../src/lexical_core/itoa/decimal.rs.html#706">value</a> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">96</span> <span class="op">==</span> <span class="number">0</span> {
         <span class="comment">// [2^80, 2^96 - 1]</span>
         <a class="ident" href="../../../src/lexical_core/itoa/decimal.rs.html#623">write_25_29</a>(<a class="ident" href="../../../src/lexical_core/itoa/decimal.rs.html#706">value</a>, <a class="ident" href="../../../src/lexical_core/itoa/decimal.rs.html#706">buffer</a>)
-    } <span class="kw">else</span> <span class="kw">if</span> <a class="ident" href="../../../src/lexical_core/itoa/decimal.rs.html#706">value</a> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">112</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
+    } <span class="kw">else</span> <span class="kw">if</span> <a class="ident" href="../../../src/lexical_core/itoa/decimal.rs.html#706">value</a> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">112</span> <span class="op">==</span> <span class="number">0</span> {
         <span class="comment">// [2^96, 2^112 - 1]</span>
         <a class="ident" href="../../../src/lexical_core/itoa/decimal.rs.html#634">write_29_34</a>(<a class="ident" href="../../../src/lexical_core/itoa/decimal.rs.html#706">value</a>, <a class="ident" href="../../../src/lexical_core/itoa/decimal.rs.html#706">buffer</a>)
     } <span class="kw">else</span> {
@@ -1511,17 +1511,17 @@
 <span class="macro">cfg_if!</span> {
 <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_pointer_width</span> <span class="op">=</span> <span class="string">&quot;16&quot;</span>)]</span> {
     <span class="macro">perftools_inline!</span>{
-    <span class="kw">fn</span> <span class="ident">usizetoa</span>(<span class="ident">value</span>: <span class="ident">usize</span>, <span class="ident">buffer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
+    <span class="kw">fn</span> <span class="ident">usizetoa</span>(<span class="ident">value</span>: <span class="ident">usize</span>, <span class="ident">buffer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>]) -&gt; <span class="ident">usize</span> {
         <span class="ident">u16toa</span>(<span class="ident">value</span>.<span class="ident">as_u16</span>(), <span class="ident">buffer</span>)
     }}
 } <span class="kw">else</span> <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_pointer_width</span> <span class="op">=</span> <span class="string">&quot;32&quot;</span>)]</span> {
     <span class="macro">perftools_inline!</span>{
-    <span class="kw">fn</span> <span class="ident">usizetoa</span>(<span class="ident">value</span>: <span class="ident">usize</span>, <span class="ident">buffer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
+    <span class="kw">fn</span> <span class="ident">usizetoa</span>(<span class="ident">value</span>: <span class="ident">usize</span>, <span class="ident">buffer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>]) -&gt; <span class="ident">usize</span> {
         <span class="ident">u32toa</span>(<span class="ident">value</span>.<span class="ident">as_u32</span>(), <span class="ident">buffer</span>)
     }}
 } <span class="kw">else</span> <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_pointer_width</span> <span class="op">=</span> <span class="string">&quot;64&quot;</span>)]</span> {
     <span class="macro">perftools_inline!</span>{
-    <span class="kw">fn</span> <span class="ident">usizetoa</span>(<span class="ident">value</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="ident">buffer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
+    <span class="kw">fn</span> <span class="ident">usizetoa</span>(<span class="ident">value</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="ident">buffer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
         <a class="ident" href="../../../src/lexical_core/itoa/decimal.rs.html#688">u64toa</a>(<a class="ident" href="../../../src/lexical_core/itoa/decimal.rs.html#747">value</a>.<a class="ident" href="../../../src/lexical_core/util/primitive.rs.html#11">as_u64</a>(), <a class="ident" href="../../../src/lexical_core/itoa/decimal.rs.html#747">buffer</a>)
     }}
 }} <span class="comment">// cfg_if</span>
@@ -1531,15 +1531,15 @@
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">trait</span> <span class="ident">Decimal</span> {
     <span class="comment">// Export integer to string.</span>
-    <span class="kw">fn</span> <span class="ident">decimal</span>(<span class="self">self</span>, <span class="ident">buffer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
+    <span class="kw">fn</span> <span class="ident">decimal</span>(<span class="self">self</span>, <span class="ident">buffer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
 }
 
 <span class="comment">// Implement decimal for type.</span>
 <span class="macro">macro_rules!</span> <span class="ident">decimal_impl</span> {
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span>:<span class="ident">ty</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">cb</span>:<span class="ident">ident</span>) <span class="op">=</span><span class="op">&gt;</span> (
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span>:<span class="ident">ty</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">cb</span>:<span class="ident">ident</span>) =&gt; (
         <span class="kw">impl</span> <span class="ident">Decimal</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span> {
             <span class="macro">perftools_inline_always!</span>{
-            <span class="kw">fn</span> <span class="ident">decimal</span>(<span class="self">self</span>, <span class="ident">buffer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
+            <span class="kw">fn</span> <span class="ident">decimal</span>(<span class="self">self</span>, <span class="ident">buffer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>]) -&gt; <span class="ident">usize</span> {
                 <span class="macro-nonterminal">$</span><span class="macro-nonterminal">cb</span>(<span class="self">self</span>, <span class="ident">buffer</span>)
             }}
         }

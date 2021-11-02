@@ -149,7 +149,7 @@
 {
     <span class="kw">type</span> <span class="prelude-val">Err</span> <span class="op">=</span> <a class="ident" href="../../src/try_from/int.rs.html#20-23">TryFromIntError</a>;
 
-    <span class="kw">fn</span> <span class="ident">try_from</span>(<span class="ident">c</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span>, <a class="ident" href="../../src/try_from/int.rs.html#20-23">TryFromIntError</a><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">try_from</span>(<span class="ident">c</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span>, <a class="ident" href="../../src/try_from/int.rs.html#20-23">TryFromIntError</a><span class="op">&gt;</span> {
         <span class="ident">T::try_from</span>(<a class="ident" href="../../src/try_from/char.rs.html#22">c</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>)
     }
 }
@@ -161,10 +161,10 @@
 }
 
 <span class="macro">macro_rules!</span> <span class="ident">impl_infallible</span> {
-    ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span>:<span class="ident">ty</span>),<span class="kw-2">*</span>) <span class="op">=</span><span class="op">&gt;</span> { $(
+    ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span>:<span class="ident">ty</span>),<span class="kw-2">*</span>) =&gt; { $(
         <span class="kw">impl</span> <span class="ident">TryFrom</span><span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">char</span> {
             <span class="kw">type</span> <span class="prelude-val">Err</span> <span class="op">=</span> <span class="ident">Void</span>;
-            <span class="kw">fn</span> <span class="ident">try_from</span> (<span class="ident">n</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">char</span>, <span class="ident">Void</span><span class="op">&gt;</span> { <span class="prelude-val">Ok</span>(<span class="ident">n</span> <span class="kw">as</span> <span class="ident">char</span>) }
+            <span class="kw">fn</span> <span class="ident">try_from</span> (<span class="ident">n</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">char</span>, <span class="ident">Void</span><span class="op">&gt;</span> { <span class="prelude-val">Ok</span>(<span class="ident">n</span> <span class="kw">as</span> <span class="ident">char</span>) }
         }
     )<span class="op">*</span> };
 }
@@ -178,17 +178,17 @@
 }
 
 <span class="macro">macro_rules!</span> <span class="ident">impl_int_to_char</span> {
-    ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span>:<span class="ident">ty</span>),<span class="kw-2">*</span>) <span class="op">=</span><span class="op">&gt;</span> { $(
+    ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span>:<span class="ident">ty</span>),<span class="kw-2">*</span>) =&gt; { $(
         <span class="kw">impl</span> <span class="ident">TryFrom</span><span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">char</span> {
             <span class="kw">type</span> <span class="prelude-val">Err</span> <span class="op">=</span> <span class="ident">TryFromIntToCharError</span>;
 
-            <span class="kw">fn</span> <span class="ident">try_from</span> (<span class="ident">n</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">char</span>, <span class="ident">TryFromIntToCharError</span><span class="op">&gt;</span> {
+            <span class="kw">fn</span> <span class="ident">try_from</span> (<span class="ident">n</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">char</span>, <span class="ident">TryFromIntToCharError</span><span class="op">&gt;</span> {
                 <span class="kw">match</span> <span class="ident">u32::try_from</span>(<span class="ident">n</span>)<span class="question-mark">?</span> {
-                    <span class="ident">n</span> @ <span class="number">0</span>...<span class="number">0x10ffff</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="ident">char::from_u32</span>(<span class="ident">n</span>) {
-                        <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">TryFromIntToCharError::Reserved</span>),
-                        <span class="prelude-val">Some</span>(<span class="ident">c</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">c</span>),
+                    <span class="ident">n</span> @ <span class="number">0</span>...<span class="number">0x10ffff</span> =&gt; <span class="kw">match</span> <span class="ident">char::from_u32</span>(<span class="ident">n</span>) {
+                        <span class="prelude-val">None</span> =&gt; <span class="prelude-val">Err</span>(<span class="ident">TryFromIntToCharError::Reserved</span>),
+                        <span class="prelude-val">Some</span>(<span class="ident">c</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="ident">c</span>),
                     },
-                    <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">TryFromIntToCharError::Overflow</span>)
+                    <span class="kw">_</span> =&gt; <span class="prelude-val">Err</span>(<span class="ident">TryFromIntToCharError::Overflow</span>)
                 }
             }
         }
@@ -218,17 +218,17 @@
 }
 
 <span class="kw">impl</span> <a class="ident" href="../../src/try_from/char.rs.html#84-88">TryFromIntToCharError</a> {
-    <span class="kw">fn</span> <span class="ident">as_str</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> {
+    <span class="kw">fn</span> <span class="ident">as_str</span>(<span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> {
         <span class="kw">match</span> <a class="self" href="../../src/try_from/char.rs.html#91">self</a> {
-            <a class="ident" href="../../src/try_from/char.rs.html#85">TryFromIntToCharError::Overflow</a> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;integer overflow&quot;</span>,
-            <a class="ident" href="../../src/try_from/char.rs.html#86">TryFromIntToCharError::Underflow</a> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;integer underflow&quot;</span>,
-            <a class="ident" href="../../src/try_from/char.rs.html#87">TryFromIntToCharError::Reserved</a> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;reserved code point&quot;</span>,
+            <a class="ident" href="../../src/try_from/char.rs.html#85">TryFromIntToCharError::Overflow</a> =&gt; <span class="string">&quot;integer overflow&quot;</span>,
+            <a class="ident" href="../../src/try_from/char.rs.html#86">TryFromIntToCharError::Underflow</a> =&gt; <span class="string">&quot;integer underflow&quot;</span>,
+            <a class="ident" href="../../src/try_from/char.rs.html#87">TryFromIntToCharError::Reserved</a> =&gt; <span class="string">&quot;reserved code point&quot;</span>,
         }
     }
 }
 
 <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">Display</a> <span class="kw">for</span> <a class="ident" href="../../src/try_from/char.rs.html#84-88">TryFromIntToCharError</a> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">Formatter</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">Formatter</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
         <a class="ident" href="../../src/try_from/char.rs.html#101">f</a>.<span class="ident">write_str</span>(<a class="self" href="../../src/try_from/char.rs.html#101">self</a>.<a class="ident" href="../../src/try_from/char.rs.html#91">as_str</a>())
     }
 }
@@ -237,7 +237,7 @@
 <span class="macro">cfg_if!</span> (
     <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span><span class="op">=</span><span class="string">&quot;no_std&quot;</span>))]</span> {
         <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/error/trait.Error.html">Error</a> <span class="kw">for</span> <a class="ident" href="../../src/try_from/char.rs.html#84-88">TryFromIntToCharError</a> {
-            <span class="kw">fn</span> <span class="ident">description</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> {
+            <span class="kw">fn</span> <span class="ident">description</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> {
                 <a class="self" href="../../src/try_from/char.rs.html#110">self</a>.<a class="ident" href="../../src/try_from/char.rs.html#91">as_str</a>()
             }
         }
@@ -245,16 +245,16 @@
 );
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><a class="ident" href="../../src/try_from/int.rs.html#20-23">TryFromIntError</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../src/try_from/char.rs.html#84-88">TryFromIntToCharError</a> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">other</span>: <a class="ident" href="../../src/try_from/int.rs.html#20-23">TryFromIntError</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="../../src/try_from/char.rs.html#84-88">TryFromIntToCharError</a> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">other</span>: <a class="ident" href="../../src/try_from/int.rs.html#20-23">TryFromIntError</a>) -&gt; <a class="ident" href="../../src/try_from/char.rs.html#84-88">TryFromIntToCharError</a> {
         <span class="kw">match</span> <a class="ident" href="../../src/try_from/char.rs.html#118">other</a> {
-            <a class="ident" href="../../src/try_from/int.rs.html#21">TryFromIntError::Overflow</a> <span class="op">=</span><span class="op">&gt;</span> <a class="ident" href="../../src/try_from/char.rs.html#85">TryFromIntToCharError::Overflow</a>,
-            <a class="ident" href="../../src/try_from/int.rs.html#22">TryFromIntError::Underflow</a> <span class="op">=</span><span class="op">&gt;</span> <a class="ident" href="../../src/try_from/char.rs.html#86">TryFromIntToCharError::Underflow</a>,
+            <a class="ident" href="../../src/try_from/int.rs.html#21">TryFromIntError::Overflow</a> =&gt; <a class="ident" href="../../src/try_from/char.rs.html#85">TryFromIntToCharError::Overflow</a>,
+            <a class="ident" href="../../src/try_from/int.rs.html#22">TryFromIntError::Underflow</a> =&gt; <a class="ident" href="../../src/try_from/char.rs.html#86">TryFromIntToCharError::Underflow</a>,
         }
     }
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><a class="ident" href="../../src/try_from/lib.rs.html#78">Void</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../src/try_from/char.rs.html#84-88">TryFromIntToCharError</a> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="kw">_</span>: <a class="ident" href="../../src/try_from/lib.rs.html#78">Void</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="../../src/try_from/char.rs.html#84-88">TryFromIntToCharError</a> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="kw">_</span>: <a class="ident" href="../../src/try_from/lib.rs.html#78">Void</a>) -&gt; <a class="ident" href="../../src/try_from/char.rs.html#84-88">TryFromIntToCharError</a> {
         <span class="macro">unreachable!</span>()
     }
 }

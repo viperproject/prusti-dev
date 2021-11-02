@@ -4,7 +4,7 @@ Checking the largest element is <em>O</em>(1). Converting a vector to a binary h
 can be done in-place, and has <em>O</em>(<em>n</em>) complexity. A binary heap can also be
 converted to a sorted vector in-place, allowing it to be used for an <em>O</em>(<em>n</em> * log(<em>n</em>))
 in-place heapsort.</p>
-<h1 id="examples" class="section-header"><a href="#examples">Examples</a></h1>
+<h2 id="examples" class="section-header"><a href="#examples">Examples</a></h2>
 <p>This is a larger example that implements <a href="https://en.wikipedia.org/wiki/Dijkstra%27s_algorithm">Dijkstra’s algorithm</a>
 to solve the <a href="https://en.wikipedia.org/wiki/Shortest_path_problem">shortest path problem</a> on a <a href="https://en.wikipedia.org/wiki/Directed_graph">directed graph</a>.
 It shows how to use <a href="../struct.BinaryHeap.html" title="BinaryHeap"><code>BinaryHeap</code></a> with custom types.</p>
@@ -22,7 +22,7 @@ It shows how to use <a href="../struct.BinaryHeap.html" title="BinaryHeap"><code
 <span class="comment">// Explicitly implement the trait so the queue becomes a min-heap</span>
 <span class="comment">// instead of a max-heap.</span>
 <span class="kw">impl</span> <span class="ident">Ord</span> <span class="kw">for</span> <span class="ident">State</span> {
-    <span class="kw">fn</span> <span class="ident">cmp</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Ordering</span> {
+    <span class="kw">fn</span> <span class="ident">cmp</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="ident">Ordering</span> {
         <span class="comment">// Notice that the we flip the ordering on costs.</span>
         <span class="comment">// In case of a tie we compare positions - this step is necessary</span>
         <span class="comment">// to make implementations of `PartialEq` and `Ord` consistent.</span>
@@ -33,7 +33,7 @@ It shows how to use <a href="../struct.BinaryHeap.html" title="BinaryHeap"><code
 
 <span class="comment">// `PartialOrd` needs to be implemented as well.</span>
 <span class="kw">impl</span> <span class="ident">PartialOrd</span> <span class="kw">for</span> <span class="ident">State</span> {
-    <span class="kw">fn</span> <span class="ident">partial_cmp</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Ordering</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">partial_cmp</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Ordering</span><span class="op">&gt;</span> {
         <span class="prelude-val">Some</span>(<span class="self">self</span>.<span class="ident">cmp</span>(<span class="ident">other</span>))
     }
 }
@@ -50,7 +50,7 @@ It shows how to use <a href="../struct.BinaryHeap.html" title="BinaryHeap"><code
 <span class="comment">// to each node. This implementation isn&#39;t memory-efficient as it may leave duplicate</span>
 <span class="comment">// nodes in the queue. It also uses `usize::MAX` as a sentinel value,</span>
 <span class="comment">// for a simpler implementation.</span>
-<span class="kw">fn</span> <span class="ident">shortest_path</span>(<span class="ident">adj_list</span>: <span class="kw-2">&amp;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Edge</span><span class="op">&gt;</span><span class="op">&gt;</span>, <span class="ident">start</span>: <span class="ident">usize</span>, <span class="ident">goal</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">shortest_path</span>(<span class="ident">adj_list</span>: <span class="kw-2">&amp;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Edge</span><span class="op">&gt;</span><span class="op">&gt;</span>, <span class="ident">start</span>: <span class="ident">usize</span>, <span class="ident">goal</span>: <span class="ident">usize</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
     <span class="comment">// dist[node] = current shortest distance from `start` to `node`</span>
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">dist</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> (<span class="number">0</span>..<span class="ident">adj_list</span>.<span class="ident">len</span>()).<span class="ident">map</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">usize::MAX</span>).<span class="ident">collect</span>();
 
@@ -63,7 +63,7 @@ It shows how to use <a href="../struct.BinaryHeap.html" title="BinaryHeap"><code
     <span class="comment">// Examine the frontier with lower cost nodes first (min-heap)</span>
     <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">State</span> { <span class="ident">cost</span>, <span class="ident">position</span> }) <span class="op">=</span> <span class="ident">heap</span>.<span class="ident">pop</span>() {
         <span class="comment">// Alternatively we could have continued to find all shortest paths</span>
-        <span class="kw">if</span> <span class="ident">position</span> <span class="op">=</span><span class="op">=</span> <span class="ident">goal</span> { <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="ident">cost</span>); }
+        <span class="kw">if</span> <span class="ident">position</span> <span class="op">==</span> <span class="ident">goal</span> { <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="ident">cost</span>); }
 
         <span class="comment">// Important as we may have already found a better way</span>
         <span class="kw">if</span> <span class="ident">cost</span> <span class="op">&gt;</span> <span class="ident">dist</span>[<span class="ident">position</span>] { <span class="kw">continue</span>; }
@@ -131,13 +131,13 @@ It shows how to use <a href="../struct.BinaryHeap.html" title="BinaryHeap"><code
     <span class="macro">assert_eq!</span>(<span class="ident">shortest_path</span>(<span class="kw-2">&amp;</span><span class="ident">graph</span>, <span class="number">4</span>, <span class="number">0</span>), <span class="prelude-val">None</span>);
 }</code></pre></div>
 </div></details><h2 id="structs" class="section-header"><a href="#structs">Structs</a></h2>
-<div class="item-table"><div class="item-left unstable module-item"><a class="struct" href="struct.DrainSorted.html" title="nom::lib::std::collections::binary_heap::DrainSorted struct">DrainSorted</a><span class="stab unstable" title="">Experimental</span></div><div class="item-right docblock-short"><p>A draining iterator over the elements of a <code>BinaryHeap</code>.</p>
-</div><div class="item-left unstable module-item"><a class="struct" href="struct.IntoIterSorted.html" title="nom::lib::std::collections::binary_heap::IntoIterSorted struct">IntoIterSorted</a><span class="stab unstable" title="">Experimental</span></div><div class="item-right docblock-short"></div><div class="item-left module-item"><a class="struct" href="struct.BinaryHeap.html" title="nom::lib::std::collections::binary_heap::BinaryHeap struct">BinaryHeap</a></div><div class="item-right docblock-short"><p>A priority queue implemented with a binary heap.</p>
-</div><div class="item-left module-item"><a class="struct" href="struct.Drain.html" title="nom::lib::std::collections::binary_heap::Drain struct">Drain</a></div><div class="item-right docblock-short"><p>A draining iterator over the elements of a <code>BinaryHeap</code>.</p>
-</div><div class="item-left module-item"><a class="struct" href="struct.IntoIter.html" title="nom::lib::std::collections::binary_heap::IntoIter struct">IntoIter</a></div><div class="item-right docblock-short"><p>An owning iterator over the elements of a <code>BinaryHeap</code>.</p>
-</div><div class="item-left module-item"><a class="struct" href="struct.Iter.html" title="nom::lib::std::collections::binary_heap::Iter struct">Iter</a></div><div class="item-right docblock-short"><p>An iterator over the elements of a <code>BinaryHeap</code>.</p>
-</div><div class="item-left module-item"><a class="struct" href="struct.PeekMut.html" title="nom::lib::std::collections::binary_heap::PeekMut struct">PeekMut</a></div><div class="item-right docblock-short"><p>Structure wrapping a mutable reference to the greatest item on a
+<div class="item-table"><div class="item-row"><div class="item-left unstable module-item"><a class="struct" href="struct.DrainSorted.html" title="nom::lib::std::collections::binary_heap::DrainSorted struct">DrainSorted</a><span class="stab unstable" title="">Experimental</span></div><div class="item-right docblock-short"><p>A draining iterator over the elements of a <code>BinaryHeap</code>.</p>
+</div></div><div class="item-row"><div class="item-left unstable module-item"><a class="struct" href="struct.IntoIterSorted.html" title="nom::lib::std::collections::binary_heap::IntoIterSorted struct">IntoIterSorted</a><span class="stab unstable" title="">Experimental</span></div><div class="item-right docblock-short"></div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.BinaryHeap.html" title="nom::lib::std::collections::binary_heap::BinaryHeap struct">BinaryHeap</a></div><div class="item-right docblock-short"><p>A priority queue implemented with a binary heap.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.Drain.html" title="nom::lib::std::collections::binary_heap::Drain struct">Drain</a></div><div class="item-right docblock-short"><p>A draining iterator over the elements of a <code>BinaryHeap</code>.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.IntoIter.html" title="nom::lib::std::collections::binary_heap::IntoIter struct">IntoIter</a></div><div class="item-right docblock-short"><p>An owning iterator over the elements of a <code>BinaryHeap</code>.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.Iter.html" title="nom::lib::std::collections::binary_heap::Iter struct">Iter</a></div><div class="item-right docblock-short"><p>An iterator over the elements of a <code>BinaryHeap</code>.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.PeekMut.html" title="nom::lib::std::collections::binary_heap::PeekMut struct">PeekMut</a></div><div class="item-right docblock-short"><p>Structure wrapping a mutable reference to the greatest item on a
 <code>BinaryHeap</code>.</p>
-</div></div></section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../../../../" data-current-crate="nom" data-search-index-js="../../../../../search-index.js" data-search-js="../../../../../search.js"></div>
+</div></div></div></section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../../../../" data-current-crate="nom" data-search-index-js="../../../../../search-index.js" data-search-js="../../../../../search.js"></div>
     <script src="../../../../../main.js"></script>
 </body></html>

@@ -61,7 +61,7 @@
 
 <span class="kw">use</span> <a class="ident" href="../../src/tempfile/error.rs.html#22-27"><span class="kw">crate</span>::error::IoResultExt</a>;
 
-<span class="kw">fn</span> <span class="ident">tmpname</span>(<span class="ident">prefix</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsStr.html">OsStr</a>, <span class="ident">suffix</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsStr.html">OsStr</a>, <span class="ident">rand_len</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsString.html">OsString</a> {
+<span class="kw">fn</span> <span class="ident">tmpname</span>(<span class="ident">prefix</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsStr.html">OsStr</a>, <span class="ident">suffix</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsStr.html">OsStr</a>, <span class="ident">rand_len</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsString.html">OsString</a> {
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> <span class="ident">OsString::with_capacity</span>(<a class="ident" href="../../src/tempfile/util.rs.html#9">prefix</a>.<span class="ident">len</span>() <span class="op">+</span> <a class="ident" href="../../src/tempfile/util.rs.html#9">suffix</a>.<span class="ident">len</span>() <span class="op">+</span> <a class="ident" href="../../src/tempfile/util.rs.html#9">rand_len</a>);
     <a class="ident" href="../../src/tempfile/util.rs.html#10">buf</a>.<span class="ident">push</span>(<a class="ident" href="../../src/tempfile/util.rs.html#9">prefix</a>);
 
@@ -84,9 +84,9 @@
     <span class="ident">suffix</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsStr.html">OsStr</a>,
     <span class="ident">random_len</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
     <span class="ident">f</span>: <span class="ident">F</span>,
-) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io::Result</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>
+) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>
 <span class="kw">where</span>
-    <span class="ident">F</span>: <span class="ident">Fn</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/path/struct.PathBuf.html">PathBuf</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io::Result</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>,
+    <span class="ident">F</span>: <span class="ident">Fn</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/path/struct.PathBuf.html">PathBuf</a>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>,
 {
     <span class="kw">let</span> <span class="ident">num_retries</span> <span class="op">=</span> <span class="kw">if</span> <a class="ident" href="../../src/tempfile/util.rs.html#30">random_len</a> <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {
         <a class="ident" href="../../src/tempfile/lib.rs.html#132"><span class="kw">crate</span>::NUM_RETRIES</a>
@@ -97,8 +97,8 @@
     <span class="kw">for</span> <span class="kw">_</span> <span class="kw">in</span> <span class="number">0</span>..<a class="ident" href="../../src/tempfile/util.rs.html#36">num_retries</a> {
         <span class="kw">let</span> <span class="ident">path</span> <span class="op">=</span> <a class="ident" href="../../src/tempfile/util.rs.html#27">base</a>.<span class="ident">join</span>(<a class="ident" href="../../src/tempfile/util.rs.html#9">tmpname</a>(<a class="ident" href="../../src/tempfile/util.rs.html#28">prefix</a>, <a class="ident" href="../../src/tempfile/util.rs.html#29">suffix</a>, <a class="ident" href="../../src/tempfile/util.rs.html#30">random_len</a>));
         <span class="kw">return</span> <span class="kw">match</span> <a class="ident" href="../../src/tempfile/util.rs.html#31">f</a>(<a class="ident" href="../../src/tempfile/util.rs.html#43">path</a>) {
-            <span class="prelude-val">Err</span>(<span class="kw-2">ref</span> <span class="ident">e</span>) <span class="kw">if</span> <a class="ident" href="../../src/tempfile/util.rs.html#45">e</a>.<span class="ident">kind</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">io::ErrorKind::AlreadyExists</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">continue</span>,
-            <span class="ident">res</span> <span class="op">=</span><span class="op">&gt;</span> <a class="ident" href="../../src/tempfile/util.rs.html#46">res</a>,
+            <span class="prelude-val">Err</span>(<span class="kw-2">ref</span> <span class="ident">e</span>) <span class="kw">if</span> <a class="ident" href="../../src/tempfile/util.rs.html#45">e</a>.<span class="ident">kind</span>() <span class="op">==</span> <span class="ident">io::ErrorKind::AlreadyExists</span> =&gt; <span class="kw">continue</span>,
+            <span class="ident">res</span> =&gt; <a class="ident" href="../../src/tempfile/util.rs.html#46">res</a>,
         };
     }
 

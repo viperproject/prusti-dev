@@ -260,7 +260,7 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">RwLock</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
     <span class="doccomment">/// Creates a new `RwLock` initialized with `value`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">value</span>: <span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">RwLock</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">value</span>: <span class="ident">T</span>) -&gt; <span class="ident">RwLock</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
         <span class="comment">// The number of shards is a power of two so that the modulo operation in `read` becomes a</span>
         <span class="comment">// simple bitwise &quot;and&quot;.</span>
         <span class="kw">let</span> <span class="ident">num_shards</span> <span class="op">=</span> <span class="ident">num_cpus::get</span>().<span class="ident">next_power_of_two</span>();
@@ -282,7 +282,7 @@
     <span class="doccomment">/// or writers will acquire the lock first.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Returns an RAII guard which will release this thread&#39;s shared access once it is dropped.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">read</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">RwLockReadGuard</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">read</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">RwLockReadGuard</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
         <span class="comment">// Take the current thread index and map it to a shard index. Thread indices will tend to</span>
         <span class="comment">// distribute shards among threads equally, thus reducing contention due to read-locking.</span>
         <span class="kw">let</span> <span class="ident">shard_index</span> <span class="op">=</span> <a class="ident" href="../../src/tokio_reactor/sharded_rwlock.rs.html#157">thread_index</a>() <span class="op">&amp;</span> (<a class="self" href="../../src/tokio_reactor/sharded_rwlock.rs.html#68">self</a>.<span class="ident">shards</span>.<span class="ident">len</span>() <span class="op">-</span> <span class="number">1</span>);
@@ -301,7 +301,7 @@
     <span class="doccomment">/// the lock.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Returns an RAII guard which will drop the write access of this rwlock when dropped.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">write</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">RwLockWriteGuard</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">write</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">RwLockWriteGuard</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
         <span class="comment">// Write-lock each shard in succession.</span>
         <span class="kw">for</span> <a class="ident" href="../../src/tokio_reactor/sharded_rwlock.rs.html#89">shard</a> <span class="kw">in</span> <span class="kw-2">&amp;</span><a class="self" href="../../src/tokio_reactor/sharded_rwlock.rs.html#87">self</a>.<span class="ident">shards</span> {
             <span class="comment">// The write guard is forgotten, but the lock will be manually unlocked in `drop`.</span>
@@ -327,7 +327,7 @@
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.Deref.html">Deref</a> <span class="kw">for</span> <span class="ident">RwLockReadGuard</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span> {
     <span class="kw">type</span> <span class="ident">Target</span> <span class="op">=</span> <span class="ident">T</span>;
 
-    <span class="kw">fn</span> <span class="ident">deref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">T</span> {
+    <span class="kw">fn</span> <span class="ident">deref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">T</span> {
         <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">*</span><a class="self" href="../../src/tokio_reactor/sharded_rwlock.rs.html#113">self</a>.<span class="ident">parent</span>.<span class="ident">value</span>.<span class="ident">get</span>() }
     }
 }
@@ -354,13 +354,13 @@
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.Deref.html">Deref</a> <span class="kw">for</span> <span class="ident">RwLockWriteGuard</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span> {
     <span class="kw">type</span> <span class="ident">Target</span> <span class="op">=</span> <span class="ident">T</span>;
 
-    <span class="kw">fn</span> <span class="ident">deref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">T</span> {
+    <span class="kw">fn</span> <span class="ident">deref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">T</span> {
         <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">*</span><a class="self" href="../../src/tokio_reactor/sharded_rwlock.rs.html#140">self</a>.<span class="ident">parent</span>.<span class="ident">value</span>.<span class="ident">get</span>() }
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.DerefMut.html">DerefMut</a> <span class="kw">for</span> <span class="ident">RwLockWriteGuard</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">deref_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">T</span> {
+    <span class="kw">fn</span> <span class="ident">deref_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">T</span> {
         <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">*</span><a class="self" href="../../src/tokio_reactor/sharded_rwlock.rs.html#146">self</a>.<span class="ident">parent</span>.<span class="ident">value</span>.<span class="ident">get</span>() }
     }
 }
@@ -371,7 +371,7 @@
 <span class="doccomment">/// between 0 and the number of running threads, but there are no guarantees. During TLS teardown</span>
 <span class="doccomment">/// the associated index might change.</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">thread_index</span>() <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">thread_index</span>() -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
     <a class="ident" href="../../src/tokio_reactor/sharded_rwlock.rs.html#197-217">REGISTRATION</a>.<span class="ident">try_with</span>(<span class="op">|</span><span class="ident">reg</span><span class="op">|</span> <a class="ident" href="../../src/tokio_reactor/sharded_rwlock.rs.html#158">reg</a>.<span class="ident">index</span>).<span class="ident">unwrap_or</span>(<span class="number">0</span>)
 }
 
@@ -417,8 +417,8 @@
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">indices</span> <span class="op">=</span> <a class="ident" href="../../src/tokio_reactor/sharded_rwlock.rs.html#173-179">THREAD_INDICES</a>.<span class="ident">lock</span>().<span class="ident">unwrap</span>();
 
         <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../src/tokio_reactor/sharded_rwlock.rs.html#200">indices</a>.<span class="ident">free_list</span>.<span class="ident">pop</span>() {
-            <span class="prelude-val">Some</span>(<span class="ident">i</span>) <span class="op">=</span><span class="op">&gt;</span> <a class="ident" href="../../src/tokio_reactor/sharded_rwlock.rs.html#203">i</a>,
-            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="prelude-val">Some</span>(<span class="ident">i</span>) =&gt; <a class="ident" href="../../src/tokio_reactor/sharded_rwlock.rs.html#203">i</a>,
+            <span class="prelude-val">None</span> =&gt; {
                 <span class="kw">let</span> <span class="ident">i</span> <span class="op">=</span> <a class="ident" href="../../src/tokio_reactor/sharded_rwlock.rs.html#200">indices</a>.<span class="ident">next_index</span>;
                 <a class="ident" href="../../src/tokio_reactor/sharded_rwlock.rs.html#200">indices</a>.<span class="ident">next_index</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
                 <a class="ident" href="../../src/tokio_reactor/sharded_rwlock.rs.html#205">i</a>

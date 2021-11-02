@@ -1280,7 +1280,7 @@
         <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="ident">F::Item</span>;
         <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <span class="ident">F::Error</span>;
 
-        <span class="kw">fn</span> <span class="ident">poll</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
+        <span class="kw">fn</span> <span class="ident">poll</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
             (<span class="kw-2">*</span><span class="kw-2">*</span><a class="self" href="../../../src/futures/future/mod.rs.html#112">self</a>).<a class="ident" href="../../../src/futures/future/mod.rs.html#273">poll</a>()
         }
     }
@@ -1441,7 +1441,7 @@
     <span class="doccomment">/// This future may have failed to finish the computation, in which case</span>
     <span class="doccomment">/// the `Err` variant will be returned with an appropriate payload of an</span>
     <span class="doccomment">/// error.</span>
-    <span class="kw">fn</span> <span class="ident">poll</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span>;
+    <span class="kw">fn</span> <span class="ident">poll</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span>;
 
     <span class="doccomment">/// Block the current thread until this future is resolved.</span>
     <span class="doccomment">///</span>
@@ -1465,7 +1465,7 @@
     <span class="doccomment">/// This function does not attempt to catch panics. If the `poll` function</span>
     <span class="doccomment">/// of this future panics, panics will be propagated to the caller.</span>
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;use_std&quot;</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">wait</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">result::Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span>
+    <span class="kw">fn</span> <span class="ident">wait</span>(<span class="self">self</span>) -&gt; <span class="ident">result::Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span>
         <span class="kw">where</span> <span class="self">Self</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>
     {
         <a class="ident" href="../../../src/futures/task_impl/mod.rs.html#257">::executor::spawn</a>(<a class="self" href="../../../src/futures/future/mod.rs.html#297">self</a>).<a class="ident" href="../../../src/futures/task_impl/std/mod.rs.html#235">wait_future</a>()
@@ -1497,7 +1497,7 @@
                          local extension trait or function if needed, more \
                          details in https://github.com/rust-lang-nursery/futures-rs/issues/228&quot;</span>)]</span>
     <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">deprecated</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">boxed</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">BoxFuture</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span>
+    <span class="kw">fn</span> <span class="ident">boxed</span>(<span class="self">self</span>) -&gt; <span class="ident">BoxFuture</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span>
         <span class="kw">where</span> <span class="self">Self</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="op">+</span> <span class="lifetime">&#39;static</span>
     {
         <span class="ident">::std::boxed::Box::new</span>(<a class="self" href="../../../src/futures/future/mod.rs.html#329">self</a>)
@@ -1539,8 +1539,8 @@
     <span class="doccomment">/// let new_future = future.map(|x| x + 3);</span>
     <span class="doccomment">/// assert_eq!(new_future.wait(), Err(1));</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">fn</span> <span class="ident">map</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">U</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">f</span>: <span class="ident">F</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Map</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">F</span><span class="op">&gt;</span>
-        <span class="kw">where</span> <span class="ident">F</span>: <span class="ident">FnOnce</span>(<span class="ident"><span class="self">Self</span>::Item</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">U</span>,
+    <span class="kw">fn</span> <span class="ident">map</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">U</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">f</span>: <span class="ident">F</span>) -&gt; <span class="ident">Map</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">F</span><span class="op">&gt;</span>
+        <span class="kw">where</span> <span class="ident">F</span>: <span class="ident">FnOnce</span>(<span class="ident"><span class="self">Self</span>::Item</span>) -&gt; <span class="ident">U</span>,
               <span class="self">Self</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>,
     {
         <span class="ident">assert_future</span>::<span class="op">&lt;</span><span class="ident">U</span>, <span class="ident"><span class="self">Self</span>::Error</span>, <span class="kw">_</span><span class="op">&gt;</span>(<a class="ident" href="../../../src/futures/future/map.rs.html#13-14">map::new</a>(<a class="self" href="../../../src/futures/future/mod.rs.html#371">self</a>, <a class="ident" href="../../../src/futures/future/mod.rs.html#371">f</a>))
@@ -1579,8 +1579,8 @@
     <span class="doccomment">/// let new_future = future.map_err(|x| x + 3);</span>
     <span class="doccomment">/// assert_eq!(new_future.wait(), Ok(1));</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">fn</span> <span class="ident">map_err</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">E</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">f</span>: <span class="ident">F</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">MapErr</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">F</span><span class="op">&gt;</span>
-        <span class="kw">where</span> <span class="ident">F</span>: <span class="ident">FnOnce</span>(<span class="ident"><span class="self">Self</span>::Error</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">E</span>,
+    <span class="kw">fn</span> <span class="ident">map_err</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">E</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">f</span>: <span class="ident">F</span>) -&gt; <span class="ident">MapErr</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">F</span><span class="op">&gt;</span>
+        <span class="kw">where</span> <span class="ident">F</span>: <span class="ident">FnOnce</span>(<span class="ident"><span class="self">Self</span>::Error</span>) -&gt; <span class="ident">E</span>,
               <span class="self">Self</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>,
     {
         <span class="ident">assert_future</span>::<span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span>, <span class="ident">E</span>, <span class="kw">_</span><span class="op">&gt;</span>(<a class="ident" href="../../../src/futures/future/map_err.rs.html#13-14">map_err::new</a>(<a class="self" href="../../../src/futures/future/mod.rs.html#411">self</a>, <a class="ident" href="../../../src/futures/future/mod.rs.html#411">f</a>))
@@ -1609,7 +1609,7 @@
     <span class="doccomment">/// let future_with_err_u8 = future::err::&lt;(), u8&gt;(1);</span>
     <span class="doccomment">/// let future_with_err_u32 = future_with_err_u8.from_err::&lt;u32&gt;();</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">fn</span> <span class="ident">from_err</span><span class="op">&lt;</span><span class="ident">E</span>:<span class="ident">From</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">FromErr</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">E</span><span class="op">&gt;</span>
+    <span class="kw">fn</span> <span class="ident">from_err</span><span class="op">&lt;</span><span class="ident">E</span>:<span class="ident">From</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="self">self</span>) -&gt; <span class="ident">FromErr</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">E</span><span class="op">&gt;</span>
         <span class="kw">where</span> <span class="self">Self</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>,
     {
         <span class="ident">assert_future</span>::<span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span>, <span class="ident">E</span>, <span class="kw">_</span><span class="op">&gt;</span>(<a class="ident" href="../../../src/futures/future/from_err.rs.html#15-16">from_err::new</a>(<a class="self" href="../../../src/futures/future/mod.rs.html#441">self</a>))
@@ -1653,8 +1653,8 @@
     <span class="doccomment">///     }</span>
     <span class="doccomment">/// });</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">fn</span> <span class="ident">then</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">B</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">f</span>: <span class="ident">F</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Then</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">B</span>, <span class="ident">F</span><span class="op">&gt;</span>
-        <span class="kw">where</span> <span class="ident">F</span>: <span class="ident">FnOnce</span>(<span class="ident">result::Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">B</span>,
+    <span class="kw">fn</span> <span class="ident">then</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">B</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">f</span>: <span class="ident">F</span>) -&gt; <span class="ident">Then</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">B</span>, <span class="ident">F</span><span class="op">&gt;</span>
+        <span class="kw">where</span> <span class="ident">F</span>: <span class="ident">FnOnce</span>(<span class="ident">result::Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span>) -&gt; <span class="ident">B</span>,
               <span class="ident">B</span>: <a class="ident" href="../../../src/futures/future/mod.rs.html#1039-1050">IntoFuture</a>,
               <span class="self">Self</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>,
     {
@@ -1694,8 +1694,8 @@
     <span class="doccomment">///     panic!(&quot;should not be called in case of an error&quot;);</span>
     <span class="doccomment">/// });</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">fn</span> <span class="ident">and_then</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">B</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">f</span>: <span class="ident">F</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">AndThen</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">B</span>, <span class="ident">F</span><span class="op">&gt;</span>
-        <span class="kw">where</span> <span class="ident">F</span>: <span class="ident">FnOnce</span>(<span class="ident"><span class="self">Self</span>::Item</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">B</span>,
+    <span class="kw">fn</span> <span class="ident">and_then</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">B</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">f</span>: <span class="ident">F</span>) -&gt; <span class="ident">AndThen</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">B</span>, <span class="ident">F</span><span class="op">&gt;</span>
+        <span class="kw">where</span> <span class="ident">F</span>: <span class="ident">FnOnce</span>(<span class="ident"><span class="self">Self</span>::Item</span>) -&gt; <span class="ident">B</span>,
               <span class="ident">B</span>: <span class="ident">IntoFuture</span><span class="op">&lt;</span><span class="ident">Error</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span>,
               <span class="self">Self</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>,
     {
@@ -1735,8 +1735,8 @@
     <span class="doccomment">///     panic!(&quot;should not be called in case of success&quot;);</span>
     <span class="doccomment">/// });</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">fn</span> <span class="ident">or_else</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">B</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">f</span>: <span class="ident">F</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">OrElse</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">B</span>, <span class="ident">F</span><span class="op">&gt;</span>
-        <span class="kw">where</span> <span class="ident">F</span>: <span class="ident">FnOnce</span>(<span class="ident"><span class="self">Self</span>::Error</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">B</span>,
+    <span class="kw">fn</span> <span class="ident">or_else</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">B</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">f</span>: <span class="ident">F</span>) -&gt; <span class="ident">OrElse</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">B</span>, <span class="ident">F</span><span class="op">&gt;</span>
+        <span class="kw">where</span> <span class="ident">F</span>: <span class="ident">FnOnce</span>(<span class="ident"><span class="self">Self</span>::Error</span>) -&gt; <span class="ident">B</span>,
               <span class="ident">B</span>: <span class="ident">IntoFuture</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span>,
               <span class="self">Self</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>,
     {
@@ -1793,7 +1793,7 @@
     <span class="doccomment">///     }))</span>
     <span class="doccomment">/// }</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">fn</span> <span class="ident">select</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="ident">B</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Select</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">B::Future</span><span class="op">&gt;</span>
+    <span class="kw">fn</span> <span class="ident">select</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="ident">B</span>) -&gt; <span class="ident">Select</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">B::Future</span><span class="op">&gt;</span>
         <span class="kw">where</span> <span class="ident">B</span>: <span class="ident">IntoFuture</span><span class="op">&lt;</span><span class="ident">Item</span><span class="op">=</span><span class="ident"><span class="self">Self</span>::Item</span>, <span class="ident">Error</span><span class="op">=</span><span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span>,
               <span class="self">Self</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>,
     {
@@ -1839,7 +1839,7 @@
     <span class="doccomment">///     }))</span>
     <span class="doccomment">/// }</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">fn</span> <span class="ident">select2</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="ident">B</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Select2</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">B::Future</span><span class="op">&gt;</span>
+    <span class="kw">fn</span> <span class="ident">select2</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="ident">B</span>) -&gt; <span class="ident">Select2</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">B::Future</span><span class="op">&gt;</span>
         <span class="kw">where</span> <span class="ident">B</span>: <a class="ident" href="../../../src/futures/future/mod.rs.html#1039-1050">IntoFuture</a>, <span class="self">Self</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>
     {
         <a class="ident" href="../../../src/futures/future/select2.rs.html#16">select2::new</a>(<a class="self" href="../../../src/futures/future/mod.rs.html#671">self</a>, <a class="ident" href="../../../src/futures/future/mod.rs.html#671">other</a>.<a class="ident" href="../../../src/futures/future/mod.rs.html#1049">into_future</a>())
@@ -1884,7 +1884,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// assert_eq!(pair.wait(), Err(2));</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">fn</span> <span class="ident">join</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="ident">B</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Join</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">B::Future</span><span class="op">&gt;</span>
+    <span class="kw">fn</span> <span class="ident">join</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="ident">B</span>) -&gt; <span class="ident">Join</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">B::Future</span><span class="op">&gt;</span>
         <span class="kw">where</span> <span class="ident">B</span>: <span class="ident">IntoFuture</span><span class="op">&lt;</span><span class="ident">Error</span><span class="op">=</span><span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span>,
               <span class="self">Self</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>,
     {
@@ -1893,7 +1893,7 @@
     }
 
     <span class="doccomment">/// Same as `join`, but with more futures.</span>
-    <span class="kw">fn</span> <span class="ident">join3</span><span class="op">&lt;</span><span class="ident">B</span>, <span class="ident">C</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">b</span>: <span class="ident">B</span>, <span class="ident">c</span>: <span class="ident">C</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Join3</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">B::Future</span>, <span class="ident">C::Future</span><span class="op">&gt;</span>
+    <span class="kw">fn</span> <span class="ident">join3</span><span class="op">&lt;</span><span class="ident">B</span>, <span class="ident">C</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">b</span>: <span class="ident">B</span>, <span class="ident">c</span>: <span class="ident">C</span>) -&gt; <span class="ident">Join3</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">B::Future</span>, <span class="ident">C::Future</span><span class="op">&gt;</span>
         <span class="kw">where</span> <span class="ident">B</span>: <span class="ident">IntoFuture</span><span class="op">&lt;</span><span class="ident">Error</span><span class="op">=</span><span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span>,
               <span class="ident">C</span>: <span class="ident">IntoFuture</span><span class="op">&lt;</span><span class="ident">Error</span><span class="op">=</span><span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span>,
               <span class="self">Self</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>,
@@ -1903,7 +1903,7 @@
 
     <span class="doccomment">/// Same as `join`, but with more futures.</span>
     <span class="kw">fn</span> <span class="ident">join4</span><span class="op">&lt;</span><span class="ident">B</span>, <span class="ident">C</span>, <span class="ident">D</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">b</span>: <span class="ident">B</span>, <span class="ident">c</span>: <span class="ident">C</span>, <span class="ident">d</span>: <span class="ident">D</span>)
-                      <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Join4</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">B::Future</span>, <span class="ident">C::Future</span>, <span class="ident">D::Future</span><span class="op">&gt;</span>
+                      -&gt; <span class="ident">Join4</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">B::Future</span>, <span class="ident">C::Future</span>, <span class="ident">D::Future</span><span class="op">&gt;</span>
         <span class="kw">where</span> <span class="ident">B</span>: <span class="ident">IntoFuture</span><span class="op">&lt;</span><span class="ident">Error</span><span class="op">=</span><span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span>,
               <span class="ident">C</span>: <span class="ident">IntoFuture</span><span class="op">&lt;</span><span class="ident">Error</span><span class="op">=</span><span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span>,
               <span class="ident">D</span>: <span class="ident">IntoFuture</span><span class="op">&lt;</span><span class="ident">Error</span><span class="op">=</span><span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span>,
@@ -1914,7 +1914,7 @@
 
     <span class="doccomment">/// Same as `join`, but with more futures.</span>
     <span class="kw">fn</span> <span class="ident">join5</span><span class="op">&lt;</span><span class="ident">B</span>, <span class="ident">C</span>, <span class="ident">D</span>, <span class="ident">E</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">b</span>: <span class="ident">B</span>, <span class="ident">c</span>: <span class="ident">C</span>, <span class="ident">d</span>: <span class="ident">D</span>, <span class="ident">e</span>: <span class="ident">E</span>)
-                         <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Join5</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">B::Future</span>, <span class="ident">C::Future</span>, <span class="ident">D::Future</span>, <span class="ident">E::Future</span><span class="op">&gt;</span>
+                         -&gt; <span class="ident">Join5</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">B::Future</span>, <span class="ident">C::Future</span>, <span class="ident">D::Future</span>, <span class="ident">E::Future</span><span class="op">&gt;</span>
         <span class="kw">where</span> <span class="ident">B</span>: <span class="ident">IntoFuture</span><span class="op">&lt;</span><span class="ident">Error</span><span class="op">=</span><span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span>,
               <span class="ident">C</span>: <span class="ident">IntoFuture</span><span class="op">&lt;</span><span class="ident">Error</span><span class="op">=</span><span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span>,
               <span class="ident">D</span>: <span class="ident">IntoFuture</span><span class="op">&lt;</span><span class="ident">Error</span><span class="op">=</span><span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span>,
@@ -1946,7 +1946,7 @@
     <span class="doccomment">/// assert_eq!(Err(19), stream.poll());</span>
     <span class="doccomment">/// assert_eq!(Ok(Async::Ready(None)), stream.poll());</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">fn</span> <span class="ident">into_stream</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">IntoStream</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>
+    <span class="kw">fn</span> <span class="ident">into_stream</span>(<span class="self">self</span>) -&gt; <span class="ident">IntoStream</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>
         <span class="kw">where</span> <span class="self">Self</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>
     {
         <a class="ident" href="../../../src/futures/future/into_stream.rs.html#12">into_stream::new</a>(<a class="self" href="../../../src/futures/future/mod.rs.html#778">self</a>)
@@ -1988,7 +1988,7 @@
     <span class="doccomment">/// let future = nested_future.flatten();</span>
     <span class="doccomment">/// assert_eq!(future.wait(), Err(1));</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">fn</span> <span class="ident">flatten</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Flatten</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>
+    <span class="kw">fn</span> <span class="ident">flatten</span>(<span class="self">self</span>) -&gt; <span class="ident">Flatten</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>
         <span class="kw">where</span> <span class="ident"><span class="self">Self</span>::Item</span>: <a class="ident" href="../../../src/futures/future/mod.rs.html#1039-1050">IntoFuture</a>,
         <span class="op">&lt;</span><span class="op">&lt;</span><span class="self">Self</span> <span class="kw">as</span> <span class="ident">Future</span><span class="op">&gt;</span><span class="ident">::Item</span> <span class="kw">as</span> <span class="ident">IntoFuture</span><span class="op">&gt;</span><span class="ident">::Error</span>:
             <span class="ident">From</span><span class="op">&lt;</span><span class="op">&lt;</span><span class="self">Self</span> <span class="kw">as</span> <span class="ident">Future</span><span class="op">&gt;</span><span class="ident">::Error</span><span class="op">&gt;</span>,
@@ -2028,7 +2028,7 @@
     <span class="doccomment">/// assert_eq!(Ok(19), iter.next().unwrap());</span>
     <span class="doccomment">/// assert_eq!(None, iter.next());</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">fn</span> <span class="ident">flatten_stream</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">FlattenStream</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>
+    <span class="kw">fn</span> <span class="ident">flatten_stream</span>(<span class="self">self</span>) -&gt; <span class="ident">FlattenStream</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>
         <span class="kw">where</span> <span class="op">&lt;</span><span class="self">Self</span> <span class="kw">as</span> <span class="ident">Future</span><span class="op">&gt;</span><span class="ident">::Item</span>: <span class="ident">stream::Stream</span><span class="op">&lt;</span><span class="ident">Error</span><span class="op">=</span><span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span>,
               <span class="self">Self</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>
     {
@@ -2068,7 +2068,7 @@
     <span class="doccomment">/// assert_eq!(future.poll(), Ok(Async::Ready(2)));</span>
     <span class="doccomment">/// assert_eq!(future.poll(), Ok(Async::NotReady));</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">fn</span> <span class="ident">fuse</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Fuse</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>
+    <span class="kw">fn</span> <span class="ident">fuse</span>(<span class="self">self</span>) -&gt; <span class="ident">Fuse</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>
         <span class="kw">where</span> <span class="self">Self</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>
     {
         <span class="kw">let</span> <span class="ident">f</span> <span class="op">=</span> <a class="ident" href="../../../src/futures/future/fuse.rs.html#16">fuse::new</a>(<a class="self" href="../../../src/futures/future/mod.rs.html#900">self</a>);
@@ -2091,8 +2091,8 @@
     <span class="doccomment">/// let new_future = future.inspect(|&amp;x| println!(&quot;about to resolve: {}&quot;, x));</span>
     <span class="doccomment">/// assert_eq!(new_future.wait(), Ok(1));</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">fn</span> <span class="ident">inspect</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">f</span>: <span class="ident">F</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Inspect</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">F</span><span class="op">&gt;</span>
-        <span class="kw">where</span> <span class="ident">F</span>: <span class="ident">FnOnce</span>(<span class="kw-2">&amp;</span><span class="ident"><span class="self">Self</span>::Item</span>) <span class="op">-</span><span class="op">&gt;</span> (),
+    <span class="kw">fn</span> <span class="ident">inspect</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">f</span>: <span class="ident">F</span>) -&gt; <span class="ident">Inspect</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">F</span><span class="op">&gt;</span>
+        <span class="kw">where</span> <span class="ident">F</span>: <span class="ident">FnOnce</span>(<span class="kw-2">&amp;</span><span class="ident"><span class="self">Self</span>::Item</span>) -&gt; (),
               <span class="self">Self</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>,
     {
         <span class="ident">assert_future</span>::<span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span>, <span class="ident"><span class="self">Self</span>::Error</span>, <span class="kw">_</span><span class="op">&gt;</span>(<a class="ident" href="../../../src/futures/future/inspect.rs.html#13-15">inspect::new</a>(<a class="self" href="../../../src/futures/future/mod.rs.html#923">self</a>, <a class="ident" href="../../../src/futures/future/mod.rs.html#923">f</a>))
@@ -2130,7 +2130,7 @@
     <span class="doccomment">/// assert!(future.catch_unwind().wait().is_err());</span>
     <span class="doccomment">/// ```</span>
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;use_std&quot;</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">catch_unwind</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">CatchUnwind</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>
+    <span class="kw">fn</span> <span class="ident">catch_unwind</span>(<span class="self">self</span>) -&gt; <span class="ident">CatchUnwind</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>
         <span class="kw">where</span> <span class="self">Self</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/panic/unwind_safe/trait.UnwindSafe.html">::std::panic::UnwindSafe</a>
     {
         <a class="ident" href="../../../src/futures/future/catch_unwind.rs.html#16-17">catch_unwind::new</a>(<a class="self" href="../../../src/futures/future/mod.rs.html#962">self</a>)
@@ -2179,7 +2179,7 @@
     <span class="doccomment">/// join_handle.join().unwrap();</span>
     <span class="doccomment">/// ```</span>
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;use_std&quot;</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">shared</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Shared</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>
+    <span class="kw">fn</span> <span class="ident">shared</span>(<span class="self">self</span>) -&gt; <span class="ident">Shared</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>
         <span class="kw">where</span> <span class="self">Self</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>
     {
         <a class="ident" href="../../../src/futures/future/shared.rs.html#65">shared::new</a>(<a class="self" href="../../../src/futures/future/mod.rs.html#1011">self</a>)
@@ -2190,14 +2190,14 @@
     <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="ident">F::Item</span>;
     <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <span class="ident">F::Error</span>;
 
-    <span class="kw">fn</span> <span class="ident">poll</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">poll</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
         (<span class="kw-2">*</span><span class="kw-2">*</span><a class="self" href="../../../src/futures/future/mod.rs.html#1022">self</a>).<a class="ident" href="../../../src/futures/future/mod.rs.html#273">poll</a>()
     }
 }
 
 <span class="comment">// Just a helper function to ensure the futures we&#39;re returning all have the</span>
 <span class="comment">// right implementations.</span>
-<span class="kw">fn</span> <span class="ident">assert_future</span><span class="op">&lt;</span><span class="ident">A</span>, <span class="ident">B</span>, <span class="ident">F</span><span class="op">&gt;</span>(<span class="ident">t</span>: <span class="ident">F</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">F</span>
+<span class="kw">fn</span> <span class="ident">assert_future</span><span class="op">&lt;</span><span class="ident">A</span>, <span class="ident">B</span>, <span class="ident">F</span><span class="op">&gt;</span>(<span class="ident">t</span>: <span class="ident">F</span>) -&gt; <span class="ident">F</span>
     <span class="kw">where</span> <span class="ident">F</span>: <span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Item</span><span class="op">=</span><span class="ident">A</span>, <span class="ident">Error</span><span class="op">=</span><span class="ident">B</span><span class="op">&gt;</span>,
 {
     <a class="ident" href="../../../src/futures/future/mod.rs.html#1029">t</a>
@@ -2217,7 +2217,7 @@
     <span class="kw">type</span> <span class="ident">Error</span>;
 
     <span class="doccomment">/// Consumes this object and produces a future.</span>
-    <span class="kw">fn</span> <span class="ident">into_future</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::Future</span>;
+    <span class="kw">fn</span> <span class="ident">into_future</span>(<span class="self">self</span>) -&gt; <span class="ident"><span class="self">Self</span>::Future</span>;
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">F</span>: <a class="ident" href="../../../src/futures/future/mod.rs.html#178-1016">Future</a><span class="op">&gt;</span> <a class="ident" href="../../../src/futures/future/mod.rs.html#1039-1050">IntoFuture</a> <span class="kw">for</span> <span class="ident">F</span> {
@@ -2225,7 +2225,7 @@
     <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="ident">F::Item</span>;
     <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <span class="ident">F::Error</span>;
 
-    <span class="kw">fn</span> <span class="ident">into_future</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">F</span> {
+    <span class="kw">fn</span> <span class="ident">into_future</span>(<span class="self">self</span>) -&gt; <span class="ident">F</span> {
         <a class="self" href="../../../src/futures/future/mod.rs.html#1057">self</a>
     }
 }
@@ -2235,7 +2235,7 @@
     <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="ident">T</span>;
     <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <span class="ident">E</span>;
 
-    <span class="kw">fn</span> <span class="ident">into_future</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">FutureResult</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">E</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">into_future</span>(<span class="self">self</span>) -&gt; <span class="ident">FutureResult</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">E</span><span class="op">&gt;</span> {
         <a class="ident" href="../../../src/futures/future/result.rs.html#31">result</a>(<a class="self" href="../../../src/futures/future/mod.rs.html#1067">self</a>)
     }
 }
@@ -2252,7 +2252,7 @@
     <span class="kw">type</span> <span class="ident">Error</span>;
 
     <span class="doccomment">/// Consume the given value, beginning the conversion.</span>
-    <span class="kw">fn</span> <span class="ident">future_from</span>(<span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::Future</span>;
+    <span class="kw">fn</span> <span class="ident">future_from</span>(<span class="ident">T</span>) -&gt; <span class="ident"><span class="self">Self</span>::Future</span>;
 }
 
 <span class="doccomment">/// A trait for types which can spawn fresh futures.</span>
@@ -2284,7 +2284,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// The decision is left to the caller how to work with this form of error.</span>
     <span class="doccomment">/// The error returned transfers ownership of the future back to the caller.</span>
-    <span class="kw">fn</span> <span class="ident">execute</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">future</span>: <span class="ident">F</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">ExecuteError</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span><span class="op">&gt;</span>;
+    <span class="kw">fn</span> <span class="ident">execute</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">future</span>: <span class="ident">F</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">ExecuteError</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span><span class="op">&gt;</span>;
 }
 
 <span class="doccomment">/// Errors returned from the `Spawn::spawn` function.</span>
@@ -2313,7 +2313,7 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span> <span class="ident">ExecuteError</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span> {
     <span class="doccomment">/// Create a new `ExecuteError`</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">kind</span>: <a class="ident" href="../../../src/futures/future/mod.rs.html#1130-1141">ExecuteErrorKind</a>, <span class="ident">future</span>: <span class="ident">F</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ExecuteError</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">kind</span>: <a class="ident" href="../../../src/futures/future/mod.rs.html#1130-1141">ExecuteErrorKind</a>, <span class="ident">future</span>: <span class="ident">F</span>) -&gt; <span class="ident">ExecuteError</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span> {
         <a class="ident" href="../../../src/futures/future/mod.rs.html#1120-1123">ExecuteError</a> {
             <span class="ident">future</span>: <a class="ident" href="../../../src/futures/future/mod.rs.html#1145">future</a>,
             <span class="ident">kind</span>: <a class="ident" href="../../../src/futures/future/mod.rs.html#1145">kind</a>,
@@ -2321,22 +2321,22 @@
     }
 
     <span class="doccomment">/// Returns the associated reason for the error</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">kind</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="../../../src/futures/future/mod.rs.html#1130-1141">ExecuteErrorKind</a> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">kind</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="../../../src/futures/future/mod.rs.html#1130-1141">ExecuteErrorKind</a> {
         <a class="self" href="../../../src/futures/future/mod.rs.html#1153">self</a>.<span class="ident">kind</span>
     }
 
     <span class="doccomment">/// Consumes self and returns the original future that was spawned.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_future</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">F</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_future</span>(<span class="self">self</span>) -&gt; <span class="ident">F</span> {
         <a class="self" href="../../../src/futures/future/mod.rs.html#1158">self</a>.<span class="ident">future</span>
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <span class="ident">ExecuteError</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
         <span class="kw">match</span> <a class="self" href="../../../src/futures/future/mod.rs.html#1164">self</a>.<span class="ident">kind</span> {
-            <a class="ident" href="../../../src/futures/future/mod.rs.html#1133">ExecuteErrorKind::Shutdown</a> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;executor has shut down&quot;</span>.<span class="ident">fmt</span>(<a class="ident" href="../../../src/futures/future/mod.rs.html#1164">f</a>),
-            <a class="ident" href="../../../src/futures/future/mod.rs.html#1137">ExecuteErrorKind::NoCapacity</a> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;executor has no more capacity&quot;</span>.<span class="ident">fmt</span>(<a class="ident" href="../../../src/futures/future/mod.rs.html#1164">f</a>),
-            <a class="ident" href="../../../src/futures/future/mod.rs.html#1140">ExecuteErrorKind::__Nonexhaustive</a> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic!</span>(),
+            <a class="ident" href="../../../src/futures/future/mod.rs.html#1133">ExecuteErrorKind::Shutdown</a> =&gt; <span class="string">&quot;executor has shut down&quot;</span>.<span class="ident">fmt</span>(<a class="ident" href="../../../src/futures/future/mod.rs.html#1164">f</a>),
+            <a class="ident" href="../../../src/futures/future/mod.rs.html#1137">ExecuteErrorKind::NoCapacity</a> =&gt; <span class="string">&quot;executor has no more capacity&quot;</span>.<span class="ident">fmt</span>(<a class="ident" href="../../../src/futures/future/mod.rs.html#1164">f</a>),
+            <a class="ident" href="../../../src/futures/future/mod.rs.html#1140">ExecuteErrorKind::__Nonexhaustive</a> =&gt; <span class="macro">panic!</span>(),
         }
     }
 }

@@ -7,7 +7,7 @@ wrapped version of them.</p>
 <p>Also note that if both this and the second future have the same
 output type you can use the <code>Either::factor_first</code> method to
 conveniently extract out the value at the end.</p>
-<h1 id="examples" class="section-header"><a href="#examples">Examples</a></h1>
+<h2 id="examples" class="section-header"><a href="#examples">Examples</a></h2>
 <p>A simple example</p>
 
 <div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use</span> <span class="ident">futures</span>::{
@@ -30,27 +30,27 @@ conveniently extract out the value at the end.</p>
 <span class="macro">pin_mut!</span>(<span class="ident">future2</span>);
 
 <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">future::select</span>(<span class="ident">future1</span>, <span class="ident">future2</span>).<span class="kw">await</span> {
-    <span class="ident">Either::Left</span>((<span class="ident">value1</span>, <span class="kw">_</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">value1</span>,  <span class="comment">// `value1` is resolved from `future1`</span>
+    <span class="ident">Either::Left</span>((<span class="ident">value1</span>, <span class="kw">_</span>)) =&gt; <span class="ident">value1</span>,  <span class="comment">// `value1` is resolved from `future1`</span>
                                           <span class="comment">// `_` represents `future2`</span>
-    <span class="ident">Either::Right</span>((<span class="ident">value2</span>, <span class="kw">_</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">value2</span>, <span class="comment">// `value2` is resolved from `future2`</span>
+    <span class="ident">Either::Right</span>((<span class="ident">value2</span>, <span class="kw">_</span>)) =&gt; <span class="ident">value2</span>, <span class="comment">// `value2` is resolved from `future2`</span>
                                           <span class="comment">// `_` represents `future1`</span>
 };
 
-<span class="macro">assert!</span>(<span class="ident">value</span> <span class="op">=</span><span class="op">=</span> <span class="number">2</span>);</code></pre></div>
+<span class="macro">assert!</span>(<span class="ident">value</span> <span class="op">==</span> <span class="number">2</span>);</code></pre></div>
 <p>A more complex example</p>
 
 <div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use</span> <span class="ident">futures::future</span>::{<span class="self">self</span>, <span class="ident">Either</span>, <span class="ident">Future</span>, <span class="ident">FutureExt</span>};
 
 <span class="comment">// A poor-man&#39;s join implemented on top of select</span>
 
-<span class="kw">fn</span> <span class="ident">join</span><span class="op">&lt;</span><span class="ident">A</span>, <span class="ident">B</span><span class="op">&gt;</span>(<span class="ident">a</span>: <span class="ident">A</span>, <span class="ident">b</span>: <span class="ident">B</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw">impl</span> <span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Output</span><span class="op">=</span>(<span class="ident">A::Output</span>, <span class="ident">B::Output</span>)<span class="op">&gt;</span>
+<span class="kw">fn</span> <span class="ident">join</span><span class="op">&lt;</span><span class="ident">A</span>, <span class="ident">B</span><span class="op">&gt;</span>(<span class="ident">a</span>: <span class="ident">A</span>, <span class="ident">b</span>: <span class="ident">B</span>) -&gt; <span class="kw">impl</span> <span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Output</span><span class="op">=</span>(<span class="ident">A::Output</span>, <span class="ident">B::Output</span>)<span class="op">&gt;</span>
     <span class="kw">where</span> <span class="ident">A</span>: <span class="ident">Future</span> <span class="op">+</span> <span class="ident">Unpin</span>,
           <span class="ident">B</span>: <span class="ident">Future</span> <span class="op">+</span> <span class="ident">Unpin</span>,
 {
     <span class="ident">future::select</span>(<span class="ident">a</span>, <span class="ident">b</span>).<span class="ident">then</span>(<span class="op">|</span><span class="ident">either</span><span class="op">|</span> {
         <span class="kw">match</span> <span class="ident">either</span> {
-            <span class="ident">Either::Left</span>((<span class="ident">x</span>, <span class="ident">b</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">b</span>.<span class="ident">map</span>(<span class="kw">move</span> <span class="op">|</span><span class="ident">y</span><span class="op">|</span> (<span class="ident">x</span>, <span class="ident">y</span>)).<span class="ident">left_future</span>(),
-            <span class="ident">Either::Right</span>((<span class="ident">y</span>, <span class="ident">a</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">a</span>.<span class="ident">map</span>(<span class="kw">move</span> <span class="op">|</span><span class="ident">x</span><span class="op">|</span> (<span class="ident">x</span>, <span class="ident">y</span>)).<span class="ident">right_future</span>(),
+            <span class="ident">Either::Left</span>((<span class="ident">x</span>, <span class="ident">b</span>)) =&gt; <span class="ident">b</span>.<span class="ident">map</span>(<span class="kw">move</span> <span class="op">|</span><span class="ident">y</span><span class="op">|</span> (<span class="ident">x</span>, <span class="ident">y</span>)).<span class="ident">left_future</span>(),
+            <span class="ident">Either::Right</span>((<span class="ident">y</span>, <span class="ident">a</span>)) =&gt; <span class="ident">a</span>.<span class="ident">map</span>(<span class="kw">move</span> <span class="op">|</span><span class="ident">x</span><span class="op">|</span> (<span class="ident">x</span>, <span class="ident">y</span>)).<span class="ident">right_future</span>(),
         }
     })
 }</code></pre></div>

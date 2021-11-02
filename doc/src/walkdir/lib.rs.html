@@ -1295,10 +1295,10 @@ for entry in walker.filter_entry(|e| !is_hidden(e)) {
 <span class="doccomment">///</span>
 <span class="doccomment">/// [`Option&lt;Result&lt;_, _&gt;&gt;`]: https://doc.rust-lang.org/stable/std/option/enum.Option.html</span>
 <span class="macro">macro_rules!</span> <span class="ident">itry</span> {
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">e</span>:<span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> {
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">e</span>:<span class="ident">expr</span>) =&gt; {
         <span class="kw">match</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">e</span> {
-            <span class="prelude-val">Ok</span>(<span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">v</span>,
-            <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(<span class="ident">From::from</span>(<span class="ident">err</span>))),
+            <span class="prelude-val">Ok</span>(<span class="ident">v</span>) =&gt; <span class="ident">v</span>,
+            <span class="prelude-val">Err</span>(<span class="ident">err</span>) =&gt; <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(<span class="ident">From::from</span>(<span class="ident">err</span>))),
         }
     };
 }
@@ -1403,7 +1403,7 @@ for entry in walker.filter_entry(|e| !is_hidden(e)) {
     <span class="ident">max_depth</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
     <span class="ident">sorter</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span>
         <span class="ident">Box</span><span class="op">&lt;</span>
-            <span class="kw">dyn</span> <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/walkdir/dent.rs.html#35-59">DirEntry</a>, <span class="kw-2">&amp;</span><a class="ident" href="../../src/walkdir/dent.rs.html#35-59">DirEntry</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html">Ordering</a>
+            <span class="kw">dyn</span> <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/walkdir/dent.rs.html#35-59">DirEntry</a>, <span class="kw-2">&amp;</span><a class="ident" href="../../src/walkdir/dent.rs.html#35-59">DirEntry</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html">Ordering</a>
                 <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>
                 <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a>
                 <span class="op">+</span> <span class="lifetime">&#39;static</span>,
@@ -1417,7 +1417,7 @@ for entry in walker.filter_entry(|e| !is_hidden(e)) {
     <span class="kw">fn</span> <span class="ident">fmt</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">result::Result</span><span class="op">&lt;</span>(), <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/struct.Error.html">fmt::Error</a><span class="op">&gt;</span> {
+    ) -&gt; <span class="ident">result::Result</span><span class="op">&lt;</span>(), <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/struct.Error.html">fmt::Error</a><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">sorter_str</span> <span class="op">=</span> <span class="kw">if</span> <a class="self" href="../../src/walkdir/lib.rs.html#257">self</a>.<span class="ident">sorter</span>.<span class="ident">is_some</span>() {
             <span class="comment">// FnMut isn&#39;t `Debug`</span>
             <span class="string">&quot;Some(...)&quot;</span>
@@ -1444,7 +1444,7 @@ for entry in walker.filter_entry(|e| !is_hidden(e)) {
     <span class="doccomment">/// is always followed for the purposes of directory traversal. (A root</span>
     <span class="doccomment">/// `DirEntry` still obeys its documentation with respect to symlinks and</span>
     <span class="doccomment">/// the `follow_links` setting.)</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">P</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">Path</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">root</span>: <span class="ident">P</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">P</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">Path</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">root</span>: <span class="ident">P</span>) -&gt; <span class="self">Self</span> {
         <a class="ident" href="../../src/walkdir/lib.rs.html#233-236">WalkDir</a> {
             <span class="ident">opts</span>: <a class="ident" href="../../src/walkdir/lib.rs.html#238-253">WalkDirOptions</a> {
                 <span class="ident">follow_links</span>: <span class="bool-val">false</span>,
@@ -1464,7 +1464,7 @@ for entry in walker.filter_entry(|e| !is_hidden(e)) {
     <span class="doccomment">/// The smallest depth is `0` and always corresponds to the path given</span>
     <span class="doccomment">/// to the `new` function on this type. Its direct descendents have depth</span>
     <span class="doccomment">/// `1`, and their descendents have depth `2`, and so on.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">min_depth</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">depth</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">min_depth</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">depth</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="self">Self</span> {
         <a class="self" href="../../src/walkdir/lib.rs.html#306">self</a>.<span class="ident">opts</span>.<span class="ident">min_depth</span> <span class="op">=</span> <a class="ident" href="../../src/walkdir/lib.rs.html#306">depth</a>;
         <span class="kw">if</span> <a class="self" href="../../src/walkdir/lib.rs.html#306">self</a>.<span class="ident">opts</span>.<span class="ident">min_depth</span> <span class="op">&gt;</span> <a class="self" href="../../src/walkdir/lib.rs.html#306">self</a>.<span class="ident">opts</span>.<span class="ident">max_depth</span> {
             <a class="self" href="../../src/walkdir/lib.rs.html#306">self</a>.<span class="ident">opts</span>.<span class="ident">min_depth</span> <span class="op">=</span> <a class="self" href="../../src/walkdir/lib.rs.html#306">self</a>.<span class="ident">opts</span>.<span class="ident">max_depth</span>;
@@ -1481,7 +1481,7 @@ for entry in walker.filter_entry(|e| !is_hidden(e)) {
     <span class="doccomment">/// Note that this will not simply filter the entries of the iterator, but</span>
     <span class="doccomment">/// it will actually avoid descending into directories when the depth is</span>
     <span class="doccomment">/// exceeded.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">max_depth</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">depth</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">max_depth</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">depth</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="self">Self</span> {
         <a class="self" href="../../src/walkdir/lib.rs.html#323">self</a>.<span class="ident">opts</span>.<span class="ident">max_depth</span> <span class="op">=</span> <a class="ident" href="../../src/walkdir/lib.rs.html#323">depth</a>;
         <span class="kw">if</span> <a class="self" href="../../src/walkdir/lib.rs.html#323">self</a>.<span class="ident">opts</span>.<span class="ident">max_depth</span> <span class="op">&lt;</span> <a class="self" href="../../src/walkdir/lib.rs.html#323">self</a>.<span class="ident">opts</span>.<span class="ident">min_depth</span> {
             <a class="self" href="../../src/walkdir/lib.rs.html#323">self</a>.<span class="ident">opts</span>.<span class="ident">max_depth</span> <span class="op">=</span> <a class="self" href="../../src/walkdir/lib.rs.html#323">self</a>.<span class="ident">opts</span>.<span class="ident">min_depth</span>;
@@ -1500,7 +1500,7 @@ for entry in walker.filter_entry(|e| !is_hidden(e)) {
     <span class="doccomment">/// type for more details.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// [`DirEntry`]: struct.DirEntry.html</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">follow_links</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">yes</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">follow_links</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">yes</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="self">Self</span> {
         <a class="self" href="../../src/walkdir/lib.rs.html#342">self</a>.<span class="ident">opts</span>.<span class="ident">follow_links</span> <span class="op">=</span> <a class="ident" href="../../src/walkdir/lib.rs.html#342">yes</a>;
         <a class="self" href="../../src/walkdir/lib.rs.html#342">self</a>
     }
@@ -1530,8 +1530,8 @@ for entry in walker.filter_entry(|e| !is_hidden(e)) {
     <span class="doccomment">/// On Windows, if `follow_links` is enabled, then this limit is not</span>
     <span class="doccomment">/// respected. In particular, the maximum number of file descriptors opened</span>
     <span class="doccomment">/// is proportional to the depth of the directory tree traversed.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">max_open</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="kw-2">mut</span> <span class="ident">n</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="kw">if</span> <a class="ident" href="../../src/walkdir/lib.rs.html#372">n</a> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">max_open</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="kw-2">mut</span> <span class="ident">n</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="self">Self</span> {
+        <span class="kw">if</span> <a class="ident" href="../../src/walkdir/lib.rs.html#372">n</a> <span class="op">==</span> <span class="number">0</span> {
             <a class="ident" href="../../src/walkdir/lib.rs.html#372">n</a> <span class="op">=</span> <span class="number">1</span>;
         }
         <a class="self" href="../../src/walkdir/lib.rs.html#372">self</a>.<span class="ident">opts</span>.<span class="ident">max_open</span> <span class="op">=</span> <a class="ident" href="../../src/walkdir/lib.rs.html#372">n</a>;
@@ -1552,9 +1552,9 @@ for entry in walker.filter_entry(|e| !is_hidden(e)) {
     <span class="doccomment">///</span>
     <span class="doccomment">/// WalkDir::new(&quot;foo&quot;).sort_by(|a,b| a.file_name().cmp(b.file_name()));</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">sort_by</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">cmp</span>: <span class="ident">F</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">sort_by</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">cmp</span>: <span class="ident">F</span>) -&gt; <span class="self">Self</span>
     <span class="kw">where</span>
-        <span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/walkdir/dent.rs.html#35-59">DirEntry</a>, <span class="kw-2">&amp;</span><a class="ident" href="../../src/walkdir/dent.rs.html#35-59">DirEntry</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html">Ordering</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
+        <span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/walkdir/dent.rs.html#35-59">DirEntry</a>, <span class="kw-2">&amp;</span><a class="ident" href="../../src/walkdir/dent.rs.html#35-59">DirEntry</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html">Ordering</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
     {
         <a class="self" href="../../src/walkdir/lib.rs.html#394">self</a>.<span class="ident">opts</span>.<span class="ident">sorter</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">Box::new</span>(<a class="ident" href="../../src/walkdir/lib.rs.html#394">cmp</a>));
         <a class="self" href="../../src/walkdir/lib.rs.html#394">self</a>
@@ -1574,9 +1574,9 @@ for entry in walker.filter_entry(|e| !is_hidden(e)) {
     <span class="doccomment">///</span>
     <span class="doccomment">/// WalkDir::new(&quot;foo&quot;).sort_by_key(|a| a.file_name().to_owned());</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">sort_by_key</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">F</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="kw-2">mut</span> <span class="ident">cmp</span>: <span class="ident">F</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">sort_by_key</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">F</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="kw-2">mut</span> <span class="ident">cmp</span>: <span class="ident">F</span>) -&gt; <span class="self">Self</span>
     <span class="kw">where</span>
-        <span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/walkdir/dent.rs.html#35-59">DirEntry</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">K</span> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
+        <span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/walkdir/dent.rs.html#35-59">DirEntry</a>) -&gt; <span class="ident">K</span> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
         <span class="ident">K</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html">Ord</a>,
     {
         <a class="self" href="../../src/walkdir/lib.rs.html#416">self</a>.<a class="ident" href="../../src/walkdir/lib.rs.html#394-396">sort_by</a>(<span class="kw">move</span> <span class="op">|</span><span class="ident">a</span>, <span class="ident">b</span><span class="op">|</span> <a class="ident" href="../../src/walkdir/lib.rs.html#416">cmp</a>(<a class="ident" href="../../src/walkdir/lib.rs.html#421">a</a>).<span class="ident">cmp</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/walkdir/lib.rs.html#416">cmp</a>(<a class="ident" href="../../src/walkdir/lib.rs.html#421">b</a>)))
@@ -1591,7 +1591,7 @@ for entry in walker.filter_entry(|e| !is_hidden(e)) {
     <span class="doccomment">///</span>
     <span class="doccomment">/// WalkDir::new(&quot;foo&quot;).sort_by_file_name();</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">sort_by_file_name</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">sort_by_file_name</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span> {
         <a class="self" href="../../src/walkdir/lib.rs.html#433">self</a>.<a class="ident" href="../../src/walkdir/lib.rs.html#394-396">sort_by</a>(<span class="op">|</span><span class="ident">a</span>, <span class="ident">b</span><span class="op">|</span> <a class="ident" href="../../src/walkdir/lib.rs.html#434">a</a>.<a class="ident" href="../../src/walkdir/dent.rs.html#166">file_name</a>().<span class="ident">cmp</span>(<a class="ident" href="../../src/walkdir/lib.rs.html#434">b</a>.<a class="ident" href="../../src/walkdir/dent.rs.html#166">file_name</a>()))
     }
 
@@ -1652,7 +1652,7 @@ for entry in walker.filter_entry(|e| !is_hidden(e)) {
     <span class="doccomment">/// // foo/def</span>
     <span class="doccomment">/// // foo</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">contents_first</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">yes</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">contents_first</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">yes</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="self">Self</span> {
         <a class="self" href="../../src/walkdir/lib.rs.html#494">self</a>.<span class="ident">opts</span>.<span class="ident">contents_first</span> <span class="op">=</span> <a class="ident" href="../../src/walkdir/lib.rs.html#494">yes</a>;
         <a class="self" href="../../src/walkdir/lib.rs.html#494">self</a>
     }
@@ -1665,7 +1665,7 @@ for entry in walker.filter_entry(|e| !is_hidden(e)) {
     <span class="doccomment">/// Currently, this option is only supported on Unix and Windows. If this</span>
     <span class="doccomment">/// option is used on an unsupported platform, then directory traversal</span>
     <span class="doccomment">/// will immediately return an error and will not yield any entries.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">same_file_system</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">yes</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">same_file_system</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">yes</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="self">Self</span> {
         <a class="self" href="../../src/walkdir/lib.rs.html#507">self</a>.<span class="ident">opts</span>.<span class="ident">same_file_system</span> <span class="op">=</span> <a class="ident" href="../../src/walkdir/lib.rs.html#507">yes</a>;
         <a class="self" href="../../src/walkdir/lib.rs.html#507">self</a>
     }
@@ -1675,7 +1675,7 @@ for entry in walker.filter_entry(|e| !is_hidden(e)) {
     <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/walkdir/dent.rs.html#35-59">DirEntry</a><span class="op">&gt;</span>;
     <span class="kw">type</span> <span class="ident">IntoIter</span> <span class="op">=</span> <a class="ident" href="../../src/walkdir/lib.rs.html#543-583">IntoIter</a>;
 
-    <span class="kw">fn</span> <span class="ident">into_iter</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="../../src/walkdir/lib.rs.html#543-583">IntoIter</a> {
+    <span class="kw">fn</span> <span class="ident">into_iter</span>(<span class="self">self</span>) -&gt; <a class="ident" href="../../src/walkdir/lib.rs.html#543-583">IntoIter</a> {
         <a class="ident" href="../../src/walkdir/lib.rs.html#543-583">IntoIter</a> {
             <span class="ident">opts</span>: <a class="self" href="../../src/walkdir/lib.rs.html#517">self</a>.<span class="ident">opts</span>,
             <span class="ident">start</span>: <span class="prelude-val">Some</span>(<a class="self" href="../../src/walkdir/lib.rs.html#517">self</a>.<span class="ident">root</span>),
@@ -1760,29 +1760,29 @@ for entry in walker.filter_entry(|e| !is_hidden(e)) {
 <span class="kw">impl</span> <a class="ident" href="../../src/walkdir/lib.rs.html#588-597">Ancestor</a> {
     <span class="doccomment">/// Create a new ancestor from the given directory path.</span>
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">windows</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">dent</span>: <span class="kw-2">&amp;</span><span class="ident">DirEntry</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io::Result</span><span class="op">&lt;</span><span class="ident">Ancestor</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">dent</span>: <span class="kw-2">&amp;</span><span class="ident">DirEntry</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><span class="ident">Ancestor</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">handle</span> <span class="op">=</span> <span class="ident">Handle::from_path</span>(<span class="ident">dent</span>.<span class="ident">path</span>())<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(<span class="ident">Ancestor</span> { <span class="ident">path</span>: <span class="ident">dent</span>.<span class="ident">path</span>().<span class="ident">to_path_buf</span>(), <span class="ident">handle</span>: <span class="ident">handle</span> })
     }
 
     <span class="doccomment">/// Create a new ancestor from the given directory path.</span>
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">windows</span>))]</span>
-    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">dent</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/walkdir/dent.rs.html#35-59">DirEntry</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="../../src/walkdir/lib.rs.html#588-597">Ancestor</a><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">dent</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/walkdir/dent.rs.html#35-59">DirEntry</a>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="../../src/walkdir/lib.rs.html#588-597">Ancestor</a><span class="op">&gt;</span> {
         <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/walkdir/lib.rs.html#588-597">Ancestor</a> { <span class="ident">path</span>: <a class="ident" href="../../src/walkdir/lib.rs.html#609">dent</a>.<a class="ident" href="../../src/walkdir/dent.rs.html#77">path</a>().<span class="ident">to_path_buf</span>() })
     }
 
     <span class="doccomment">/// Returns true if and only if the given open file handle corresponds to</span>
     <span class="doccomment">/// the same directory as this ancestor.</span>
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">windows</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">is_same</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">child</span>: <span class="kw-2">&amp;</span><span class="ident">Handle</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io::Result</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span> {
-        <span class="prelude-val">Ok</span>(<span class="ident">child</span> <span class="op">=</span><span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">handle</span>)
+    <span class="kw">fn</span> <span class="ident">is_same</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">child</span>: <span class="kw-2">&amp;</span><span class="ident">Handle</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span> {
+        <span class="prelude-val">Ok</span>(<span class="ident">child</span> <span class="op">==</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">handle</span>)
     }
 
     <span class="doccomment">/// Returns true if and only if the given open file handle corresponds to</span>
     <span class="doccomment">/// the same directory as this ancestor.</span>
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">windows</span>))]</span>
-    <span class="kw">fn</span> <span class="ident">is_same</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">child</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../same_file/struct.Handle.html">Handle</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a><span class="op">&gt;</span> {
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/walkdir/lib.rs.html#623">child</a> <span class="op">=</span><span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">Handle::from_path</span>(<span class="kw-2">&amp;</span><a class="self" href="../../src/walkdir/lib.rs.html#623">self</a>.<span class="ident">path</span>)<span class="question-mark">?</span>)
+    <span class="kw">fn</span> <span class="ident">is_same</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">child</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../same_file/struct.Handle.html">Handle</a>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a><span class="op">&gt;</span> {
+        <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/walkdir/lib.rs.html#623">child</a> <span class="op">==</span> <span class="kw-2">&amp;</span><span class="ident">Handle::from_path</span>(<span class="kw-2">&amp;</span><a class="self" href="../../src/walkdir/lib.rs.html#623">self</a>.<span class="ident">path</span>)<span class="question-mark">?</span>)
     }
 }
 
@@ -1822,7 +1822,7 @@ for entry in walker.filter_entry(|e| !is_hidden(e)) {
     <span class="doccomment">///</span>
     <span class="doccomment">/// If the iterator fails to retrieve the next value, this method returns</span>
     <span class="doccomment">/// an error value. The error will be wrapped in an Option::Some.</span>
-    <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/walkdir/dent.rs.html#35-59">DirEntry</a><span class="op">&gt;</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/walkdir/dent.rs.html#35-59">DirEntry</a><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">start</span>) <span class="op">=</span> <a class="self" href="../../src/walkdir/lib.rs.html#664">self</a>.<span class="ident">start</span>.<span class="ident">take</span>() {
             <span class="kw">if</span> <a class="self" href="../../src/walkdir/lib.rs.html#664">self</a>.<span class="ident">opts</span>.<span class="ident">same_file_system</span> {
                 <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <a class="ident" href="../../src/walkdir/util.rs.html#5">util::device_num</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/walkdir/lib.rs.html#665">start</a>)
@@ -1853,9 +1853,9 @@ for entry in walker.filter_entry(|e| !is_hidden(e)) {
                 .<span class="ident">expect</span>(<span class="string">&quot;BUG: stack should be non-empty&quot;</span>)
                 .<span class="ident">next</span>();
             <span class="kw">match</span> <a class="ident" href="../../src/walkdir/lib.rs.html#689">next</a> {
-                <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <a class="self" href="../../src/walkdir/lib.rs.html#664">self</a>.<a class="ident" href="../../src/walkdir/lib.rs.html#924">pop</a>(),
-                <span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(<span class="ident">err</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(<a class="ident" href="../../src/walkdir/lib.rs.html#696">err</a>)),
-                <span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(<span class="ident">dent</span>)) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="prelude-val">None</span> =&gt; <a class="self" href="../../src/walkdir/lib.rs.html#664">self</a>.<a class="ident" href="../../src/walkdir/lib.rs.html#924">pop</a>(),
+                <span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(<span class="ident">err</span>)) =&gt; <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(<a class="ident" href="../../src/walkdir/lib.rs.html#696">err</a>)),
+                <span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(<span class="ident">dent</span>)) =&gt; {
                     <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">result</span>) <span class="op">=</span> <a class="self" href="../../src/walkdir/lib.rs.html#664">self</a>.<a class="ident" href="../../src/walkdir/lib.rs.html#817-820">handle_entry</a>(<a class="ident" href="../../src/walkdir/lib.rs.html#697">dent</a>) {
                         <span class="kw">return</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../src/walkdir/lib.rs.html#698">result</a>);
                     }
@@ -1968,9 +1968,9 @@ for entry in walker.filter_entry(|e| !is_hidden(e)) {
     <span class="doccomment">/// [`skip_current_dir`]: #method.skip_current_dir</span>
     <span class="doccomment">/// [`min_depth`]: struct.WalkDir.html#method.min_depth</span>
     <span class="doccomment">/// [`max_depth`]: struct.WalkDir.html#method.max_depth</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">filter_entry</span><span class="op">&lt;</span><span class="ident">P</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">predicate</span>: <span class="ident">P</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">FilterEntry</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">P</span><span class="op">&gt;</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">filter_entry</span><span class="op">&lt;</span><span class="ident">P</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">predicate</span>: <span class="ident">P</span>) -&gt; <span class="ident">FilterEntry</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">P</span><span class="op">&gt;</span>
     <span class="kw">where</span>
-        <span class="ident">P</span>: <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/walkdir/dent.rs.html#35-59">DirEntry</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+        <span class="ident">P</span>: <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/walkdir/dent.rs.html#35-59">DirEntry</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
     {
         <a class="ident" href="../../src/walkdir/lib.rs.html#1027-1030">FilterEntry</a> { <span class="ident">it</span>: <a class="self" href="../../src/walkdir/lib.rs.html#810">self</a>, <span class="ident">predicate</span>: <a class="ident" href="../../src/walkdir/lib.rs.html#810">predicate</a> }
     }
@@ -1978,7 +1978,7 @@ for entry in walker.filter_entry(|e| !is_hidden(e)) {
     <span class="kw">fn</span> <span class="ident">handle_entry</span>(
         <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
         <span class="kw-2">mut</span> <span class="ident">dent</span>: <a class="ident" href="../../src/walkdir/dent.rs.html#35-59">DirEntry</a>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/walkdir/dent.rs.html#35-59">DirEntry</a><span class="op">&gt;</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/walkdir/dent.rs.html#35-59">DirEntry</a><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <a class="self" href="../../src/walkdir/lib.rs.html#818">self</a>.<span class="ident">opts</span>.<span class="ident">follow_links</span> <span class="op">&amp;&amp;</span> <a class="ident" href="../../src/walkdir/lib.rs.html#819">dent</a>.<a class="ident" href="../../src/walkdir/dent.rs.html#158">file_type</a>().<span class="ident">is_symlink</span>() {
             <a class="ident" href="../../src/walkdir/lib.rs.html#819">dent</a> <span class="op">=</span> <span class="macro">itry!</span>(<a class="self" href="../../src/walkdir/lib.rs.html#818">self</a>.<a class="ident" href="../../src/walkdir/lib.rs.html#935">follow</a>(<a class="ident" href="../../src/walkdir/lib.rs.html#819">dent</a>));
         }
@@ -1991,7 +1991,7 @@ for entry in walker.filter_entry(|e| !is_hidden(e)) {
             } <span class="kw">else</span> {
                 <span class="macro">itry!</span>(<a class="self" href="../../src/walkdir/lib.rs.html#818">self</a>.<a class="ident" href="../../src/walkdir/lib.rs.html#875">push</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/walkdir/lib.rs.html#819">dent</a>));
             }
-        } <span class="kw">else</span> <span class="kw">if</span> <a class="ident" href="../../src/walkdir/lib.rs.html#819">dent</a>.<a class="ident" href="../../src/walkdir/dent.rs.html#175">depth</a>() <span class="op">=</span><span class="op">=</span> <span class="number">0</span> <span class="op">&amp;&amp;</span> <a class="ident" href="../../src/walkdir/lib.rs.html#819">dent</a>.<a class="ident" href="../../src/walkdir/dent.rs.html#158">file_type</a>().<span class="ident">is_symlink</span>() {
+        } <span class="kw">else</span> <span class="kw">if</span> <a class="ident" href="../../src/walkdir/lib.rs.html#819">dent</a>.<a class="ident" href="../../src/walkdir/dent.rs.html#175">depth</a>() <span class="op">==</span> <span class="number">0</span> <span class="op">&amp;&amp;</span> <a class="ident" href="../../src/walkdir/lib.rs.html#819">dent</a>.<a class="ident" href="../../src/walkdir/dent.rs.html#158">file_type</a>().<span class="ident">is_symlink</span>() {
             <span class="comment">// As a special case, if we are processing a root entry, then we</span>
             <span class="comment">// always follow it even if it&#39;s a symlink and follow_links is</span>
             <span class="comment">// false. We are careful to not let this change the semantics of</span>
@@ -2016,7 +2016,7 @@ for entry in walker.filter_entry(|e| !is_hidden(e)) {
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">get_deferred_dir</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../src/walkdir/dent.rs.html#35-59">DirEntry</a><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">get_deferred_dir</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../src/walkdir/dent.rs.html#35-59">DirEntry</a><span class="op">&gt;</span> {
         <span class="kw">if</span> <a class="self" href="../../src/walkdir/lib.rs.html#858">self</a>.<span class="ident">opts</span>.<span class="ident">contents_first</span> {
             <span class="kw">if</span> <a class="self" href="../../src/walkdir/lib.rs.html#858">self</a>.<span class="ident">depth</span> <span class="op">&lt;</span> <a class="self" href="../../src/walkdir/lib.rs.html#858">self</a>.<span class="ident">deferred_dirs</span>.<span class="ident">len</span>() {
                 <span class="comment">// Unwrap is safe here because we&#39;ve guaranteed that</span>
@@ -2033,11 +2033,11 @@ for entry in walker.filter_entry(|e| !is_hidden(e)) {
         <span class="prelude-val">None</span>
     }
 
-    <span class="kw">fn</span> <span class="ident">push</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">dent</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/walkdir/dent.rs.html#35-59">DirEntry</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">push</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">dent</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/walkdir/dent.rs.html#35-59">DirEntry</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="comment">// Make room for another open file descriptor if we&#39;ve hit the max.</span>
         <span class="kw">let</span> <span class="ident">free</span> <span class="op">=</span>
             <a class="self" href="../../src/walkdir/lib.rs.html#875">self</a>.<span class="ident">stack_list</span>.<span class="ident">len</span>().<span class="ident">checked_sub</span>(<a class="self" href="../../src/walkdir/lib.rs.html#875">self</a>.<span class="ident">oldest_opened</span>).<span class="ident">unwrap</span>();
-        <span class="kw">if</span> <a class="ident" href="../../src/walkdir/lib.rs.html#877">free</a> <span class="op">=</span><span class="op">=</span> <a class="self" href="../../src/walkdir/lib.rs.html#875">self</a>.<span class="ident">opts</span>.<span class="ident">max_open</span> {
+        <span class="kw">if</span> <a class="ident" href="../../src/walkdir/lib.rs.html#877">free</a> <span class="op">==</span> <a class="self" href="../../src/walkdir/lib.rs.html#875">self</a>.<span class="ident">opts</span>.<span class="ident">max_open</span> {
             <a class="self" href="../../src/walkdir/lib.rs.html#875">self</a>.<span class="ident">stack_list</span>[<a class="self" href="../../src/walkdir/lib.rs.html#875">self</a>.<span class="ident">oldest_opened</span>].<a class="ident" href="../../src/walkdir/lib.rs.html#980">close</a>();
         }
         <span class="comment">// Open a handle to reading the directory&#39;s entries.</span>
@@ -2048,10 +2048,10 @@ for entry in walker.filter_entry(|e| !is_hidden(e)) {
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">cmp</span>) <span class="op">=</span> <a class="self" href="../../src/walkdir/lib.rs.html#875">self</a>.<span class="ident">opts</span>.<span class="ident">sorter</span> {
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">entries</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <a class="ident" href="../../src/walkdir/lib.rs.html#886">list</a>.<span class="ident">collect</span>();
             <a class="ident" href="../../src/walkdir/lib.rs.html#888">entries</a>.<span class="ident">sort_by</span>(<span class="op">|</span><span class="ident">a</span>, <span class="ident">b</span><span class="op">|</span> <span class="kw">match</span> (<a class="ident" href="../../src/walkdir/lib.rs.html#889">a</a>, <a class="ident" href="../../src/walkdir/lib.rs.html#889">b</a>) {
-                (<span class="kw-2">&amp;</span><span class="prelude-val">Ok</span>(<span class="kw-2">ref</span> <span class="ident">a</span>), <span class="kw-2">&amp;</span><span class="prelude-val">Ok</span>(<span class="kw-2">ref</span> <span class="ident">b</span>)) <span class="op">=</span><span class="op">&gt;</span> <a class="ident" href="../../src/walkdir/lib.rs.html#887">cmp</a>(<a class="ident" href="../../src/walkdir/lib.rs.html#890">a</a>, <a class="ident" href="../../src/walkdir/lib.rs.html#890">b</a>),
-                (<span class="kw-2">&amp;</span><span class="prelude-val">Err</span>(<span class="kw">_</span>), <span class="kw-2">&amp;</span><span class="prelude-val">Err</span>(<span class="kw">_</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Ordering::Equal</span>,
-                (<span class="kw-2">&amp;</span><span class="prelude-val">Ok</span>(<span class="kw">_</span>), <span class="kw-2">&amp;</span><span class="prelude-val">Err</span>(<span class="kw">_</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Ordering::Greater</span>,
-                (<span class="kw-2">&amp;</span><span class="prelude-val">Err</span>(<span class="kw">_</span>), <span class="kw-2">&amp;</span><span class="prelude-val">Ok</span>(<span class="kw">_</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Ordering::Less</span>,
+                (<span class="kw-2">&amp;</span><span class="prelude-val">Ok</span>(<span class="kw-2">ref</span> <span class="ident">a</span>), <span class="kw-2">&amp;</span><span class="prelude-val">Ok</span>(<span class="kw-2">ref</span> <span class="ident">b</span>)) =&gt; <a class="ident" href="../../src/walkdir/lib.rs.html#887">cmp</a>(<a class="ident" href="../../src/walkdir/lib.rs.html#890">a</a>, <a class="ident" href="../../src/walkdir/lib.rs.html#890">b</a>),
+                (<span class="kw-2">&amp;</span><span class="prelude-val">Err</span>(<span class="kw">_</span>), <span class="kw-2">&amp;</span><span class="prelude-val">Err</span>(<span class="kw">_</span>)) =&gt; <span class="ident">Ordering::Equal</span>,
+                (<span class="kw-2">&amp;</span><span class="prelude-val">Ok</span>(<span class="kw">_</span>), <span class="kw-2">&amp;</span><span class="prelude-val">Err</span>(<span class="kw">_</span>)) =&gt; <span class="ident">Ordering::Greater</span>,
+                (<span class="kw-2">&amp;</span><span class="prelude-val">Err</span>(<span class="kw">_</span>), <span class="kw-2">&amp;</span><span class="prelude-val">Ok</span>(<span class="kw">_</span>)) =&gt; <span class="ident">Ordering::Less</span>,
             });
             <a class="ident" href="../../src/walkdir/lib.rs.html#886">list</a> <span class="op">=</span> <a class="ident" href="../../src/walkdir/lib.rs.html#653">DirList::Closed</a>(<a class="ident" href="../../src/walkdir/lib.rs.html#888">entries</a>.<span class="ident">into_iter</span>());
         }
@@ -2072,7 +2072,7 @@ for entry in walker.filter_entry(|e| !is_hidden(e)) {
         <span class="comment">// We could move the close of the stream above into this if-body, but</span>
         <span class="comment">// then we would have more than the maximum number of file descriptors</span>
         <span class="comment">// open at a particular point in time.</span>
-        <span class="kw">if</span> <a class="ident" href="../../src/walkdir/lib.rs.html#877">free</a> <span class="op">=</span><span class="op">=</span> <a class="self" href="../../src/walkdir/lib.rs.html#875">self</a>.<span class="ident">opts</span>.<span class="ident">max_open</span> {
+        <span class="kw">if</span> <a class="ident" href="../../src/walkdir/lib.rs.html#877">free</a> <span class="op">==</span> <a class="self" href="../../src/walkdir/lib.rs.html#875">self</a>.<span class="ident">opts</span>.<span class="ident">max_open</span> {
             <span class="comment">// Unwrap is safe here because self.oldest_opened is guaranteed to</span>
             <span class="comment">// never be greater than `self.stack_list.len()`, which implies</span>
             <span class="comment">// that the subtraction won&#39;t underflow and that adding 1 will</span>
@@ -2093,7 +2093,7 @@ for entry in walker.filter_entry(|e| !is_hidden(e)) {
         <a class="self" href="../../src/walkdir/lib.rs.html#924">self</a>.<span class="ident">oldest_opened</span> <span class="op">=</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/cmp/fn.min.html">min</a>(<a class="self" href="../../src/walkdir/lib.rs.html#924">self</a>.<span class="ident">oldest_opened</span>, <a class="self" href="../../src/walkdir/lib.rs.html#924">self</a>.<span class="ident">stack_list</span>.<span class="ident">len</span>());
     }
 
-    <span class="kw">fn</span> <span class="ident">follow</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw-2">mut</span> <span class="ident">dent</span>: <a class="ident" href="../../src/walkdir/dent.rs.html#35-59">DirEntry</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/walkdir/dent.rs.html#35-59">DirEntry</a><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">follow</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw-2">mut</span> <span class="ident">dent</span>: <a class="ident" href="../../src/walkdir/dent.rs.html#35-59">DirEntry</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/walkdir/dent.rs.html#35-59">DirEntry</a><span class="op">&gt;</span> {
         <a class="ident" href="../../src/walkdir/lib.rs.html#935">dent</a> <span class="op">=</span>
             <span class="ident">DirEntry::from_path</span>(<a class="self" href="../../src/walkdir/lib.rs.html#935">self</a>.<span class="ident">depth</span>, <a class="ident" href="../../src/walkdir/lib.rs.html#935">dent</a>.<a class="ident" href="../../src/walkdir/dent.rs.html#77">path</a>().<span class="ident">to_path_buf</span>(), <span class="bool-val">true</span>)<span class="question-mark">?</span>;
         <span class="comment">// The only way a symlink can cause a loop is if it points</span>
@@ -2105,7 +2105,7 @@ for entry in walker.filter_entry(|e| !is_hidden(e)) {
         <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/walkdir/lib.rs.html#935">dent</a>)
     }
 
-    <span class="kw">fn</span> <span class="ident">check_loop</span><span class="op">&lt;</span><span class="ident">P</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">Path</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">child</span>: <span class="ident">P</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">check_loop</span><span class="op">&lt;</span><span class="ident">P</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">Path</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">child</span>: <span class="ident">P</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">hchild</span> <span class="op">=</span> <span class="ident">Handle::from_path</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/walkdir/lib.rs.html#947">child</a>)
             .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">err</span><span class="op">|</span> <span class="ident">Error::from_io</span>(<a class="self" href="../../src/walkdir/lib.rs.html#947">self</a>.<span class="ident">depth</span>, <a class="ident" href="../../src/walkdir/lib.rs.html#949">err</a>))<span class="question-mark">?</span>;
         <span class="kw">for</span> <a class="ident" href="../../src/walkdir/lib.rs.html#950">ancestor</a> <span class="kw">in</span> <a class="self" href="../../src/walkdir/lib.rs.html#947">self</a>.<span class="ident">stack_path</span>.<span class="ident">iter</span>().<span class="ident">rev</span>() {
@@ -2123,16 +2123,16 @@ for entry in walker.filter_entry(|e| !is_hidden(e)) {
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">fn</span> <span class="ident">is_same_file_system</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">dent</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/walkdir/dent.rs.html#35-59">DirEntry</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">is_same_file_system</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">dent</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/walkdir/dent.rs.html#35-59">DirEntry</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">dent_device</span> <span class="op">=</span> <a class="ident" href="../../src/walkdir/util.rs.html#5">util::device_num</a>(<a class="ident" href="../../src/walkdir/lib.rs.html#965">dent</a>.<a class="ident" href="../../src/walkdir/dent.rs.html#77">path</a>())
             .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">err</span><span class="op">|</span> <span class="ident">Error::from_entry</span>(<a class="ident" href="../../src/walkdir/lib.rs.html#965">dent</a>, <a class="ident" href="../../src/walkdir/lib.rs.html#967">err</a>))<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(<a class="self" href="../../src/walkdir/lib.rs.html#965">self</a>
             .<span class="ident">root_device</span>
-            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">d</span><span class="op">|</span> <a class="ident" href="../../src/walkdir/lib.rs.html#970">d</a> <span class="op">=</span><span class="op">=</span> <a class="ident" href="../../src/walkdir/lib.rs.html#966">dent_device</a>)
+            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">d</span><span class="op">|</span> <a class="ident" href="../../src/walkdir/lib.rs.html#970">d</a> <span class="op">==</span> <a class="ident" href="../../src/walkdir/lib.rs.html#966">dent_device</a>)
             .<span class="ident">expect</span>(<span class="string">&quot;BUG: called is_same_file_system without root device&quot;</span>))
     }
 
-    <span class="kw">fn</span> <span class="ident">skippable</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    <span class="kw">fn</span> <span class="ident">skippable</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
         <a class="self" href="../../src/walkdir/lib.rs.html#974">self</a>.<span class="ident">depth</span> <span class="op">&lt;</span> <a class="self" href="../../src/walkdir/lib.rs.html#974">self</a>.<span class="ident">opts</span>.<span class="ident">min_depth</span> <span class="op">|</span><span class="op">|</span> <a class="self" href="../../src/walkdir/lib.rs.html#974">self</a>.<span class="ident">depth</span> <span class="op">&gt;</span> <a class="self" href="../../src/walkdir/lib.rs.html#974">self</a>.<span class="ident">opts</span>.<span class="ident">max_depth</span>
     }
 }
@@ -2149,14 +2149,14 @@ for entry in walker.filter_entry(|e| !is_hidden(e)) {
     <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/walkdir/dent.rs.html#35-59">DirEntry</a><span class="op">&gt;</span>;
 
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/walkdir/dent.rs.html#35-59">DirEntry</a><span class="op">&gt;</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/walkdir/dent.rs.html#35-59">DirEntry</a><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="kw-2">*</span><a class="self" href="../../src/walkdir/lib.rs.html#991">self</a> {
-            <a class="ident" href="../../src/walkdir/lib.rs.html#653">DirList::Closed</a>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">it</span>) <span class="op">=</span><span class="op">&gt;</span> <a class="ident" href="../../src/walkdir/lib.rs.html#993">it</a>.<span class="ident">next</span>(),
-            <a class="ident" href="../../src/walkdir/lib.rs.html#649">DirList::Opened</a> { <span class="ident">depth</span>, <span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">it</span> } <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="kw-2">*</span><a class="ident" href="../../src/walkdir/lib.rs.html#994">it</a> {
-                <span class="prelude-val">Err</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">err</span>) <span class="op">=</span><span class="op">&gt;</span> <a class="ident" href="../../src/walkdir/lib.rs.html#995">err</a>.<span class="ident">take</span>().<span class="ident">map</span>(<span class="prelude-val">Err</span>),
-                <span class="prelude-val">Ok</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">rd</span>) <span class="op">=</span><span class="op">&gt;</span> <a class="ident" href="../../src/walkdir/lib.rs.html#996">rd</a>.<span class="ident">next</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">r</span><span class="op">|</span> <span class="kw">match</span> <a class="ident" href="../../src/walkdir/lib.rs.html#996">r</a> {
-                    <span class="prelude-val">Ok</span>(<span class="ident">r</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">DirEntry::from_entry</span>(<a class="ident" href="../../src/walkdir/lib.rs.html#994">depth</a> <span class="op">+</span> <span class="number">1</span>, <span class="kw-2">&amp;</span><a class="ident" href="../../src/walkdir/lib.rs.html#997">r</a>),
-                    <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">Error::from_io</span>(<a class="ident" href="../../src/walkdir/lib.rs.html#994">depth</a> <span class="op">+</span> <span class="number">1</span>, <a class="ident" href="../../src/walkdir/lib.rs.html#998">err</a>)),
+            <a class="ident" href="../../src/walkdir/lib.rs.html#653">DirList::Closed</a>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">it</span>) =&gt; <a class="ident" href="../../src/walkdir/lib.rs.html#993">it</a>.<span class="ident">next</span>(),
+            <a class="ident" href="../../src/walkdir/lib.rs.html#649">DirList::Opened</a> { <span class="ident">depth</span>, <span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">it</span> } =&gt; <span class="kw">match</span> <span class="kw-2">*</span><a class="ident" href="../../src/walkdir/lib.rs.html#994">it</a> {
+                <span class="prelude-val">Err</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">err</span>) =&gt; <a class="ident" href="../../src/walkdir/lib.rs.html#995">err</a>.<span class="ident">take</span>().<span class="ident">map</span>(<span class="prelude-val">Err</span>),
+                <span class="prelude-val">Ok</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">rd</span>) =&gt; <a class="ident" href="../../src/walkdir/lib.rs.html#996">rd</a>.<span class="ident">next</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">r</span><span class="op">|</span> <span class="kw">match</span> <a class="ident" href="../../src/walkdir/lib.rs.html#996">r</a> {
+                    <span class="prelude-val">Ok</span>(<span class="ident">r</span>) =&gt; <span class="ident">DirEntry::from_entry</span>(<a class="ident" href="../../src/walkdir/lib.rs.html#994">depth</a> <span class="op">+</span> <span class="number">1</span>, <span class="kw-2">&amp;</span><a class="ident" href="../../src/walkdir/lib.rs.html#997">r</a>),
+                    <span class="prelude-val">Err</span>(<span class="ident">err</span>) =&gt; <span class="prelude-val">Err</span>(<span class="ident">Error::from_io</span>(<a class="ident" href="../../src/walkdir/lib.rs.html#994">depth</a> <span class="op">+</span> <span class="number">1</span>, <a class="ident" href="../../src/walkdir/lib.rs.html#998">err</a>)),
                 }),
             },
         }
@@ -2192,7 +2192,7 @@ for entry in walker.filter_entry(|e| !is_hidden(e)) {
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">P</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for</span> <span class="ident">FilterEntry</span><span class="op">&lt;</span><a class="ident" href="../../src/walkdir/lib.rs.html#543-583">IntoIter</a>, <span class="ident">P</span><span class="op">&gt;</span>
 <span class="kw">where</span>
-    <span class="ident">P</span>: <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/walkdir/dent.rs.html#35-59">DirEntry</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+    <span class="ident">P</span>: <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/walkdir/dent.rs.html#35-59">DirEntry</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
 {
     <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/walkdir/dent.rs.html#35-59">DirEntry</a><span class="op">&gt;</span>;
 
@@ -2202,11 +2202,11 @@ for entry in walker.filter_entry(|e| !is_hidden(e)) {
     <span class="doccomment">///</span>
     <span class="doccomment">/// If the iterator fails to retrieve the next value, this method returns</span>
     <span class="doccomment">/// an error value. The error will be wrapped in an `Option::Some`.</span>
-    <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/walkdir/dent.rs.html#35-59">DirEntry</a><span class="op">&gt;</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/walkdir/dent.rs.html#35-59">DirEntry</a><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="kw">loop</span> {
             <span class="kw">let</span> <span class="ident">dent</span> <span class="op">=</span> <span class="kw">match</span> <a class="self" href="../../src/walkdir/lib.rs.html#1044">self</a>.<span class="ident">it</span>.<span class="ident">next</span>() {
-                <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">None</span>,
-                <span class="prelude-val">Some</span>(<span class="ident">result</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">itry!</span>(<a class="ident" href="../../src/walkdir/lib.rs.html#1048">result</a>),
+                <span class="prelude-val">None</span> =&gt; <span class="kw">return</span> <span class="prelude-val">None</span>,
+                <span class="prelude-val">Some</span>(<span class="ident">result</span>) =&gt; <span class="macro">itry!</span>(<a class="ident" href="../../src/walkdir/lib.rs.html#1048">result</a>),
             };
             <span class="kw">if</span> <span class="op">!</span>(<a class="self" href="../../src/walkdir/lib.rs.html#1044">self</a>.<span class="ident">predicate</span>)(<span class="kw-2">&amp;</span><a class="ident" href="../../src/walkdir/lib.rs.html#1046">dent</a>) {
                 <span class="kw">if</span> <a class="ident" href="../../src/walkdir/lib.rs.html#1046">dent</a>.<a class="ident" href="../../src/walkdir/dent.rs.html#192">is_dir</a>() {
@@ -2221,7 +2221,7 @@ for entry in walker.filter_entry(|e| !is_hidden(e)) {
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">P</span><span class="op">&gt;</span> <span class="ident">FilterEntry</span><span class="op">&lt;</span><a class="ident" href="../../src/walkdir/lib.rs.html#543-583">IntoIter</a>, <span class="ident">P</span><span class="op">&gt;</span>
 <span class="kw">where</span>
-    <span class="ident">P</span>: <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/walkdir/dent.rs.html#35-59">DirEntry</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+    <span class="ident">P</span>: <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/walkdir/dent.rs.html#35-59">DirEntry</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
 {
     <span class="doccomment">/// Yields only entries which satisfy the given predicate and skips</span>
     <span class="doccomment">/// descending into directories that do not satisfy the given predicate.</span>
@@ -2269,7 +2269,7 @@ for entry in walker.filter_entry(|e| !is_hidden(e)) {
     <span class="doccomment">/// [`skip_current_dir`]: #method.skip_current_dir</span>
     <span class="doccomment">/// [`min_depth`]: struct.WalkDir.html#method.min_depth</span>
     <span class="doccomment">/// [`max_depth`]: struct.WalkDir.html#method.max_depth</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">filter_entry</span>(<span class="self">self</span>, <span class="ident">predicate</span>: <span class="ident">P</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">FilterEntry</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">P</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">filter_entry</span>(<span class="self">self</span>, <span class="ident">predicate</span>: <span class="ident">P</span>) -&gt; <span class="ident">FilterEntry</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">P</span><span class="op">&gt;</span> {
         <a class="ident" href="../../src/walkdir/lib.rs.html#1027-1030">FilterEntry</a> { <span class="ident">it</span>: <a class="self" href="../../src/walkdir/lib.rs.html#1111">self</a>, <span class="ident">predicate</span>: <a class="ident" href="../../src/walkdir/lib.rs.html#1111">predicate</a> }
     }
 

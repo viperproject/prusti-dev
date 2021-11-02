@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;nix-0.22.1&#x2F;src&#x2F;sys&#x2F;time.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>time.rs - source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../nix/index.html'><div class='logo-container rust-logo'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;nix-0.23.0&#x2F;src&#x2F;sys&#x2F;time.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>time.rs - source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../nix/index.html'><div class='logo-container rust-logo'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -599,6 +599,14 @@
 <span id="599">599</span>
 <span id="600">600</span>
 <span id="601">601</span>
+<span id="602">602</span>
+<span id="603">603</span>
+<span id="604">604</span>
+<span id="605">605</span>
+<span id="606">606</span>
+<span id="607">607</span>
+<span id="608">608</span>
+<span id="609">609</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/core/cmp/index.html">cmp</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">fmt</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/index.html">ops</a>};
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">std::time::Duration</a>;
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.From.html">std::convert::From</a>;
@@ -608,43 +616,43 @@
 
 <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">TimeValLike</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">zero</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">zero</span>() -&gt; <span class="self">Self</span> {
         <span class="ident"><span class="self">Self</span>::seconds</span>(<span class="number">0</span>)
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">hours</span>(<span class="ident">hours</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">hours</span>(<span class="ident">hours</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>) -&gt; <span class="self">Self</span> {
         <span class="kw">let</span> <span class="ident">secs</span> <span class="op">=</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#15">hours</a>.<span class="ident">checked_mul</span>(<a class="ident" href="../../../src/nix/sys/time.rs.html#55">SECS_PER_HOUR</a>)
             .<span class="ident">expect</span>(<span class="string">&quot;TimeValLike::hours ouf of bounds&quot;</span>);
         <span class="ident"><span class="self">Self</span>::seconds</span>(<a class="ident" href="../../../src/nix/sys/time.rs.html#16">secs</a>)
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">minutes</span>(<span class="ident">minutes</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">minutes</span>(<span class="ident">minutes</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>) -&gt; <span class="self">Self</span> {
         <span class="kw">let</span> <span class="ident">secs</span> <span class="op">=</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#22">minutes</a>.<span class="ident">checked_mul</span>(<a class="ident" href="../../../src/nix/sys/time.rs.html#54">SECS_PER_MINUTE</a>)
             .<span class="ident">expect</span>(<span class="string">&quot;TimeValLike::minutes out of bounds&quot;</span>);
         <span class="ident"><span class="self">Self</span>::seconds</span>(<a class="ident" href="../../../src/nix/sys/time.rs.html#23">secs</a>)
     }
 
-    <span class="kw">fn</span> <span class="ident">seconds</span>(<span class="ident">seconds</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
-    <span class="kw">fn</span> <span class="ident">milliseconds</span>(<span class="ident">milliseconds</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
-    <span class="kw">fn</span> <span class="ident">microseconds</span>(<span class="ident">microseconds</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
-    <span class="kw">fn</span> <span class="ident">nanoseconds</span>(<span class="ident">nanoseconds</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
+    <span class="kw">fn</span> <span class="ident">seconds</span>(<span class="ident">seconds</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>) -&gt; <span class="self">Self</span>;
+    <span class="kw">fn</span> <span class="ident">milliseconds</span>(<span class="ident">milliseconds</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>) -&gt; <span class="self">Self</span>;
+    <span class="kw">fn</span> <span class="ident">microseconds</span>(<span class="ident">microseconds</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>) -&gt; <span class="self">Self</span>;
+    <span class="kw">fn</span> <span class="ident">nanoseconds</span>(<span class="ident">nanoseconds</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>) -&gt; <span class="self">Self</span>;
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">num_hours</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a> {
+    <span class="kw">fn</span> <span class="ident">num_hours</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a> {
         <a class="self" href="../../../src/nix/sys/time.rs.html#34">self</a>.<a class="ident" href="../../../src/nix/sys/time.rs.html#43">num_seconds</a>() <span class="op">/</span> <span class="number">3600</span>
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">num_minutes</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a> {
+    <span class="kw">fn</span> <span class="ident">num_minutes</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a> {
         <a class="self" href="../../../src/nix/sys/time.rs.html#39">self</a>.<a class="ident" href="../../../src/nix/sys/time.rs.html#43">num_seconds</a>() <span class="op">/</span> <span class="number">60</span>
     }
 
-    <span class="kw">fn</span> <span class="ident">num_seconds</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>;
-    <span class="kw">fn</span> <span class="ident">num_milliseconds</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>;
-    <span class="kw">fn</span> <span class="ident">num_microseconds</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>;
-    <span class="kw">fn</span> <span class="ident">num_nanoseconds</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>;
+    <span class="kw">fn</span> <span class="ident">num_seconds</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>;
+    <span class="kw">fn</span> <span class="ident">num_milliseconds</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>;
+    <span class="kw">fn</span> <span class="ident">num_microseconds</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>;
+    <span class="kw">fn</span> <span class="ident">num_nanoseconds</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>;
 }
 
 <span class="attribute">#[<span class="ident">repr</span>(<span class="ident">C</span>)]</span>
@@ -671,206 +679,214 @@
 <span class="kw">type</span> <span class="ident">timespec_tv_nsec_t</span> <span class="op">=</span> <a class="ident" href="../../../libc/unix/linux_like/linux/gnu/b64/x86_64/not_x32/type.c_long.html">libc::c_long</a>;
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><a class="ident" href="../../../libc/unix/struct.timespec.html">timespec</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#51">TimeSpec</a> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">ts</span>: <a class="ident" href="../../../libc/unix/struct.timespec.html">timespec</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">ts</span>: <a class="ident" href="../../../libc/unix/struct.timespec.html">timespec</a>) -&gt; <span class="self">Self</span> {
         <span class="self">Self</span>(<a class="ident" href="../../../src/nix/sys/time.rs.html#73">ts</a>)
     }
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#51">TimeSpec</a> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">duration</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">target_env</span> <span class="op">=</span> <span class="string">&quot;musl&quot;</span>, <span class="ident">allow</span>(<span class="ident">deprecated</span>))]</span> <span class="comment">// https://github.com/rust-lang/libc/issues/1848</span>
-        <a class="ident" href="../../../src/nix/sys/time.rs.html#51">TimeSpec</a>(<a class="ident" href="../../../libc/unix/struct.timespec.html">timespec</a> {
-            <span class="ident">tv_sec</span>: <a class="ident" href="../../../src/nix/sys/time.rs.html#79">duration</a>.<span class="ident">as_secs</span>() <span class="kw">as</span> <a class="ident" href="../../../nix/sys/time/type.time_t.html">time_t</a>,
-            <span class="ident">tv_nsec</span>: <a class="ident" href="../../../src/nix/sys/time.rs.html#79">duration</a>.<span class="ident">subsec_nanos</span>() <span class="kw">as</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#70">timespec_tv_nsec_t</a>
-        })
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">duration</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a>) -&gt; <span class="self">Self</span> {
+        <span class="ident"><span class="self">Self</span>::from_duration</span>(<a class="ident" href="../../../src/nix/sys/time.rs.html#79">duration</a>)
     }
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><a class="ident" href="../../../src/nix/sys/time.rs.html#51">TimeSpec</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">timespec</span>: <a class="ident" href="../../../src/nix/sys/time.rs.html#51">TimeSpec</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="ident">Duration::new</span>(<a class="ident" href="../../../src/nix/sys/time.rs.html#89">timespec</a>.<span class="number">0</span>.<span class="ident">tv_sec</span> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>, <a class="ident" href="../../../src/nix/sys/time.rs.html#89">timespec</a>.<span class="number">0</span>.<span class="ident">tv_nsec</span> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>)
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">timespec</span>: <a class="ident" href="../../../src/nix/sys/time.rs.html#51">TimeSpec</a>) -&gt; <span class="self">Self</span> {
+        <span class="ident">Duration::new</span>(<a class="ident" href="../../../src/nix/sys/time.rs.html#85">timespec</a>.<span class="number">0</span>.<span class="ident">tv_sec</span> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>, <a class="ident" href="../../../src/nix/sys/time.rs.html#85">timespec</a>.<span class="number">0</span>.<span class="ident">tv_nsec</span> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>)
     }
 }
 
 <span class="kw">impl</span> <span class="ident">AsRef</span><span class="op">&lt;</span><a class="ident" href="../../../libc/unix/struct.timespec.html">timespec</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#51">TimeSpec</a> {
-    <span class="kw">fn</span> <span class="ident">as_ref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><a class="ident" href="../../../libc/unix/struct.timespec.html">timespec</a> {
-        <span class="kw-2">&amp;</span><a class="self" href="../../../src/nix/sys/time.rs.html#95">self</a>.<span class="number">0</span>
+    <span class="kw">fn</span> <span class="ident">as_ref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a class="ident" href="../../../libc/unix/struct.timespec.html">timespec</a> {
+        <span class="kw-2">&amp;</span><a class="self" href="../../../src/nix/sys/time.rs.html#91">self</a>.<span class="number">0</span>
     }
 }
 
 <span class="kw">impl</span> <span class="ident">AsMut</span><span class="op">&lt;</span><a class="ident" href="../../../libc/unix/struct.timespec.html">timespec</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#51">TimeSpec</a> {
-    <span class="kw">fn</span> <span class="ident">as_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../../libc/unix/struct.timespec.html">timespec</a> {
-        <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="self" href="../../../src/nix/sys/time.rs.html#101">self</a>.<span class="number">0</span>
+    <span class="kw">fn</span> <span class="ident">as_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../../libc/unix/struct.timespec.html">timespec</a> {
+        <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="self" href="../../../src/nix/sys/time.rs.html#97">self</a>.<span class="number">0</span>
     }
 }
 
 <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html">Ord</a> <span class="kw">for</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#51">TimeSpec</a> {
     <span class="comment">// The implementation of cmp is simplified by assuming that the struct is</span>
     <span class="comment">// normalized.  That is, tv_nsec must always be within [0, 1_000_000_000)</span>
-    <span class="kw">fn</span> <span class="ident">cmp</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/nix/sys/time.rs.html#51">TimeSpec</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html">cmp::Ordering</a> {
-        <span class="kw">if</span> <a class="self" href="../../../src/nix/sys/time.rs.html#109">self</a>.<a class="ident" href="../../../src/nix/sys/time.rs.html#194">tv_sec</a>() <span class="op">=</span><span class="op">=</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#109">other</a>.<a class="ident" href="../../../src/nix/sys/time.rs.html#194">tv_sec</a>() {
-            <a class="self" href="../../../src/nix/sys/time.rs.html#109">self</a>.<a class="ident" href="../../../src/nix/sys/time.rs.html#198">tv_nsec</a>().<span class="ident">cmp</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/nix/sys/time.rs.html#109">other</a>.<a class="ident" href="../../../src/nix/sys/time.rs.html#198">tv_nsec</a>())
+    <span class="kw">fn</span> <span class="ident">cmp</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/nix/sys/time.rs.html#51">TimeSpec</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html">cmp::Ordering</a> {
+        <span class="kw">if</span> <a class="self" href="../../../src/nix/sys/time.rs.html#105">self</a>.<a class="ident" href="../../../src/nix/sys/time.rs.html#190">tv_sec</a>() <span class="op">==</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#105">other</a>.<a class="ident" href="../../../src/nix/sys/time.rs.html#190">tv_sec</a>() {
+            <a class="self" href="../../../src/nix/sys/time.rs.html#105">self</a>.<a class="ident" href="../../../src/nix/sys/time.rs.html#194">tv_nsec</a>().<span class="ident">cmp</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/nix/sys/time.rs.html#105">other</a>.<a class="ident" href="../../../src/nix/sys/time.rs.html#194">tv_nsec</a>())
         } <span class="kw">else</span> {
-            <a class="self" href="../../../src/nix/sys/time.rs.html#109">self</a>.<a class="ident" href="../../../src/nix/sys/time.rs.html#194">tv_sec</a>().<span class="ident">cmp</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/nix/sys/time.rs.html#109">other</a>.<a class="ident" href="../../../src/nix/sys/time.rs.html#194">tv_sec</a>())
+            <a class="self" href="../../../src/nix/sys/time.rs.html#105">self</a>.<a class="ident" href="../../../src/nix/sys/time.rs.html#190">tv_sec</a>().<span class="ident">cmp</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/nix/sys/time.rs.html#105">other</a>.<a class="ident" href="../../../src/nix/sys/time.rs.html#190">tv_sec</a>())
         }
     }
 }
 
 <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/cmp/trait.PartialOrd.html">PartialOrd</a> <span class="kw">for</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#51">TimeSpec</a> {
-    <span class="kw">fn</span> <span class="ident">partial_cmp</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/nix/sys/time.rs.html#51">TimeSpec</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html">cmp::Ordering</a><span class="op">&gt;</span> {
-        <span class="prelude-val">Some</span>(<a class="self" href="../../../src/nix/sys/time.rs.html#119">self</a>.<span class="ident">cmp</span>(<a class="ident" href="../../../src/nix/sys/time.rs.html#119">other</a>))
+    <span class="kw">fn</span> <span class="ident">partial_cmp</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/nix/sys/time.rs.html#51">TimeSpec</a>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html">cmp::Ordering</a><span class="op">&gt;</span> {
+        <span class="prelude-val">Some</span>(<a class="self" href="../../../src/nix/sys/time.rs.html#115">self</a>.<span class="ident">cmp</span>(<a class="ident" href="../../../src/nix/sys/time.rs.html#115">other</a>))
     }
 }
 
 <span class="kw">impl</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#8-47">TimeValLike</a> <span class="kw">for</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#51">TimeSpec</a> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">seconds</span>(<span class="ident">seconds</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#51">TimeSpec</a> {
-        <span class="macro">assert!</span>(<a class="ident" href="../../../src/nix/sys/time.rs.html#126">seconds</a> <span class="op">&gt;</span><span class="op">=</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#63">TS_MIN_SECONDS</a> <span class="op">&amp;&amp;</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#126">seconds</a> <span class="op">&lt;</span><span class="op">=</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#58">TS_MAX_SECONDS</a>,
-                <span class="string">&quot;TimeSpec out of bounds; seconds={}&quot;</span>, <a class="ident" href="../../../src/nix/sys/time.rs.html#126">seconds</a>);
+    <span class="kw">fn</span> <span class="ident">seconds</span>(<span class="ident">seconds</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>) -&gt; <a class="ident" href="../../../src/nix/sys/time.rs.html#51">TimeSpec</a> {
+        <span class="macro">assert!</span>(<a class="ident" href="../../../src/nix/sys/time.rs.html#122">seconds</a> <span class="op">&gt;</span><span class="op">=</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#63">TS_MIN_SECONDS</a> <span class="op">&amp;&amp;</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#122">seconds</a> <span class="op">&lt;</span><span class="op">=</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#58">TS_MAX_SECONDS</a>,
+                <span class="string">&quot;TimeSpec out of bounds; seconds={}&quot;</span>, <a class="ident" href="../../../src/nix/sys/time.rs.html#122">seconds</a>);
         <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">target_env</span> <span class="op">=</span> <span class="string">&quot;musl&quot;</span>, <span class="ident">allow</span>(<span class="ident">deprecated</span>))]</span> <span class="comment">// https://github.com/rust-lang/libc/issues/1848</span>
-        <a class="ident" href="../../../src/nix/sys/time.rs.html#51">TimeSpec</a>(<a class="ident" href="../../../libc/unix/struct.timespec.html">timespec</a> {<span class="ident">tv_sec</span>: <a class="ident" href="../../../src/nix/sys/time.rs.html#126">seconds</a> <span class="kw">as</span> <a class="ident" href="../../../nix/sys/time/type.time_t.html">time_t</a>, <span class="ident">tv_nsec</span>: <span class="number">0</span> })
+        <a class="ident" href="../../../src/nix/sys/time.rs.html#51">TimeSpec</a>(<a class="ident" href="../../../libc/unix/struct.timespec.html">timespec</a> {<span class="ident">tv_sec</span>: <a class="ident" href="../../../src/nix/sys/time.rs.html#122">seconds</a> <span class="kw">as</span> <a class="ident" href="../../../nix/sys/time/type.time_t.html">time_t</a>, <span class="ident">tv_nsec</span>: <span class="number">0</span> })
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">milliseconds</span>(<span class="ident">milliseconds</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#51">TimeSpec</a> {
-        <span class="kw">let</span> <span class="ident">nanoseconds</span> <span class="op">=</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#134">milliseconds</a>.<span class="ident">checked_mul</span>(<span class="number">1_000_000</span>)
+    <span class="kw">fn</span> <span class="ident">milliseconds</span>(<span class="ident">milliseconds</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>) -&gt; <a class="ident" href="../../../src/nix/sys/time.rs.html#51">TimeSpec</a> {
+        <span class="kw">let</span> <span class="ident">nanoseconds</span> <span class="op">=</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#130">milliseconds</a>.<span class="ident">checked_mul</span>(<span class="number">1_000_000</span>)
             .<span class="ident">expect</span>(<span class="string">&quot;TimeSpec::milliseconds out of bounds&quot;</span>);
 
-        <span class="ident">TimeSpec::nanoseconds</span>(<a class="ident" href="../../../src/nix/sys/time.rs.html#135">nanoseconds</a>)
+        <span class="ident">TimeSpec::nanoseconds</span>(<a class="ident" href="../../../src/nix/sys/time.rs.html#131">nanoseconds</a>)
     }
 
     <span class="doccomment">/// Makes a new `TimeSpec` with given number of microseconds.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">microseconds</span>(<span class="ident">microseconds</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#51">TimeSpec</a> {
-        <span class="kw">let</span> <span class="ident">nanoseconds</span> <span class="op">=</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#143">microseconds</a>.<span class="ident">checked_mul</span>(<span class="number">1_000</span>)
+    <span class="kw">fn</span> <span class="ident">microseconds</span>(<span class="ident">microseconds</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>) -&gt; <a class="ident" href="../../../src/nix/sys/time.rs.html#51">TimeSpec</a> {
+        <span class="kw">let</span> <span class="ident">nanoseconds</span> <span class="op">=</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#139">microseconds</a>.<span class="ident">checked_mul</span>(<span class="number">1_000</span>)
             .<span class="ident">expect</span>(<span class="string">&quot;TimeSpec::milliseconds out of bounds&quot;</span>);
 
-        <span class="ident">TimeSpec::nanoseconds</span>(<a class="ident" href="../../../src/nix/sys/time.rs.html#144">nanoseconds</a>)
+        <span class="ident">TimeSpec::nanoseconds</span>(<a class="ident" href="../../../src/nix/sys/time.rs.html#140">nanoseconds</a>)
     }
 
     <span class="doccomment">/// Makes a new `TimeSpec` with given number of nanoseconds.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">nanoseconds</span>(<span class="ident">nanoseconds</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#51">TimeSpec</a> {
-        <span class="kw">let</span> (<span class="ident">secs</span>, <span class="ident">nanos</span>) <span class="op">=</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#489">div_mod_floor_64</a>(<a class="ident" href="../../../src/nix/sys/time.rs.html#152">nanoseconds</a>, <a class="ident" href="../../../src/nix/sys/time.rs.html#53">NANOS_PER_SEC</a>);
-        <span class="macro">assert!</span>(<a class="ident" href="../../../src/nix/sys/time.rs.html#153">secs</a> <span class="op">&gt;</span><span class="op">=</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#63">TS_MIN_SECONDS</a> <span class="op">&amp;&amp;</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#153">secs</a> <span class="op">&lt;</span><span class="op">=</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#58">TS_MAX_SECONDS</a>,
+    <span class="kw">fn</span> <span class="ident">nanoseconds</span>(<span class="ident">nanoseconds</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>) -&gt; <a class="ident" href="../../../src/nix/sys/time.rs.html#51">TimeSpec</a> {
+        <span class="kw">let</span> (<span class="ident">secs</span>, <span class="ident">nanos</span>) <span class="op">=</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#497">div_mod_floor_64</a>(<a class="ident" href="../../../src/nix/sys/time.rs.html#148">nanoseconds</a>, <a class="ident" href="../../../src/nix/sys/time.rs.html#53">NANOS_PER_SEC</a>);
+        <span class="macro">assert!</span>(<a class="ident" href="../../../src/nix/sys/time.rs.html#149">secs</a> <span class="op">&gt;</span><span class="op">=</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#63">TS_MIN_SECONDS</a> <span class="op">&amp;&amp;</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#149">secs</a> <span class="op">&lt;</span><span class="op">=</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#58">TS_MAX_SECONDS</a>,
                 <span class="string">&quot;TimeSpec out of bounds&quot;</span>);
         <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">target_env</span> <span class="op">=</span> <span class="string">&quot;musl&quot;</span>, <span class="ident">allow</span>(<span class="ident">deprecated</span>))]</span> <span class="comment">// https://github.com/rust-lang/libc/issues/1848</span>
-        <a class="ident" href="../../../src/nix/sys/time.rs.html#51">TimeSpec</a>(<a class="ident" href="../../../libc/unix/struct.timespec.html">timespec</a> {<span class="ident">tv_sec</span>: <a class="ident" href="../../../src/nix/sys/time.rs.html#153">secs</a> <span class="kw">as</span> <a class="ident" href="../../../nix/sys/time/type.time_t.html">time_t</a>,
-                           <span class="ident">tv_nsec</span>: <a class="ident" href="../../../src/nix/sys/time.rs.html#153">nanos</a> <span class="kw">as</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#70">timespec_tv_nsec_t</a> })
+        <a class="ident" href="../../../src/nix/sys/time.rs.html#51">TimeSpec</a>(<a class="ident" href="../../../libc/unix/struct.timespec.html">timespec</a> {<span class="ident">tv_sec</span>: <a class="ident" href="../../../src/nix/sys/time.rs.html#149">secs</a> <span class="kw">as</span> <a class="ident" href="../../../nix/sys/time/type.time_t.html">time_t</a>,
+                           <span class="ident">tv_nsec</span>: <a class="ident" href="../../../src/nix/sys/time.rs.html#149">nanos</a> <span class="kw">as</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#70">timespec_tv_nsec_t</a> })
     }
 
-    <span class="kw">fn</span> <span class="ident">num_seconds</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a> {
-        <span class="kw">if</span> <a class="self" href="../../../src/nix/sys/time.rs.html#161">self</a>.<a class="ident" href="../../../src/nix/sys/time.rs.html#194">tv_sec</a>() <span class="op">&lt;</span> <span class="number">0</span> <span class="op">&amp;&amp;</span> <a class="self" href="../../../src/nix/sys/time.rs.html#161">self</a>.<a class="ident" href="../../../src/nix/sys/time.rs.html#198">tv_nsec</a>() <span class="op">&gt;</span> <span class="number">0</span> {
-            (<a class="self" href="../../../src/nix/sys/time.rs.html#161">self</a>.<a class="ident" href="../../../src/nix/sys/time.rs.html#194">tv_sec</a>() <span class="op">+</span> <span class="number">1</span>) <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>
+    <span class="kw">fn</span> <span class="ident">num_seconds</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a> {
+        <span class="kw">if</span> <a class="self" href="../../../src/nix/sys/time.rs.html#157">self</a>.<a class="ident" href="../../../src/nix/sys/time.rs.html#190">tv_sec</a>() <span class="op">&lt;</span> <span class="number">0</span> <span class="op">&amp;&amp;</span> <a class="self" href="../../../src/nix/sys/time.rs.html#157">self</a>.<a class="ident" href="../../../src/nix/sys/time.rs.html#194">tv_nsec</a>() <span class="op">&gt;</span> <span class="number">0</span> {
+            (<a class="self" href="../../../src/nix/sys/time.rs.html#157">self</a>.<a class="ident" href="../../../src/nix/sys/time.rs.html#190">tv_sec</a>() <span class="op">+</span> <span class="number">1</span>) <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>
         } <span class="kw">else</span> {
-            <a class="self" href="../../../src/nix/sys/time.rs.html#161">self</a>.<a class="ident" href="../../../src/nix/sys/time.rs.html#194">tv_sec</a>() <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>
+            <a class="self" href="../../../src/nix/sys/time.rs.html#157">self</a>.<a class="ident" href="../../../src/nix/sys/time.rs.html#190">tv_sec</a>() <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">num_milliseconds</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a> {
-        <a class="self" href="../../../src/nix/sys/time.rs.html#169">self</a>.<a class="ident" href="../../../src/nix/sys/time.rs.html#46">num_nanoseconds</a>() <span class="op">/</span> <span class="number">1_000_000</span>
+    <span class="kw">fn</span> <span class="ident">num_milliseconds</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a> {
+        <a class="self" href="../../../src/nix/sys/time.rs.html#165">self</a>.<a class="ident" href="../../../src/nix/sys/time.rs.html#46">num_nanoseconds</a>() <span class="op">/</span> <span class="number">1_000_000</span>
     }
 
-    <span class="kw">fn</span> <span class="ident">num_microseconds</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a> {
-        <a class="self" href="../../../src/nix/sys/time.rs.html#173">self</a>.<a class="ident" href="../../../src/nix/sys/time.rs.html#46">num_nanoseconds</a>() <span class="op">/</span> <span class="number">1_000_000_000</span>
+    <span class="kw">fn</span> <span class="ident">num_microseconds</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a> {
+        <a class="self" href="../../../src/nix/sys/time.rs.html#169">self</a>.<a class="ident" href="../../../src/nix/sys/time.rs.html#46">num_nanoseconds</a>() <span class="op">/</span> <span class="number">1_000_000_000</span>
     }
 
-    <span class="kw">fn</span> <span class="ident">num_nanoseconds</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a> {
-        <span class="kw">let</span> <span class="ident">secs</span> <span class="op">=</span> <a class="self" href="../../../src/nix/sys/time.rs.html#177">self</a>.<a class="ident" href="../../../src/nix/sys/time.rs.html#43">num_seconds</a>() <span class="op">*</span> <span class="number">1_000_000_000</span>;
-        <span class="kw">let</span> <span class="ident">nsec</span> <span class="op">=</span> <a class="self" href="../../../src/nix/sys/time.rs.html#177">self</a>.<a class="ident" href="../../../src/nix/sys/time.rs.html#185">nanos_mod_sec</a>();
-        <a class="ident" href="../../../src/nix/sys/time.rs.html#178">secs</a> <span class="op">+</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#179">nsec</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>
+    <span class="kw">fn</span> <span class="ident">num_nanoseconds</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a> {
+        <span class="kw">let</span> <span class="ident">secs</span> <span class="op">=</span> <a class="self" href="../../../src/nix/sys/time.rs.html#173">self</a>.<a class="ident" href="../../../src/nix/sys/time.rs.html#43">num_seconds</a>() <span class="op">*</span> <span class="number">1_000_000_000</span>;
+        <span class="kw">let</span> <span class="ident">nsec</span> <span class="op">=</span> <a class="self" href="../../../src/nix/sys/time.rs.html#173">self</a>.<a class="ident" href="../../../src/nix/sys/time.rs.html#181">nanos_mod_sec</a>();
+        <a class="ident" href="../../../src/nix/sys/time.rs.html#174">secs</a> <span class="op">+</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#175">nsec</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>
     }
 }
 
 <span class="kw">impl</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#51">TimeSpec</a> {
-    <span class="kw">fn</span> <span class="ident">nanos_mod_sec</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#70">timespec_tv_nsec_t</a> {
-        <span class="kw">if</span> <a class="self" href="../../../src/nix/sys/time.rs.html#185">self</a>.<a class="ident" href="../../../src/nix/sys/time.rs.html#194">tv_sec</a>() <span class="op">&lt;</span> <span class="number">0</span> <span class="op">&amp;&amp;</span> <a class="self" href="../../../src/nix/sys/time.rs.html#185">self</a>.<a class="ident" href="../../../src/nix/sys/time.rs.html#198">tv_nsec</a>() <span class="op">&gt;</span> <span class="number">0</span> {
-            <a class="self" href="../../../src/nix/sys/time.rs.html#185">self</a>.<a class="ident" href="../../../src/nix/sys/time.rs.html#198">tv_nsec</a>() <span class="op">-</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#53">NANOS_PER_SEC</a> <span class="kw">as</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#70">timespec_tv_nsec_t</a>
+    <span class="kw">fn</span> <span class="ident">nanos_mod_sec</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="../../../src/nix/sys/time.rs.html#70">timespec_tv_nsec_t</a> {
+        <span class="kw">if</span> <a class="self" href="../../../src/nix/sys/time.rs.html#181">self</a>.<a class="ident" href="../../../src/nix/sys/time.rs.html#190">tv_sec</a>() <span class="op">&lt;</span> <span class="number">0</span> <span class="op">&amp;&amp;</span> <a class="self" href="../../../src/nix/sys/time.rs.html#181">self</a>.<a class="ident" href="../../../src/nix/sys/time.rs.html#194">tv_nsec</a>() <span class="op">&gt;</span> <span class="number">0</span> {
+            <a class="self" href="../../../src/nix/sys/time.rs.html#181">self</a>.<a class="ident" href="../../../src/nix/sys/time.rs.html#194">tv_nsec</a>() <span class="op">-</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#53">NANOS_PER_SEC</a> <span class="kw">as</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#70">timespec_tv_nsec_t</a>
         } <span class="kw">else</span> {
-            <a class="self" href="../../../src/nix/sys/time.rs.html#185">self</a>.<a class="ident" href="../../../src/nix/sys/time.rs.html#198">tv_nsec</a>()
+            <a class="self" href="../../../src/nix/sys/time.rs.html#181">self</a>.<a class="ident" href="../../../src/nix/sys/time.rs.html#194">tv_nsec</a>()
         }
     }
 
     <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">target_env</span> <span class="op">=</span> <span class="string">&quot;musl&quot;</span>, <span class="ident">allow</span>(<span class="ident">deprecated</span>))]</span> <span class="comment">// https://github.com/rust-lang/libc/issues/1848</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">tv_sec</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="../../../nix/sys/time/type.time_t.html">time_t</a> {
-        <a class="self" href="../../../src/nix/sys/time.rs.html#194">self</a>.<span class="number">0</span>.<span class="ident">tv_sec</span>
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">tv_sec</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="../../../nix/sys/time/type.time_t.html">time_t</a> {
+        <a class="self" href="../../../src/nix/sys/time.rs.html#190">self</a>.<span class="number">0</span>.<span class="ident">tv_sec</span>
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">tv_nsec</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#70">timespec_tv_nsec_t</a> {
-        <a class="self" href="../../../src/nix/sys/time.rs.html#198">self</a>.<span class="number">0</span>.<span class="ident">tv_nsec</span>
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">tv_nsec</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="../../../src/nix/sys/time.rs.html#70">timespec_tv_nsec_t</a> {
+        <a class="self" href="../../../src/nix/sys/time.rs.html#194">self</a>.<span class="number">0</span>.<span class="ident">tv_nsec</span>
+    }
+
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">from_duration</span>(<span class="ident">duration</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a>) -&gt; <span class="self">Self</span> {
+        <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">target_env</span> <span class="op">=</span> <span class="string">&quot;musl&quot;</span>, <span class="ident">allow</span>(<span class="ident">deprecated</span>))]</span> <span class="comment">// https://github.com/rust-lang/libc/issues/1848</span>
+        <a class="ident" href="../../../src/nix/sys/time.rs.html#51">TimeSpec</a>(<a class="ident" href="../../../libc/unix/struct.timespec.html">timespec</a> {
+            <span class="ident">tv_sec</span>: <a class="ident" href="../../../src/nix/sys/time.rs.html#198">duration</a>.<span class="ident">as_secs</span>() <span class="kw">as</span> <a class="ident" href="../../../nix/sys/time/type.time_t.html">time_t</a>,
+            <span class="ident">tv_nsec</span>: <a class="ident" href="../../../src/nix/sys/time.rs.html#198">duration</a>.<span class="ident">subsec_nanos</span>() <span class="kw">as</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#70">timespec_tv_nsec_t</a>
+        })
+    }
+
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">from_timespec</span>(<span class="ident">timespec</span>: <a class="ident" href="../../../libc/unix/struct.timespec.html">timespec</a>) -&gt; <span class="self">Self</span> {
+        <span class="self">Self</span>(<a class="ident" href="../../../src/nix/sys/time.rs.html#206">timespec</a>)
     }
 }
 
 <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/arith/trait.Neg.html">ops::Neg</a> <span class="kw">for</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#51">TimeSpec</a> {
     <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#51">TimeSpec</a>;
 
-    <span class="kw">fn</span> <span class="ident">neg</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#51">TimeSpec</a> {
-        <span class="ident">TimeSpec::nanoseconds</span>(<span class="op">-</span><a class="self" href="../../../src/nix/sys/time.rs.html#206">self</a>.<a class="ident" href="../../../src/nix/sys/time.rs.html#46">num_nanoseconds</a>())
+    <span class="kw">fn</span> <span class="ident">neg</span>(<span class="self">self</span>) -&gt; <a class="ident" href="../../../src/nix/sys/time.rs.html#51">TimeSpec</a> {
+        <span class="ident">TimeSpec::nanoseconds</span>(<span class="op">-</span><a class="self" href="../../../src/nix/sys/time.rs.html#214">self</a>.<a class="ident" href="../../../src/nix/sys/time.rs.html#46">num_nanoseconds</a>())
     }
 }
 
 <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/arith/trait.Add.html">ops::Add</a> <span class="kw">for</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#51">TimeSpec</a> {
     <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#51">TimeSpec</a>;
 
-    <span class="kw">fn</span> <span class="ident">add</span>(<span class="self">self</span>, <span class="ident">rhs</span>: <a class="ident" href="../../../src/nix/sys/time.rs.html#51">TimeSpec</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#51">TimeSpec</a> {
+    <span class="kw">fn</span> <span class="ident">add</span>(<span class="self">self</span>, <span class="ident">rhs</span>: <a class="ident" href="../../../src/nix/sys/time.rs.html#51">TimeSpec</a>) -&gt; <a class="ident" href="../../../src/nix/sys/time.rs.html#51">TimeSpec</a> {
         <span class="ident">TimeSpec::nanoseconds</span>(
-            <a class="self" href="../../../src/nix/sys/time.rs.html#214">self</a>.<a class="ident" href="../../../src/nix/sys/time.rs.html#46">num_nanoseconds</a>() <span class="op">+</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#214">rhs</a>.<a class="ident" href="../../../src/nix/sys/time.rs.html#46">num_nanoseconds</a>())
+            <a class="self" href="../../../src/nix/sys/time.rs.html#222">self</a>.<a class="ident" href="../../../src/nix/sys/time.rs.html#46">num_nanoseconds</a>() <span class="op">+</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#222">rhs</a>.<a class="ident" href="../../../src/nix/sys/time.rs.html#46">num_nanoseconds</a>())
     }
 }
 
 <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/arith/trait.Sub.html">ops::Sub</a> <span class="kw">for</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#51">TimeSpec</a> {
     <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#51">TimeSpec</a>;
 
-    <span class="kw">fn</span> <span class="ident">sub</span>(<span class="self">self</span>, <span class="ident">rhs</span>: <a class="ident" href="../../../src/nix/sys/time.rs.html#51">TimeSpec</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#51">TimeSpec</a> {
+    <span class="kw">fn</span> <span class="ident">sub</span>(<span class="self">self</span>, <span class="ident">rhs</span>: <a class="ident" href="../../../src/nix/sys/time.rs.html#51">TimeSpec</a>) -&gt; <a class="ident" href="../../../src/nix/sys/time.rs.html#51">TimeSpec</a> {
         <span class="ident">TimeSpec::nanoseconds</span>(
-            <a class="self" href="../../../src/nix/sys/time.rs.html#223">self</a>.<a class="ident" href="../../../src/nix/sys/time.rs.html#46">num_nanoseconds</a>() <span class="op">-</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#223">rhs</a>.<a class="ident" href="../../../src/nix/sys/time.rs.html#46">num_nanoseconds</a>())
+            <a class="self" href="../../../src/nix/sys/time.rs.html#231">self</a>.<a class="ident" href="../../../src/nix/sys/time.rs.html#46">num_nanoseconds</a>() <span class="op">-</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#231">rhs</a>.<a class="ident" href="../../../src/nix/sys/time.rs.html#46">num_nanoseconds</a>())
     }
 }
 
 <span class="kw">impl</span> <span class="ident">ops::Mul</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#51">TimeSpec</a> {
     <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#51">TimeSpec</a>;
 
-    <span class="kw">fn</span> <span class="ident">mul</span>(<span class="self">self</span>, <span class="ident">rhs</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#51">TimeSpec</a> {
-        <span class="kw">let</span> <span class="ident">usec</span> <span class="op">=</span> <a class="self" href="../../../src/nix/sys/time.rs.html#232">self</a>.<a class="ident" href="../../../src/nix/sys/time.rs.html#46">num_nanoseconds</a>().<span class="ident">checked_mul</span>(<span class="ident">i64::from</span>(<a class="ident" href="../../../src/nix/sys/time.rs.html#232">rhs</a>))
+    <span class="kw">fn</span> <span class="ident">mul</span>(<span class="self">self</span>, <span class="ident">rhs</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>) -&gt; <a class="ident" href="../../../src/nix/sys/time.rs.html#51">TimeSpec</a> {
+        <span class="kw">let</span> <span class="ident">usec</span> <span class="op">=</span> <a class="self" href="../../../src/nix/sys/time.rs.html#240">self</a>.<a class="ident" href="../../../src/nix/sys/time.rs.html#46">num_nanoseconds</a>().<span class="ident">checked_mul</span>(<span class="ident">i64::from</span>(<a class="ident" href="../../../src/nix/sys/time.rs.html#240">rhs</a>))
             .<span class="ident">expect</span>(<span class="string">&quot;TimeSpec multiply out of bounds&quot;</span>);
 
-        <span class="ident">TimeSpec::nanoseconds</span>(<a class="ident" href="../../../src/nix/sys/time.rs.html#233">usec</a>)
+        <span class="ident">TimeSpec::nanoseconds</span>(<a class="ident" href="../../../src/nix/sys/time.rs.html#241">usec</a>)
     }
 }
 
 <span class="kw">impl</span> <span class="ident">ops::Div</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#51">TimeSpec</a> {
     <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#51">TimeSpec</a>;
 
-    <span class="kw">fn</span> <span class="ident">div</span>(<span class="self">self</span>, <span class="ident">rhs</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#51">TimeSpec</a> {
-        <span class="kw">let</span> <span class="ident">usec</span> <span class="op">=</span> <a class="self" href="../../../src/nix/sys/time.rs.html#243">self</a>.<a class="ident" href="../../../src/nix/sys/time.rs.html#46">num_nanoseconds</a>() <span class="op">/</span> <span class="ident">i64::from</span>(<a class="ident" href="../../../src/nix/sys/time.rs.html#243">rhs</a>);
-        <span class="ident">TimeSpec::nanoseconds</span>(<a class="ident" href="../../../src/nix/sys/time.rs.html#244">usec</a>)
+    <span class="kw">fn</span> <span class="ident">div</span>(<span class="self">self</span>, <span class="ident">rhs</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>) -&gt; <a class="ident" href="../../../src/nix/sys/time.rs.html#51">TimeSpec</a> {
+        <span class="kw">let</span> <span class="ident">usec</span> <span class="op">=</span> <a class="self" href="../../../src/nix/sys/time.rs.html#251">self</a>.<a class="ident" href="../../../src/nix/sys/time.rs.html#46">num_nanoseconds</a>() <span class="op">/</span> <span class="ident">i64::from</span>(<a class="ident" href="../../../src/nix/sys/time.rs.html#251">rhs</a>);
+        <span class="ident">TimeSpec::nanoseconds</span>(<a class="ident" href="../../../src/nix/sys/time.rs.html#252">usec</a>)
     }
 }
 
 <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#51">TimeSpec</a> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <span class="kw">let</span> (<span class="ident">abs</span>, <span class="ident">sign</span>) <span class="op">=</span> <span class="kw">if</span> <a class="self" href="../../../src/nix/sys/time.rs.html#250">self</a>.<a class="ident" href="../../../src/nix/sys/time.rs.html#194">tv_sec</a>() <span class="op">&lt;</span> <span class="number">0</span> {
-            (<span class="op">-</span><span class="kw-2">*</span><a class="self" href="../../../src/nix/sys/time.rs.html#250">self</a>, <span class="string">&quot;-&quot;</span>)
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+        <span class="kw">let</span> (<span class="ident">abs</span>, <span class="ident">sign</span>) <span class="op">=</span> <span class="kw">if</span> <a class="self" href="../../../src/nix/sys/time.rs.html#258">self</a>.<a class="ident" href="../../../src/nix/sys/time.rs.html#190">tv_sec</a>() <span class="op">&lt;</span> <span class="number">0</span> {
+            (<span class="op">-</span><span class="kw-2">*</span><a class="self" href="../../../src/nix/sys/time.rs.html#258">self</a>, <span class="string">&quot;-&quot;</span>)
         } <span class="kw">else</span> {
-            (<span class="kw-2">*</span><a class="self" href="../../../src/nix/sys/time.rs.html#250">self</a>, <span class="string">&quot;&quot;</span>)
+            (<span class="kw-2">*</span><a class="self" href="../../../src/nix/sys/time.rs.html#258">self</a>, <span class="string">&quot;&quot;</span>)
         };
 
-        <span class="kw">let</span> <span class="ident">sec</span> <span class="op">=</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#251">abs</a>.<a class="ident" href="../../../src/nix/sys/time.rs.html#194">tv_sec</a>();
+        <span class="kw">let</span> <span class="ident">sec</span> <span class="op">=</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#259">abs</a>.<a class="ident" href="../../../src/nix/sys/time.rs.html#190">tv_sec</a>();
 
-        <span class="macro">write!</span>(<a class="ident" href="../../../src/nix/sys/time.rs.html#250">f</a>, <span class="string">&quot;{}&quot;</span>, <a class="ident" href="../../../src/nix/sys/time.rs.html#251">sign</a>)<span class="question-mark">?</span>;
+        <span class="macro">write!</span>(<a class="ident" href="../../../src/nix/sys/time.rs.html#258">f</a>, <span class="string">&quot;{}&quot;</span>, <a class="ident" href="../../../src/nix/sys/time.rs.html#259">sign</a>)<span class="question-mark">?</span>;
 
-        <span class="kw">if</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#251">abs</a>.<a class="ident" href="../../../src/nix/sys/time.rs.html#198">tv_nsec</a>() <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
-            <span class="kw">if</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#251">abs</a>.<a class="ident" href="../../../src/nix/sys/time.rs.html#194">tv_sec</a>() <span class="op">=</span><span class="op">=</span> <span class="number">1</span> {
-                <span class="macro">write!</span>(<a class="ident" href="../../../src/nix/sys/time.rs.html#250">f</a>, <span class="string">&quot;{} second&quot;</span>, <a class="ident" href="../../../src/nix/sys/time.rs.html#257">sec</a>)<span class="question-mark">?</span>;
+        <span class="kw">if</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#259">abs</a>.<a class="ident" href="../../../src/nix/sys/time.rs.html#194">tv_nsec</a>() <span class="op">==</span> <span class="number">0</span> {
+            <span class="kw">if</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#259">abs</a>.<a class="ident" href="../../../src/nix/sys/time.rs.html#190">tv_sec</a>() <span class="op">==</span> <span class="number">1</span> {
+                <span class="macro">write!</span>(<a class="ident" href="../../../src/nix/sys/time.rs.html#258">f</a>, <span class="string">&quot;{} second&quot;</span>, <a class="ident" href="../../../src/nix/sys/time.rs.html#265">sec</a>)<span class="question-mark">?</span>;
             } <span class="kw">else</span> {
-                <span class="macro">write!</span>(<a class="ident" href="../../../src/nix/sys/time.rs.html#250">f</a>, <span class="string">&quot;{} seconds&quot;</span>, <a class="ident" href="../../../src/nix/sys/time.rs.html#257">sec</a>)<span class="question-mark">?</span>;
+                <span class="macro">write!</span>(<a class="ident" href="../../../src/nix/sys/time.rs.html#258">f</a>, <span class="string">&quot;{} seconds&quot;</span>, <a class="ident" href="../../../src/nix/sys/time.rs.html#265">sec</a>)<span class="question-mark">?</span>;
             }
-        } <span class="kw">else</span> <span class="kw">if</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#251">abs</a>.<a class="ident" href="../../../src/nix/sys/time.rs.html#198">tv_nsec</a>() <span class="op">%</span> <span class="number">1_000_000</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
-            <span class="macro">write!</span>(<a class="ident" href="../../../src/nix/sys/time.rs.html#250">f</a>, <span class="string">&quot;{}.{:03} seconds&quot;</span>, <a class="ident" href="../../../src/nix/sys/time.rs.html#257">sec</a>, <a class="ident" href="../../../src/nix/sys/time.rs.html#251">abs</a>.<a class="ident" href="../../../src/nix/sys/time.rs.html#198">tv_nsec</a>() <span class="op">/</span> <span class="number">1_000_000</span>)<span class="question-mark">?</span>;
-        } <span class="kw">else</span> <span class="kw">if</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#251">abs</a>.<a class="ident" href="../../../src/nix/sys/time.rs.html#198">tv_nsec</a>() <span class="op">%</span> <span class="number">1_000</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
-            <span class="macro">write!</span>(<a class="ident" href="../../../src/nix/sys/time.rs.html#250">f</a>, <span class="string">&quot;{}.{:06} seconds&quot;</span>, <a class="ident" href="../../../src/nix/sys/time.rs.html#257">sec</a>, <a class="ident" href="../../../src/nix/sys/time.rs.html#251">abs</a>.<a class="ident" href="../../../src/nix/sys/time.rs.html#198">tv_nsec</a>() <span class="op">/</span> <span class="number">1_000</span>)<span class="question-mark">?</span>;
+        } <span class="kw">else</span> <span class="kw">if</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#259">abs</a>.<a class="ident" href="../../../src/nix/sys/time.rs.html#194">tv_nsec</a>() <span class="op">%</span> <span class="number">1_000_000</span> <span class="op">==</span> <span class="number">0</span> {
+            <span class="macro">write!</span>(<a class="ident" href="../../../src/nix/sys/time.rs.html#258">f</a>, <span class="string">&quot;{}.{:03} seconds&quot;</span>, <a class="ident" href="../../../src/nix/sys/time.rs.html#265">sec</a>, <a class="ident" href="../../../src/nix/sys/time.rs.html#259">abs</a>.<a class="ident" href="../../../src/nix/sys/time.rs.html#194">tv_nsec</a>() <span class="op">/</span> <span class="number">1_000_000</span>)<span class="question-mark">?</span>;
+        } <span class="kw">else</span> <span class="kw">if</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#259">abs</a>.<a class="ident" href="../../../src/nix/sys/time.rs.html#194">tv_nsec</a>() <span class="op">%</span> <span class="number">1_000</span> <span class="op">==</span> <span class="number">0</span> {
+            <span class="macro">write!</span>(<a class="ident" href="../../../src/nix/sys/time.rs.html#258">f</a>, <span class="string">&quot;{}.{:06} seconds&quot;</span>, <a class="ident" href="../../../src/nix/sys/time.rs.html#265">sec</a>, <a class="ident" href="../../../src/nix/sys/time.rs.html#259">abs</a>.<a class="ident" href="../../../src/nix/sys/time.rs.html#194">tv_nsec</a>() <span class="op">/</span> <span class="number">1_000</span>)<span class="question-mark">?</span>;
         } <span class="kw">else</span> {
-            <span class="macro">write!</span>(<a class="ident" href="../../../src/nix/sys/time.rs.html#250">f</a>, <span class="string">&quot;{}.{:09} seconds&quot;</span>, <a class="ident" href="../../../src/nix/sys/time.rs.html#257">sec</a>, <a class="ident" href="../../../src/nix/sys/time.rs.html#251">abs</a>.<a class="ident" href="../../../src/nix/sys/time.rs.html#198">tv_nsec</a>())<span class="question-mark">?</span>;
+            <span class="macro">write!</span>(<a class="ident" href="../../../src/nix/sys/time.rs.html#258">f</a>, <span class="string">&quot;{}.{:09} seconds&quot;</span>, <a class="ident" href="../../../src/nix/sys/time.rs.html#265">sec</a>, <a class="ident" href="../../../src/nix/sys/time.rs.html#259">abs</a>.<a class="ident" href="../../../src/nix/sys/time.rs.html#194">tv_nsec</a>())<span class="question-mark">?</span>;
         }
 
         <span class="prelude-val">Ok</span>(())
@@ -886,232 +902,232 @@
 <span class="kw">const</span> <span class="ident">MICROS_PER_SEC</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a> <span class="op">=</span> <span class="number">1_000_000</span>;
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_pointer_width</span> <span class="op">=</span> <span class="string">&quot;64&quot;</span>)]</span>
-<span class="kw">const</span> <span class="ident">TV_MAX_SECONDS</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a> <span class="op">=</span> (<span class="ident">::std::i64::MAX</span> <span class="op">/</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#285">MICROS_PER_SEC</a>) <span class="op">-</span> <span class="number">1</span>;
+<span class="kw">const</span> <span class="ident">TV_MAX_SECONDS</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a> <span class="op">=</span> (<span class="ident">::std::i64::MAX</span> <span class="op">/</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#293">MICROS_PER_SEC</a>) <span class="op">-</span> <span class="number">1</span>;
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_pointer_width</span> <span class="op">=</span> <span class="string">&quot;32&quot;</span>)]</span>
 <span class="kw">const</span> <span class="ident">TV_MAX_SECONDS</span>: <span class="ident">i64</span> <span class="op">=</span> <span class="ident">::std::isize::MAX</span> <span class="kw">as</span> <span class="ident">i64</span>;
 
-<span class="kw">const</span> <span class="ident">TV_MIN_SECONDS</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a> <span class="op">=</span> <span class="op">-</span><a class="ident" href="../../../src/nix/sys/time.rs.html#288">TV_MAX_SECONDS</a>;
+<span class="kw">const</span> <span class="ident">TV_MIN_SECONDS</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a> <span class="op">=</span> <span class="op">-</span><a class="ident" href="../../../src/nix/sys/time.rs.html#296">TV_MAX_SECONDS</a>;
 
-<span class="kw">impl</span> <span class="ident">AsRef</span><span class="op">&lt;</span><a class="ident" href="../../../libc/unix/struct.timeval.html">timeval</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#283">TimeVal</a> {
-    <span class="kw">fn</span> <span class="ident">as_ref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><a class="ident" href="../../../libc/unix/struct.timeval.html">timeval</a> {
-        <span class="kw-2">&amp;</span><a class="self" href="../../../src/nix/sys/time.rs.html#296">self</a>.<span class="number">0</span>
+<span class="kw">impl</span> <span class="ident">AsRef</span><span class="op">&lt;</span><a class="ident" href="../../../libc/unix/struct.timeval.html">timeval</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#291">TimeVal</a> {
+    <span class="kw">fn</span> <span class="ident">as_ref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a class="ident" href="../../../libc/unix/struct.timeval.html">timeval</a> {
+        <span class="kw-2">&amp;</span><a class="self" href="../../../src/nix/sys/time.rs.html#304">self</a>.<span class="number">0</span>
     }
 }
 
-<span class="kw">impl</span> <span class="ident">AsMut</span><span class="op">&lt;</span><a class="ident" href="../../../libc/unix/struct.timeval.html">timeval</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#283">TimeVal</a> {
-    <span class="kw">fn</span> <span class="ident">as_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../../libc/unix/struct.timeval.html">timeval</a> {
-        <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="self" href="../../../src/nix/sys/time.rs.html#302">self</a>.<span class="number">0</span>
+<span class="kw">impl</span> <span class="ident">AsMut</span><span class="op">&lt;</span><a class="ident" href="../../../libc/unix/struct.timeval.html">timeval</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#291">TimeVal</a> {
+    <span class="kw">fn</span> <span class="ident">as_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../../libc/unix/struct.timeval.html">timeval</a> {
+        <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="self" href="../../../src/nix/sys/time.rs.html#310">self</a>.<span class="number">0</span>
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html">Ord</a> <span class="kw">for</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#283">TimeVal</a> {
+<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html">Ord</a> <span class="kw">for</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#291">TimeVal</a> {
     <span class="comment">// The implementation of cmp is simplified by assuming that the struct is</span>
     <span class="comment">// normalized.  That is, tv_usec must always be within [0, 1_000_000)</span>
-    <span class="kw">fn</span> <span class="ident">cmp</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/nix/sys/time.rs.html#283">TimeVal</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html">cmp::Ordering</a> {
-        <span class="kw">if</span> <a class="self" href="../../../src/nix/sys/time.rs.html#310">self</a>.<a class="ident" href="../../../src/nix/sys/time.rs.html#399">tv_sec</a>() <span class="op">=</span><span class="op">=</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#310">other</a>.<a class="ident" href="../../../src/nix/sys/time.rs.html#399">tv_sec</a>() {
-            <a class="self" href="../../../src/nix/sys/time.rs.html#310">self</a>.<a class="ident" href="../../../src/nix/sys/time.rs.html#403">tv_usec</a>().<span class="ident">cmp</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/nix/sys/time.rs.html#310">other</a>.<a class="ident" href="../../../src/nix/sys/time.rs.html#403">tv_usec</a>())
+    <span class="kw">fn</span> <span class="ident">cmp</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/nix/sys/time.rs.html#291">TimeVal</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html">cmp::Ordering</a> {
+        <span class="kw">if</span> <a class="self" href="../../../src/nix/sys/time.rs.html#318">self</a>.<a class="ident" href="../../../src/nix/sys/time.rs.html#407">tv_sec</a>() <span class="op">==</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#318">other</a>.<a class="ident" href="../../../src/nix/sys/time.rs.html#407">tv_sec</a>() {
+            <a class="self" href="../../../src/nix/sys/time.rs.html#318">self</a>.<a class="ident" href="../../../src/nix/sys/time.rs.html#411">tv_usec</a>().<span class="ident">cmp</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/nix/sys/time.rs.html#318">other</a>.<a class="ident" href="../../../src/nix/sys/time.rs.html#411">tv_usec</a>())
         } <span class="kw">else</span> {
-            <a class="self" href="../../../src/nix/sys/time.rs.html#310">self</a>.<a class="ident" href="../../../src/nix/sys/time.rs.html#399">tv_sec</a>().<span class="ident">cmp</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/nix/sys/time.rs.html#310">other</a>.<a class="ident" href="../../../src/nix/sys/time.rs.html#399">tv_sec</a>())
+            <a class="self" href="../../../src/nix/sys/time.rs.html#318">self</a>.<a class="ident" href="../../../src/nix/sys/time.rs.html#407">tv_sec</a>().<span class="ident">cmp</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/nix/sys/time.rs.html#318">other</a>.<a class="ident" href="../../../src/nix/sys/time.rs.html#407">tv_sec</a>())
         }
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/cmp/trait.PartialOrd.html">PartialOrd</a> <span class="kw">for</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#283">TimeVal</a> {
-    <span class="kw">fn</span> <span class="ident">partial_cmp</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/nix/sys/time.rs.html#283">TimeVal</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html">cmp::Ordering</a><span class="op">&gt;</span> {
-        <span class="prelude-val">Some</span>(<a class="self" href="../../../src/nix/sys/time.rs.html#320">self</a>.<span class="ident">cmp</span>(<a class="ident" href="../../../src/nix/sys/time.rs.html#320">other</a>))
+<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/cmp/trait.PartialOrd.html">PartialOrd</a> <span class="kw">for</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#291">TimeVal</a> {
+    <span class="kw">fn</span> <span class="ident">partial_cmp</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/nix/sys/time.rs.html#291">TimeVal</a>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html">cmp::Ordering</a><span class="op">&gt;</span> {
+        <span class="prelude-val">Some</span>(<a class="self" href="../../../src/nix/sys/time.rs.html#328">self</a>.<span class="ident">cmp</span>(<a class="ident" href="../../../src/nix/sys/time.rs.html#328">other</a>))
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#8-47">TimeValLike</a> <span class="kw">for</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#283">TimeVal</a> {
+<span class="kw">impl</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#8-47">TimeValLike</a> <span class="kw">for</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#291">TimeVal</a> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">seconds</span>(<span class="ident">seconds</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#283">TimeVal</a> {
-        <span class="macro">assert!</span>(<a class="ident" href="../../../src/nix/sys/time.rs.html#327">seconds</a> <span class="op">&gt;</span><span class="op">=</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#293">TV_MIN_SECONDS</a> <span class="op">&amp;&amp;</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#327">seconds</a> <span class="op">&lt;</span><span class="op">=</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#288">TV_MAX_SECONDS</a>,
-                <span class="string">&quot;TimeVal out of bounds; seconds={}&quot;</span>, <a class="ident" href="../../../src/nix/sys/time.rs.html#327">seconds</a>);
+    <span class="kw">fn</span> <span class="ident">seconds</span>(<span class="ident">seconds</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>) -&gt; <a class="ident" href="../../../src/nix/sys/time.rs.html#291">TimeVal</a> {
+        <span class="macro">assert!</span>(<a class="ident" href="../../../src/nix/sys/time.rs.html#335">seconds</a> <span class="op">&gt;</span><span class="op">=</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#301">TV_MIN_SECONDS</a> <span class="op">&amp;&amp;</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#335">seconds</a> <span class="op">&lt;</span><span class="op">=</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#296">TV_MAX_SECONDS</a>,
+                <span class="string">&quot;TimeVal out of bounds; seconds={}&quot;</span>, <a class="ident" href="../../../src/nix/sys/time.rs.html#335">seconds</a>);
         <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">target_env</span> <span class="op">=</span> <span class="string">&quot;musl&quot;</span>, <span class="ident">allow</span>(<span class="ident">deprecated</span>))]</span> <span class="comment">// https://github.com/rust-lang/libc/issues/1848</span>
-        <a class="ident" href="../../../src/nix/sys/time.rs.html#283">TimeVal</a>(<a class="ident" href="../../../libc/unix/struct.timeval.html">timeval</a> {<span class="ident">tv_sec</span>: <a class="ident" href="../../../src/nix/sys/time.rs.html#327">seconds</a> <span class="kw">as</span> <a class="ident" href="../../../nix/sys/time/type.time_t.html">time_t</a>, <span class="ident">tv_usec</span>: <span class="number">0</span> })
+        <a class="ident" href="../../../src/nix/sys/time.rs.html#291">TimeVal</a>(<a class="ident" href="../../../libc/unix/struct.timeval.html">timeval</a> {<span class="ident">tv_sec</span>: <a class="ident" href="../../../src/nix/sys/time.rs.html#335">seconds</a> <span class="kw">as</span> <a class="ident" href="../../../nix/sys/time/type.time_t.html">time_t</a>, <span class="ident">tv_usec</span>: <span class="number">0</span> })
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">milliseconds</span>(<span class="ident">milliseconds</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#283">TimeVal</a> {
-        <span class="kw">let</span> <span class="ident">microseconds</span> <span class="op">=</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#335">milliseconds</a>.<span class="ident">checked_mul</span>(<span class="number">1_000</span>)
+    <span class="kw">fn</span> <span class="ident">milliseconds</span>(<span class="ident">milliseconds</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>) -&gt; <a class="ident" href="../../../src/nix/sys/time.rs.html#291">TimeVal</a> {
+        <span class="kw">let</span> <span class="ident">microseconds</span> <span class="op">=</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#343">milliseconds</a>.<span class="ident">checked_mul</span>(<span class="number">1_000</span>)
             .<span class="ident">expect</span>(<span class="string">&quot;TimeVal::milliseconds out of bounds&quot;</span>);
 
-        <span class="ident">TimeVal::microseconds</span>(<a class="ident" href="../../../src/nix/sys/time.rs.html#336">microseconds</a>)
+        <span class="ident">TimeVal::microseconds</span>(<a class="ident" href="../../../src/nix/sys/time.rs.html#344">microseconds</a>)
     }
 
     <span class="doccomment">/// Makes a new `TimeVal` with given number of microseconds.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">microseconds</span>(<span class="ident">microseconds</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#283">TimeVal</a> {
-        <span class="kw">let</span> (<span class="ident">secs</span>, <span class="ident">micros</span>) <span class="op">=</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#489">div_mod_floor_64</a>(<a class="ident" href="../../../src/nix/sys/time.rs.html#344">microseconds</a>, <a class="ident" href="../../../src/nix/sys/time.rs.html#285">MICROS_PER_SEC</a>);
-        <span class="macro">assert!</span>(<a class="ident" href="../../../src/nix/sys/time.rs.html#345">secs</a> <span class="op">&gt;</span><span class="op">=</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#293">TV_MIN_SECONDS</a> <span class="op">&amp;&amp;</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#345">secs</a> <span class="op">&lt;</span><span class="op">=</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#288">TV_MAX_SECONDS</a>,
+    <span class="kw">fn</span> <span class="ident">microseconds</span>(<span class="ident">microseconds</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>) -&gt; <a class="ident" href="../../../src/nix/sys/time.rs.html#291">TimeVal</a> {
+        <span class="kw">let</span> (<span class="ident">secs</span>, <span class="ident">micros</span>) <span class="op">=</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#497">div_mod_floor_64</a>(<a class="ident" href="../../../src/nix/sys/time.rs.html#352">microseconds</a>, <a class="ident" href="../../../src/nix/sys/time.rs.html#293">MICROS_PER_SEC</a>);
+        <span class="macro">assert!</span>(<a class="ident" href="../../../src/nix/sys/time.rs.html#353">secs</a> <span class="op">&gt;</span><span class="op">=</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#301">TV_MIN_SECONDS</a> <span class="op">&amp;&amp;</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#353">secs</a> <span class="op">&lt;</span><span class="op">=</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#296">TV_MAX_SECONDS</a>,
                 <span class="string">&quot;TimeVal out of bounds&quot;</span>);
         <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">target_env</span> <span class="op">=</span> <span class="string">&quot;musl&quot;</span>, <span class="ident">allow</span>(<span class="ident">deprecated</span>))]</span> <span class="comment">// https://github.com/rust-lang/libc/issues/1848</span>
-        <a class="ident" href="../../../src/nix/sys/time.rs.html#283">TimeVal</a>(<a class="ident" href="../../../libc/unix/struct.timeval.html">timeval</a> {<span class="ident">tv_sec</span>: <a class="ident" href="../../../src/nix/sys/time.rs.html#345">secs</a> <span class="kw">as</span> <a class="ident" href="../../../nix/sys/time/type.time_t.html">time_t</a>,
-                           <span class="ident">tv_usec</span>: <a class="ident" href="../../../src/nix/sys/time.rs.html#345">micros</a> <span class="kw">as</span> <a class="ident" href="../../../nix/sys/time/type.suseconds_t.html">suseconds_t</a> })
+        <a class="ident" href="../../../src/nix/sys/time.rs.html#291">TimeVal</a>(<a class="ident" href="../../../libc/unix/struct.timeval.html">timeval</a> {<span class="ident">tv_sec</span>: <a class="ident" href="../../../src/nix/sys/time.rs.html#353">secs</a> <span class="kw">as</span> <a class="ident" href="../../../nix/sys/time/type.time_t.html">time_t</a>,
+                           <span class="ident">tv_usec</span>: <a class="ident" href="../../../src/nix/sys/time.rs.html#353">micros</a> <span class="kw">as</span> <a class="ident" href="../../../nix/sys/time/type.suseconds_t.html">suseconds_t</a> })
     }
 
     <span class="doccomment">/// Makes a new `TimeVal` with given number of nanoseconds.  Some precision</span>
     <span class="doccomment">/// will be lost</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">nanoseconds</span>(<span class="ident">nanoseconds</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#283">TimeVal</a> {
-        <span class="kw">let</span> <span class="ident">microseconds</span> <span class="op">=</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#356">nanoseconds</a> <span class="op">/</span> <span class="number">1000</span>;
-        <span class="kw">let</span> (<span class="ident">secs</span>, <span class="ident">micros</span>) <span class="op">=</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#489">div_mod_floor_64</a>(<a class="ident" href="../../../src/nix/sys/time.rs.html#357">microseconds</a>, <a class="ident" href="../../../src/nix/sys/time.rs.html#285">MICROS_PER_SEC</a>);
-        <span class="macro">assert!</span>(<a class="ident" href="../../../src/nix/sys/time.rs.html#358">secs</a> <span class="op">&gt;</span><span class="op">=</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#293">TV_MIN_SECONDS</a> <span class="op">&amp;&amp;</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#358">secs</a> <span class="op">&lt;</span><span class="op">=</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#288">TV_MAX_SECONDS</a>,
+    <span class="kw">fn</span> <span class="ident">nanoseconds</span>(<span class="ident">nanoseconds</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>) -&gt; <a class="ident" href="../../../src/nix/sys/time.rs.html#291">TimeVal</a> {
+        <span class="kw">let</span> <span class="ident">microseconds</span> <span class="op">=</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#364">nanoseconds</a> <span class="op">/</span> <span class="number">1000</span>;
+        <span class="kw">let</span> (<span class="ident">secs</span>, <span class="ident">micros</span>) <span class="op">=</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#497">div_mod_floor_64</a>(<a class="ident" href="../../../src/nix/sys/time.rs.html#365">microseconds</a>, <a class="ident" href="../../../src/nix/sys/time.rs.html#293">MICROS_PER_SEC</a>);
+        <span class="macro">assert!</span>(<a class="ident" href="../../../src/nix/sys/time.rs.html#366">secs</a> <span class="op">&gt;</span><span class="op">=</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#301">TV_MIN_SECONDS</a> <span class="op">&amp;&amp;</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#366">secs</a> <span class="op">&lt;</span><span class="op">=</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#296">TV_MAX_SECONDS</a>,
                 <span class="string">&quot;TimeVal out of bounds&quot;</span>);
         <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">target_env</span> <span class="op">=</span> <span class="string">&quot;musl&quot;</span>, <span class="ident">allow</span>(<span class="ident">deprecated</span>))]</span> <span class="comment">// https://github.com/rust-lang/libc/issues/1848</span>
-        <a class="ident" href="../../../src/nix/sys/time.rs.html#283">TimeVal</a>(<a class="ident" href="../../../libc/unix/struct.timeval.html">timeval</a> {<span class="ident">tv_sec</span>: <a class="ident" href="../../../src/nix/sys/time.rs.html#358">secs</a> <span class="kw">as</span> <a class="ident" href="../../../nix/sys/time/type.time_t.html">time_t</a>,
-                           <span class="ident">tv_usec</span>: <a class="ident" href="../../../src/nix/sys/time.rs.html#358">micros</a> <span class="kw">as</span> <a class="ident" href="../../../nix/sys/time/type.suseconds_t.html">suseconds_t</a> })
+        <a class="ident" href="../../../src/nix/sys/time.rs.html#291">TimeVal</a>(<a class="ident" href="../../../libc/unix/struct.timeval.html">timeval</a> {<span class="ident">tv_sec</span>: <a class="ident" href="../../../src/nix/sys/time.rs.html#366">secs</a> <span class="kw">as</span> <a class="ident" href="../../../nix/sys/time/type.time_t.html">time_t</a>,
+                           <span class="ident">tv_usec</span>: <a class="ident" href="../../../src/nix/sys/time.rs.html#366">micros</a> <span class="kw">as</span> <a class="ident" href="../../../nix/sys/time/type.suseconds_t.html">suseconds_t</a> })
     }
 
-    <span class="kw">fn</span> <span class="ident">num_seconds</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a> {
-        <span class="kw">if</span> <a class="self" href="../../../src/nix/sys/time.rs.html#366">self</a>.<a class="ident" href="../../../src/nix/sys/time.rs.html#399">tv_sec</a>() <span class="op">&lt;</span> <span class="number">0</span> <span class="op">&amp;&amp;</span> <a class="self" href="../../../src/nix/sys/time.rs.html#366">self</a>.<a class="ident" href="../../../src/nix/sys/time.rs.html#403">tv_usec</a>() <span class="op">&gt;</span> <span class="number">0</span> {
-            (<a class="self" href="../../../src/nix/sys/time.rs.html#366">self</a>.<a class="ident" href="../../../src/nix/sys/time.rs.html#399">tv_sec</a>() <span class="op">+</span> <span class="number">1</span>) <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>
+    <span class="kw">fn</span> <span class="ident">num_seconds</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a> {
+        <span class="kw">if</span> <a class="self" href="../../../src/nix/sys/time.rs.html#374">self</a>.<a class="ident" href="../../../src/nix/sys/time.rs.html#407">tv_sec</a>() <span class="op">&lt;</span> <span class="number">0</span> <span class="op">&amp;&amp;</span> <a class="self" href="../../../src/nix/sys/time.rs.html#374">self</a>.<a class="ident" href="../../../src/nix/sys/time.rs.html#411">tv_usec</a>() <span class="op">&gt;</span> <span class="number">0</span> {
+            (<a class="self" href="../../../src/nix/sys/time.rs.html#374">self</a>.<a class="ident" href="../../../src/nix/sys/time.rs.html#407">tv_sec</a>() <span class="op">+</span> <span class="number">1</span>) <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>
         } <span class="kw">else</span> {
-            <a class="self" href="../../../src/nix/sys/time.rs.html#366">self</a>.<a class="ident" href="../../../src/nix/sys/time.rs.html#399">tv_sec</a>() <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>
+            <a class="self" href="../../../src/nix/sys/time.rs.html#374">self</a>.<a class="ident" href="../../../src/nix/sys/time.rs.html#407">tv_sec</a>() <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">num_milliseconds</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a> {
-        <a class="self" href="../../../src/nix/sys/time.rs.html#374">self</a>.<a class="ident" href="../../../src/nix/sys/time.rs.html#45">num_microseconds</a>() <span class="op">/</span> <span class="number">1_000</span>
+    <span class="kw">fn</span> <span class="ident">num_milliseconds</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a> {
+        <a class="self" href="../../../src/nix/sys/time.rs.html#382">self</a>.<a class="ident" href="../../../src/nix/sys/time.rs.html#45">num_microseconds</a>() <span class="op">/</span> <span class="number">1_000</span>
     }
 
-    <span class="kw">fn</span> <span class="ident">num_microseconds</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a> {
-        <span class="kw">let</span> <span class="ident">secs</span> <span class="op">=</span> <a class="self" href="../../../src/nix/sys/time.rs.html#378">self</a>.<a class="ident" href="../../../src/nix/sys/time.rs.html#43">num_seconds</a>() <span class="op">*</span> <span class="number">1_000_000</span>;
-        <span class="kw">let</span> <span class="ident">usec</span> <span class="op">=</span> <a class="self" href="../../../src/nix/sys/time.rs.html#378">self</a>.<a class="ident" href="../../../src/nix/sys/time.rs.html#390">micros_mod_sec</a>();
-        <a class="ident" href="../../../src/nix/sys/time.rs.html#379">secs</a> <span class="op">+</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#380">usec</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>
+    <span class="kw">fn</span> <span class="ident">num_microseconds</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a> {
+        <span class="kw">let</span> <span class="ident">secs</span> <span class="op">=</span> <a class="self" href="../../../src/nix/sys/time.rs.html#386">self</a>.<a class="ident" href="../../../src/nix/sys/time.rs.html#43">num_seconds</a>() <span class="op">*</span> <span class="number">1_000_000</span>;
+        <span class="kw">let</span> <span class="ident">usec</span> <span class="op">=</span> <a class="self" href="../../../src/nix/sys/time.rs.html#386">self</a>.<a class="ident" href="../../../src/nix/sys/time.rs.html#398">micros_mod_sec</a>();
+        <a class="ident" href="../../../src/nix/sys/time.rs.html#387">secs</a> <span class="op">+</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#388">usec</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>
     }
 
-    <span class="kw">fn</span> <span class="ident">num_nanoseconds</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a> {
-        <a class="self" href="../../../src/nix/sys/time.rs.html#384">self</a>.<a class="ident" href="../../../src/nix/sys/time.rs.html#45">num_microseconds</a>() <span class="op">*</span> <span class="number">1_000</span>
+    <span class="kw">fn</span> <span class="ident">num_nanoseconds</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a> {
+        <a class="self" href="../../../src/nix/sys/time.rs.html#392">self</a>.<a class="ident" href="../../../src/nix/sys/time.rs.html#45">num_microseconds</a>() <span class="op">*</span> <span class="number">1_000</span>
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#283">TimeVal</a> {
-    <span class="kw">fn</span> <span class="ident">micros_mod_sec</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="../../../nix/sys/time/type.suseconds_t.html">suseconds_t</a> {
-        <span class="kw">if</span> <a class="self" href="../../../src/nix/sys/time.rs.html#390">self</a>.<a class="ident" href="../../../src/nix/sys/time.rs.html#399">tv_sec</a>() <span class="op">&lt;</span> <span class="number">0</span> <span class="op">&amp;&amp;</span> <a class="self" href="../../../src/nix/sys/time.rs.html#390">self</a>.<a class="ident" href="../../../src/nix/sys/time.rs.html#403">tv_usec</a>() <span class="op">&gt;</span> <span class="number">0</span> {
-            <a class="self" href="../../../src/nix/sys/time.rs.html#390">self</a>.<a class="ident" href="../../../src/nix/sys/time.rs.html#403">tv_usec</a>() <span class="op">-</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#285">MICROS_PER_SEC</a> <span class="kw">as</span> <a class="ident" href="../../../nix/sys/time/type.suseconds_t.html">suseconds_t</a>
+<span class="kw">impl</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#291">TimeVal</a> {
+    <span class="kw">fn</span> <span class="ident">micros_mod_sec</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="../../../nix/sys/time/type.suseconds_t.html">suseconds_t</a> {
+        <span class="kw">if</span> <a class="self" href="../../../src/nix/sys/time.rs.html#398">self</a>.<a class="ident" href="../../../src/nix/sys/time.rs.html#407">tv_sec</a>() <span class="op">&lt;</span> <span class="number">0</span> <span class="op">&amp;&amp;</span> <a class="self" href="../../../src/nix/sys/time.rs.html#398">self</a>.<a class="ident" href="../../../src/nix/sys/time.rs.html#411">tv_usec</a>() <span class="op">&gt;</span> <span class="number">0</span> {
+            <a class="self" href="../../../src/nix/sys/time.rs.html#398">self</a>.<a class="ident" href="../../../src/nix/sys/time.rs.html#411">tv_usec</a>() <span class="op">-</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#293">MICROS_PER_SEC</a> <span class="kw">as</span> <a class="ident" href="../../../nix/sys/time/type.suseconds_t.html">suseconds_t</a>
         } <span class="kw">else</span> {
-            <a class="self" href="../../../src/nix/sys/time.rs.html#390">self</a>.<a class="ident" href="../../../src/nix/sys/time.rs.html#403">tv_usec</a>()
+            <a class="self" href="../../../src/nix/sys/time.rs.html#398">self</a>.<a class="ident" href="../../../src/nix/sys/time.rs.html#411">tv_usec</a>()
         }
     }
 
     <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">target_env</span> <span class="op">=</span> <span class="string">&quot;musl&quot;</span>, <span class="ident">allow</span>(<span class="ident">deprecated</span>))]</span> <span class="comment">// https://github.com/rust-lang/libc/issues/1848</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">tv_sec</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="../../../nix/sys/time/type.time_t.html">time_t</a> {
-        <a class="self" href="../../../src/nix/sys/time.rs.html#399">self</a>.<span class="number">0</span>.<span class="ident">tv_sec</span>
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">tv_sec</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="../../../nix/sys/time/type.time_t.html">time_t</a> {
+        <a class="self" href="../../../src/nix/sys/time.rs.html#407">self</a>.<span class="number">0</span>.<span class="ident">tv_sec</span>
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">tv_usec</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="../../../nix/sys/time/type.suseconds_t.html">suseconds_t</a> {
-        <a class="self" href="../../../src/nix/sys/time.rs.html#403">self</a>.<span class="number">0</span>.<span class="ident">tv_usec</span>
-    }
-}
-
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/arith/trait.Neg.html">ops::Neg</a> <span class="kw">for</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#283">TimeVal</a> {
-    <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#283">TimeVal</a>;
-
-    <span class="kw">fn</span> <span class="ident">neg</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#283">TimeVal</a> {
-        <span class="ident">TimeVal::microseconds</span>(<span class="op">-</span><a class="self" href="../../../src/nix/sys/time.rs.html#411">self</a>.<a class="ident" href="../../../src/nix/sys/time.rs.html#45">num_microseconds</a>())
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">tv_usec</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="../../../nix/sys/time/type.suseconds_t.html">suseconds_t</a> {
+        <a class="self" href="../../../src/nix/sys/time.rs.html#411">self</a>.<span class="number">0</span>.<span class="ident">tv_usec</span>
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/arith/trait.Add.html">ops::Add</a> <span class="kw">for</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#283">TimeVal</a> {
-    <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#283">TimeVal</a>;
+<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/arith/trait.Neg.html">ops::Neg</a> <span class="kw">for</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#291">TimeVal</a> {
+    <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#291">TimeVal</a>;
 
-    <span class="kw">fn</span> <span class="ident">add</span>(<span class="self">self</span>, <span class="ident">rhs</span>: <a class="ident" href="../../../src/nix/sys/time.rs.html#283">TimeVal</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#283">TimeVal</a> {
+    <span class="kw">fn</span> <span class="ident">neg</span>(<span class="self">self</span>) -&gt; <a class="ident" href="../../../src/nix/sys/time.rs.html#291">TimeVal</a> {
+        <span class="ident">TimeVal::microseconds</span>(<span class="op">-</span><a class="self" href="../../../src/nix/sys/time.rs.html#419">self</a>.<a class="ident" href="../../../src/nix/sys/time.rs.html#45">num_microseconds</a>())
+    }
+}
+
+<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/arith/trait.Add.html">ops::Add</a> <span class="kw">for</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#291">TimeVal</a> {
+    <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#291">TimeVal</a>;
+
+    <span class="kw">fn</span> <span class="ident">add</span>(<span class="self">self</span>, <span class="ident">rhs</span>: <a class="ident" href="../../../src/nix/sys/time.rs.html#291">TimeVal</a>) -&gt; <a class="ident" href="../../../src/nix/sys/time.rs.html#291">TimeVal</a> {
         <span class="ident">TimeVal::microseconds</span>(
-            <a class="self" href="../../../src/nix/sys/time.rs.html#419">self</a>.<a class="ident" href="../../../src/nix/sys/time.rs.html#45">num_microseconds</a>() <span class="op">+</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#419">rhs</a>.<a class="ident" href="../../../src/nix/sys/time.rs.html#45">num_microseconds</a>())
+            <a class="self" href="../../../src/nix/sys/time.rs.html#427">self</a>.<a class="ident" href="../../../src/nix/sys/time.rs.html#45">num_microseconds</a>() <span class="op">+</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#427">rhs</a>.<a class="ident" href="../../../src/nix/sys/time.rs.html#45">num_microseconds</a>())
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/arith/trait.Sub.html">ops::Sub</a> <span class="kw">for</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#283">TimeVal</a> {
-    <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#283">TimeVal</a>;
+<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/arith/trait.Sub.html">ops::Sub</a> <span class="kw">for</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#291">TimeVal</a> {
+    <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#291">TimeVal</a>;
 
-    <span class="kw">fn</span> <span class="ident">sub</span>(<span class="self">self</span>, <span class="ident">rhs</span>: <a class="ident" href="../../../src/nix/sys/time.rs.html#283">TimeVal</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#283">TimeVal</a> {
+    <span class="kw">fn</span> <span class="ident">sub</span>(<span class="self">self</span>, <span class="ident">rhs</span>: <a class="ident" href="../../../src/nix/sys/time.rs.html#291">TimeVal</a>) -&gt; <a class="ident" href="../../../src/nix/sys/time.rs.html#291">TimeVal</a> {
         <span class="ident">TimeVal::microseconds</span>(
-            <a class="self" href="../../../src/nix/sys/time.rs.html#428">self</a>.<a class="ident" href="../../../src/nix/sys/time.rs.html#45">num_microseconds</a>() <span class="op">-</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#428">rhs</a>.<a class="ident" href="../../../src/nix/sys/time.rs.html#45">num_microseconds</a>())
+            <a class="self" href="../../../src/nix/sys/time.rs.html#436">self</a>.<a class="ident" href="../../../src/nix/sys/time.rs.html#45">num_microseconds</a>() <span class="op">-</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#436">rhs</a>.<a class="ident" href="../../../src/nix/sys/time.rs.html#45">num_microseconds</a>())
     }
 }
 
-<span class="kw">impl</span> <span class="ident">ops::Mul</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#283">TimeVal</a> {
-    <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#283">TimeVal</a>;
+<span class="kw">impl</span> <span class="ident">ops::Mul</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#291">TimeVal</a> {
+    <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#291">TimeVal</a>;
 
-    <span class="kw">fn</span> <span class="ident">mul</span>(<span class="self">self</span>, <span class="ident">rhs</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#283">TimeVal</a> {
-        <span class="kw">let</span> <span class="ident">usec</span> <span class="op">=</span> <a class="self" href="../../../src/nix/sys/time.rs.html#437">self</a>.<a class="ident" href="../../../src/nix/sys/time.rs.html#45">num_microseconds</a>().<span class="ident">checked_mul</span>(<span class="ident">i64::from</span>(<a class="ident" href="../../../src/nix/sys/time.rs.html#437">rhs</a>))
+    <span class="kw">fn</span> <span class="ident">mul</span>(<span class="self">self</span>, <span class="ident">rhs</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>) -&gt; <a class="ident" href="../../../src/nix/sys/time.rs.html#291">TimeVal</a> {
+        <span class="kw">let</span> <span class="ident">usec</span> <span class="op">=</span> <a class="self" href="../../../src/nix/sys/time.rs.html#445">self</a>.<a class="ident" href="../../../src/nix/sys/time.rs.html#45">num_microseconds</a>().<span class="ident">checked_mul</span>(<span class="ident">i64::from</span>(<a class="ident" href="../../../src/nix/sys/time.rs.html#445">rhs</a>))
             .<span class="ident">expect</span>(<span class="string">&quot;TimeVal multiply out of bounds&quot;</span>);
 
-        <span class="ident">TimeVal::microseconds</span>(<a class="ident" href="../../../src/nix/sys/time.rs.html#438">usec</a>)
+        <span class="ident">TimeVal::microseconds</span>(<a class="ident" href="../../../src/nix/sys/time.rs.html#446">usec</a>)
     }
 }
 
-<span class="kw">impl</span> <span class="ident">ops::Div</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#283">TimeVal</a> {
-    <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#283">TimeVal</a>;
+<span class="kw">impl</span> <span class="ident">ops::Div</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#291">TimeVal</a> {
+    <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#291">TimeVal</a>;
 
-    <span class="kw">fn</span> <span class="ident">div</span>(<span class="self">self</span>, <span class="ident">rhs</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#283">TimeVal</a> {
-        <span class="kw">let</span> <span class="ident">usec</span> <span class="op">=</span> <a class="self" href="../../../src/nix/sys/time.rs.html#448">self</a>.<a class="ident" href="../../../src/nix/sys/time.rs.html#45">num_microseconds</a>() <span class="op">/</span> <span class="ident">i64::from</span>(<a class="ident" href="../../../src/nix/sys/time.rs.html#448">rhs</a>);
-        <span class="ident">TimeVal::microseconds</span>(<a class="ident" href="../../../src/nix/sys/time.rs.html#449">usec</a>)
+    <span class="kw">fn</span> <span class="ident">div</span>(<span class="self">self</span>, <span class="ident">rhs</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>) -&gt; <a class="ident" href="../../../src/nix/sys/time.rs.html#291">TimeVal</a> {
+        <span class="kw">let</span> <span class="ident">usec</span> <span class="op">=</span> <a class="self" href="../../../src/nix/sys/time.rs.html#456">self</a>.<a class="ident" href="../../../src/nix/sys/time.rs.html#45">num_microseconds</a>() <span class="op">/</span> <span class="ident">i64::from</span>(<a class="ident" href="../../../src/nix/sys/time.rs.html#456">rhs</a>);
+        <span class="ident">TimeVal::microseconds</span>(<a class="ident" href="../../../src/nix/sys/time.rs.html#457">usec</a>)
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#283">TimeVal</a> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <span class="kw">let</span> (<span class="ident">abs</span>, <span class="ident">sign</span>) <span class="op">=</span> <span class="kw">if</span> <a class="self" href="../../../src/nix/sys/time.rs.html#455">self</a>.<a class="ident" href="../../../src/nix/sys/time.rs.html#399">tv_sec</a>() <span class="op">&lt;</span> <span class="number">0</span> {
-            (<span class="op">-</span><span class="kw-2">*</span><a class="self" href="../../../src/nix/sys/time.rs.html#455">self</a>, <span class="string">&quot;-&quot;</span>)
+<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#291">TimeVal</a> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+        <span class="kw">let</span> (<span class="ident">abs</span>, <span class="ident">sign</span>) <span class="op">=</span> <span class="kw">if</span> <a class="self" href="../../../src/nix/sys/time.rs.html#463">self</a>.<a class="ident" href="../../../src/nix/sys/time.rs.html#407">tv_sec</a>() <span class="op">&lt;</span> <span class="number">0</span> {
+            (<span class="op">-</span><span class="kw-2">*</span><a class="self" href="../../../src/nix/sys/time.rs.html#463">self</a>, <span class="string">&quot;-&quot;</span>)
         } <span class="kw">else</span> {
-            (<span class="kw-2">*</span><a class="self" href="../../../src/nix/sys/time.rs.html#455">self</a>, <span class="string">&quot;&quot;</span>)
+            (<span class="kw-2">*</span><a class="self" href="../../../src/nix/sys/time.rs.html#463">self</a>, <span class="string">&quot;&quot;</span>)
         };
 
-        <span class="kw">let</span> <span class="ident">sec</span> <span class="op">=</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#456">abs</a>.<a class="ident" href="../../../src/nix/sys/time.rs.html#399">tv_sec</a>();
+        <span class="kw">let</span> <span class="ident">sec</span> <span class="op">=</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#464">abs</a>.<a class="ident" href="../../../src/nix/sys/time.rs.html#407">tv_sec</a>();
 
-        <span class="macro">write!</span>(<a class="ident" href="../../../src/nix/sys/time.rs.html#455">f</a>, <span class="string">&quot;{}&quot;</span>, <a class="ident" href="../../../src/nix/sys/time.rs.html#456">sign</a>)<span class="question-mark">?</span>;
+        <span class="macro">write!</span>(<a class="ident" href="../../../src/nix/sys/time.rs.html#463">f</a>, <span class="string">&quot;{}&quot;</span>, <a class="ident" href="../../../src/nix/sys/time.rs.html#464">sign</a>)<span class="question-mark">?</span>;
 
-        <span class="kw">if</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#456">abs</a>.<a class="ident" href="../../../src/nix/sys/time.rs.html#403">tv_usec</a>() <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
-            <span class="kw">if</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#456">abs</a>.<a class="ident" href="../../../src/nix/sys/time.rs.html#399">tv_sec</a>() <span class="op">=</span><span class="op">=</span> <span class="number">1</span> {
-                <span class="macro">write!</span>(<a class="ident" href="../../../src/nix/sys/time.rs.html#455">f</a>, <span class="string">&quot;{} second&quot;</span>, <a class="ident" href="../../../src/nix/sys/time.rs.html#462">sec</a>)<span class="question-mark">?</span>;
+        <span class="kw">if</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#464">abs</a>.<a class="ident" href="../../../src/nix/sys/time.rs.html#411">tv_usec</a>() <span class="op">==</span> <span class="number">0</span> {
+            <span class="kw">if</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#464">abs</a>.<a class="ident" href="../../../src/nix/sys/time.rs.html#407">tv_sec</a>() <span class="op">==</span> <span class="number">1</span> {
+                <span class="macro">write!</span>(<a class="ident" href="../../../src/nix/sys/time.rs.html#463">f</a>, <span class="string">&quot;{} second&quot;</span>, <a class="ident" href="../../../src/nix/sys/time.rs.html#470">sec</a>)<span class="question-mark">?</span>;
             } <span class="kw">else</span> {
-                <span class="macro">write!</span>(<a class="ident" href="../../../src/nix/sys/time.rs.html#455">f</a>, <span class="string">&quot;{} seconds&quot;</span>, <a class="ident" href="../../../src/nix/sys/time.rs.html#462">sec</a>)<span class="question-mark">?</span>;
+                <span class="macro">write!</span>(<a class="ident" href="../../../src/nix/sys/time.rs.html#463">f</a>, <span class="string">&quot;{} seconds&quot;</span>, <a class="ident" href="../../../src/nix/sys/time.rs.html#470">sec</a>)<span class="question-mark">?</span>;
             }
-        } <span class="kw">else</span> <span class="kw">if</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#456">abs</a>.<a class="ident" href="../../../src/nix/sys/time.rs.html#403">tv_usec</a>() <span class="op">%</span> <span class="number">1000</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
-            <span class="macro">write!</span>(<a class="ident" href="../../../src/nix/sys/time.rs.html#455">f</a>, <span class="string">&quot;{}.{:03} seconds&quot;</span>, <a class="ident" href="../../../src/nix/sys/time.rs.html#462">sec</a>, <a class="ident" href="../../../src/nix/sys/time.rs.html#456">abs</a>.<a class="ident" href="../../../src/nix/sys/time.rs.html#403">tv_usec</a>() <span class="op">/</span> <span class="number">1000</span>)<span class="question-mark">?</span>;
+        } <span class="kw">else</span> <span class="kw">if</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#464">abs</a>.<a class="ident" href="../../../src/nix/sys/time.rs.html#411">tv_usec</a>() <span class="op">%</span> <span class="number">1000</span> <span class="op">==</span> <span class="number">0</span> {
+            <span class="macro">write!</span>(<a class="ident" href="../../../src/nix/sys/time.rs.html#463">f</a>, <span class="string">&quot;{}.{:03} seconds&quot;</span>, <a class="ident" href="../../../src/nix/sys/time.rs.html#470">sec</a>, <a class="ident" href="../../../src/nix/sys/time.rs.html#464">abs</a>.<a class="ident" href="../../../src/nix/sys/time.rs.html#411">tv_usec</a>() <span class="op">/</span> <span class="number">1000</span>)<span class="question-mark">?</span>;
         } <span class="kw">else</span> {
-            <span class="macro">write!</span>(<a class="ident" href="../../../src/nix/sys/time.rs.html#455">f</a>, <span class="string">&quot;{}.{:06} seconds&quot;</span>, <a class="ident" href="../../../src/nix/sys/time.rs.html#462">sec</a>, <a class="ident" href="../../../src/nix/sys/time.rs.html#456">abs</a>.<a class="ident" href="../../../src/nix/sys/time.rs.html#403">tv_usec</a>())<span class="question-mark">?</span>;
+            <span class="macro">write!</span>(<a class="ident" href="../../../src/nix/sys/time.rs.html#463">f</a>, <span class="string">&quot;{}.{:06} seconds&quot;</span>, <a class="ident" href="../../../src/nix/sys/time.rs.html#470">sec</a>, <a class="ident" href="../../../src/nix/sys/time.rs.html#464">abs</a>.<a class="ident" href="../../../src/nix/sys/time.rs.html#411">tv_usec</a>())<span class="question-mark">?</span>;
         }
 
         <span class="prelude-val">Ok</span>(())
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><a class="ident" href="../../../libc/unix/struct.timeval.html">timeval</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#283">TimeVal</a> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">tv</span>: <a class="ident" href="../../../libc/unix/struct.timeval.html">timeval</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <a class="ident" href="../../../src/nix/sys/time.rs.html#283">TimeVal</a>(<a class="ident" href="../../../src/nix/sys/time.rs.html#483">tv</a>)
+<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><a class="ident" href="../../../libc/unix/struct.timeval.html">timeval</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#291">TimeVal</a> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">tv</span>: <a class="ident" href="../../../libc/unix/struct.timeval.html">timeval</a>) -&gt; <span class="self">Self</span> {
+        <a class="ident" href="../../../src/nix/sys/time.rs.html#291">TimeVal</a>(<a class="ident" href="../../../src/nix/sys/time.rs.html#491">tv</a>)
     }
 }
 
 <span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">fn</span> <span class="ident">div_mod_floor_64</span>(<span class="ident">this</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>, <span class="ident">other</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>) <span class="op">-</span><span class="op">&gt;</span> (<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>) {
-    (<a class="ident" href="../../../src/nix/sys/time.rs.html#494">div_floor_64</a>(<a class="ident" href="../../../src/nix/sys/time.rs.html#489">this</a>, <a class="ident" href="../../../src/nix/sys/time.rs.html#489">other</a>), <a class="ident" href="../../../src/nix/sys/time.rs.html#503">mod_floor_64</a>(<a class="ident" href="../../../src/nix/sys/time.rs.html#489">this</a>, <a class="ident" href="../../../src/nix/sys/time.rs.html#489">other</a>))
+<span class="kw">fn</span> <span class="ident">div_mod_floor_64</span>(<span class="ident">this</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>, <span class="ident">other</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>) -&gt; (<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>) {
+    (<a class="ident" href="../../../src/nix/sys/time.rs.html#502">div_floor_64</a>(<a class="ident" href="../../../src/nix/sys/time.rs.html#497">this</a>, <a class="ident" href="../../../src/nix/sys/time.rs.html#497">other</a>), <a class="ident" href="../../../src/nix/sys/time.rs.html#511">mod_floor_64</a>(<a class="ident" href="../../../src/nix/sys/time.rs.html#497">this</a>, <a class="ident" href="../../../src/nix/sys/time.rs.html#497">other</a>))
 }
 
 <span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">fn</span> <span class="ident">div_floor_64</span>(<span class="ident">this</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>, <span class="ident">other</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a> {
-    <span class="kw">match</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#512">div_rem_64</a>(<a class="ident" href="../../../src/nix/sys/time.rs.html#494">this</a>, <a class="ident" href="../../../src/nix/sys/time.rs.html#494">other</a>) {
-        (<span class="ident">d</span>, <span class="ident">r</span>) <span class="kw">if</span> (<a class="ident" href="../../../src/nix/sys/time.rs.html#496">r</a> <span class="op">&gt;</span> <span class="number">0</span> <span class="op">&amp;&amp;</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#494">other</a> <span class="op">&lt;</span> <span class="number">0</span>)
-               <span class="op">|</span><span class="op">|</span> (<a class="ident" href="../../../src/nix/sys/time.rs.html#496">r</a> <span class="op">&lt;</span> <span class="number">0</span> <span class="op">&amp;&amp;</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#494">other</a> <span class="op">&gt;</span> <span class="number">0</span>) <span class="op">=</span><span class="op">&gt;</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#496">d</a> <span class="op">-</span> <span class="number">1</span>,
-        (<span class="ident">d</span>, <span class="kw">_</span>)                         <span class="op">=</span><span class="op">&gt;</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#498">d</a>,
+<span class="kw">fn</span> <span class="ident">div_floor_64</span>(<span class="ident">this</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>, <span class="ident">other</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a> {
+    <span class="kw">match</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#520">div_rem_64</a>(<a class="ident" href="../../../src/nix/sys/time.rs.html#502">this</a>, <a class="ident" href="../../../src/nix/sys/time.rs.html#502">other</a>) {
+        (<span class="ident">d</span>, <span class="ident">r</span>) <span class="kw">if</span> (<a class="ident" href="../../../src/nix/sys/time.rs.html#504">r</a> <span class="op">&gt;</span> <span class="number">0</span> <span class="op">&amp;&amp;</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#502">other</a> <span class="op">&lt;</span> <span class="number">0</span>)
+               <span class="op">|</span><span class="op">|</span> (<a class="ident" href="../../../src/nix/sys/time.rs.html#504">r</a> <span class="op">&lt;</span> <span class="number">0</span> <span class="op">&amp;&amp;</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#502">other</a> <span class="op">&gt;</span> <span class="number">0</span>) =&gt; <a class="ident" href="../../../src/nix/sys/time.rs.html#504">d</a> <span class="op">-</span> <span class="number">1</span>,
+        (<span class="ident">d</span>, <span class="kw">_</span>)                         =&gt; <a class="ident" href="../../../src/nix/sys/time.rs.html#506">d</a>,
     }
 }
 
 <span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">fn</span> <span class="ident">mod_floor_64</span>(<span class="ident">this</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>, <span class="ident">other</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a> {
-    <span class="kw">match</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#503">this</a> <span class="op">%</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#503">other</a> {
-        <span class="ident">r</span> <span class="kw">if</span> (<a class="ident" href="../../../src/nix/sys/time.rs.html#505">r</a> <span class="op">&gt;</span> <span class="number">0</span> <span class="op">&amp;&amp;</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#503">other</a> <span class="op">&lt;</span> <span class="number">0</span>)
-          <span class="op">|</span><span class="op">|</span> (<a class="ident" href="../../../src/nix/sys/time.rs.html#505">r</a> <span class="op">&lt;</span> <span class="number">0</span> <span class="op">&amp;&amp;</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#503">other</a> <span class="op">&gt;</span> <span class="number">0</span>) <span class="op">=</span><span class="op">&gt;</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#505">r</a> <span class="op">+</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#503">other</a>,
-        <span class="ident">r</span>                         <span class="op">=</span><span class="op">&gt;</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#507">r</a>,
+<span class="kw">fn</span> <span class="ident">mod_floor_64</span>(<span class="ident">this</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>, <span class="ident">other</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a> {
+    <span class="kw">match</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#511">this</a> <span class="op">%</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#511">other</a> {
+        <span class="ident">r</span> <span class="kw">if</span> (<a class="ident" href="../../../src/nix/sys/time.rs.html#513">r</a> <span class="op">&gt;</span> <span class="number">0</span> <span class="op">&amp;&amp;</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#511">other</a> <span class="op">&lt;</span> <span class="number">0</span>)
+          <span class="op">|</span><span class="op">|</span> (<a class="ident" href="../../../src/nix/sys/time.rs.html#513">r</a> <span class="op">&lt;</span> <span class="number">0</span> <span class="op">&amp;&amp;</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#511">other</a> <span class="op">&gt;</span> <span class="number">0</span>) =&gt; <a class="ident" href="../../../src/nix/sys/time.rs.html#513">r</a> <span class="op">+</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#511">other</a>,
+        <span class="ident">r</span>                         =&gt; <a class="ident" href="../../../src/nix/sys/time.rs.html#515">r</a>,
     }
 }
 
 <span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">fn</span> <span class="ident">div_rem_64</span>(<span class="ident">this</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>, <span class="ident">other</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>) <span class="op">-</span><span class="op">&gt;</span> (<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>) {
-    (<a class="ident" href="../../../src/nix/sys/time.rs.html#512">this</a> <span class="op">/</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#512">other</a>, <a class="ident" href="../../../src/nix/sys/time.rs.html#512">this</a> <span class="op">%</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#512">other</a>)
+<span class="kw">fn</span> <span class="ident">div_rem_64</span>(<span class="ident">this</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>, <span class="ident">other</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>) -&gt; (<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>) {
+    (<a class="ident" href="../../../src/nix/sys/time.rs.html#520">this</a> <span class="op">/</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#520">other</a>, <a class="ident" href="../../../src/nix/sys/time.rs.html#520">this</a> <span class="op">%</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#520">other</a>)
 }
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
@@ -1147,7 +1163,7 @@
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">test_timespec_ord</span>() {
-        <span class="macro">assert!</span>(<span class="ident">TimeSpec::seconds</span>(<span class="number">1</span>) <span class="op">=</span><span class="op">=</span> <span class="ident">TimeSpec::nanoseconds</span>(<span class="number">1_000_000_000</span>));
+        <span class="macro">assert!</span>(<span class="ident">TimeSpec::seconds</span>(<span class="number">1</span>) <span class="op">==</span> <span class="ident">TimeSpec::nanoseconds</span>(<span class="number">1_000_000_000</span>));
         <span class="macro">assert!</span>(<span class="ident">TimeSpec::seconds</span>(<span class="number">1</span>) <span class="op">&lt;</span> <span class="ident">TimeSpec::nanoseconds</span>(<span class="number">1_000_000_001</span>));
         <span class="macro">assert!</span>(<span class="ident">TimeSpec::seconds</span>(<span class="number">1</span>) <span class="op">&gt;</span> <span class="ident">TimeSpec::nanoseconds</span>(<span class="number">999_999_999</span>));
         <span class="macro">assert!</span>(<span class="ident">TimeSpec::seconds</span>(<span class="op">-</span><span class="number">1</span>) <span class="op">&lt;</span> <span class="ident">TimeSpec::nanoseconds</span>(<span class="op">-</span><span class="number">999_999_999</span>));
@@ -1175,7 +1191,7 @@
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">test_timeval_ord</span>() {
-        <span class="macro">assert!</span>(<span class="ident">TimeVal::seconds</span>(<span class="number">1</span>) <span class="op">=</span><span class="op">=</span> <span class="ident">TimeVal::microseconds</span>(<span class="number">1_000_000</span>));
+        <span class="macro">assert!</span>(<span class="ident">TimeVal::seconds</span>(<span class="number">1</span>) <span class="op">==</span> <span class="ident">TimeVal::microseconds</span>(<span class="number">1_000_000</span>));
         <span class="macro">assert!</span>(<span class="ident">TimeVal::seconds</span>(<span class="number">1</span>) <span class="op">&lt;</span> <span class="ident">TimeVal::microseconds</span>(<span class="number">1_000_001</span>));
         <span class="macro">assert!</span>(<span class="ident">TimeVal::seconds</span>(<span class="number">1</span>) <span class="op">&gt;</span> <span class="ident">TimeVal::microseconds</span>(<span class="number">999_999</span>));
         <span class="macro">assert!</span>(<span class="ident">TimeVal::seconds</span>(<span class="op">-</span><span class="number">1</span>) <span class="op">&lt;</span> <span class="ident">TimeVal::microseconds</span>(<span class="op">-</span><span class="number">999_999</span>));

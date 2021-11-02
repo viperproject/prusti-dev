@@ -11,7 +11,7 @@ of examples for those that prefer more information density.</p>
 If you haven’t written any Rust code yet but have written code in another
 language, then this tutorial might be accessible to you without needing to read
 the book first.</p>
-<h1 id="table-of-contents" class="section-header"><a href="#table-of-contents">Table of contents</a></h1>
+<h2 id="table-of-contents" class="section-header"><a href="#table-of-contents">Table of contents</a></h2>
 <ol>
 <li><a href="#setup">Setup</a></li>
 <li><a href="#basic-error-handling">Basic error handling</a>
@@ -48,7 +48,7 @@ the book first.</p>
 </li>
 <li><a href="#closing-thoughts">Closing thoughts</a></li>
 </ol>
-<h1 id="setup" class="section-header"><a href="#setup">Setup</a></h1>
+<h2 id="setup" class="section-header"><a href="#setup">Setup</a></h2>
 <p>In this section, we’ll get you setup with a simple program that reads CSV data
 and prints a “debug” version of each record. This assumes that you have the
 <a href="https://www.rust-lang.org/install.html">Rust toolchain installed</a>,
@@ -109,7 +109,7 @@ download it from github:</p>
 <div class="example-wrap"><pre class="language-text"><code>$ ./target/debug/csvtutor &lt; uspop.csv
 StringRecord([&quot;Davidsons Landing&quot;, &quot;AK&quot;, &quot;&quot;, &quot;65.2419444&quot;, &quot;-165.2716667&quot;])
 StringRecord([&quot;Kenai&quot;, &quot;AK&quot;, &quot;7610&quot;, &quot;60.5544444&quot;, &quot;-151.2583333&quot;])
-StringRecord([&quot;Oakman&quot;, &quot;AL&quot;, &quot;&quot;, &quot;33.7133333&quot;, &quot;-87.3886111&quot;])</code></pre></div><h1 id="basic-error-handling" class="section-header"><a href="#basic-error-handling">Basic error handling</a></h1>
+StringRecord([&quot;Oakman&quot;, &quot;AL&quot;, &quot;&quot;, &quot;33.7133333&quot;, &quot;-87.3886111&quot;])</code></pre></div><h2 id="basic-error-handling" class="section-header"><a href="#basic-error-handling">Basic error handling</a></h2>
 <p>Since reading CSV data can result in errors, error handling is pervasive
 throughout the examples in this tutorial. Therefore, we’re going to spend a
 little bit of time going over basic error handling, and in particular, fix
@@ -210,10 +210,10 @@ it does contain an error.</p>
 <span class="comment">// This says, &quot;for all types T and E, where E can be turned into a human</span>
 <span class="comment">// readable debug message, define the `expect` method.&quot;</span>
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">E</span>: <span class="ident">fmt::Debug</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">E</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">expect</span>(<span class="self">self</span>, <span class="ident">msg</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">T</span> {
+    <span class="kw">fn</span> <span class="ident">expect</span>(<span class="self">self</span>, <span class="ident">msg</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="ident">T</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="prelude-val">Ok</span>(<span class="ident">t</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">t</span>,
-            <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic!</span>(<span class="string">&quot;{}: {:?}&quot;</span>, <span class="ident">msg</span>, <span class="ident">e</span>),
+            <span class="prelude-val">Ok</span>(<span class="ident">t</span>) =&gt; <span class="ident">t</span>,
+            <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; <span class="macro">panic!</span>(<span class="string">&quot;{}: {:?}&quot;</span>, <span class="ident">msg</span>, <span class="ident">e</span>),
         }
     }
 }</code></pre></div>
@@ -222,7 +222,7 @@ a perfectly predictable error, we’ve turned what should be a <em>recoverable</
 error into an <em>unrecoverable</em> error. We did this because it is expedient to
 use unrecoverable errors. Since this is bad practice, we will endeavor to avoid
 unrecoverable errors throughout the rest of the tutorial.</p>
-<h2 id="switch-to-recoverable-errors" class="section-header"><a href="#switch-to-recoverable-errors">Switch to recoverable errors</a></h2>
+<h3 id="switch-to-recoverable-errors" class="section-header"><a href="#switch-to-recoverable-errors">Switch to recoverable errors</a></h3>
 <p>We’ll convert our unrecoverable error to a recoverable error in 3 steps. First,
 let’s get rid of the panic and print an error message manually:</p>
 
@@ -237,8 +237,8 @@ let’s get rid of the panic and print an error message manually:</p>
         <span class="comment">// If there was no problem, print the record.</span>
         <span class="comment">// Otherwise, print the error message and quit the program.</span>
         <span class="kw">match</span> <span class="ident">result</span> {
-            <span class="prelude-val">Ok</span>(<span class="ident">record</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">println!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="ident">record</span>),
-            <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="prelude-val">Ok</span>(<span class="ident">record</span>) =&gt; <span class="macro">println!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="ident">record</span>),
+            <span class="prelude-val">Err</span>(<span class="ident">err</span>) =&gt; {
                 <span class="macro">println!</span>(<span class="string">&quot;error reading CSV from &lt;stdin&gt;: {}&quot;</span>, <span class="ident">err</span>);
                 <span class="ident">process::exit</span>(<span class="number">1</span>);
             }
@@ -270,15 +270,15 @@ error, which our <code>main</code> function can then inspect and decide what to 
     }
 }
 
-<span class="kw">fn</span> <span class="ident">run</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Error</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">run</span>() -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Error</span><span class="op">&gt;</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">rdr</span> <span class="op">=</span> <span class="ident">csv::Reader::from_reader</span>(<span class="ident">io::stdin</span>());
     <span class="kw">for</span> <span class="ident">result</span> <span class="kw">in</span> <span class="ident">rdr</span>.<span class="ident">records</span>() {
         <span class="comment">// Examine our Result.</span>
         <span class="comment">// If there was no problem, print the record.</span>
         <span class="comment">// Otherwise, convert our error to a Box&lt;dyn Error&gt; and return it.</span>
         <span class="kw">match</span> <span class="ident">result</span> {
-            <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">From::from</span>(<span class="ident">err</span>)),
-            <span class="prelude-val">Ok</span>(<span class="ident">record</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="prelude-val">Err</span>(<span class="ident">err</span>) =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">From::from</span>(<span class="ident">err</span>)),
+            <span class="prelude-val">Ok</span>(<span class="ident">record</span>) =&gt; {
               <span class="macro">println!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="ident">record</span>);
             }
         }
@@ -306,7 +306,7 @@ special Rust language feature: the question mark.</p>
     }
 }
 
-<span class="kw">fn</span> <span class="ident">run</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Error</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">run</span>() -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Error</span><span class="op">&gt;</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">rdr</span> <span class="op">=</span> <span class="ident">csv::Reader::from_reader</span>(<span class="ident">io::stdin</span>());
     <span class="kw">for</span> <span class="ident">result</span> <span class="kw">in</span> <span class="ident">rdr</span>.<span class="ident">records</span>() {
         <span class="comment">// This is effectively the same code as our `match` in the</span>
@@ -333,7 +333,7 @@ a library that handles CSV data, then you should check out my
 CSV transformations, then using methods like <code>expect</code> and panicking when an
 error occurs is a perfectly reasonable thing to do. Nevertheless, this tutorial
 will endeavor to show idiomatic code.</p>
-<h1 id="reading-csv" class="section-header"><a href="#reading-csv">Reading CSV</a></h1>
+<h2 id="reading-csv" class="section-header"><a href="#reading-csv">Reading CSV</a></h2>
 <p>Now that we’ve got you setup and covered basic error handling, it’s time to do
 what we came here to do: handle CSV data. We’ve already seen how to read
 CSV data from <code>stdin</code>, but this section will cover how to read CSV data from
@@ -349,7 +349,7 @@ path argument instead of stdin.</p>
 <span class="kw">use</span> <span class="ident">std::fs::File</span>;
 <span class="kw">use</span> <span class="ident">std::process</span>;
 
-<span class="kw">fn</span> <span class="ident">run</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Error</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">run</span>() -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Error</span><span class="op">&gt;</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">file_path</span> <span class="op">=</span> <span class="ident">get_first_arg</span>()<span class="question-mark">?</span>;
     <span class="kw">let</span> <span class="ident">file</span> <span class="op">=</span> <span class="ident">File::open</span>(<span class="ident">file_path</span>)<span class="question-mark">?</span>;
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">rdr</span> <span class="op">=</span> <span class="ident">csv::Reader::from_reader</span>(<span class="ident">file</span>);
@@ -362,10 +362,10 @@ path argument instead of stdin.</p>
 
 <span class="doccomment">/// Returns the first positional argument sent to this process. If there are no</span>
 <span class="doccomment">/// positional arguments, then this returns an error.</span>
-<span class="kw">fn</span> <span class="ident">get_first_arg</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">OsString</span>, <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Error</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">get_first_arg</span>() -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">OsString</span>, <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Error</span><span class="op">&gt;</span><span class="op">&gt;</span> {
     <span class="kw">match</span> <span class="ident">env::args_os</span>().<span class="ident">nth</span>(<span class="number">1</span>) {
-        <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">From::from</span>(<span class="string">&quot;expected 1 argument, but got none&quot;</span>)),
-        <span class="prelude-val">Some</span>(<span class="ident">file_path</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">file_path</span>),
+        <span class="prelude-val">None</span> =&gt; <span class="prelude-val">Err</span>(<span class="ident">From::from</span>(<span class="string">&quot;expected 1 argument, but got none&quot;</span>)),
+        <span class="prelude-val">Some</span>(<span class="ident">file_path</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="ident">file_path</span>),
     }
 }
 
@@ -408,7 +408,7 @@ instead of:</p>
 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">rdr</span> <span class="op">=</span> <span class="ident">csv::Reader::from_path</span>(<span class="ident">file_path</span>)<span class="question-mark">?</span>;</code></pre></div>
 <p><code>csv::Reader::from_path</code> will open the file for you and return an error if
 the file could not be opened.</p>
-<h2 id="reading-headers" class="section-header"><a href="#reading-headers">Reading headers</a></h2>
+<h3 id="reading-headers" class="section-header"><a href="#reading-headers">Reading headers</a></h3>
 <p>If you had a chance to look at the data inside <code>uspop.csv</code>, you would notice
 that there is a header record that looks like this:</p>
 <div class="example-wrap"><pre class="language-text"><code>City,State,Population,Latitude,Longitude</code></pre></div>
@@ -429,7 +429,7 @@ does just that. (Note that we’ve moved back to reading from <code>stdin</code>
 produces terser examples.)</p>
 
 <div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="comment">//tutorial-read-headers-01.rs</span>
-<span class="kw">fn</span> <span class="ident">run</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Error</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">run</span>() -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Error</span><span class="op">&gt;</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">rdr</span> <span class="op">=</span> <span class="ident">csv::ReaderBuilder::new</span>()
         .<span class="ident">has_headers</span>(<span class="bool-val">false</span>)
         .<span class="ident">from_reader</span>(<span class="ident">io::stdin</span>());
@@ -452,7 +452,7 @@ StringRecord([&quot;Oakman&quot;, &quot;AL&quot;, &quot;&quot;, &quot;33.7133333
 method like so:</p>
 
 <div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="comment">//tutorial-read-headers-02.rs</span>
-<span class="kw">fn</span> <span class="ident">run</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Error</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">run</span>() -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Error</span><span class="op">&gt;</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">rdr</span> <span class="op">=</span> <span class="ident">csv::Reader::from_reader</span>(<span class="ident">io::stdin</span>());
     {
         <span class="comment">// We nest this call in its own scope because of lifetimes.</span>
@@ -482,7 +482,7 @@ that we try to borrow the reader to iterate over its records.</p>
 <p>This converts it from a borrow of the CSV reader to a new owned value. This
 makes the code a bit easier to read, but at the cost of copying the header
 record into a new allocation.</p>
-<h2 id="delimiters-quotes-and-variable-length-records" class="section-header"><a href="#delimiters-quotes-and-variable-length-records">Delimiters, quotes and variable length records</a></h2>
+<h3 id="delimiters-quotes-and-variable-length-records" class="section-header"><a href="#delimiters-quotes-and-variable-length-records">Delimiters, quotes and variable length records</a></h3>
 <p>In this section we’ll temporarily depart from our <code>uspop.csv</code> data set and
 show how to read some CSV data that is a little less clean. This CSV data
 uses <code>;</code> as a delimiter, escapes quotes with <code>\&quot;</code> (instead of <code>&quot;&quot;</code>) and has
@@ -508,7 +508,7 @@ Rafael Halperin
 as seen in the following example:</p>
 
 <div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="comment">//tutorial-read-delimiter-01.rs</span>
-<span class="kw">fn</span> <span class="ident">run</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Error</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">run</span>() -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Error</span><span class="op">&gt;</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">rdr</span> <span class="op">=</span> <span class="ident">csv::ReaderBuilder::new</span>()
         .<span class="ident">has_headers</span>(<span class="bool-val">false</span>)
         .<span class="ident">delimiter</span>(<span class="string">b&#39;;&#39;</span>)
@@ -553,7 +553,7 @@ is <code>CRLF</code>, which treats each of <code>\r\n</code>, <code>\r</code> an
 terminators.) For more details, see the documentation and examples for each of
 the methods on
 <a href="../struct.ReaderBuilder.html"><code>ReaderBuilder</code></a>.</p>
-<h2 id="reading-with-serde" class="section-header"><a href="#reading-with-serde">Reading with Serde</a></h2>
+<h3 id="reading-with-serde" class="section-header"><a href="#reading-with-serde">Reading with Serde</a></h3>
 <p>One of the most convenient features of this crate is its support for
 <a href="https://serde.rs/">Serde</a>.
 Serde is a framework for automatically serializing and deserializing data into
@@ -571,7 +571,7 @@ wanted to convert these fields to their “proper” types, then we need to do
 a lot of manual work. This next example shows how.</p>
 
 <div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="comment">//tutorial-read-serde-01.rs</span>
-<span class="kw">fn</span> <span class="ident">run</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Error</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">run</span>() -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Error</span><span class="op">&gt;</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">rdr</span> <span class="op">=</span> <span class="ident">csv::Reader::from_reader</span>(<span class="ident">io::stdin</span>());
     <span class="kw">for</span> <span class="ident">result</span> <span class="kw">in</span> <span class="ident">rdr</span>.<span class="ident">records</span>() {
         <span class="kw">let</span> <span class="ident">record</span> <span class="op">=</span> <span class="ident">result</span><span class="question-mark">?</span>;
@@ -604,7 +604,7 @@ type: <code>(String, String, Option&lt;u64&gt;, f64, f64)</code>.</p>
 <span class="comment">// record type.</span>
 <span class="kw">type</span> <span class="ident">Record</span> <span class="op">=</span> (<span class="ident">String</span>, <span class="ident">String</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span>, <span class="ident">f64</span>, <span class="ident">f64</span>);
 
-<span class="kw">fn</span> <span class="ident">run</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Error</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">run</span>() -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Error</span><span class="op">&gt;</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">rdr</span> <span class="op">=</span> <span class="ident">csv::Reader::from_reader</span>(<span class="ident">io::stdin</span>());
     <span class="comment">// Instead of creating an iterator with the `records` method, we create</span>
     <span class="comment">// an iterator with the `deserialize` method.</span>
@@ -640,7 +640,7 @@ a new <code>use</code> statement that imports <code>HashMap</code> from the stan
 <span class="comment">// record type.</span>
 <span class="kw">type</span> <span class="ident">Record</span> <span class="op">=</span> <span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">String</span><span class="op">&gt;</span>;
 
-<span class="kw">fn</span> <span class="ident">run</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Error</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">run</span>() -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Error</span><span class="op">&gt;</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">rdr</span> <span class="op">=</span> <span class="ident">csv::Reader::from_reader</span>(<span class="ident">io::stdin</span>());
     <span class="kw">for</span> <span class="ident">result</span> <span class="kw">in</span> <span class="ident">rdr</span>.<span class="ident">deserialize</span>() {
         <span class="kw">let</span> <span class="ident">record</span>: <span class="ident">Record</span> <span class="op">=</span> <span class="ident">result</span><span class="question-mark">?</span>;
@@ -694,7 +694,7 @@ how. Don’t miss the new Serde imports!</p>
     <span class="ident">state</span>: <span class="ident">String</span>,
 }
 
-<span class="kw">fn</span> <span class="ident">run</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Error</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">run</span>() -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Error</span><span class="op">&gt;</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">rdr</span> <span class="op">=</span> <span class="ident">csv::Reader::from_reader</span>(<span class="ident">io::stdin</span>());
     <span class="kw">for</span> <span class="ident">result</span> <span class="kw">in</span> <span class="ident">rdr</span>.<span class="ident">deserialize</span>() {
         <span class="kw">let</span> <span class="ident">record</span>: <span class="ident">Record</span> <span class="op">=</span> <span class="ident">result</span><span class="question-mark">?</span>;
@@ -771,7 +771,7 @@ is useful when there is no consistent name mapping from fields to header names:<
 <p>To read more about renaming fields and about other Serde directives, please
 consult the
 <a href="https://serde.rs/attributes.html">Serde documentation on attributes</a>.</p>
-<h2 id="handling-invalid-data-with-serde" class="section-header"><a href="#handling-invalid-data-with-serde">Handling invalid data with Serde</a></h2>
+<h3 id="handling-invalid-data-with-serde" class="section-header"><a href="#handling-invalid-data-with-serde">Handling invalid data with Serde</a></h3>
 <p>In this section we will see a brief example of how to deal with data that isn’t
 clean. To do this exercise, we’ll work with a slightly tweaked version of the
 US population data we’ve been using throughout this tutorial. This version of
@@ -791,7 +791,7 @@ so:</p>
     <span class="ident">state</span>: <span class="ident">String</span>,
 }
 
-<span class="kw">fn</span> <span class="ident">run</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Error</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">run</span>() -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Error</span><span class="op">&gt;</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">rdr</span> <span class="op">=</span> <span class="ident">csv::Reader::from_reader</span>(<span class="ident">io::stdin</span>());
     <span class="kw">for</span> <span class="ident">result</span> <span class="kw">in</span> <span class="ident">rdr</span>.<span class="ident">deserialize</span>() {
         <span class="kw">let</span> <span class="ident">record</span>: <span class="ident">Record</span> <span class="op">=</span> <span class="ident">result</span><span class="question-mark">?</span>;
@@ -834,7 +834,7 @@ to a <code>None</code> value, as shown in this next example:</p>
     <span class="ident">state</span>: <span class="ident">String</span>,
 }
 
-<span class="kw">fn</span> <span class="ident">run</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Error</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">run</span>() -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Error</span><span class="op">&gt;</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">rdr</span> <span class="op">=</span> <span class="ident">csv::Reader::from_reader</span>(<span class="ident">io::stdin</span>());
     <span class="kw">for</span> <span class="ident">result</span> <span class="kw">in</span> <span class="ident">rdr</span>.<span class="ident">deserialize</span>() {
         <span class="kw">let</span> <span class="ident">record</span>: <span class="ident">Record</span> <span class="op">=</span> <span class="ident">result</span><span class="question-mark">?</span>;
@@ -858,7 +858,7 @@ field in our <code>Record</code> type:</p>
 function is a generic helper function that does one very simple thing: when
 applied to <code>Option</code> fields, it will convert any deserialization error into a
 <code>None</code> value. This is useful when you need to work with messy CSV data.</p>
-<h1 id="writing-csv" class="section-header"><a href="#writing-csv">Writing CSV</a></h1>
+<h2 id="writing-csv" class="section-header"><a href="#writing-csv">Writing CSV</a></h2>
 <p>In this section we’ll show a few examples that write CSV data. Writing CSV data
 tends to be a bit more straight-forward than reading CSV data, since you get to
 control the output format.</p>
@@ -869,7 +869,7 @@ control the output format.</p>
 <span class="kw">use</span> <span class="ident">std::io</span>;
 <span class="kw">use</span> <span class="ident">std::process</span>;
 
-<span class="kw">fn</span> <span class="ident">run</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Error</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">run</span>() -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Error</span><span class="op">&gt;</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">wtr</span> <span class="op">=</span> <span class="ident">csv::Writer::from_writer</span>(<span class="ident">io::stdout</span>());
     <span class="comment">// Since we&#39;re writing records manually, we must explicitly write our</span>
     <span class="comment">// header record. A header record is written the same way that other</span>
@@ -902,7 +902,7 @@ Oakman,AL,,33.7133333,-87.3886111</code></pre></div>
 method. In this example, it looks rather simple, but if you’re new to Rust then
 its type signature might look a little daunting:</p>
 
-<div class='information'><div class='tooltip ignore'>ⓘ</div></div><div class="example-wrap"><pre class="rust rust-example-rendered ignore"><code><span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">write_record</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">T</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">record</span>: <span class="ident">I</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">csv::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span>
+<div class='information'><div class='tooltip ignore'>ⓘ</div></div><div class="example-wrap"><pre class="rust rust-example-rendered ignore"><code><span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">write_record</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">T</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">record</span>: <span class="ident">I</span>) -&gt; <span class="ident">csv::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span>
     <span class="kw">where</span> <span class="ident">I</span>: <span class="ident">IntoIterator</span><span class="op">&lt;</span><span class="ident">Item</span><span class="op">=</span><span class="ident">T</span><span class="op">&gt;</span>, <span class="ident">T</span>: <span class="ident">AsRef</span><span class="op">&lt;</span>[<span class="ident">u8</span>]<span class="op">&gt;</span>
 {
     <span class="comment">// implementation elided</span>
@@ -960,7 +960,7 @@ of <code>stdout</code>:</p>
 <span class="kw">use</span> <span class="ident">std::ffi::OsString</span>;
 <span class="kw">use</span> <span class="ident">std::process</span>;
 
-<span class="kw">fn</span> <span class="ident">run</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Error</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">run</span>() -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Error</span><span class="op">&gt;</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">file_path</span> <span class="op">=</span> <span class="ident">get_first_arg</span>()<span class="question-mark">?</span>;
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">wtr</span> <span class="op">=</span> <span class="ident">csv::Writer::from_path</span>(<span class="ident">file_path</span>)<span class="question-mark">?</span>;
 
@@ -975,10 +975,10 @@ of <code>stdout</code>:</p>
 
 <span class="doccomment">/// Returns the first positional argument sent to this process. If there are no</span>
 <span class="doccomment">/// positional arguments, then this returns an error.</span>
-<span class="kw">fn</span> <span class="ident">get_first_arg</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">OsString</span>, <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Error</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">get_first_arg</span>() -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">OsString</span>, <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Error</span><span class="op">&gt;</span><span class="op">&gt;</span> {
     <span class="kw">match</span> <span class="ident">env::args_os</span>().<span class="ident">nth</span>(<span class="number">1</span>) {
-        <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">From::from</span>(<span class="string">&quot;expected 1 argument, but got none&quot;</span>)),
-        <span class="prelude-val">Some</span>(<span class="ident">file_path</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">file_path</span>),
+        <span class="prelude-val">None</span> =&gt; <span class="prelude-val">Err</span>(<span class="ident">From::from</span>(<span class="string">&quot;expected 1 argument, but got none&quot;</span>)),
+        <span class="prelude-val">Some</span>(<span class="ident">file_path</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="ident">file_path</span>),
     }
 }
 
@@ -988,7 +988,7 @@ of <code>stdout</code>:</p>
         <span class="ident">process::exit</span>(<span class="number">1</span>);
     }
 }</code></pre></div>
-<h2 id="writing-tab-separated-values" class="section-header"><a href="#writing-tab-separated-values">Writing tab separated values</a></h2>
+<h3 id="writing-tab-separated-values" class="section-header"><a href="#writing-tab-separated-values">Writing tab separated values</a></h3>
 <p>In the previous section, we saw how to write some simple CSV data to <code>stdout</code>
 that looked like this:</p>
 <div class="example-wrap"><pre class="language-text"><code>City,State,Population,Latitude,Longitude
@@ -1007,7 +1007,7 @@ instead of CSV, and we’ll ask the CSV writer to quote all non-numeric fields.
 Here’s an example:</p>
 
 <div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="comment">//tutorial-write-delimiter-01.rs</span>
-<span class="kw">fn</span> <span class="ident">run</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Error</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">run</span>() -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Error</span><span class="op">&gt;</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">wtr</span> <span class="op">=</span> <span class="ident">csv::WriterBuilder::new</span>()
         .<span class="ident">delimiter</span>(<span class="string">b&#39;\t&#39;</span>)
         .<span class="ident">quote_style</span>(<span class="ident">csv::QuoteStyle::NonNumeric</span>)
@@ -1035,14 +1035,14 @@ to you. The default is to add quotes to fields only when necessary. This
 probably works for most use cases, but you can also ask for quotes to always
 be put around fields, to never be put around fields or to always be put around
 non-numeric fields.</p>
-<h2 id="writing-with-serde" class="section-header"><a href="#writing-with-serde">Writing with Serde</a></h2>
+<h3 id="writing-with-serde" class="section-header"><a href="#writing-with-serde">Writing with Serde</a></h3>
 <p>Just like the CSV reader supports automatic deserialization into Rust types
 with Serde, the CSV writer supports automatic serialization from Rust types
 into CSV records using Serde. In this section, we’ll learn how to use it.</p>
 <p>As with reading, let’s start by seeing how we can serialize a Rust tuple.</p>
 
 <div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="comment">//tutorial-write-serde-01.rs</span>
-<span class="kw">fn</span> <span class="ident">run</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Error</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">run</span>() -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Error</span><span class="op">&gt;</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">wtr</span> <span class="op">=</span> <span class="ident">csv::Writer::from_writer</span>(<span class="ident">io::stdout</span>());
 
     <span class="comment">// We still need to write headers manually.</span>
@@ -1105,7 +1105,7 @@ shown in the example:</p>
     <span class="ident">longitude</span>: <span class="ident">f64</span>,
 }
 
-<span class="kw">fn</span> <span class="ident">run</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Error</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">run</span>() -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Error</span><span class="op">&gt;</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">wtr</span> <span class="op">=</span> <span class="ident">csv::Writer::from_writer</span>(<span class="ident">io::stdout</span>());
 
     <span class="ident">wtr</span>.<span class="ident">serialize</span>(<span class="ident">Record</span> {
@@ -1185,13 +1185,13 @@ doing that, but it might be a bit wasteful.</p>
 the
 <a href="../struct.Writer.html#method.serialize"><code>Writer::serialize</code></a>
 method.</p>
-<h1 id="pipelining" class="section-header"><a href="#pipelining">Pipelining</a></h1>
+<h2 id="pipelining" class="section-header"><a href="#pipelining">Pipelining</a></h2>
 <p>In this section, we’re going to cover a few examples that demonstrate programs
 that take CSV data as input, and produce possibly transformed or filtered CSV
 data as output. This shows how to write a complete program that efficiently
 reads and writes CSV data. Rust is well positioned to perform this task, since
 you’ll get great performance with the convenience of a high level CSV library.</p>
-<h2 id="filter-by-search" class="section-header"><a href="#filter-by-search">Filter by search</a></h2>
+<h3 id="filter-by-search" class="section-header"><a href="#filter-by-search">Filter by search</a></h3>
 <p>The first example of CSV pipelining we’ll look at is a simple filter. It takes
 as input some CSV data on stdin and a single string query as its only
 positional argument, and it will produce as output CSV data that only contains
@@ -1203,12 +1203,12 @@ rows with a field that matches the query.</p>
 <span class="kw">use</span> <span class="ident">std::io</span>;
 <span class="kw">use</span> <span class="ident">std::process</span>;
 
-<span class="kw">fn</span> <span class="ident">run</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Error</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">run</span>() -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Error</span><span class="op">&gt;</span><span class="op">&gt;</span> {
     <span class="comment">// Get the query from the positional arguments.</span>
     <span class="comment">// If one doesn&#39;t exist, return an error.</span>
     <span class="kw">let</span> <span class="ident">query</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">env::args</span>().<span class="ident">nth</span>(<span class="number">1</span>) {
-        <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">From::from</span>(<span class="string">&quot;expected 1 argument, but got none&quot;</span>)),
-        <span class="prelude-val">Some</span>(<span class="ident">query</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">query</span>,
+        <span class="prelude-val">None</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">From::from</span>(<span class="string">&quot;expected 1 argument, but got none&quot;</span>)),
+        <span class="prelude-val">Some</span>(<span class="ident">query</span>) =&gt; <span class="ident">query</span>,
     };
 
     <span class="comment">// Build CSV readers and writers to stdin and stdout, respectively.</span>
@@ -1222,7 +1222,7 @@ rows with a field that matches the query.</p>
     <span class="comment">// `query` to `wtr`.</span>
     <span class="kw">for</span> <span class="ident">result</span> <span class="kw">in</span> <span class="ident">rdr</span>.<span class="ident">records</span>() {
         <span class="kw">let</span> <span class="ident">record</span> <span class="op">=</span> <span class="ident">result</span><span class="question-mark">?</span>;
-        <span class="kw">if</span> <span class="ident">record</span>.<span class="ident">iter</span>().<span class="ident">any</span>(<span class="op">|</span><span class="ident">field</span><span class="op">|</span> <span class="ident">field</span> <span class="op">=</span><span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">query</span>) {
+        <span class="kw">if</span> <span class="ident">record</span>.<span class="ident">iter</span>().<span class="ident">any</span>(<span class="op">|</span><span class="ident">field</span><span class="op">|</span> <span class="ident">field</span> <span class="op">==</span> <span class="kw-2">&amp;</span><span class="ident">query</span>) {
             <span class="ident">wtr</span>.<span class="ident">write_record</span>(<span class="kw-2">&amp;</span><span class="ident">record</span>)<span class="question-mark">?</span>;
         }
     }
@@ -1295,10 +1295,10 @@ if we think our header data might contain invalid UTF-8 as well. Here’s the
 change:</p>
 
 <div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="comment">//tutorial-pipeline-search-02.rs</span>
-<span class="kw">fn</span> <span class="ident">run</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Error</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">run</span>() -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Error</span><span class="op">&gt;</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">query</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">env::args</span>().<span class="ident">nth</span>(<span class="number">1</span>) {
-        <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">From::from</span>(<span class="string">&quot;expected 1 argument, but got none&quot;</span>)),
-        <span class="prelude-val">Some</span>(<span class="ident">query</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">query</span>,
+        <span class="prelude-val">None</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">From::from</span>(<span class="string">&quot;expected 1 argument, but got none&quot;</span>)),
+        <span class="prelude-val">Some</span>(<span class="ident">query</span>) =&gt; <span class="ident">query</span>,
     };
 
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">rdr</span> <span class="op">=</span> <span class="ident">csv::Reader::from_reader</span>(<span class="ident">io::stdin</span>());
@@ -1310,7 +1310,7 @@ change:</p>
         <span class="kw">let</span> <span class="ident">record</span> <span class="op">=</span> <span class="ident">result</span><span class="question-mark">?</span>;
         <span class="comment">// `query` is a `String` while `field` is now a `&amp;[u8]`, so we&#39;ll</span>
         <span class="comment">// need to convert `query` to `&amp;[u8]` before doing a comparison.</span>
-        <span class="kw">if</span> <span class="ident">record</span>.<span class="ident">iter</span>().<span class="ident">any</span>(<span class="op">|</span><span class="ident">field</span><span class="op">|</span> <span class="ident">field</span> <span class="op">=</span><span class="op">=</span> <span class="ident">query</span>.<span class="ident">as_bytes</span>()) {
+        <span class="kw">if</span> <span class="ident">record</span>.<span class="ident">iter</span>().<span class="ident">any</span>(<span class="op">|</span><span class="ident">field</span><span class="op">|</span> <span class="ident">field</span> <span class="op">==</span> <span class="ident">query</span>.<span class="ident">as_bytes</span>()) {
             <span class="ident">wtr</span>.<span class="ident">write_record</span>(<span class="kw-2">&amp;</span><span class="ident">record</span>)<span class="question-mark">?</span>;
         }
     }
@@ -1323,7 +1323,7 @@ but this time it works on data that isn’t valid UTF-8.</p>
 <div class="example-wrap"><pre class="language-text"><code>$ cargo build
 $ ./csvtutor MA &lt; uspop-latin1.csv
 City,State,Population,Latitude,Longitude
-Reading,MA,23441,42.5255556,-71.0958333</code></pre></div><h2 id="filter-by-population-count" class="section-header"><a href="#filter-by-population-count">Filter by population count</a></h2>
+Reading,MA,23441,42.5255556,-71.0958333</code></pre></div><h3 id="filter-by-population-count" class="section-header"><a href="#filter-by-population-count">Filter by population count</a></h3>
 <p>In this section, we will show another example program that both reads and
 writes CSV data, but instead of dealing with arbitrary records, we will use
 Serde to deserialize and serialize records with specific types.</p>
@@ -1359,12 +1359,12 @@ aren’t already there:</p>
     <span class="ident">longitude</span>: <span class="ident">f64</span>,
 }
 
-<span class="kw">fn</span> <span class="ident">run</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Error</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">run</span>() -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Error</span><span class="op">&gt;</span><span class="op">&gt;</span> {
     <span class="comment">// Get the query from the positional arguments.</span>
     <span class="comment">// If one doesn&#39;t exist or isn&#39;t an integer, return an error.</span>
     <span class="kw">let</span> <span class="ident">minimum_pop</span>: <span class="ident">u64</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">env::args</span>().<span class="ident">nth</span>(<span class="number">1</span>) {
-        <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">From::from</span>(<span class="string">&quot;expected 1 argument, but got none&quot;</span>)),
-        <span class="prelude-val">Some</span>(<span class="ident">arg</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">arg</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>,
+        <span class="prelude-val">None</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">From::from</span>(<span class="string">&quot;expected 1 argument, but got none&quot;</span>)),
+        <span class="prelude-val">Some</span>(<span class="ident">arg</span>) =&gt; <span class="ident">arg</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>,
     };
 
     <span class="comment">// Build CSV readers and writers to stdin and stdout, respectively.</span>
@@ -1410,7 +1410,7 @@ $ ./target/debug/csvtutor 100000 &lt; uspop.csv
 City,State,Population,Latitude,Longitude
 Fontana,CA,169160,34.0922222,-117.4341667
 Bridgeport,CT,139090,41.1669444,-73.2052778
-Indianapolis,IN,773283,39.7683333,-86.1580556</code></pre></div><h1 id="performance" class="section-header"><a href="#performance">Performance</a></h1>
+Indianapolis,IN,773283,39.7683333,-86.1580556</code></pre></div><h2 id="performance" class="section-header"><a href="#performance">Performance</a></h2>
 <p>In this section, we’ll go over how to squeeze the most juice out of our CSV
 reader. As it happens, most of the APIs we’ve seen so far were designed with
 high level convenience in mind, and that often comes with some costs. For the
@@ -1441,7 +1441,7 @@ $ md5sum worldcitiespop.csv
 <p>Finally, it’s worth pointing out that this section is not attempting to
 present a rigorous set of benchmarks. We will stay away from rigorous analysis
 and instead rely a bit more on wall clock times and intuition.</p>
-<h2 id="amortizing-allocations" class="section-header"><a href="#amortizing-allocations">Amortizing allocations</a></h2>
+<h3 id="amortizing-allocations" class="section-header"><a href="#amortizing-allocations">Amortizing allocations</a></h3>
 <p>In order to measure performance, we must be careful about what it is we’re
 measuring. We must also be careful to not change the thing we’re measuring as
 we make improvements to the code. For this reason, we will focus on measuring
@@ -1458,13 +1458,13 @@ adapting a previous example to count the number of records in
 <span class="kw">use</span> <span class="ident">std::io</span>;
 <span class="kw">use</span> <span class="ident">std::process</span>;
 
-<span class="kw">fn</span> <span class="ident">run</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">u64</span>, <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Error</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">run</span>() -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">u64</span>, <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Error</span><span class="op">&gt;</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">rdr</span> <span class="op">=</span> <span class="ident">csv::Reader::from_reader</span>(<span class="ident">io::stdin</span>());
 
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">count</span> <span class="op">=</span> <span class="number">0</span>;
     <span class="kw">for</span> <span class="ident">result</span> <span class="kw">in</span> <span class="ident">rdr</span>.<span class="ident">records</span>() {
         <span class="kw">let</span> <span class="ident">record</span> <span class="op">=</span> <span class="ident">result</span><span class="question-mark">?</span>;
-        <span class="kw">if</span> <span class="kw-2">&amp;</span><span class="ident">record</span>[<span class="number">0</span>] <span class="op">=</span><span class="op">=</span> <span class="string">&quot;us&quot;</span> <span class="op">&amp;&amp;</span> <span class="kw-2">&amp;</span><span class="ident">record</span>[<span class="number">3</span>] <span class="op">=</span><span class="op">=</span> <span class="string">&quot;MA&quot;</span> {
+        <span class="kw">if</span> <span class="kw-2">&amp;</span><span class="ident">record</span>[<span class="number">0</span>] <span class="op">==</span> <span class="string">&quot;us&quot;</span> <span class="op">&amp;&amp;</span> <span class="kw-2">&amp;</span><span class="ident">record</span>[<span class="number">3</span>] <span class="op">==</span> <span class="string">&quot;MA&quot;</span> {
             <span class="ident">count</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
         }
     }
@@ -1473,10 +1473,10 @@ adapting a previous example to count the number of records in
 
 <span class="kw">fn</span> <span class="ident">main</span>() {
     <span class="kw">match</span> <span class="ident">run</span>() {
-        <span class="prelude-val">Ok</span>(<span class="ident">count</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="prelude-val">Ok</span>(<span class="ident">count</span>) =&gt; {
             <span class="macro">println!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">count</span>);
         }
-        <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="prelude-val">Err</span>(<span class="ident">err</span>) =&gt; {
             <span class="macro">println!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">err</span>);
             <span class="ident">process::exit</span>(<span class="number">1</span>);
         }
@@ -1505,13 +1505,13 @@ that validation from our program, then we can realize a nice speed boost as
 shown in the next example:</p>
 
 <div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="comment">//tutorial-perf-alloc-02.rs</span>
-<span class="kw">fn</span> <span class="ident">run</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">u64</span>, <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Error</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">run</span>() -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">u64</span>, <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Error</span><span class="op">&gt;</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">rdr</span> <span class="op">=</span> <span class="ident">csv::Reader::from_reader</span>(<span class="ident">io::stdin</span>());
 
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">count</span> <span class="op">=</span> <span class="number">0</span>;
     <span class="kw">for</span> <span class="ident">result</span> <span class="kw">in</span> <span class="ident">rdr</span>.<span class="ident">byte_records</span>() {
         <span class="kw">let</span> <span class="ident">record</span> <span class="op">=</span> <span class="ident">result</span><span class="question-mark">?</span>;
-        <span class="kw">if</span> <span class="kw-2">&amp;</span><span class="ident">record</span>[<span class="number">0</span>] <span class="op">=</span><span class="op">=</span> <span class="string">b&quot;us&quot;</span> <span class="op">&amp;&amp;</span> <span class="kw-2">&amp;</span><span class="ident">record</span>[<span class="number">3</span>] <span class="op">=</span><span class="op">=</span> <span class="string">b&quot;MA&quot;</span> {
+        <span class="kw">if</span> <span class="kw-2">&amp;</span><span class="ident">record</span>[<span class="number">0</span>] <span class="op">==</span> <span class="string">b&quot;us&quot;</span> <span class="op">&amp;&amp;</span> <span class="kw-2">&amp;</span><span class="ident">record</span>[<span class="number">3</span>] <span class="op">==</span> <span class="string">b&quot;MA&quot;</span> {
             <span class="ident">count</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
         }
     }
@@ -1531,7 +1531,7 @@ lost? In this case, it is perfectly acceptable to drop UTF-8 validation and use
 <code>ByteRecord</code> instead because all we’re doing with the data in the record is
 comparing two of its fields to raw bytes:</p>
 
-<div class='information'><div class='tooltip ignore'>ⓘ</div></div><div class="example-wrap"><pre class="rust rust-example-rendered ignore"><code><span class="kw">if</span> <span class="kw-2">&amp;</span><span class="ident">record</span>[<span class="number">0</span>] <span class="op">=</span><span class="op">=</span> <span class="string">b&quot;us&quot;</span> <span class="op">&amp;&amp;</span> <span class="kw-2">&amp;</span><span class="ident">record</span>[<span class="number">3</span>] <span class="op">=</span><span class="op">=</span> <span class="string">b&quot;MA&quot;</span> {
+<div class='information'><div class='tooltip ignore'>ⓘ</div></div><div class="example-wrap"><pre class="rust rust-example-rendered ignore"><code><span class="kw">if</span> <span class="kw-2">&amp;</span><span class="ident">record</span>[<span class="number">0</span>] <span class="op">==</span> <span class="string">b&quot;us&quot;</span> <span class="op">&amp;&amp;</span> <span class="kw-2">&amp;</span><span class="ident">record</span>[<span class="number">3</span>] <span class="op">==</span> <span class="string">b&quot;MA&quot;</span> {
     <span class="ident">count</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
 }</code></pre></div>
 <p>In particular, it doesn’t matter whether <code>record</code> is valid UTF-8 or not, since
@@ -1559,13 +1559,13 @@ We do this by using the
 method.</p>
 
 <div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="comment">//tutorial-perf-alloc-03.rs</span>
-<span class="kw">fn</span> <span class="ident">run</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">u64</span>, <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Error</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">run</span>() -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">u64</span>, <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Error</span><span class="op">&gt;</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">rdr</span> <span class="op">=</span> <span class="ident">csv::Reader::from_reader</span>(<span class="ident">io::stdin</span>());
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">record</span> <span class="op">=</span> <span class="ident">csv::ByteRecord::new</span>();
 
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">count</span> <span class="op">=</span> <span class="number">0</span>;
     <span class="kw">while</span> <span class="ident">rdr</span>.<span class="ident">read_byte_record</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">record</span>)<span class="question-mark">?</span> {
-        <span class="kw">if</span> <span class="kw-2">&amp;</span><span class="ident">record</span>[<span class="number">0</span>] <span class="op">=</span><span class="op">=</span> <span class="string">b&quot;us&quot;</span> <span class="op">&amp;&amp;</span> <span class="kw-2">&amp;</span><span class="ident">record</span>[<span class="number">3</span>] <span class="op">=</span><span class="op">=</span> <span class="string">b&quot;MA&quot;</span> {
+        <span class="kw">if</span> <span class="kw-2">&amp;</span><span class="ident">record</span>[<span class="number">0</span>] <span class="op">==</span> <span class="string">b&quot;us&quot;</span> <span class="op">&amp;&amp;</span> <span class="kw-2">&amp;</span><span class="ident">record</span>[<span class="number">3</span>] <span class="op">==</span> <span class="string">b&quot;MA&quot;</span> {
             <span class="ident">count</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
         }
     }
@@ -1584,7 +1584,7 @@ a 50% boost over the first example.</p>
 <p>Let’s dissect this code by taking a look at the type signature of the
 <code>read_byte_record</code> method:</p>
 
-<div class='information'><div class='tooltip ignore'>ⓘ</div></div><div class="example-wrap"><pre class="rust rust-example-rendered ignore"><code><span class="kw">fn</span> <span class="ident">read_byte_record</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">record</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ByteRecord</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">csv::Result</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span>;</code></pre></div>
+<div class='information'><div class='tooltip ignore'>ⓘ</div></div><div class="example-wrap"><pre class="rust rust-example-rendered ignore"><code><span class="kw">fn</span> <span class="ident">read_byte_record</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">record</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ByteRecord</span>) -&gt; <span class="ident">csv::Result</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span>;</code></pre></div>
 <p>This method takes as input a CSV reader (the <code>self</code> parameter) and a <em>mutable
 borrow</em> of a <code>ByteRecord</code>, and returns a <code>csv::Result&lt;bool&gt;</code>. (The
 <code>csv::Result&lt;bool&gt;</code> is equivalent to <code>Result&lt;bool, csv::Error&gt;</code>.) The return
@@ -1601,7 +1601,7 @@ allocated. Thus, we have <em>amortized allocation</em>.</p>
 instead of <code>read_byte_record</code>. This will give you easy access to Rust strings
 at the cost of UTF-8 validation but <em>without</em> the cost of allocating a new
 <code>StringRecord</code> for every record.</p>
-<h2 id="serde-and-zero-allocation" class="section-header"><a href="#serde-and-zero-allocation">Serde and zero allocation</a></h2>
+<h3 id="serde-and-zero-allocation" class="section-header"><a href="#serde-and-zero-allocation">Serde and zero allocation</a></h3>
 <p>In this section, we are going to briefly examine how we use Serde and what we
 can do to speed it up. The key optimization we’ll want to make is to—you
 guessed it—amortize allocation.</p>
@@ -1627,13 +1627,13 @@ example using Serde in a previous section:</p>
     <span class="ident">longitude</span>: <span class="ident">f64</span>,
 }
 
-<span class="kw">fn</span> <span class="ident">run</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">u64</span>, <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Error</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">run</span>() -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">u64</span>, <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Error</span><span class="op">&gt;</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">rdr</span> <span class="op">=</span> <span class="ident">csv::Reader::from_reader</span>(<span class="ident">io::stdin</span>());
 
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">count</span> <span class="op">=</span> <span class="number">0</span>;
     <span class="kw">for</span> <span class="ident">result</span> <span class="kw">in</span> <span class="ident">rdr</span>.<span class="ident">deserialize</span>() {
         <span class="kw">let</span> <span class="ident">record</span>: <span class="ident">Record</span> <span class="op">=</span> <span class="ident">result</span><span class="question-mark">?</span>;
-        <span class="kw">if</span> <span class="ident">record</span>.<span class="ident">country</span> <span class="op">=</span><span class="op">=</span> <span class="string">&quot;us&quot;</span> <span class="op">&amp;&amp;</span> <span class="ident">record</span>.<span class="ident">region</span> <span class="op">=</span><span class="op">=</span> <span class="string">&quot;MA&quot;</span> {
+        <span class="kw">if</span> <span class="ident">record</span>.<span class="ident">country</span> <span class="op">==</span> <span class="string">&quot;us&quot;</span> <span class="op">&amp;&amp;</span> <span class="ident">record</span>.<span class="ident">region</span> <span class="op">==</span> <span class="string">&quot;MA&quot;</span> {
             <span class="ident">count</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
         }
     }
@@ -1642,10 +1642,10 @@ example using Serde in a previous section:</p>
 
 <span class="kw">fn</span> <span class="ident">main</span>() {
     <span class="kw">match</span> <span class="ident">run</span>() {
-        <span class="prelude-val">Ok</span>(<span class="ident">count</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="prelude-val">Ok</span>(<span class="ident">count</span>) =&gt; {
             <span class="macro">println!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">count</span>);
         }
-        <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="prelude-val">Err</span>(<span class="ident">err</span>) =&gt; {
             <span class="macro">println!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">err</span>);
             <span class="ident">process::exit</span>(<span class="number">1</span>);
         }
@@ -1682,7 +1682,7 @@ like:</p>
     <span class="ident">longitude</span>: <span class="ident">f64</span>,
 }
 
-<span class="kw">fn</span> <span class="ident">run</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">u64</span>, <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Error</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">run</span>() -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">u64</span>, <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Error</span><span class="op">&gt;</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">rdr</span> <span class="op">=</span> <span class="ident">csv::Reader::from_reader</span>(<span class="ident">io::stdin</span>());
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">raw_record</span> <span class="op">=</span> <span class="ident">csv::StringRecord::new</span>();
     <span class="kw">let</span> <span class="ident">headers</span> <span class="op">=</span> <span class="ident">rdr</span>.<span class="ident">headers</span>()<span class="question-mark">?</span>.<span class="ident">clone</span>();
@@ -1690,7 +1690,7 @@ like:</p>
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">count</span> <span class="op">=</span> <span class="number">0</span>;
     <span class="kw">while</span> <span class="ident">rdr</span>.<span class="ident">read_record</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">raw_record</span>)<span class="question-mark">?</span> {
         <span class="kw">let</span> <span class="ident">record</span>: <span class="ident">Record</span> <span class="op">=</span> <span class="ident">raw_record</span>.<span class="ident">deserialize</span>(<span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="ident">headers</span>))<span class="question-mark">?</span>;
-        <span class="kw">if</span> <span class="ident">record</span>.<span class="ident">country</span> <span class="op">=</span><span class="op">=</span> <span class="string">&quot;us&quot;</span> <span class="op">&amp;&amp;</span> <span class="ident">record</span>.<span class="ident">region</span> <span class="op">=</span><span class="op">=</span> <span class="string">&quot;MA&quot;</span> {
+        <span class="kw">if</span> <span class="ident">record</span>.<span class="ident">country</span> <span class="op">==</span> <span class="string">&quot;us&quot;</span> <span class="op">&amp;&amp;</span> <span class="ident">record</span>.<span class="ident">region</span> <span class="op">==</span> <span class="string">&quot;MA&quot;</span> {
             <span class="ident">count</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
         }
     }
@@ -1740,7 +1740,7 @@ of <code>StringRecord</code>:</p>
     <span class="ident">longitude</span>: <span class="ident">f64</span>,
 }
 
-<span class="kw">fn</span> <span class="ident">run</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">u64</span>, <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Error</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">run</span>() -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">u64</span>, <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Error</span><span class="op">&gt;</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">rdr</span> <span class="op">=</span> <span class="ident">csv::Reader::from_reader</span>(<span class="ident">io::stdin</span>());
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">raw_record</span> <span class="op">=</span> <span class="ident">csv::ByteRecord::new</span>();
     <span class="kw">let</span> <span class="ident">headers</span> <span class="op">=</span> <span class="ident">rdr</span>.<span class="ident">byte_headers</span>()<span class="question-mark">?</span>.<span class="ident">clone</span>();
@@ -1748,7 +1748,7 @@ of <code>StringRecord</code>:</p>
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">count</span> <span class="op">=</span> <span class="number">0</span>;
     <span class="kw">while</span> <span class="ident">rdr</span>.<span class="ident">read_byte_record</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">raw_record</span>)<span class="question-mark">?</span> {
         <span class="kw">let</span> <span class="ident">record</span>: <span class="ident">Record</span> <span class="op">=</span> <span class="ident">raw_record</span>.<span class="ident">deserialize</span>(<span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="ident">headers</span>))<span class="question-mark">?</span>;
-        <span class="kw">if</span> <span class="ident">record</span>.<span class="ident">country</span> <span class="op">=</span><span class="op">=</span> <span class="string">b&quot;us&quot;</span> <span class="op">&amp;&amp;</span> <span class="ident">record</span>.<span class="ident">region</span> <span class="op">=</span><span class="op">=</span> <span class="string">b&quot;MA&quot;</span> {
+        <span class="kw">if</span> <span class="ident">record</span>.<span class="ident">country</span> <span class="op">==</span> <span class="string">b&quot;us&quot;</span> <span class="op">&amp;&amp;</span> <span class="ident">record</span>.<span class="ident">region</span> <span class="op">==</span> <span class="string">b&quot;MA&quot;</span> {
             <span class="ident">count</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
         }
     }
@@ -1766,7 +1766,7 @@ sys     0m0.023s</code></pre></div>
 over the first example.</p>
 <p>In sum, Serde parsing is still quite fast, but will generally not be the
 fastest way to parse CSV since it necessarily needs to do more work.</p>
-<h2 id="csv-parsing-without-the-standard-library" class="section-header"><a href="#csv-parsing-without-the-standard-library">CSV parsing without the standard library</a></h2>
+<h3 id="csv-parsing-without-the-standard-library" class="section-header"><a href="#csv-parsing-without-the-standard-library">CSV parsing without the standard library</a></h3>
 <p>In this section, we will explore a niche use case: parsing CSV without the
 standard library. While the <code>csv</code> crate itself requires the standard library,
 the underlying parser is actually part of the
@@ -1799,7 +1799,7 @@ access to I/O, which would be harder without the standard library.)</p>
 
 <span class="kw">use</span> <span class="ident">csv_core</span>::{<span class="ident">Reader</span>, <span class="ident">ReadFieldResult</span>};
 
-<span class="kw">fn</span> <span class="ident">run</span>(<span class="kw-2">mut</span> <span class="ident">data</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">run</span>(<span class="kw-2">mut</span> <span class="ident">data</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">rdr</span> <span class="op">=</span> <span class="ident">Reader::new</span>();
 
     <span class="comment">// Count the number of records in Massachusetts.</span>
@@ -1824,18 +1824,18 @@ access to I/O, which would be harder without the standard library.)</p>
             <span class="comment">// We don&#39;t need to handle this case because we read all of the</span>
             <span class="comment">// data up front. If we were reading data incrementally, then this</span>
             <span class="comment">// would be a signal to read more.</span>
-            <span class="ident">ReadFieldResult::InputEmpty</span> <span class="op">=</span><span class="op">&gt;</span> {}
+            <span class="ident">ReadFieldResult::InputEmpty</span> =&gt; {}
             <span class="comment">// If we get this case, then we found a field that contains more</span>
             <span class="comment">// than 1024 bytes. We keep this example simple and just fail.</span>
-            <span class="ident">ReadFieldResult::OutputFull</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">ReadFieldResult::OutputFull</span> =&gt; {
                 <span class="kw">return</span> <span class="prelude-val">None</span>;
             }
             <span class="comment">// This case happens when we&#39;ve successfully read a field. If the</span>
             <span class="comment">// field is the last field in a record, then `record_end` is true.</span>
-            <span class="ident">ReadFieldResult::Field</span> { <span class="ident">record_end</span> } <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="kw">if</span> <span class="ident">fieldidx</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> <span class="op">&amp;&amp;</span> <span class="ident">field</span> <span class="op">=</span><span class="op">=</span> <span class="string">b&quot;us&quot;</span> {
+            <span class="ident">ReadFieldResult::Field</span> { <span class="ident">record_end</span> } =&gt; {
+                <span class="kw">if</span> <span class="ident">fieldidx</span> <span class="op">==</span> <span class="number">0</span> <span class="op">&amp;&amp;</span> <span class="ident">field</span> <span class="op">==</span> <span class="string">b&quot;us&quot;</span> {
                     <span class="ident">inus</span> <span class="op">=</span> <span class="bool-val">true</span>;
-                } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">inus</span> <span class="op">&amp;&amp;</span> <span class="ident">fieldidx</span> <span class="op">=</span><span class="op">=</span> <span class="number">3</span> <span class="op">&amp;&amp;</span> <span class="ident">field</span> <span class="op">=</span><span class="op">=</span> <span class="string">b&quot;MA&quot;</span> {
+                } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">inus</span> <span class="op">&amp;&amp;</span> <span class="ident">fieldidx</span> <span class="op">==</span> <span class="number">3</span> <span class="op">&amp;&amp;</span> <span class="ident">field</span> <span class="op">==</span> <span class="string">b&quot;MA&quot;</span> {
                     <span class="ident">count</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
                 }
                 <span class="kw">if</span> <span class="ident">record_end</span> {
@@ -1847,7 +1847,7 @@ access to I/O, which would be harder without the standard library.)</p>
             }
             <span class="comment">// This case happens when the CSV reader has successfully exhausted</span>
             <span class="comment">// all input.</span>
-            <span class="ident">ReadFieldResult::End</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">ReadFieldResult::End</span> =&gt; {
                 <span class="kw">break</span>;
             }
         }
@@ -1863,11 +1863,11 @@ access to I/O, which would be harder without the standard library.)</p>
         <span class="ident">process::exit</span>(<span class="number">1</span>);
     }
     <span class="kw">match</span> <span class="ident">run</span>(<span class="kw-2">&amp;</span><span class="ident">data</span>) {
-        <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="prelude-val">None</span> =&gt; {
             <span class="macro">println!</span>(<span class="string">&quot;error: could not count records, buffer too small&quot;</span>);
             <span class="ident">process::exit</span>(<span class="number">1</span>);
         }
-        <span class="prelude-val">Some</span>(<span class="ident">count</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="prelude-val">Some</span>(<span class="ident">count</span>) =&gt; {
             <span class="macro">println!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">count</span>);
         }
     }
@@ -1895,7 +1895,7 @@ reader. There are basically two reasons to use the <code>csv_core</code> crate:<
 <li>If you wanted to build your own csv-like library, you could build it on top
 of <code>csv-core</code>.</li>
 </ol>
-<h1 id="closing-thoughts" class="section-header"><a href="#closing-thoughts">Closing thoughts</a></h1>
+<h2 id="closing-thoughts" class="section-header"><a href="#closing-thoughts">Closing thoughts</a></h2>
 <p>Congratulations on making it to the end! It seems incredible that one could
 write so many words on something as basic as CSV parsing. I wanted this
 guide to be accessible not only to Rust beginners, but to inexperienced

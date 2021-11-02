@@ -145,7 +145,7 @@
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">S</span>, <span class="ident">F</span>, <span class="ident">E</span><span class="op">&gt;</span> <span class="ident">Graceful</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">S</span>, <span class="ident">F</span>, <span class="ident">E</span><span class="op">&gt;</span> {
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">spawn_all</span>: <span class="ident">SpawnAll</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">S</span>, <span class="ident">E</span><span class="op">&gt;</span>, <span class="ident">signal</span>: <span class="ident">F</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">spawn_all</span>: <span class="ident">SpawnAll</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">S</span>, <span class="ident">E</span><span class="op">&gt;</span>, <span class="ident">signal</span>: <span class="ident">F</span>) -&gt; <span class="self">Self</span> {
         <span class="kw">let</span> <span class="ident">drain</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/hyper/common/drain.rs.html#9">drain::channel</a>());
         <a class="ident" href="../../../src/hyper/server/shutdown.rs.html#13-15">Graceful</a> {
             <span class="ident">state</span>: <a class="ident" href="../../../src/hyper/server/shutdown.rs.html#18-22">State::Running</a> {
@@ -174,15 +174,15 @@
     <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> ();
     <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <a class="ident" href="../../../src/hyper/error.rs.html#16-18">::Error</a>;
 
-    <span class="kw">fn</span> <span class="ident">poll</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">poll</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
         <span class="kw">loop</span> {
             <span class="kw">let</span> <span class="ident">next</span> <span class="op">=</span> <span class="kw">match</span> <a class="self" href="../../../src/hyper/server/shutdown.rs.html#56">self</a>.<span class="ident">state</span> {
                 <a class="ident" href="../../../src/hyper/server/shutdown.rs.html#18-22">State::Running</a> {
                     <span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">drain</span>,
                     <span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">spawn_all</span>,
                     <span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">signal</span>,
-                } <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <a class="ident" href="../../../src/hyper/server/shutdown.rs.html#62">signal</a>.<span class="ident">poll</span>() {
-                    <span class="prelude-val">Ok</span>(<span class="ident">Async::Ready</span>(())) <span class="op">|</span> <span class="prelude-val">Err</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                } =&gt; <span class="kw">match</span> <a class="ident" href="../../../src/hyper/server/shutdown.rs.html#62">signal</a>.<span class="ident">poll</span>() {
+                    <span class="prelude-val">Ok</span>(<span class="ident">Async::Ready</span>(())) <span class="op">|</span> <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; {
                         <span class="macro">debug!</span>(<span class="string">&quot;signal received, starting graceful shutdown&quot;</span>);
                         <span class="kw">let</span> <span class="ident">sig</span> <span class="op">=</span> <a class="ident" href="../../../src/hyper/server/shutdown.rs.html#60">drain</a>
                             .<span class="ident">take</span>()
@@ -190,7 +190,7 @@
                             .<span class="number">0</span>;
                         <a class="ident" href="../../../src/hyper/server/shutdown.rs.html#23">State::Draining</a>(<a class="ident" href="../../../src/hyper/server/shutdown.rs.html#66">sig</a>.<a class="ident" href="../../../src/hyper/common/drain.rs.html#52">drain</a>())
                     },
-                    <span class="prelude-val">Ok</span>(<span class="ident">Async::NotReady</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="prelude-val">Ok</span>(<span class="ident">Async::NotReady</span>) =&gt; {
                         <span class="kw">let</span> <span class="ident">watch</span> <span class="op">=</span> <a class="ident" href="../../../src/hyper/server/shutdown.rs.html#60">drain</a>
                             .<span class="ident">as_ref</span>()
                             .<span class="ident">expect</span>(<span class="string">&quot;drain channel&quot;</span>)
@@ -199,7 +199,7 @@
                         <span class="kw">return</span> <a class="ident" href="../../../src/hyper/server/shutdown.rs.html#61">spawn_all</a>.<a class="ident" href="../../../src/hyper/server/conn.rs.html#777-780">poll_watch</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/hyper/server/shutdown.rs.html#93">GracefulWatcher</a>(<a class="ident" href="../../../src/hyper/server/shutdown.rs.html#73">watch</a>));
                     },
                 },
-                <a class="ident" href="../../../src/hyper/server/shutdown.rs.html#23">State::Draining</a>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">draining</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <a class="ident" href="../../../src/hyper/server/shutdown.rs.html#23">State::Draining</a>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">draining</span>) =&gt; {
                     <span class="kw">return</span> <a class="ident" href="../../../src/hyper/server/shutdown.rs.html#81">draining</a>.<span class="ident">poll</span>()
                         .<span class="ident">map_err</span>(<span class="op">|</span>()<span class="op">|</span> <span class="macro">unreachable!</span>(<span class="string">&quot;drain mpsc rx never errors&quot;</span>));
                 }
@@ -221,7 +221,7 @@
 {
     <span class="kw">type</span> <span class="ident">Future</span> <span class="op">=</span> <span class="ident">Watching</span><span class="op">&lt;</span><span class="ident">UpgradeableConnection</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">S</span>, <span class="ident">E</span><span class="op">&gt;</span>, <span class="kw">fn</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">UpgradeableConnection</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">S</span>, <span class="ident">E</span><span class="op">&gt;</span>)<span class="op">&gt;</span>;
 
-    <span class="kw">fn</span> <span class="ident">watch</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">conn</span>: <span class="ident">UpgradeableConnection</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">S</span>, <span class="ident">E</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::Future</span> {
+    <span class="kw">fn</span> <span class="ident">watch</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">conn</span>: <span class="ident">UpgradeableConnection</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">S</span>, <span class="ident">E</span><span class="op">&gt;</span>) -&gt; <span class="ident"><span class="self">Self</span>::Future</span> {
         <a class="self" href="../../../src/hyper/server/shutdown.rs.html#103">self</a>
             .<span class="number">0</span>
             .<span class="ident">clone</span>()

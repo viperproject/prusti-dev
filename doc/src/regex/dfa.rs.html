@@ -2005,7 +2005,7 @@ implementation.)
 <span class="doccomment">///</span>
 <span class="doccomment">/// This function will also return false if the given program has any Unicode</span>
 <span class="doccomment">/// instructions (Char or Ranges) since the DFA operates on bytes only.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">can_exec</span>(<span class="ident">insts</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/regex/prog.rs.html#18-75">Program</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">can_exec</span>(<span class="ident">insts</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/regex/prog.rs.html#18-75">Program</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
     <span class="kw">use</span> <a class="ident" href="../../src/regex/prog.rs.html#268-296"><span class="kw">crate</span>::prog::Inst</a>::<span class="kw-2">*</span>;
     <span class="comment">// If for some reason we manage to allocate a regex program with more</span>
     <span class="comment">// than i32::MAX instructions, then we can&#39;t execute the DFA because we</span>
@@ -2013,13 +2013,13 @@ implementation.)
     <span class="comment">// If i32::MAX is the largest positive delta,</span>
     <span class="comment">// then -i32::MAX == i32::MIN + 1 is the largest negative delta,</span>
     <span class="comment">// and we are OK to use 32 bits.</span>
-    <span class="kw">if</span> <a class="ident" href="../../src/regex/dfa.rs.html#57">insts</a>.<span class="ident">dfa_size_limit</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> <span class="op">|</span><span class="op">|</span> <a class="ident" href="../../src/regex/dfa.rs.html#57">insts</a>.<span class="ident">len</span>() <span class="op">&gt;</span> <span class="ident">::std::i32::MAX</span> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
+    <span class="kw">if</span> <a class="ident" href="../../src/regex/dfa.rs.html#57">insts</a>.<span class="ident">dfa_size_limit</span> <span class="op">==</span> <span class="number">0</span> <span class="op">|</span><span class="op">|</span> <a class="ident" href="../../src/regex/dfa.rs.html#57">insts</a>.<span class="ident">len</span>() <span class="op">&gt;</span> <span class="ident">::std::i32::MAX</span> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
         <span class="kw">return</span> <span class="bool-val">false</span>;
     }
     <span class="kw">for</span> <a class="ident" href="../../src/regex/dfa.rs.html#68">inst</a> <span class="kw">in</span> <a class="ident" href="../../src/regex/dfa.rs.html#57">insts</a> {
         <span class="kw">match</span> <span class="kw-2">*</span><a class="ident" href="../../src/regex/dfa.rs.html#68">inst</a> {
-            <a class="ident" href="../../src/regex/prog.rs.html#288">Char</a>(<span class="kw">_</span>) <span class="op">|</span> <a class="ident" href="../../src/regex/prog.rs.html#291">Ranges</a>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="bool-val">false</span>,
-            <a class="ident" href="../../src/regex/prog.rs.html#285">EmptyLook</a>(<span class="kw">_</span>) <span class="op">|</span> <a class="ident" href="../../src/regex/prog.rs.html#276">Match</a>(<span class="kw">_</span>) <span class="op">|</span> <a class="ident" href="../../src/regex/prog.rs.html#279">Save</a>(<span class="kw">_</span>) <span class="op">|</span> <a class="ident" href="../../src/regex/prog.rs.html#282">Split</a>(<span class="kw">_</span>) <span class="op">|</span> <a class="ident" href="../../src/regex/prog.rs.html#295">Bytes</a>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {}
+            <a class="ident" href="../../src/regex/prog.rs.html#288">Char</a>(<span class="kw">_</span>) <span class="op">|</span> <a class="ident" href="../../src/regex/prog.rs.html#291">Ranges</a>(<span class="kw">_</span>) =&gt; <span class="kw">return</span> <span class="bool-val">false</span>,
+            <a class="ident" href="../../src/regex/prog.rs.html#285">EmptyLook</a>(<span class="kw">_</span>) <span class="op">|</span> <a class="ident" href="../../src/regex/prog.rs.html#276">Match</a>(<span class="kw">_</span>) <span class="op">|</span> <a class="ident" href="../../src/regex/prog.rs.html#279">Save</a>(<span class="kw">_</span>) <span class="op">|</span> <a class="ident" href="../../src/regex/prog.rs.html#282">Split</a>(<span class="kw">_</span>) <span class="op">|</span> <a class="ident" href="../../src/regex/prog.rs.html#295">Bytes</a>(<span class="kw">_</span>) =&gt; {}
         }
     }
     <span class="bool-val">true</span>
@@ -2165,10 +2165,10 @@ implementation.)
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
     <span class="doccomment">/// Returns true if this result corresponds to a match.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_match</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_match</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
         <span class="kw">match</span> <span class="kw-2">*</span><a class="self" href="../../src/regex/dfa.rs.html#217">self</a> {
-            <a class="ident" href="../../src/regex/dfa.rs.html#210">Result::Match</a>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">true</span>,
-            <a class="ident" href="../../src/regex/dfa.rs.html#211">Result::NoMatch</a>(<span class="kw">_</span>) <span class="op">|</span> <a class="ident" href="../../src/regex/dfa.rs.html#212">Result::Quit</a> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
+            <a class="ident" href="../../src/regex/dfa.rs.html#210">Result::Match</a>(<span class="kw">_</span>) =&gt; <span class="bool-val">true</span>,
+            <a class="ident" href="../../src/regex/dfa.rs.html#211">Result::NoMatch</a>(<span class="kw">_</span>) <span class="op">|</span> <a class="ident" href="../../src/regex/dfa.rs.html#212">Result::Quit</a> =&gt; <span class="bool-val">false</span>,
         }
     }
 
@@ -2176,21 +2176,21 @@ implementation.)
     <span class="doccomment">///</span>
     <span class="doccomment">/// If this isn&#39;t a match, then this is a no-op.</span>
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;perf-literal&quot;</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">map</span><span class="op">&lt;</span><span class="ident">U</span>, <span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">U</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="kw-2">mut</span> <span class="ident">f</span>: <span class="ident">F</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">U</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">map</span><span class="op">&lt;</span><span class="ident">U</span>, <span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="ident">T</span>) -&gt; <span class="ident">U</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="kw-2">mut</span> <span class="ident">f</span>: <span class="ident">F</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">U</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <a class="self" href="../../src/regex/dfa.rs.html#228">self</a> {
-            <a class="ident" href="../../src/regex/dfa.rs.html#210">Result::Match</a>(<span class="ident">t</span>) <span class="op">=</span><span class="op">&gt;</span> <a class="ident" href="../../src/regex/dfa.rs.html#210">Result::Match</a>(<a class="ident" href="../../src/regex/dfa.rs.html#228">f</a>(<a class="ident" href="../../src/regex/dfa.rs.html#230">t</a>)),
-            <a class="ident" href="../../src/regex/dfa.rs.html#211">Result::NoMatch</a>(<span class="ident">x</span>) <span class="op">=</span><span class="op">&gt;</span> <a class="ident" href="../../src/regex/dfa.rs.html#211">Result::NoMatch</a>(<a class="ident" href="../../src/regex/dfa.rs.html#231">x</a>),
-            <a class="ident" href="../../src/regex/dfa.rs.html#212">Result::Quit</a> <span class="op">=</span><span class="op">&gt;</span> <a class="ident" href="../../src/regex/dfa.rs.html#212">Result::Quit</a>,
+            <a class="ident" href="../../src/regex/dfa.rs.html#210">Result::Match</a>(<span class="ident">t</span>) =&gt; <a class="ident" href="../../src/regex/dfa.rs.html#210">Result::Match</a>(<a class="ident" href="../../src/regex/dfa.rs.html#228">f</a>(<a class="ident" href="../../src/regex/dfa.rs.html#230">t</a>)),
+            <a class="ident" href="../../src/regex/dfa.rs.html#211">Result::NoMatch</a>(<span class="ident">x</span>) =&gt; <a class="ident" href="../../src/regex/dfa.rs.html#211">Result::NoMatch</a>(<a class="ident" href="../../src/regex/dfa.rs.html#231">x</a>),
+            <a class="ident" href="../../src/regex/dfa.rs.html#212">Result::Quit</a> =&gt; <a class="ident" href="../../src/regex/dfa.rs.html#212">Result::Quit</a>,
         }
     }
 
     <span class="doccomment">/// Sets the non-match position.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// If this isn&#39;t a non-match, then this is a no-op.</span>
-    <span class="kw">fn</span> <span class="ident">set_non_match</span>(<span class="self">self</span>, <span class="ident">at</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">set_non_match</span>(<span class="self">self</span>, <span class="ident">at</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <a class="self" href="../../src/regex/dfa.rs.html#239">self</a> {
-            <a class="ident" href="../../src/regex/dfa.rs.html#211">Result::NoMatch</a>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <a class="ident" href="../../src/regex/dfa.rs.html#211">Result::NoMatch</a>(<a class="ident" href="../../src/regex/dfa.rs.html#239">at</a>),
-            <span class="ident">r</span> <span class="op">=</span><span class="op">&gt;</span> <a class="ident" href="../../src/regex/dfa.rs.html#242">r</a>,
+            <a class="ident" href="../../src/regex/dfa.rs.html#211">Result::NoMatch</a>(<span class="kw">_</span>) =&gt; <a class="ident" href="../../src/regex/dfa.rs.html#211">Result::NoMatch</a>(<a class="ident" href="../../src/regex/dfa.rs.html#239">at</a>),
+            <span class="ident">r</span> =&gt; <a class="ident" href="../../src/regex/dfa.rs.html#242">r</a>,
         }
     }
 }
@@ -2238,7 +2238,7 @@ implementation.)
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for</span> <span class="ident">InstPtrs</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
     <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
 
-    <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span> {
         <span class="kw">if</span> <a class="self" href="../../src/regex/dfa.rs.html#290">self</a>.<span class="ident">data</span>.<span class="ident">is_empty</span>() {
             <span class="kw">return</span> <span class="prelude-val">None</span>;
         }
@@ -2253,11 +2253,11 @@ implementation.)
 }
 
 <span class="kw">impl</span> <a class="ident" href="../../src/regex/dfa.rs.html#262-264">State</a> {
-    <span class="kw">fn</span> <span class="ident">flags</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="../../src/regex/dfa.rs.html#410">StateFlags</a> {
+    <span class="kw">fn</span> <span class="ident">flags</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="../../src/regex/dfa.rs.html#410">StateFlags</a> {
         <a class="ident" href="../../src/regex/dfa.rs.html#410">StateFlags</a>(<a class="self" href="../../src/regex/dfa.rs.html#305">self</a>.<span class="ident">data</span>[<span class="number">0</span>])
     }
 
-    <span class="kw">fn</span> <span class="ident">inst_ptrs</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">InstPtrs</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">inst_ptrs</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">InstPtrs</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
         <a class="ident" href="../../src/regex/dfa.rs.html#282-285">InstPtrs</a> { <span class="ident">base</span>: <span class="number">0</span>, <span class="ident">data</span>: <span class="kw-2">&amp;</span><a class="self" href="../../src/regex/dfa.rs.html#309">self</a>.<span class="ident">data</span>[<span class="number">1</span>..] }
     }
 }
@@ -2362,7 +2362,7 @@ implementation.)
 
 <span class="kw">impl</span> <a class="ident" href="../../src/regex/dfa.rs.html#83-96">Cache</a> {
     <span class="doccomment">/// Create new empty cache for the DFA engine.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">prog</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/regex/prog.rs.html#18-75">Program</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">prog</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/regex/prog.rs.html#18-75">Program</a>) -&gt; <span class="self">Self</span> {
         <span class="comment">// We add 1 to account for the special EOF byte.</span>
         <span class="kw">let</span> <span class="ident">num_byte_classes</span> <span class="op">=</span> (<a class="ident" href="../../src/regex/dfa.rs.html#414">prog</a>.<span class="ident">byte_classes</span>[<span class="number">255</span>] <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> <span class="op">+</span> <span class="number">1</span>) <span class="op">+</span> <span class="number">1</span>;
         <span class="kw">let</span> <span class="ident">starts</span> <span class="op">=</span> <span class="macro">vec!</span>[<a class="ident" href="../../src/regex/dfa.rs.html#362">STATE_UNKNOWN</a>; <span class="number">256</span>];
@@ -2401,7 +2401,7 @@ implementation.)
         <span class="ident">quit_after_match</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
         <span class="ident">text</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
         <span class="ident">at</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span> {
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">cache</span> <span class="op">=</span> <a class="ident" href="../../src/regex/dfa.rs.html#449">cache</a>.<span class="ident">borrow_mut</span>();
         <span class="kw">let</span> <span class="ident">cache</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../src/regex/dfa.rs.html#454">cache</a>.<span class="ident">dfa</span>;
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">dfa</span> <span class="op">=</span> <a class="ident" href="../../src/regex/dfa.rs.html#170-198">Fsm</a> {
@@ -2416,9 +2416,9 @@ implementation.)
         <span class="kw">let</span> (<span class="ident">empty_flags</span>, <span class="ident">state_flags</span>) <span class="op">=</span> <a class="ident" href="../../src/regex/dfa.rs.html#456">dfa</a>.<a class="ident" href="../../src/regex/dfa.rs.html#1412">start_flags</a>(<a class="ident" href="../../src/regex/dfa.rs.html#451">text</a>, <a class="ident" href="../../src/regex/dfa.rs.html#452">at</a>);
         <a class="ident" href="../../src/regex/dfa.rs.html#456">dfa</a>.<span class="ident">start</span> <span class="op">=</span>
             <span class="kw">match</span> <a class="ident" href="../../src/regex/dfa.rs.html#456">dfa</a>.<a class="ident" href="../../src/regex/dfa.rs.html#1368-1373">start_state</a>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../src/regex/dfa.rs.html#455">cache</a>.<span class="ident">qcur</span>, <a class="ident" href="../../src/regex/dfa.rs.html#465">empty_flags</a>, <a class="ident" href="../../src/regex/dfa.rs.html#465">state_flags</a>) {
-                <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <a class="ident" href="../../src/regex/dfa.rs.html#212">Result::Quit</a>,
-                <span class="prelude-val">Some</span>(<a class="ident" href="../../src/regex/dfa.rs.html#366">STATE_DEAD</a>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <a class="ident" href="../../src/regex/dfa.rs.html#211">Result::NoMatch</a>(<a class="ident" href="../../src/regex/dfa.rs.html#452">at</a>),
-                <span class="prelude-val">Some</span>(<span class="ident">si</span>) <span class="op">=</span><span class="op">&gt;</span> <a class="ident" href="../../src/regex/dfa.rs.html#470">si</a>,
+                <span class="prelude-val">None</span> =&gt; <span class="kw">return</span> <a class="ident" href="../../src/regex/dfa.rs.html#212">Result::Quit</a>,
+                <span class="prelude-val">Some</span>(<a class="ident" href="../../src/regex/dfa.rs.html#366">STATE_DEAD</a>) =&gt; <span class="kw">return</span> <a class="ident" href="../../src/regex/dfa.rs.html#211">Result::NoMatch</a>(<a class="ident" href="../../src/regex/dfa.rs.html#452">at</a>),
+                <span class="prelude-val">Some</span>(<span class="ident">si</span>) =&gt; <a class="ident" href="../../src/regex/dfa.rs.html#470">si</a>,
             };
         <span class="macro">debug_assert!</span>(<a class="ident" href="../../src/regex/dfa.rs.html#456">dfa</a>.<span class="ident">start</span> <span class="op">!</span><span class="op">=</span> <a class="ident" href="../../src/regex/dfa.rs.html#362">STATE_UNKNOWN</a>);
         <a class="ident" href="../../src/regex/dfa.rs.html#456">dfa</a>.<a class="ident" href="../../src/regex/dfa.rs.html#555-560">exec_at</a>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../src/regex/dfa.rs.html#455">cache</a>.<span class="ident">qcur</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../src/regex/dfa.rs.html#455">cache</a>.<span class="ident">qnext</span>, <a class="ident" href="../../src/regex/dfa.rs.html#451">text</a>)
@@ -2431,7 +2431,7 @@ implementation.)
         <span class="ident">quit_after_match</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
         <span class="ident">text</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
         <span class="ident">at</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span> {
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">cache</span> <span class="op">=</span> <a class="ident" href="../../src/regex/dfa.rs.html#479">cache</a>.<span class="ident">borrow_mut</span>();
         <span class="kw">let</span> <span class="ident">cache</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../src/regex/dfa.rs.html#484">cache</a>.<span class="ident">dfa_reverse</span>;
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">dfa</span> <span class="op">=</span> <a class="ident" href="../../src/regex/dfa.rs.html#170-198">Fsm</a> {
@@ -2446,9 +2446,9 @@ implementation.)
         <span class="kw">let</span> (<span class="ident">empty_flags</span>, <span class="ident">state_flags</span>) <span class="op">=</span> <a class="ident" href="../../src/regex/dfa.rs.html#486">dfa</a>.<a class="ident" href="../../src/regex/dfa.rs.html#1437-1441">start_flags_reverse</a>(<a class="ident" href="../../src/regex/dfa.rs.html#481">text</a>, <a class="ident" href="../../src/regex/dfa.rs.html#482">at</a>);
         <a class="ident" href="../../src/regex/dfa.rs.html#486">dfa</a>.<span class="ident">start</span> <span class="op">=</span>
             <span class="kw">match</span> <a class="ident" href="../../src/regex/dfa.rs.html#486">dfa</a>.<a class="ident" href="../../src/regex/dfa.rs.html#1368-1373">start_state</a>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../src/regex/dfa.rs.html#485">cache</a>.<span class="ident">qcur</span>, <a class="ident" href="../../src/regex/dfa.rs.html#495">empty_flags</a>, <a class="ident" href="../../src/regex/dfa.rs.html#495">state_flags</a>) {
-                <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <a class="ident" href="../../src/regex/dfa.rs.html#212">Result::Quit</a>,
-                <span class="prelude-val">Some</span>(<a class="ident" href="../../src/regex/dfa.rs.html#366">STATE_DEAD</a>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <a class="ident" href="../../src/regex/dfa.rs.html#211">Result::NoMatch</a>(<a class="ident" href="../../src/regex/dfa.rs.html#482">at</a>),
-                <span class="prelude-val">Some</span>(<span class="ident">si</span>) <span class="op">=</span><span class="op">&gt;</span> <a class="ident" href="../../src/regex/dfa.rs.html#500">si</a>,
+                <span class="prelude-val">None</span> =&gt; <span class="kw">return</span> <a class="ident" href="../../src/regex/dfa.rs.html#212">Result::Quit</a>,
+                <span class="prelude-val">Some</span>(<a class="ident" href="../../src/regex/dfa.rs.html#366">STATE_DEAD</a>) =&gt; <span class="kw">return</span> <a class="ident" href="../../src/regex/dfa.rs.html#211">Result::NoMatch</a>(<a class="ident" href="../../src/regex/dfa.rs.html#482">at</a>),
+                <span class="prelude-val">Some</span>(<span class="ident">si</span>) =&gt; <a class="ident" href="../../src/regex/dfa.rs.html#500">si</a>,
             };
         <span class="macro">debug_assert!</span>(<a class="ident" href="../../src/regex/dfa.rs.html#486">dfa</a>.<span class="ident">start</span> <span class="op">!</span><span class="op">=</span> <a class="ident" href="../../src/regex/dfa.rs.html#362">STATE_UNKNOWN</a>);
         <a class="ident" href="../../src/regex/dfa.rs.html#486">dfa</a>.<a class="ident" href="../../src/regex/dfa.rs.html#748-753">exec_at_reverse</a>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../src/regex/dfa.rs.html#485">cache</a>.<span class="ident">qcur</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../src/regex/dfa.rs.html#485">cache</a>.<span class="ident">qnext</span>, <a class="ident" href="../../src/regex/dfa.rs.html#481">text</a>)
@@ -2461,8 +2461,8 @@ implementation.)
         <span class="ident">matches</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>],
         <span class="ident">text</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
         <span class="ident">at</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span> {
-        <span class="macro">debug_assert!</span>(<a class="ident" href="../../src/regex/dfa.rs.html#510">matches</a>.<span class="ident">len</span>() <span class="op">=</span><span class="op">=</span> <a class="ident" href="../../src/regex/dfa.rs.html#508">prog</a>.<span class="ident">matches</span>.<span class="ident">len</span>());
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span> {
+        <span class="macro">debug_assert!</span>(<a class="ident" href="../../src/regex/dfa.rs.html#510">matches</a>.<span class="ident">len</span>() <span class="op">==</span> <a class="ident" href="../../src/regex/dfa.rs.html#508">prog</a>.<span class="ident">matches</span>.<span class="ident">len</span>());
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">cache</span> <span class="op">=</span> <a class="ident" href="../../src/regex/dfa.rs.html#509">cache</a>.<span class="ident">borrow_mut</span>();
         <span class="kw">let</span> <span class="ident">cache</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../src/regex/dfa.rs.html#515">cache</a>.<span class="ident">dfa</span>;
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">dfa</span> <span class="op">=</span> <a class="ident" href="../../src/regex/dfa.rs.html#170-198">Fsm</a> {
@@ -2477,14 +2477,14 @@ implementation.)
         <span class="kw">let</span> (<span class="ident">empty_flags</span>, <span class="ident">state_flags</span>) <span class="op">=</span> <a class="ident" href="../../src/regex/dfa.rs.html#517">dfa</a>.<a class="ident" href="../../src/regex/dfa.rs.html#1412">start_flags</a>(<a class="ident" href="../../src/regex/dfa.rs.html#511">text</a>, <a class="ident" href="../../src/regex/dfa.rs.html#512">at</a>);
         <a class="ident" href="../../src/regex/dfa.rs.html#517">dfa</a>.<span class="ident">start</span> <span class="op">=</span>
             <span class="kw">match</span> <a class="ident" href="../../src/regex/dfa.rs.html#517">dfa</a>.<a class="ident" href="../../src/regex/dfa.rs.html#1368-1373">start_state</a>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../src/regex/dfa.rs.html#516">cache</a>.<span class="ident">qcur</span>, <a class="ident" href="../../src/regex/dfa.rs.html#526">empty_flags</a>, <a class="ident" href="../../src/regex/dfa.rs.html#526">state_flags</a>) {
-                <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <a class="ident" href="../../src/regex/dfa.rs.html#212">Result::Quit</a>,
-                <span class="prelude-val">Some</span>(<a class="ident" href="../../src/regex/dfa.rs.html#366">STATE_DEAD</a>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <a class="ident" href="../../src/regex/dfa.rs.html#211">Result::NoMatch</a>(<a class="ident" href="../../src/regex/dfa.rs.html#512">at</a>),
-                <span class="prelude-val">Some</span>(<span class="ident">si</span>) <span class="op">=</span><span class="op">&gt;</span> <a class="ident" href="../../src/regex/dfa.rs.html#531">si</a>,
+                <span class="prelude-val">None</span> =&gt; <span class="kw">return</span> <a class="ident" href="../../src/regex/dfa.rs.html#212">Result::Quit</a>,
+                <span class="prelude-val">Some</span>(<a class="ident" href="../../src/regex/dfa.rs.html#366">STATE_DEAD</a>) =&gt; <span class="kw">return</span> <a class="ident" href="../../src/regex/dfa.rs.html#211">Result::NoMatch</a>(<a class="ident" href="../../src/regex/dfa.rs.html#512">at</a>),
+                <span class="prelude-val">Some</span>(<span class="ident">si</span>) =&gt; <a class="ident" href="../../src/regex/dfa.rs.html#531">si</a>,
             };
         <span class="macro">debug_assert!</span>(<a class="ident" href="../../src/regex/dfa.rs.html#517">dfa</a>.<span class="ident">start</span> <span class="op">!</span><span class="op">=</span> <a class="ident" href="../../src/regex/dfa.rs.html#362">STATE_UNKNOWN</a>);
         <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <a class="ident" href="../../src/regex/dfa.rs.html#517">dfa</a>.<a class="ident" href="../../src/regex/dfa.rs.html#555-560">exec_at</a>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../src/regex/dfa.rs.html#516">cache</a>.<span class="ident">qcur</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../src/regex/dfa.rs.html#516">cache</a>.<span class="ident">qnext</span>, <a class="ident" href="../../src/regex/dfa.rs.html#511">text</a>);
         <span class="kw">if</span> <a class="ident" href="../../src/regex/dfa.rs.html#534">result</a>.<a class="ident" href="../../src/regex/dfa.rs.html#217">is_match</a>() {
-            <span class="kw">if</span> <a class="ident" href="../../src/regex/dfa.rs.html#510">matches</a>.<span class="ident">len</span>() <span class="op">=</span><span class="op">=</span> <span class="number">1</span> {
+            <span class="kw">if</span> <a class="ident" href="../../src/regex/dfa.rs.html#510">matches</a>.<span class="ident">len</span>() <span class="op">==</span> <span class="number">1</span> {
                 <a class="ident" href="../../src/regex/dfa.rs.html#510">matches</a>[<span class="number">0</span>] <span class="op">=</span> <span class="bool-val">true</span>;
             } <span class="kw">else</span> {
                 <span class="macro">debug_assert!</span>(<a class="ident" href="../../src/regex/dfa.rs.html#517">dfa</a>.<span class="ident">last_match_si</span> <span class="op">!</span><span class="op">=</span> <a class="ident" href="../../src/regex/dfa.rs.html#362">STATE_UNKNOWN</a>);
@@ -2508,7 +2508,7 @@ implementation.)
         <span class="ident">qcur</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../src/regex/sparse.rs.html#16-25">SparseSet</a>,
         <span class="ident">qnext</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../src/regex/sparse.rs.html#16-25">SparseSet</a>,
         <span class="ident">text</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span> {
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span> {
         <span class="comment">// For the most part, the DFA is basically:</span>
         <span class="comment">//</span>
         <span class="comment">//   last_match = null</span>
@@ -2616,7 +2616,7 @@ implementation.)
                 <span class="comment">// very quickly, and only recording the match location once</span>
                 <span class="comment">// we&#39;ve left this particular state.</span>
                 <span class="kw">let</span> <span class="ident">cur</span> <span class="op">=</span> <a class="ident" href="../../src/regex/dfa.rs.html#601">at</a>;
-                <span class="kw">while</span> (<a class="ident" href="../../src/regex/dfa.rs.html#600">next_si</a> <span class="op">&amp;</span> <span class="op">!</span><a class="ident" href="../../src/regex/dfa.rs.html#381">STATE_MATCH</a>) <span class="op">=</span><span class="op">=</span> <a class="ident" href="../../src/regex/dfa.rs.html#600">prev_si</a>
+                <span class="kw">while</span> (<a class="ident" href="../../src/regex/dfa.rs.html#600">next_si</a> <span class="op">&amp;</span> <span class="op">!</span><a class="ident" href="../../src/regex/dfa.rs.html#381">STATE_MATCH</a>) <span class="op">==</span> <a class="ident" href="../../src/regex/dfa.rs.html#600">prev_si</a>
                     <span class="op">&amp;&amp;</span> <a class="ident" href="../../src/regex/dfa.rs.html#601">at</a> <span class="op">+</span> <span class="number">2</span> <span class="op">&lt;</span> <a class="ident" href="../../src/regex/dfa.rs.html#559">text</a>.<span class="ident">len</span>()
                 {
                     <span class="comment">// Argument for safety is in the definition of next_si.</span>
@@ -2637,11 +2637,11 @@ implementation.)
                 <a class="ident" href="../../src/regex/dfa.rs.html#600">next_si</a> <span class="op">&amp;=</span> <span class="op">!</span><a class="ident" href="../../src/regex/dfa.rs.html#376">STATE_START</a>;
                 <a class="ident" href="../../src/regex/dfa.rs.html#600">prev_si</a> <span class="op">=</span> <a class="ident" href="../../src/regex/dfa.rs.html#600">next_si</a>;
                 <a class="ident" href="../../src/regex/dfa.rs.html#601">at</a> <span class="op">=</span> <span class="kw">match</span> <a class="self" href="../../src/regex/dfa.rs.html#556">self</a>.<a class="ident" href="../../src/regex/dfa.rs.html#1514">prefix_at</a>(<a class="ident" href="../../src/regex/dfa.rs.html#559">text</a>, <a class="ident" href="../../src/regex/dfa.rs.html#601">at</a>) {
-                    <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <a class="ident" href="../../src/regex/dfa.rs.html#211">Result::NoMatch</a>(<a class="ident" href="../../src/regex/dfa.rs.html#559">text</a>.<span class="ident">len</span>()),
-                    <span class="prelude-val">Some</span>(<span class="ident">i</span>) <span class="op">=</span><span class="op">&gt;</span> <a class="ident" href="../../src/regex/dfa.rs.html#690">i</a>,
+                    <span class="prelude-val">None</span> =&gt; <span class="kw">return</span> <a class="ident" href="../../src/regex/dfa.rs.html#211">Result::NoMatch</a>(<a class="ident" href="../../src/regex/dfa.rs.html#559">text</a>.<span class="ident">len</span>()),
+                    <span class="prelude-val">Some</span>(<span class="ident">i</span>) =&gt; <a class="ident" href="../../src/regex/dfa.rs.html#690">i</a>,
                 };
             } <span class="kw">else</span> <span class="kw">if</span> <a class="ident" href="../../src/regex/dfa.rs.html#600">next_si</a> <span class="op">&gt;</span><span class="op">=</span> <a class="ident" href="../../src/regex/dfa.rs.html#362">STATE_UNKNOWN</a> {
-                <span class="kw">if</span> <a class="ident" href="../../src/regex/dfa.rs.html#600">next_si</a> <span class="op">=</span><span class="op">=</span> <a class="ident" href="../../src/regex/dfa.rs.html#371">STATE_QUIT</a> {
+                <span class="kw">if</span> <a class="ident" href="../../src/regex/dfa.rs.html#600">next_si</a> <span class="op">==</span> <a class="ident" href="../../src/regex/dfa.rs.html#371">STATE_QUIT</a> {
                     <span class="kw">return</span> <a class="ident" href="../../src/regex/dfa.rs.html#212">Result::Quit</a>;
                 }
                 <span class="comment">// Finally, this corresponds to the case where the transition</span>
@@ -2657,9 +2657,9 @@ implementation.)
                 <span class="comment">// cache too much.</span>
                 <a class="self" href="../../src/regex/dfa.rs.html#556">self</a>.<span class="ident">at</span> <span class="op">=</span> <a class="ident" href="../../src/regex/dfa.rs.html#601">at</a>;
                 <a class="ident" href="../../src/regex/dfa.rs.html#600">next_si</a> <span class="op">=</span> <span class="kw">match</span> <a class="self" href="../../src/regex/dfa.rs.html#556">self</a>.<a class="ident" href="../../src/regex/dfa.rs.html#1343-1349">next_state</a>(<a class="ident" href="../../src/regex/dfa.rs.html#557">qcur</a>, <a class="ident" href="../../src/regex/dfa.rs.html#558">qnext</a>, <a class="ident" href="../../src/regex/dfa.rs.html#600">prev_si</a>, <a class="ident" href="../../src/regex/dfa.rs.html#700">byte</a>) {
-                    <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <a class="ident" href="../../src/regex/dfa.rs.html#212">Result::Quit</a>,
-                    <span class="prelude-val">Some</span>(<a class="ident" href="../../src/regex/dfa.rs.html#366">STATE_DEAD</a>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <a class="ident" href="../../src/regex/dfa.rs.html#599">result</a>.<a class="ident" href="../../src/regex/dfa.rs.html#239">set_non_match</a>(<a class="ident" href="../../src/regex/dfa.rs.html#601">at</a>),
-                    <span class="prelude-val">Some</span>(<span class="ident">si</span>) <span class="op">=</span><span class="op">&gt;</span> <a class="ident" href="../../src/regex/dfa.rs.html#711">si</a>,
+                    <span class="prelude-val">None</span> =&gt; <span class="kw">return</span> <a class="ident" href="../../src/regex/dfa.rs.html#212">Result::Quit</a>,
+                    <span class="prelude-val">Some</span>(<a class="ident" href="../../src/regex/dfa.rs.html#366">STATE_DEAD</a>) =&gt; <span class="kw">return</span> <a class="ident" href="../../src/regex/dfa.rs.html#599">result</a>.<a class="ident" href="../../src/regex/dfa.rs.html#239">set_non_match</a>(<a class="ident" href="../../src/regex/dfa.rs.html#601">at</a>),
+                    <span class="prelude-val">Some</span>(<span class="ident">si</span>) =&gt; <a class="ident" href="../../src/regex/dfa.rs.html#711">si</a>,
                 };
                 <span class="macro">debug_assert!</span>(<a class="ident" href="../../src/regex/dfa.rs.html#600">next_si</a> <span class="op">!</span><span class="op">=</span> <a class="ident" href="../../src/regex/dfa.rs.html#362">STATE_UNKNOWN</a>);
                 <span class="kw">if</span> <a class="ident" href="../../src/regex/dfa.rs.html#600">next_si</a> <span class="op">&amp;</span> <a class="ident" href="../../src/regex/dfa.rs.html#381">STATE_MATCH</a> <span class="op">&gt;</span> <span class="number">0</span> {
@@ -2681,9 +2681,9 @@ implementation.)
         <span class="comment">// so get rid of them.</span>
         <a class="ident" href="../../src/regex/dfa.rs.html#600">prev_si</a> <span class="op">&amp;=</span> <a class="ident" href="../../src/regex/dfa.rs.html#389">STATE_MAX</a>;
         <a class="ident" href="../../src/regex/dfa.rs.html#600">prev_si</a> <span class="op">=</span> <span class="kw">match</span> <a class="self" href="../../src/regex/dfa.rs.html#556">self</a>.<a class="ident" href="../../src/regex/dfa.rs.html#1343-1349">next_state</a>(<a class="ident" href="../../src/regex/dfa.rs.html#557">qcur</a>, <a class="ident" href="../../src/regex/dfa.rs.html#558">qnext</a>, <a class="ident" href="../../src/regex/dfa.rs.html#600">prev_si</a>, <span class="ident">Byte::eof</span>()) {
-            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <a class="ident" href="../../src/regex/dfa.rs.html#212">Result::Quit</a>,
-            <span class="prelude-val">Some</span>(<a class="ident" href="../../src/regex/dfa.rs.html#366">STATE_DEAD</a>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <a class="ident" href="../../src/regex/dfa.rs.html#599">result</a>.<a class="ident" href="../../src/regex/dfa.rs.html#239">set_non_match</a>(<a class="ident" href="../../src/regex/dfa.rs.html#559">text</a>.<span class="ident">len</span>()),
-            <span class="prelude-val">Some</span>(<span class="ident">si</span>) <span class="op">=</span><span class="op">&gt;</span> <a class="ident" href="../../src/regex/dfa.rs.html#735">si</a> <span class="op">&amp;</span> <span class="op">!</span><a class="ident" href="../../src/regex/dfa.rs.html#376">STATE_START</a>,
+            <span class="prelude-val">None</span> =&gt; <span class="kw">return</span> <a class="ident" href="../../src/regex/dfa.rs.html#212">Result::Quit</a>,
+            <span class="prelude-val">Some</span>(<a class="ident" href="../../src/regex/dfa.rs.html#366">STATE_DEAD</a>) =&gt; <span class="kw">return</span> <a class="ident" href="../../src/regex/dfa.rs.html#599">result</a>.<a class="ident" href="../../src/regex/dfa.rs.html#239">set_non_match</a>(<a class="ident" href="../../src/regex/dfa.rs.html#559">text</a>.<span class="ident">len</span>()),
+            <span class="prelude-val">Some</span>(<span class="ident">si</span>) =&gt; <a class="ident" href="../../src/regex/dfa.rs.html#735">si</a> <span class="op">&amp;</span> <span class="op">!</span><a class="ident" href="../../src/regex/dfa.rs.html#376">STATE_START</a>,
         };
         <span class="macro">debug_assert!</span>(<a class="ident" href="../../src/regex/dfa.rs.html#600">prev_si</a> <span class="op">!</span><span class="op">=</span> <a class="ident" href="../../src/regex/dfa.rs.html#362">STATE_UNKNOWN</a>);
         <span class="kw">if</span> <a class="ident" href="../../src/regex/dfa.rs.html#600">prev_si</a> <span class="op">&amp;</span> <a class="ident" href="../../src/regex/dfa.rs.html#381">STATE_MATCH</a> <span class="op">&gt;</span> <span class="number">0</span> {
@@ -2701,7 +2701,7 @@ implementation.)
         <span class="ident">qcur</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../src/regex/sparse.rs.html#16-25">SparseSet</a>,
         <span class="ident">qnext</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../src/regex/sparse.rs.html#16-25">SparseSet</a>,
         <span class="ident">text</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span> {
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span> {
         <span class="comment">// The comments in `exec_at` above mostly apply here too. The main</span>
         <span class="comment">// difference is that we move backwards over the input and we look for</span>
         <span class="comment">// the longest possible match instead of the leftmost-first match.</span>
@@ -2744,7 +2744,7 @@ implementation.)
                 <a class="self" href="../../src/regex/dfa.rs.html#749">self</a>.<span class="ident">last_match_si</span> <span class="op">=</span> <a class="ident" href="../../src/regex/dfa.rs.html#762">next_si</a>;
                 <a class="ident" href="../../src/regex/dfa.rs.html#762">prev_si</a> <span class="op">=</span> <a class="ident" href="../../src/regex/dfa.rs.html#762">next_si</a>;
                 <span class="kw">let</span> <span class="ident">cur</span> <span class="op">=</span> <a class="ident" href="../../src/regex/dfa.rs.html#763">at</a>;
-                <span class="kw">while</span> (<a class="ident" href="../../src/regex/dfa.rs.html#762">next_si</a> <span class="op">&amp;</span> <span class="op">!</span><a class="ident" href="../../src/regex/dfa.rs.html#381">STATE_MATCH</a>) <span class="op">=</span><span class="op">=</span> <a class="ident" href="../../src/regex/dfa.rs.html#762">prev_si</a> <span class="op">&amp;&amp;</span> <a class="ident" href="../../src/regex/dfa.rs.html#763">at</a> <span class="op">&gt;</span><span class="op">=</span> <span class="number">2</span> {
+                <span class="kw">while</span> (<a class="ident" href="../../src/regex/dfa.rs.html#762">next_si</a> <span class="op">&amp;</span> <span class="op">!</span><a class="ident" href="../../src/regex/dfa.rs.html#381">STATE_MATCH</a>) <span class="op">==</span> <a class="ident" href="../../src/regex/dfa.rs.html#762">prev_si</a> <span class="op">&amp;&amp;</span> <a class="ident" href="../../src/regex/dfa.rs.html#763">at</a> <span class="op">&gt;</span><span class="op">=</span> <span class="number">2</span> {
                     <span class="comment">// Argument for safety is in the definition of next_si.</span>
                     <a class="ident" href="../../src/regex/dfa.rs.html#763">at</a> <span class="op">-</span><span class="op">=</span> <span class="number">1</span>;
                     <a class="ident" href="../../src/regex/dfa.rs.html#762">next_si</a> <span class="op">=</span> <span class="kw">unsafe</span> {
@@ -2755,16 +2755,16 @@ implementation.)
                     <a class="ident" href="../../src/regex/dfa.rs.html#761">result</a> <span class="op">=</span> <a class="ident" href="../../src/regex/dfa.rs.html#210">Result::Match</a>(<a class="ident" href="../../src/regex/dfa.rs.html#763">at</a> <span class="op">+</span> <span class="number">2</span>);
                 }
             } <span class="kw">else</span> <span class="kw">if</span> <a class="ident" href="../../src/regex/dfa.rs.html#762">next_si</a> <span class="op">&gt;</span><span class="op">=</span> <a class="ident" href="../../src/regex/dfa.rs.html#362">STATE_UNKNOWN</a> {
-                <span class="kw">if</span> <a class="ident" href="../../src/regex/dfa.rs.html#762">next_si</a> <span class="op">=</span><span class="op">=</span> <a class="ident" href="../../src/regex/dfa.rs.html#371">STATE_QUIT</a> {
+                <span class="kw">if</span> <a class="ident" href="../../src/regex/dfa.rs.html#762">next_si</a> <span class="op">==</span> <a class="ident" href="../../src/regex/dfa.rs.html#371">STATE_QUIT</a> {
                     <span class="kw">return</span> <a class="ident" href="../../src/regex/dfa.rs.html#212">Result::Quit</a>;
                 }
                 <span class="kw">let</span> <span class="ident">byte</span> <span class="op">=</span> <span class="ident">Byte::byte</span>(<a class="ident" href="../../src/regex/dfa.rs.html#752">text</a>[<a class="ident" href="../../src/regex/dfa.rs.html#763">at</a>]);
                 <a class="ident" href="../../src/regex/dfa.rs.html#762">prev_si</a> <span class="op">&amp;=</span> <a class="ident" href="../../src/regex/dfa.rs.html#389">STATE_MAX</a>;
                 <a class="self" href="../../src/regex/dfa.rs.html#749">self</a>.<span class="ident">at</span> <span class="op">=</span> <a class="ident" href="../../src/regex/dfa.rs.html#763">at</a>;
                 <a class="ident" href="../../src/regex/dfa.rs.html#762">next_si</a> <span class="op">=</span> <span class="kw">match</span> <a class="self" href="../../src/regex/dfa.rs.html#749">self</a>.<a class="ident" href="../../src/regex/dfa.rs.html#1343-1349">next_state</a>(<a class="ident" href="../../src/regex/dfa.rs.html#750">qcur</a>, <a class="ident" href="../../src/regex/dfa.rs.html#751">qnext</a>, <a class="ident" href="../../src/regex/dfa.rs.html#762">prev_si</a>, <a class="ident" href="../../src/regex/dfa.rs.html#810">byte</a>) {
-                    <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <a class="ident" href="../../src/regex/dfa.rs.html#212">Result::Quit</a>,
-                    <span class="prelude-val">Some</span>(<a class="ident" href="../../src/regex/dfa.rs.html#366">STATE_DEAD</a>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <a class="ident" href="../../src/regex/dfa.rs.html#761">result</a>.<a class="ident" href="../../src/regex/dfa.rs.html#239">set_non_match</a>(<a class="ident" href="../../src/regex/dfa.rs.html#763">at</a>),
-                    <span class="prelude-val">Some</span>(<span class="ident">si</span>) <span class="op">=</span><span class="op">&gt;</span> <a class="ident" href="../../src/regex/dfa.rs.html#816">si</a>,
+                    <span class="prelude-val">None</span> =&gt; <span class="kw">return</span> <a class="ident" href="../../src/regex/dfa.rs.html#212">Result::Quit</a>,
+                    <span class="prelude-val">Some</span>(<a class="ident" href="../../src/regex/dfa.rs.html#366">STATE_DEAD</a>) =&gt; <span class="kw">return</span> <a class="ident" href="../../src/regex/dfa.rs.html#761">result</a>.<a class="ident" href="../../src/regex/dfa.rs.html#239">set_non_match</a>(<a class="ident" href="../../src/regex/dfa.rs.html#763">at</a>),
+                    <span class="prelude-val">Some</span>(<span class="ident">si</span>) =&gt; <a class="ident" href="../../src/regex/dfa.rs.html#816">si</a>,
                 };
                 <span class="macro">debug_assert!</span>(<a class="ident" href="../../src/regex/dfa.rs.html#762">next_si</a> <span class="op">!</span><span class="op">=</span> <a class="ident" href="../../src/regex/dfa.rs.html#362">STATE_UNKNOWN</a>);
                 <span class="kw">if</span> <a class="ident" href="../../src/regex/dfa.rs.html#762">next_si</a> <span class="op">&amp;</span> <a class="ident" href="../../src/regex/dfa.rs.html#381">STATE_MATCH</a> <span class="op">&gt;</span> <span class="number">0</span> {
@@ -2783,9 +2783,9 @@ implementation.)
 
         <span class="comment">// Run the DFA once more on the special EOF sentinel value.</span>
         <a class="ident" href="../../src/regex/dfa.rs.html#762">prev_si</a> <span class="op">=</span> <span class="kw">match</span> <a class="self" href="../../src/regex/dfa.rs.html#749">self</a>.<a class="ident" href="../../src/regex/dfa.rs.html#1343-1349">next_state</a>(<a class="ident" href="../../src/regex/dfa.rs.html#750">qcur</a>, <a class="ident" href="../../src/regex/dfa.rs.html#751">qnext</a>, <a class="ident" href="../../src/regex/dfa.rs.html#762">prev_si</a>, <span class="ident">Byte::eof</span>()) {
-            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <a class="ident" href="../../src/regex/dfa.rs.html#212">Result::Quit</a>,
-            <span class="prelude-val">Some</span>(<a class="ident" href="../../src/regex/dfa.rs.html#366">STATE_DEAD</a>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <a class="ident" href="../../src/regex/dfa.rs.html#761">result</a>.<a class="ident" href="../../src/regex/dfa.rs.html#239">set_non_match</a>(<span class="number">0</span>),
-            <span class="prelude-val">Some</span>(<span class="ident">si</span>) <span class="op">=</span><span class="op">&gt;</span> <a class="ident" href="../../src/regex/dfa.rs.html#837">si</a>,
+            <span class="prelude-val">None</span> =&gt; <span class="kw">return</span> <a class="ident" href="../../src/regex/dfa.rs.html#212">Result::Quit</a>,
+            <span class="prelude-val">Some</span>(<a class="ident" href="../../src/regex/dfa.rs.html#366">STATE_DEAD</a>) =&gt; <span class="kw">return</span> <a class="ident" href="../../src/regex/dfa.rs.html#761">result</a>.<a class="ident" href="../../src/regex/dfa.rs.html#239">set_non_match</a>(<span class="number">0</span>),
+            <span class="prelude-val">Some</span>(<span class="ident">si</span>) =&gt; <a class="ident" href="../../src/regex/dfa.rs.html#837">si</a>,
         };
         <span class="macro">debug_assert!</span>(<a class="ident" href="../../src/regex/dfa.rs.html#762">prev_si</a> <span class="op">!</span><span class="op">=</span> <a class="ident" href="../../src/regex/dfa.rs.html#362">STATE_UNKNOWN</a>);
         <span class="kw">if</span> <a class="ident" href="../../src/regex/dfa.rs.html#762">prev_si</a> <span class="op">&amp;</span> <a class="ident" href="../../src/regex/dfa.rs.html#381">STATE_MATCH</a> <span class="op">&gt;</span> <span class="number">0</span> {
@@ -2801,7 +2801,7 @@ implementation.)
     <span class="doccomment">///</span>
     <span class="doccomment">/// This elides bounds checks, and is therefore not safe.</span>
     <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;perf-inline&quot;</span>, <span class="ident">inline</span>(<span class="ident">always</span>))]</span>
-    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">next_si</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">si</span>: <a class="ident" href="../../src/regex/dfa.rs.html#358">StatePtr</a>, <span class="ident">text</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], <span class="ident">i</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="../../src/regex/dfa.rs.html#358">StatePtr</a> {
+    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">next_si</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">si</span>: <a class="ident" href="../../src/regex/dfa.rs.html#358">StatePtr</a>, <span class="ident">text</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], <span class="ident">i</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a class="ident" href="../../src/regex/dfa.rs.html#358">StatePtr</a> {
         <span class="comment">// What is the argument for safety here?</span>
         <span class="comment">// We have three unchecked accesses that could possibly violate safety:</span>
         <span class="comment">//</span>
@@ -2844,7 +2844,7 @@ implementation.)
         <span class="ident">qnext</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../src/regex/sparse.rs.html#16-25">SparseSet</a>,
         <span class="kw-2">mut</span> <span class="ident">si</span>: <a class="ident" href="../../src/regex/dfa.rs.html#358">StatePtr</a>,
         <span class="ident">b</span>: <a class="ident" href="../../src/regex/dfa.rs.html#394">Byte</a>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../src/regex/dfa.rs.html#358">StatePtr</a><span class="op">&gt;</span> {
+    ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../src/regex/dfa.rs.html#358">StatePtr</a><span class="op">&gt;</span> {
         <span class="kw">use</span> <a class="ident" href="../../src/regex/prog.rs.html#268-296"><span class="kw">crate</span>::prog::Inst</a>::<span class="kw-2">*</span>;
 
         <span class="comment">// Initialize a queue with the current DFA state&#39;s NFA states.</span>
@@ -2870,10 +2870,10 @@ implementation.)
             <span class="kw">if</span> <a class="ident" href="../../src/regex/dfa.rs.html#895">b</a>.<a class="ident" href="../../src/regex/dfa.rs.html#1732">is_eof</a>() {
                 <a class="ident" href="../../src/regex/dfa.rs.html#918">flags</a>.<span class="ident">end</span> <span class="op">=</span> <span class="bool-val">true</span>;
                 <a class="ident" href="../../src/regex/dfa.rs.html#918">flags</a>.<span class="ident">end_line</span> <span class="op">=</span> <span class="bool-val">true</span>;
-            } <span class="kw">else</span> <span class="kw">if</span> <a class="ident" href="../../src/regex/dfa.rs.html#895">b</a>.<a class="ident" href="../../src/regex/dfa.rs.html#1747">as_byte</a>().<span class="ident">map_or</span>(<span class="bool-val">false</span>, <span class="op">|</span><span class="ident">b</span><span class="op">|</span> <a class="ident" href="../../src/regex/dfa.rs.html#922">b</a> <span class="op">=</span><span class="op">=</span> <span class="string">b&#39;\n&#39;</span>) {
+            } <span class="kw">else</span> <span class="kw">if</span> <a class="ident" href="../../src/regex/dfa.rs.html#895">b</a>.<a class="ident" href="../../src/regex/dfa.rs.html#1747">as_byte</a>().<span class="ident">map_or</span>(<span class="bool-val">false</span>, <span class="op">|</span><span class="ident">b</span><span class="op">|</span> <a class="ident" href="../../src/regex/dfa.rs.html#922">b</a> <span class="op">==</span> <span class="string">b&#39;\n&#39;</span>) {
                 <a class="ident" href="../../src/regex/dfa.rs.html#918">flags</a>.<span class="ident">end_line</span> <span class="op">=</span> <span class="bool-val">true</span>;
             }
-            <span class="kw">if</span> <a class="ident" href="../../src/regex/dfa.rs.html#911">is_word_last</a> <span class="op">=</span><span class="op">=</span> <a class="ident" href="../../src/regex/dfa.rs.html#912">is_word</a> {
+            <span class="kw">if</span> <a class="ident" href="../../src/regex/dfa.rs.html#911">is_word_last</a> <span class="op">==</span> <a class="ident" href="../../src/regex/dfa.rs.html#912">is_word</a> {
                 <a class="ident" href="../../src/regex/dfa.rs.html#918">flags</a>.<span class="ident">not_word_boundary</span> <span class="op">=</span> <span class="bool-val">true</span>;
             } <span class="kw">else</span> {
                 <a class="ident" href="../../src/regex/dfa.rs.html#918">flags</a>.<span class="ident">word_boundary</span> <span class="op">=</span> <span class="bool-val">true</span>;
@@ -2899,7 +2899,7 @@ implementation.)
         <span class="comment">// then it is the *next* DFA state that is marked as a match.</span>
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">empty_flags</span> <span class="op">=</span> <span class="ident">EmptyFlags::default</span>();
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">state_flags</span> <span class="op">=</span> <span class="ident">StateFlags::default</span>();
-        <a class="ident" href="../../src/regex/dfa.rs.html#949">empty_flags</a>.<span class="ident">start_line</span> <span class="op">=</span> <a class="ident" href="../../src/regex/dfa.rs.html#895">b</a>.<a class="ident" href="../../src/regex/dfa.rs.html#1747">as_byte</a>().<span class="ident">map_or</span>(<span class="bool-val">false</span>, <span class="op">|</span><span class="ident">b</span><span class="op">|</span> <a class="ident" href="../../src/regex/dfa.rs.html#951">b</a> <span class="op">=</span><span class="op">=</span> <span class="string">b&#39;\n&#39;</span>);
+        <a class="ident" href="../../src/regex/dfa.rs.html#949">empty_flags</a>.<span class="ident">start_line</span> <span class="op">=</span> <a class="ident" href="../../src/regex/dfa.rs.html#895">b</a>.<a class="ident" href="../../src/regex/dfa.rs.html#1747">as_byte</a>().<span class="ident">map_or</span>(<span class="bool-val">false</span>, <span class="op">|</span><span class="ident">b</span><span class="op">|</span> <a class="ident" href="../../src/regex/dfa.rs.html#951">b</a> <span class="op">==</span> <span class="string">b&#39;\n&#39;</span>);
         <span class="kw">if</span> <a class="ident" href="../../src/regex/dfa.rs.html#895">b</a>.<a class="ident" href="../../src/regex/dfa.rs.html#1736">is_ascii_word</a>() {
             <a class="ident" href="../../src/regex/dfa.rs.html#950">state_flags</a>.<a class="ident" href="../../src/regex/dfa.rs.html#1712">set_word</a>();
         }
@@ -2909,10 +2909,10 @@ implementation.)
         <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="ident">ip</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="kw-2">*</span><a class="ident" href="../../src/regex/dfa.rs.html#892">qcur</a> {
             <span class="kw">match</span> <a class="self" href="../../src/regex/dfa.rs.html#891">self</a>.<span class="ident">prog</span>[<a class="ident" href="../../src/regex/dfa.rs.html#958">ip</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>] {
                 <span class="comment">// These states never happen in a byte-based program.</span>
-                <a class="ident" href="../../src/regex/prog.rs.html#288">Char</a>(<span class="kw">_</span>) <span class="op">|</span> <a class="ident" href="../../src/regex/prog.rs.html#291">Ranges</a>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable!</span>(),
+                <a class="ident" href="../../src/regex/prog.rs.html#288">Char</a>(<span class="kw">_</span>) <span class="op">|</span> <a class="ident" href="../../src/regex/prog.rs.html#291">Ranges</a>(<span class="kw">_</span>) =&gt; <span class="macro">unreachable!</span>(),
                 <span class="comment">// These states are handled when following epsilon transitions.</span>
-                <a class="ident" href="../../src/regex/prog.rs.html#279">Save</a>(<span class="kw">_</span>) <span class="op">|</span> <a class="ident" href="../../src/regex/prog.rs.html#282">Split</a>(<span class="kw">_</span>) <span class="op">|</span> <a class="ident" href="../../src/regex/prog.rs.html#285">EmptyLook</a>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {}
-                <a class="ident" href="../../src/regex/prog.rs.html#276">Match</a>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <a class="ident" href="../../src/regex/prog.rs.html#279">Save</a>(<span class="kw">_</span>) <span class="op">|</span> <a class="ident" href="../../src/regex/prog.rs.html#282">Split</a>(<span class="kw">_</span>) <span class="op">|</span> <a class="ident" href="../../src/regex/prog.rs.html#285">EmptyLook</a>(<span class="kw">_</span>) =&gt; {}
+                <a class="ident" href="../../src/regex/prog.rs.html#276">Match</a>(<span class="kw">_</span>) =&gt; {
                     <a class="ident" href="../../src/regex/dfa.rs.html#950">state_flags</a>.<a class="ident" href="../../src/regex/dfa.rs.html#1704">set_match</a>();
                     <span class="kw">if</span> <span class="op">!</span><a class="self" href="../../src/regex/dfa.rs.html#891">self</a>.<a class="ident" href="../../src/regex/dfa.rs.html#1551">continue_past_first_match</a>() {
                         <span class="kw">break</span>;
@@ -2924,7 +2924,7 @@ implementation.)
                         <a class="ident" href="../../src/regex/dfa.rs.html#893">qnext</a>.<a class="ident" href="../../src/regex/sparse.rs.html#47">insert</a>(<a class="ident" href="../../src/regex/dfa.rs.html#958">ip</a>);
                     }
                 }
-                <a class="ident" href="../../src/regex/prog.rs.html#295">Bytes</a>(<span class="kw-2">ref</span> <span class="ident">inst</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <a class="ident" href="../../src/regex/prog.rs.html#295">Bytes</a>(<span class="kw-2">ref</span> <span class="ident">inst</span>) =&gt; {
                     <span class="kw">if</span> <a class="ident" href="../../src/regex/dfa.rs.html#895">b</a>.<a class="ident" href="../../src/regex/dfa.rs.html#1747">as_byte</a>().<span class="ident">map_or</span>(<span class="bool-val">false</span>, <span class="op">|</span><span class="ident">b</span><span class="op">|</span> <a class="ident" href="../../src/regex/dfa.rs.html#976">inst</a>.<a class="ident" href="../../src/regex/prog.rs.html#431">matches</a>(<a class="ident" href="../../src/regex/dfa.rs.html#977">b</a>)) {
                         <a class="self" href="../../src/regex/dfa.rs.html#891">self</a>.<a class="ident" href="../../src/regex/dfa.rs.html#1053-1058">follow_epsilons</a>(
                             <a class="ident" href="../../src/regex/dfa.rs.html#976">inst</a>.<span class="ident">goto</span> <span class="kw">as</span> <a class="ident" href="../../src/regex/dfa.rs.html#271">InstPtr</a>,
@@ -2957,10 +2957,10 @@ implementation.)
         <span class="comment">// current state may change.</span>
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">next</span> <span class="op">=</span>
             <span class="kw">match</span> <a class="self" href="../../src/regex/dfa.rs.html#891">self</a>.<a class="ident" href="../../src/regex/dfa.rs.html#1146-1151">cached_state</a>(<a class="ident" href="../../src/regex/dfa.rs.html#893">qnext</a>, <a class="ident" href="../../src/regex/dfa.rs.html#950">state_flags</a>, <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../src/regex/dfa.rs.html#894">si</a>)) {
-                <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">None</span>,
-                <span class="prelude-val">Some</span>(<span class="ident">next</span>) <span class="op">=</span><span class="op">&gt;</span> <a class="ident" href="../../src/regex/dfa.rs.html#1010">next</a>,
+                <span class="prelude-val">None</span> =&gt; <span class="kw">return</span> <span class="prelude-val">None</span>,
+                <span class="prelude-val">Some</span>(<span class="ident">next</span>) =&gt; <a class="ident" href="../../src/regex/dfa.rs.html#1010">next</a>,
             };
-        <span class="kw">if</span> (<a class="self" href="../../src/regex/dfa.rs.html#891">self</a>.<span class="ident">start</span> <span class="op">&amp;</span> <span class="op">!</span><a class="ident" href="../../src/regex/dfa.rs.html#376">STATE_START</a>) <span class="op">=</span><span class="op">=</span> <a class="ident" href="../../src/regex/dfa.rs.html#1007">next</a> {
+        <span class="kw">if</span> (<a class="self" href="../../src/regex/dfa.rs.html#891">self</a>.<span class="ident">start</span> <span class="op">&amp;</span> <span class="op">!</span><a class="ident" href="../../src/regex/dfa.rs.html#376">STATE_START</a>) <span class="op">==</span> <a class="ident" href="../../src/regex/dfa.rs.html#1007">next</a> {
             <span class="comment">// Start states can never be match states since all matches are</span>
             <span class="comment">// delayed by one byte.</span>
             <span class="macro">debug_assert!</span>(<span class="op">!</span><a class="self" href="../../src/regex/dfa.rs.html#891">self</a>.<a class="ident" href="../../src/regex/dfa.rs.html#1464">state</a>(<a class="ident" href="../../src/regex/dfa.rs.html#1007">next</a>).<a class="ident" href="../../src/regex/dfa.rs.html#305">flags</a>().<a class="ident" href="../../src/regex/dfa.rs.html#1700">is_match</a>());
@@ -3023,51 +3023,51 @@ implementation.)
                 }
                 <a class="ident" href="../../src/regex/dfa.rs.html#1056">q</a>.<a class="ident" href="../../src/regex/sparse.rs.html#47">insert</a>(<a class="ident" href="../../src/regex/dfa.rs.html#1065">ip</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
                 <span class="kw">match</span> <a class="self" href="../../src/regex/dfa.rs.html#1054">self</a>.<span class="ident">prog</span>[<a class="ident" href="../../src/regex/dfa.rs.html#1065">ip</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>] {
-                    <a class="ident" href="../../src/regex/prog.rs.html#288">Char</a>(<span class="kw">_</span>) <span class="op">|</span> <a class="ident" href="../../src/regex/prog.rs.html#291">Ranges</a>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable!</span>(),
-                    <a class="ident" href="../../src/regex/prog.rs.html#276">Match</a>(<span class="kw">_</span>) <span class="op">|</span> <a class="ident" href="../../src/regex/prog.rs.html#295">Bytes</a>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                    <a class="ident" href="../../src/regex/prog.rs.html#288">Char</a>(<span class="kw">_</span>) <span class="op">|</span> <a class="ident" href="../../src/regex/prog.rs.html#291">Ranges</a>(<span class="kw">_</span>) =&gt; <span class="macro">unreachable!</span>(),
+                    <a class="ident" href="../../src/regex/prog.rs.html#276">Match</a>(<span class="kw">_</span>) <span class="op">|</span> <a class="ident" href="../../src/regex/prog.rs.html#295">Bytes</a>(<span class="kw">_</span>) =&gt; {
                         <span class="kw">break</span>;
                     }
-                    <a class="ident" href="../../src/regex/prog.rs.html#285">EmptyLook</a>(<span class="kw-2">ref</span> <span class="ident">inst</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                    <a class="ident" href="../../src/regex/prog.rs.html#285">EmptyLook</a>(<span class="kw-2">ref</span> <span class="ident">inst</span>) =&gt; {
                         <span class="comment">// Only follow empty assertion states if our flags</span>
                         <span class="comment">// satisfy the assertion.</span>
                         <span class="kw">match</span> <a class="ident" href="../../src/regex/dfa.rs.html#1079">inst</a>.<span class="ident">look</span> {
-                            <a class="ident" href="../../src/regex/prog.rs.html#343">StartLine</a> <span class="kw">if</span> <a class="ident" href="../../src/regex/dfa.rs.html#1057">flags</a>.<span class="ident">start_line</span> <span class="op">=</span><span class="op">&gt;</span> {
+                            <a class="ident" href="../../src/regex/prog.rs.html#343">StartLine</a> <span class="kw">if</span> <a class="ident" href="../../src/regex/dfa.rs.html#1057">flags</a>.<span class="ident">start_line</span> =&gt; {
                                 <a class="ident" href="../../src/regex/dfa.rs.html#1065">ip</a> <span class="op">=</span> <a class="ident" href="../../src/regex/dfa.rs.html#1079">inst</a>.<span class="ident">goto</span> <span class="kw">as</span> <a class="ident" href="../../src/regex/dfa.rs.html#271">InstPtr</a>;
                             }
-                            <a class="ident" href="../../src/regex/prog.rs.html#345">EndLine</a> <span class="kw">if</span> <a class="ident" href="../../src/regex/dfa.rs.html#1057">flags</a>.<span class="ident">end_line</span> <span class="op">=</span><span class="op">&gt;</span> {
+                            <a class="ident" href="../../src/regex/prog.rs.html#345">EndLine</a> <span class="kw">if</span> <a class="ident" href="../../src/regex/dfa.rs.html#1057">flags</a>.<span class="ident">end_line</span> =&gt; {
                                 <a class="ident" href="../../src/regex/dfa.rs.html#1065">ip</a> <span class="op">=</span> <a class="ident" href="../../src/regex/dfa.rs.html#1079">inst</a>.<span class="ident">goto</span> <span class="kw">as</span> <a class="ident" href="../../src/regex/dfa.rs.html#271">InstPtr</a>;
                             }
-                            <a class="ident" href="../../src/regex/prog.rs.html#347">StartText</a> <span class="kw">if</span> <a class="ident" href="../../src/regex/dfa.rs.html#1057">flags</a>.<span class="ident">start</span> <span class="op">=</span><span class="op">&gt;</span> {
+                            <a class="ident" href="../../src/regex/prog.rs.html#347">StartText</a> <span class="kw">if</span> <a class="ident" href="../../src/regex/dfa.rs.html#1057">flags</a>.<span class="ident">start</span> =&gt; {
                                 <a class="ident" href="../../src/regex/dfa.rs.html#1065">ip</a> <span class="op">=</span> <a class="ident" href="../../src/regex/dfa.rs.html#1079">inst</a>.<span class="ident">goto</span> <span class="kw">as</span> <a class="ident" href="../../src/regex/dfa.rs.html#271">InstPtr</a>;
                             }
-                            <a class="ident" href="../../src/regex/prog.rs.html#349">EndText</a> <span class="kw">if</span> <a class="ident" href="../../src/regex/dfa.rs.html#1057">flags</a>.<span class="ident">end</span> <span class="op">=</span><span class="op">&gt;</span> {
+                            <a class="ident" href="../../src/regex/prog.rs.html#349">EndText</a> <span class="kw">if</span> <a class="ident" href="../../src/regex/dfa.rs.html#1057">flags</a>.<span class="ident">end</span> =&gt; {
                                 <a class="ident" href="../../src/regex/dfa.rs.html#1065">ip</a> <span class="op">=</span> <a class="ident" href="../../src/regex/dfa.rs.html#1079">inst</a>.<span class="ident">goto</span> <span class="kw">as</span> <a class="ident" href="../../src/regex/dfa.rs.html#271">InstPtr</a>;
                             }
-                            <a class="ident" href="../../src/regex/prog.rs.html#355">WordBoundaryAscii</a> <span class="kw">if</span> <a class="ident" href="../../src/regex/dfa.rs.html#1057">flags</a>.<span class="ident">word_boundary</span> <span class="op">=</span><span class="op">&gt;</span> {
+                            <a class="ident" href="../../src/regex/prog.rs.html#355">WordBoundaryAscii</a> <span class="kw">if</span> <a class="ident" href="../../src/regex/dfa.rs.html#1057">flags</a>.<span class="ident">word_boundary</span> =&gt; {
                                 <a class="ident" href="../../src/regex/dfa.rs.html#1065">ip</a> <span class="op">=</span> <a class="ident" href="../../src/regex/dfa.rs.html#1079">inst</a>.<span class="ident">goto</span> <span class="kw">as</span> <a class="ident" href="../../src/regex/dfa.rs.html#271">InstPtr</a>;
                             }
                             <a class="ident" href="../../src/regex/prog.rs.html#357">NotWordBoundaryAscii</a>
-                                <span class="kw">if</span> <a class="ident" href="../../src/regex/dfa.rs.html#1057">flags</a>.<span class="ident">not_word_boundary</span> <span class="op">=</span><span class="op">&gt;</span>
+                                <span class="kw">if</span> <a class="ident" href="../../src/regex/dfa.rs.html#1057">flags</a>.<span class="ident">not_word_boundary</span> =&gt;
                             {
                                 <a class="ident" href="../../src/regex/dfa.rs.html#1065">ip</a> <span class="op">=</span> <a class="ident" href="../../src/regex/dfa.rs.html#1079">inst</a>.<span class="ident">goto</span> <span class="kw">as</span> <a class="ident" href="../../src/regex/dfa.rs.html#271">InstPtr</a>;
                             }
-                            <a class="ident" href="../../src/regex/prog.rs.html#351">WordBoundary</a> <span class="kw">if</span> <a class="ident" href="../../src/regex/dfa.rs.html#1057">flags</a>.<span class="ident">word_boundary</span> <span class="op">=</span><span class="op">&gt;</span> {
+                            <a class="ident" href="../../src/regex/prog.rs.html#351">WordBoundary</a> <span class="kw">if</span> <a class="ident" href="../../src/regex/dfa.rs.html#1057">flags</a>.<span class="ident">word_boundary</span> =&gt; {
                                 <a class="ident" href="../../src/regex/dfa.rs.html#1065">ip</a> <span class="op">=</span> <a class="ident" href="../../src/regex/dfa.rs.html#1079">inst</a>.<span class="ident">goto</span> <span class="kw">as</span> <a class="ident" href="../../src/regex/dfa.rs.html#271">InstPtr</a>;
                             }
-                            <a class="ident" href="../../src/regex/prog.rs.html#353">NotWordBoundary</a> <span class="kw">if</span> <a class="ident" href="../../src/regex/dfa.rs.html#1057">flags</a>.<span class="ident">not_word_boundary</span> <span class="op">=</span><span class="op">&gt;</span> {
+                            <a class="ident" href="../../src/regex/prog.rs.html#353">NotWordBoundary</a> <span class="kw">if</span> <a class="ident" href="../../src/regex/dfa.rs.html#1057">flags</a>.<span class="ident">not_word_boundary</span> =&gt; {
                                 <a class="ident" href="../../src/regex/dfa.rs.html#1065">ip</a> <span class="op">=</span> <a class="ident" href="../../src/regex/dfa.rs.html#1079">inst</a>.<span class="ident">goto</span> <span class="kw">as</span> <a class="ident" href="../../src/regex/dfa.rs.html#271">InstPtr</a>;
                             }
                             <a class="ident" href="../../src/regex/prog.rs.html#343">StartLine</a> <span class="op">|</span> <a class="ident" href="../../src/regex/prog.rs.html#345">EndLine</a> <span class="op">|</span> <a class="ident" href="../../src/regex/prog.rs.html#347">StartText</a> <span class="op">|</span> <a class="ident" href="../../src/regex/prog.rs.html#349">EndText</a>
                             <span class="op">|</span> <a class="ident" href="../../src/regex/prog.rs.html#355">WordBoundaryAscii</a> <span class="op">|</span> <a class="ident" href="../../src/regex/prog.rs.html#357">NotWordBoundaryAscii</a>
-                            <span class="op">|</span> <a class="ident" href="../../src/regex/prog.rs.html#351">WordBoundary</a> <span class="op">|</span> <a class="ident" href="../../src/regex/prog.rs.html#353">NotWordBoundary</a> <span class="op">=</span><span class="op">&gt;</span> {
+                            <span class="op">|</span> <a class="ident" href="../../src/regex/prog.rs.html#351">WordBoundary</a> <span class="op">|</span> <a class="ident" href="../../src/regex/prog.rs.html#353">NotWordBoundary</a> =&gt; {
                                 <span class="kw">break</span>;
                             }
                         }
                     }
-                    <a class="ident" href="../../src/regex/prog.rs.html#279">Save</a>(<span class="kw-2">ref</span> <span class="ident">inst</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                    <a class="ident" href="../../src/regex/prog.rs.html#279">Save</a>(<span class="kw-2">ref</span> <span class="ident">inst</span>) =&gt; {
                         <a class="ident" href="../../src/regex/dfa.rs.html#1065">ip</a> <span class="op">=</span> <a class="ident" href="../../src/regex/dfa.rs.html#1116">inst</a>.<span class="ident">goto</span> <span class="kw">as</span> <a class="ident" href="../../src/regex/dfa.rs.html#271">InstPtr</a>;
                     }
-                    <a class="ident" href="../../src/regex/prog.rs.html#282">Split</a>(<span class="kw-2">ref</span> <span class="ident">inst</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                    <a class="ident" href="../../src/regex/prog.rs.html#282">Split</a>(<span class="kw-2">ref</span> <span class="ident">inst</span>) =&gt; {
                         <a class="self" href="../../src/regex/dfa.rs.html#1054">self</a>.<span class="ident">cache</span>.<span class="ident">stack</span>.<span class="ident">push</span>(<a class="ident" href="../../src/regex/dfa.rs.html#1119">inst</a>.<span class="ident">goto2</span> <span class="kw">as</span> <a class="ident" href="../../src/regex/dfa.rs.html#271">InstPtr</a>);
                         <a class="ident" href="../../src/regex/dfa.rs.html#1065">ip</a> <span class="op">=</span> <a class="ident" href="../../src/regex/dfa.rs.html#1119">inst</a>.<span class="ident">goto1</span> <span class="kw">as</span> <a class="ident" href="../../src/regex/dfa.rs.html#271">InstPtr</a>;
                     }
@@ -3099,7 +3099,7 @@ implementation.)
         <span class="ident">q</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/regex/sparse.rs.html#16-25">SparseSet</a>,
         <span class="kw-2">mut</span> <span class="ident">state_flags</span>: <a class="ident" href="../../src/regex/dfa.rs.html#410">StateFlags</a>,
         <span class="ident">current_state</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../src/regex/dfa.rs.html#358">StatePtr</a><span class="op">&gt;</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../src/regex/dfa.rs.html#358">StatePtr</a><span class="op">&gt;</span> {
+    ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../src/regex/dfa.rs.html#358">StatePtr</a><span class="op">&gt;</span> {
         <span class="comment">// If we couldn&#39;t come up with a non-empty key to represent this state,</span>
         <span class="comment">// then it is dead and can never lead to a match.</span>
         <span class="comment">//</span>
@@ -3108,8 +3108,8 @@ implementation.)
         <span class="comment">// we should follow epsilon transitions at the empty string preceding</span>
         <span class="comment">// the current byte.</span>
         <span class="kw">let</span> <span class="ident">key</span> <span class="op">=</span> <span class="kw">match</span> <a class="self" href="../../src/regex/dfa.rs.html#1147">self</a>.<a class="ident" href="../../src/regex/dfa.rs.html#1188-1192">cached_state_key</a>(<a class="ident" href="../../src/regex/dfa.rs.html#1148">q</a>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../src/regex/dfa.rs.html#1149">state_flags</a>) {
-            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../src/regex/dfa.rs.html#366">STATE_DEAD</a>),
-            <span class="prelude-val">Some</span>(<span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> <a class="ident" href="../../src/regex/dfa.rs.html#1161">v</a>,
+            <span class="prelude-val">None</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../src/regex/dfa.rs.html#366">STATE_DEAD</a>),
+            <span class="prelude-val">Some</span>(<span class="ident">v</span>) =&gt; <a class="ident" href="../../src/regex/dfa.rs.html#1161">v</a>,
         };
         <span class="comment">// In the cache? Cool. Done.</span>
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">si</span>) <span class="op">=</span> <a class="self" href="../../src/regex/dfa.rs.html#1147">self</a>.<span class="ident">cache</span>.<span class="ident">compiled</span>.<a class="ident" href="../../src/regex/dfa.rs.html#1626">get_ptr</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/regex/dfa.rs.html#1159">key</a>) {
@@ -3140,7 +3140,7 @@ implementation.)
         <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
         <span class="ident">q</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/regex/sparse.rs.html#16-25">SparseSet</a>,
         <span class="ident">state_flags</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../src/regex/dfa.rs.html#410">StateFlags</a>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../src/regex/dfa.rs.html#262-264">State</a><span class="op">&gt;</span> {
+    ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../src/regex/dfa.rs.html#262-264">State</a><span class="op">&gt;</span> {
         <span class="kw">use</span> <a class="ident" href="../../src/regex/prog.rs.html#268-296"><span class="kw">crate</span>::prog::Inst</a>::<span class="kw-2">*</span>;
 
         <span class="comment">// We need to build up enough information to recognize pre-built states</span>
@@ -3162,14 +3162,14 @@ implementation.)
         <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="ident">ip</span> <span class="kw">in</span> <a class="ident" href="../../src/regex/dfa.rs.html#1190">q</a> {
             <span class="kw">let</span> <span class="ident">ip</span> <span class="op">=</span> <a class="ident" href="../../src/regex/dfa.rs.html#1820">usize_to_u32</a>(<a class="ident" href="../../src/regex/dfa.rs.html#1211">ip</a>);
             <span class="kw">match</span> <a class="self" href="../../src/regex/dfa.rs.html#1189">self</a>.<span class="ident">prog</span>[<a class="ident" href="../../src/regex/dfa.rs.html#1212">ip</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>] {
-                <a class="ident" href="../../src/regex/prog.rs.html#288">Char</a>(<span class="kw">_</span>) <span class="op">|</span> <a class="ident" href="../../src/regex/prog.rs.html#291">Ranges</a>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable!</span>(),
-                <a class="ident" href="../../src/regex/prog.rs.html#279">Save</a>(<span class="kw">_</span>) <span class="op">|</span> <a class="ident" href="../../src/regex/prog.rs.html#282">Split</a>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {}
-                <a class="ident" href="../../src/regex/prog.rs.html#295">Bytes</a>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <a class="ident" href="../../src/regex/dfa.rs.html#276">push_inst_ptr</a>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../src/regex/dfa.rs.html#1204">insts</a>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../src/regex/dfa.rs.html#1210">prev</a>, <a class="ident" href="../../src/regex/dfa.rs.html#1212">ip</a>),
-                <a class="ident" href="../../src/regex/prog.rs.html#285">EmptyLook</a>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <a class="ident" href="../../src/regex/prog.rs.html#288">Char</a>(<span class="kw">_</span>) <span class="op">|</span> <a class="ident" href="../../src/regex/prog.rs.html#291">Ranges</a>(<span class="kw">_</span>) =&gt; <span class="macro">unreachable!</span>(),
+                <a class="ident" href="../../src/regex/prog.rs.html#279">Save</a>(<span class="kw">_</span>) <span class="op">|</span> <a class="ident" href="../../src/regex/prog.rs.html#282">Split</a>(<span class="kw">_</span>) =&gt; {}
+                <a class="ident" href="../../src/regex/prog.rs.html#295">Bytes</a>(<span class="kw">_</span>) =&gt; <a class="ident" href="../../src/regex/dfa.rs.html#276">push_inst_ptr</a>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../src/regex/dfa.rs.html#1204">insts</a>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../src/regex/dfa.rs.html#1210">prev</a>, <a class="ident" href="../../src/regex/dfa.rs.html#1212">ip</a>),
+                <a class="ident" href="../../src/regex/prog.rs.html#285">EmptyLook</a>(<span class="kw">_</span>) =&gt; {
                     <a class="ident" href="../../src/regex/dfa.rs.html#1191">state_flags</a>.<a class="ident" href="../../src/regex/dfa.rs.html#1720">set_empty</a>();
                     <a class="ident" href="../../src/regex/dfa.rs.html#276">push_inst_ptr</a>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../src/regex/dfa.rs.html#1204">insts</a>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../src/regex/dfa.rs.html#1210">prev</a>, <a class="ident" href="../../src/regex/dfa.rs.html#1212">ip</a>)
                 }
-                <a class="ident" href="../../src/regex/prog.rs.html#276">Match</a>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <a class="ident" href="../../src/regex/prog.rs.html#276">Match</a>(<span class="kw">_</span>) =&gt; {
                     <a class="ident" href="../../src/regex/dfa.rs.html#276">push_inst_ptr</a>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../src/regex/dfa.rs.html#1204">insts</a>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../src/regex/dfa.rs.html#1210">prev</a>, <a class="ident" href="../../src/regex/dfa.rs.html#1212">ip</a>);
                     <span class="kw">if</span> <span class="op">!</span><a class="self" href="../../src/regex/dfa.rs.html#1189">self</a>.<a class="ident" href="../../src/regex/dfa.rs.html#1551">continue_past_first_match</a>() {
                         <span class="kw">break</span>;
@@ -3181,7 +3181,7 @@ implementation.)
         <span class="comment">// see a match when expanding NFA states previously, then this is a</span>
         <span class="comment">// dead state and no amount of additional input can transition out</span>
         <span class="comment">// of this state.</span>
-        <span class="kw">let</span> <span class="ident">opt_state</span> <span class="op">=</span> <span class="kw">if</span> <a class="ident" href="../../src/regex/dfa.rs.html#1204">insts</a>.<span class="ident">len</span>() <span class="op">=</span><span class="op">=</span> <span class="number">1</span> <span class="op">&amp;&amp;</span> <span class="op">!</span><a class="ident" href="../../src/regex/dfa.rs.html#1191">state_flags</a>.<a class="ident" href="../../src/regex/dfa.rs.html#1700">is_match</a>() {
+        <span class="kw">let</span> <span class="ident">opt_state</span> <span class="op">=</span> <span class="kw">if</span> <a class="ident" href="../../src/regex/dfa.rs.html#1204">insts</a>.<span class="ident">len</span>() <span class="op">==</span> <span class="number">1</span> <span class="op">&amp;&amp;</span> <span class="op">!</span><a class="ident" href="../../src/regex/dfa.rs.html#1191">state_flags</a>.<a class="ident" href="../../src/regex/dfa.rs.html#1700">is_match</a>() {
             <span class="prelude-val">None</span>
         } <span class="kw">else</span> {
             <span class="kw">let</span> <a class="ident" href="../../src/regex/dfa.rs.html#410">StateFlags</a>(<span class="ident">f</span>) <span class="op">=</span> <span class="kw-2">*</span><a class="ident" href="../../src/regex/dfa.rs.html#1191">state_flags</a>;
@@ -3203,14 +3203,14 @@ implementation.)
     <span class="kw">fn</span> <span class="ident">clear_cache_and_save</span>(
         <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
         <span class="ident">current_state</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../src/regex/dfa.rs.html#358">StatePtr</a><span class="op">&gt;</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    ) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
         <span class="kw">if</span> <a class="self" href="../../src/regex/dfa.rs.html#1253">self</a>.<span class="ident">cache</span>.<span class="ident">compiled</span>.<a class="ident" href="../../src/regex/dfa.rs.html#1622">is_empty</a>() {
             <span class="comment">// Nothing to clear...</span>
             <span class="kw">return</span> <span class="bool-val">true</span>;
         }
         <span class="kw">match</span> <a class="ident" href="../../src/regex/dfa.rs.html#1254">current_state</a> {
-            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <a class="self" href="../../src/regex/dfa.rs.html#1253">self</a>.<a class="ident" href="../../src/regex/dfa.rs.html#1280">clear_cache</a>(),
-            <span class="prelude-val">Some</span>(<span class="ident">si</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="prelude-val">None</span> =&gt; <a class="self" href="../../src/regex/dfa.rs.html#1253">self</a>.<a class="ident" href="../../src/regex/dfa.rs.html#1280">clear_cache</a>(),
+            <span class="prelude-val">Some</span>(<span class="ident">si</span>) =&gt; {
                 <span class="kw">let</span> <span class="ident">cur</span> <span class="op">=</span> <a class="self" href="../../src/regex/dfa.rs.html#1253">self</a>.<a class="ident" href="../../src/regex/dfa.rs.html#1464">state</a>(<span class="kw-2">*</span><a class="ident" href="../../src/regex/dfa.rs.html#1262">si</a>).<span class="ident">clone</span>();
                 <span class="kw">if</span> <span class="op">!</span><a class="self" href="../../src/regex/dfa.rs.html#1253">self</a>.<a class="ident" href="../../src/regex/dfa.rs.html#1280">clear_cache</a>() {
                     <span class="kw">return</span> <span class="bool-val">false</span>;
@@ -3228,7 +3228,7 @@ implementation.)
     <span class="doccomment">///</span>
     <span class="doccomment">/// This returns false if the cache is not cleared and the DFA should</span>
     <span class="doccomment">/// give up.</span>
-    <span class="kw">fn</span> <span class="ident">clear_cache</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    <span class="kw">fn</span> <span class="ident">clear_cache</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
         <span class="comment">// Bail out of the DFA if we&#39;re moving too &quot;slowly.&quot;</span>
         <span class="comment">// A heuristic from RE2: assume the DFA is too slow if it is processing</span>
         <span class="comment">// 10 or fewer bytes per state.</span>
@@ -3270,7 +3270,7 @@ implementation.)
 
     <span class="doccomment">/// Restores the given state back into the cache, and returns a pointer</span>
     <span class="doccomment">/// to it.</span>
-    <span class="kw">fn</span> <span class="ident">restore_state</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">state</span>: <a class="ident" href="../../src/regex/dfa.rs.html#262-264">State</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../src/regex/dfa.rs.html#358">StatePtr</a><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">restore_state</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">state</span>: <a class="ident" href="../../src/regex/dfa.rs.html#262-264">State</a>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../src/regex/dfa.rs.html#358">StatePtr</a><span class="op">&gt;</span> {
         <span class="comment">// If we&#39;ve already stored this state, just return a pointer to it.</span>
         <span class="comment">// None will be the wiser.</span>
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">si</span>) <span class="op">=</span> <a class="self" href="../../src/regex/dfa.rs.html#1322">self</a>.<span class="ident">cache</span>.<span class="ident">compiled</span>.<a class="ident" href="../../src/regex/dfa.rs.html#1626">get_ptr</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/regex/dfa.rs.html#1322">state</a>) {
@@ -3297,15 +3297,15 @@ implementation.)
         <span class="ident">qnext</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../src/regex/sparse.rs.html#16-25">SparseSet</a>,
         <span class="ident">si</span>: <a class="ident" href="../../src/regex/dfa.rs.html#358">StatePtr</a>,
         <span class="ident">b</span>: <a class="ident" href="../../src/regex/dfa.rs.html#394">Byte</a>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../src/regex/dfa.rs.html#358">StatePtr</a><span class="op">&gt;</span> {
-        <span class="kw">if</span> <a class="ident" href="../../src/regex/dfa.rs.html#1347">si</a> <span class="op">=</span><span class="op">=</span> <a class="ident" href="../../src/regex/dfa.rs.html#366">STATE_DEAD</a> {
+    ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../src/regex/dfa.rs.html#358">StatePtr</a><span class="op">&gt;</span> {
+        <span class="kw">if</span> <a class="ident" href="../../src/regex/dfa.rs.html#1347">si</a> <span class="op">==</span> <a class="ident" href="../../src/regex/dfa.rs.html#366">STATE_DEAD</a> {
             <span class="kw">return</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../src/regex/dfa.rs.html#366">STATE_DEAD</a>);
         }
         <span class="kw">match</span> <a class="self" href="../../src/regex/dfa.rs.html#1344">self</a>.<span class="ident">cache</span>.<span class="ident">trans</span>.<a class="ident" href="../../src/regex/dfa.rs.html#1682">next</a>(<a class="ident" href="../../src/regex/dfa.rs.html#1347">si</a>, <a class="self" href="../../src/regex/dfa.rs.html#1344">self</a>.<a class="ident" href="../../src/regex/dfa.rs.html#1530">byte_class</a>(<a class="ident" href="../../src/regex/dfa.rs.html#1348">b</a>)) {
-            <a class="ident" href="../../src/regex/dfa.rs.html#362">STATE_UNKNOWN</a> <span class="op">=</span><span class="op">&gt;</span> <a class="self" href="../../src/regex/dfa.rs.html#1344">self</a>.<a class="ident" href="../../src/regex/dfa.rs.html#890-896">exec_byte</a>(<a class="ident" href="../../src/regex/dfa.rs.html#1345">qcur</a>, <a class="ident" href="../../src/regex/dfa.rs.html#1346">qnext</a>, <a class="ident" href="../../src/regex/dfa.rs.html#1347">si</a>, <a class="ident" href="../../src/regex/dfa.rs.html#1348">b</a>),
-            <a class="ident" href="../../src/regex/dfa.rs.html#371">STATE_QUIT</a> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
-            <a class="ident" href="../../src/regex/dfa.rs.html#366">STATE_DEAD</a> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../src/regex/dfa.rs.html#366">STATE_DEAD</a>),
-            <span class="ident">nsi</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../src/regex/dfa.rs.html#1357">nsi</a>),
+            <a class="ident" href="../../src/regex/dfa.rs.html#362">STATE_UNKNOWN</a> =&gt; <a class="self" href="../../src/regex/dfa.rs.html#1344">self</a>.<a class="ident" href="../../src/regex/dfa.rs.html#890-896">exec_byte</a>(<a class="ident" href="../../src/regex/dfa.rs.html#1345">qcur</a>, <a class="ident" href="../../src/regex/dfa.rs.html#1346">qnext</a>, <a class="ident" href="../../src/regex/dfa.rs.html#1347">si</a>, <a class="ident" href="../../src/regex/dfa.rs.html#1348">b</a>),
+            <a class="ident" href="../../src/regex/dfa.rs.html#371">STATE_QUIT</a> =&gt; <span class="prelude-val">None</span>,
+            <a class="ident" href="../../src/regex/dfa.rs.html#366">STATE_DEAD</a> =&gt; <span class="prelude-val">Some</span>(<a class="ident" href="../../src/regex/dfa.rs.html#366">STATE_DEAD</a>),
+            <span class="ident">nsi</span> =&gt; <span class="prelude-val">Some</span>(<a class="ident" href="../../src/regex/dfa.rs.html#1357">nsi</a>),
         }
     }
 
@@ -3321,7 +3321,7 @@ implementation.)
         <span class="ident">q</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../src/regex/sparse.rs.html#16-25">SparseSet</a>,
         <span class="ident">empty_flags</span>: <a class="ident" href="../../src/regex/dfa.rs.html#398-405">EmptyFlags</a>,
         <span class="ident">state_flags</span>: <a class="ident" href="../../src/regex/dfa.rs.html#410">StateFlags</a>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../src/regex/dfa.rs.html#358">StatePtr</a><span class="op">&gt;</span> {
+    ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../src/regex/dfa.rs.html#358">StatePtr</a><span class="op">&gt;</span> {
         <span class="comment">// Compute an index into our cache of start states based on the set</span>
         <span class="comment">// of empty/state flags set at the current position in the input. We</span>
         <span class="comment">// don&#39;t use every flag since not all flags matter. For example, since</span>
@@ -3337,9 +3337,9 @@ implementation.)
                 <span class="op">|</span> ((<a class="ident" href="../../src/regex/dfa.rs.html#1372">state_flags</a>.<a class="ident" href="../../src/regex/dfa.rs.html#1708">is_word</a>() <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">6</span>)) <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>
         };
         <span class="kw">match</span> <a class="self" href="../../src/regex/dfa.rs.html#1369">self</a>.<span class="ident">cache</span>.<span class="ident">start_states</span>[<a class="ident" href="../../src/regex/dfa.rs.html#1379">flagi</a>] {
-            <a class="ident" href="../../src/regex/dfa.rs.html#362">STATE_UNKNOWN</a> <span class="op">=</span><span class="op">&gt;</span> {}
-            <a class="ident" href="../../src/regex/dfa.rs.html#366">STATE_DEAD</a> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../src/regex/dfa.rs.html#366">STATE_DEAD</a>),
-            <span class="ident">si</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../src/regex/dfa.rs.html#1391">si</a>),
+            <a class="ident" href="../../src/regex/dfa.rs.html#362">STATE_UNKNOWN</a> =&gt; {}
+            <a class="ident" href="../../src/regex/dfa.rs.html#366">STATE_DEAD</a> =&gt; <span class="kw">return</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../src/regex/dfa.rs.html#366">STATE_DEAD</a>),
+            <span class="ident">si</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../src/regex/dfa.rs.html#1391">si</a>),
         }
         <a class="ident" href="../../src/regex/dfa.rs.html#1370">q</a>.<a class="ident" href="../../src/regex/sparse.rs.html#59">clear</a>();
         <span class="kw">let</span> <span class="ident">start</span> <span class="op">=</span> <a class="ident" href="../../src/regex/dfa.rs.html#1820">usize_to_u32</a>(<a class="self" href="../../src/regex/dfa.rs.html#1369">self</a>.<span class="ident">prog</span>.<span class="ident">start</span>);
@@ -3349,8 +3349,8 @@ implementation.)
         <span class="comment">// won&#39;t actually occur until the DFA processes the special EOF</span>
         <span class="comment">// sentinel byte.</span>
         <span class="kw">let</span> <span class="ident">sp</span> <span class="op">=</span> <span class="kw">match</span> <a class="self" href="../../src/regex/dfa.rs.html#1369">self</a>.<a class="ident" href="../../src/regex/dfa.rs.html#1146-1151">cached_state</a>(<a class="ident" href="../../src/regex/dfa.rs.html#1370">q</a>, <a class="ident" href="../../src/regex/dfa.rs.html#1372">state_flags</a>, <span class="prelude-val">None</span>) {
-            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">None</span>,
-            <span class="prelude-val">Some</span>(<span class="ident">sp</span>) <span class="op">=</span><span class="op">&gt;</span> <a class="self" href="../../src/regex/dfa.rs.html#1369">self</a>.<a class="ident" href="../../src/regex/dfa.rs.html#1567">start_ptr</a>(<a class="ident" href="../../src/regex/dfa.rs.html#1402">sp</a>),
+            <span class="prelude-val">None</span> =&gt; <span class="kw">return</span> <span class="prelude-val">None</span>,
+            <span class="prelude-val">Some</span>(<span class="ident">sp</span>) =&gt; <a class="self" href="../../src/regex/dfa.rs.html#1369">self</a>.<a class="ident" href="../../src/regex/dfa.rs.html#1567">start_ptr</a>(<a class="ident" href="../../src/regex/dfa.rs.html#1402">sp</a>),
         };
         <a class="self" href="../../src/regex/dfa.rs.html#1369">self</a>.<span class="ident">cache</span>.<span class="ident">start_states</span>[<a class="ident" href="../../src/regex/dfa.rs.html#1379">flagi</a>] <span class="op">=</span> <a class="ident" href="../../src/regex/dfa.rs.html#1400">sp</a>;
         <span class="prelude-val">Some</span>(<a class="ident" href="../../src/regex/dfa.rs.html#1400">sp</a>)
@@ -3360,12 +3360,12 @@ implementation.)
     <span class="doccomment">///</span>
     <span class="doccomment">/// This should only be used when executing the DFA forwards over the</span>
     <span class="doccomment">/// input.</span>
-    <span class="kw">fn</span> <span class="ident">start_flags</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">text</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], <span class="ident">at</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) <span class="op">-</span><span class="op">&gt;</span> (<a class="ident" href="../../src/regex/dfa.rs.html#398-405">EmptyFlags</a>, <a class="ident" href="../../src/regex/dfa.rs.html#410">StateFlags</a>) {
+    <span class="kw">fn</span> <span class="ident">start_flags</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">text</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], <span class="ident">at</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; (<a class="ident" href="../../src/regex/dfa.rs.html#398-405">EmptyFlags</a>, <a class="ident" href="../../src/regex/dfa.rs.html#410">StateFlags</a>) {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">empty_flags</span> <span class="op">=</span> <span class="ident">EmptyFlags::default</span>();
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">state_flags</span> <span class="op">=</span> <span class="ident">StateFlags::default</span>();
-        <a class="ident" href="../../src/regex/dfa.rs.html#1413">empty_flags</a>.<span class="ident">start</span> <span class="op">=</span> <a class="ident" href="../../src/regex/dfa.rs.html#1412">at</a> <span class="op">=</span><span class="op">=</span> <span class="number">0</span>;
+        <a class="ident" href="../../src/regex/dfa.rs.html#1413">empty_flags</a>.<span class="ident">start</span> <span class="op">=</span> <a class="ident" href="../../src/regex/dfa.rs.html#1412">at</a> <span class="op">==</span> <span class="number">0</span>;
         <a class="ident" href="../../src/regex/dfa.rs.html#1413">empty_flags</a>.<span class="ident">end</span> <span class="op">=</span> <a class="ident" href="../../src/regex/dfa.rs.html#1412">text</a>.<span class="ident">is_empty</span>();
-        <a class="ident" href="../../src/regex/dfa.rs.html#1413">empty_flags</a>.<span class="ident">start_line</span> <span class="op">=</span> <a class="ident" href="../../src/regex/dfa.rs.html#1412">at</a> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> <span class="op">|</span><span class="op">|</span> <a class="ident" href="../../src/regex/dfa.rs.html#1412">text</a>[<a class="ident" href="../../src/regex/dfa.rs.html#1412">at</a> <span class="op">-</span> <span class="number">1</span>] <span class="op">=</span><span class="op">=</span> <span class="string">b&#39;\n&#39;</span>;
+        <a class="ident" href="../../src/regex/dfa.rs.html#1413">empty_flags</a>.<span class="ident">start_line</span> <span class="op">=</span> <a class="ident" href="../../src/regex/dfa.rs.html#1412">at</a> <span class="op">==</span> <span class="number">0</span> <span class="op">|</span><span class="op">|</span> <a class="ident" href="../../src/regex/dfa.rs.html#1412">text</a>[<a class="ident" href="../../src/regex/dfa.rs.html#1412">at</a> <span class="op">-</span> <span class="number">1</span>] <span class="op">==</span> <span class="string">b&#39;\n&#39;</span>;
         <a class="ident" href="../../src/regex/dfa.rs.html#1413">empty_flags</a>.<span class="ident">end_line</span> <span class="op">=</span> <a class="ident" href="../../src/regex/dfa.rs.html#1412">text</a>.<span class="ident">is_empty</span>();
 
         <span class="kw">let</span> <span class="ident">is_word_last</span> <span class="op">=</span> <a class="ident" href="../../src/regex/dfa.rs.html#1412">at</a> <span class="op">&gt;</span> <span class="number">0</span> <span class="op">&amp;&amp;</span> <span class="ident">Byte::byte</span>(<a class="ident" href="../../src/regex/dfa.rs.html#1412">text</a>[<a class="ident" href="../../src/regex/dfa.rs.html#1412">at</a> <span class="op">-</span> <span class="number">1</span>]).<a class="ident" href="../../src/regex/dfa.rs.html#1736">is_ascii_word</a>();
@@ -3373,7 +3373,7 @@ implementation.)
         <span class="kw">if</span> <a class="ident" href="../../src/regex/dfa.rs.html#1420">is_word_last</a> {
             <a class="ident" href="../../src/regex/dfa.rs.html#1414">state_flags</a>.<a class="ident" href="../../src/regex/dfa.rs.html#1712">set_word</a>();
         }
-        <span class="kw">if</span> <a class="ident" href="../../src/regex/dfa.rs.html#1421">is_word</a> <span class="op">=</span><span class="op">=</span> <a class="ident" href="../../src/regex/dfa.rs.html#1420">is_word_last</a> {
+        <span class="kw">if</span> <a class="ident" href="../../src/regex/dfa.rs.html#1421">is_word</a> <span class="op">==</span> <a class="ident" href="../../src/regex/dfa.rs.html#1420">is_word_last</a> {
             <a class="ident" href="../../src/regex/dfa.rs.html#1413">empty_flags</a>.<span class="ident">not_word_boundary</span> <span class="op">=</span> <span class="bool-val">true</span>;
         } <span class="kw">else</span> {
             <a class="ident" href="../../src/regex/dfa.rs.html#1413">empty_flags</a>.<span class="ident">word_boundary</span> <span class="op">=</span> <span class="bool-val">true</span>;
@@ -3389,12 +3389,12 @@ implementation.)
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">text</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
         <span class="ident">at</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-    ) <span class="op">-</span><span class="op">&gt;</span> (<a class="ident" href="../../src/regex/dfa.rs.html#398-405">EmptyFlags</a>, <a class="ident" href="../../src/regex/dfa.rs.html#410">StateFlags</a>) {
+    ) -&gt; (<a class="ident" href="../../src/regex/dfa.rs.html#398-405">EmptyFlags</a>, <a class="ident" href="../../src/regex/dfa.rs.html#410">StateFlags</a>) {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">empty_flags</span> <span class="op">=</span> <span class="ident">EmptyFlags::default</span>();
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">state_flags</span> <span class="op">=</span> <span class="ident">StateFlags::default</span>();
-        <a class="ident" href="../../src/regex/dfa.rs.html#1442">empty_flags</a>.<span class="ident">start</span> <span class="op">=</span> <a class="ident" href="../../src/regex/dfa.rs.html#1440">at</a> <span class="op">=</span><span class="op">=</span> <a class="ident" href="../../src/regex/dfa.rs.html#1439">text</a>.<span class="ident">len</span>();
+        <a class="ident" href="../../src/regex/dfa.rs.html#1442">empty_flags</a>.<span class="ident">start</span> <span class="op">=</span> <a class="ident" href="../../src/regex/dfa.rs.html#1440">at</a> <span class="op">==</span> <a class="ident" href="../../src/regex/dfa.rs.html#1439">text</a>.<span class="ident">len</span>();
         <a class="ident" href="../../src/regex/dfa.rs.html#1442">empty_flags</a>.<span class="ident">end</span> <span class="op">=</span> <a class="ident" href="../../src/regex/dfa.rs.html#1439">text</a>.<span class="ident">is_empty</span>();
-        <a class="ident" href="../../src/regex/dfa.rs.html#1442">empty_flags</a>.<span class="ident">start_line</span> <span class="op">=</span> <a class="ident" href="../../src/regex/dfa.rs.html#1440">at</a> <span class="op">=</span><span class="op">=</span> <a class="ident" href="../../src/regex/dfa.rs.html#1439">text</a>.<span class="ident">len</span>() <span class="op">|</span><span class="op">|</span> <a class="ident" href="../../src/regex/dfa.rs.html#1439">text</a>[<a class="ident" href="../../src/regex/dfa.rs.html#1440">at</a>] <span class="op">=</span><span class="op">=</span> <span class="string">b&#39;\n&#39;</span>;
+        <a class="ident" href="../../src/regex/dfa.rs.html#1442">empty_flags</a>.<span class="ident">start_line</span> <span class="op">=</span> <a class="ident" href="../../src/regex/dfa.rs.html#1440">at</a> <span class="op">==</span> <a class="ident" href="../../src/regex/dfa.rs.html#1439">text</a>.<span class="ident">len</span>() <span class="op">|</span><span class="op">|</span> <a class="ident" href="../../src/regex/dfa.rs.html#1439">text</a>[<a class="ident" href="../../src/regex/dfa.rs.html#1440">at</a>] <span class="op">==</span> <span class="string">b&#39;\n&#39;</span>;
         <a class="ident" href="../../src/regex/dfa.rs.html#1442">empty_flags</a>.<span class="ident">end_line</span> <span class="op">=</span> <a class="ident" href="../../src/regex/dfa.rs.html#1439">text</a>.<span class="ident">is_empty</span>();
 
         <span class="kw">let</span> <span class="ident">is_word_last</span> <span class="op">=</span>
@@ -3403,7 +3403,7 @@ implementation.)
         <span class="kw">if</span> <a class="ident" href="../../src/regex/dfa.rs.html#1449">is_word_last</a> {
             <a class="ident" href="../../src/regex/dfa.rs.html#1443">state_flags</a>.<a class="ident" href="../../src/regex/dfa.rs.html#1712">set_word</a>();
         }
-        <span class="kw">if</span> <a class="ident" href="../../src/regex/dfa.rs.html#1451">is_word</a> <span class="op">=</span><span class="op">=</span> <a class="ident" href="../../src/regex/dfa.rs.html#1449">is_word_last</a> {
+        <span class="kw">if</span> <a class="ident" href="../../src/regex/dfa.rs.html#1451">is_word</a> <span class="op">==</span> <a class="ident" href="../../src/regex/dfa.rs.html#1449">is_word_last</a> {
             <a class="ident" href="../../src/regex/dfa.rs.html#1442">empty_flags</a>.<span class="ident">not_word_boundary</span> <span class="op">=</span> <span class="bool-val">true</span>;
         } <span class="kw">else</span> {
             <a class="ident" href="../../src/regex/dfa.rs.html#1442">empty_flags</a>.<span class="ident">word_boundary</span> <span class="op">=</span> <span class="bool-val">true</span>;
@@ -3412,7 +3412,7 @@ implementation.)
     }
 
     <span class="doccomment">/// Returns a reference to a State given a pointer to it.</span>
-    <span class="kw">fn</span> <span class="ident">state</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">si</span>: <a class="ident" href="../../src/regex/dfa.rs.html#358">StatePtr</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><a class="ident" href="../../src/regex/dfa.rs.html#262-264">State</a> {
+    <span class="kw">fn</span> <span class="ident">state</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">si</span>: <a class="ident" href="../../src/regex/dfa.rs.html#358">StatePtr</a>) -&gt; <span class="kw-2">&amp;</span><a class="ident" href="../../src/regex/dfa.rs.html#262-264">State</a> {
         <a class="self" href="../../src/regex/dfa.rs.html#1464">self</a>.<span class="ident">cache</span>.<span class="ident">compiled</span>.<a class="ident" href="../../src/regex/dfa.rs.html#1630">get_state</a>(<a class="ident" href="../../src/regex/dfa.rs.html#1464">si</a>).<span class="ident">unwrap</span>()
     }
 
@@ -3424,13 +3424,13 @@ implementation.)
     <span class="doccomment">///</span>
     <span class="doccomment">/// If None is returned, then the state limit was reached and the DFA</span>
     <span class="doccomment">/// should quit.</span>
-    <span class="kw">fn</span> <span class="ident">add_state</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">state</span>: <a class="ident" href="../../src/regex/dfa.rs.html#262-264">State</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../src/regex/dfa.rs.html#358">StatePtr</a><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">add_state</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">state</span>: <a class="ident" href="../../src/regex/dfa.rs.html#262-264">State</a>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../src/regex/dfa.rs.html#358">StatePtr</a><span class="op">&gt;</span> {
         <span class="comment">// This will fail if the next state pointer exceeds STATE_PTR. In</span>
         <span class="comment">// practice, the cache limit will prevent us from ever getting here,</span>
         <span class="comment">// but maybe callers will set the cache size to something ridiculous...</span>
         <span class="kw">let</span> <span class="ident">si</span> <span class="op">=</span> <span class="kw">match</span> <a class="self" href="../../src/regex/dfa.rs.html#1476">self</a>.<span class="ident">cache</span>.<span class="ident">trans</span>.<a class="ident" href="../../src/regex/dfa.rs.html#1662">add</a>() {
-            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">None</span>,
-            <span class="prelude-val">Some</span>(<span class="ident">si</span>) <span class="op">=</span><span class="op">&gt;</span> <a class="ident" href="../../src/regex/dfa.rs.html#1482">si</a>,
+            <span class="prelude-val">None</span> =&gt; <span class="kw">return</span> <span class="prelude-val">None</span>,
+            <span class="prelude-val">Some</span>(<span class="ident">si</span>) =&gt; <a class="ident" href="../../src/regex/dfa.rs.html#1482">si</a>,
         };
         <span class="comment">// If the program has a Unicode word boundary, then set any transitions</span>
         <span class="comment">// for non-ASCII bytes to STATE_QUIT. If the DFA stumbles over such a</span>
@@ -3451,7 +3451,7 @@ implementation.)
         <a class="self" href="../../src/regex/dfa.rs.html#1476">self</a>.<span class="ident">cache</span>.<span class="ident">compiled</span>.<a class="ident" href="../../src/regex/dfa.rs.html#1634">insert</a>(<a class="ident" href="../../src/regex/dfa.rs.html#1476">state</a>, <a class="ident" href="../../src/regex/dfa.rs.html#1480">si</a>);
         <span class="comment">// Transition table and set of states and map should all be in sync.</span>
         <span class="macro">debug_assert!</span>(
-            <a class="self" href="../../src/regex/dfa.rs.html#1476">self</a>.<span class="ident">cache</span>.<span class="ident">compiled</span>.<a class="ident" href="../../src/regex/dfa.rs.html#1618">len</a>() <span class="op">=</span><span class="op">=</span> <a class="self" href="../../src/regex/dfa.rs.html#1476">self</a>.<span class="ident">cache</span>.<span class="ident">trans</span>.<a class="ident" href="../../src/regex/dfa.rs.html#1655">num_states</a>()
+            <a class="self" href="../../src/regex/dfa.rs.html#1476">self</a>.<span class="ident">cache</span>.<span class="ident">compiled</span>.<a class="ident" href="../../src/regex/dfa.rs.html#1618">len</a>() <span class="op">==</span> <a class="self" href="../../src/regex/dfa.rs.html#1476">self</a>.<span class="ident">cache</span>.<span class="ident">trans</span>.<a class="ident" href="../../src/regex/dfa.rs.html#1655">num_states</a>()
         );
         <span class="prelude-val">Some</span>(<a class="ident" href="../../src/regex/dfa.rs.html#1480">si</a>)
     }
@@ -3462,7 +3462,7 @@ implementation.)
     <span class="doccomment">/// then None is returned.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// This should only be called when the DFA is in a start state.</span>
-    <span class="kw">fn</span> <span class="ident">prefix_at</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">text</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], <span class="ident">at</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">prefix_at</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">text</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], <span class="ident">at</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span> {
         <a class="self" href="../../src/regex/dfa.rs.html#1514">self</a>.<span class="ident">prog</span>.<span class="ident">prefixes</span>.<a class="ident" href="../../src/regex/literal/imp.rs.html#79">find</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/regex/dfa.rs.html#1514">text</a>[<a class="ident" href="../../src/regex/dfa.rs.html#1514">at</a>..]).<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">s</span>, <span class="kw">_</span>)<span class="op">|</span> <a class="ident" href="../../src/regex/dfa.rs.html#1514">at</a> <span class="op">+</span> <a class="ident" href="../../src/regex/dfa.rs.html#1515">s</a>)
     }
 
@@ -3470,7 +3470,7 @@ implementation.)
     <span class="doccomment">/// in each state.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// invariant: num_byte_classes() == len(State.next)</span>
-    <span class="kw">fn</span> <span class="ident">num_byte_classes</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
+    <span class="kw">fn</span> <span class="ident">num_byte_classes</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
         <span class="comment">// We add 1 to account for the special EOF byte.</span>
         (<a class="self" href="../../src/regex/dfa.rs.html#1522">self</a>.<span class="ident">prog</span>.<span class="ident">byte_classes</span>[<span class="number">255</span>] <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> <span class="op">+</span> <span class="number">1</span>) <span class="op">+</span> <span class="number">1</span>
     }
@@ -3478,16 +3478,16 @@ implementation.)
     <span class="doccomment">/// Given an input byte or the special EOF sentinel, return its</span>
     <span class="doccomment">/// corresponding byte class.</span>
     <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;perf-inline&quot;</span>, <span class="ident">inline</span>(<span class="ident">always</span>))]</span>
-    <span class="kw">fn</span> <span class="ident">byte_class</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">b</span>: <a class="ident" href="../../src/regex/dfa.rs.html#394">Byte</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
+    <span class="kw">fn</span> <span class="ident">byte_class</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">b</span>: <a class="ident" href="../../src/regex/dfa.rs.html#394">Byte</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
         <span class="kw">match</span> <a class="ident" href="../../src/regex/dfa.rs.html#1530">b</a>.<a class="ident" href="../../src/regex/dfa.rs.html#1747">as_byte</a>() {
-            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <a class="self" href="../../src/regex/dfa.rs.html#1530">self</a>.<a class="ident" href="../../src/regex/dfa.rs.html#1522">num_byte_classes</a>() <span class="op">-</span> <span class="number">1</span>,
-            <span class="prelude-val">Some</span>(<span class="ident">b</span>) <span class="op">=</span><span class="op">&gt;</span> <a class="self" href="../../src/regex/dfa.rs.html#1530">self</a>.<a class="ident" href="../../src/regex/dfa.rs.html#1539">u8_class</a>(<a class="ident" href="../../src/regex/dfa.rs.html#1533">b</a>),
+            <span class="prelude-val">None</span> =&gt; <a class="self" href="../../src/regex/dfa.rs.html#1530">self</a>.<a class="ident" href="../../src/regex/dfa.rs.html#1522">num_byte_classes</a>() <span class="op">-</span> <span class="number">1</span>,
+            <span class="prelude-val">Some</span>(<span class="ident">b</span>) =&gt; <a class="self" href="../../src/regex/dfa.rs.html#1530">self</a>.<a class="ident" href="../../src/regex/dfa.rs.html#1539">u8_class</a>(<a class="ident" href="../../src/regex/dfa.rs.html#1533">b</a>),
         }
     }
 
     <span class="doccomment">/// Like byte_class, but explicitly for u8s.</span>
     <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;perf-inline&quot;</span>, <span class="ident">inline</span>(<span class="ident">always</span>))]</span>
-    <span class="kw">fn</span> <span class="ident">u8_class</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">b</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
+    <span class="kw">fn</span> <span class="ident">u8_class</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">b</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
         <a class="self" href="../../src/regex/dfa.rs.html#1539">self</a>.<span class="ident">prog</span>.<span class="ident">byte_classes</span>[<a class="ident" href="../../src/regex/dfa.rs.html#1539">b</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>] <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>
     }
 
@@ -3499,12 +3499,12 @@ implementation.)
     <span class="doccomment">/// On occasion, we want to avoid leftmost first semantics to find either</span>
     <span class="doccomment">/// the longest match (for reverse search) or all possible matches (for</span>
     <span class="doccomment">/// regex sets).</span>
-    <span class="kw">fn</span> <span class="ident">continue_past_first_match</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    <span class="kw">fn</span> <span class="ident">continue_past_first_match</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
         <a class="self" href="../../src/regex/dfa.rs.html#1551">self</a>.<span class="ident">prog</span>.<span class="ident">is_reverse</span> <span class="op">|</span><span class="op">|</span> <a class="self" href="../../src/regex/dfa.rs.html#1551">self</a>.<span class="ident">prog</span>.<span class="ident">matches</span>.<span class="ident">len</span>() <span class="op">&gt;</span> <span class="number">1</span>
     }
 
     <span class="doccomment">/// Returns true if there is a prefix we can quickly search for.</span>
-    <span class="kw">fn</span> <span class="ident">has_prefix</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    <span class="kw">fn</span> <span class="ident">has_prefix</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
         <span class="op">!</span><a class="self" href="../../src/regex/dfa.rs.html#1556">self</a>.<span class="ident">prog</span>.<span class="ident">is_reverse</span>
             <span class="op">&amp;&amp;</span> <span class="op">!</span><a class="self" href="../../src/regex/dfa.rs.html#1556">self</a>.<span class="ident">prog</span>.<span class="ident">prefixes</span>.<a class="ident" href="../../src/regex/literal/imp.rs.html#142">is_empty</a>()
             <span class="op">&amp;&amp;</span> <span class="op">!</span><a class="self" href="../../src/regex/dfa.rs.html#1556">self</a>.<span class="ident">prog</span>.<span class="ident">is_anchored_start</span>
@@ -3515,7 +3515,7 @@ implementation.)
     <span class="doccomment">///</span>
     <span class="doccomment">/// If there&#39;s no prefix, then it&#39;s a waste to treat the start state</span>
     <span class="doccomment">/// specially.</span>
-    <span class="kw">fn</span> <span class="ident">start_ptr</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">si</span>: <a class="ident" href="../../src/regex/dfa.rs.html#358">StatePtr</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="../../src/regex/dfa.rs.html#358">StatePtr</a> {
+    <span class="kw">fn</span> <span class="ident">start_ptr</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">si</span>: <a class="ident" href="../../src/regex/dfa.rs.html#358">StatePtr</a>) -&gt; <a class="ident" href="../../src/regex/dfa.rs.html#358">StatePtr</a> {
         <span class="kw">if</span> <a class="self" href="../../src/regex/dfa.rs.html#1567">self</a>.<a class="ident" href="../../src/regex/dfa.rs.html#1556">has_prefix</a>() {
             <a class="ident" href="../../src/regex/dfa.rs.html#1567">si</a> <span class="op">|</span> <a class="ident" href="../../src/regex/dfa.rs.html#376">STATE_START</a>
         } <span class="kw">else</span> {
@@ -3528,7 +3528,7 @@ implementation.)
     <span class="doccomment">/// be wiped. Namely, it is possible that for certain regexes on certain</span>
     <span class="doccomment">/// inputs, a new state could be created for every byte of input. (This is</span>
     <span class="doccomment">/// bad for memory use, so we bound it with a cache.)</span>
-    <span class="kw">fn</span> <span class="ident">approximate_size</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
+    <span class="kw">fn</span> <span class="ident">approximate_size</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
         <a class="self" href="../../src/regex/dfa.rs.html#1580">self</a>.<span class="ident">cache</span>.<span class="ident">size</span> <span class="op">+</span> <a class="self" href="../../src/regex/dfa.rs.html#1580">self</a>.<span class="ident">prog</span>.<a class="ident" href="../../src/regex/prog.rs.html#147">approximate_size</a>()
     }
 }
@@ -3558,7 +3558,7 @@ implementation.)
 }
 
 <span class="kw">impl</span> <a class="ident" href="../../src/regex/dfa.rs.html#1596-1607">StateMap</a> {
-    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">num_byte_classes</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="../../src/regex/dfa.rs.html#1596-1607">StateMap</a> {
+    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">num_byte_classes</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a class="ident" href="../../src/regex/dfa.rs.html#1596-1607">StateMap</a> {
         <a class="ident" href="../../src/regex/dfa.rs.html#1596-1607">StateMap</a> {
             <span class="ident">map</span>: <span class="ident">HashMap::new</span>(),
             <span class="ident">states</span>: <span class="macro">vec!</span>[],
@@ -3566,19 +3566,19 @@ implementation.)
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">len</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
+    <span class="kw">fn</span> <span class="ident">len</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
         <a class="self" href="../../src/regex/dfa.rs.html#1618">self</a>.<span class="ident">states</span>.<span class="ident">len</span>()
     }
 
-    <span class="kw">fn</span> <span class="ident">is_empty</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    <span class="kw">fn</span> <span class="ident">is_empty</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
         <a class="self" href="../../src/regex/dfa.rs.html#1622">self</a>.<span class="ident">states</span>.<span class="ident">is_empty</span>()
     }
 
-    <span class="kw">fn</span> <span class="ident">get_ptr</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/regex/dfa.rs.html#262-264">State</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../src/regex/dfa.rs.html#358">StatePtr</a><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">get_ptr</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/regex/dfa.rs.html#262-264">State</a>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../src/regex/dfa.rs.html#358">StatePtr</a><span class="op">&gt;</span> {
         <a class="self" href="../../src/regex/dfa.rs.html#1626">self</a>.<span class="ident">map</span>.<span class="ident">get</span>(<a class="ident" href="../../src/regex/dfa.rs.html#1626">state</a>).<span class="ident">cloned</span>()
     }
 
-    <span class="kw">fn</span> <span class="ident">get_state</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">si</span>: <a class="ident" href="../../src/regex/dfa.rs.html#358">StatePtr</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><a class="ident" href="../../src/regex/dfa.rs.html#262-264">State</a><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">get_state</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">si</span>: <a class="ident" href="../../src/regex/dfa.rs.html#358">StatePtr</a>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><a class="ident" href="../../src/regex/dfa.rs.html#262-264">State</a><span class="op">&gt;</span> {
         <a class="self" href="../../src/regex/dfa.rs.html#1630">self</a>.<span class="ident">states</span>.<span class="ident">get</span>(<a class="ident" href="../../src/regex/dfa.rs.html#1630">si</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> <span class="op">/</span> <a class="self" href="../../src/regex/dfa.rs.html#1630">self</a>.<span class="ident">num_byte_classes</span>)
     }
 
@@ -3598,19 +3598,19 @@ implementation.)
     <span class="doccomment">///</span>
     <span class="doccomment">/// The number of byte classes corresponds to the stride. Every state will</span>
     <span class="doccomment">/// have `num_byte_classes` slots for transitions.</span>
-    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">num_byte_classes</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="../../src/regex/dfa.rs.html#161-166">Transitions</a> {
+    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">num_byte_classes</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a class="ident" href="../../src/regex/dfa.rs.html#161-166">Transitions</a> {
         <a class="ident" href="../../src/regex/dfa.rs.html#161-166">Transitions</a> { <span class="ident">table</span>: <span class="macro">vec!</span>[], <span class="ident">num_byte_classes</span>: <a class="ident" href="../../src/regex/dfa.rs.html#1650">num_byte_classes</a> }
     }
 
     <span class="doccomment">/// Returns the total number of states currently in this table.</span>
-    <span class="kw">fn</span> <span class="ident">num_states</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
+    <span class="kw">fn</span> <span class="ident">num_states</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
         <a class="self" href="../../src/regex/dfa.rs.html#1655">self</a>.<span class="ident">table</span>.<span class="ident">len</span>() <span class="op">/</span> <a class="self" href="../../src/regex/dfa.rs.html#1655">self</a>.<span class="ident">num_byte_classes</span>
     }
 
     <span class="doccomment">/// Allocates room for one additional state and returns a pointer to it.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// If there&#39;s no more room, None is returned.</span>
-    <span class="kw">fn</span> <span class="ident">add</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../src/regex/dfa.rs.html#358">StatePtr</a><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">add</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../src/regex/dfa.rs.html#358">StatePtr</a><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">si</span> <span class="op">=</span> <a class="self" href="../../src/regex/dfa.rs.html#1662">self</a>.<span class="ident">table</span>.<span class="ident">len</span>();
         <span class="kw">if</span> <a class="ident" href="../../src/regex/dfa.rs.html#1663">si</a> <span class="op">&gt;</span> <a class="ident" href="../../src/regex/dfa.rs.html#389">STATE_MAX</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
             <span class="kw">return</span> <span class="prelude-val">None</span>;
@@ -3630,17 +3630,17 @@ implementation.)
     }
 
     <span class="doccomment">/// Returns the transition corresponding to (si, cls).</span>
-    <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">si</span>: <a class="ident" href="../../src/regex/dfa.rs.html#358">StatePtr</a>, <span class="ident">cls</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="../../src/regex/dfa.rs.html#358">StatePtr</a> {
+    <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">si</span>: <a class="ident" href="../../src/regex/dfa.rs.html#358">StatePtr</a>, <span class="ident">cls</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a class="ident" href="../../src/regex/dfa.rs.html#358">StatePtr</a> {
         <a class="self" href="../../src/regex/dfa.rs.html#1682">self</a>.<span class="ident">table</span>[<a class="ident" href="../../src/regex/dfa.rs.html#1682">si</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> <span class="op">+</span> <a class="ident" href="../../src/regex/dfa.rs.html#1682">cls</a>]
     }
 
     <span class="doccomment">/// The heap size, in bytes, of a single state in the transition table.</span>
-    <span class="kw">fn</span> <span class="ident">state_heap_size</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
+    <span class="kw">fn</span> <span class="ident">state_heap_size</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
         <a class="self" href="../../src/regex/dfa.rs.html#1687">self</a>.<span class="ident">num_byte_classes</span> <span class="op">*</span> <span class="ident">mem::size_of</span>::<span class="op">&lt;</span><a class="ident" href="../../src/regex/dfa.rs.html#358">StatePtr</a><span class="op">&gt;</span>()
     }
 
     <span class="doccomment">/// Like `next`, but uses unchecked access and is therefore not safe.</span>
-    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">next_unchecked</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">si</span>: <a class="ident" href="../../src/regex/dfa.rs.html#358">StatePtr</a>, <span class="ident">cls</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="../../src/regex/dfa.rs.html#358">StatePtr</a> {
+    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">next_unchecked</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">si</span>: <a class="ident" href="../../src/regex/dfa.rs.html#358">StatePtr</a>, <span class="ident">cls</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a class="ident" href="../../src/regex/dfa.rs.html#358">StatePtr</a> {
         <span class="macro">debug_assert!</span>((<a class="ident" href="../../src/regex/dfa.rs.html#1692">si</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) <span class="op">&lt;</span> <a class="self" href="../../src/regex/dfa.rs.html#1692">self</a>.<span class="ident">table</span>.<span class="ident">len</span>());
         <span class="macro">debug_assert!</span>(<a class="ident" href="../../src/regex/dfa.rs.html#1692">cls</a> <span class="op">&lt;</span> <a class="self" href="../../src/regex/dfa.rs.html#1692">self</a>.<span class="ident">num_byte_classes</span>);
         <span class="kw-2">*</span><a class="self" href="../../src/regex/dfa.rs.html#1692">self</a>.<span class="ident">table</span>.<span class="ident">get_unchecked</span>(<a class="ident" href="../../src/regex/dfa.rs.html#1692">si</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> <span class="op">+</span> <a class="ident" href="../../src/regex/dfa.rs.html#1692">cls</a>)
@@ -3648,7 +3648,7 @@ implementation.)
 }
 
 <span class="kw">impl</span> <a class="ident" href="../../src/regex/dfa.rs.html#410">StateFlags</a> {
-    <span class="kw">fn</span> <span class="ident">is_match</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    <span class="kw">fn</span> <span class="ident">is_match</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
         <a class="self" href="../../src/regex/dfa.rs.html#1700">self</a>.<span class="number">0</span> <span class="op">&amp;</span> <span class="number">0b0000000_1</span> <span class="op">&gt;</span> <span class="number">0</span>
     }
 
@@ -3656,7 +3656,7 @@ implementation.)
         <a class="self" href="../../src/regex/dfa.rs.html#1704">self</a>.<span class="number">0</span> <span class="op">|</span><span class="op">=</span> <span class="number">0b0000000_1</span>;
     }
 
-    <span class="kw">fn</span> <span class="ident">is_word</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    <span class="kw">fn</span> <span class="ident">is_word</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
         <a class="self" href="../../src/regex/dfa.rs.html#1708">self</a>.<span class="number">0</span> <span class="op">&amp;</span> <span class="number">0b000000_1_0</span> <span class="op">&gt;</span> <span class="number">0</span>
     }
 
@@ -3664,7 +3664,7 @@ implementation.)
         <a class="self" href="../../src/regex/dfa.rs.html#1712">self</a>.<span class="number">0</span> <span class="op">|</span><span class="op">=</span> <span class="number">0b000000_1_0</span>;
     }
 
-    <span class="kw">fn</span> <span class="ident">has_empty</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    <span class="kw">fn</span> <span class="ident">has_empty</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
         <a class="self" href="../../src/regex/dfa.rs.html#1716">self</a>.<span class="number">0</span> <span class="op">&amp;</span> <span class="number">0b00000_1_00</span> <span class="op">&gt;</span> <span class="number">0</span>
     }
 
@@ -3674,28 +3674,28 @@ implementation.)
 }
 
 <span class="kw">impl</span> <a class="ident" href="../../src/regex/dfa.rs.html#394">Byte</a> {
-    <span class="kw">fn</span> <span class="ident">byte</span>(<span class="ident">b</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">byte</span>(<span class="ident">b</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) -&gt; <span class="self">Self</span> {
         <a class="ident" href="../../src/regex/dfa.rs.html#394">Byte</a>(<a class="ident" href="../../src/regex/dfa.rs.html#1726">b</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>)
     }
-    <span class="kw">fn</span> <span class="ident">eof</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">eof</span>() -&gt; <span class="self">Self</span> {
         <a class="ident" href="../../src/regex/dfa.rs.html#394">Byte</a>(<span class="number">256</span>)
     }
-    <span class="kw">fn</span> <span class="ident">is_eof</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../src/regex/dfa.rs.html#1732">self</a>.<span class="number">0</span> <span class="op">=</span><span class="op">=</span> <span class="number">256</span>
+    <span class="kw">fn</span> <span class="ident">is_eof</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a class="self" href="../../src/regex/dfa.rs.html#1732">self</a>.<span class="number">0</span> <span class="op">==</span> <span class="number">256</span>
     }
 
-    <span class="kw">fn</span> <span class="ident">is_ascii_word</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    <span class="kw">fn</span> <span class="ident">is_ascii_word</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
         <span class="kw">let</span> <span class="ident">b</span> <span class="op">=</span> <span class="kw">match</span> <a class="self" href="../../src/regex/dfa.rs.html#1736">self</a>.<a class="ident" href="../../src/regex/dfa.rs.html#1747">as_byte</a>() {
-            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="bool-val">false</span>,
-            <span class="prelude-val">Some</span>(<span class="ident">b</span>) <span class="op">=</span><span class="op">&gt;</span> <a class="ident" href="../../src/regex/dfa.rs.html#1739">b</a>,
+            <span class="prelude-val">None</span> =&gt; <span class="kw">return</span> <span class="bool-val">false</span>,
+            <span class="prelude-val">Some</span>(<span class="ident">b</span>) =&gt; <a class="ident" href="../../src/regex/dfa.rs.html#1739">b</a>,
         };
         <span class="kw">match</span> <a class="ident" href="../../src/regex/dfa.rs.html#1737">b</a> {
-            <span class="string">b&#39;A&#39;</span>..<span class="op">=</span><span class="string">b&#39;Z&#39;</span> <span class="op">|</span> <span class="string">b&#39;a&#39;</span>..<span class="op">=</span><span class="string">b&#39;z&#39;</span> <span class="op">|</span> <span class="string">b&#39;0&#39;</span>..<span class="op">=</span><span class="string">b&#39;9&#39;</span> <span class="op">|</span> <span class="string">b&#39;_&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">true</span>,
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
+            <span class="string">b&#39;A&#39;</span>..<span class="op">=</span><span class="string">b&#39;Z&#39;</span> <span class="op">|</span> <span class="string">b&#39;a&#39;</span>..<span class="op">=</span><span class="string">b&#39;z&#39;</span> <span class="op">|</span> <span class="string">b&#39;0&#39;</span>..<span class="op">=</span><span class="string">b&#39;9&#39;</span> <span class="op">|</span> <span class="string">b&#39;_&#39;</span> =&gt; <span class="bool-val">true</span>,
+            <span class="kw">_</span> =&gt; <span class="bool-val">false</span>,
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">as_byte</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">as_byte</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><span class="op">&gt;</span> {
         <span class="kw">if</span> <a class="self" href="../../src/regex/dfa.rs.html#1747">self</a>.<a class="ident" href="../../src/regex/dfa.rs.html#1732">is_eof</a>() {
             <span class="prelude-val">None</span>
         } <span class="kw">else</span> {
@@ -3705,7 +3705,7 @@ implementation.)
 }
 
 <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <a class="ident" href="../../src/regex/dfa.rs.html#262-264">State</a> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
         <span class="kw">let</span> <span class="ident">ips</span>: <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span> <span class="op">=</span> <a class="self" href="../../src/regex/dfa.rs.html#1757">self</a>.<a class="ident" href="../../src/regex/dfa.rs.html#309">inst_ptrs</a>().<span class="ident">collect</span>();
         <a class="ident" href="../../src/regex/dfa.rs.html#1757">f</a>.<span class="ident">debug_struct</span>(<span class="string">&quot;State&quot;</span>)
             .<span class="ident">field</span>(<span class="string">&quot;flags&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../src/regex/dfa.rs.html#1757">self</a>.<a class="ident" href="../../src/regex/dfa.rs.html#305">flags</a>())
@@ -3715,7 +3715,7 @@ implementation.)
 }
 
 <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <a class="ident" href="../../src/regex/dfa.rs.html#161-166">Transitions</a> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">fmtd</span> <span class="op">=</span> <a class="ident" href="../../src/regex/dfa.rs.html#1767">f</a>.<span class="ident">debug_map</span>();
         <span class="kw">for</span> <a class="ident" href="../../src/regex/dfa.rs.html#1769">si</a> <span class="kw">in</span> <span class="number">0</span>..<a class="self" href="../../src/regex/dfa.rs.html#1767">self</a>.<a class="ident" href="../../src/regex/dfa.rs.html#1655">num_states</a>() {
             <span class="kw">let</span> <span class="ident">s</span> <span class="op">=</span> <a class="ident" href="../../src/regex/dfa.rs.html#1769">si</a> <span class="op">*</span> <a class="self" href="../../src/regex/dfa.rs.html#1767">self</a>.<span class="ident">num_byte_classes</span>;
@@ -3729,15 +3729,15 @@ implementation.)
 <span class="kw">struct</span> <span class="ident">TransitionsRow</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<a class="ident" href="../../src/regex/dfa.rs.html#358">StatePtr</a>]);
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <span class="ident">TransitionsRow</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">fmtd</span> <span class="op">=</span> <a class="ident" href="../../src/regex/dfa.rs.html#1781">f</a>.<span class="ident">debug_map</span>();
         <span class="kw">for</span> (<span class="ident">b</span>, <span class="ident">si</span>) <span class="kw">in</span> <a class="self" href="../../src/regex/dfa.rs.html#1781">self</a>.<span class="number">0</span>.<span class="ident">iter</span>().<span class="ident">enumerate</span>() {
             <span class="kw">match</span> <span class="kw-2">*</span><a class="ident" href="../../src/regex/dfa.rs.html#1783">si</a> {
-                <a class="ident" href="../../src/regex/dfa.rs.html#362">STATE_UNKNOWN</a> <span class="op">=</span><span class="op">&gt;</span> {}
-                <a class="ident" href="../../src/regex/dfa.rs.html#366">STATE_DEAD</a> <span class="op">=</span><span class="op">&gt;</span> {
+                <a class="ident" href="../../src/regex/dfa.rs.html#362">STATE_UNKNOWN</a> =&gt; {}
+                <a class="ident" href="../../src/regex/dfa.rs.html#366">STATE_DEAD</a> =&gt; {
                     <a class="ident" href="../../src/regex/dfa.rs.html#1782">fmtd</a>.<span class="ident">entry</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/regex/dfa.rs.html#1809">vb</a>(<a class="ident" href="../../src/regex/dfa.rs.html#1783">b</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>), <span class="kw-2">&amp;</span><span class="string">&quot;DEAD&quot;</span>);
                 }
-                <span class="ident">si</span> <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">si</span> =&gt; {
                     <a class="ident" href="../../src/regex/dfa.rs.html#1782">fmtd</a>.<span class="ident">entry</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/regex/dfa.rs.html#1809">vb</a>(<a class="ident" href="../../src/regex/dfa.rs.html#1783">b</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>), <span class="kw-2">&amp;</span><a class="ident" href="../../src/regex/dfa.rs.html#1789">si</a>.<span class="ident">to_string</span>());
                 }
             }
@@ -3747,7 +3747,7 @@ implementation.)
 }
 
 <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <a class="ident" href="../../src/regex/dfa.rs.html#410">StateFlags</a> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
         <a class="ident" href="../../src/regex/dfa.rs.html#1799">f</a>.<span class="ident">debug_struct</span>(<span class="string">&quot;StateFlags&quot;</span>)
             .<span class="ident">field</span>(<span class="string">&quot;is_match&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../src/regex/dfa.rs.html#1799">self</a>.<a class="ident" href="../../src/regex/dfa.rs.html#1700">is_match</a>())
             .<span class="ident">field</span>(<span class="string">&quot;is_word&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../src/regex/dfa.rs.html#1799">self</a>.<a class="ident" href="../../src/regex/dfa.rs.html#1708">is_word</a>())
@@ -3757,7 +3757,7 @@ implementation.)
 }
 
 <span class="doccomment">/// Helper function for formatting a byte as a nice-to-read escaped string.</span>
-<span class="kw">fn</span> <span class="ident">vb</span>(<span class="ident">b</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> {
+<span class="kw">fn</span> <span class="ident">vb</span>(<span class="ident">b</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> {
     <span class="kw">use</span> <span class="ident">std::ascii::escape_default</span>;
 
     <span class="kw">if</span> <a class="ident" href="../../src/regex/dfa.rs.html#1809">b</a> <span class="op">&gt;</span> <span class="ident">::std::u8::MAX</span> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
@@ -3768,7 +3768,7 @@ implementation.)
     }
 }
 
-<span class="kw">fn</span> <span class="ident">usize_to_u32</span>(<span class="ident">n</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
+<span class="kw">fn</span> <span class="ident">usize_to_u32</span>(<span class="ident">n</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
     <span class="kw">if</span> (<a class="ident" href="../../src/regex/dfa.rs.html#1820">n</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) <span class="op">&gt;</span> (<span class="ident">::std::u32::MAX</span> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) {
         <span class="macro">panic!</span>(<span class="string">&quot;BUG: {} is too big to fit into u32&quot;</span>, <a class="ident" href="../../src/regex/dfa.rs.html#1820">n</a>)
     }
@@ -3776,15 +3776,15 @@ implementation.)
 }
 
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">dead_code</span>)]</span> <span class="comment">// useful for debugging</span>
-<span class="kw">fn</span> <span class="ident">show_state_ptr</span>(<span class="ident">si</span>: <a class="ident" href="../../src/regex/dfa.rs.html#358">StatePtr</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> {
+<span class="kw">fn</span> <span class="ident">show_state_ptr</span>(<span class="ident">si</span>: <a class="ident" href="../../src/regex/dfa.rs.html#358">StatePtr</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> {
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">s</span> <span class="op">=</span> <span class="macro">format!</span>(<span class="string">&quot;{:?}&quot;</span>, <a class="ident" href="../../src/regex/dfa.rs.html#1828">si</a> <span class="op">&amp;</span> <a class="ident" href="../../src/regex/dfa.rs.html#389">STATE_MAX</a>);
-    <span class="kw">if</span> <a class="ident" href="../../src/regex/dfa.rs.html#1828">si</a> <span class="op">=</span><span class="op">=</span> <a class="ident" href="../../src/regex/dfa.rs.html#362">STATE_UNKNOWN</a> {
+    <span class="kw">if</span> <a class="ident" href="../../src/regex/dfa.rs.html#1828">si</a> <span class="op">==</span> <a class="ident" href="../../src/regex/dfa.rs.html#362">STATE_UNKNOWN</a> {
         <a class="ident" href="../../src/regex/dfa.rs.html#1829">s</a> <span class="op">=</span> <span class="macro">format!</span>(<span class="string">&quot;{} (unknown)&quot;</span>, <a class="ident" href="../../src/regex/dfa.rs.html#1829">s</a>);
     }
-    <span class="kw">if</span> <a class="ident" href="../../src/regex/dfa.rs.html#1828">si</a> <span class="op">=</span><span class="op">=</span> <a class="ident" href="../../src/regex/dfa.rs.html#366">STATE_DEAD</a> {
+    <span class="kw">if</span> <a class="ident" href="../../src/regex/dfa.rs.html#1828">si</a> <span class="op">==</span> <a class="ident" href="../../src/regex/dfa.rs.html#366">STATE_DEAD</a> {
         <a class="ident" href="../../src/regex/dfa.rs.html#1829">s</a> <span class="op">=</span> <span class="macro">format!</span>(<span class="string">&quot;{} (dead)&quot;</span>, <a class="ident" href="../../src/regex/dfa.rs.html#1829">s</a>);
     }
-    <span class="kw">if</span> <a class="ident" href="../../src/regex/dfa.rs.html#1828">si</a> <span class="op">=</span><span class="op">=</span> <a class="ident" href="../../src/regex/dfa.rs.html#371">STATE_QUIT</a> {
+    <span class="kw">if</span> <a class="ident" href="../../src/regex/dfa.rs.html#1828">si</a> <span class="op">==</span> <a class="ident" href="../../src/regex/dfa.rs.html#371">STATE_QUIT</a> {
         <a class="ident" href="../../src/regex/dfa.rs.html#1829">s</a> <span class="op">=</span> <span class="macro">format!</span>(<span class="string">&quot;{} (quit)&quot;</span>, <a class="ident" href="../../src/regex/dfa.rs.html#1829">s</a>);
     }
     <span class="kw">if</span> <a class="ident" href="../../src/regex/dfa.rs.html#1828">si</a> <span class="op">&amp;</span> <a class="ident" href="../../src/regex/dfa.rs.html#376">STATE_START</a> <span class="op">&gt;</span> <span class="number">0</span> {
@@ -3806,7 +3806,7 @@ implementation.)
 }
 
 <span class="doccomment">/// https://developers.google.com/protocol-buffers/docs/encoding#varints</span>
-<span class="kw">fn</span> <span class="ident">read_vari32</span>(<span class="ident">data</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) <span class="op">-</span><span class="op">&gt;</span> (<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
+<span class="kw">fn</span> <span class="ident">read_vari32</span>(<span class="ident">data</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; (<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
     <span class="kw">let</span> (<span class="ident">un</span>, <span class="ident">i</span>) <span class="op">=</span> <a class="ident" href="../../src/regex/dfa.rs.html#1877">read_varu32</a>(<a class="ident" href="../../src/regex/dfa.rs.html#1858">data</a>);
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">n</span> <span class="op">=</span> (<a class="ident" href="../../src/regex/dfa.rs.html#1859">un</a> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">1</span>) <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>;
     <span class="kw">if</span> <a class="ident" href="../../src/regex/dfa.rs.html#1859">un</a> <span class="op">&amp;</span> <span class="number">1</span> <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {
@@ -3825,7 +3825,7 @@ implementation.)
 }
 
 <span class="doccomment">/// https://developers.google.com/protocol-buffers/docs/encoding#varints</span>
-<span class="kw">fn</span> <span class="ident">read_varu32</span>(<span class="ident">data</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) <span class="op">-</span><span class="op">&gt;</span> (<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
+<span class="kw">fn</span> <span class="ident">read_varu32</span>(<span class="ident">data</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; (<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">n</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> <span class="op">=</span> <span class="number">0</span>;
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">shift</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> <span class="op">=</span> <span class="number">0</span>;
     <span class="kw">for</span> (<span class="ident">i</span>, <span class="kw-2">&amp;</span><span class="ident">b</span>) <span class="kw">in</span> <a class="ident" href="../../src/regex/dfa.rs.html#1877">data</a>.<span class="ident">iter</span>().<span class="ident">enumerate</span>() {
@@ -3850,7 +3850,7 @@ implementation.)
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">prop_state_encode_decode</span>() {
-        <span class="kw">fn</span> <span class="ident">p</span>(<span class="kw-2">mut</span> <span class="ident">ips</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>, <span class="ident">flags</span>: <span class="ident">u8</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+        <span class="kw">fn</span> <span class="ident">p</span>(<span class="kw-2">mut</span> <span class="ident">ips</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>, <span class="ident">flags</span>: <span class="ident">u8</span>) -&gt; <span class="ident">bool</span> {
             <span class="comment">// It looks like our encoding scheme can&#39;t handle instruction</span>
             <span class="comment">// pointers at or above 2**31. We should fix that, but it seems</span>
             <span class="comment">// unlikely to occur in real code due to the amount of memory</span>
@@ -3871,33 +3871,33 @@ implementation.)
             <span class="kw">let</span> <span class="ident">expected</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> <span class="op">=</span>
                 <span class="ident">ips</span>.<span class="ident">into_iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">ip</span><span class="op">|</span> <span class="ident">ip</span> <span class="kw">as</span> <span class="ident">usize</span>).<span class="ident">collect</span>();
             <span class="kw">let</span> <span class="ident">got</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">state</span>.<span class="ident">inst_ptrs</span>().<span class="ident">collect</span>();
-            <span class="ident">expected</span> <span class="op">=</span><span class="op">=</span> <span class="ident">got</span> <span class="op">&amp;&amp;</span> <span class="ident">state</span>.<span class="ident">flags</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">StateFlags</span>(<span class="ident">flags</span>)
+            <span class="ident">expected</span> <span class="op">==</span> <span class="ident">got</span> <span class="op">&amp;&amp;</span> <span class="ident">state</span>.<span class="ident">flags</span>() <span class="op">==</span> <span class="ident">StateFlags</span>(<span class="ident">flags</span>)
         }
         <span class="ident">QuickCheck::new</span>()
             .<span class="ident">gen</span>(<span class="ident">Gen::new</span>(<span class="number">10_000</span>))
-            .<span class="ident">quickcheck</span>(<span class="ident">p</span> <span class="kw">as</span> <span class="kw">fn</span>(<span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>, <span class="ident">u8</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span>);
+            .<span class="ident">quickcheck</span>(<span class="ident">p</span> <span class="kw">as</span> <span class="kw">fn</span>(<span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>, <span class="ident">u8</span>) -&gt; <span class="ident">bool</span>);
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">prop_read_write_u32</span>() {
-        <span class="kw">fn</span> <span class="ident">p</span>(<span class="ident">n</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+        <span class="kw">fn</span> <span class="ident">p</span>(<span class="ident">n</span>: <span class="ident">u32</span>) -&gt; <span class="ident">bool</span> {
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> <span class="macro">vec!</span>[];
             <span class="ident">write_varu32</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">buf</span>, <span class="ident">n</span>);
             <span class="kw">let</span> (<span class="ident">got</span>, <span class="ident">nread</span>) <span class="op">=</span> <span class="ident">read_varu32</span>(<span class="kw-2">&amp;</span><span class="ident">buf</span>);
-            <span class="ident">nread</span> <span class="op">=</span><span class="op">=</span> <span class="ident">buf</span>.<span class="ident">len</span>() <span class="op">&amp;&amp;</span> <span class="ident">got</span> <span class="op">=</span><span class="op">=</span> <span class="ident">n</span>
+            <span class="ident">nread</span> <span class="op">==</span> <span class="ident">buf</span>.<span class="ident">len</span>() <span class="op">&amp;&amp;</span> <span class="ident">got</span> <span class="op">==</span> <span class="ident">n</span>
         }
-        <span class="ident">quickcheck</span>(<span class="ident">p</span> <span class="kw">as</span> <span class="kw">fn</span>(<span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span>);
+        <span class="ident">quickcheck</span>(<span class="ident">p</span> <span class="kw">as</span> <span class="kw">fn</span>(<span class="ident">u32</span>) -&gt; <span class="ident">bool</span>);
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">prop_read_write_i32</span>() {
-        <span class="kw">fn</span> <span class="ident">p</span>(<span class="ident">n</span>: <span class="ident">i32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+        <span class="kw">fn</span> <span class="ident">p</span>(<span class="ident">n</span>: <span class="ident">i32</span>) -&gt; <span class="ident">bool</span> {
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> <span class="macro">vec!</span>[];
             <span class="ident">write_vari32</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">buf</span>, <span class="ident">n</span>);
             <span class="kw">let</span> (<span class="ident">got</span>, <span class="ident">nread</span>) <span class="op">=</span> <span class="ident">read_vari32</span>(<span class="kw-2">&amp;</span><span class="ident">buf</span>);
-            <span class="ident">nread</span> <span class="op">=</span><span class="op">=</span> <span class="ident">buf</span>.<span class="ident">len</span>() <span class="op">&amp;&amp;</span> <span class="ident">got</span> <span class="op">=</span><span class="op">=</span> <span class="ident">n</span>
+            <span class="ident">nread</span> <span class="op">==</span> <span class="ident">buf</span>.<span class="ident">len</span>() <span class="op">&amp;&amp;</span> <span class="ident">got</span> <span class="op">==</span> <span class="ident">n</span>
         }
-        <span class="ident">quickcheck</span>(<span class="ident">p</span> <span class="kw">as</span> <span class="kw">fn</span>(<span class="ident">i32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span>);
+        <span class="ident">quickcheck</span>(<span class="ident">p</span> <span class="kw">as</span> <span class="kw">fn</span>(<span class="ident">i32</span>) -&gt; <span class="ident">bool</span>);
     }
 }
 </code></pre></div>

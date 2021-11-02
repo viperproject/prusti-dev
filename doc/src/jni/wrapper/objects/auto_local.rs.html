@@ -114,7 +114,7 @@
     <span class="doccomment">/// Once this wrapper goes out of scope, the `delete_local_ref` will be</span>
     <span class="doccomment">/// called on the object. While wrapped, the object can be accessed via</span>
     <span class="doccomment">/// the `Deref` impl.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">env</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="ident">JNIEnv</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>, <span class="ident">obj</span>: <span class="ident">JObject</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">env</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="ident">JNIEnv</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>, <span class="ident">obj</span>: <span class="ident">JObject</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
         <a class="ident" href="../../../../src/jni/wrapper/objects/auto_local.rs.html#26-29">AutoLocal</a> { <a class="ident" href="../../../../src/jni/wrapper/objects/auto_local.rs.html#37">obj</a>, <a class="ident" href="../../../../src/jni/wrapper/objects/auto_local.rs.html#37">env</a> }
     }
 
@@ -125,7 +125,7 @@
     <span class="doccomment">/// dropped. You must either remember to delete the local ref manually, or</span>
     <span class="doccomment">/// be</span>
     <span class="doccomment">/// ok with it getting deleted once the foreign method returns.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">forget</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JObject</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">forget</span>(<span class="self">self</span>) -&gt; <span class="ident">JObject</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">obj</span> <span class="op">=</span> <a class="self" href="../../../../src/jni/wrapper/objects/auto_local.rs.html#48">self</a>.<span class="ident">obj</span>;
         <span class="ident">mem::forget</span>(<a class="self" href="../../../../src/jni/wrapper/objects/auto_local.rs.html#48">self</a>);
         <a class="ident" href="../../../../src/jni/wrapper/objects/auto_local.rs.html#49">obj</a>
@@ -135,7 +135,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// Unlike `forget`, this ensures the wrapper from being dropped while the</span>
     <span class="doccomment">/// returned `JObject` is still live.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_obj</span><span class="op">&lt;</span><span class="lifetime">&#39;c</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JObject</span><span class="op">&lt;</span><span class="lifetime">&#39;c</span><span class="op">&gt;</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_obj</span><span class="op">&lt;</span><span class="lifetime">&#39;c</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">JObject</span><span class="op">&lt;</span><span class="lifetime">&#39;c</span><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="lifetime">&#39;a</span>: <span class="lifetime">&#39;c</span>,
     {
@@ -147,14 +147,14 @@
     <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) {
         <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <a class="self" href="../../../../src/jni/wrapper/objects/auto_local.rs.html#67">self</a>.<span class="ident">env</span>.<a class="ident" href="../../../../src/jni/wrapper/jnienv.rs.html#391">delete_local_ref</a>(<a class="self" href="../../../../src/jni/wrapper/objects/auto_local.rs.html#67">self</a>.<span class="ident">obj</span>);
         <span class="kw">match</span> <a class="ident" href="../../../../src/jni/wrapper/objects/auto_local.rs.html#68">res</a> {
-            <span class="prelude-val">Ok</span>(()) <span class="op">=</span><span class="op">&gt;</span> {}
-            <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">debug!</span>(<span class="string">&quot;error dropping global ref: {:#?}&quot;</span>, <a class="ident" href="../../../../src/jni/wrapper/objects/auto_local.rs.html#71">e</a>),
+            <span class="prelude-val">Ok</span>(()) =&gt; {}
+            <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; <span class="macro">debug!</span>(<span class="string">&quot;error dropping global ref: {:#?}&quot;</span>, <a class="ident" href="../../../../src/jni/wrapper/objects/auto_local.rs.html#71">e</a>),
         }
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">AutoLocal</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;_</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">JObject</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="../../../../src/jni/wrapper/objects/auto_local.rs.html#26-29">AutoLocal</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JObject</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="../../../../src/jni/wrapper/objects/auto_local.rs.html#26-29">AutoLocal</a>) -&gt; <span class="ident">JObject</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
         <a class="ident" href="../../../../src/jni/wrapper/objects/auto_local.rs.html#77">other</a>.<a class="ident" href="../../../../src/jni/wrapper/objects/auto_local.rs.html#58-60">as_obj</a>()
     }
 }

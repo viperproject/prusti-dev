@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;nix-0.22.1&#x2F;src&#x2F;sched.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>sched.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../nix/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;nix-0.23.0&#x2F;src&#x2F;sched.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>sched.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../nix/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -233,52 +233,140 @@
 <span id="233">233</span>
 <span id="234">234</span>
 <span id="235">235</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">crate</span>::{<a class="ident" href="../../src/nix/errno.rs.html#771-906">Errno</a>, <span class="prelude-ty">Result</span>};
+<span id="236">236</span>
+<span id="237">237</span>
+<span id="238">238</span>
+<span id="239">239</span>
+<span id="240">240</span>
+<span id="241">241</span>
+<span id="242">242</span>
+<span id="243">243</span>
+<span id="244">244</span>
+<span id="245">245</span>
+<span id="246">246</span>
+<span id="247">247</span>
+<span id="248">248</span>
+<span id="249">249</span>
+<span id="250">250</span>
+<span id="251">251</span>
+<span id="252">252</span>
+<span id="253">253</span>
+<span id="254">254</span>
+<span id="255">255</span>
+<span id="256">256</span>
+<span id="257">257</span>
+<span id="258">258</span>
+<span id="259">259</span>
+<span id="260">260</span>
+<span id="261">261</span>
+<span id="262">262</span>
+<span id="263">263</span>
+<span id="264">264</span>
+<span id="265">265</span>
+<span id="266">266</span>
+<span id="267">267</span>
+<span id="268">268</span>
+<span id="269">269</span>
+<span id="270">270</span>
+<span id="271">271</span>
+<span id="272">272</span>
+<span id="273">273</span>
+<span id="274">274</span>
+<span id="275">275</span>
+<span id="276">276</span>
+<span id="277">277</span>
+<span id="278">278</span>
+<span id="279">279</span>
+<span id="280">280</span>
+<span id="281">281</span>
+<span id="282">282</span>
+</pre><pre class="rust"><code><span class="doccomment">//! Execution scheduling</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! See Also</span>
+<span class="doccomment">//! [sched.h](https://pubs.opengroup.org/onlinepubs/9699919799/basedefs/sched.h.html)</span>
+<span class="kw">use</span> <span class="kw">crate</span>::{<a class="ident" href="../../src/nix/errno.rs.html#774-909">Errno</a>, <span class="prelude-ty">Result</span>};
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>))]</span>
-<span class="kw">pub</span> <span class="kw">use</span> <a class="ident" href="../../src/nix/sched.rs.html#7-226"><span class="self">self</span>::sched_linux_like</a>::<span class="kw-2">*</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <a class="ident" href="../../src/nix/sched.rs.html#11-273"><span class="self">self</span>::sched_linux_like</a>::<span class="kw-2">*</span>;
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>))]</span>
 <span class="kw">mod</span> <span class="ident">sched_linux_like</span> {
-    <span class="kw">use</span> <a class="ident" href="../../src/nix/errno.rs.html#771-906"><span class="kw">crate</span>::errno::Errno</a>;
+    <span class="kw">use</span> <a class="ident" href="../../src/nix/errno.rs.html#774-909"><span class="kw">crate</span>::errno::Errno</a>;
     <span class="kw">use</span> <span class="ident">libc</span>::{<a class="self" href="../../libc/index.html">self</a>, <a class="ident" href="../../libc/unix/type.c_int.html">c_int</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>};
     <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/index.html">std::mem</a>;
     <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/option/enum.Option.html">std::option::Option</a>;
     <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">std::os::unix::io::RawFd</a>;
     <span class="kw">use</span> <a class="ident" href="../../src/nix/unistd.rs.html#130"><span class="kw">crate</span>::unistd::Pid</a>;
-    <span class="kw">use</span> <span class="kw">crate</span>::{<a class="ident" href="../../src/nix/lib.rs.html#102">Error</a>, <span class="prelude-ty">Result</span>};
+    <span class="kw">use</span> <a class="ident" href="../../src/nix/lib.rs.html#91"><span class="kw">crate</span>::Result</a>;
 
     <span class="comment">// For some functions taking with a parameter of type CloneFlags,</span>
     <span class="comment">// only a subset of these flags have an effect.</span>
     <span class="macro">libc_bitflags!</span> {
+        <span class="doccomment">/// Options for use with [`clone`]</span>
         <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">CloneFlags</span>: <a class="ident" href="../../libc/unix/type.c_int.html">c_int</a> {
+            <span class="doccomment">/// The calling process and the child process run in the same</span>
+            <span class="doccomment">/// memory space.</span>
             <span class="ident">CLONE_VM</span>;
+            <span class="doccomment">/// The caller and the child process share the same  filesystem</span>
+            <span class="doccomment">/// information.</span>
             <span class="ident">CLONE_FS</span>;
+            <span class="doccomment">/// The calling process and the child process share the same file</span>
+            <span class="doccomment">/// descriptor table.</span>
             <span class="ident">CLONE_FILES</span>;
+            <span class="doccomment">/// The calling process and the child process share the same table</span>
+            <span class="doccomment">/// of signal handlers.</span>
             <span class="ident">CLONE_SIGHAND</span>;
+            <span class="doccomment">/// If the calling process is being traced, then trace the child</span>
+            <span class="doccomment">/// also.</span>
             <span class="ident">CLONE_PTRACE</span>;
+            <span class="doccomment">/// The execution of the calling process is suspended until the</span>
+            <span class="doccomment">/// child releases its virtual memory resources via a call to</span>
+            <span class="doccomment">/// execve(2) or _exit(2) (as with vfork(2)).</span>
             <span class="ident">CLONE_VFORK</span>;
+            <span class="doccomment">/// The parent of the new child  (as returned by getppid(2))</span>
+            <span class="doccomment">/// will be the same as that of the calling process.</span>
             <span class="ident">CLONE_PARENT</span>;
+            <span class="doccomment">/// The child is placed in the same thread group as the calling</span>
+            <span class="doccomment">/// process.</span>
             <span class="ident">CLONE_THREAD</span>;
+            <span class="doccomment">/// The cloned child is started in a new mount namespace.</span>
             <span class="ident">CLONE_NEWNS</span>;
+            <span class="doccomment">/// The child and the calling process share a single list of System</span>
+            <span class="doccomment">/// V semaphore adjustment values</span>
             <span class="ident">CLONE_SYSVSEM</span>;
-            <span class="ident">CLONE_SETTLS</span>;
-            <span class="ident">CLONE_PARENT_SETTID</span>;
-            <span class="ident">CLONE_CHILD_CLEARTID</span>;
+            <span class="comment">// Not supported by Nix due to lack of varargs support in Rust FFI</span>
+            <span class="comment">// CLONE_SETTLS;</span>
+            <span class="comment">// Not supported by Nix due to lack of varargs support in Rust FFI</span>
+            <span class="comment">// CLONE_PARENT_SETTID;</span>
+            <span class="comment">// Not supported by Nix due to lack of varargs support in Rust FFI</span>
+            <span class="comment">// CLONE_CHILD_CLEARTID;</span>
+            <span class="doccomment">/// Unused since Linux 2.6.2</span>
+            <span class="attribute">#[<span class="ident">deprecated</span>(<span class="ident">since</span> <span class="op">=</span> <span class="string">&quot;0.23.0&quot;</span>, <span class="ident">note</span> <span class="op">=</span> <span class="string">&quot;Deprecated by Linux 2.6.2&quot;</span>)]</span>
             <span class="ident">CLONE_DETACHED</span>;
+            <span class="doccomment">/// A tracing process cannot force `CLONE_PTRACE` on this child</span>
+            <span class="doccomment">/// process.</span>
             <span class="ident">CLONE_UNTRACED</span>;
-            <span class="ident">CLONE_CHILD_SETTID</span>;
+            <span class="comment">// Not supported by Nix due to lack of varargs support in Rust FFI</span>
+            <span class="comment">// CLONE_CHILD_SETTID;</span>
+            <span class="doccomment">/// Create the process in a new cgroup namespace.</span>
             <span class="ident">CLONE_NEWCGROUP</span>;
+            <span class="doccomment">/// Create the process in a new UTS namespace.</span>
             <span class="ident">CLONE_NEWUTS</span>;
+            <span class="doccomment">/// Create the process in a new IPC namespace.</span>
             <span class="ident">CLONE_NEWIPC</span>;
+            <span class="doccomment">/// Create the process in a new user namespace.</span>
             <span class="ident">CLONE_NEWUSER</span>;
+            <span class="doccomment">/// Create the process in a new PID namespace.</span>
             <span class="ident">CLONE_NEWPID</span>;
+            <span class="doccomment">/// Create the process in a new network namespace.</span>
             <span class="ident">CLONE_NEWNET</span>;
+            <span class="doccomment">/// The new process shares an I/O context with the calling process.</span>
             <span class="ident">CLONE_IO</span>;
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">CloneCb</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">FnMut</span>() <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.isize.html">isize</a> <span class="op">+</span> <span class="lifetime">&#39;a</span><span class="op">&gt;</span>;
+    <span class="doccomment">/// Type for the function executed by [`clone`].</span>
+    <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">CloneCb</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">FnMut</span>() -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.isize.html">isize</a> <span class="op">+</span> <span class="lifetime">&#39;a</span><span class="op">&gt;</span>;
 
     <span class="doccomment">/// CpuSet represent a bit-mask of CPUs.</span>
     <span class="doccomment">/// CpuSets are used by sched_setaffinity and</span>
@@ -291,54 +379,54 @@
         <span class="ident">cpu_set</span>: <a class="ident" href="../../libc/unix/linux_like/linux/struct.cpu_set_t.html">libc::cpu_set_t</a>,
     }
 
-    <span class="kw">impl</span> <a class="ident" href="../../src/nix/sched.rs.html#55-57">CpuSet</a> {
+    <span class="kw">impl</span> <a class="ident" href="../../src/nix/sched.rs.html#96-98">CpuSet</a> {
         <span class="doccomment">/// Create a new and empty CpuSet.</span>
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="../../src/nix/sched.rs.html#55-57">CpuSet</a> {
-            <a class="ident" href="../../src/nix/sched.rs.html#55-57">CpuSet</a> {
+        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <a class="ident" href="../../src/nix/sched.rs.html#96-98">CpuSet</a> {
+            <a class="ident" href="../../src/nix/sched.rs.html#96-98">CpuSet</a> {
                 <span class="ident">cpu_set</span>: <span class="kw">unsafe</span> { <span class="ident">mem::zeroed</span>() },
             }
         }
 
         <span class="doccomment">/// Test to see if a CPU is in the CpuSet.</span>
         <span class="doccomment">/// `field` is the CPU id to test</span>
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_set</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">field</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a><span class="op">&gt;</span> {
-            <span class="kw">if</span> <a class="ident" href="../../src/nix/sched.rs.html#69">field</a> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">CpuSet::count</span>() {
-                <span class="prelude-val">Err</span>(<span class="ident">Error::from</span>(<a class="ident" href="../../src/nix/errno.rs.html#794">Errno::EINVAL</a>))
+        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_set</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">field</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a><span class="op">&gt;</span> {
+            <span class="kw">if</span> <a class="ident" href="../../src/nix/sched.rs.html#110">field</a> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">CpuSet::count</span>() {
+                <span class="prelude-val">Err</span>(<a class="ident" href="../../src/nix/errno.rs.html#797">Errno::EINVAL</a>)
             } <span class="kw">else</span> {
-                <span class="prelude-val">Ok</span>(<span class="kw">unsafe</span> { <span class="ident">libc::CPU_ISSET</span>(<a class="ident" href="../../src/nix/sched.rs.html#69">field</a>, <span class="kw-2">&amp;</span><a class="self" href="../../src/nix/sched.rs.html#69">self</a>.<span class="ident">cpu_set</span>) })
+                <span class="prelude-val">Ok</span>(<span class="kw">unsafe</span> { <span class="ident">libc::CPU_ISSET</span>(<a class="ident" href="../../src/nix/sched.rs.html#110">field</a>, <span class="kw-2">&amp;</span><a class="self" href="../../src/nix/sched.rs.html#110">self</a>.<span class="ident">cpu_set</span>) })
             }
         }
 
         <span class="doccomment">/// Add a CPU to CpuSet.</span>
         <span class="doccomment">/// `field` is the CPU id to add</span>
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">field</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-            <span class="kw">if</span> <a class="ident" href="../../src/nix/sched.rs.html#79">field</a> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">CpuSet::count</span>() {
-                <span class="prelude-val">Err</span>(<span class="ident">Error::from</span>(<a class="ident" href="../../src/nix/errno.rs.html#794">Errno::EINVAL</a>))
+        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">field</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+            <span class="kw">if</span> <a class="ident" href="../../src/nix/sched.rs.html#120">field</a> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">CpuSet::count</span>() {
+                <span class="prelude-val">Err</span>(<a class="ident" href="../../src/nix/errno.rs.html#797">Errno::EINVAL</a>)
             } <span class="kw">else</span> {
-                <span class="kw">unsafe</span> { <span class="ident">libc::CPU_SET</span>(<a class="ident" href="../../src/nix/sched.rs.html#79">field</a>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="self" href="../../src/nix/sched.rs.html#79">self</a>.<span class="ident">cpu_set</span>); }
+                <span class="kw">unsafe</span> { <span class="ident">libc::CPU_SET</span>(<a class="ident" href="../../src/nix/sched.rs.html#120">field</a>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="self" href="../../src/nix/sched.rs.html#120">self</a>.<span class="ident">cpu_set</span>); }
                 <span class="prelude-val">Ok</span>(())
             }
         }
 
         <span class="doccomment">/// Remove a CPU from CpuSet.</span>
         <span class="doccomment">/// `field` is the CPU id to remove</span>
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">unset</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">field</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-            <span class="kw">if</span> <a class="ident" href="../../src/nix/sched.rs.html#90">field</a> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">CpuSet::count</span>() {
-                <span class="prelude-val">Err</span>(<span class="ident">Error::from</span>(<a class="ident" href="../../src/nix/errno.rs.html#794">Errno::EINVAL</a>))
+        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">unset</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">field</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+            <span class="kw">if</span> <a class="ident" href="../../src/nix/sched.rs.html#131">field</a> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">CpuSet::count</span>() {
+                <span class="prelude-val">Err</span>(<a class="ident" href="../../src/nix/errno.rs.html#797">Errno::EINVAL</a>)
             } <span class="kw">else</span> {
-                <span class="kw">unsafe</span> { <span class="ident">libc::CPU_CLR</span>(<a class="ident" href="../../src/nix/sched.rs.html#90">field</a>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="self" href="../../src/nix/sched.rs.html#90">self</a>.<span class="ident">cpu_set</span>);}
+                <span class="kw">unsafe</span> { <span class="ident">libc::CPU_CLR</span>(<a class="ident" href="../../src/nix/sched.rs.html#131">field</a>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="self" href="../../src/nix/sched.rs.html#131">self</a>.<span class="ident">cpu_set</span>);}
                 <span class="prelude-val">Ok</span>(())
             }
         }
 
         <span class="doccomment">/// Return the maximum number of CPU in CpuSet</span>
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">count</span>() <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">count</span>() -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
             <span class="number">8</span> <span class="op">*</span> <span class="ident">mem::size_of</span>::<span class="op">&lt;</span><a class="ident" href="../../libc/unix/linux_like/linux/struct.cpu_set_t.html">libc::cpu_set_t</a><span class="op">&gt;</span>()
         }
     }
 
-    <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for</span> <a class="ident" href="../../src/nix/sched.rs.html#55-57">CpuSet</a> {
-        <span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for</span> <a class="ident" href="../../src/nix/sched.rs.html#96-98">CpuSet</a> {
+        <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="self">Self</span> {
             <span class="ident"><span class="self">Self</span>::new</span>()
         }
     }
@@ -364,16 +452,16 @@
     <span class="doccomment">/// cpu_set.set(0);</span>
     <span class="doccomment">/// sched_setaffinity(Pid::from_raw(0), &amp;cpu_set);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">sched_setaffinity</span>(<span class="ident">pid</span>: <a class="ident" href="../../src/nix/unistd.rs.html#130">Pid</a>, <span class="ident">cpuset</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/nix/sched.rs.html#55-57">CpuSet</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">sched_setaffinity</span>(<span class="ident">pid</span>: <a class="ident" href="../../src/nix/unistd.rs.html#130">Pid</a>, <span class="ident">cpuset</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/nix/sched.rs.html#96-98">CpuSet</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="kw">unsafe</span> {
             <span class="ident">libc::sched_setaffinity</span>(
-                <a class="ident" href="../../src/nix/sched.rs.html#132">pid</a>.<span class="ident">into</span>(),
-                <span class="ident">mem::size_of</span>::<span class="op">&lt;</span><a class="ident" href="../../src/nix/sched.rs.html#55-57">CpuSet</a><span class="op">&gt;</span>() <span class="kw">as</span> <a class="ident" href="../../libc/unix/type.size_t.html">libc::size_t</a>,
-                <span class="kw-2">&amp;</span><a class="ident" href="../../src/nix/sched.rs.html#132">cpuset</a>.<span class="ident">cpu_set</span>,
+                <a class="ident" href="../../src/nix/sched.rs.html#173">pid</a>.<span class="ident">into</span>(),
+                <span class="ident">mem::size_of</span>::<span class="op">&lt;</span><a class="ident" href="../../src/nix/sched.rs.html#96-98">CpuSet</a><span class="op">&gt;</span>() <span class="kw">as</span> <a class="ident" href="../../libc/unix/type.size_t.html">libc::size_t</a>,
+                <span class="kw-2">&amp;</span><a class="ident" href="../../src/nix/sched.rs.html#173">cpuset</a>.<span class="ident">cpu_set</span>,
             )
         };
 
-        <span class="ident">Errno::result</span>(<a class="ident" href="../../src/nix/sched.rs.html#133">res</a>).<span class="ident">map</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>)
+        <span class="ident">Errno::result</span>(<a class="ident" href="../../src/nix/sched.rs.html#174">res</a>).<span class="ident">map</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>)
     }
 
     <span class="doccomment">/// `sched_getaffinity` get a thread&#39;s CPU affinity mask</span>
@@ -398,17 +486,17 @@
     <span class="doccomment">///     println!(&quot;Current thread can run on CPU 0&quot;);</span>
     <span class="doccomment">/// }</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">sched_getaffinity</span>(<span class="ident">pid</span>: <a class="ident" href="../../src/nix/unistd.rs.html#130">Pid</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/nix/sched.rs.html#55-57">CpuSet</a><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">sched_getaffinity</span>(<span class="ident">pid</span>: <a class="ident" href="../../src/nix/unistd.rs.html#130">Pid</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/nix/sched.rs.html#96-98">CpuSet</a><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">cpuset</span> <span class="op">=</span> <span class="ident">CpuSet::new</span>();
         <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="kw">unsafe</span> {
             <span class="ident">libc::sched_getaffinity</span>(
-                <a class="ident" href="../../src/nix/sched.rs.html#166">pid</a>.<span class="ident">into</span>(),
-                <span class="ident">mem::size_of</span>::<span class="op">&lt;</span><a class="ident" href="../../src/nix/sched.rs.html#55-57">CpuSet</a><span class="op">&gt;</span>() <span class="kw">as</span> <a class="ident" href="../../libc/unix/type.size_t.html">libc::size_t</a>,
-                <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../src/nix/sched.rs.html#167">cpuset</a>.<span class="ident">cpu_set</span>,
+                <a class="ident" href="../../src/nix/sched.rs.html#207">pid</a>.<span class="ident">into</span>(),
+                <span class="ident">mem::size_of</span>::<span class="op">&lt;</span><a class="ident" href="../../src/nix/sched.rs.html#96-98">CpuSet</a><span class="op">&gt;</span>() <span class="kw">as</span> <a class="ident" href="../../libc/unix/type.size_t.html">libc::size_t</a>,
+                <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../src/nix/sched.rs.html#208">cpuset</a>.<span class="ident">cpu_set</span>,
             )
         };
 
-        <span class="ident">Errno::result</span>(<a class="ident" href="../../src/nix/sched.rs.html#168">res</a>).<span class="ident">and</span>(<span class="prelude-val">Ok</span>(<a class="ident" href="../../src/nix/sched.rs.html#167">cpuset</a>))
+        <span class="ident">Errno::result</span>(<a class="ident" href="../../src/nix/sched.rs.html#209">res</a>).<span class="ident">and</span>(<span class="prelude-val">Ok</span>(<a class="ident" href="../../src/nix/sched.rs.html#208">cpuset</a>))
     }
 
     <span class="doccomment">/// `clone` create a child process</span>
@@ -420,53 +508,59 @@
     <span class="doccomment">/// care of that requirement.  The user only needs to provide a reference to</span>
     <span class="doccomment">/// a normally allocated buffer.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">clone</span>(
-        <span class="kw-2">mut</span> <span class="ident">cb</span>: <a class="ident" href="../../src/nix/sched.rs.html#46">CloneCb</a>,
+        <span class="kw-2">mut</span> <span class="ident">cb</span>: <a class="ident" href="../../src/nix/sched.rs.html#87">CloneCb</a>,
         <span class="ident">stack</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-        <span class="ident">flags</span>: <a class="ident" href="../../src/nix/sched.rs.html#18-44">CloneFlags</a>,
+        <span class="ident">flags</span>: <a class="ident" href="../../src/nix/sched.rs.html#22-84">CloneFlags</a>,
         <span class="ident">signal</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../libc/unix/type.c_int.html">c_int</a><span class="op">&gt;</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/nix/unistd.rs.html#130">Pid</a><span class="op">&gt;</span> {
-        <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">callback</span>(<span class="ident">data</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <a class="ident" href="../../src/nix/sched.rs.html#46">CloneCb</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="../../libc/unix/type.c_int.html">c_int</a> {
-            <span class="kw">let</span> <span class="ident">cb</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../src/nix/sched.rs.html#46">CloneCb</a> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">*</span><a class="ident" href="../../src/nix/sched.rs.html#193">data</a> };
-            (<span class="kw-2">*</span><a class="ident" href="../../src/nix/sched.rs.html#194">cb</a>)() <span class="kw">as</span> <a class="ident" href="../../libc/unix/type.c_int.html">c_int</a>
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/nix/unistd.rs.html#130">Pid</a><span class="op">&gt;</span> {
+        <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">callback</span>(<span class="ident">data</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <a class="ident" href="../../src/nix/sched.rs.html#87">CloneCb</a>) -&gt; <a class="ident" href="../../libc/unix/type.c_int.html">c_int</a> {
+            <span class="kw">let</span> <span class="ident">cb</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../src/nix/sched.rs.html#87">CloneCb</a> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">*</span><a class="ident" href="../../src/nix/sched.rs.html#234">data</a> };
+            (<span class="kw-2">*</span><a class="ident" href="../../src/nix/sched.rs.html#235">cb</a>)() <span class="kw">as</span> <a class="ident" href="../../libc/unix/type.c_int.html">c_int</a>
         }
 
         <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="kw">unsafe</span> {
-            <span class="kw">let</span> <span class="ident">combined</span> <span class="op">=</span> <a class="ident" href="../../src/nix/sched.rs.html#190">flags</a>.<a class="ident" href="../../src/nix/sched.rs.html#18-44">bits</a>() <span class="op">|</span> <a class="ident" href="../../src/nix/sched.rs.html#191">signal</a>.<span class="ident">unwrap_or</span>(<span class="number">0</span>);
-            <span class="kw">let</span> <span class="ident">ptr</span> <span class="op">=</span> <a class="ident" href="../../src/nix/sched.rs.html#189">stack</a>.<span class="ident">as_mut_ptr</span>().<span class="ident">add</span>(<a class="ident" href="../../src/nix/sched.rs.html#189">stack</a>.<span class="ident">len</span>());
-            <span class="kw">let</span> <span class="ident">ptr_aligned</span> <span class="op">=</span> <a class="ident" href="../../src/nix/sched.rs.html#200">ptr</a>.<span class="ident">sub</span>(<a class="ident" href="../../src/nix/sched.rs.html#200">ptr</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> <span class="op">%</span> <span class="number">16</span>);
+            <span class="kw">let</span> <span class="ident">combined</span> <span class="op">=</span> <a class="ident" href="../../src/nix/sched.rs.html#231">flags</a>.<a class="ident" href="../../src/nix/sched.rs.html#22-84">bits</a>() <span class="op">|</span> <a class="ident" href="../../src/nix/sched.rs.html#232">signal</a>.<span class="ident">unwrap_or</span>(<span class="number">0</span>);
+            <span class="kw">let</span> <span class="ident">ptr</span> <span class="op">=</span> <a class="ident" href="../../src/nix/sched.rs.html#230">stack</a>.<span class="ident">as_mut_ptr</span>().<span class="ident">add</span>(<a class="ident" href="../../src/nix/sched.rs.html#230">stack</a>.<span class="ident">len</span>());
+            <span class="kw">let</span> <span class="ident">ptr_aligned</span> <span class="op">=</span> <a class="ident" href="../../src/nix/sched.rs.html#241">ptr</a>.<span class="ident">sub</span>(<a class="ident" href="../../src/nix/sched.rs.html#241">ptr</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> <span class="op">%</span> <span class="number">16</span>);
             <span class="ident">libc::clone</span>(
                 <span class="ident">mem::transmute</span>(
-                    <a class="ident" href="../../src/nix/sched.rs.html#193">callback</a> <span class="kw">as</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span>(<span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">FnMut</span>() <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.isize.html">isize</a><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>,
+                    <a class="ident" href="../../src/nix/sched.rs.html#234">callback</a> <span class="kw">as</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span>(<span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">FnMut</span>() -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.isize.html">isize</a><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>,
                 ),
-                <a class="ident" href="../../src/nix/sched.rs.html#201">ptr_aligned</a> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>,
-                <a class="ident" href="../../src/nix/sched.rs.html#199">combined</a>,
-                <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../src/nix/sched.rs.html#188">cb</a> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw">_</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>,
+                <a class="ident" href="../../src/nix/sched.rs.html#242">ptr_aligned</a> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>,
+                <a class="ident" href="../../src/nix/sched.rs.html#240">combined</a>,
+                <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../src/nix/sched.rs.html#229">cb</a> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw">_</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>,
             )
         };
 
-        <span class="ident">Errno::result</span>(<a class="ident" href="../../src/nix/sched.rs.html#198">res</a>).<span class="ident">map</span>(<span class="ident">Pid::from_raw</span>)
+        <span class="ident">Errno::result</span>(<a class="ident" href="../../src/nix/sched.rs.html#239">res</a>).<span class="ident">map</span>(<span class="ident">Pid::from_raw</span>)
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">unshare</span>(<span class="ident">flags</span>: <a class="ident" href="../../src/nix/sched.rs.html#18-44">CloneFlags</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">libc::unshare</span>(<a class="ident" href="../../src/nix/sched.rs.html#215">flags</a>.<a class="ident" href="../../src/nix/sched.rs.html#18-44">bits</a>()) };
+    <span class="doccomment">/// disassociate parts of the process execution context</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// See also [unshare(2)](https://man7.org/linux/man-pages/man2/unshare.2.html)</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">unshare</span>(<span class="ident">flags</span>: <a class="ident" href="../../src/nix/sched.rs.html#22-84">CloneFlags</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">libc::unshare</span>(<a class="ident" href="../../src/nix/sched.rs.html#259">flags</a>.<a class="ident" href="../../src/nix/sched.rs.html#22-84">bits</a>()) };
 
-        <span class="ident">Errno::result</span>(<a class="ident" href="../../src/nix/sched.rs.html#216">res</a>).<span class="ident">map</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>)
+        <span class="ident">Errno::result</span>(<a class="ident" href="../../src/nix/sched.rs.html#260">res</a>).<span class="ident">map</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>)
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">setns</span>(<span class="ident">fd</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>, <span class="ident">nstype</span>: <a class="ident" href="../../src/nix/sched.rs.html#18-44">CloneFlags</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">libc::setns</span>(<a class="ident" href="../../src/nix/sched.rs.html#221">fd</a>, <a class="ident" href="../../src/nix/sched.rs.html#221">nstype</a>.<a class="ident" href="../../src/nix/sched.rs.html#18-44">bits</a>()) };
+    <span class="doccomment">/// reassociate thread with a namespace</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// See also [setns(2)](https://man7.org/linux/man-pages/man2/setns.2.html)</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">setns</span>(<span class="ident">fd</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>, <span class="ident">nstype</span>: <a class="ident" href="../../src/nix/sched.rs.html#22-84">CloneFlags</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">libc::setns</span>(<a class="ident" href="../../src/nix/sched.rs.html#268">fd</a>, <a class="ident" href="../../src/nix/sched.rs.html#268">nstype</a>.<a class="ident" href="../../src/nix/sched.rs.html#22-84">bits</a>()) };
 
-        <span class="ident">Errno::result</span>(<a class="ident" href="../../src/nix/sched.rs.html#222">res</a>).<span class="ident">map</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>)
+        <span class="ident">Errno::result</span>(<a class="ident" href="../../src/nix/sched.rs.html#269">res</a>).<span class="ident">map</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>)
     }
 }
 
 <span class="doccomment">/// Explicitly yield the processor to other threads.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// [Further reading](https://pubs.opengroup.org/onlinepubs/9699919799/functions/sched_yield.html)</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">sched_yield</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">sched_yield</span>() -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">libc::sched_yield</span>() };
 
-    <span class="ident">Errno::result</span>(<a class="ident" href="../../src/nix/sched.rs.html#232">res</a>).<span class="ident">map</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>)
+    <span class="ident">Errno::result</span>(<a class="ident" href="../../src/nix/sched.rs.html#279">res</a>).<span class="ident">map</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>)
 }
 </code></pre></div>
 </section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="nix" data-search-index-js="../../search-index.js" data-search-js="../../search.js"></div>

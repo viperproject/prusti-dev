@@ -331,7 +331,7 @@
 <span class="comment">// ===== impl PingPong =====</span>
 
 <span class="kw">impl</span> <a class="ident" href="../../../src/h2/proto/ping_pong.rs.html#15-19">PingPong</a> {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="self">Self</span> {
         <a class="ident" href="../../../src/h2/proto/ping_pong.rs.html#15-19">PingPong</a> {
             <span class="ident">pending_ping</span>: <span class="prelude-val">None</span>,
             <span class="ident">pending_pong</span>: <span class="prelude-val">None</span>,
@@ -340,7 +340,7 @@
     }
 
     <span class="doccomment">/// Can only be called once. If called a second time, returns `None`.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">take_user_pings</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../src/h2/proto/ping_pong.rs.html#22">UserPings</a><span class="op">&gt;</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">take_user_pings</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../src/h2/proto/ping_pong.rs.html#22">UserPings</a><span class="op">&gt;</span> {
         <span class="kw">if</span> <a class="self" href="../../../src/h2/proto/ping_pong.rs.html#73">self</a>.<span class="ident">user_pings</span>.<span class="ident">is_some</span>() {
             <span class="kw">return</span> <span class="prelude-val">None</span>;
         }
@@ -364,14 +364,14 @@
     }
 
     <span class="doccomment">/// Process a ping</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">recv_ping</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">ping</span>: <a class="ident" href="../../../src/h2/frame/ping.rs.html#9-12">Ping</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="../../../src/h2/proto/ping_pong.rs.html#44-48">ReceivedPing</a> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">recv_ping</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">ping</span>: <a class="ident" href="../../../src/h2/frame/ping.rs.html#9-12">Ping</a>) -&gt; <a class="ident" href="../../../src/h2/proto/ping_pong.rs.html#44-48">ReceivedPing</a> {
         <span class="comment">// The caller should always check that `send_pongs` returns ready before</span>
         <span class="comment">// calling `recv_ping`.</span>
         <span class="macro">assert!</span>(<a class="self" href="../../../src/h2/proto/ping_pong.rs.html#97">self</a>.<span class="ident">pending_pong</span>.<span class="ident">is_none</span>());
 
         <span class="kw">if</span> <a class="ident" href="../../../src/h2/proto/ping_pong.rs.html#97">ping</a>.<a class="ident" href="../../../src/h2/frame/ping.rs.html#47">is_ack</a>() {
             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">pending</span>) <span class="op">=</span> <a class="self" href="../../../src/h2/proto/ping_pong.rs.html#97">self</a>.<span class="ident">pending_ping</span>.<span class="ident">take</span>() {
-                <span class="kw">if</span> <span class="kw-2">&amp;</span><a class="ident" href="../../../src/h2/proto/ping_pong.rs.html#103">pending</a>.<span class="ident">payload</span> <span class="op">=</span><span class="op">=</span> <a class="ident" href="../../../src/h2/proto/ping_pong.rs.html#97">ping</a>.<a class="ident" href="../../../src/h2/frame/ping.rs.html#51">payload</a>() {
+                <span class="kw">if</span> <span class="kw-2">&amp;</span><a class="ident" href="../../../src/h2/proto/ping_pong.rs.html#103">pending</a>.<span class="ident">payload</span> <span class="op">==</span> <a class="ident" href="../../../src/h2/proto/ping_pong.rs.html#97">ping</a>.<a class="ident" href="../../../src/h2/frame/ping.rs.html#51">payload</a>() {
                     <span class="macro">assert_eq!</span>(
                         <span class="kw-2">&amp;</span><a class="ident" href="../../../src/h2/proto/ping_pong.rs.html#103">pending</a>.<span class="ident">payload</span>,
                         <span class="kw-2">&amp;</span><span class="ident">Ping::SHUTDOWN</span>,
@@ -386,7 +386,7 @@
             }
 
             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">users</span>) <span class="op">=</span> <a class="self" href="../../../src/h2/proto/ping_pong.rs.html#97">self</a>.<span class="ident">user_pings</span> {
-                <span class="kw">if</span> <a class="ident" href="../../../src/h2/proto/ping_pong.rs.html#97">ping</a>.<a class="ident" href="../../../src/h2/frame/ping.rs.html#51">payload</a>() <span class="op">=</span><span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">Ping::USER</span> <span class="op">&amp;&amp;</span> <a class="ident" href="../../../src/h2/proto/ping_pong.rs.html#118">users</a>.<a class="ident" href="../../../src/h2/proto/ping_pong.rs.html#245">receive_pong</a>() {
+                <span class="kw">if</span> <a class="ident" href="../../../src/h2/proto/ping_pong.rs.html#97">ping</a>.<a class="ident" href="../../../src/h2/frame/ping.rs.html#51">payload</a>() <span class="op">==</span> <span class="kw-2">&amp;</span><span class="ident">Ping::USER</span> <span class="op">&amp;&amp;</span> <a class="ident" href="../../../src/h2/proto/ping_pong.rs.html#118">users</a>.<a class="ident" href="../../../src/h2/proto/ping_pong.rs.html#245">receive_pong</a>() {
                     <span class="macro">trace!</span>(<span class="string">&quot;recv PING USER ack&quot;</span>);
                     <span class="kw">return</span> <a class="ident" href="../../../src/h2/proto/ping_pong.rs.html#46">ReceivedPing::Unknown</a>;
                 }
@@ -405,7 +405,7 @@
     }
 
     <span class="doccomment">/// Send any pending pongs.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">send_pending_pong</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">B</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">dst</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Codec</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">B</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span>(), <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a><span class="op">&gt;</span>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">send_pending_pong</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">B</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">dst</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Codec</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">B</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span>(), <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">T</span>: <a class="ident" href="../../../tokio_io/async_write/trait.AsyncWrite.html">AsyncWrite</a>,
         <span class="ident">B</span>: <a class="ident" href="../../../bytes/buf/buf/trait.Buf.html">Buf</a>,
@@ -424,7 +424,7 @@
     }
 
     <span class="doccomment">/// Send any pending pings.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">send_pending_ping</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">B</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">dst</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Codec</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">B</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span>(), <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a><span class="op">&gt;</span>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">send_pending_ping</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">B</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">dst</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Codec</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">B</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span>(), <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">T</span>: <a class="ident" href="../../../tokio_io/async_write/trait.AsyncWrite.html">AsyncWrite</a>,
         <span class="ident">B</span>: <a class="ident" href="../../../bytes/buf/buf/trait.Buf.html">Buf</a>,
@@ -440,7 +440,7 @@
                 <a class="ident" href="../../../src/h2/proto/ping_pong.rs.html#162">ping</a>.<span class="ident">sent</span> <span class="op">=</span> <span class="bool-val">true</span>;
             }
         } <span class="kw">else</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">users</span>) <span class="op">=</span> <a class="self" href="../../../src/h2/proto/ping_pong.rs.html#157">self</a>.<span class="ident">user_pings</span> {
-            <span class="kw">if</span> <a class="ident" href="../../../src/h2/proto/ping_pong.rs.html#172">users</a>.<span class="number">0</span>.<span class="ident">state</span>.<span class="ident">load</span>(<span class="ident">Ordering::Acquire</span>) <span class="op">=</span><span class="op">=</span> <a class="ident" href="../../../src/h2/proto/ping_pong.rs.html#53">USER_STATE_PENDING_PING</a> {
+            <span class="kw">if</span> <a class="ident" href="../../../src/h2/proto/ping_pong.rs.html#172">users</a>.<span class="number">0</span>.<span class="ident">state</span>.<span class="ident">load</span>(<span class="ident">Ordering::Acquire</span>) <span class="op">==</span> <a class="ident" href="../../../src/h2/proto/ping_pong.rs.html#53">USER_STATE_PENDING_PING</a> {
                 <span class="kw">if</span> <span class="op">!</span><a class="ident" href="../../../src/h2/proto/ping_pong.rs.html#157">dst</a>.<a class="ident" href="../../../src/h2/codec/mod.rs.html#138">poll_ready</a>()<span class="question-mark">?</span>.<span class="ident">is_ready</span>() {
                     <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Async::NotReady</span>);
                 }
@@ -458,10 +458,10 @@
 }
 
 <span class="kw">impl</span> <a class="ident" href="../../../src/h2/proto/ping_pong.rs.html#44-48">ReceivedPing</a> {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">is_shutdown</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">is_shutdown</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
         <span class="kw">match</span> <span class="kw-2">*</span><a class="self" href="../../../src/h2/proto/ping_pong.rs.html#191">self</a> {
-            <a class="ident" href="../../../src/h2/proto/ping_pong.rs.html#47">ReceivedPing::Shutdown</a> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">true</span>,
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
+            <a class="ident" href="../../../src/h2/proto/ping_pong.rs.html#47">ReceivedPing::Shutdown</a> =&gt; <span class="bool-val">true</span>,
+            <span class="kw">_</span> =&gt; <span class="bool-val">false</span>,
         }
     }
 }
@@ -469,7 +469,7 @@
 <span class="comment">// ===== impl UserPings =====</span>
 
 <span class="kw">impl</span> <a class="ident" href="../../../src/h2/proto/ping_pong.rs.html#22">UserPings</a> {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">send_ping</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../src/h2/proto/error.rs.html#8-11">proto::Error</a><span class="op">&gt;</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">send_ping</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../src/h2/proto/error.rs.html#8-11">proto::Error</a><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">prev</span> <span class="op">=</span> <a class="self" href="../../../src/h2/proto/ping_pong.rs.html#202">self</a>.<span class="number">0</span>.<span class="ident">state</span>.<span class="ident">compare_and_swap</span>(
             <a class="ident" href="../../../src/h2/proto/ping_pong.rs.html#51">USER_STATE_EMPTY</a>, <span class="comment">// current</span>
             <a class="ident" href="../../../src/h2/proto/ping_pong.rs.html#53">USER_STATE_PENDING_PING</a>, <span class="comment">// new</span>
@@ -477,21 +477,21 @@
         );
 
         <span class="kw">match</span> <a class="ident" href="../../../src/h2/proto/ping_pong.rs.html#203">prev</a> {
-            <a class="ident" href="../../../src/h2/proto/ping_pong.rs.html#51">USER_STATE_EMPTY</a> <span class="op">=</span><span class="op">&gt;</span> {
+            <a class="ident" href="../../../src/h2/proto/ping_pong.rs.html#51">USER_STATE_EMPTY</a> =&gt; {
                 <a class="self" href="../../../src/h2/proto/ping_pong.rs.html#202">self</a>.<span class="number">0</span>.<span class="ident">ping_task</span>.<span class="ident">notify</span>();
                 <span class="prelude-val">Ok</span>(())
             },
-            <a class="ident" href="../../../src/h2/proto/ping_pong.rs.html#59">USER_STATE_CLOSED</a> <span class="op">=</span><span class="op">&gt;</span> {
+            <a class="ident" href="../../../src/h2/proto/ping_pong.rs.html#59">USER_STATE_CLOSED</a> =&gt; {
                 <span class="prelude-val">Err</span>(<span class="prelude-val">Some</span>(<a class="ident" href="../../../src/h2/proto/ping_pong.rs.html#268">broken_pipe</a>().<span class="ident">into</span>()))
             }
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="kw">_</span> =&gt; {
                 <span class="comment">// Was already pending, user error!</span>
                 <span class="prelude-val">Err</span>(<span class="prelude-val">None</span>)
             }
         }
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">poll_pong</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span>(), <a class="ident" href="../../../src/h2/proto/error.rs.html#8-11">proto::Error</a><span class="op">&gt;</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">poll_pong</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span>(), <a class="ident" href="../../../src/h2/proto/error.rs.html#8-11">proto::Error</a><span class="op">&gt;</span> {
         <span class="comment">// Must register before checking state, in case state were to change</span>
         <span class="comment">// before we could register, and then the ping would just be lost.</span>
         <a class="self" href="../../../src/h2/proto/ping_pong.rs.html#224">self</a>.<span class="number">0</span>.<span class="ident">pong_task</span>.<span class="ident">register</span>();
@@ -502,9 +502,9 @@
         );
 
         <span class="kw">match</span> <a class="ident" href="../../../src/h2/proto/ping_pong.rs.html#228">prev</a> {
-            <a class="ident" href="../../../src/h2/proto/ping_pong.rs.html#57">USER_STATE_RECEIVED_PONG</a> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">Async::Ready</span>(())),
-            <a class="ident" href="../../../src/h2/proto/ping_pong.rs.html#59">USER_STATE_CLOSED</a> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/h2/proto/ping_pong.rs.html#268">broken_pipe</a>().<span class="ident">into</span>()),
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">Async::NotReady</span>),
+            <a class="ident" href="../../../src/h2/proto/ping_pong.rs.html#57">USER_STATE_RECEIVED_PONG</a> =&gt; <span class="prelude-val">Ok</span>(<span class="ident">Async::Ready</span>(())),
+            <a class="ident" href="../../../src/h2/proto/ping_pong.rs.html#59">USER_STATE_CLOSED</a> =&gt; <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/h2/proto/ping_pong.rs.html#268">broken_pipe</a>().<span class="ident">into</span>()),
+            <span class="kw">_</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident">Async::NotReady</span>),
         }
     }
 }
@@ -512,14 +512,14 @@
 <span class="comment">// ===== impl UserPingsRx =====</span>
 
 <span class="kw">impl</span> <a class="ident" href="../../../src/h2/proto/ping_pong.rs.html#25">UserPingsRx</a> {
-    <span class="kw">fn</span> <span class="ident">receive_pong</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    <span class="kw">fn</span> <span class="ident">receive_pong</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
         <span class="kw">let</span> <span class="ident">prev</span> <span class="op">=</span> <a class="self" href="../../../src/h2/proto/ping_pong.rs.html#245">self</a>.<span class="number">0</span>.<span class="ident">state</span>.<span class="ident">compare_and_swap</span>(
             <a class="ident" href="../../../src/h2/proto/ping_pong.rs.html#55">USER_STATE_PENDING_PONG</a>, <span class="comment">// current</span>
             <a class="ident" href="../../../src/h2/proto/ping_pong.rs.html#57">USER_STATE_RECEIVED_PONG</a>, <span class="comment">// new</span>
             <span class="ident">Ordering::AcqRel</span>,
         );
 
-        <span class="kw">if</span> <a class="ident" href="../../../src/h2/proto/ping_pong.rs.html#246">prev</a> <span class="op">=</span><span class="op">=</span> <a class="ident" href="../../../src/h2/proto/ping_pong.rs.html#55">USER_STATE_PENDING_PONG</a> {
+        <span class="kw">if</span> <a class="ident" href="../../../src/h2/proto/ping_pong.rs.html#246">prev</a> <span class="op">==</span> <a class="ident" href="../../../src/h2/proto/ping_pong.rs.html#55">USER_STATE_PENDING_PONG</a> {
             <a class="self" href="../../../src/h2/proto/ping_pong.rs.html#245">self</a>.<span class="number">0</span>.<span class="ident">pong_task</span>.<span class="ident">notify</span>();
             <span class="bool-val">true</span>
         } <span class="kw">else</span> {
@@ -535,7 +535,7 @@
     }
 }
 
-<span class="kw">fn</span> <span class="ident">broken_pipe</span>() <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a> {
+<span class="kw">fn</span> <span class="ident">broken_pipe</span>() -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a> {
     <span class="ident">io::ErrorKind::BrokenPipe</span>.<span class="ident">into</span>()
 }
 </code></pre></div>

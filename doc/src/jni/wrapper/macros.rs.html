@@ -141,7 +141,7 @@
 <span class="comment">// If a null pointer is returned, it is converted to an Err.</span>
 <span class="comment">// Returns Err if there is a pending exception after the call.</span>
 <span class="macro">macro_rules!</span> <span class="ident">jni_non_null_call</span> {
-    ( <span class="macro-nonterminal">$</span><span class="macro-nonterminal">jnienv</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>:<span class="ident">tt</span> $(, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">args</span>:<span class="ident">expr</span> )<span class="op">*</span> ) <span class="op">=</span><span class="op">&gt;</span> ({
+    ( <span class="macro-nonterminal">$</span><span class="macro-nonterminal">jnienv</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>:<span class="ident">tt</span> $(, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">args</span>:<span class="ident">expr</span> )<span class="op">*</span> ) =&gt; ({
         <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="macro">jni_non_void_call!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">jnienv</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span> $(, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">args</span>)<span class="kw-2">*</span>);
         <span class="macro">non_null!</span>(<span class="ident">res</span>, <span class="macro">concat!</span>(<span class="macro">stringify!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>), <span class="string">&quot; result&quot;</span>)).<span class="ident">into</span>()
     })
@@ -150,7 +150,7 @@
 <span class="comment">// A non-void JNI call. May return anything — primitives, references, error codes.</span>
 <span class="comment">// Returns Err if there is a pending exception after the call.</span>
 <span class="macro">macro_rules!</span> <span class="ident">jni_non_void_call</span> {
-    ( <span class="macro-nonterminal">$</span><span class="macro-nonterminal">jnienv</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>:<span class="ident">tt</span> $(, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">args</span>:<span class="ident">expr</span> )<span class="op">*</span> ) <span class="op">=</span><span class="op">&gt;</span> ({
+    ( <span class="macro-nonterminal">$</span><span class="macro-nonterminal">jnienv</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>:<span class="ident">tt</span> $(, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">args</span>:<span class="ident">expr</span> )<span class="op">*</span> ) =&gt; ({
         <span class="macro">log::trace!</span>(<span class="string">&quot;calling checked jni method: {}&quot;</span>, <span class="macro">stringify!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>));
 
         <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="kw">unsafe</span> {
@@ -163,7 +163,7 @@
 }
 
 <span class="macro">macro_rules!</span> <span class="ident">non_null</span> {
-    ( <span class="macro-nonterminal">$</span><span class="macro-nonterminal">obj</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ctx</span>:<span class="ident">expr</span> ) <span class="op">=</span><span class="op">&gt;</span> {
+    ( <span class="macro-nonterminal">$</span><span class="macro-nonterminal">obj</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ctx</span>:<span class="ident">expr</span> ) =&gt; {
         <span class="kw">if</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">obj</span>.<span class="ident">is_null</span>() {
             <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::errors::Error::NullPtr</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">ctx</span>));
         } <span class="kw">else</span> {
@@ -175,7 +175,7 @@
 <span class="comment">// A void JNI call.</span>
 <span class="comment">// Returns Err if there is a pending exception after the call.</span>
 <span class="macro">macro_rules!</span> <span class="ident">jni_void_call</span> {
-    ( <span class="macro-nonterminal">$</span><span class="macro-nonterminal">jnienv</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>:<span class="ident">tt</span> $(, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">args</span>:<span class="ident">expr</span> )<span class="op">*</span> ) <span class="op">=</span><span class="op">&gt;</span> ({
+    ( <span class="macro-nonterminal">$</span><span class="macro-nonterminal">jnienv</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>:<span class="ident">tt</span> $(, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">args</span>:<span class="ident">expr</span> )<span class="op">*</span> ) =&gt; ({
         <span class="macro">log::trace!</span>(<span class="string">&quot;calling checked jni method: {}&quot;</span>, <span class="macro">stringify!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>));
 
         <span class="kw">unsafe</span> {
@@ -189,7 +189,7 @@
 <span class="comment">// A JNI call that does not check for exceptions or verify</span>
 <span class="comment">// error codes (if any).</span>
 <span class="macro">macro_rules!</span> <span class="ident">jni_unchecked</span> {
-    ( <span class="macro-nonterminal">$</span><span class="macro-nonterminal">jnienv</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>:<span class="ident">tt</span> $(, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">args</span>:<span class="ident">expr</span> )<span class="op">*</span> ) <span class="op">=</span><span class="op">&gt;</span> ({
+    ( <span class="macro-nonterminal">$</span><span class="macro-nonterminal">jnienv</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>:<span class="ident">tt</span> $(, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">args</span>:<span class="ident">expr</span> )<span class="op">*</span> ) =&gt; ({
         <span class="macro">log::trace!</span>(<span class="string">&quot;calling unchecked jni method: {}&quot;</span>, <span class="macro">stringify!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>));
 
         <span class="kw">unsafe</span> {
@@ -199,15 +199,15 @@
 }
 
 <span class="macro">macro_rules!</span> <span class="ident">jni_method</span> {
-    ( <span class="macro-nonterminal">$</span><span class="macro-nonterminal">jnienv</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>:<span class="ident">tt</span> ) <span class="op">=</span><span class="op">&gt;</span> {{
+    ( <span class="macro-nonterminal">$</span><span class="macro-nonterminal">jnienv</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>:<span class="ident">tt</span> ) =&gt; {{
         <span class="macro">log::trace!</span>(<span class="string">&quot;looking up jni method {}&quot;</span>, <span class="macro">stringify!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>));
         <span class="kw">let</span> <span class="ident">env</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">jnienv</span>;
         <span class="kw">match</span> <span class="macro">deref!</span>(<span class="macro">deref!</span>(<span class="ident">env</span>, <span class="string">&quot;JNIEnv&quot;</span>), <span class="string">&quot;*JNIEnv&quot;</span>).<span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span> {
-            <span class="prelude-val">Some</span>(<span class="ident">method</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="prelude-val">Some</span>(<span class="ident">method</span>) =&gt; {
                 <span class="macro">log::trace!</span>(<span class="string">&quot;found jni method&quot;</span>);
                 <span class="ident">method</span>
             }
-            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="prelude-val">None</span> =&gt; {
                 <span class="macro">log::trace!</span>(<span class="string">&quot;jnienv method not defined, returning error&quot;</span>);
                 <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::errors::Error::JNIEnvMethodNotFound</span>(<span class="macro">stringify!</span>(
                     <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>
@@ -218,9 +218,9 @@
 }
 
 <span class="macro">macro_rules!</span> <span class="ident">check_exception</span> {
-    ( <span class="macro-nonterminal">$</span><span class="macro-nonterminal">jnienv</span>:<span class="ident">expr</span> ) <span class="op">=</span><span class="op">&gt;</span> {
+    ( <span class="macro-nonterminal">$</span><span class="macro-nonterminal">jnienv</span>:<span class="ident">expr</span> ) =&gt; {
         <span class="macro">log::trace!</span>(<span class="string">&quot;checking for exception&quot;</span>);
-        <span class="kw">let</span> <span class="ident">check</span> <span class="op">=</span> { <span class="macro">jni_unchecked!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">jnienv</span>, <span class="ident">ExceptionCheck</span>) } <span class="op">=</span><span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::sys::JNI_TRUE</span>;
+        <span class="kw">let</span> <span class="ident">check</span> <span class="op">=</span> { <span class="macro">jni_unchecked!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">jnienv</span>, <span class="ident">ExceptionCheck</span>) } <span class="op">==</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::sys::JNI_TRUE</span>;
         <span class="kw">if</span> <span class="ident">check</span> {
             <span class="macro">log::trace!</span>(<span class="string">&quot;exception found, returning error&quot;</span>);
             <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::errors::Error::JavaException</span>);
@@ -230,31 +230,31 @@
 }
 
 <span class="macro">macro_rules!</span> <span class="ident">catch</span> {
-    ( <span class="kw">move</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">b</span>:<span class="ident">block</span> ) <span class="op">=</span><span class="op">&gt;</span> {
+    ( <span class="kw">move</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">b</span>:<span class="ident">block</span> ) =&gt; {
         (<span class="kw">move</span> <span class="op">|</span><span class="op">|</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">b</span>)()
     };
-    ( <span class="macro-nonterminal">$</span><span class="macro-nonterminal">b</span>:<span class="ident">block</span> ) <span class="op">=</span><span class="op">&gt;</span> {
+    ( <span class="macro-nonterminal">$</span><span class="macro-nonterminal">b</span>:<span class="ident">block</span> ) =&gt; {
         (<span class="op">|</span><span class="op">|</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">b</span>)()
     };
 }
 
 <span class="macro">macro_rules!</span> <span class="ident">java_vm_unchecked</span> {
-    ( <span class="macro-nonterminal">$</span><span class="macro-nonterminal">java_vm</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>:<span class="ident">tt</span> $(, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">args</span>:<span class="ident">expr</span> )<span class="op">*</span> ) <span class="op">=</span><span class="op">&gt;</span> ({
+    ( <span class="macro-nonterminal">$</span><span class="macro-nonterminal">java_vm</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>:<span class="ident">tt</span> $(, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">args</span>:<span class="ident">expr</span> )<span class="op">*</span> ) =&gt; ({
         <span class="macro">log::trace!</span>(<span class="string">&quot;calling unchecked JavaVM method: {}&quot;</span>, <span class="macro">stringify!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>));
         <span class="macro">java_vm_method!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">java_vm</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>)(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">java_vm</span>, $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">args</span>),<span class="kw-2">*</span>)
     })
 }
 
 <span class="macro">macro_rules!</span> <span class="ident">java_vm_method</span> {
-    ( <span class="macro-nonterminal">$</span><span class="macro-nonterminal">jnienv</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>:<span class="ident">tt</span> ) <span class="op">=</span><span class="op">&gt;</span> {{
+    ( <span class="macro-nonterminal">$</span><span class="macro-nonterminal">jnienv</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>:<span class="ident">tt</span> ) =&gt; {{
         <span class="macro">log::trace!</span>(<span class="string">&quot;looking up JavaVM method {}&quot;</span>, <span class="macro">stringify!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>));
         <span class="kw">let</span> <span class="ident">env</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">jnienv</span>;
         <span class="kw">match</span> <span class="macro">deref!</span>(<span class="macro">deref!</span>(<span class="ident">env</span>, <span class="string">&quot;JavaVM&quot;</span>), <span class="string">&quot;*JavaVM&quot;</span>).<span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span> {
-            <span class="prelude-val">Some</span>(<span class="ident">meth</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="prelude-val">Some</span>(<span class="ident">meth</span>) =&gt; {
                 <span class="macro">log::trace!</span>(<span class="string">&quot;found JavaVM method&quot;</span>);
                 <span class="ident">meth</span>
             }
-            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="prelude-val">None</span> =&gt; {
                 <span class="macro">log::trace!</span>(<span class="string">&quot;JavaVM method not defined, returning error&quot;</span>);
                 <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::errors::Error::JavaVMMethodNotFound</span>(<span class="macro">stringify!</span>(
                     <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>
@@ -265,7 +265,7 @@
 }
 
 <span class="macro">macro_rules!</span> <span class="ident">deref</span> {
-    ( <span class="macro-nonterminal">$</span><span class="macro-nonterminal">obj</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ctx</span>:<span class="ident">expr</span> ) <span class="op">=</span><span class="op">&gt;</span> {
+    ( <span class="macro-nonterminal">$</span><span class="macro-nonterminal">obj</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ctx</span>:<span class="ident">expr</span> ) =&gt; {
         <span class="kw">if</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">obj</span>.<span class="ident">is_null</span>() {
             <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::errors::Error::NullDeref</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">ctx</span>));
         } <span class="kw">else</span> {

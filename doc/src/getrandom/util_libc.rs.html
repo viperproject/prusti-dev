@@ -144,13 +144,13 @@
     } <span class="kw">else</span> <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;dragonfly&quot;</span>)]</span> {
         <span class="comment">// Until rust-lang/rust#29594 is stable, we cannot get the errno value</span>
         <span class="comment">// on DragonFlyBSD. So we just return an out-of-range errno.</span>
-        <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">get_errno</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">libc::c_int</span> { <span class="op">-</span><span class="number">1</span> }
+        <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">get_errno</span>() -&gt; <span class="ident">libc::c_int</span> { <span class="op">-</span><span class="number">1</span> }
     } <span class="kw">else</span> {
-        <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">get_errno</span>() <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="../../libc/unix/type.c_int.html">libc::c_int</a> { <span class="kw-2">*</span><a class="ident" href="../../libc/unix/linux_like/linux/fn.__errno_location.html">errno_location</a>() }
+        <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">get_errno</span>() -&gt; <a class="ident" href="../../libc/unix/type.c_int.html">libc::c_int</a> { <span class="kw-2">*</span><a class="ident" href="../../libc/unix/linux_like/linux/fn.__errno_location.html">errno_location</a>() }
     }
 }
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">last_os_error</span>() <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="../../src/getrandom/error.rs.html#25">Error</a> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">last_os_error</span>() -&gt; <a class="ident" href="../../src/getrandom/error.rs.html#25">Error</a> {
     <span class="kw">let</span> <span class="ident">errno</span> <span class="op">=</span> <span class="kw">unsafe</span> { <a class="ident" href="../../src/getrandom/util_libc.rs.html#34">get_errno</a>() };
     <span class="kw">if</span> <a class="ident" href="../../src/getrandom/util_libc.rs.html#39">errno</a> <span class="op">&gt;</span> <span class="number">0</span> {
         <span class="ident">Error::from</span>(<span class="ident">NonZeroU32::new</span>(<a class="ident" href="../../src/getrandom/util_libc.rs.html#39">errno</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>).<span class="ident">unwrap</span>())
@@ -164,8 +164,8 @@
 <span class="comment">//   - should return the number of bytes written on success</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">sys_fill_exact</span>(
     <span class="kw-2">mut</span> <span class="ident">buf</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-    <span class="ident">sys_fill</span>: <span class="kw">impl</span> <span class="ident">Fn</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">libc::ssize_t</span>,
-) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../src/getrandom/error.rs.html#25">Error</a><span class="op">&gt;</span> {
+    <span class="ident">sys_fill</span>: <span class="kw">impl</span> <span class="ident">Fn</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>]) -&gt; <span class="ident">libc::ssize_t</span>,
+) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../src/getrandom/error.rs.html#25">Error</a><span class="op">&gt;</span> {
     <span class="kw">while</span> <span class="op">!</span><a class="ident" href="../../src/getrandom/util_libc.rs.html#51">buf</a>.<span class="ident">is_empty</span>() {
         <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <a class="ident" href="../../src/getrandom/util_libc.rs.html#52">sys_fill</a>(<a class="ident" href="../../src/getrandom/util_libc.rs.html#51">buf</a>);
         <span class="kw">if</span> <a class="ident" href="../../src/getrandom/util_libc.rs.html#55">res</a> <span class="op">&lt;</span> <span class="number">0</span> {
@@ -195,7 +195,7 @@
 <span class="kw">impl</span> <a class="ident" href="../../src/getrandom/util_libc.rs.html#75-78">Weak</a> {
     <span class="comment">// Construct a binding to a C function with a given name. This function is</span>
     <span class="comment">// unsafe because `name` _must_ be null terminated.</span>
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="self">Self</span> {
         <span class="self">Self</span> {
             <a class="ident" href="../../src/getrandom/util_libc.rs.html#83">name</a>,
             <span class="ident">addr</span>: <span class="ident">LazyUsize::new</span>(),
@@ -203,7 +203,7 @@
     }
 
     <span class="comment">// Return a function pointer if present at runtime. Otherwise, return null.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ptr</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">NonNull</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">libc::c_void</a><span class="op">&gt;</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ptr</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">NonNull</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">libc::c_void</a><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">addr</span> <span class="op">=</span> <a class="self" href="../../src/getrandom/util_libc.rs.html#91">self</a>.<span class="ident">addr</span>.<a class="ident" href="../../src/getrandom/util.rs.html#42">unsync_init</a>(<span class="op">|</span><span class="op">|</span> <span class="kw">unsafe</span> {
             <span class="ident">libc::dlsym</span>(<span class="ident">libc::RTLD_DEFAULT</span>, <a class="self" href="../../src/getrandom/util_libc.rs.html#91">self</a>.<span class="ident">name</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="kw">_</span>) <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>
         });
@@ -220,7 +220,7 @@
 }
 
 <span class="comment">// SAFETY: path must be null terminated, FD must be manually closed.</span>
-<span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">open_readonly</span>(<span class="ident">path</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../libc/unix/type.c_int.html">libc::c_int</a>, <a class="ident" href="../../src/getrandom/error.rs.html#25">Error</a><span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">open_readonly</span>(<span class="ident">path</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../libc/unix/type.c_int.html">libc::c_int</a>, <a class="ident" href="../../src/getrandom/error.rs.html#25">Error</a><span class="op">&gt;</span> {
     <span class="macro">debug_assert_eq!</span>(<a class="ident" href="../../src/getrandom/util_libc.rs.html#108">path</a>.<span class="ident">as_bytes</span>().<span class="ident">last</span>(), <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="number">0</span>));
     <span class="kw">let</span> <span class="ident">fd</span> <span class="op">=</span> <a class="ident" href="../../libc/unix/linux_like/fn.open64.html">open</a>(<a class="ident" href="../../src/getrandom/util_libc.rs.html#108">path</a>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="kw">_</span>, <span class="ident">libc::O_RDONLY</span> <span class="op">|</span> <span class="ident">libc::O_CLOEXEC</span>);
     <span class="kw">if</span> <a class="ident" href="../../src/getrandom/util_libc.rs.html#110">fd</a> <span class="op">&lt;</span> <span class="number">0</span> {

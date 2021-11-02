@@ -277,11 +277,11 @@
     <span class="doccomment">/// use num_traits::Pow;</span>
     <span class="doccomment">/// assert_eq!(Pow::pow(10u32, 2u32), 100);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">fn</span> <span class="ident">pow</span>(<span class="self">self</span>, <span class="ident">rhs</span>: <span class="ident">RHS</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::Output</span>;
+    <span class="kw">fn</span> <span class="ident">pow</span>(<span class="self">self</span>, <span class="ident">rhs</span>: <span class="ident">RHS</span>) -&gt; <span class="ident"><span class="self">Self</span>::Output</span>;
 }
 
 <span class="macro">macro_rules!</span> <span class="ident">pow_impl</span> {
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span>:<span class="ident">ty</span>) <span class="op">=</span><span class="op">&gt;</span> {
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span>:<span class="ident">ty</span>) =&gt; {
         <span class="macro">pow_impl!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span>, <span class="ident">u8</span>);
         <span class="macro">pow_impl!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span>, <span class="ident">usize</span>);
 
@@ -290,14 +290,14 @@
         <span class="comment">// pow_impl!($t, u32);</span>
         <span class="comment">// pow_impl!($t, u64);</span>
     };
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span>:<span class="ident">ty</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">rhs</span>:<span class="ident">ty</span>) <span class="op">=</span><span class="op">&gt;</span> {
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span>:<span class="ident">ty</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">rhs</span>:<span class="ident">ty</span>) =&gt; {
         <span class="macro">pow_impl!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">rhs</span>, <span class="ident">usize</span>, <span class="ident">pow</span>);
     };
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span>:<span class="ident">ty</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">rhs</span>:<span class="ident">ty</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">desired_rhs</span>:<span class="ident">ty</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">method</span>:<span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> {
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span>:<span class="ident">ty</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">rhs</span>:<span class="ident">ty</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">desired_rhs</span>:<span class="ident">ty</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">method</span>:<span class="ident">expr</span>) =&gt; {
         <span class="kw">impl</span> <span class="ident">Pow</span><span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">rhs</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span> {
             <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span>;
             <span class="attribute">#[<span class="ident">inline</span>]</span>
-            <span class="kw">fn</span> <span class="ident">pow</span>(<span class="self">self</span>, <span class="ident">rhs</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">rhs</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span> {
+            <span class="kw">fn</span> <span class="ident">pow</span>(<span class="self">self</span>, <span class="ident">rhs</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">rhs</span>) -&gt; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span> {
                 (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">method</span>)(<span class="self">self</span>, <span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">desired_rhs</span><span class="op">&gt;</span><span class="ident">::from</span>(<span class="ident">rhs</span>))
             }
         }
@@ -305,7 +305,7 @@
         <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">Pow</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">rhs</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span> {
             <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span>;
             <span class="attribute">#[<span class="ident">inline</span>]</span>
-            <span class="kw">fn</span> <span class="ident">pow</span>(<span class="self">self</span>, <span class="ident">rhs</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">rhs</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span> {
+            <span class="kw">fn</span> <span class="ident">pow</span>(<span class="self">self</span>, <span class="ident">rhs</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">rhs</span>) -&gt; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span> {
                 (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">method</span>)(<span class="self">self</span>, <span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">desired_rhs</span><span class="op">&gt;</span><span class="ident">::from</span>(<span class="kw-2">*</span><span class="ident">rhs</span>))
             }
         }
@@ -313,7 +313,7 @@
         <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">Pow</span><span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">rhs</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span> {
             <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span>;
             <span class="attribute">#[<span class="ident">inline</span>]</span>
-            <span class="kw">fn</span> <span class="ident">pow</span>(<span class="self">self</span>, <span class="ident">rhs</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">rhs</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span> {
+            <span class="kw">fn</span> <span class="ident">pow</span>(<span class="self">self</span>, <span class="ident">rhs</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">rhs</span>) -&gt; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span> {
                 (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">method</span>)(<span class="kw-2">*</span><span class="self">self</span>, <span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">desired_rhs</span><span class="op">&gt;</span><span class="ident">::from</span>(<span class="ident">rhs</span>))
             }
         }
@@ -321,7 +321,7 @@
         <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span><span class="op">&gt;</span> <span class="ident">Pow</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">rhs</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span> {
             <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span>;
             <span class="attribute">#[<span class="ident">inline</span>]</span>
-            <span class="kw">fn</span> <span class="ident">pow</span>(<span class="self">self</span>, <span class="ident">rhs</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">rhs</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span> {
+            <span class="kw">fn</span> <span class="ident">pow</span>(<span class="self">self</span>, <span class="ident">rhs</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">rhs</span>) -&gt; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span> {
                 (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">method</span>)(<span class="kw-2">*</span><span class="self">self</span>, <span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">desired_rhs</span><span class="op">&gt;</span><span class="ident">::from</span>(<span class="kw-2">*</span><span class="ident">rhs</span>))
             }
         }
@@ -448,16 +448,16 @@
 <span class="doccomment">/// assert_eq!(pow(0u8, 0), 1); // Be aware if this case affects you</span>
 <span class="doccomment">/// ```</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">pow</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> <span class="op">+</span> <a class="ident" href="../../src/num_traits/identities.rs.html#90-118">One</a> <span class="op">+</span> <span class="ident">Mul</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">Output</span> <span class="op">=</span> <span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="kw-2">mut</span> <span class="ident">base</span>: <span class="ident">T</span>, <span class="kw-2">mut</span> <span class="ident">exp</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">T</span> {
-    <span class="kw">if</span> <a class="ident" href="../../src/num_traits/pow.rs.html#189">exp</a> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">pow</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> <span class="op">+</span> <a class="ident" href="../../src/num_traits/identities.rs.html#90-118">One</a> <span class="op">+</span> <span class="ident">Mul</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">Output</span> <span class="op">=</span> <span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="kw-2">mut</span> <span class="ident">base</span>: <span class="ident">T</span>, <span class="kw-2">mut</span> <span class="ident">exp</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="ident">T</span> {
+    <span class="kw">if</span> <a class="ident" href="../../src/num_traits/pow.rs.html#189">exp</a> <span class="op">==</span> <span class="number">0</span> {
         <span class="kw">return</span> <span class="ident">T::one</span>();
     }
 
-    <span class="kw">while</span> <a class="ident" href="../../src/num_traits/pow.rs.html#189">exp</a> <span class="op">&amp;</span> <span class="number">1</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
+    <span class="kw">while</span> <a class="ident" href="../../src/num_traits/pow.rs.html#189">exp</a> <span class="op">&amp;</span> <span class="number">1</span> <span class="op">==</span> <span class="number">0</span> {
         <a class="ident" href="../../src/num_traits/pow.rs.html#189">base</a> <span class="op">=</span> <a class="ident" href="../../src/num_traits/pow.rs.html#189">base</a>.<span class="ident">clone</span>() <span class="op">*</span> <a class="ident" href="../../src/num_traits/pow.rs.html#189">base</a>;
         <a class="ident" href="../../src/num_traits/pow.rs.html#189">exp</a> <span class="op">&gt;</span><span class="op">&gt;</span><span class="op">=</span> <span class="number">1</span>;
     }
-    <span class="kw">if</span> <a class="ident" href="../../src/num_traits/pow.rs.html#189">exp</a> <span class="op">=</span><span class="op">=</span> <span class="number">1</span> {
+    <span class="kw">if</span> <a class="ident" href="../../src/num_traits/pow.rs.html#189">exp</a> <span class="op">==</span> <span class="number">1</span> {
         <span class="kw">return</span> <a class="ident" href="../../src/num_traits/pow.rs.html#189">base</a>;
     }
 
@@ -465,7 +465,7 @@
     <span class="kw">while</span> <a class="ident" href="../../src/num_traits/pow.rs.html#189">exp</a> <span class="op">&gt;</span> <span class="number">1</span> {
         <a class="ident" href="../../src/num_traits/pow.rs.html#189">exp</a> <span class="op">&gt;</span><span class="op">&gt;</span><span class="op">=</span> <span class="number">1</span>;
         <a class="ident" href="../../src/num_traits/pow.rs.html#189">base</a> <span class="op">=</span> <a class="ident" href="../../src/num_traits/pow.rs.html#189">base</a>.<span class="ident">clone</span>() <span class="op">*</span> <a class="ident" href="../../src/num_traits/pow.rs.html#189">base</a>;
-        <span class="kw">if</span> <a class="ident" href="../../src/num_traits/pow.rs.html#189">exp</a> <span class="op">&amp;</span> <span class="number">1</span> <span class="op">=</span><span class="op">=</span> <span class="number">1</span> {
+        <span class="kw">if</span> <a class="ident" href="../../src/num_traits/pow.rs.html#189">exp</a> <span class="op">&amp;</span> <span class="number">1</span> <span class="op">==</span> <span class="number">1</span> {
             <a class="ident" href="../../src/num_traits/pow.rs.html#202">acc</a> <span class="op">=</span> <a class="ident" href="../../src/num_traits/pow.rs.html#202">acc</a> <span class="op">*</span> <a class="ident" href="../../src/num_traits/pow.rs.html#189">base</a>.<span class="ident">clone</span>();
         }
     }
@@ -489,13 +489,13 @@
 <span class="doccomment">/// assert_eq!(checked_pow(0u32, 0), Some(1)); // Be aware if this case affect you</span>
 <span class="doccomment">/// ```</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">checked_pow</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> <span class="op">+</span> <a class="ident" href="../../src/num_traits/identities.rs.html#90-118">One</a> <span class="op">+</span> <a class="ident" href="../../src/num_traits/ops/checked.rs.html#63-67">CheckedMul</a><span class="op">&gt;</span>(<span class="kw-2">mut</span> <span class="ident">base</span>: <span class="ident">T</span>, <span class="kw-2">mut</span> <span class="ident">exp</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">if</span> <a class="ident" href="../../src/num_traits/pow.rs.html#230">exp</a> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">checked_pow</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> <span class="op">+</span> <a class="ident" href="../../src/num_traits/identities.rs.html#90-118">One</a> <span class="op">+</span> <a class="ident" href="../../src/num_traits/ops/checked.rs.html#63-67">CheckedMul</a><span class="op">&gt;</span>(<span class="kw-2">mut</span> <span class="ident">base</span>: <span class="ident">T</span>, <span class="kw-2">mut</span> <span class="ident">exp</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+    <span class="kw">if</span> <a class="ident" href="../../src/num_traits/pow.rs.html#230">exp</a> <span class="op">==</span> <span class="number">0</span> {
         <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="ident">T::one</span>());
     }
 
     <span class="macro">macro_rules!</span> <span class="ident">optry</span> {
-        (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">expr</span>:<span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">expr</span>:<span class="ident">expr</span>) =&gt; {
             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">val</span>) <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">expr</span> {
                 <span class="ident">val</span>
             } <span class="kw">else</span> {
@@ -504,11 +504,11 @@
         };
     }
 
-    <span class="kw">while</span> <a class="ident" href="../../src/num_traits/pow.rs.html#230">exp</a> <span class="op">&amp;</span> <span class="number">1</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
+    <span class="kw">while</span> <a class="ident" href="../../src/num_traits/pow.rs.html#230">exp</a> <span class="op">&amp;</span> <span class="number">1</span> <span class="op">==</span> <span class="number">0</span> {
         <a class="ident" href="../../src/num_traits/pow.rs.html#230">base</a> <span class="op">=</span> <span class="macro">optry!</span>(<a class="ident" href="../../src/num_traits/pow.rs.html#230">base</a>.<a class="ident" href="../../src/num_traits/ops/checked.rs.html#66">checked_mul</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/num_traits/pow.rs.html#230">base</a>));
         <a class="ident" href="../../src/num_traits/pow.rs.html#230">exp</a> <span class="op">&gt;</span><span class="op">&gt;</span><span class="op">=</span> <span class="number">1</span>;
     }
-    <span class="kw">if</span> <a class="ident" href="../../src/num_traits/pow.rs.html#230">exp</a> <span class="op">=</span><span class="op">=</span> <span class="number">1</span> {
+    <span class="kw">if</span> <a class="ident" href="../../src/num_traits/pow.rs.html#230">exp</a> <span class="op">==</span> <span class="number">1</span> {
         <span class="kw">return</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../src/num_traits/pow.rs.html#230">base</a>);
     }
 
@@ -516,7 +516,7 @@
     <span class="kw">while</span> <a class="ident" href="../../src/num_traits/pow.rs.html#230">exp</a> <span class="op">&gt;</span> <span class="number">1</span> {
         <a class="ident" href="../../src/num_traits/pow.rs.html#230">exp</a> <span class="op">&gt;</span><span class="op">&gt;</span><span class="op">=</span> <span class="number">1</span>;
         <a class="ident" href="../../src/num_traits/pow.rs.html#230">base</a> <span class="op">=</span> <span class="macro">optry!</span>(<a class="ident" href="../../src/num_traits/pow.rs.html#230">base</a>.<a class="ident" href="../../src/num_traits/ops/checked.rs.html#66">checked_mul</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/num_traits/pow.rs.html#230">base</a>));
-        <span class="kw">if</span> <a class="ident" href="../../src/num_traits/pow.rs.html#230">exp</a> <span class="op">&amp;</span> <span class="number">1</span> <span class="op">=</span><span class="op">=</span> <span class="number">1</span> {
+        <span class="kw">if</span> <a class="ident" href="../../src/num_traits/pow.rs.html#230">exp</a> <span class="op">&amp;</span> <span class="number">1</span> <span class="op">==</span> <span class="number">1</span> {
             <a class="ident" href="../../src/num_traits/pow.rs.html#253">acc</a> <span class="op">=</span> <span class="macro">optry!</span>(<a class="ident" href="../../src/num_traits/pow.rs.html#253">acc</a>.<a class="ident" href="../../src/num_traits/ops/checked.rs.html#66">checked_mul</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/num_traits/pow.rs.html#230">base</a>));
         }
     }

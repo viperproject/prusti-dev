@@ -54,7 +54,7 @@ sentinel value.</p>
 <p>The ergonomics and implementation of the <code>Future</code> trait are very similar to
 the <code>Iterator</code> trait in that there is just one methods you need
 to implement, but you get a whole lot of others for free as a result.</p>
-<h1 id="the-poll-method" class="section-header"><a href="#the-poll-method">The <code>poll</code> method</a></h1>
+<h2 id="the-poll-method" class="section-header"><a href="#the-poll-method">The <code>poll</code> method</a></h2>
 <p>The core method of future, <code>poll</code>, is used to attempt to generate the value
 of a <code>Future</code>. This method <em>does not block</em> but is allowed to inform the
 caller that the value is not ready yet. Implementations of <code>poll</code> may
@@ -70,7 +70,7 @@ typically called in the context of a “task” which drives a future to
 completion. For more information on this see the <code>task</code> module.</p>
 <p>More information about the details of <code>poll</code> and the nitty-gritty of tasks
 can be <a href="https://tokio.rs/docs/going-deeper-futures/futures-model/">found online at tokio.rs</a>.</p>
-<h1 id="combinators" class="section-header"><a href="#combinators">Combinators</a></h1>
+<h2 id="combinators" class="section-header"><a href="#combinators">Combinators</a></h2>
 <p>Like iterators, futures provide a large number of combinators to work with
 futures to express computations in a much more natural method than
 scheduling a number of callbacks. For example the <code>map</code> method can change
@@ -100,7 +100,7 @@ is then ready to make progress (e.g. it should be <code>poll</code>ed again) the
 <code>unpark</code> method is called on the <code>Task</code>.</p>
 <p>More information about the details of <code>poll</code> and the nitty-gritty of
 tasks can be <a href="https://tokio.rs/docs/going-deeper-futures/futures-model/">found online at tokio.rs</a>.</p>
-<h1 id="runtime-characteristics" class="section-header"><a href="#runtime-characteristics">Runtime characteristics</a></h1>
+<h5 id="runtime-characteristics" class="section-header"><a href="#runtime-characteristics">Runtime characteristics</a></h5>
 <p>This function, <code>poll</code>, is the primary method for ‘making progress’
 within a tree of futures. For example this method will be called
 repeatedly as the internal state machine makes its various transitions.
@@ -120,7 +120,7 @@ you’re familiar with the <code>poll(2)</code> or <code>select(2)</code> syscal
 it’s worth noting that futures typically do <em>not</em> suffer the same
 problems of “all wakeups must poll all events”. Futures have enough
 support for only polling futures which cause a wakeup.</p>
-<h1 id="return-value" class="section-header"><a href="#return-value">Return value</a></h1>
+<h5 id="return-value" class="section-header"><a href="#return-value">Return value</a></h5>
 <p>This function returns <code>Async::NotReady</code> if the future is not ready yet,
 <code>Err</code> if the future is finished but resolved to an error, or
 <code>Async::Ready</code> with the result of this future if it’s finished
@@ -138,7 +138,7 @@ will not receive notifications. In other words, implementers of the
 last task that called this method. Alternatively callers of this method
 can only rely on the most recent task which call <code>poll</code> being notified
 when a future is ready.</p>
-<h1 id="panics" class="section-header"><a href="#panics">Panics</a></h1>
+<h5 id="panics" class="section-header"><a href="#panics">Panics</a></h5>
 <p>Once a future has completed (returned <code>Ready</code> or <code>Err</code> from <code>poll</code>),
 then any future calls to <code>poll</code> may panic, block forever, or otherwise
 cause wrong behavior. The <code>Future</code> trait itself provides no guarantees
@@ -149,7 +149,7 @@ a little bit of extra cost.</p>
 <p>Additionally, calls to <code>poll</code> must always be made from within the
 context of a task. If a current task is not set then this method will
 likely panic.</p>
-<h1 id="errors" class="section-header"><a href="#errors">Errors</a></h1>
+<h5 id="errors" class="section-header"><a href="#errors">Errors</a></h5>
 <p>This future may have failed to finish the computation, in which case
 the <code>Err</code> variant will be returned with an appropriate payload of an
 error.</p>
@@ -168,7 +168,7 @@ by another thread.</p>
 </blockquote>
 <p>This method is only available when the <code>use_std</code> feature of this
 library is activated, and it is activated by default.</p>
-<h1 id="panics-1" class="section-header"><a href="#panics-1">Panics</a></h1>
+<h5 id="panics-1" class="section-header"><a href="#panics-1">Panics</a></h5>
 <p>This function does not attempt to catch panics. If the <code>poll</code> function
 of this future panics, panics will be propagated to the caller.</p>
 </div></details><details class="rustdoc-toggle" open><summary><div id="method.map" class="method has-srclink"><div class="rightside"><a class="srclink" href="../../src/futures/future/mod.rs.html#371-376" title="goto source code">[src]</a></div><h4 class="code-header">fn <a href="#method.map" class="fnname">map</a>&lt;F, U&gt;(self, f: F) -&gt; <a class="struct" href="struct.Map.html" title="struct futures::future::Map">Map</a>&lt;Self, F&gt; <span class="where fmt-newline">where<br>&nbsp;&nbsp;&nbsp;&nbsp;F: <a class="trait" href="https://doc.rust-lang.org/nightly/core/ops/function/trait.FnOnce.html" title="trait core::ops::function::FnOnce">FnOnce</a>(Self::<a class="type" href="trait.Future.html#associatedtype.Item" title="type futures::future::Future::Item">Item</a>) -&gt; U,<br>&nbsp;&nbsp;&nbsp;&nbsp;Self: <a class="trait" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a>,&nbsp;</span></h4></div></summary><div class="docblock"><p>Map this future’s result to a different type, returning a new future of
@@ -182,7 +182,7 @@ then the closure provided will never be invoked.</p>
 <p>Note that this function consumes the receiving future and returns a
 wrapped version of it, similar to the existing <code>map</code> methods in the
 standard library.</p>
-<h1 id="examples" class="section-header"><a href="#examples">Examples</a></h1>
+<h5 id="examples" class="section-header"><a href="#examples">Examples</a></h5>
 <div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use</span> <span class="ident">futures::prelude</span>::<span class="kw-2">*</span>;
 <span class="kw">use</span> <span class="ident">futures::future</span>;
 
@@ -207,7 +207,7 @@ with an error. If this future returns a success, panics, or is
 dropped, then the closure provided will never be invoked.</p>
 <p>Note that this function consumes the receiving future and returns a
 wrapped version of it.</p>
-<h1 id="examples-1" class="section-header"><a href="#examples-1">Examples</a></h1>
+<h5 id="examples-1" class="section-header"><a href="#examples-1">Examples</a></h5>
 <div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use</span> <span class="ident">futures::future</span>::<span class="kw-2">*</span>;
 
 <span class="kw">let</span> <span class="ident">future</span> <span class="op">=</span> <span class="ident">err</span>::<span class="op">&lt;</span><span class="ident">u32</span>, <span class="ident">u32</span><span class="op">&gt;</span>(<span class="number">1</span>);
@@ -229,7 +229,7 @@ that futures have the same error type when used with
 combinators like <code>select</code> and <code>join</code>.</p>
 <p>Note that this function consumes the receiving future and returns a
 wrapped version of it.</p>
-<h1 id="examples-2" class="section-header"><a href="#examples-2">Examples</a></h1>
+<h5 id="examples-2" class="section-header"><a href="#examples-2">Examples</a></h5>
 <div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use</span> <span class="ident">futures::prelude</span>::<span class="kw-2">*</span>;
 <span class="kw">use</span> <span class="ident">futures::future</span>;
 
@@ -249,7 +249,7 @@ closure and return it.</p>
 run.</p>
 <p>Note that this function consumes the receiving future and returns a
 wrapped version of it.</p>
-<h1 id="examples-3" class="section-header"><a href="#examples-3">Examples</a></h1>
+<h5 id="examples-3" class="section-header"><a href="#examples-3">Examples</a></h5>
 <div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use</span> <span class="ident">futures::prelude</span>::<span class="kw-2">*</span>;
 <span class="kw">use</span> <span class="ident">futures::future</span>;
 
@@ -261,8 +261,8 @@ wrapped version of it.</p>
 <span class="kw">let</span> <span class="ident">future_of_err_1</span> <span class="op">=</span> <span class="ident">future::err</span>::<span class="op">&lt;</span><span class="ident">u32</span>, <span class="ident">u32</span><span class="op">&gt;</span>(<span class="number">1</span>);
 <span class="kw">let</span> <span class="ident">future_of_4</span> <span class="op">=</span> <span class="ident">future_of_err_1</span>.<span class="ident">then</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> {
     <span class="kw">match</span> <span class="ident">x</span> {
-        <span class="prelude-val">Ok</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic!</span>(<span class="string">&quot;expected an error&quot;</span>),
-        <span class="prelude-val">Err</span>(<span class="ident">y</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">future::ok</span>::<span class="op">&lt;</span><span class="ident">u32</span>, <span class="ident">u32</span><span class="op">&gt;</span>(<span class="ident">y</span> <span class="op">+</span> <span class="number">3</span>),
+        <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; <span class="macro">panic!</span>(<span class="string">&quot;expected an error&quot;</span>),
+        <span class="prelude-val">Err</span>(<span class="ident">y</span>) =&gt; <span class="ident">future::ok</span>::<span class="op">&lt;</span><span class="ident">u32</span>, <span class="ident">u32</span><span class="op">&gt;</span>(<span class="ident">y</span> <span class="op">+</span> <span class="number">3</span>),
     }
 });</code></pre></div>
 </div></details><details class="rustdoc-toggle" open><summary><div id="method.and_then" class="method has-srclink"><div class="rightside"><a class="srclink" href="../../src/futures/future/mod.rs.html#526-532" title="goto source code">[src]</a></div><h4 class="code-header">fn <a href="#method.and_then" class="fnname">and_then</a>&lt;F, B&gt;(self, f: F) -&gt; <a class="struct" href="struct.AndThen.html" title="struct futures::future::AndThen">AndThen</a>&lt;Self, B, F&gt; <span class="where fmt-newline">where<br>&nbsp;&nbsp;&nbsp;&nbsp;F: <a class="trait" href="https://doc.rust-lang.org/nightly/core/ops/function/trait.FnOnce.html" title="trait core::ops::function::FnOnce">FnOnce</a>(Self::<a class="type" href="trait.Future.html#associatedtype.Item" title="type futures::future::Future::Item">Item</a>) -&gt; B,<br>&nbsp;&nbsp;&nbsp;&nbsp;B: <a class="trait" href="trait.IntoFuture.html" title="trait futures::future::IntoFuture">IntoFuture</a>&lt;Error = Self::<a class="type" href="trait.Future.html#associatedtype.Error" title="type futures::future::Future::Error">Error</a>&gt;,<br>&nbsp;&nbsp;&nbsp;&nbsp;Self: <a class="trait" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a>,&nbsp;</span></h4></div></summary><div class="docblock"><p>Execute another future after this one has resolved successfully.</p>
@@ -277,7 +277,7 @@ the end of one future.</p>
 provided closure <code>f</code> is never called.</p>
 <p>Note that this function consumes the receiving future and returns a
 wrapped version of it.</p>
-<h1 id="examples-4" class="section-header"><a href="#examples-4">Examples</a></h1>
+<h5 id="examples-4" class="section-header"><a href="#examples-4">Examples</a></h5>
 <div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use</span> <span class="ident">futures::prelude</span>::<span class="kw-2">*</span>;
 <span class="kw">use</span> <span class="ident">futures::future</span>::{<span class="self">self</span>, <span class="ident">FutureResult</span>};
 
@@ -287,7 +287,7 @@ wrapped version of it.</p>
 });
 
 <span class="kw">let</span> <span class="ident">future_of_err_1</span> <span class="op">=</span> <span class="ident">future::err</span>::<span class="op">&lt;</span><span class="ident">u32</span>, <span class="ident">u32</span><span class="op">&gt;</span>(<span class="number">1</span>);
-<span class="ident">future_of_err_1</span>.<span class="ident">and_then</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="op">-</span><span class="op">&gt;</span> <span class="ident">FutureResult</span><span class="op">&lt;</span><span class="ident">u32</span>, <span class="ident">u32</span><span class="op">&gt;</span> {
+<span class="ident">future_of_err_1</span>.<span class="ident">and_then</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> -&gt; <span class="ident">FutureResult</span><span class="op">&lt;</span><span class="ident">u32</span>, <span class="ident">u32</span><span class="op">&gt;</span> {
     <span class="macro">panic!</span>(<span class="string">&quot;should not be called in case of an error&quot;</span>);
 });</code></pre></div>
 </div></details><details class="rustdoc-toggle" open><summary><div id="method.or_else" class="method has-srclink"><div class="rightside"><a class="srclink" href="../../src/futures/future/mod.rs.html#567-573" title="goto source code">[src]</a></div><h4 class="code-header">fn <a href="#method.or_else" class="fnname">or_else</a>&lt;F, B&gt;(self, f: F) -&gt; <a class="struct" href="struct.OrElse.html" title="struct futures::future::OrElse">OrElse</a>&lt;Self, B, F&gt; <span class="where fmt-newline">where<br>&nbsp;&nbsp;&nbsp;&nbsp;F: <a class="trait" href="https://doc.rust-lang.org/nightly/core/ops/function/trait.FnOnce.html" title="trait core::ops::function::FnOnce">FnOnce</a>(Self::<a class="type" href="trait.Future.html#associatedtype.Error" title="type futures::future::Future::Error">Error</a>) -&gt; B,<br>&nbsp;&nbsp;&nbsp;&nbsp;B: <a class="trait" href="trait.IntoFuture.html" title="trait futures::future::IntoFuture">IntoFuture</a>&lt;Item = Self::<a class="type" href="trait.Future.html#associatedtype.Item" title="type futures::future::Future::Item">Item</a>&gt;,<br>&nbsp;&nbsp;&nbsp;&nbsp;Self: <a class="trait" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a>,&nbsp;</span></h4></div></summary><div class="docblock"><p>Execute another future if this one resolves with an error.</p>
@@ -302,17 +302,17 @@ when one fails, the next is attempted.</p>
 provided closure <code>f</code> is never called.</p>
 <p>Note that this function consumes the receiving future and returns a
 wrapped version of it.</p>
-<h1 id="examples-5" class="section-header"><a href="#examples-5">Examples</a></h1>
+<h5 id="examples-5" class="section-header"><a href="#examples-5">Examples</a></h5>
 <div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use</span> <span class="ident">futures::prelude</span>::<span class="kw-2">*</span>;
 <span class="kw">use</span> <span class="ident">futures::future</span>::{<span class="self">self</span>, <span class="ident">FutureResult</span>};
 
 <span class="kw">let</span> <span class="ident">future_of_err_1</span> <span class="op">=</span> <span class="ident">future::err</span>::<span class="op">&lt;</span><span class="ident">u32</span>, <span class="ident">u32</span><span class="op">&gt;</span>(<span class="number">1</span>);
-<span class="kw">let</span> <span class="ident">future_of_4</span> <span class="op">=</span> <span class="ident">future_of_err_1</span>.<span class="ident">or_else</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">u32</span>, <span class="ident">u32</span><span class="op">&gt;</span> {
+<span class="kw">let</span> <span class="ident">future_of_4</span> <span class="op">=</span> <span class="ident">future_of_err_1</span>.<span class="ident">or_else</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">u32</span>, <span class="ident">u32</span><span class="op">&gt;</span> {
     <span class="prelude-val">Ok</span>(<span class="ident">x</span> <span class="op">+</span> <span class="number">3</span>)
 });
 
 <span class="kw">let</span> <span class="ident">future_of_1</span> <span class="op">=</span> <span class="ident">future::ok</span>::<span class="op">&lt;</span><span class="ident">u32</span>, <span class="ident">u32</span><span class="op">&gt;</span>(<span class="number">1</span>);
-<span class="ident">future_of_1</span>.<span class="ident">or_else</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="op">-</span><span class="op">&gt;</span> <span class="ident">FutureResult</span><span class="op">&lt;</span><span class="ident">u32</span>, <span class="ident">u32</span><span class="op">&gt;</span> {
+<span class="ident">future_of_1</span>.<span class="ident">or_else</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> -&gt; <span class="ident">FutureResult</span><span class="op">&lt;</span><span class="ident">u32</span>, <span class="ident">u32</span><span class="op">&gt;</span> {
     <span class="macro">panic!</span>(<span class="string">&quot;should not be called in case of success&quot;</span>);
 });</code></pre></div>
 </div></details><details class="rustdoc-toggle" open><summary><div id="method.select" class="method has-srclink"><div class="rightside"><a class="srclink" href="../../src/futures/future/mod.rs.html#625-632" title="goto source code">[src]</a></div><h4 class="code-header">fn <a href="#method.select" class="fnname">select</a>&lt;B&gt;(self, other: B) -&gt; <a class="struct" href="struct.Select.html" title="struct futures::future::Select">Select</a>&lt;Self, B::<a class="type" href="trait.IntoFuture.html#associatedtype.Future" title="type futures::future::IntoFuture::Future">Future</a>&gt; <span class="where fmt-newline">where<br>&nbsp;&nbsp;&nbsp;&nbsp;B: <a class="trait" href="trait.IntoFuture.html" title="trait futures::future::IntoFuture">IntoFuture</a>&lt;Item = Self::<a class="type" href="trait.Future.html#associatedtype.Item" title="type futures::future::Future::Item">Item</a>, Error = Self::<a class="type" href="trait.Future.html#associatedtype.Error" title="type futures::future::Future::Error">Error</a>&gt;,<br>&nbsp;&nbsp;&nbsp;&nbsp;Self: <a class="trait" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a>,&nbsp;</span></h4></div></summary><div class="docblock"><p>Waits for either one of two futures to complete.</p>
@@ -322,7 +322,7 @@ both the value resolved and a future representing the completion of the
 other work. Both futures must have the same item and error type.</p>
 <p>Note that this function consumes the receiving futures and returns a
 wrapped version of them.</p>
-<h1 id="examples-6" class="section-header"><a href="#examples-6">Examples</a></h1>
+<h5 id="examples-6" class="section-header"><a href="#examples-6">Examples</a></h5>
 <div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use</span> <span class="ident">futures::prelude</span>::<span class="kw-2">*</span>;
 <span class="kw">use</span> <span class="ident">futures::future</span>;
 <span class="kw">use</span> <span class="ident">std::thread</span>;
@@ -346,13 +346,13 @@ wrapped version of them.</p>
 <div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use</span> <span class="ident">futures::prelude</span>::<span class="kw-2">*</span>;
 <span class="kw">use</span> <span class="ident">futures::future</span>;
 
-<span class="kw">fn</span> <span class="ident">join</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span>(<span class="ident">a</span>: <span class="ident">A</span>, <span class="ident">b</span>: <span class="ident">A</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Item</span><span class="op">=</span>(<span class="ident">u32</span>, <span class="ident">u32</span>), <span class="ident">Error</span><span class="op">=</span><span class="ident">u32</span><span class="op">&gt;</span><span class="op">&gt;</span>
+<span class="kw">fn</span> <span class="ident">join</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span>(<span class="ident">a</span>: <span class="ident">A</span>, <span class="ident">b</span>: <span class="ident">A</span>) -&gt; <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Item</span><span class="op">=</span>(<span class="ident">u32</span>, <span class="ident">u32</span>), <span class="ident">Error</span><span class="op">=</span><span class="ident">u32</span><span class="op">&gt;</span><span class="op">&gt;</span>
     <span class="kw">where</span> <span class="ident">A</span>: <span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">u32</span>, <span class="ident">Error</span> <span class="op">=</span> <span class="ident">u32</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
 {
-    <span class="ident">Box::new</span>(<span class="ident">a</span>.<span class="ident">select</span>(<span class="ident">b</span>).<span class="ident">then</span>(<span class="op">|</span><span class="ident">res</span><span class="op">|</span> <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Item</span><span class="op">=</span><span class="kw">_</span>, <span class="ident">Error</span><span class="op">=</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+    <span class="ident">Box::new</span>(<span class="ident">a</span>.<span class="ident">select</span>(<span class="ident">b</span>).<span class="ident">then</span>(<span class="op">|</span><span class="ident">res</span><span class="op">|</span> -&gt; <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Item</span><span class="op">=</span><span class="kw">_</span>, <span class="ident">Error</span><span class="op">=</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="ident">res</span> {
-            <span class="prelude-val">Ok</span>((<span class="ident">a</span>, <span class="ident">b</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Box::new</span>(<span class="ident">b</span>.<span class="ident">map</span>(<span class="kw">move</span> <span class="op">|</span><span class="ident">b</span><span class="op">|</span> (<span class="ident">a</span>, <span class="ident">b</span>))),
-            <span class="prelude-val">Err</span>((<span class="ident">a</span>, <span class="kw">_</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Box::new</span>(<span class="ident">future::err</span>(<span class="ident">a</span>)),
+            <span class="prelude-val">Ok</span>((<span class="ident">a</span>, <span class="ident">b</span>)) =&gt; <span class="ident">Box::new</span>(<span class="ident">b</span>.<span class="ident">map</span>(<span class="kw">move</span> <span class="op">|</span><span class="ident">b</span><span class="op">|</span> (<span class="ident">a</span>, <span class="ident">b</span>))),
+            <span class="prelude-val">Err</span>((<span class="ident">a</span>, <span class="kw">_</span>)) =&gt; <span class="ident">Box::new</span>(<span class="ident">future::err</span>(<span class="ident">a</span>)),
         }
     }))
 }</code></pre></div>
@@ -366,23 +366,23 @@ wrapped version of them.</p>
 <p>Also note that if both this and the second future have the same
 success/error type you can use the <code>Either::split</code> method to
 conveniently extract out the value at the end.</p>
-<h1 id="examples-7" class="section-header"><a href="#examples-7">Examples</a></h1>
+<h5 id="examples-7" class="section-header"><a href="#examples-7">Examples</a></h5>
 <div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use</span> <span class="ident">futures::prelude</span>::<span class="kw-2">*</span>;
 <span class="kw">use</span> <span class="ident">futures::future</span>::{<span class="self">self</span>, <span class="ident">Either</span>};
 
 <span class="comment">// A poor-man&#39;s join implemented on top of select2</span>
 
-<span class="kw">fn</span> <span class="ident">join</span><span class="op">&lt;</span><span class="ident">A</span>, <span class="ident">B</span>, <span class="ident">E</span><span class="op">&gt;</span>(<span class="ident">a</span>: <span class="ident">A</span>, <span class="ident">b</span>: <span class="ident">B</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Item</span><span class="op">=</span>(<span class="ident">A::Item</span>, <span class="ident">B::Item</span>), <span class="ident">Error</span><span class="op">=</span><span class="ident">E</span><span class="op">&gt;</span><span class="op">&gt;</span>
+<span class="kw">fn</span> <span class="ident">join</span><span class="op">&lt;</span><span class="ident">A</span>, <span class="ident">B</span>, <span class="ident">E</span><span class="op">&gt;</span>(<span class="ident">a</span>: <span class="ident">A</span>, <span class="ident">b</span>: <span class="ident">B</span>) -&gt; <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Item</span><span class="op">=</span>(<span class="ident">A::Item</span>, <span class="ident">B::Item</span>), <span class="ident">Error</span><span class="op">=</span><span class="ident">E</span><span class="op">&gt;</span><span class="op">&gt;</span>
     <span class="kw">where</span> <span class="ident">A</span>: <span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Error</span> <span class="op">=</span> <span class="ident">E</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
           <span class="ident">B</span>: <span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Error</span> <span class="op">=</span> <span class="ident">E</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
           <span class="ident">E</span>: <span class="lifetime">&#39;static</span>,
 {
-    <span class="ident">Box::new</span>(<span class="ident">a</span>.<span class="ident">select2</span>(<span class="ident">b</span>).<span class="ident">then</span>(<span class="op">|</span><span class="ident">res</span><span class="op">|</span> <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Item</span><span class="op">=</span><span class="kw">_</span>, <span class="ident">Error</span><span class="op">=</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+    <span class="ident">Box::new</span>(<span class="ident">a</span>.<span class="ident">select2</span>(<span class="ident">b</span>).<span class="ident">then</span>(<span class="op">|</span><span class="ident">res</span><span class="op">|</span> -&gt; <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Item</span><span class="op">=</span><span class="kw">_</span>, <span class="ident">Error</span><span class="op">=</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="ident">res</span> {
-            <span class="prelude-val">Ok</span>(<span class="ident">Either::A</span>((<span class="ident">x</span>, <span class="ident">b</span>))) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Box::new</span>(<span class="ident">b</span>.<span class="ident">map</span>(<span class="kw">move</span> <span class="op">|</span><span class="ident">y</span><span class="op">|</span> (<span class="ident">x</span>, <span class="ident">y</span>))),
-            <span class="prelude-val">Ok</span>(<span class="ident">Either::B</span>((<span class="ident">y</span>, <span class="ident">a</span>))) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Box::new</span>(<span class="ident">a</span>.<span class="ident">map</span>(<span class="kw">move</span> <span class="op">|</span><span class="ident">x</span><span class="op">|</span> (<span class="ident">x</span>, <span class="ident">y</span>))),
-            <span class="prelude-val">Err</span>(<span class="ident">Either::A</span>((<span class="ident">e</span>, <span class="kw">_</span>))) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Box::new</span>(<span class="ident">future::err</span>(<span class="ident">e</span>)),
-            <span class="prelude-val">Err</span>(<span class="ident">Either::B</span>((<span class="ident">e</span>, <span class="kw">_</span>))) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Box::new</span>(<span class="ident">future::err</span>(<span class="ident">e</span>)),
+            <span class="prelude-val">Ok</span>(<span class="ident">Either::A</span>((<span class="ident">x</span>, <span class="ident">b</span>))) =&gt; <span class="ident">Box::new</span>(<span class="ident">b</span>.<span class="ident">map</span>(<span class="kw">move</span> <span class="op">|</span><span class="ident">y</span><span class="op">|</span> (<span class="ident">x</span>, <span class="ident">y</span>))),
+            <span class="prelude-val">Ok</span>(<span class="ident">Either::B</span>((<span class="ident">y</span>, <span class="ident">a</span>))) =&gt; <span class="ident">Box::new</span>(<span class="ident">a</span>.<span class="ident">map</span>(<span class="kw">move</span> <span class="op">|</span><span class="ident">x</span><span class="op">|</span> (<span class="ident">x</span>, <span class="ident">y</span>))),
+            <span class="prelude-val">Err</span>(<span class="ident">Either::A</span>((<span class="ident">e</span>, <span class="kw">_</span>))) =&gt; <span class="ident">Box::new</span>(<span class="ident">future::err</span>(<span class="ident">e</span>)),
+            <span class="prelude-val">Err</span>(<span class="ident">Either::B</span>((<span class="ident">e</span>, <span class="kw">_</span>))) =&gt; <span class="ident">Box::new</span>(<span class="ident">future::err</span>(<span class="ident">e</span>)),
         }
     }))
 }</code></pre></div>
@@ -395,7 +395,7 @@ an error then the other will be dropped and that error will be
 returned.</p>
 <p>Note that this function consumes the receiving future and returns a
 wrapped version of it.</p>
-<h1 id="examples-8" class="section-header"><a href="#examples-8">Examples</a></h1>
+<h5 id="examples-8" class="section-header"><a href="#examples-8">Examples</a></h5>
 <div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use</span> <span class="ident">futures::prelude</span>::<span class="kw-2">*</span>;
 <span class="kw">use</span> <span class="ident">futures::future</span>;
 
@@ -421,7 +421,7 @@ wrapped version of it.</p>
 </div></details><details class="rustdoc-toggle" open><summary><div id="method.into_stream" class="method has-srclink"><div class="rightside"><a class="srclink" href="../../src/futures/future/mod.rs.html#778-782" title="goto source code">[src]</a></div><h4 class="code-header">fn <a href="#method.into_stream" class="fnname">into_stream</a>(self) -&gt; <a class="struct" href="struct.IntoStream.html" title="struct futures::future::IntoStream">IntoStream</a>&lt;Self&gt; <span class="where fmt-newline">where<br>&nbsp;&nbsp;&nbsp;&nbsp;Self: <a class="trait" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a>,&nbsp;</span></h4></div></summary><div class="docblock"><p>Convert this future into a single element stream.</p>
 <p>The returned stream contains single success if this future resolves to
 success or single error if this future resolves into error.</p>
-<h1 id="examples-9" class="section-header"><a href="#examples-9">Examples</a></h1>
+<h5 id="examples-9" class="section-header"><a href="#examples-9">Examples</a></h5>
 <div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use</span> <span class="ident">futures::prelude</span>::<span class="kw-2">*</span>;
 <span class="kw">use</span> <span class="ident">futures::future</span>;
 
@@ -444,7 +444,7 @@ type.</p>
 <p>This method is roughly equivalent to <code>self.and_then(|x| x)</code>.</p>
 <p>Note that this function consumes the receiving future and returns a
 wrapped version of it.</p>
-<h1 id="examples-10" class="section-header"><a href="#examples-10">Examples</a></h1>
+<h5 id="examples-10" class="section-header"><a href="#examples-10">Examples</a></h5>
 <div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use</span> <span class="ident">futures::prelude</span>::<span class="kw-2">*</span>;
 <span class="kw">use</span> <span class="ident">futures::future</span>;
 
@@ -467,7 +467,7 @@ convenient to work with that stream as if stream was available at the
 call site.</p>
 <p>Note that this function consumes this future and returns a wrapped
 version of it.</p>
-<h1 id="examples-11" class="section-header"><a href="#examples-11">Examples</a></h1>
+<h5 id="examples-11" class="section-header"><a href="#examples-11">Examples</a></h5>
 <div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use</span> <span class="ident">futures::prelude</span>::<span class="kw-2">*</span>;
 <span class="kw">use</span> <span class="ident">futures::future</span>;
 <span class="kw">use</span> <span class="ident">futures::stream</span>;
@@ -494,7 +494,7 @@ then it will forever return <code>NotReady</code> from <code>poll</code> again (
 resolve).  This, unlike the trait’s <code>poll</code> method, is guaranteed.</p>
 <p>This combinator will drop this future as soon as it’s been completed to
 ensure resources are reclaimed as soon as possible.</p>
-<h1 id="examples-12" class="section-header"><a href="#examples-12">Examples</a></h1>
+<h5 id="examples-12" class="section-header"><a href="#examples-12">Examples</a></h5>
 <div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use</span> <span class="ident">futures::prelude</span>::<span class="kw-2">*</span>;
 <span class="kw">use</span> <span class="ident">futures::future</span>;
 
@@ -512,7 +512,7 @@ ensure resources are reclaimed as soon as possible.</p>
 <p>When using futures, you’ll often chain several of them together.
 While working on such code, you might want to check out what’s happening at
 various parts in the pipeline. To do that, insert a call to inspect().</p>
-<h1 id="examples-13" class="section-header"><a href="#examples-13">Examples</a></h1>
+<h5 id="examples-13" class="section-header"><a href="#examples-13">Examples</a></h5>
 <div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use</span> <span class="ident">futures::prelude</span>::<span class="kw-2">*</span>;
 <span class="kw">use</span> <span class="ident">futures::future</span>;
 
@@ -531,14 +531,14 @@ after-the fact. To assist using this method, the <code>Future</code> trait is al
 implemented for <code>AssertUnwindSafe&lt;F&gt;</code> where <code>F</code> implements <code>Future</code>.</p>
 <p>This method is only available when the <code>use_std</code> feature of this
 library is activated, and it is activated by default.</p>
-<h1 id="examples-14" class="section-header"><a href="#examples-14">Examples</a></h1>
+<h5 id="examples-14" class="section-header"><a href="#examples-14">Examples</a></h5>
 <div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use</span> <span class="ident">futures::prelude</span>::<span class="kw-2">*</span>;
 <span class="kw">use</span> <span class="ident">futures::future</span>::{<span class="self">self</span>, <span class="ident">FutureResult</span>};
 
 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">future</span> <span class="op">=</span> <span class="ident">future::ok</span>::<span class="op">&lt;</span><span class="ident">i32</span>, <span class="ident">u32</span><span class="op">&gt;</span>(<span class="number">2</span>);
 <span class="macro">assert!</span>(<span class="ident">future</span>.<span class="ident">catch_unwind</span>().<span class="ident">wait</span>().<span class="ident">is_ok</span>());
 
-<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">future</span> <span class="op">=</span> <span class="ident">future::lazy</span>(<span class="op">|</span><span class="op">|</span> <span class="op">-</span><span class="op">&gt;</span> <span class="ident">FutureResult</span><span class="op">&lt;</span><span class="ident">i32</span>, <span class="ident">u32</span><span class="op">&gt;</span> {
+<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">future</span> <span class="op">=</span> <span class="ident">future::lazy</span>(<span class="op">|</span><span class="op">|</span> -&gt; <span class="ident">FutureResult</span><span class="op">&lt;</span><span class="ident">i32</span>, <span class="ident">u32</span><span class="op">&gt;</span> {
     <span class="macro">panic!</span>();
     <span class="ident">future::ok</span>::<span class="op">&lt;</span><span class="ident">i32</span>, <span class="ident">u32</span><span class="op">&gt;</span>(<span class="number">2</span>)
 });
@@ -554,7 +554,7 @@ access to the underlying result. Ownership of <code>Self::Item</code> and
 <code>Self::Error</code> cannot currently be reclaimed.</p>
 <p>This method is only available when the <code>use_std</code> feature of this
 library is activated, and it is activated by default.</p>
-<h1 id="examples-15" class="section-header"><a href="#examples-15">Examples</a></h1>
+<h5 id="examples-15" class="section-header"><a href="#examples-15">Examples</a></h5>
 <div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use</span> <span class="ident">futures::prelude</span>::<span class="kw-2">*</span>;
 <span class="kw">use</span> <span class="ident">futures::future</span>;
 

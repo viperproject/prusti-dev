@@ -531,7 +531,7 @@
     <span class="doccomment">/// Waits until a value is written into the slot.</span>
     <span class="kw">fn</span> <span class="ident">wait_write</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) {
         <span class="kw">let</span> <span class="ident">backoff</span> <span class="op">=</span> <span class="ident">Backoff::new</span>();
-        <span class="kw">while</span> <a class="self" href="../../src/crossbeam_queue/seg_queue.rs.html#42">self</a>.<span class="ident">state</span>.<span class="ident">load</span>(<span class="ident">Ordering::Acquire</span>) <span class="op">&amp;</span> <a class="ident" href="../../src/crossbeam_queue/seg_queue.rs.html#18">WRITE</a> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
+        <span class="kw">while</span> <a class="self" href="../../src/crossbeam_queue/seg_queue.rs.html#42">self</a>.<span class="ident">state</span>.<span class="ident">load</span>(<span class="ident">Ordering::Acquire</span>) <span class="op">&amp;</span> <a class="ident" href="../../src/crossbeam_queue/seg_queue.rs.html#18">WRITE</a> <span class="op">==</span> <span class="number">0</span> {
             <a class="ident" href="../../src/crossbeam_queue/seg_queue.rs.html#43">backoff</a>.<span class="ident">snooze</span>();
         }
     }
@@ -550,7 +550,7 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">Block</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
     <span class="doccomment">/// Creates an empty block that starts at `start_index`.</span>
-    <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Block</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="ident">Block</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
         <span class="comment">// SAFETY: This is safe because:</span>
         <span class="comment">//  [1] `Block::next` (AtomicPtr) may be safely zero initialized.</span>
         <span class="comment">//  [2] `Block::slots` (Array) may be safely zero initialized because of [3, 4].</span>
@@ -561,7 +561,7 @@
     }
 
     <span class="doccomment">/// Waits until the next pointer is set.</span>
-    <span class="kw">fn</span> <span class="ident">wait_next</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">Block</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">wait_next</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">Block</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">backoff</span> <span class="op">=</span> <span class="ident">Backoff::new</span>();
         <span class="kw">loop</span> {
             <span class="kw">let</span> <span class="ident">next</span> <span class="op">=</span> <a class="self" href="../../src/crossbeam_queue/seg_queue.rs.html#74">self</a>.<span class="ident">next</span>.<span class="ident">load</span>(<span class="ident">Ordering::Acquire</span>);
@@ -580,8 +580,8 @@
             <span class="kw">let</span> <span class="ident">slot</span> <span class="op">=</span> (<span class="kw-2">*</span><a class="ident" href="../../src/crossbeam_queue/seg_queue.rs.html#86">this</a>).<span class="ident">slots</span>.<span class="ident">get_unchecked</span>(<a class="ident" href="../../src/crossbeam_queue/seg_queue.rs.html#89">i</a>);
 
             <span class="comment">// Mark the `DESTROY` bit if a thread is still using the slot.</span>
-            <span class="kw">if</span> <a class="ident" href="../../src/crossbeam_queue/seg_queue.rs.html#90">slot</a>.<span class="ident">state</span>.<span class="ident">load</span>(<span class="ident">Ordering::Acquire</span>) <span class="op">&amp;</span> <a class="ident" href="../../src/crossbeam_queue/seg_queue.rs.html#19">READ</a> <span class="op">=</span><span class="op">=</span> <span class="number">0</span>
-                <span class="op">&amp;&amp;</span> <a class="ident" href="../../src/crossbeam_queue/seg_queue.rs.html#90">slot</a>.<span class="ident">state</span>.<span class="ident">fetch_or</span>(<a class="ident" href="../../src/crossbeam_queue/seg_queue.rs.html#20">DESTROY</a>, <span class="ident">Ordering::AcqRel</span>) <span class="op">&amp;</span> <a class="ident" href="../../src/crossbeam_queue/seg_queue.rs.html#19">READ</a> <span class="op">=</span><span class="op">=</span> <span class="number">0</span>
+            <span class="kw">if</span> <a class="ident" href="../../src/crossbeam_queue/seg_queue.rs.html#90">slot</a>.<span class="ident">state</span>.<span class="ident">load</span>(<span class="ident">Ordering::Acquire</span>) <span class="op">&amp;</span> <a class="ident" href="../../src/crossbeam_queue/seg_queue.rs.html#19">READ</a> <span class="op">==</span> <span class="number">0</span>
+                <span class="op">&amp;&amp;</span> <a class="ident" href="../../src/crossbeam_queue/seg_queue.rs.html#90">slot</a>.<span class="ident">state</span>.<span class="ident">fetch_or</span>(<a class="ident" href="../../src/crossbeam_queue/seg_queue.rs.html#20">DESTROY</a>, <span class="ident">Ordering::AcqRel</span>) <span class="op">&amp;</span> <a class="ident" href="../../src/crossbeam_queue/seg_queue.rs.html#19">READ</a> <span class="op">==</span> <span class="number">0</span>
             {
                 <span class="comment">// If a thread is still using the slot, it will continue destruction of the block.</span>
                 <span class="kw">return</span>;
@@ -649,7 +649,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// let q = SegQueue::&lt;i32&gt;::new();</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">SegQueue</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="ident">SegQueue</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
         <a class="ident" href="../../src/crossbeam_queue/seg_queue.rs.html#138-147">SegQueue</a> {
             <span class="ident">head</span>: <span class="ident">CachePadded::new</span>(<a class="ident" href="../../src/crossbeam_queue/seg_queue.rs.html#107-113">Position</a> {
                 <span class="ident">block</span>: <span class="ident">AtomicPtr::new</span>(<span class="ident">ptr::null_mut</span>()),
@@ -686,7 +686,7 @@
             <span class="kw">let</span> <span class="ident">offset</span> <span class="op">=</span> (<a class="ident" href="../../src/crossbeam_queue/seg_queue.rs.html#190">tail</a> <span class="op">&gt;</span><span class="op">&gt;</span> <a class="ident" href="../../src/crossbeam_queue/seg_queue.rs.html#27">SHIFT</a>) <span class="op">%</span> <a class="ident" href="../../src/crossbeam_queue/seg_queue.rs.html#23">LAP</a>;
 
             <span class="comment">// If we reached the end of the block, wait until the next one is installed.</span>
-            <span class="kw">if</span> <a class="ident" href="../../src/crossbeam_queue/seg_queue.rs.html#196">offset</a> <span class="op">=</span><span class="op">=</span> <a class="ident" href="../../src/crossbeam_queue/seg_queue.rs.html#25">BLOCK_CAP</a> {
+            <span class="kw">if</span> <a class="ident" href="../../src/crossbeam_queue/seg_queue.rs.html#196">offset</a> <span class="op">==</span> <a class="ident" href="../../src/crossbeam_queue/seg_queue.rs.html#25">BLOCK_CAP</a> {
                 <a class="ident" href="../../src/crossbeam_queue/seg_queue.rs.html#189">backoff</a>.<span class="ident">snooze</span>();
                 <a class="ident" href="../../src/crossbeam_queue/seg_queue.rs.html#190">tail</a> <span class="op">=</span> <a class="self" href="../../src/crossbeam_queue/seg_queue.rs.html#188">self</a>.<span class="ident">tail</span>.<span class="ident">index</span>.<span class="ident">load</span>(<span class="ident">Ordering::Acquire</span>);
                 <a class="ident" href="../../src/crossbeam_queue/seg_queue.rs.html#191">block</a> <span class="op">=</span> <a class="self" href="../../src/crossbeam_queue/seg_queue.rs.html#188">self</a>.<span class="ident">tail</span>.<span class="ident">block</span>.<span class="ident">load</span>(<span class="ident">Ordering::Acquire</span>);
@@ -695,7 +695,7 @@
 
             <span class="comment">// If we&#39;re going to have to install the next block, allocate it in advance in order to</span>
             <span class="comment">// make the wait for other threads as short as possible.</span>
-            <span class="kw">if</span> <a class="ident" href="../../src/crossbeam_queue/seg_queue.rs.html#196">offset</a> <span class="op">+</span> <span class="number">1</span> <span class="op">=</span><span class="op">=</span> <a class="ident" href="../../src/crossbeam_queue/seg_queue.rs.html#25">BLOCK_CAP</a> <span class="op">&amp;&amp;</span> <a class="ident" href="../../src/crossbeam_queue/seg_queue.rs.html#192">next_block</a>.<span class="ident">is_none</span>() {
+            <span class="kw">if</span> <a class="ident" href="../../src/crossbeam_queue/seg_queue.rs.html#196">offset</a> <span class="op">+</span> <span class="number">1</span> <span class="op">==</span> <a class="ident" href="../../src/crossbeam_queue/seg_queue.rs.html#25">BLOCK_CAP</a> <span class="op">&amp;&amp;</span> <a class="ident" href="../../src/crossbeam_queue/seg_queue.rs.html#192">next_block</a>.<span class="ident">is_none</span>() {
                 <a class="ident" href="../../src/crossbeam_queue/seg_queue.rs.html#192">next_block</a> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">Box::new</span>(<span class="ident">Block</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::new</span>()));
             }
 
@@ -707,7 +707,7 @@
                     .<span class="ident">tail</span>
                     .<span class="ident">block</span>
                     .<span class="ident">compare_and_swap</span>(<a class="ident" href="../../src/crossbeam_queue/seg_queue.rs.html#191">block</a>, <a class="ident" href="../../src/crossbeam_queue/seg_queue.rs.html#214">new</a>, <span class="ident">Ordering::Release</span>)
-                    <span class="op">=</span><span class="op">=</span> <a class="ident" href="../../src/crossbeam_queue/seg_queue.rs.html#191">block</a>
+                    <span class="op">==</span> <a class="ident" href="../../src/crossbeam_queue/seg_queue.rs.html#191">block</a>
                 {
                     <a class="self" href="../../src/crossbeam_queue/seg_queue.rs.html#188">self</a>.<span class="ident">head</span>.<span class="ident">block</span>.<span class="ident">store</span>(<a class="ident" href="../../src/crossbeam_queue/seg_queue.rs.html#214">new</a>, <span class="ident">Ordering::Release</span>);
                     <a class="ident" href="../../src/crossbeam_queue/seg_queue.rs.html#191">block</a> <span class="op">=</span> <a class="ident" href="../../src/crossbeam_queue/seg_queue.rs.html#214">new</a>;
@@ -728,9 +728,9 @@
                 <span class="ident">Ordering::SeqCst</span>,
                 <span class="ident">Ordering::Acquire</span>,
             ) {
-                <span class="prelude-val">Ok</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">unsafe</span> {
+                <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; <span class="kw">unsafe</span> {
                     <span class="comment">// If we&#39;ve reached the end of the block, install the next one.</span>
-                    <span class="kw">if</span> <a class="ident" href="../../src/crossbeam_queue/seg_queue.rs.html#196">offset</a> <span class="op">+</span> <span class="number">1</span> <span class="op">=</span><span class="op">=</span> <a class="ident" href="../../src/crossbeam_queue/seg_queue.rs.html#25">BLOCK_CAP</a> {
+                    <span class="kw">if</span> <a class="ident" href="../../src/crossbeam_queue/seg_queue.rs.html#196">offset</a> <span class="op">+</span> <span class="number">1</span> <span class="op">==</span> <a class="ident" href="../../src/crossbeam_queue/seg_queue.rs.html#25">BLOCK_CAP</a> {
                         <span class="kw">let</span> <span class="ident">next_block</span> <span class="op">=</span> <span class="ident">Box::into_raw</span>(<a class="ident" href="../../src/crossbeam_queue/seg_queue.rs.html#192">next_block</a>.<span class="ident">unwrap</span>());
                         <span class="kw">let</span> <span class="ident">next_index</span> <span class="op">=</span> <a class="ident" href="../../src/crossbeam_queue/seg_queue.rs.html#232">new_tail</a>.<span class="ident">wrapping_add</span>(<span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <a class="ident" href="../../src/crossbeam_queue/seg_queue.rs.html#27">SHIFT</a>);
 
@@ -746,7 +746,7 @@
 
                     <span class="kw">return</span>;
                 },
-                <span class="prelude-val">Err</span>(<span class="ident">t</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="prelude-val">Err</span>(<span class="ident">t</span>) =&gt; {
                     <a class="ident" href="../../src/crossbeam_queue/seg_queue.rs.html#190">tail</a> <span class="op">=</span> <a class="ident" href="../../src/crossbeam_queue/seg_queue.rs.html#259">t</a>;
                     <a class="ident" href="../../src/crossbeam_queue/seg_queue.rs.html#191">block</a> <span class="op">=</span> <a class="self" href="../../src/crossbeam_queue/seg_queue.rs.html#188">self</a>.<span class="ident">tail</span>.<span class="ident">block</span>.<span class="ident">load</span>(<span class="ident">Ordering::Acquire</span>);
                     <a class="ident" href="../../src/crossbeam_queue/seg_queue.rs.html#189">backoff</a>.<span class="ident">spin</span>();
@@ -770,7 +770,7 @@
     <span class="doccomment">/// assert_eq!(q.pop(), Ok(10));</span>
     <span class="doccomment">/// assert_eq!(q.pop(), Err(PopError));</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">pop</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span>, <a class="ident" href="../../src/crossbeam_queue/err.rs.html#5">PopError</a><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">pop</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span>, <a class="ident" href="../../src/crossbeam_queue/err.rs.html#5">PopError</a><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">backoff</span> <span class="op">=</span> <span class="ident">Backoff::new</span>();
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">head</span> <span class="op">=</span> <a class="self" href="../../src/crossbeam_queue/seg_queue.rs.html#283">self</a>.<span class="ident">head</span>.<span class="ident">index</span>.<span class="ident">load</span>(<span class="ident">Ordering::Acquire</span>);
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">block</span> <span class="op">=</span> <a class="self" href="../../src/crossbeam_queue/seg_queue.rs.html#283">self</a>.<span class="ident">head</span>.<span class="ident">block</span>.<span class="ident">load</span>(<span class="ident">Ordering::Acquire</span>);
@@ -780,7 +780,7 @@
             <span class="kw">let</span> <span class="ident">offset</span> <span class="op">=</span> (<a class="ident" href="../../src/crossbeam_queue/seg_queue.rs.html#285">head</a> <span class="op">&gt;</span><span class="op">&gt;</span> <a class="ident" href="../../src/crossbeam_queue/seg_queue.rs.html#27">SHIFT</a>) <span class="op">%</span> <a class="ident" href="../../src/crossbeam_queue/seg_queue.rs.html#23">LAP</a>;
 
             <span class="comment">// If we reached the end of the block, wait until the next one is installed.</span>
-            <span class="kw">if</span> <a class="ident" href="../../src/crossbeam_queue/seg_queue.rs.html#290">offset</a> <span class="op">=</span><span class="op">=</span> <a class="ident" href="../../src/crossbeam_queue/seg_queue.rs.html#25">BLOCK_CAP</a> {
+            <span class="kw">if</span> <a class="ident" href="../../src/crossbeam_queue/seg_queue.rs.html#290">offset</a> <span class="op">==</span> <a class="ident" href="../../src/crossbeam_queue/seg_queue.rs.html#25">BLOCK_CAP</a> {
                 <a class="ident" href="../../src/crossbeam_queue/seg_queue.rs.html#284">backoff</a>.<span class="ident">snooze</span>();
                 <a class="ident" href="../../src/crossbeam_queue/seg_queue.rs.html#285">head</a> <span class="op">=</span> <a class="self" href="../../src/crossbeam_queue/seg_queue.rs.html#283">self</a>.<span class="ident">head</span>.<span class="ident">index</span>.<span class="ident">load</span>(<span class="ident">Ordering::Acquire</span>);
                 <a class="ident" href="../../src/crossbeam_queue/seg_queue.rs.html#286">block</a> <span class="op">=</span> <a class="self" href="../../src/crossbeam_queue/seg_queue.rs.html#283">self</a>.<span class="ident">head</span>.<span class="ident">block</span>.<span class="ident">load</span>(<span class="ident">Ordering::Acquire</span>);
@@ -789,12 +789,12 @@
 
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">new_head</span> <span class="op">=</span> <a class="ident" href="../../src/crossbeam_queue/seg_queue.rs.html#285">head</a> <span class="op">+</span> (<span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <a class="ident" href="../../src/crossbeam_queue/seg_queue.rs.html#27">SHIFT</a>);
 
-            <span class="kw">if</span> <a class="ident" href="../../src/crossbeam_queue/seg_queue.rs.html#300">new_head</a> <span class="op">&amp;</span> <a class="ident" href="../../src/crossbeam_queue/seg_queue.rs.html#29">HAS_NEXT</a> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
+            <span class="kw">if</span> <a class="ident" href="../../src/crossbeam_queue/seg_queue.rs.html#300">new_head</a> <span class="op">&amp;</span> <a class="ident" href="../../src/crossbeam_queue/seg_queue.rs.html#29">HAS_NEXT</a> <span class="op">==</span> <span class="number">0</span> {
                 <span class="ident">atomic::fence</span>(<span class="ident">Ordering::SeqCst</span>);
                 <span class="kw">let</span> <span class="ident">tail</span> <span class="op">=</span> <a class="self" href="../../src/crossbeam_queue/seg_queue.rs.html#283">self</a>.<span class="ident">tail</span>.<span class="ident">index</span>.<span class="ident">load</span>(<span class="ident">Ordering::Relaxed</span>);
 
                 <span class="comment">// If the tail equals the head, that means the queue is empty.</span>
-                <span class="kw">if</span> <a class="ident" href="../../src/crossbeam_queue/seg_queue.rs.html#285">head</a> <span class="op">&gt;</span><span class="op">&gt;</span> <a class="ident" href="../../src/crossbeam_queue/seg_queue.rs.html#27">SHIFT</a> <span class="op">=</span><span class="op">=</span> <a class="ident" href="../../src/crossbeam_queue/seg_queue.rs.html#304">tail</a> <span class="op">&gt;</span><span class="op">&gt;</span> <a class="ident" href="../../src/crossbeam_queue/seg_queue.rs.html#27">SHIFT</a> {
+                <span class="kw">if</span> <a class="ident" href="../../src/crossbeam_queue/seg_queue.rs.html#285">head</a> <span class="op">&gt;</span><span class="op">&gt;</span> <a class="ident" href="../../src/crossbeam_queue/seg_queue.rs.html#27">SHIFT</a> <span class="op">==</span> <a class="ident" href="../../src/crossbeam_queue/seg_queue.rs.html#304">tail</a> <span class="op">&gt;</span><span class="op">&gt;</span> <a class="ident" href="../../src/crossbeam_queue/seg_queue.rs.html#27">SHIFT</a> {
                     <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../src/crossbeam_queue/err.rs.html#5">PopError</a>);
                 }
 
@@ -820,9 +820,9 @@
                 <span class="ident">Ordering::SeqCst</span>,
                 <span class="ident">Ordering::Acquire</span>,
             ) {
-                <span class="prelude-val">Ok</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">unsafe</span> {
+                <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; <span class="kw">unsafe</span> {
                     <span class="comment">// If we&#39;ve reached the end of the block, move to the next one.</span>
-                    <span class="kw">if</span> <a class="ident" href="../../src/crossbeam_queue/seg_queue.rs.html#290">offset</a> <span class="op">+</span> <span class="number">1</span> <span class="op">=</span><span class="op">=</span> <a class="ident" href="../../src/crossbeam_queue/seg_queue.rs.html#25">BLOCK_CAP</a> {
+                    <span class="kw">if</span> <a class="ident" href="../../src/crossbeam_queue/seg_queue.rs.html#290">offset</a> <span class="op">+</span> <span class="number">1</span> <span class="op">==</span> <a class="ident" href="../../src/crossbeam_queue/seg_queue.rs.html#25">BLOCK_CAP</a> {
                         <span class="kw">let</span> <span class="ident">next</span> <span class="op">=</span> (<span class="kw-2">*</span><a class="ident" href="../../src/crossbeam_queue/seg_queue.rs.html#286">block</a>).<a class="ident" href="../../src/crossbeam_queue/seg_queue.rs.html#74">wait_next</a>();
                         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">next_index</span> <span class="op">=</span> (<a class="ident" href="../../src/crossbeam_queue/seg_queue.rs.html#300">new_head</a> <span class="op">&amp;</span> <span class="op">!</span><a class="ident" href="../../src/crossbeam_queue/seg_queue.rs.html#29">HAS_NEXT</a>).<span class="ident">wrapping_add</span>(<span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <a class="ident" href="../../src/crossbeam_queue/seg_queue.rs.html#27">SHIFT</a>);
                         <span class="kw">if</span> <span class="op">!</span>(<span class="kw-2">*</span><a class="ident" href="../../src/crossbeam_queue/seg_queue.rs.html#336">next</a>).<span class="ident">next</span>.<span class="ident">load</span>(<span class="ident">Ordering::Relaxed</span>).<span class="ident">is_null</span>() {
@@ -840,7 +840,7 @@
 
                     <span class="comment">// Destroy the block if we&#39;ve reached the end, or if another thread wanted to</span>
                     <span class="comment">// destroy but couldn&#39;t because we were busy reading from the slot.</span>
-                    <span class="kw">if</span> <a class="ident" href="../../src/crossbeam_queue/seg_queue.rs.html#290">offset</a> <span class="op">+</span> <span class="number">1</span> <span class="op">=</span><span class="op">=</span> <a class="ident" href="../../src/crossbeam_queue/seg_queue.rs.html#25">BLOCK_CAP</a> {
+                    <span class="kw">if</span> <a class="ident" href="../../src/crossbeam_queue/seg_queue.rs.html#290">offset</a> <span class="op">+</span> <span class="number">1</span> <span class="op">==</span> <a class="ident" href="../../src/crossbeam_queue/seg_queue.rs.html#25">BLOCK_CAP</a> {
                         <span class="ident">Block::destroy</span>(<a class="ident" href="../../src/crossbeam_queue/seg_queue.rs.html#286">block</a>, <span class="number">0</span>);
                     } <span class="kw">else</span> <span class="kw">if</span> <a class="ident" href="../../src/crossbeam_queue/seg_queue.rs.html#347">slot</a>.<span class="ident">state</span>.<span class="ident">fetch_or</span>(<a class="ident" href="../../src/crossbeam_queue/seg_queue.rs.html#19">READ</a>, <span class="ident">Ordering::AcqRel</span>) <span class="op">&amp;</span> <a class="ident" href="../../src/crossbeam_queue/seg_queue.rs.html#20">DESTROY</a> <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {
                         <span class="ident">Block::destroy</span>(<a class="ident" href="../../src/crossbeam_queue/seg_queue.rs.html#286">block</a>, <a class="ident" href="../../src/crossbeam_queue/seg_queue.rs.html#290">offset</a> <span class="op">+</span> <span class="number">1</span>);
@@ -848,7 +848,7 @@
 
                     <span class="kw">return</span> <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/crossbeam_queue/seg_queue.rs.html#349">value</a>);
                 },
-                <span class="prelude-val">Err</span>(<span class="ident">h</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="prelude-val">Err</span>(<span class="ident">h</span>) =&gt; {
                     <a class="ident" href="../../src/crossbeam_queue/seg_queue.rs.html#285">head</a> <span class="op">=</span> <a class="ident" href="../../src/crossbeam_queue/seg_queue.rs.html#361">h</a>;
                     <a class="ident" href="../../src/crossbeam_queue/seg_queue.rs.html#286">block</a> <span class="op">=</span> <a class="self" href="../../src/crossbeam_queue/seg_queue.rs.html#283">self</a>.<span class="ident">head</span>.<span class="ident">block</span>.<span class="ident">load</span>(<span class="ident">Ordering::Acquire</span>);
                     <a class="ident" href="../../src/crossbeam_queue/seg_queue.rs.html#284">backoff</a>.<span class="ident">spin</span>();
@@ -870,10 +870,10 @@
     <span class="doccomment">/// q.push(1);</span>
     <span class="doccomment">/// assert!(!q.is_empty());</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_empty</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_empty</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
         <span class="kw">let</span> <span class="ident">head</span> <span class="op">=</span> <a class="self" href="../../src/crossbeam_queue/seg_queue.rs.html#383">self</a>.<span class="ident">head</span>.<span class="ident">index</span>.<span class="ident">load</span>(<span class="ident">Ordering::SeqCst</span>);
         <span class="kw">let</span> <span class="ident">tail</span> <span class="op">=</span> <a class="self" href="../../src/crossbeam_queue/seg_queue.rs.html#383">self</a>.<span class="ident">tail</span>.<span class="ident">index</span>.<span class="ident">load</span>(<span class="ident">Ordering::SeqCst</span>);
-        <a class="ident" href="../../src/crossbeam_queue/seg_queue.rs.html#384">head</a> <span class="op">&gt;</span><span class="op">&gt;</span> <a class="ident" href="../../src/crossbeam_queue/seg_queue.rs.html#27">SHIFT</a> <span class="op">=</span><span class="op">=</span> <a class="ident" href="../../src/crossbeam_queue/seg_queue.rs.html#385">tail</a> <span class="op">&gt;</span><span class="op">&gt;</span> <a class="ident" href="../../src/crossbeam_queue/seg_queue.rs.html#27">SHIFT</a>
+        <a class="ident" href="../../src/crossbeam_queue/seg_queue.rs.html#384">head</a> <span class="op">&gt;</span><span class="op">&gt;</span> <a class="ident" href="../../src/crossbeam_queue/seg_queue.rs.html#27">SHIFT</a> <span class="op">==</span> <a class="ident" href="../../src/crossbeam_queue/seg_queue.rs.html#385">tail</a> <span class="op">&gt;</span><span class="op">&gt;</span> <a class="ident" href="../../src/crossbeam_queue/seg_queue.rs.html#27">SHIFT</a>
     }
 
     <span class="doccomment">/// Returns the number of elements in the queue.</span>
@@ -892,14 +892,14 @@
     <span class="doccomment">/// q.push(20);</span>
     <span class="doccomment">/// assert_eq!(q.len(), 2);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">len</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">len</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
         <span class="kw">loop</span> {
             <span class="comment">// Load the tail index, then load the head index.</span>
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">tail</span> <span class="op">=</span> <a class="self" href="../../src/crossbeam_queue/seg_queue.rs.html#405">self</a>.<span class="ident">tail</span>.<span class="ident">index</span>.<span class="ident">load</span>(<span class="ident">Ordering::SeqCst</span>);
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">head</span> <span class="op">=</span> <a class="self" href="../../src/crossbeam_queue/seg_queue.rs.html#405">self</a>.<span class="ident">head</span>.<span class="ident">index</span>.<span class="ident">load</span>(<span class="ident">Ordering::SeqCst</span>);
 
             <span class="comment">// If the tail index didn&#39;t change, we&#39;ve got consistent indices to work with.</span>
-            <span class="kw">if</span> <a class="self" href="../../src/crossbeam_queue/seg_queue.rs.html#405">self</a>.<span class="ident">tail</span>.<span class="ident">index</span>.<span class="ident">load</span>(<span class="ident">Ordering::SeqCst</span>) <span class="op">=</span><span class="op">=</span> <a class="ident" href="../../src/crossbeam_queue/seg_queue.rs.html#408">tail</a> {
+            <span class="kw">if</span> <a class="self" href="../../src/crossbeam_queue/seg_queue.rs.html#405">self</a>.<span class="ident">tail</span>.<span class="ident">index</span>.<span class="ident">load</span>(<span class="ident">Ordering::SeqCst</span>) <span class="op">==</span> <a class="ident" href="../../src/crossbeam_queue/seg_queue.rs.html#408">tail</a> {
                 <span class="comment">// Erase the lower bits.</span>
                 <a class="ident" href="../../src/crossbeam_queue/seg_queue.rs.html#408">tail</a> <span class="op">&amp;=</span> <span class="op">!</span>((<span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <a class="ident" href="../../src/crossbeam_queue/seg_queue.rs.html#27">SHIFT</a>) <span class="op">-</span> <span class="number">1</span>);
                 <a class="ident" href="../../src/crossbeam_queue/seg_queue.rs.html#409">head</a> <span class="op">&amp;=</span> <span class="op">!</span>((<span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <a class="ident" href="../../src/crossbeam_queue/seg_queue.rs.html#27">SHIFT</a>) <span class="op">-</span> <span class="number">1</span>);
@@ -914,11 +914,11 @@
                 <a class="ident" href="../../src/crossbeam_queue/seg_queue.rs.html#409">head</a> <span class="op">&gt;</span><span class="op">&gt;</span><span class="op">=</span> <a class="ident" href="../../src/crossbeam_queue/seg_queue.rs.html#27">SHIFT</a>;
 
                 <span class="comment">// Fix up indices if they fall onto block ends.</span>
-                <span class="kw">if</span> <a class="ident" href="../../src/crossbeam_queue/seg_queue.rs.html#409">head</a> <span class="op">=</span><span class="op">=</span> <a class="ident" href="../../src/crossbeam_queue/seg_queue.rs.html#25">BLOCK_CAP</a> {
+                <span class="kw">if</span> <a class="ident" href="../../src/crossbeam_queue/seg_queue.rs.html#409">head</a> <span class="op">==</span> <a class="ident" href="../../src/crossbeam_queue/seg_queue.rs.html#25">BLOCK_CAP</a> {
                     <a class="ident" href="../../src/crossbeam_queue/seg_queue.rs.html#409">head</a> <span class="op">=</span> <span class="number">0</span>;
                     <a class="ident" href="../../src/crossbeam_queue/seg_queue.rs.html#408">tail</a> <span class="op">-</span><span class="op">=</span> <a class="ident" href="../../src/crossbeam_queue/seg_queue.rs.html#23">LAP</a>;
                 }
-                <span class="kw">if</span> <a class="ident" href="../../src/crossbeam_queue/seg_queue.rs.html#408">tail</a> <span class="op">=</span><span class="op">=</span> <a class="ident" href="../../src/crossbeam_queue/seg_queue.rs.html#25">BLOCK_CAP</a> {
+                <span class="kw">if</span> <a class="ident" href="../../src/crossbeam_queue/seg_queue.rs.html#408">tail</a> <span class="op">==</span> <a class="ident" href="../../src/crossbeam_queue/seg_queue.rs.html#25">BLOCK_CAP</a> {
                     <a class="ident" href="../../src/crossbeam_queue/seg_queue.rs.html#408">tail</a> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
                 }
 
@@ -968,13 +968,13 @@
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <span class="ident">SegQueue</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
         <a class="ident" href="../../src/crossbeam_queue/seg_queue.rs.html#481">f</a>.<span class="ident">pad</span>(<span class="string">&quot;SegQueue { .. }&quot;</span>)
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for</span> <span class="ident">SegQueue</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">SegQueue</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="ident">SegQueue</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
         <span class="ident">SegQueue::new</span>()
     }
 }

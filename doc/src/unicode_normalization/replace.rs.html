@@ -81,7 +81,7 @@
 }
 
 <span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_cjk_compat_variants</span><span class="op">&lt;</span><span class="ident">I</span>: <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">char</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">iter</span>: <span class="ident">I</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Replacements</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_cjk_compat_variants</span><span class="op">&lt;</span><span class="ident">I</span>: <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">char</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">iter</span>: <span class="ident">I</span>) -&gt; <span class="ident">Replacements</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span> {
     <a class="ident" href="../../src/unicode_normalization/replace.rs.html#15-20">Replacements</a> { <a class="ident" href="../../src/unicode_normalization/replace.rs.html#23">iter</a>, <span class="ident">buffer</span>: <span class="prelude-val">None</span> }
 }
 
@@ -89,31 +89,31 @@
     <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>;
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">c</span>) <span class="op">=</span> <a class="self" href="../../src/unicode_normalization/replace.rs.html#31">self</a>.<span class="ident">buffer</span>.<span class="ident">take</span>() {
             <span class="kw">return</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../src/unicode_normalization/replace.rs.html#32">c</a>);
         }
 
         <span class="kw">match</span> <a class="self" href="../../src/unicode_normalization/replace.rs.html#31">self</a>.<span class="ident">iter</span>.<span class="ident">next</span>() {
-            <span class="prelude-val">Some</span>(<span class="ident">ch</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="prelude-val">Some</span>(<span class="ident">ch</span>) =&gt; {
                 <span class="comment">// At this time, the longest replacement sequence has length 2.</span>
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buffer</span> <span class="op">=</span> <span class="ident">ArrayVec</span>::<span class="op">&lt;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>; <span class="number">2</span>]<span class="op">&gt;</span><span class="ident">::new</span>();
                 <a class="ident" href="../../src/unicode_normalization/normalize.rs.html#50-52"><span class="kw">super</span>::char::decompose_cjk_compat_variants</a>(<a class="ident" href="../../src/unicode_normalization/replace.rs.html#37">ch</a>, <span class="op">|</span><span class="ident">d</span><span class="op">|</span> <a class="ident" href="../../src/unicode_normalization/replace.rs.html#39">buffer</a>.<span class="ident">push</span>(<a class="ident" href="../../src/unicode_normalization/replace.rs.html#40">d</a>));
                 <a class="self" href="../../src/unicode_normalization/replace.rs.html#31">self</a>.<span class="ident">buffer</span> <span class="op">=</span> <a class="ident" href="../../src/unicode_normalization/replace.rs.html#39">buffer</a>.<span class="ident">get</span>(<span class="number">1</span>).<span class="ident">copied</span>();
                 <span class="prelude-val">Some</span>(<a class="ident" href="../../src/unicode_normalization/replace.rs.html#39">buffer</a>[<span class="number">0</span>])
             }
-            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
+            <span class="prelude-val">None</span> =&gt; <span class="prelude-val">None</span>,
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">size_hint</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> (<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span>) {
+    <span class="kw">fn</span> <span class="ident">size_hint</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span>) {
         <span class="kw">let</span> (<span class="ident">lower</span>, <span class="kw">_</span>) <span class="op">=</span> <a class="self" href="../../src/unicode_normalization/replace.rs.html#48">self</a>.<span class="ident">iter</span>.<span class="ident">size_hint</span>();
         (<a class="ident" href="../../src/unicode_normalization/replace.rs.html#49">lower</a>, <span class="prelude-val">None</span>)
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">I</span>: <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">char</span><span class="op">&gt;</span> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for</span> <span class="ident">Replacements</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
         <span class="kw">for</span> <a class="ident" href="../../src/unicode_normalization/replace.rs.html#56">c</a> <span class="kw">in</span> <a class="self" href="../../src/unicode_normalization/replace.rs.html#55">self</a>.<span class="ident">clone</span>() {
             <a class="ident" href="../../src/unicode_normalization/replace.rs.html#55">f</a>.<span class="ident">write_char</span>(<a class="ident" href="../../src/unicode_normalization/replace.rs.html#56">c</a>)<span class="question-mark">?</span>;
         }

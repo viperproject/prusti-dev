@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;nix-0.22.1&#x2F;src&#x2F;sys&#x2F;aio.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>aio.rs - source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../nix/index.html'><div class='logo-container rust-logo'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">   1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;nix-0.23.0&#x2F;src&#x2F;sys&#x2F;aio.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>aio.rs - source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../nix/index.html'><div class='logo-container rust-logo'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">   1</span>
 <span id="2">   2</span>
 <span id="3">   3</span>
 <span id="4">   4</span>
@@ -1120,18 +1120,6 @@
 <span id="1120">1120</span>
 <span id="1121">1121</span>
 <span id="1122">1122</span>
-<span id="1123">1123</span>
-<span id="1124">1124</span>
-<span id="1125">1125</span>
-<span id="1126">1126</span>
-<span id="1127">1127</span>
-<span id="1128">1128</span>
-<span id="1129">1129</span>
-<span id="1130">1130</span>
-<span id="1131">1131</span>
-<span id="1132">1132</span>
-<span id="1133">1133</span>
-<span id="1134">1134</span>
 </pre><pre class="rust"><code><span class="comment">// vim: tw=80</span>
 <span class="doccomment">//! POSIX Asynchronous I/O</span>
 <span class="doccomment">//!</span>
@@ -1155,8 +1143,8 @@
 <span class="doccomment">//! [`aio_cancel_all`](fn.aio_cancel_all.html), though the operating system may</span>
 <span class="doccomment">//! not support this for all filesystems and devices.</span>
 
-<span class="kw">use</span> <span class="kw">crate</span>::{<a class="ident" href="../../../src/nix/lib.rs.html#102">Error</a>, <span class="prelude-ty">Result</span>};
-<span class="kw">use</span> <a class="ident" href="../../../src/nix/errno.rs.html#771-906"><span class="kw">crate</span>::errno::Errno</a>;
+<span class="kw">use</span> <a class="ident" href="../../../src/nix/lib.rs.html#91"><span class="kw">crate</span>::Result</a>;
+<span class="kw">use</span> <a class="ident" href="../../../src/nix/errno.rs.html#774-909"><span class="kw">crate</span>::errno::Errno</a>;
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">std::os::unix::io::RawFd</a>;
 <span class="kw">use</span> <span class="ident">libc</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>, <a class="ident" href="../../../libc/unix/linux_like/linux/gnu/b64/type.off_t.html">off_t</a>, <a class="ident" href="../../../libc/unix/type.size_t.html">size_t</a>};
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
@@ -1165,7 +1153,7 @@
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/index.html">std::mem</a>;
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">std::pin::Pin</a>;
 <span class="kw">use</span> <span class="ident">std::ptr</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/core/ptr/fn.null.html">null</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/ptr/fn.null_mut.html">null_mut</a>};
-<span class="kw">use</span> <a class="ident" href="../../../src/nix/sys/mod.rs.html#72"><span class="kw">crate</span>::sys::signal</a>::<span class="kw-2">*</span>;
+<span class="kw">use</span> <a class="ident" href="../../../src/nix/sys/mod.rs.html#84"><span class="kw">crate</span>::sys::signal</a>::<span class="kw-2">*</span>;
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/thread/index.html">std::thread</a>;
 <span class="kw">use</span> <a class="ident" href="../../../src/nix/sys/time.rs.html#51"><span class="kw">crate</span>::sys::time::TimeSpec</a>;
 
@@ -1173,6 +1161,7 @@
     <span class="doccomment">/// Mode for `AioCb::fsync`.  Controls whether only data or both data and</span>
     <span class="doccomment">/// metadata are synced.</span>
     <span class="attribute">#[<span class="ident">repr</span>(<span class="ident">i32</span>)]</span>
+    <span class="attribute">#[<span class="ident">non_exhaustive</span>]</span>
     <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">AioFsyncMode</span> {
         <span class="doccomment">/// do it like `fsync`</span>
         <span class="ident">O_SYNC</span>,
@@ -1191,9 +1180,13 @@
     <span class="doccomment">/// given `aiocb` should be used for a read operation, a write operation, or</span>
     <span class="doccomment">/// ignored.  Has no effect for any other aio functions.</span>
     <span class="attribute">#[<span class="ident">repr</span>(<span class="ident">i32</span>)]</span>
+    <span class="attribute">#[<span class="ident">non_exhaustive</span>]</span>
     <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">LioOpcode</span> {
+        <span class="doccomment">/// No operation</span>
         <span class="ident">LIO_NOP</span>,
+        <span class="doccomment">/// Write data as if by a call to [`AioCb::write`]</span>
         <span class="ident">LIO_WRITE</span>,
+        <span class="doccomment">/// Write data as if by a call to [`AioCb::read`]</span>
         <span class="ident">LIO_READ</span>,
     }
 }
@@ -1228,15 +1221,15 @@
 <span class="attribute">#[<span class="ident">repr</span>(<span class="ident">transparent</span>)]</span>
 <span class="kw">struct</span> <span class="ident">LibcAiocb</span>(<a class="ident" href="../../../libc/unix/linux_like/linux/gnu/struct.aiocb.html">libc::aiocb</a>);
 
-<span class="kw">unsafe</span> <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="kw">for</span> <a class="ident" href="../../../src/nix/sys/aio.rs.html#95">LibcAiocb</a> {}
-<span class="kw">unsafe</span> <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="kw">for</span> <a class="ident" href="../../../src/nix/sys/aio.rs.html#95">LibcAiocb</a> {}
+<span class="kw">unsafe</span> <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="kw">for</span> <a class="ident" href="../../../src/nix/sys/aio.rs.html#100">LibcAiocb</a> {}
+<span class="kw">unsafe</span> <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="kw">for</span> <a class="ident" href="../../../src/nix/sys/aio.rs.html#100">LibcAiocb</a> {}
 
 <span class="doccomment">/// AIO Control Block.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// The basic structure used by all aio functions.  Each `AioCb` represents one</span>
 <span class="doccomment">/// I/O request.</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">AioCb</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="ident">aiocb</span>: <a class="ident" href="../../../src/nix/sys/aio.rs.html#95">LibcAiocb</a>,
+    <span class="ident">aiocb</span>: <a class="ident" href="../../../src/nix/sys/aio.rs.html#100">LibcAiocb</a>,
     <span class="doccomment">/// Tracks whether the buffer pointed to by `libc::aiocb.aio_buf` is mutable</span>
     <span class="ident">mutable</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
     <span class="doccomment">/// Could this `AioCb` potentially have any in-kernel state?</span>
@@ -1247,8 +1240,8 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">AioCb</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
     <span class="doccomment">/// Returns the underlying file descriptor associated with the `AioCb`</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">fd</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a> {
-        <a class="self" href="../../../src/nix/sys/aio.rs.html#116">self</a>.<span class="ident">aiocb</span>.<span class="number">0</span>.<span class="ident">aio_fildes</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">fd</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a> {
+        <a class="self" href="../../../src/nix/sys/aio.rs.html#121">self</a>.<span class="ident">aiocb</span>.<span class="number">0</span>.<span class="ident">aio_fildes</span>
     }
 
     <span class="doccomment">/// Constructs a new `AioCb` with no associated buffer.</span>
@@ -1277,25 +1270,23 @@
     <span class="doccomment">/// # use std::{thread, time};</span>
     <span class="doccomment">/// # use std::os::unix::io::AsRawFd;</span>
     <span class="doccomment">/// # use tempfile::tempfile;</span>
-    <span class="doccomment">/// # fn main() {</span>
     <span class="doccomment">/// let f = tempfile().unwrap();</span>
     <span class="doccomment">/// let mut aiocb = AioCb::from_fd( f.as_raw_fd(), 0, SigevNone);</span>
     <span class="doccomment">/// aiocb.fsync(AioFsyncMode::O_SYNC).expect(&quot;aio_fsync failed early&quot;);</span>
-    <span class="doccomment">/// while (aiocb.error() == Err(Error::from(Errno::EINPROGRESS))) {</span>
+    <span class="doccomment">/// while (aiocb.error() == Err(Errno::EINPROGRESS)) {</span>
     <span class="doccomment">///     thread::sleep(time::Duration::from_millis(10));</span>
     <span class="doccomment">/// }</span>
     <span class="doccomment">/// aiocb.aio_return().expect(&quot;aio_fsync failed late&quot;);</span>
-    <span class="doccomment">/// # }</span>
     <span class="doccomment">/// ```</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_fd</span>(<span class="ident">fd</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>, <span class="ident">prio</span>: <a class="ident" href="../../../libc/unix/type.c_int.html">libc::c_int</a>,
-                    <span class="ident">sigev_notify</span>: <a class="ident" href="../../../src/nix/sys/signal.rs.html#802-821">SigevNotify</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Pin</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">AioCb</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">a</span> <span class="op">=</span> <span class="ident">AioCb::common_init</span>(<a class="ident" href="../../../src/nix/sys/aio.rs.html#156">fd</a>, <a class="ident" href="../../../src/nix/sys/aio.rs.html#156">prio</a>, <a class="ident" href="../../../src/nix/sys/aio.rs.html#157">sigev_notify</a>);
-        <a class="ident" href="../../../src/nix/sys/aio.rs.html#158">a</a>.<span class="number">0</span>.<span class="ident">aio_offset</span> <span class="op">=</span> <span class="number">0</span>;
-        <a class="ident" href="../../../src/nix/sys/aio.rs.html#158">a</a>.<span class="number">0</span>.<span class="ident">aio_nbytes</span> <span class="op">=</span> <span class="number">0</span>;
-        <a class="ident" href="../../../src/nix/sys/aio.rs.html#158">a</a>.<span class="number">0</span>.<span class="ident">aio_buf</span> <span class="op">=</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ptr/fn.null_mut.html">null_mut</a>();
+                    <span class="ident">sigev_notify</span>: <a class="ident" href="../../../src/nix/sys/signal.rs.html#930-962">SigevNotify</a>) -&gt; <span class="ident">Pin</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">AioCb</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">a</span> <span class="op">=</span> <span class="ident">AioCb::common_init</span>(<a class="ident" href="../../../src/nix/sys/aio.rs.html#159">fd</a>, <a class="ident" href="../../../src/nix/sys/aio.rs.html#159">prio</a>, <a class="ident" href="../../../src/nix/sys/aio.rs.html#160">sigev_notify</a>);
+        <a class="ident" href="../../../src/nix/sys/aio.rs.html#161">a</a>.<span class="number">0</span>.<span class="ident">aio_offset</span> <span class="op">=</span> <span class="number">0</span>;
+        <a class="ident" href="../../../src/nix/sys/aio.rs.html#161">a</a>.<span class="number">0</span>.<span class="ident">aio_nbytes</span> <span class="op">=</span> <span class="number">0</span>;
+        <a class="ident" href="../../../src/nix/sys/aio.rs.html#161">a</a>.<span class="number">0</span>.<span class="ident">aio_buf</span> <span class="op">=</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ptr/fn.null_mut.html">null_mut</a>();
 
-        <span class="ident">Box::pin</span>(<a class="ident" href="../../../src/nix/sys/aio.rs.html#104-112">AioCb</a> {
-            <span class="ident">aiocb</span>: <a class="ident" href="../../../src/nix/sys/aio.rs.html#158">a</a>,
+        <span class="ident">Box::pin</span>(<a class="ident" href="../../../src/nix/sys/aio.rs.html#109-117">AioCb</a> {
+            <span class="ident">aiocb</span>: <a class="ident" href="../../../src/nix/sys/aio.rs.html#161">a</a>,
             <span class="ident">mutable</span>: <span class="bool-val">false</span>,
             <span class="ident">in_progress</span>: <span class="bool-val">false</span>,
             <span class="ident">_buffer</span>: <span class="ident">PhantomData</span>,
@@ -1306,17 +1297,17 @@
     <span class="comment">// Private helper</span>
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;ios&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;macos&quot;</span>)))]</span>
     <span class="kw">fn</span> <span class="ident">from_mut_slice_unpinned</span>(<span class="ident">fd</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>, <span class="ident">offs</span>: <a class="ident" href="../../../libc/unix/linux_like/linux/gnu/b64/type.off_t.html">off_t</a>, <span class="ident">buf</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-                          <span class="ident">prio</span>: <a class="ident" href="../../../libc/unix/type.c_int.html">libc::c_int</a>, <span class="ident">sigev_notify</span>: <a class="ident" href="../../../src/nix/sys/signal.rs.html#802-821">SigevNotify</a>,
-                          <span class="ident">opcode</span>: <a class="ident" href="../../../src/nix/sys/aio.rs.html#55-65">LioOpcode</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">AioCb</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>
+                          <span class="ident">prio</span>: <a class="ident" href="../../../libc/unix/type.c_int.html">libc::c_int</a>, <span class="ident">sigev_notify</span>: <a class="ident" href="../../../src/nix/sys/signal.rs.html#930-962">SigevNotify</a>,
+                          <span class="ident">opcode</span>: <a class="ident" href="../../../src/nix/sys/aio.rs.html#56-70">LioOpcode</a>) -&gt; <span class="ident">AioCb</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>
     {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">a</span> <span class="op">=</span> <span class="ident">AioCb::common_init</span>(<a class="ident" href="../../../src/nix/sys/aio.rs.html#174">fd</a>, <a class="ident" href="../../../src/nix/sys/aio.rs.html#175">prio</a>, <a class="ident" href="../../../src/nix/sys/aio.rs.html#175">sigev_notify</a>);
-        <a class="ident" href="../../../src/nix/sys/aio.rs.html#178">a</a>.<span class="number">0</span>.<span class="ident">aio_offset</span> <span class="op">=</span> <a class="ident" href="../../../src/nix/sys/aio.rs.html#174">offs</a>;
-        <a class="ident" href="../../../src/nix/sys/aio.rs.html#178">a</a>.<span class="number">0</span>.<span class="ident">aio_nbytes</span> <span class="op">=</span> <a class="ident" href="../../../src/nix/sys/aio.rs.html#174">buf</a>.<span class="ident">len</span>() <span class="kw">as</span> <a class="ident" href="../../../libc/unix/type.size_t.html">size_t</a>;
-        <a class="ident" href="../../../src/nix/sys/aio.rs.html#178">a</a>.<span class="number">0</span>.<span class="ident">aio_buf</span> <span class="op">=</span> <a class="ident" href="../../../src/nix/sys/aio.rs.html#174">buf</a>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>;
-        <a class="ident" href="../../../src/nix/sys/aio.rs.html#178">a</a>.<span class="number">0</span>.<span class="ident">aio_lio_opcode</span> <span class="op">=</span> <a class="ident" href="../../../src/nix/sys/aio.rs.html#176">opcode</a> <span class="kw">as</span> <a class="ident" href="../../../libc/unix/type.c_int.html">libc::c_int</a>;
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">a</span> <span class="op">=</span> <span class="ident">AioCb::common_init</span>(<a class="ident" href="../../../src/nix/sys/aio.rs.html#177">fd</a>, <a class="ident" href="../../../src/nix/sys/aio.rs.html#178">prio</a>, <a class="ident" href="../../../src/nix/sys/aio.rs.html#178">sigev_notify</a>);
+        <a class="ident" href="../../../src/nix/sys/aio.rs.html#181">a</a>.<span class="number">0</span>.<span class="ident">aio_offset</span> <span class="op">=</span> <a class="ident" href="../../../src/nix/sys/aio.rs.html#177">offs</a>;
+        <a class="ident" href="../../../src/nix/sys/aio.rs.html#181">a</a>.<span class="number">0</span>.<span class="ident">aio_nbytes</span> <span class="op">=</span> <a class="ident" href="../../../src/nix/sys/aio.rs.html#177">buf</a>.<span class="ident">len</span>() <span class="kw">as</span> <a class="ident" href="../../../libc/unix/type.size_t.html">size_t</a>;
+        <a class="ident" href="../../../src/nix/sys/aio.rs.html#181">a</a>.<span class="number">0</span>.<span class="ident">aio_buf</span> <span class="op">=</span> <a class="ident" href="../../../src/nix/sys/aio.rs.html#177">buf</a>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>;
+        <a class="ident" href="../../../src/nix/sys/aio.rs.html#181">a</a>.<span class="number">0</span>.<span class="ident">aio_lio_opcode</span> <span class="op">=</span> <a class="ident" href="../../../src/nix/sys/aio.rs.html#179">opcode</a> <span class="kw">as</span> <a class="ident" href="../../../libc/unix/type.c_int.html">libc::c_int</a>;
 
-        <a class="ident" href="../../../src/nix/sys/aio.rs.html#104-112">AioCb</a> {
-            <span class="ident">aiocb</span>: <a class="ident" href="../../../src/nix/sys/aio.rs.html#178">a</a>,
+        <a class="ident" href="../../../src/nix/sys/aio.rs.html#109-117">AioCb</a> {
+            <span class="ident">aiocb</span>: <a class="ident" href="../../../src/nix/sys/aio.rs.html#181">a</a>,
             <span class="ident">mutable</span>: <span class="bool-val">true</span>,
             <span class="ident">in_progress</span>: <span class="bool-val">false</span>,
             <span class="ident">_buffer</span>: <span class="ident">PhantomData</span>,
@@ -1358,7 +1349,6 @@
     <span class="doccomment">/// # use std::io::Write;</span>
     <span class="doccomment">/// # use std::os::unix::io::AsRawFd;</span>
     <span class="doccomment">/// # use tempfile::tempfile;</span>
-    <span class="doccomment">/// # fn main() {</span>
     <span class="doccomment">/// const INITIAL: &amp;[u8] = b&quot;abcdef123456&quot;;</span>
     <span class="doccomment">/// const LEN: usize = 4;</span>
     <span class="doccomment">/// let mut rbuf = vec![0; LEN];</span>
@@ -1372,25 +1362,24 @@
     <span class="doccomment">///         SigevNotify::SigevNone,</span>
     <span class="doccomment">///         LioOpcode::LIO_NOP);</span>
     <span class="doccomment">///     aiocb.read().unwrap();</span>
-    <span class="doccomment">///     while (aiocb.error() == Err(Error::from(Errno::EINPROGRESS))) {</span>
+    <span class="doccomment">///     while (aiocb.error() == Err(Errno::EINPROGRESS)) {</span>
     <span class="doccomment">///         thread::sleep(time::Duration::from_millis(10));</span>
     <span class="doccomment">///     }</span>
     <span class="doccomment">///     assert_eq!(aiocb.aio_return().unwrap() as usize, LEN);</span>
     <span class="doccomment">/// }</span>
     <span class="doccomment">/// assert_eq!(rbuf, b&quot;cdef&quot;);</span>
-    <span class="doccomment">/// # }</span>
     <span class="doccomment">/// ```</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_mut_slice</span>(<span class="ident">fd</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>, <span class="ident">offs</span>: <a class="ident" href="../../../libc/unix/linux_like/linux/gnu/b64/type.off_t.html">off_t</a>, <span class="ident">buf</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-                          <span class="ident">prio</span>: <a class="ident" href="../../../libc/unix/type.c_int.html">libc::c_int</a>, <span class="ident">sigev_notify</span>: <a class="ident" href="../../../src/nix/sys/signal.rs.html#802-821">SigevNotify</a>,
-                          <span class="ident">opcode</span>: <a class="ident" href="../../../src/nix/sys/aio.rs.html#55-65">LioOpcode</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Pin</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">AioCb</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">a</span> <span class="op">=</span> <span class="ident">AioCb::common_init</span>(<a class="ident" href="../../../src/nix/sys/aio.rs.html#249">fd</a>, <a class="ident" href="../../../src/nix/sys/aio.rs.html#250">prio</a>, <a class="ident" href="../../../src/nix/sys/aio.rs.html#250">sigev_notify</a>);
-        <a class="ident" href="../../../src/nix/sys/aio.rs.html#252">a</a>.<span class="number">0</span>.<span class="ident">aio_offset</span> <span class="op">=</span> <a class="ident" href="../../../src/nix/sys/aio.rs.html#249">offs</a>;
-        <a class="ident" href="../../../src/nix/sys/aio.rs.html#252">a</a>.<span class="number">0</span>.<span class="ident">aio_nbytes</span> <span class="op">=</span> <a class="ident" href="../../../src/nix/sys/aio.rs.html#249">buf</a>.<span class="ident">len</span>() <span class="kw">as</span> <a class="ident" href="../../../libc/unix/type.size_t.html">size_t</a>;
-        <a class="ident" href="../../../src/nix/sys/aio.rs.html#252">a</a>.<span class="number">0</span>.<span class="ident">aio_buf</span> <span class="op">=</span> <a class="ident" href="../../../src/nix/sys/aio.rs.html#249">buf</a>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>;
-        <a class="ident" href="../../../src/nix/sys/aio.rs.html#252">a</a>.<span class="number">0</span>.<span class="ident">aio_lio_opcode</span> <span class="op">=</span> <a class="ident" href="../../../src/nix/sys/aio.rs.html#251">opcode</a> <span class="kw">as</span> <a class="ident" href="../../../libc/unix/type.c_int.html">libc::c_int</a>;
+                          <span class="ident">prio</span>: <a class="ident" href="../../../libc/unix/type.c_int.html">libc::c_int</a>, <span class="ident">sigev_notify</span>: <a class="ident" href="../../../src/nix/sys/signal.rs.html#930-962">SigevNotify</a>,
+                          <span class="ident">opcode</span>: <a class="ident" href="../../../src/nix/sys/aio.rs.html#56-70">LioOpcode</a>) -&gt; <span class="ident">Pin</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">AioCb</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">a</span> <span class="op">=</span> <span class="ident">AioCb::common_init</span>(<a class="ident" href="../../../src/nix/sys/aio.rs.html#250">fd</a>, <a class="ident" href="../../../src/nix/sys/aio.rs.html#251">prio</a>, <a class="ident" href="../../../src/nix/sys/aio.rs.html#251">sigev_notify</a>);
+        <a class="ident" href="../../../src/nix/sys/aio.rs.html#253">a</a>.<span class="number">0</span>.<span class="ident">aio_offset</span> <span class="op">=</span> <a class="ident" href="../../../src/nix/sys/aio.rs.html#250">offs</a>;
+        <a class="ident" href="../../../src/nix/sys/aio.rs.html#253">a</a>.<span class="number">0</span>.<span class="ident">aio_nbytes</span> <span class="op">=</span> <a class="ident" href="../../../src/nix/sys/aio.rs.html#250">buf</a>.<span class="ident">len</span>() <span class="kw">as</span> <a class="ident" href="../../../libc/unix/type.size_t.html">size_t</a>;
+        <a class="ident" href="../../../src/nix/sys/aio.rs.html#253">a</a>.<span class="number">0</span>.<span class="ident">aio_buf</span> <span class="op">=</span> <a class="ident" href="../../../src/nix/sys/aio.rs.html#250">buf</a>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>;
+        <a class="ident" href="../../../src/nix/sys/aio.rs.html#253">a</a>.<span class="number">0</span>.<span class="ident">aio_lio_opcode</span> <span class="op">=</span> <a class="ident" href="../../../src/nix/sys/aio.rs.html#252">opcode</a> <span class="kw">as</span> <a class="ident" href="../../../libc/unix/type.c_int.html">libc::c_int</a>;
 
-        <span class="ident">Box::pin</span>(<a class="ident" href="../../../src/nix/sys/aio.rs.html#104-112">AioCb</a> {
-            <span class="ident">aiocb</span>: <a class="ident" href="../../../src/nix/sys/aio.rs.html#252">a</a>,
+        <span class="ident">Box::pin</span>(<a class="ident" href="../../../src/nix/sys/aio.rs.html#109-117">AioCb</a> {
+            <span class="ident">aiocb</span>: <a class="ident" href="../../../src/nix/sys/aio.rs.html#253">a</a>,
             <span class="ident">mutable</span>: <span class="bool-val">true</span>,
             <span class="ident">in_progress</span>: <span class="bool-val">false</span>,
             <span class="ident">_buffer</span>: <span class="ident">PhantomData</span>,
@@ -1426,16 +1415,16 @@
     <span class="doccomment">/// `AioCb`.  The lifetime checker can&#39;t help here.</span>
     <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">from_mut_ptr</span>(<span class="ident">fd</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>, <span class="ident">offs</span>: <a class="ident" href="../../../libc/unix/linux_like/linux/gnu/b64/type.off_t.html">off_t</a>,
                            <span class="ident">buf</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>, <span class="ident">len</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-                           <span class="ident">prio</span>: <a class="ident" href="../../../libc/unix/type.c_int.html">libc::c_int</a>, <span class="ident">sigev_notify</span>: <a class="ident" href="../../../src/nix/sys/signal.rs.html#802-821">SigevNotify</a>,
-                           <span class="ident">opcode</span>: <a class="ident" href="../../../src/nix/sys/aio.rs.html#55-65">LioOpcode</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Pin</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">AioCb</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">a</span> <span class="op">=</span> <span class="ident">AioCb::common_init</span>(<a class="ident" href="../../../src/nix/sys/aio.rs.html#293">fd</a>, <a class="ident" href="../../../src/nix/sys/aio.rs.html#295">prio</a>, <a class="ident" href="../../../src/nix/sys/aio.rs.html#295">sigev_notify</a>);
-        <a class="ident" href="../../../src/nix/sys/aio.rs.html#297">a</a>.<span class="number">0</span>.<span class="ident">aio_offset</span> <span class="op">=</span> <a class="ident" href="../../../src/nix/sys/aio.rs.html#293">offs</a>;
-        <a class="ident" href="../../../src/nix/sys/aio.rs.html#297">a</a>.<span class="number">0</span>.<span class="ident">aio_nbytes</span> <span class="op">=</span> <a class="ident" href="../../../src/nix/sys/aio.rs.html#294">len</a>;
-        <a class="ident" href="../../../src/nix/sys/aio.rs.html#297">a</a>.<span class="number">0</span>.<span class="ident">aio_buf</span> <span class="op">=</span> <a class="ident" href="../../../src/nix/sys/aio.rs.html#294">buf</a>;
-        <a class="ident" href="../../../src/nix/sys/aio.rs.html#297">a</a>.<span class="number">0</span>.<span class="ident">aio_lio_opcode</span> <span class="op">=</span> <a class="ident" href="../../../src/nix/sys/aio.rs.html#296">opcode</a> <span class="kw">as</span> <a class="ident" href="../../../libc/unix/type.c_int.html">libc::c_int</a>;
+                           <span class="ident">prio</span>: <a class="ident" href="../../../libc/unix/type.c_int.html">libc::c_int</a>, <span class="ident">sigev_notify</span>: <a class="ident" href="../../../src/nix/sys/signal.rs.html#930-962">SigevNotify</a>,
+                           <span class="ident">opcode</span>: <a class="ident" href="../../../src/nix/sys/aio.rs.html#56-70">LioOpcode</a>) -&gt; <span class="ident">Pin</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">AioCb</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">a</span> <span class="op">=</span> <span class="ident">AioCb::common_init</span>(<a class="ident" href="../../../src/nix/sys/aio.rs.html#294">fd</a>, <a class="ident" href="../../../src/nix/sys/aio.rs.html#296">prio</a>, <a class="ident" href="../../../src/nix/sys/aio.rs.html#296">sigev_notify</a>);
+        <a class="ident" href="../../../src/nix/sys/aio.rs.html#298">a</a>.<span class="number">0</span>.<span class="ident">aio_offset</span> <span class="op">=</span> <a class="ident" href="../../../src/nix/sys/aio.rs.html#294">offs</a>;
+        <a class="ident" href="../../../src/nix/sys/aio.rs.html#298">a</a>.<span class="number">0</span>.<span class="ident">aio_nbytes</span> <span class="op">=</span> <a class="ident" href="../../../src/nix/sys/aio.rs.html#295">len</a>;
+        <a class="ident" href="../../../src/nix/sys/aio.rs.html#298">a</a>.<span class="number">0</span>.<span class="ident">aio_buf</span> <span class="op">=</span> <a class="ident" href="../../../src/nix/sys/aio.rs.html#295">buf</a>;
+        <a class="ident" href="../../../src/nix/sys/aio.rs.html#298">a</a>.<span class="number">0</span>.<span class="ident">aio_lio_opcode</span> <span class="op">=</span> <a class="ident" href="../../../src/nix/sys/aio.rs.html#297">opcode</a> <span class="kw">as</span> <a class="ident" href="../../../libc/unix/type.c_int.html">libc::c_int</a>;
 
-        <span class="ident">Box::pin</span>(<a class="ident" href="../../../src/nix/sys/aio.rs.html#104-112">AioCb</a> {
-            <span class="ident">aiocb</span>: <a class="ident" href="../../../src/nix/sys/aio.rs.html#297">a</a>,
+        <span class="ident">Box::pin</span>(<a class="ident" href="../../../src/nix/sys/aio.rs.html#109-117">AioCb</a> {
+            <span class="ident">aiocb</span>: <a class="ident" href="../../../src/nix/sys/aio.rs.html#298">a</a>,
             <span class="ident">mutable</span>: <span class="bool-val">true</span>,
             <span class="ident">in_progress</span>: <span class="bool-val">false</span>,
             <span class="ident">_buffer</span>: <span class="ident">PhantomData</span>,
@@ -1470,18 +1459,18 @@
     <span class="doccomment">/// `AioCb`.  The lifetime checker can&#39;t help here.</span>
     <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">from_ptr</span>(<span class="ident">fd</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>, <span class="ident">offs</span>: <a class="ident" href="../../../libc/unix/linux_like/linux/gnu/b64/type.off_t.html">off_t</a>,
                            <span class="ident">buf</span>: <span class="kw-2">*</span><span class="kw">const</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>, <span class="ident">len</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-                           <span class="ident">prio</span>: <a class="ident" href="../../../libc/unix/type.c_int.html">libc::c_int</a>, <span class="ident">sigev_notify</span>: <a class="ident" href="../../../src/nix/sys/signal.rs.html#802-821">SigevNotify</a>,
-                           <span class="ident">opcode</span>: <a class="ident" href="../../../src/nix/sys/aio.rs.html#55-65">LioOpcode</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Pin</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">AioCb</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">a</span> <span class="op">=</span> <span class="ident">AioCb::common_init</span>(<a class="ident" href="../../../src/nix/sys/aio.rs.html#337">fd</a>, <a class="ident" href="../../../src/nix/sys/aio.rs.html#339">prio</a>, <a class="ident" href="../../../src/nix/sys/aio.rs.html#339">sigev_notify</a>);
-        <a class="ident" href="../../../src/nix/sys/aio.rs.html#341">a</a>.<span class="number">0</span>.<span class="ident">aio_offset</span> <span class="op">=</span> <a class="ident" href="../../../src/nix/sys/aio.rs.html#337">offs</a>;
-        <a class="ident" href="../../../src/nix/sys/aio.rs.html#341">a</a>.<span class="number">0</span>.<span class="ident">aio_nbytes</span> <span class="op">=</span> <a class="ident" href="../../../src/nix/sys/aio.rs.html#338">len</a>;
+                           <span class="ident">prio</span>: <a class="ident" href="../../../libc/unix/type.c_int.html">libc::c_int</a>, <span class="ident">sigev_notify</span>: <a class="ident" href="../../../src/nix/sys/signal.rs.html#930-962">SigevNotify</a>,
+                           <span class="ident">opcode</span>: <a class="ident" href="../../../src/nix/sys/aio.rs.html#56-70">LioOpcode</a>) -&gt; <span class="ident">Pin</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">AioCb</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">a</span> <span class="op">=</span> <span class="ident">AioCb::common_init</span>(<a class="ident" href="../../../src/nix/sys/aio.rs.html#338">fd</a>, <a class="ident" href="../../../src/nix/sys/aio.rs.html#340">prio</a>, <a class="ident" href="../../../src/nix/sys/aio.rs.html#340">sigev_notify</a>);
+        <a class="ident" href="../../../src/nix/sys/aio.rs.html#342">a</a>.<span class="number">0</span>.<span class="ident">aio_offset</span> <span class="op">=</span> <a class="ident" href="../../../src/nix/sys/aio.rs.html#338">offs</a>;
+        <a class="ident" href="../../../src/nix/sys/aio.rs.html#342">a</a>.<span class="number">0</span>.<span class="ident">aio_nbytes</span> <span class="op">=</span> <a class="ident" href="../../../src/nix/sys/aio.rs.html#339">len</a>;
         <span class="comment">// casting a const ptr to a mutable ptr here is ok, because we set the</span>
         <span class="comment">// AioCb&#39;s mutable field to false</span>
-        <a class="ident" href="../../../src/nix/sys/aio.rs.html#341">a</a>.<span class="number">0</span>.<span class="ident">aio_buf</span> <span class="op">=</span> <a class="ident" href="../../../src/nix/sys/aio.rs.html#338">buf</a> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>;
-        <a class="ident" href="../../../src/nix/sys/aio.rs.html#341">a</a>.<span class="number">0</span>.<span class="ident">aio_lio_opcode</span> <span class="op">=</span> <a class="ident" href="../../../src/nix/sys/aio.rs.html#340">opcode</a> <span class="kw">as</span> <a class="ident" href="../../../libc/unix/type.c_int.html">libc::c_int</a>;
+        <a class="ident" href="../../../src/nix/sys/aio.rs.html#342">a</a>.<span class="number">0</span>.<span class="ident">aio_buf</span> <span class="op">=</span> <a class="ident" href="../../../src/nix/sys/aio.rs.html#339">buf</a> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>;
+        <a class="ident" href="../../../src/nix/sys/aio.rs.html#342">a</a>.<span class="number">0</span>.<span class="ident">aio_lio_opcode</span> <span class="op">=</span> <a class="ident" href="../../../src/nix/sys/aio.rs.html#341">opcode</a> <span class="kw">as</span> <a class="ident" href="../../../libc/unix/type.c_int.html">libc::c_int</a>;
 
-        <span class="ident">Box::pin</span>(<a class="ident" href="../../../src/nix/sys/aio.rs.html#104-112">AioCb</a> {
-            <span class="ident">aiocb</span>: <a class="ident" href="../../../src/nix/sys/aio.rs.html#341">a</a>,
+        <span class="ident">Box::pin</span>(<a class="ident" href="../../../src/nix/sys/aio.rs.html#109-117">AioCb</a> {
+            <span class="ident">aiocb</span>: <a class="ident" href="../../../src/nix/sys/aio.rs.html#342">a</a>,
             <span class="ident">mutable</span>: <span class="bool-val">false</span>,
             <span class="ident">in_progress</span>: <span class="bool-val">false</span>,
             <span class="ident">_buffer</span>: <span class="ident">PhantomData</span>,
@@ -1491,21 +1480,21 @@
 
     <span class="comment">// Private helper</span>
     <span class="kw">fn</span> <span class="ident">from_slice_unpinned</span>(<span class="ident">fd</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>, <span class="ident">offs</span>: <a class="ident" href="../../../libc/unix/linux_like/linux/gnu/b64/type.off_t.html">off_t</a>, <span class="ident">buf</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-                           <span class="ident">prio</span>: <a class="ident" href="../../../libc/unix/type.c_int.html">libc::c_int</a>, <span class="ident">sigev_notify</span>: <a class="ident" href="../../../src/nix/sys/signal.rs.html#802-821">SigevNotify</a>,
-                           <span class="ident">opcode</span>: <a class="ident" href="../../../src/nix/sys/aio.rs.html#55-65">LioOpcode</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="../../../src/nix/sys/aio.rs.html#104-112">AioCb</a>
+                           <span class="ident">prio</span>: <a class="ident" href="../../../libc/unix/type.c_int.html">libc::c_int</a>, <span class="ident">sigev_notify</span>: <a class="ident" href="../../../src/nix/sys/signal.rs.html#930-962">SigevNotify</a>,
+                           <span class="ident">opcode</span>: <a class="ident" href="../../../src/nix/sys/aio.rs.html#56-70">LioOpcode</a>) -&gt; <a class="ident" href="../../../src/nix/sys/aio.rs.html#109-117">AioCb</a>
     {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">a</span> <span class="op">=</span> <span class="ident">AioCb::common_init</span>(<a class="ident" href="../../../src/nix/sys/aio.rs.html#359">fd</a>, <a class="ident" href="../../../src/nix/sys/aio.rs.html#360">prio</a>, <a class="ident" href="../../../src/nix/sys/aio.rs.html#360">sigev_notify</a>);
-        <a class="ident" href="../../../src/nix/sys/aio.rs.html#363">a</a>.<span class="number">0</span>.<span class="ident">aio_offset</span> <span class="op">=</span> <a class="ident" href="../../../src/nix/sys/aio.rs.html#359">offs</a>;
-        <a class="ident" href="../../../src/nix/sys/aio.rs.html#363">a</a>.<span class="number">0</span>.<span class="ident">aio_nbytes</span> <span class="op">=</span> <a class="ident" href="../../../src/nix/sys/aio.rs.html#359">buf</a>.<span class="ident">len</span>() <span class="kw">as</span> <a class="ident" href="../../../libc/unix/type.size_t.html">size_t</a>;
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">a</span> <span class="op">=</span> <span class="ident">AioCb::common_init</span>(<a class="ident" href="../../../src/nix/sys/aio.rs.html#360">fd</a>, <a class="ident" href="../../../src/nix/sys/aio.rs.html#361">prio</a>, <a class="ident" href="../../../src/nix/sys/aio.rs.html#361">sigev_notify</a>);
+        <a class="ident" href="../../../src/nix/sys/aio.rs.html#364">a</a>.<span class="number">0</span>.<span class="ident">aio_offset</span> <span class="op">=</span> <a class="ident" href="../../../src/nix/sys/aio.rs.html#360">offs</a>;
+        <a class="ident" href="../../../src/nix/sys/aio.rs.html#364">a</a>.<span class="number">0</span>.<span class="ident">aio_nbytes</span> <span class="op">=</span> <a class="ident" href="../../../src/nix/sys/aio.rs.html#360">buf</a>.<span class="ident">len</span>() <span class="kw">as</span> <a class="ident" href="../../../libc/unix/type.size_t.html">size_t</a>;
         <span class="comment">// casting an immutable buffer to a mutable pointer looks unsafe,</span>
         <span class="comment">// but technically its only unsafe to dereference it, not to create</span>
         <span class="comment">// it.</span>
-        <a class="ident" href="../../../src/nix/sys/aio.rs.html#363">a</a>.<span class="number">0</span>.<span class="ident">aio_buf</span> <span class="op">=</span> <a class="ident" href="../../../src/nix/sys/aio.rs.html#359">buf</a>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>;
-        <span class="macro">assert!</span>(<a class="ident" href="../../../src/nix/sys/aio.rs.html#361">opcode</a> <span class="op">!</span><span class="op">=</span> <a class="ident" href="../../../src/nix/sys/aio.rs.html#55-65">LioOpcode::LIO_READ</a>, <span class="string">&quot;Can&#39;t read into an immutable buffer&quot;</span>);
-        <a class="ident" href="../../../src/nix/sys/aio.rs.html#363">a</a>.<span class="number">0</span>.<span class="ident">aio_lio_opcode</span> <span class="op">=</span> <a class="ident" href="../../../src/nix/sys/aio.rs.html#361">opcode</a> <span class="kw">as</span> <a class="ident" href="../../../libc/unix/type.c_int.html">libc::c_int</a>;
+        <a class="ident" href="../../../src/nix/sys/aio.rs.html#364">a</a>.<span class="number">0</span>.<span class="ident">aio_buf</span> <span class="op">=</span> <a class="ident" href="../../../src/nix/sys/aio.rs.html#360">buf</a>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>;
+        <span class="macro">assert!</span>(<a class="ident" href="../../../src/nix/sys/aio.rs.html#362">opcode</a> <span class="op">!</span><span class="op">=</span> <a class="ident" href="../../../src/nix/sys/aio.rs.html#56-70">LioOpcode::LIO_READ</a>, <span class="string">&quot;Can&#39;t read into an immutable buffer&quot;</span>);
+        <a class="ident" href="../../../src/nix/sys/aio.rs.html#364">a</a>.<span class="number">0</span>.<span class="ident">aio_lio_opcode</span> <span class="op">=</span> <a class="ident" href="../../../src/nix/sys/aio.rs.html#362">opcode</a> <span class="kw">as</span> <a class="ident" href="../../../libc/unix/type.c_int.html">libc::c_int</a>;
 
-        <a class="ident" href="../../../src/nix/sys/aio.rs.html#104-112">AioCb</a> {
-            <span class="ident">aiocb</span>: <a class="ident" href="../../../src/nix/sys/aio.rs.html#363">a</a>,
+        <a class="ident" href="../../../src/nix/sys/aio.rs.html#109-117">AioCb</a> {
+            <span class="ident">aiocb</span>: <a class="ident" href="../../../src/nix/sys/aio.rs.html#364">a</a>,
             <span class="ident">mutable</span>: <span class="bool-val">false</span>,
             <span class="ident">in_progress</span>: <span class="bool-val">false</span>,
             <span class="ident">_buffer</span>: <span class="ident">PhantomData</span>,
@@ -1533,7 +1522,6 @@
     <span class="doccomment">/// # use std::{thread, time};</span>
     <span class="doccomment">/// # use std::os::unix::io::AsRawFd;</span>
     <span class="doccomment">/// # use tempfile::tempfile;</span>
-    <span class="doccomment">/// # fn main() {</span>
     <span class="doccomment">/// const WBUF: &amp;[u8] = b&quot;abcdef123456&quot;;</span>
     <span class="doccomment">/// let mut f = tempfile().unwrap();</span>
     <span class="doccomment">/// let mut aiocb = AioCb::from_slice( f.as_raw_fd(),</span>
@@ -1543,11 +1531,10 @@
     <span class="doccomment">///     SigevNotify::SigevNone,</span>
     <span class="doccomment">///     LioOpcode::LIO_NOP);</span>
     <span class="doccomment">/// aiocb.write().unwrap();</span>
-    <span class="doccomment">/// while (aiocb.error() == Err(Error::from(Errno::EINPROGRESS))) {</span>
+    <span class="doccomment">/// while (aiocb.error() == Err(Errno::EINPROGRESS)) {</span>
     <span class="doccomment">///     thread::sleep(time::Duration::from_millis(10));</span>
     <span class="doccomment">/// }</span>
     <span class="doccomment">/// assert_eq!(aiocb.aio_return().unwrap() as usize, WBUF.len());</span>
-    <span class="doccomment">/// # }</span>
     <span class="doccomment">/// ```</span>
     <span class="comment">// Note: another solution to the problem of writing const buffers would be</span>
     <span class="comment">// to genericize AioCb for both &amp;mut [u8] and &amp;[u8] buffers.  AioCb::read</span>
@@ -1555,35 +1542,35 @@
     <span class="comment">// then lio_listio wouldn&#39;t work, because that function needs a slice of</span>
     <span class="comment">// AioCb, and they must all be of the same type.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_slice</span>(<span class="ident">fd</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>, <span class="ident">offs</span>: <a class="ident" href="../../../libc/unix/linux_like/linux/gnu/b64/type.off_t.html">off_t</a>, <span class="ident">buf</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-                      <span class="ident">prio</span>: <a class="ident" href="../../../libc/unix/type.c_int.html">libc::c_int</a>, <span class="ident">sigev_notify</span>: <a class="ident" href="../../../src/nix/sys/signal.rs.html#802-821">SigevNotify</a>,
-                      <span class="ident">opcode</span>: <a class="ident" href="../../../src/nix/sys/aio.rs.html#55-65">LioOpcode</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Pin</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><a class="ident" href="../../../src/nix/sys/aio.rs.html#104-112">AioCb</a><span class="op">&gt;</span><span class="op">&gt;</span>
+                      <span class="ident">prio</span>: <a class="ident" href="../../../libc/unix/type.c_int.html">libc::c_int</a>, <span class="ident">sigev_notify</span>: <a class="ident" href="../../../src/nix/sys/signal.rs.html#930-962">SigevNotify</a>,
+                      <span class="ident">opcode</span>: <a class="ident" href="../../../src/nix/sys/aio.rs.html#56-70">LioOpcode</a>) -&gt; <span class="ident">Pin</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><a class="ident" href="../../../src/nix/sys/aio.rs.html#109-117">AioCb</a><span class="op">&gt;</span><span class="op">&gt;</span>
     {
-        <span class="ident">Box::pin</span>(<span class="ident">AioCb::from_slice_unpinned</span>(<a class="ident" href="../../../src/nix/sys/aio.rs.html#423">fd</a>, <a class="ident" href="../../../src/nix/sys/aio.rs.html#423">offs</a>, <a class="ident" href="../../../src/nix/sys/aio.rs.html#423">buf</a>, <a class="ident" href="../../../src/nix/sys/aio.rs.html#424">prio</a>, <a class="ident" href="../../../src/nix/sys/aio.rs.html#424">sigev_notify</a>,
-                                            <a class="ident" href="../../../src/nix/sys/aio.rs.html#425">opcode</a>))
+        <span class="ident">Box::pin</span>(<span class="ident">AioCb::from_slice_unpinned</span>(<a class="ident" href="../../../src/nix/sys/aio.rs.html#422">fd</a>, <a class="ident" href="../../../src/nix/sys/aio.rs.html#422">offs</a>, <a class="ident" href="../../../src/nix/sys/aio.rs.html#422">buf</a>, <a class="ident" href="../../../src/nix/sys/aio.rs.html#423">prio</a>, <a class="ident" href="../../../src/nix/sys/aio.rs.html#423">sigev_notify</a>,
+                                            <a class="ident" href="../../../src/nix/sys/aio.rs.html#424">opcode</a>))
     }
 
     <span class="kw">fn</span> <span class="ident">common_init</span>(<span class="ident">fd</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>, <span class="ident">prio</span>: <a class="ident" href="../../../libc/unix/type.c_int.html">libc::c_int</a>,
-                   <span class="ident">sigev_notify</span>: <a class="ident" href="../../../src/nix/sys/signal.rs.html#802-821">SigevNotify</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="../../../src/nix/sys/aio.rs.html#95">LibcAiocb</a> {
+                   <span class="ident">sigev_notify</span>: <a class="ident" href="../../../src/nix/sys/signal.rs.html#930-962">SigevNotify</a>) -&gt; <a class="ident" href="../../../src/nix/sys/aio.rs.html#100">LibcAiocb</a> {
         <span class="comment">// Use mem::zeroed instead of explicitly zeroing each field, because the</span>
         <span class="comment">// number and name of reserved fields is OS-dependent.  On some OSes,</span>
         <span class="comment">// some reserved fields are used the kernel for state, and must be</span>
         <span class="comment">// explicitly zeroed when allocated.</span>
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">a</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">mem::zeroed</span>::<span class="op">&lt;</span><a class="ident" href="../../../libc/unix/linux_like/linux/gnu/struct.aiocb.html">libc::aiocb</a><span class="op">&gt;</span>()};
-        <a class="ident" href="../../../src/nix/sys/aio.rs.html#437">a</a>.<span class="ident">aio_fildes</span> <span class="op">=</span> <a class="ident" href="../../../src/nix/sys/aio.rs.html#431">fd</a>;
-        <a class="ident" href="../../../src/nix/sys/aio.rs.html#437">a</a>.<span class="ident">aio_reqprio</span> <span class="op">=</span> <a class="ident" href="../../../src/nix/sys/aio.rs.html#431">prio</a>;
-        <a class="ident" href="../../../src/nix/sys/aio.rs.html#437">a</a>.<span class="ident">aio_sigevent</span> <span class="op">=</span> <span class="ident">SigEvent::new</span>(<a class="ident" href="../../../src/nix/sys/aio.rs.html#432">sigev_notify</a>).<a class="ident" href="../../../src/nix/sys/signal.rs.html#902">sigevent</a>();
-        <a class="ident" href="../../../src/nix/sys/aio.rs.html#95">LibcAiocb</a>(<a class="ident" href="../../../src/nix/sys/aio.rs.html#437">a</a>)
+        <a class="ident" href="../../../src/nix/sys/aio.rs.html#436">a</a>.<span class="ident">aio_fildes</span> <span class="op">=</span> <a class="ident" href="../../../src/nix/sys/aio.rs.html#430">fd</a>;
+        <a class="ident" href="../../../src/nix/sys/aio.rs.html#436">a</a>.<span class="ident">aio_reqprio</span> <span class="op">=</span> <a class="ident" href="../../../src/nix/sys/aio.rs.html#430">prio</a>;
+        <a class="ident" href="../../../src/nix/sys/aio.rs.html#436">a</a>.<span class="ident">aio_sigevent</span> <span class="op">=</span> <span class="ident">SigEvent::new</span>(<a class="ident" href="../../../src/nix/sys/aio.rs.html#431">sigev_notify</a>).<a class="ident" href="../../../src/nix/sys/signal.rs.html#1044">sigevent</a>();
+        <a class="ident" href="../../../src/nix/sys/aio.rs.html#100">LibcAiocb</a>(<a class="ident" href="../../../src/nix/sys/aio.rs.html#436">a</a>)
     }
 
     <span class="doccomment">/// Update the notification settings for an existing `aiocb`</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_sigev_notify</span>(<span class="self">self</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Pin</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-                            <span class="ident">sigev_notify</span>: <a class="ident" href="../../../src/nix/sys/signal.rs.html#802-821">SigevNotify</a>)
+                            <span class="ident">sigev_notify</span>: <a class="ident" href="../../../src/nix/sys/signal.rs.html#930-962">SigevNotify</a>)
     {
         <span class="comment">// Safe because we don&#39;t move any of the data</span>
         <span class="kw">let</span> <span class="ident">selfp</span> <span class="op">=</span> <span class="kw">unsafe</span> {
-            <a class="self" href="../../../src/nix/sys/aio.rs.html#445">self</a>.<span class="ident">as_mut</span>().<span class="ident">get_unchecked_mut</span>()
+            <a class="self" href="../../../src/nix/sys/aio.rs.html#444">self</a>.<span class="ident">as_mut</span>().<span class="ident">get_unchecked_mut</span>()
         };
-        <a class="ident" href="../../../src/nix/sys/aio.rs.html#449">selfp</a>.<span class="ident">aiocb</span>.<span class="number">0</span>.<span class="ident">aio_sigevent</span> <span class="op">=</span> <span class="ident">SigEvent::new</span>(<a class="ident" href="../../../src/nix/sys/aio.rs.html#446">sigev_notify</a>).<a class="ident" href="../../../src/nix/sys/signal.rs.html#902">sigevent</a>();
+        <a class="ident" href="../../../src/nix/sys/aio.rs.html#448">selfp</a>.<span class="ident">aiocb</span>.<span class="number">0</span>.<span class="ident">aio_sigevent</span> <span class="op">=</span> <span class="ident">SigEvent::new</span>(<a class="ident" href="../../../src/nix/sys/aio.rs.html#445">sigev_notify</a>).<a class="ident" href="../../../src/nix/sys/signal.rs.html#1044">sigevent</a>();
     }
 
     <span class="doccomment">/// Cancels an outstanding AIO request.</span>
@@ -1609,7 +1596,6 @@
     <span class="doccomment">/// # use std::io::Write;</span>
     <span class="doccomment">/// # use std::os::unix::io::AsRawFd;</span>
     <span class="doccomment">/// # use tempfile::tempfile;</span>
-    <span class="doccomment">/// # fn main() {</span>
     <span class="doccomment">/// let wbuf = b&quot;CDEF&quot;;</span>
     <span class="doccomment">/// let mut f = tempfile().unwrap();</span>
     <span class="doccomment">/// let mut aiocb = AioCb::from_slice( f.as_raw_fd(),</span>
@@ -1621,41 +1607,40 @@
     <span class="doccomment">/// aiocb.write().unwrap();</span>
     <span class="doccomment">/// let cs = aiocb.cancel().unwrap();</span>
     <span class="doccomment">/// if cs == AioCancelStat::AioNotCanceled {</span>
-    <span class="doccomment">///     while (aiocb.error() == Err(Error::from(Errno::EINPROGRESS))) {</span>
+    <span class="doccomment">///     while (aiocb.error() == Err(Errno::EINPROGRESS)) {</span>
     <span class="doccomment">///         thread::sleep(time::Duration::from_millis(10));</span>
     <span class="doccomment">///     }</span>
     <span class="doccomment">/// }</span>
     <span class="doccomment">/// // Must call `aio_return`, but ignore the result</span>
     <span class="doccomment">/// let _ = aiocb.aio_return();</span>
-    <span class="doccomment">/// # }</span>
     <span class="doccomment">/// ```</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// # References</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// [aio_cancel](https://pubs.opengroup.org/onlinepubs/9699919799/functions/aio_cancel.html)</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">cancel</span>(<span class="self">self</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Pin</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../../src/nix/sys/aio.rs.html#83-91">AioCancelStat</a><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">cancel</span>(<span class="self">self</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Pin</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../../src/nix/sys/aio.rs.html#88-96">AioCancelStat</a><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">r</span> <span class="op">=</span> <span class="kw">unsafe</span> {
-            <span class="kw">let</span> <span class="ident">selfp</span> <span class="op">=</span> <a class="self" href="../../../src/nix/sys/aio.rs.html#502">self</a>.<span class="ident">as_mut</span>().<span class="ident">get_unchecked_mut</span>();
-            <span class="ident">libc::aio_cancel</span>(<a class="ident" href="../../../src/nix/sys/aio.rs.html#504">selfp</a>.<span class="ident">aiocb</span>.<span class="number">0</span>.<span class="ident">aio_fildes</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../../src/nix/sys/aio.rs.html#504">selfp</a>.<span class="ident">aiocb</span>.<span class="number">0</span>)
+            <span class="kw">let</span> <span class="ident">selfp</span> <span class="op">=</span> <a class="self" href="../../../src/nix/sys/aio.rs.html#499">self</a>.<span class="ident">as_mut</span>().<span class="ident">get_unchecked_mut</span>();
+            <span class="ident">libc::aio_cancel</span>(<a class="ident" href="../../../src/nix/sys/aio.rs.html#501">selfp</a>.<span class="ident">aiocb</span>.<span class="number">0</span>.<span class="ident">aio_fildes</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../../src/nix/sys/aio.rs.html#501">selfp</a>.<span class="ident">aiocb</span>.<span class="number">0</span>)
         };
-        <span class="kw">match</span> <a class="ident" href="../../../src/nix/sys/aio.rs.html#503">r</a> {
-            <span class="ident">libc::AIO_CANCELED</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/nix/sys/aio.rs.html#85">AioCancelStat::AioCanceled</a>),
-            <span class="ident">libc::AIO_NOTCANCELED</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/nix/sys/aio.rs.html#88">AioCancelStat::AioNotCanceled</a>),
-            <span class="ident">libc::AIO_ALLDONE</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/nix/sys/aio.rs.html#90">AioCancelStat::AioAllDone</a>),
-            <span class="op">-</span><span class="number">1</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">Error::from</span>(<span class="ident">Errno::last</span>())),
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic!</span>(<span class="string">&quot;unknown aio_cancel return value&quot;</span>)
+        <span class="kw">match</span> <a class="ident" href="../../../src/nix/sys/aio.rs.html#500">r</a> {
+            <span class="ident">libc::AIO_CANCELED</span> =&gt; <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/nix/sys/aio.rs.html#90">AioCancelStat::AioCanceled</a>),
+            <span class="ident">libc::AIO_NOTCANCELED</span> =&gt; <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/nix/sys/aio.rs.html#93">AioCancelStat::AioNotCanceled</a>),
+            <span class="ident">libc::AIO_ALLDONE</span> =&gt; <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/nix/sys/aio.rs.html#95">AioCancelStat::AioAllDone</a>),
+            <span class="op">-</span><span class="number">1</span> =&gt; <span class="prelude-val">Err</span>(<span class="ident">Errno::last</span>()),
+            <span class="kw">_</span> =&gt; <span class="macro">panic!</span>(<span class="string">&quot;unknown aio_cancel return value&quot;</span>)
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">error_unpinned</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">error_unpinned</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">r</span> <span class="op">=</span> <span class="kw">unsafe</span> {
-            <span class="ident">libc::aio_error</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="self" href="../../../src/nix/sys/aio.rs.html#516">self</a>.<span class="ident">aiocb</span>.<span class="number">0</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <a class="ident" href="../../../libc/unix/linux_like/linux/gnu/struct.aiocb.html">libc::aiocb</a>)
+            <span class="ident">libc::aio_error</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="self" href="../../../src/nix/sys/aio.rs.html#513">self</a>.<span class="ident">aiocb</span>.<span class="number">0</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <a class="ident" href="../../../libc/unix/linux_like/linux/gnu/struct.aiocb.html">libc::aiocb</a>)
         };
-        <span class="kw">match</span> <a class="ident" href="../../../src/nix/sys/aio.rs.html#517">r</a> {
-            <span class="number">0</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(()),
-            <span class="ident">num</span> <span class="kw">if</span> <a class="ident" href="../../../src/nix/sys/aio.rs.html#522">num</a> <span class="op">&gt;</span> <span class="number">0</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">Error::from</span>(<span class="ident">Errno::from_i32</span>(<a class="ident" href="../../../src/nix/sys/aio.rs.html#522">num</a>))),
-            <span class="op">-</span><span class="number">1</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">Error::from</span>(<span class="ident">Errno::last</span>())),
-            <span class="ident">num</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic!</span>(<span class="string">&quot;unknown aio_error return value {:?}&quot;</span>, <a class="ident" href="../../../src/nix/sys/aio.rs.html#524">num</a>)
+        <span class="kw">match</span> <a class="ident" href="../../../src/nix/sys/aio.rs.html#514">r</a> {
+            <span class="number">0</span> =&gt; <span class="prelude-val">Ok</span>(()),
+            <span class="ident">num</span> <span class="kw">if</span> <a class="ident" href="../../../src/nix/sys/aio.rs.html#519">num</a> <span class="op">&gt;</span> <span class="number">0</span> =&gt; <span class="prelude-val">Err</span>(<span class="ident">Errno::from_i32</span>(<a class="ident" href="../../../src/nix/sys/aio.rs.html#519">num</a>)),
+            <span class="op">-</span><span class="number">1</span> =&gt; <span class="prelude-val">Err</span>(<span class="ident">Errno::last</span>()),
+            <span class="ident">num</span> =&gt; <span class="macro">panic!</span>(<span class="string">&quot;unknown aio_error return value {:?}&quot;</span>, <a class="ident" href="../../../src/nix/sys/aio.rs.html#521">num</a>)
         }
     }
 
@@ -1677,7 +1662,6 @@
     <span class="doccomment">/// # use std::{thread, time};</span>
     <span class="doccomment">/// # use std::os::unix::io::AsRawFd;</span>
     <span class="doccomment">/// # use tempfile::tempfile;</span>
-    <span class="doccomment">/// # fn main() {</span>
     <span class="doccomment">/// const WBUF: &amp;[u8] = b&quot;abcdef123456&quot;;</span>
     <span class="doccomment">/// let mut f = tempfile().unwrap();</span>
     <span class="doccomment">/// let mut aiocb = AioCb::from_slice( f.as_raw_fd(),</span>
@@ -1687,22 +1671,21 @@
     <span class="doccomment">///     SigevNotify::SigevNone,</span>
     <span class="doccomment">///     LioOpcode::LIO_NOP);</span>
     <span class="doccomment">/// aiocb.write().unwrap();</span>
-    <span class="doccomment">/// while (aiocb.error() == Err(Error::from(Errno::EINPROGRESS))) {</span>
+    <span class="doccomment">/// while (aiocb.error() == Err(Errno::EINPROGRESS)) {</span>
     <span class="doccomment">///     thread::sleep(time::Duration::from_millis(10));</span>
     <span class="doccomment">/// }</span>
     <span class="doccomment">/// assert_eq!(aiocb.aio_return().unwrap() as usize, WBUF.len());</span>
-    <span class="doccomment">/// # }</span>
     <span class="doccomment">/// ```</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// # References</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// [aio_error](https://pubs.opengroup.org/onlinepubs/9699919799/functions/aio_error.html)</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">error</span>(<span class="self">self</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Pin</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">error</span>(<span class="self">self</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Pin</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="comment">// Safe because error_unpinned doesn&#39;t move the data</span>
         <span class="kw">let</span> <span class="ident">selfp</span> <span class="op">=</span> <span class="kw">unsafe</span> {
-            <a class="self" href="../../../src/nix/sys/aio.rs.html#566">self</a>.<span class="ident">as_mut</span>().<span class="ident">get_unchecked_mut</span>()
+            <a class="self" href="../../../src/nix/sys/aio.rs.html#561">self</a>.<span class="ident">as_mut</span>().<span class="ident">get_unchecked_mut</span>()
         };
-        <a class="ident" href="../../../src/nix/sys/aio.rs.html#568">selfp</a>.<a class="ident" href="../../../src/nix/sys/aio.rs.html#516">error_unpinned</a>()
+        <a class="ident" href="../../../src/nix/sys/aio.rs.html#563">selfp</a>.<a class="ident" href="../../../src/nix/sys/aio.rs.html#513">error_unpinned</a>()
     }
 
     <span class="doccomment">/// An asynchronous version of `fsync(2)`.</span>
@@ -1710,15 +1693,15 @@
     <span class="doccomment">/// # References</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// [aio_fsync](https://pubs.opengroup.org/onlinepubs/9699919799/functions/aio_fsync.html)</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">fsync</span>(<span class="self">self</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Pin</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span><span class="op">&gt;</span>, <span class="ident">mode</span>: <a class="ident" href="../../../src/nix/sys/aio.rs.html#38-53">AioFsyncMode</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">fsync</span>(<span class="self">self</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Pin</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span><span class="op">&gt;</span>, <span class="ident">mode</span>: <a class="ident" href="../../../src/nix/sys/aio.rs.html#38-54">AioFsyncMode</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="comment">// Safe because we don&#39;t move the libc::aiocb</span>
         <span class="kw">unsafe</span> {
-            <span class="kw">let</span> <span class="ident">selfp</span> <span class="op">=</span> <a class="self" href="../../../src/nix/sys/aio.rs.html#579">self</a>.<span class="ident">as_mut</span>().<span class="ident">get_unchecked_mut</span>();
+            <span class="kw">let</span> <span class="ident">selfp</span> <span class="op">=</span> <a class="self" href="../../../src/nix/sys/aio.rs.html#574">self</a>.<span class="ident">as_mut</span>().<span class="ident">get_unchecked_mut</span>();
             <span class="ident">Errno::result</span>({
-                <span class="kw">let</span> <span class="ident">p</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <a class="ident" href="../../../libc/unix/linux_like/linux/gnu/struct.aiocb.html">libc::aiocb</a> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../../src/nix/sys/aio.rs.html#582">selfp</a>.<span class="ident">aiocb</span>.<span class="number">0</span>;
-                <span class="ident">libc::aio_fsync</span>(<a class="ident" href="../../../src/nix/sys/aio.rs.html#579">mode</a> <span class="kw">as</span> <a class="ident" href="../../../libc/unix/type.c_int.html">libc::c_int</a>, <a class="ident" href="../../../src/nix/sys/aio.rs.html#584">p</a>)
+                <span class="kw">let</span> <span class="ident">p</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <a class="ident" href="../../../libc/unix/linux_like/linux/gnu/struct.aiocb.html">libc::aiocb</a> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../../src/nix/sys/aio.rs.html#577">selfp</a>.<span class="ident">aiocb</span>.<span class="number">0</span>;
+                <span class="ident">libc::aio_fsync</span>(<a class="ident" href="../../../src/nix/sys/aio.rs.html#574">mode</a> <span class="kw">as</span> <a class="ident" href="../../../libc/unix/type.c_int.html">libc::c_int</a>, <a class="ident" href="../../../src/nix/sys/aio.rs.html#579">p</a>)
             }).<span class="ident">map</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> {
-                <a class="ident" href="../../../src/nix/sys/aio.rs.html#582">selfp</a>.<span class="ident">in_progress</span> <span class="op">=</span> <span class="bool-val">true</span>;
+                <a class="ident" href="../../../src/nix/sys/aio.rs.html#577">selfp</a>.<span class="ident">in_progress</span> <span class="op">=</span> <span class="bool-val">true</span>;
             })
         }
     }
@@ -1727,12 +1710,12 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// If the value cannot be represented as an `LioOpcode`, returns `None`</span>
     <span class="doccomment">/// instead.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">lio_opcode</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../src/nix/sys/aio.rs.html#55-65">LioOpcode</a><span class="op">&gt;</span> {
-        <span class="kw">match</span> <a class="self" href="../../../src/nix/sys/aio.rs.html#596">self</a>.<span class="ident">aiocb</span>.<span class="number">0</span>.<span class="ident">aio_lio_opcode</span> {
-            <span class="ident">libc::LIO_READ</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/nix/sys/aio.rs.html#55-65">LioOpcode::LIO_READ</a>),
-            <span class="ident">libc::LIO_WRITE</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/nix/sys/aio.rs.html#55-65">LioOpcode::LIO_WRITE</a>),
-            <span class="ident">libc::LIO_NOP</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/nix/sys/aio.rs.html#55-65">LioOpcode::LIO_NOP</a>),
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">lio_opcode</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../src/nix/sys/aio.rs.html#56-70">LioOpcode</a><span class="op">&gt;</span> {
+        <span class="kw">match</span> <a class="self" href="../../../src/nix/sys/aio.rs.html#591">self</a>.<span class="ident">aiocb</span>.<span class="number">0</span>.<span class="ident">aio_lio_opcode</span> {
+            <span class="ident">libc::LIO_READ</span> =&gt; <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/nix/sys/aio.rs.html#56-70">LioOpcode::LIO_READ</a>),
+            <span class="ident">libc::LIO_WRITE</span> =&gt; <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/nix/sys/aio.rs.html#56-70">LioOpcode::LIO_WRITE</a>),
+            <span class="ident">libc::LIO_NOP</span> =&gt; <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/nix/sys/aio.rs.html#56-70">LioOpcode::LIO_NOP</a>),
+            <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>
         }
     }
 
@@ -1741,18 +1724,18 @@
     <span class="doccomment">/// This method returns the *requested* length of the operation.  To get the</span>
     <span class="doccomment">/// number of bytes actually read or written by a completed operation, use</span>
     <span class="doccomment">/// `aio_return` instead.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">nbytes</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="../../../src/nix/sys/aio.rs.html#610">self</a>.<span class="ident">aiocb</span>.<span class="number">0</span>.<span class="ident">aio_nbytes</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">nbytes</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
+        <a class="self" href="../../../src/nix/sys/aio.rs.html#605">self</a>.<span class="ident">aiocb</span>.<span class="number">0</span>.<span class="ident">aio_nbytes</span>
     }
 
     <span class="doccomment">/// Returns the file offset stored in the `AioCb`</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">offset</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="../../../libc/unix/linux_like/linux/gnu/b64/type.off_t.html">off_t</a> {
-        <a class="self" href="../../../src/nix/sys/aio.rs.html#615">self</a>.<span class="ident">aiocb</span>.<span class="number">0</span>.<span class="ident">aio_offset</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">offset</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="../../../libc/unix/linux_like/linux/gnu/b64/type.off_t.html">off_t</a> {
+        <a class="self" href="../../../src/nix/sys/aio.rs.html#610">self</a>.<span class="ident">aiocb</span>.<span class="number">0</span>.<span class="ident">aio_offset</span>
     }
 
     <span class="doccomment">/// Returns the priority of the `AioCb`</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">priority</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="../../../libc/unix/type.c_int.html">libc::c_int</a> {
-        <a class="self" href="../../../src/nix/sys/aio.rs.html#620">self</a>.<span class="ident">aiocb</span>.<span class="number">0</span>.<span class="ident">aio_reqprio</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">priority</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="../../../libc/unix/type.c_int.html">libc::c_int</a> {
+        <a class="self" href="../../../src/nix/sys/aio.rs.html#615">self</a>.<span class="ident">aiocb</span>.<span class="number">0</span>.<span class="ident">aio_reqprio</span>
     }
 
     <span class="doccomment">/// Asynchronously reads from a file descriptor into a buffer</span>
@@ -1760,30 +1743,30 @@
     <span class="doccomment">/// # References</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// [aio_read](https://pubs.opengroup.org/onlinepubs/9699919799/functions/aio_read.html)</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">read</span>(<span class="self">self</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Pin</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="macro">assert!</span>(<a class="self" href="../../../src/nix/sys/aio.rs.html#629">self</a>.<span class="ident">mutable</span>, <span class="string">&quot;Can&#39;t read into an immutable buffer&quot;</span>);
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">read</span>(<span class="self">self</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Pin</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+        <span class="macro">assert!</span>(<a class="self" href="../../../src/nix/sys/aio.rs.html#624">self</a>.<span class="ident">mutable</span>, <span class="string">&quot;Can&#39;t read into an immutable buffer&quot;</span>);
         <span class="comment">// Safe because we don&#39;t move anything</span>
         <span class="kw">let</span> <span class="ident">selfp</span> <span class="op">=</span> <span class="kw">unsafe</span> {
-            <a class="self" href="../../../src/nix/sys/aio.rs.html#629">self</a>.<span class="ident">as_mut</span>().<span class="ident">get_unchecked_mut</span>()
+            <a class="self" href="../../../src/nix/sys/aio.rs.html#624">self</a>.<span class="ident">as_mut</span>().<span class="ident">get_unchecked_mut</span>()
         };
         <span class="ident">Errno::result</span>({
-            <span class="kw">let</span> <span class="ident">p</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <a class="ident" href="../../../libc/unix/linux_like/linux/gnu/struct.aiocb.html">libc::aiocb</a> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../../src/nix/sys/aio.rs.html#632">selfp</a>.<span class="ident">aiocb</span>.<span class="number">0</span>;
-            <span class="kw">unsafe</span> { <span class="ident">libc::aio_read</span>(<a class="ident" href="../../../src/nix/sys/aio.rs.html#636">p</a>) }
+            <span class="kw">let</span> <span class="ident">p</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <a class="ident" href="../../../libc/unix/linux_like/linux/gnu/struct.aiocb.html">libc::aiocb</a> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../../src/nix/sys/aio.rs.html#627">selfp</a>.<span class="ident">aiocb</span>.<span class="number">0</span>;
+            <span class="kw">unsafe</span> { <span class="ident">libc::aio_read</span>(<a class="ident" href="../../../src/nix/sys/aio.rs.html#631">p</a>) }
         }).<span class="ident">map</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> {
-            <a class="ident" href="../../../src/nix/sys/aio.rs.html#632">selfp</a>.<span class="ident">in_progress</span> <span class="op">=</span> <span class="bool-val">true</span>;
+            <a class="ident" href="../../../src/nix/sys/aio.rs.html#627">selfp</a>.<span class="ident">in_progress</span> <span class="op">=</span> <span class="bool-val">true</span>;
         })
     }
 
     <span class="doccomment">/// Returns the `SigEvent` stored in the `AioCb`</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">sigevent</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="../../../src/nix/sys/signal.rs.html#835-837">SigEvent</a> {
-        <span class="ident">SigEvent::from</span>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/nix/sys/aio.rs.html#644">self</a>.<span class="ident">aiocb</span>.<span class="number">0</span>.<span class="ident">aio_sigevent</span>)
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">sigevent</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="../../../src/nix/sys/signal.rs.html#976-978">SigEvent</a> {
+        <span class="ident">SigEvent::from</span>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/nix/sys/aio.rs.html#639">self</a>.<span class="ident">aiocb</span>.<span class="number">0</span>.<span class="ident">aio_sigevent</span>)
     }
 
-    <span class="kw">fn</span> <span class="ident">aio_return_unpinned</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.isize.html">isize</a><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">aio_return_unpinned</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.isize.html">isize</a><span class="op">&gt;</span> {
         <span class="kw">unsafe</span> {
-            <span class="kw">let</span> <span class="ident">p</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <a class="ident" href="../../../libc/unix/linux_like/linux/gnu/struct.aiocb.html">libc::aiocb</a> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="self" href="../../../src/nix/sys/aio.rs.html#648">self</a>.<span class="ident">aiocb</span>.<span class="number">0</span>;
-            <a class="self" href="../../../src/nix/sys/aio.rs.html#648">self</a>.<span class="ident">in_progress</span> <span class="op">=</span> <span class="bool-val">false</span>;
-            <span class="ident">Errno::result</span>(<span class="ident">libc::aio_return</span>(<a class="ident" href="../../../src/nix/sys/aio.rs.html#650">p</a>))
+            <span class="kw">let</span> <span class="ident">p</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <a class="ident" href="../../../libc/unix/linux_like/linux/gnu/struct.aiocb.html">libc::aiocb</a> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="self" href="../../../src/nix/sys/aio.rs.html#643">self</a>.<span class="ident">aiocb</span>.<span class="number">0</span>;
+            <a class="self" href="../../../src/nix/sys/aio.rs.html#643">self</a>.<span class="ident">in_progress</span> <span class="op">=</span> <span class="bool-val">false</span>;
+            <span class="ident">Errno::result</span>(<span class="ident">libc::aio_return</span>(<a class="ident" href="../../../src/nix/sys/aio.rs.html#645">p</a>))
         }
     }
 
@@ -1797,12 +1780,12 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [aio_return](https://pubs.opengroup.org/onlinepubs/9699919799/functions/aio_return.html)</span>
     <span class="comment">// Note: this should be just `return`, but that&#39;s a reserved word</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">aio_return</span>(<span class="self">self</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Pin</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.isize.html">isize</a><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">aio_return</span>(<span class="self">self</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Pin</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.isize.html">isize</a><span class="op">&gt;</span> {
         <span class="comment">// Safe because aio_return_unpinned does not move the data</span>
         <span class="kw">let</span> <span class="ident">selfp</span> <span class="op">=</span> <span class="kw">unsafe</span> {
-            <a class="self" href="../../../src/nix/sys/aio.rs.html#666">self</a>.<span class="ident">as_mut</span>().<span class="ident">get_unchecked_mut</span>()
+            <a class="self" href="../../../src/nix/sys/aio.rs.html#661">self</a>.<span class="ident">as_mut</span>().<span class="ident">get_unchecked_mut</span>()
         };
-        <a class="ident" href="../../../src/nix/sys/aio.rs.html#668">selfp</a>.<a class="ident" href="../../../src/nix/sys/aio.rs.html#648">aio_return_unpinned</a>()
+        <a class="ident" href="../../../src/nix/sys/aio.rs.html#663">selfp</a>.<a class="ident" href="../../../src/nix/sys/aio.rs.html#643">aio_return_unpinned</a>()
     }
 
     <span class="doccomment">/// Asynchronously writes from a buffer to a file descriptor</span>
@@ -1810,16 +1793,16 @@
     <span class="doccomment">/// # References</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// [aio_write](https://pubs.opengroup.org/onlinepubs/9699919799/functions/aio_write.html)</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">write</span>(<span class="self">self</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Pin</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">write</span>(<span class="self">self</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Pin</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="comment">// Safe because we don&#39;t move anything</span>
         <span class="kw">let</span> <span class="ident">selfp</span> <span class="op">=</span> <span class="kw">unsafe</span> {
-            <a class="self" href="../../../src/nix/sys/aio.rs.html#679">self</a>.<span class="ident">as_mut</span>().<span class="ident">get_unchecked_mut</span>()
+            <a class="self" href="../../../src/nix/sys/aio.rs.html#674">self</a>.<span class="ident">as_mut</span>().<span class="ident">get_unchecked_mut</span>()
         };
         <span class="ident">Errno::result</span>({
-            <span class="kw">let</span> <span class="ident">p</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <a class="ident" href="../../../libc/unix/linux_like/linux/gnu/struct.aiocb.html">libc::aiocb</a> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../../src/nix/sys/aio.rs.html#681">selfp</a>.<span class="ident">aiocb</span>.<span class="number">0</span>;
-            <span class="kw">unsafe</span>{ <span class="ident">libc::aio_write</span>(<a class="ident" href="../../../src/nix/sys/aio.rs.html#685">p</a>) }
+            <span class="kw">let</span> <span class="ident">p</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <a class="ident" href="../../../libc/unix/linux_like/linux/gnu/struct.aiocb.html">libc::aiocb</a> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../../src/nix/sys/aio.rs.html#676">selfp</a>.<span class="ident">aiocb</span>.<span class="number">0</span>;
+            <span class="kw">unsafe</span>{ <span class="ident">libc::aio_write</span>(<a class="ident" href="../../../src/nix/sys/aio.rs.html#680">p</a>) }
         }).<span class="ident">map</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> {
-            <a class="ident" href="../../../src/nix/sys/aio.rs.html#681">selfp</a>.<span class="ident">in_progress</span> <span class="op">=</span> <span class="bool-val">true</span>;
+            <a class="ident" href="../../../src/nix/sys/aio.rs.html#676">selfp</a>.<span class="ident">in_progress</span> <span class="op">=</span> <span class="bool-val">true</span>;
         })
     }
 }
@@ -1840,7 +1823,6 @@
 <span class="doccomment">/// # use std::io::Write;</span>
 <span class="doccomment">/// # use std::os::unix::io::AsRawFd;</span>
 <span class="doccomment">/// # use tempfile::tempfile;</span>
-<span class="doccomment">/// # fn main() {</span>
 <span class="doccomment">/// let wbuf = b&quot;CDEF&quot;;</span>
 <span class="doccomment">/// let mut f = tempfile().unwrap();</span>
 <span class="doccomment">/// let mut aiocb = AioCb::from_slice( f.as_raw_fd(),</span>
@@ -1852,25 +1834,24 @@
 <span class="doccomment">/// aiocb.write().unwrap();</span>
 <span class="doccomment">/// let cs = aio_cancel_all(f.as_raw_fd()).unwrap();</span>
 <span class="doccomment">/// if cs == AioCancelStat::AioNotCanceled {</span>
-<span class="doccomment">///     while (aiocb.error() == Err(Error::from(Errno::EINPROGRESS))) {</span>
+<span class="doccomment">///     while (aiocb.error() == Err(Errno::EINPROGRESS)) {</span>
 <span class="doccomment">///         thread::sleep(time::Duration::from_millis(10));</span>
 <span class="doccomment">///     }</span>
 <span class="doccomment">/// }</span>
 <span class="doccomment">/// // Must call `aio_return`, but ignore the result</span>
 <span class="doccomment">/// let _ = aiocb.aio_return();</span>
-<span class="doccomment">/// # }</span>
 <span class="doccomment">/// ```</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// # References</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// [`aio_cancel`](https://pubs.opengroup.org/onlinepubs/9699919799/functions/aio_cancel.html)</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">aio_cancel_all</span>(<span class="ident">fd</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../../src/nix/sys/aio.rs.html#83-91">AioCancelStat</a><span class="op">&gt;</span> {
-    <span class="kw">match</span> <span class="kw">unsafe</span> { <span class="ident">libc::aio_cancel</span>(<a class="ident" href="../../../src/nix/sys/aio.rs.html#733">fd</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/ptr/fn.null_mut.html">null_mut</a>()) } {
-        <span class="ident">libc::AIO_CANCELED</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/nix/sys/aio.rs.html#85">AioCancelStat::AioCanceled</a>),
-        <span class="ident">libc::AIO_NOTCANCELED</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/nix/sys/aio.rs.html#88">AioCancelStat::AioNotCanceled</a>),
-        <span class="ident">libc::AIO_ALLDONE</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/nix/sys/aio.rs.html#90">AioCancelStat::AioAllDone</a>),
-        <span class="op">-</span><span class="number">1</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">Error::from</span>(<span class="ident">Errno::last</span>())),
-        <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic!</span>(<span class="string">&quot;unknown aio_cancel return value&quot;</span>)
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">aio_cancel_all</span>(<span class="ident">fd</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../../src/nix/sys/aio.rs.html#88-96">AioCancelStat</a><span class="op">&gt;</span> {
+    <span class="kw">match</span> <span class="kw">unsafe</span> { <span class="ident">libc::aio_cancel</span>(<a class="ident" href="../../../src/nix/sys/aio.rs.html#726">fd</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/ptr/fn.null_mut.html">null_mut</a>()) } {
+        <span class="ident">libc::AIO_CANCELED</span> =&gt; <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/nix/sys/aio.rs.html#90">AioCancelStat::AioCanceled</a>),
+        <span class="ident">libc::AIO_NOTCANCELED</span> =&gt; <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/nix/sys/aio.rs.html#93">AioCancelStat::AioNotCanceled</a>),
+        <span class="ident">libc::AIO_ALLDONE</span> =&gt; <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/nix/sys/aio.rs.html#95">AioCancelStat::AioAllDone</a>),
+        <span class="op">-</span><span class="number">1</span> =&gt; <span class="prelude-val">Err</span>(<span class="ident">Errno::last</span>()),
+        <span class="kw">_</span> =&gt; <span class="macro">panic!</span>(<span class="string">&quot;unknown aio_cancel return value&quot;</span>)
     }
 }
 
@@ -1888,7 +1869,6 @@
 <span class="doccomment">/// # use nix::sys::signal::SigevNotify;</span>
 <span class="doccomment">/// # use std::os::unix::io::AsRawFd;</span>
 <span class="doccomment">/// # use tempfile::tempfile;</span>
-<span class="doccomment">/// # fn main() {</span>
 <span class="doccomment">/// const WBUF: &amp;[u8] = b&quot;abcdef123456&quot;;</span>
 <span class="doccomment">/// let mut f = tempfile().unwrap();</span>
 <span class="doccomment">/// let mut aiocb = AioCb::from_slice( f.as_raw_fd(),</span>
@@ -1900,29 +1880,28 @@
 <span class="doccomment">/// aiocb.write().unwrap();</span>
 <span class="doccomment">/// aio_suspend(&amp;[aiocb.as_ref()], None).expect(&quot;aio_suspend failed&quot;);</span>
 <span class="doccomment">/// assert_eq!(aiocb.aio_return().unwrap() as usize, WBUF.len());</span>
-<span class="doccomment">/// # }</span>
 <span class="doccomment">/// ```</span>
 <span class="doccomment">/// # References</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// [`aio_suspend`](https://pubs.opengroup.org/onlinepubs/9699919799/functions/aio_suspend.html)</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">aio_suspend</span>(<span class="ident">list</span>: <span class="kw-2">&amp;</span>[<span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><a class="ident" href="../../../src/nix/sys/aio.rs.html#104-112">AioCb</a><span class="op">&gt;</span>], <span class="ident">timeout</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../src/nix/sys/time.rs.html#51">TimeSpec</a><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="ident">plist</span> <span class="op">=</span> <a class="ident" href="../../../src/nix/sys/aio.rs.html#774">list</a> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> [<span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><a class="ident" href="../../../src/nix/sys/aio.rs.html#104-112">AioCb</a><span class="op">&gt;</span>] <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> [<span class="kw-2">*</span><span class="kw">const</span> <a class="ident" href="../../../libc/unix/linux_like/linux/gnu/struct.aiocb.html">libc::aiocb</a>];
-    <span class="kw">let</span> <span class="ident">p</span> <span class="op">=</span> <a class="ident" href="../../../src/nix/sys/aio.rs.html#775">plist</a> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="kw-2">*</span><span class="kw">const</span> <a class="ident" href="../../../libc/unix/linux_like/linux/gnu/struct.aiocb.html">libc::aiocb</a>;
-    <span class="kw">let</span> <span class="ident">timep</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../../src/nix/sys/aio.rs.html#774">timeout</a> {
-        <span class="prelude-val">None</span>    <span class="op">=</span><span class="op">&gt;</span> <span class="ident">null</span>::<span class="op">&lt;</span><a class="ident" href="../../../libc/unix/struct.timespec.html">libc::timespec</a><span class="op">&gt;</span>(),
-        <span class="prelude-val">Some</span>(<span class="ident">x</span>) <span class="op">=</span><span class="op">&gt;</span> <a class="ident" href="../../../src/nix/sys/aio.rs.html#779">x</a>.<span class="ident">as_ref</span>() <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <a class="ident" href="../../../libc/unix/struct.timespec.html">libc::timespec</a>
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">aio_suspend</span>(<span class="ident">list</span>: <span class="kw-2">&amp;</span>[<span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><a class="ident" href="../../../src/nix/sys/aio.rs.html#109-117">AioCb</a><span class="op">&gt;</span>], <span class="ident">timeout</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../src/nix/sys/time.rs.html#51">TimeSpec</a><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="kw">let</span> <span class="ident">plist</span> <span class="op">=</span> <a class="ident" href="../../../src/nix/sys/aio.rs.html#765">list</a> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> [<span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><a class="ident" href="../../../src/nix/sys/aio.rs.html#109-117">AioCb</a><span class="op">&gt;</span>] <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> [<span class="kw-2">*</span><span class="kw">const</span> <a class="ident" href="../../../libc/unix/linux_like/linux/gnu/struct.aiocb.html">libc::aiocb</a>];
+    <span class="kw">let</span> <span class="ident">p</span> <span class="op">=</span> <a class="ident" href="../../../src/nix/sys/aio.rs.html#766">plist</a> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="kw-2">*</span><span class="kw">const</span> <a class="ident" href="../../../libc/unix/linux_like/linux/gnu/struct.aiocb.html">libc::aiocb</a>;
+    <span class="kw">let</span> <span class="ident">timep</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../../src/nix/sys/aio.rs.html#765">timeout</a> {
+        <span class="prelude-val">None</span>    =&gt; <span class="ident">null</span>::<span class="op">&lt;</span><a class="ident" href="../../../libc/unix/struct.timespec.html">libc::timespec</a><span class="op">&gt;</span>(),
+        <span class="prelude-val">Some</span>(<span class="ident">x</span>) =&gt; <a class="ident" href="../../../src/nix/sys/aio.rs.html#770">x</a>.<span class="ident">as_ref</span>() <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <a class="ident" href="../../../libc/unix/struct.timespec.html">libc::timespec</a>
     };
     <span class="ident">Errno::result</span>(<span class="kw">unsafe</span> {
-        <span class="ident">libc::aio_suspend</span>(<a class="ident" href="../../../src/nix/sys/aio.rs.html#776">p</a>, <a class="ident" href="../../../src/nix/sys/aio.rs.html#774">list</a>.<span class="ident">len</span>() <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>, <a class="ident" href="../../../src/nix/sys/aio.rs.html#777">timep</a>)
+        <span class="ident">libc::aio_suspend</span>(<a class="ident" href="../../../src/nix/sys/aio.rs.html#767">p</a>, <a class="ident" href="../../../src/nix/sys/aio.rs.html#765">list</a>.<span class="ident">len</span>() <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>, <a class="ident" href="../../../src/nix/sys/aio.rs.html#768">timep</a>)
     }).<span class="ident">map</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>)
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">Debug</a> <span class="kw">for</span> <span class="ident">AioCb</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">fmt</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="ident" href="../../../src/nix/sys/aio.rs.html#787">fmt</a>.<span class="ident">debug_struct</span>(<span class="string">&quot;AioCb&quot;</span>)
-            .<span class="ident">field</span>(<span class="string">&quot;aiocb&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/nix/sys/aio.rs.html#787">self</a>.<span class="ident">aiocb</span>.<span class="number">0</span>)
-            .<span class="ident">field</span>(<span class="string">&quot;mutable&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/nix/sys/aio.rs.html#787">self</a>.<span class="ident">mutable</span>)
-            .<span class="ident">field</span>(<span class="string">&quot;in_progress&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/nix/sys/aio.rs.html#787">self</a>.<span class="ident">in_progress</span>)
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">fmt</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+        <a class="ident" href="../../../src/nix/sys/aio.rs.html#778">fmt</a>.<span class="ident">debug_struct</span>(<span class="string">&quot;AioCb&quot;</span>)
+            .<span class="ident">field</span>(<span class="string">&quot;aiocb&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/nix/sys/aio.rs.html#778">self</a>.<span class="ident">aiocb</span>.<span class="number">0</span>)
+            .<span class="ident">field</span>(<span class="string">&quot;mutable&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/nix/sys/aio.rs.html#778">self</a>.<span class="ident">mutable</span>)
+            .<span class="ident">field</span>(<span class="string">&quot;in_progress&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/nix/sys/aio.rs.html#778">self</a>.<span class="ident">in_progress</span>)
             .<span class="ident">finish</span>()
     }
 }
@@ -1931,7 +1910,7 @@
     <span class="doccomment">/// If the `AioCb` has no remaining state in the kernel, just drop it.</span>
     <span class="doccomment">/// Otherwise, dropping constitutes a resource leak, which is an error</span>
     <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) {
-        <span class="macro">assert!</span>(<span class="ident">thread::panicking</span>() <span class="op">|</span><span class="op">|</span> <span class="op">!</span><a class="self" href="../../../src/nix/sys/aio.rs.html#799">self</a>.<span class="ident">in_progress</span>,
+        <span class="macro">assert!</span>(<span class="ident">thread::panicking</span>() <span class="op">|</span><span class="op">|</span> <span class="op">!</span><a class="self" href="../../../src/nix/sys/aio.rs.html#790">self</a>.<span class="ident">in_progress</span>,
                 <span class="string">&quot;Dropped an in-progress AioCb&quot;</span>);
     }
 }
@@ -1972,13 +1951,14 @@
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;ios&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;macos&quot;</span>)))]</span>
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">LioCb</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_empty</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../src/nix/sys/aio.rs.html#841">self</a>.<span class="ident">aiocbs</span>.<span class="ident">is_empty</span>()
+    <span class="doccomment">/// Are no [`AioCb`]s contained?</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_empty</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a class="self" href="../../../src/nix/sys/aio.rs.html#833">self</a>.<span class="ident">aiocbs</span>.<span class="ident">is_empty</span>()
     }
 
     <span class="doccomment">/// Return the number of individual [`AioCb`]s contained.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">len</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="../../../src/nix/sys/aio.rs.html#846">self</a>.<span class="ident">aiocbs</span>.<span class="ident">len</span>()
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">len</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
+        <a class="self" href="../../../src/nix/sys/aio.rs.html#838">self</a>.<span class="ident">aiocbs</span>.<span class="ident">len</span>()
     }
 
     <span class="doccomment">/// Submits multiple asynchronous I/O requests with a single system call.</span>
@@ -2004,7 +1984,6 @@
     <span class="doccomment">/// # use nix::sys::signal::SigevNotify;</span>
     <span class="doccomment">/// # use std::os::unix::io::AsRawFd;</span>
     <span class="doccomment">/// # use tempfile::tempfile;</span>
-    <span class="doccomment">/// # fn main() {</span>
     <span class="doccomment">/// const WBUF: &amp;[u8] = b&quot;abcdef123456&quot;;</span>
     <span class="doccomment">/// let mut f = tempfile().unwrap();</span>
     <span class="doccomment">/// let mut liocb = LioCbBuilder::with_capacity(1)</span>
@@ -2019,7 +1998,6 @@
     <span class="doccomment">/// liocb.listio(LioMode::LIO_WAIT,</span>
     <span class="doccomment">///              SigevNotify::SigevNone).unwrap();</span>
     <span class="doccomment">/// assert_eq!(liocb.aio_return(0).unwrap() as usize, WBUF.len());</span>
-    <span class="doccomment">/// # }</span>
     <span class="doccomment">/// ```</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// # References</span>
@@ -2028,19 +2006,19 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [`aio_suspend`]: fn.aio_suspend.html</span>
     <span class="doccomment">/// [`AioCb::error`]: struct.AioCb.html#method.error</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">listio</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">mode</span>: <a class="ident" href="../../../src/nix/sys/aio.rs.html#67-77">LioMode</a>,
-                  <span class="ident">sigev_notify</span>: <a class="ident" href="../../../src/nix/sys/signal.rs.html#802-821">SigevNotify</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">sigev</span> <span class="op">=</span> <span class="ident">SigEvent::new</span>(<a class="ident" href="../../../src/nix/sys/aio.rs.html#898">sigev_notify</a>);
-        <span class="kw">let</span> <span class="ident">sigevp</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../../src/nix/sys/aio.rs.html#899">sigev</a>.<a class="ident" href="../../../src/nix/sys/signal.rs.html#902">sigevent</a>() <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <a class="ident" href="../../../libc/unix/linux_like/struct.sigevent.html">libc::sigevent</a>;
-        <a class="self" href="../../../src/nix/sys/aio.rs.html#897">self</a>.<span class="ident">list</span>.<span class="ident">clear</span>();
-        <span class="kw">for</span> <a class="ident" href="../../../src/nix/sys/aio.rs.html#902">a</a> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="self" href="../../../src/nix/sys/aio.rs.html#897">self</a>.<span class="ident">aiocbs</span>.<span class="ident">iter_mut</span>() {
-            <a class="ident" href="../../../src/nix/sys/aio.rs.html#902">a</a>.<span class="ident">in_progress</span> <span class="op">=</span> <span class="bool-val">true</span>;
-            <a class="self" href="../../../src/nix/sys/aio.rs.html#897">self</a>.<span class="ident">list</span>.<span class="ident">push</span>(<a class="ident" href="../../../src/nix/sys/aio.rs.html#902">a</a> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">AioCb</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">listio</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">mode</span>: <a class="ident" href="../../../src/nix/sys/aio.rs.html#72-82">LioMode</a>,
+                  <span class="ident">sigev_notify</span>: <a class="ident" href="../../../src/nix/sys/signal.rs.html#930-962">SigevNotify</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="ident">sigev</span> <span class="op">=</span> <span class="ident">SigEvent::new</span>(<a class="ident" href="../../../src/nix/sys/aio.rs.html#888">sigev_notify</a>);
+        <span class="kw">let</span> <span class="ident">sigevp</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../../src/nix/sys/aio.rs.html#889">sigev</a>.<a class="ident" href="../../../src/nix/sys/signal.rs.html#1044">sigevent</a>() <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <a class="ident" href="../../../libc/unix/linux_like/struct.sigevent.html">libc::sigevent</a>;
+        <a class="self" href="../../../src/nix/sys/aio.rs.html#887">self</a>.<span class="ident">list</span>.<span class="ident">clear</span>();
+        <span class="kw">for</span> <a class="ident" href="../../../src/nix/sys/aio.rs.html#892">a</a> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="self" href="../../../src/nix/sys/aio.rs.html#887">self</a>.<span class="ident">aiocbs</span>.<span class="ident">iter_mut</span>() {
+            <a class="ident" href="../../../src/nix/sys/aio.rs.html#892">a</a>.<span class="ident">in_progress</span> <span class="op">=</span> <span class="bool-val">true</span>;
+            <a class="self" href="../../../src/nix/sys/aio.rs.html#887">self</a>.<span class="ident">list</span>.<span class="ident">push</span>(<a class="ident" href="../../../src/nix/sys/aio.rs.html#892">a</a> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">AioCb</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>
                              <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <a class="ident" href="../../../libc/unix/linux_like/linux/gnu/struct.aiocb.html">libc::aiocb</a>);
         }
-        <span class="kw">let</span> <span class="ident">p</span> <span class="op">=</span> <a class="self" href="../../../src/nix/sys/aio.rs.html#897">self</a>.<span class="ident">list</span>.<span class="ident">as_ptr</span>();
+        <span class="kw">let</span> <span class="ident">p</span> <span class="op">=</span> <a class="self" href="../../../src/nix/sys/aio.rs.html#887">self</a>.<span class="ident">list</span>.<span class="ident">as_ptr</span>();
         <span class="ident">Errno::result</span>(<span class="kw">unsafe</span> {
-            <span class="ident">libc::lio_listio</span>(<a class="ident" href="../../../src/nix/sys/aio.rs.html#897">mode</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>, <a class="ident" href="../../../src/nix/sys/aio.rs.html#907">p</a>, <a class="self" href="../../../src/nix/sys/aio.rs.html#897">self</a>.<span class="ident">list</span>.<span class="ident">len</span>() <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>, <a class="ident" href="../../../src/nix/sys/aio.rs.html#900">sigevp</a>)
+            <span class="ident">libc::lio_listio</span>(<a class="ident" href="../../../src/nix/sys/aio.rs.html#887">mode</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>, <a class="ident" href="../../../src/nix/sys/aio.rs.html#897">p</a>, <a class="self" href="../../../src/nix/sys/aio.rs.html#887">self</a>.<span class="ident">list</span>.<span class="ident">len</span>() <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>, <a class="ident" href="../../../src/nix/sys/aio.rs.html#890">sigevp</a>)
         }).<span class="ident">map</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>)
     }
 
@@ -2064,7 +2042,6 @@
     <span class="doccomment">/// # use std::os::unix::io::AsRawFd;</span>
     <span class="doccomment">/// # use std::{thread, time};</span>
     <span class="doccomment">/// # use tempfile::tempfile;</span>
-    <span class="doccomment">/// # fn main() {</span>
     <span class="doccomment">/// const WBUF: &amp;[u8] = b&quot;abcdef123456&quot;;</span>
     <span class="doccomment">/// let mut f = tempfile().unwrap();</span>
     <span class="doccomment">/// let mut liocb = LioCbBuilder::with_capacity(1)</span>
@@ -2077,13 +2054,12 @@
     <span class="doccomment">///         LioOpcode::LIO_WRITE</span>
     <span class="doccomment">///     ).finish();</span>
     <span class="doccomment">/// let mut err = liocb.listio(LioMode::LIO_WAIT, SigevNotify::SigevNone);</span>
-    <span class="doccomment">/// while err == Err(Error::from(Errno::EIO)) ||</span>
-    <span class="doccomment">///       err == Err(Error::from(Errno::EAGAIN)) {</span>
+    <span class="doccomment">/// while err == Err(Errno::EIO) ||</span>
+    <span class="doccomment">///       err == Err(Errno::EAGAIN) {</span>
     <span class="doccomment">///     thread::sleep(time::Duration::from_millis(10));</span>
     <span class="doccomment">///     err = liocb.listio_resubmit(LioMode::LIO_WAIT, SigevNotify::SigevNone);</span>
     <span class="doccomment">/// }</span>
     <span class="doccomment">/// assert_eq!(liocb.aio_return(0).unwrap() as usize, WBUF.len());</span>
-    <span class="doccomment">/// # }</span>
     <span class="doccomment">/// ```</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// # References</span>
@@ -2097,40 +2073,40 @@
     <span class="comment">// being stable.</span>
     <span class="comment">// Note: aiocbs that are Ok(()) must be finalized by aio_return, or else the</span>
     <span class="comment">// sigev_notify will immediately refire.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">listio_resubmit</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">mode</span>:<a class="ident" href="../../../src/nix/sys/aio.rs.html#67-77">LioMode</a>,
-                           <span class="ident">sigev_notify</span>: <a class="ident" href="../../../src/nix/sys/signal.rs.html#802-821">SigevNotify</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">sigev</span> <span class="op">=</span> <span class="ident">SigEvent::new</span>(<a class="ident" href="../../../src/nix/sys/aio.rs.html#967">sigev_notify</a>);
-        <span class="kw">let</span> <span class="ident">sigevp</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../../src/nix/sys/aio.rs.html#968">sigev</a>.<a class="ident" href="../../../src/nix/sys/signal.rs.html#902">sigevent</a>() <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <a class="ident" href="../../../libc/unix/linux_like/struct.sigevent.html">libc::sigevent</a>;
-        <a class="self" href="../../../src/nix/sys/aio.rs.html#966">self</a>.<span class="ident">list</span>.<span class="ident">clear</span>();
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">listio_resubmit</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">mode</span>:<a class="ident" href="../../../src/nix/sys/aio.rs.html#72-82">LioMode</a>,
+                           <span class="ident">sigev_notify</span>: <a class="ident" href="../../../src/nix/sys/signal.rs.html#930-962">SigevNotify</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="ident">sigev</span> <span class="op">=</span> <span class="ident">SigEvent::new</span>(<a class="ident" href="../../../src/nix/sys/aio.rs.html#955">sigev_notify</a>);
+        <span class="kw">let</span> <span class="ident">sigevp</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../../src/nix/sys/aio.rs.html#956">sigev</a>.<a class="ident" href="../../../src/nix/sys/signal.rs.html#1044">sigevent</a>() <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <a class="ident" href="../../../libc/unix/linux_like/struct.sigevent.html">libc::sigevent</a>;
+        <a class="self" href="../../../src/nix/sys/aio.rs.html#954">self</a>.<span class="ident">list</span>.<span class="ident">clear</span>();
 
-        <span class="kw">while</span> <a class="self" href="../../../src/nix/sys/aio.rs.html#966">self</a>.<span class="ident">results</span>.<span class="ident">len</span>() <span class="op">&lt;</span> <a class="self" href="../../../src/nix/sys/aio.rs.html#966">self</a>.<span class="ident">aiocbs</span>.<span class="ident">len</span>() {
-            <a class="self" href="../../../src/nix/sys/aio.rs.html#966">self</a>.<span class="ident">results</span>.<span class="ident">push</span>(<span class="prelude-val">None</span>);
+        <span class="kw">while</span> <a class="self" href="../../../src/nix/sys/aio.rs.html#954">self</a>.<span class="ident">results</span>.<span class="ident">len</span>() <span class="op">&lt;</span> <a class="self" href="../../../src/nix/sys/aio.rs.html#954">self</a>.<span class="ident">aiocbs</span>.<span class="ident">len</span>() {
+            <a class="self" href="../../../src/nix/sys/aio.rs.html#954">self</a>.<span class="ident">results</span>.<span class="ident">push</span>(<span class="prelude-val">None</span>);
         }
 
-        <span class="kw">for</span> (<span class="ident">i</span>, <span class="ident">a</span>) <span class="kw">in</span> <a class="self" href="../../../src/nix/sys/aio.rs.html#966">self</a>.<span class="ident">aiocbs</span>.<span class="ident">iter_mut</span>().<span class="ident">enumerate</span>() {
-            <span class="kw">if</span> <a class="self" href="../../../src/nix/sys/aio.rs.html#966">self</a>.<span class="ident">results</span>[<a class="ident" href="../../../src/nix/sys/aio.rs.html#976">i</a>].<span class="ident">is_some</span>() {
+        <span class="kw">for</span> (<span class="ident">i</span>, <span class="ident">a</span>) <span class="kw">in</span> <a class="self" href="../../../src/nix/sys/aio.rs.html#954">self</a>.<span class="ident">aiocbs</span>.<span class="ident">iter_mut</span>().<span class="ident">enumerate</span>() {
+            <span class="kw">if</span> <a class="self" href="../../../src/nix/sys/aio.rs.html#954">self</a>.<span class="ident">results</span>[<a class="ident" href="../../../src/nix/sys/aio.rs.html#964">i</a>].<span class="ident">is_some</span>() {
                 <span class="comment">// Already collected final status for this operation</span>
                 <span class="kw">continue</span>;
             }
-            <span class="kw">match</span> <a class="ident" href="../../../src/nix/sys/aio.rs.html#976">a</a>.<a class="ident" href="../../../src/nix/sys/aio.rs.html#516">error_unpinned</a>() {
-                <span class="prelude-val">Ok</span>(()) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="kw">match</span> <a class="ident" href="../../../src/nix/sys/aio.rs.html#964">a</a>.<a class="ident" href="../../../src/nix/sys/aio.rs.html#513">error_unpinned</a>() {
+                <span class="prelude-val">Ok</span>(()) =&gt; {
                     <span class="comment">// aiocb is complete; collect its status and don&#39;t resubmit</span>
-                    <a class="self" href="../../../src/nix/sys/aio.rs.html#966">self</a>.<span class="ident">results</span>[<a class="ident" href="../../../src/nix/sys/aio.rs.html#976">i</a>] <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/nix/sys/aio.rs.html#976">a</a>.<a class="ident" href="../../../src/nix/sys/aio.rs.html#648">aio_return_unpinned</a>());
+                    <a class="self" href="../../../src/nix/sys/aio.rs.html#954">self</a>.<span class="ident">results</span>[<a class="ident" href="../../../src/nix/sys/aio.rs.html#964">i</a>] <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/nix/sys/aio.rs.html#964">a</a>.<a class="ident" href="../../../src/nix/sys/aio.rs.html#643">aio_return_unpinned</a>());
                 },
-                <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/nix/errno.rs.html#783">Errno::EAGAIN</a>) <span class="op">=</span><span class="op">&gt;</span> {
-                    <a class="self" href="../../../src/nix/sys/aio.rs.html#966">self</a>.<span class="ident">list</span>.<span class="ident">push</span>(<a class="ident" href="../../../src/nix/sys/aio.rs.html#976">a</a> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">AioCb</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <a class="ident" href="../../../libc/unix/linux_like/linux/gnu/struct.aiocb.html">libc::aiocb</a>);
+                <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/nix/errno.rs.html#786">Errno::EAGAIN</a>) =&gt; {
+                    <a class="self" href="../../../src/nix/sys/aio.rs.html#954">self</a>.<span class="ident">list</span>.<span class="ident">push</span>(<a class="ident" href="../../../src/nix/sys/aio.rs.html#964">a</a> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">AioCb</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <a class="ident" href="../../../libc/unix/linux_like/linux/gnu/struct.aiocb.html">libc::aiocb</a>);
                 },
-                <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/nix/errno.rs.html#885">Errno::EINPROGRESS</a>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/nix/errno.rs.html#888">Errno::EINPROGRESS</a>) =&gt; {
                     <span class="comment">// aiocb is was successfully queued; no need to do anything</span>
                 },
-                <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/nix/errno.rs.html#794">Errno::EINVAL</a>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic!</span>(
+                <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/nix/errno.rs.html#797">Errno::EINVAL</a>) =&gt; <span class="macro">panic!</span>(
                     <span class="string">&quot;AioCb was never submitted, or already finalized&quot;</span>),
-                <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable!</span>()
+                <span class="kw">_</span> =&gt; <span class="macro">unreachable!</span>()
             }
         }
-        <span class="kw">let</span> <span class="ident">p</span> <span class="op">=</span> <a class="self" href="../../../src/nix/sys/aio.rs.html#966">self</a>.<span class="ident">list</span>.<span class="ident">as_ptr</span>();
+        <span class="kw">let</span> <span class="ident">p</span> <span class="op">=</span> <a class="self" href="../../../src/nix/sys/aio.rs.html#954">self</a>.<span class="ident">list</span>.<span class="ident">as_ptr</span>();
         <span class="ident">Errno::result</span>(<span class="kw">unsafe</span> {
-            <span class="ident">libc::lio_listio</span>(<a class="ident" href="../../../src/nix/sys/aio.rs.html#966">mode</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>, <a class="ident" href="../../../src/nix/sys/aio.rs.html#997">p</a>, <a class="self" href="../../../src/nix/sys/aio.rs.html#966">self</a>.<span class="ident">list</span>.<span class="ident">len</span>() <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>, <a class="ident" href="../../../src/nix/sys/aio.rs.html#969">sigevp</a>)
+            <span class="ident">libc::lio_listio</span>(<a class="ident" href="../../../src/nix/sys/aio.rs.html#954">mode</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>, <a class="ident" href="../../../src/nix/sys/aio.rs.html#985">p</a>, <a class="self" href="../../../src/nix/sys/aio.rs.html#954">self</a>.<span class="ident">list</span>.<span class="ident">len</span>() <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>, <a class="ident" href="../../../src/nix/sys/aio.rs.html#957">sigevp</a>)
         }).<span class="ident">map</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>)
     }
 
@@ -2142,11 +2118,11 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [`AioCb::aio_return`]: struct.AioCb.html#method.aio_return</span>
     <span class="doccomment">/// [`LioCb::listio_resubmit`]: #method.listio_resubmit</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">aio_return</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">i</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.isize.html">isize</a><span class="op">&gt;</span> {
-        <span class="kw">if</span> <a class="ident" href="../../../src/nix/sys/aio.rs.html#1011">i</a> <span class="op">&gt;</span><span class="op">=</span> <a class="self" href="../../../src/nix/sys/aio.rs.html#1011">self</a>.<span class="ident">results</span>.<span class="ident">len</span>() <span class="op">|</span><span class="op">|</span> <a class="self" href="../../../src/nix/sys/aio.rs.html#1011">self</a>.<span class="ident">results</span>[<a class="ident" href="../../../src/nix/sys/aio.rs.html#1011">i</a>].<span class="ident">is_none</span>() {
-            <a class="self" href="../../../src/nix/sys/aio.rs.html#1011">self</a>.<span class="ident">aiocbs</span>[<a class="ident" href="../../../src/nix/sys/aio.rs.html#1011">i</a>].<a class="ident" href="../../../src/nix/sys/aio.rs.html#648">aio_return_unpinned</a>()
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">aio_return</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">i</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.isize.html">isize</a><span class="op">&gt;</span> {
+        <span class="kw">if</span> <a class="ident" href="../../../src/nix/sys/aio.rs.html#999">i</a> <span class="op">&gt;</span><span class="op">=</span> <a class="self" href="../../../src/nix/sys/aio.rs.html#999">self</a>.<span class="ident">results</span>.<span class="ident">len</span>() <span class="op">|</span><span class="op">|</span> <a class="self" href="../../../src/nix/sys/aio.rs.html#999">self</a>.<span class="ident">results</span>[<a class="ident" href="../../../src/nix/sys/aio.rs.html#999">i</a>].<span class="ident">is_none</span>() {
+            <a class="self" href="../../../src/nix/sys/aio.rs.html#999">self</a>.<span class="ident">aiocbs</span>[<a class="ident" href="../../../src/nix/sys/aio.rs.html#999">i</a>].<a class="ident" href="../../../src/nix/sys/aio.rs.html#643">aio_return_unpinned</a>()
         } <span class="kw">else</span> {
-            <a class="self" href="../../../src/nix/sys/aio.rs.html#1011">self</a>.<span class="ident">results</span>[<a class="ident" href="../../../src/nix/sys/aio.rs.html#1011">i</a>].<span class="ident">unwrap</span>()
+            <a class="self" href="../../../src/nix/sys/aio.rs.html#999">self</a>.<span class="ident">results</span>[<a class="ident" href="../../../src/nix/sys/aio.rs.html#999">i</a>].<span class="ident">unwrap</span>()
         }
     }
 
@@ -2158,9 +2134,9 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [`AioCb::error`]: struct.AioCb.html#method.error</span>
     <span class="doccomment">/// [`LioCb::listio_resubmit`]: #method.listio_resubmit</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">error</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">i</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="kw">if</span> <a class="ident" href="../../../src/nix/sys/aio.rs.html#1027">i</a> <span class="op">&gt;</span><span class="op">=</span> <a class="self" href="../../../src/nix/sys/aio.rs.html#1027">self</a>.<span class="ident">results</span>.<span class="ident">len</span>() <span class="op">|</span><span class="op">|</span> <a class="self" href="../../../src/nix/sys/aio.rs.html#1027">self</a>.<span class="ident">results</span>[<a class="ident" href="../../../src/nix/sys/aio.rs.html#1027">i</a>].<span class="ident">is_none</span>() {
-            <a class="self" href="../../../src/nix/sys/aio.rs.html#1027">self</a>.<span class="ident">aiocbs</span>[<a class="ident" href="../../../src/nix/sys/aio.rs.html#1027">i</a>].<a class="ident" href="../../../src/nix/sys/aio.rs.html#516">error_unpinned</a>()
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">error</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">i</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+        <span class="kw">if</span> <a class="ident" href="../../../src/nix/sys/aio.rs.html#1015">i</a> <span class="op">&gt;</span><span class="op">=</span> <a class="self" href="../../../src/nix/sys/aio.rs.html#1015">self</a>.<span class="ident">results</span>.<span class="ident">len</span>() <span class="op">|</span><span class="op">|</span> <a class="self" href="../../../src/nix/sys/aio.rs.html#1015">self</a>.<span class="ident">results</span>[<a class="ident" href="../../../src/nix/sys/aio.rs.html#1015">i</a>].<span class="ident">is_none</span>() {
+            <a class="self" href="../../../src/nix/sys/aio.rs.html#1015">self</a>.<span class="ident">aiocbs</span>[<a class="ident" href="../../../src/nix/sys/aio.rs.html#1015">i</a>].<a class="ident" href="../../../src/nix/sys/aio.rs.html#513">error_unpinned</a>()
         } <span class="kw">else</span> {
             <span class="prelude-val">Ok</span>(())
         }
@@ -2169,9 +2145,9 @@
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;ios&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;macos&quot;</span>)))]</span>
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">Debug</a> <span class="kw">for</span> <span class="ident">LioCb</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">fmt</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="ident" href="../../../src/nix/sys/aio.rs.html#1038">fmt</a>.<span class="ident">debug_struct</span>(<span class="string">&quot;LioCb&quot;</span>)
-            .<span class="ident">field</span>(<span class="string">&quot;aiocbs&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/nix/sys/aio.rs.html#1038">self</a>.<span class="ident">aiocbs</span>)
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">fmt</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+        <a class="ident" href="../../../src/nix/sys/aio.rs.html#1026">fmt</a>.<span class="ident">debug_struct</span>(<span class="string">&quot;LioCb&quot;</span>)
+            .<span class="ident">field</span>(<span class="string">&quot;aiocbs&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/nix/sys/aio.rs.html#1026">self</a>.<span class="ident">aiocbs</span>)
             .<span class="ident">finish</span>()
     }
 }
@@ -2193,9 +2169,9 @@
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;ios&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;macos&quot;</span>)))]</span>
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">LioCbBuilder</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
     <span class="doccomment">/// Initialize an empty `LioCb`</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">with_capacity</span>(<span class="ident">capacity</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">LioCbBuilder</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-        <a class="ident" href="../../../src/nix/sys/aio.rs.html#1052-1057">LioCbBuilder</a> {
-            <span class="ident">aiocbs</span>: <span class="ident">Vec::with_capacity</span>(<a class="ident" href="../../../src/nix/sys/aio.rs.html#1062">capacity</a>),
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">with_capacity</span>(<span class="ident">capacity</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="ident">LioCbBuilder</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/nix/sys/aio.rs.html#1040-1045">LioCbBuilder</a> {
+            <span class="ident">aiocbs</span>: <span class="ident">Vec::with_capacity</span>(<a class="ident" href="../../../src/nix/sys/aio.rs.html#1050">capacity</a>),
         }
     }
 
@@ -2207,12 +2183,12 @@
     <span class="doccomment">/// [`LioCb`]: struct.LioCb.html</span>
     <span class="doccomment">/// [`AioCb::from_slice`]: struct.AioCb.html#method.from_slice</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">emplace_slice</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">fd</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>, <span class="ident">offs</span>: <a class="ident" href="../../../libc/unix/linux_like/linux/gnu/b64/type.off_t.html">off_t</a>, <span class="ident">buf</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-                         <span class="ident">prio</span>: <a class="ident" href="../../../libc/unix/type.c_int.html">libc::c_int</a>, <span class="ident">sigev_notify</span>: <a class="ident" href="../../../src/nix/sys/signal.rs.html#802-821">SigevNotify</a>,
-                         <span class="ident">opcode</span>: <a class="ident" href="../../../src/nix/sys/aio.rs.html#55-65">LioOpcode</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>
+                         <span class="ident">prio</span>: <a class="ident" href="../../../libc/unix/type.c_int.html">libc::c_int</a>, <span class="ident">sigev_notify</span>: <a class="ident" href="../../../src/nix/sys/signal.rs.html#930-962">SigevNotify</a>,
+                         <span class="ident">opcode</span>: <a class="ident" href="../../../src/nix/sys/aio.rs.html#56-70">LioOpcode</a>) -&gt; <span class="self">Self</span>
     {
-        <a class="self" href="../../../src/nix/sys/aio.rs.html#1075">self</a>.<span class="ident">aiocbs</span>.<span class="ident">push</span>(<span class="ident">AioCb::from_slice_unpinned</span>(<a class="ident" href="../../../src/nix/sys/aio.rs.html#1075">fd</a>, <a class="ident" href="../../../src/nix/sys/aio.rs.html#1075">offs</a>, <a class="ident" href="../../../src/nix/sys/aio.rs.html#1075">buf</a>, <a class="ident" href="../../../src/nix/sys/aio.rs.html#1076">prio</a>,
-                                                    <a class="ident" href="../../../src/nix/sys/aio.rs.html#1076">sigev_notify</a>, <a class="ident" href="../../../src/nix/sys/aio.rs.html#1077">opcode</a>));
-        <a class="self" href="../../../src/nix/sys/aio.rs.html#1075">self</a>
+        <a class="self" href="../../../src/nix/sys/aio.rs.html#1063">self</a>.<span class="ident">aiocbs</span>.<span class="ident">push</span>(<span class="ident">AioCb::from_slice_unpinned</span>(<a class="ident" href="../../../src/nix/sys/aio.rs.html#1063">fd</a>, <a class="ident" href="../../../src/nix/sys/aio.rs.html#1063">offs</a>, <a class="ident" href="../../../src/nix/sys/aio.rs.html#1063">buf</a>, <a class="ident" href="../../../src/nix/sys/aio.rs.html#1064">prio</a>,
+                                                    <a class="ident" href="../../../src/nix/sys/aio.rs.html#1064">sigev_notify</a>, <a class="ident" href="../../../src/nix/sys/aio.rs.html#1065">opcode</a>));
+        <a class="self" href="../../../src/nix/sys/aio.rs.html#1063">self</a>
     }
 
     <span class="doccomment">/// Add a new operation on a mutable slice to the [`LioCb`] under</span>
@@ -2224,12 +2200,12 @@
     <span class="doccomment">/// [`AioCb::from_mut_slice`]: struct.AioCb.html#method.from_mut_slice</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">emplace_mut_slice</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">fd</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>, <span class="ident">offs</span>: <a class="ident" href="../../../libc/unix/linux_like/linux/gnu/b64/type.off_t.html">off_t</a>,
                              <span class="ident">buf</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], <span class="ident">prio</span>: <a class="ident" href="../../../libc/unix/type.c_int.html">libc::c_int</a>,
-                             <span class="ident">sigev_notify</span>: <a class="ident" href="../../../src/nix/sys/signal.rs.html#802-821">SigevNotify</a>, <span class="ident">opcode</span>: <a class="ident" href="../../../src/nix/sys/aio.rs.html#55-65">LioOpcode</a>)
-        <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>
+                             <span class="ident">sigev_notify</span>: <a class="ident" href="../../../src/nix/sys/signal.rs.html#930-962">SigevNotify</a>, <span class="ident">opcode</span>: <a class="ident" href="../../../src/nix/sys/aio.rs.html#56-70">LioOpcode</a>)
+        -&gt; <span class="self">Self</span>
     {
-        <a class="self" href="../../../src/nix/sys/aio.rs.html#1091">self</a>.<span class="ident">aiocbs</span>.<span class="ident">push</span>(<span class="ident">AioCb::from_mut_slice_unpinned</span>(<a class="ident" href="../../../src/nix/sys/aio.rs.html#1091">fd</a>, <a class="ident" href="../../../src/nix/sys/aio.rs.html#1091">offs</a>, <a class="ident" href="../../../src/nix/sys/aio.rs.html#1092">buf</a>, <a class="ident" href="../../../src/nix/sys/aio.rs.html#1092">prio</a>,
-                                                        <a class="ident" href="../../../src/nix/sys/aio.rs.html#1093">sigev_notify</a>, <a class="ident" href="../../../src/nix/sys/aio.rs.html#1093">opcode</a>));
-        <a class="self" href="../../../src/nix/sys/aio.rs.html#1091">self</a>
+        <a class="self" href="../../../src/nix/sys/aio.rs.html#1079">self</a>.<span class="ident">aiocbs</span>.<span class="ident">push</span>(<span class="ident">AioCb::from_mut_slice_unpinned</span>(<a class="ident" href="../../../src/nix/sys/aio.rs.html#1079">fd</a>, <a class="ident" href="../../../src/nix/sys/aio.rs.html#1079">offs</a>, <a class="ident" href="../../../src/nix/sys/aio.rs.html#1080">buf</a>, <a class="ident" href="../../../src/nix/sys/aio.rs.html#1080">prio</a>,
+                                                        <a class="ident" href="../../../src/nix/sys/aio.rs.html#1081">sigev_notify</a>, <a class="ident" href="../../../src/nix/sys/aio.rs.html#1081">opcode</a>));
+        <a class="self" href="../../../src/nix/sys/aio.rs.html#1079">self</a>
     }
 
     <span class="doccomment">/// Finalize this [`LioCb`].</span>
@@ -2242,12 +2218,12 @@
     <span class="doccomment">/// [`LioCb::listio`]: struct.LioCb.html#method.listio</span>
     <span class="doccomment">/// [`LioCb::from_mut_slice`]: struct.LioCb.html#method.from_mut_slice</span>
     <span class="doccomment">/// [`LioCb::from_slice`]: struct.LioCb.html#method.from_slice</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">finish</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">LioCb</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <a class="self" href="../../../src/nix/sys/aio.rs.html#1111">self</a>.<span class="ident">aiocbs</span>.<span class="ident">len</span>();
-        <a class="ident" href="../../../src/nix/sys/aio.rs.html#809-829">LioCb</a> {
-            <span class="ident">aiocbs</span>: <a class="self" href="../../../src/nix/sys/aio.rs.html#1111">self</a>.<span class="ident">aiocbs</span>.<span class="ident">into</span>(),
-            <span class="ident">list</span>: <span class="ident">Vec::with_capacity</span>(<a class="ident" href="../../../src/nix/sys/aio.rs.html#1112">len</a>),
-            <span class="ident">results</span>: <span class="ident">Vec::with_capacity</span>(<a class="ident" href="../../../src/nix/sys/aio.rs.html#1112">len</a>)
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">finish</span>(<span class="self">self</span>) -&gt; <span class="ident">LioCb</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <a class="self" href="../../../src/nix/sys/aio.rs.html#1099">self</a>.<span class="ident">aiocbs</span>.<span class="ident">len</span>();
+        <a class="ident" href="../../../src/nix/sys/aio.rs.html#800-820">LioCb</a> {
+            <span class="ident">aiocbs</span>: <a class="self" href="../../../src/nix/sys/aio.rs.html#1099">self</a>.<span class="ident">aiocbs</span>.<span class="ident">into</span>(),
+            <span class="ident">list</span>: <span class="ident">Vec::with_capacity</span>(<a class="ident" href="../../../src/nix/sys/aio.rs.html#1100">len</a>),
+            <span class="ident">results</span>: <span class="ident">Vec::with_capacity</span>(<a class="ident" href="../../../src/nix/sys/aio.rs.html#1100">len</a>)
         }
     }
 }

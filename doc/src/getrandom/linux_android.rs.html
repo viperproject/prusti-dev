@@ -59,7 +59,7 @@
     {<a class="ident" href="../../src/getrandom/lib.rs.html#177">use_file</a>, <a class="ident" href="../../src/getrandom/error.rs.html#25">Error</a>},
 };
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">getrandom_inner</span>(<span class="ident">dest</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../src/getrandom/error.rs.html#25">Error</a><span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">getrandom_inner</span>(<span class="ident">dest</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../src/getrandom/error.rs.html#25">Error</a><span class="op">&gt;</span> {
     <span class="kw">static</span> <span class="ident">HAS_GETRANDOM</span>: <a class="ident" href="../../src/getrandom/util.rs.html#54">LazyBool</a> <span class="op">=</span> <span class="ident">LazyBool::new</span>();
     <span class="kw">if</span> <a class="ident" href="../../src/getrandom/linux_android.rs.html#17">HAS_GETRANDOM</a>.<a class="ident" href="../../src/getrandom/util.rs.html#61">unsync_init</a>(<a class="ident" href="../../src/getrandom/linux_android.rs.html#27">is_getrandom_available</a>) {
         <a class="ident" href="../../src/getrandom/util_libc.rs.html#50-53">sys_fill_exact</a>(<a class="ident" href="../../src/getrandom/linux_android.rs.html#16">dest</a>, <span class="op">|</span><span class="ident">buf</span><span class="op">|</span> <span class="kw">unsafe</span> {
@@ -70,13 +70,13 @@
     }
 }
 
-<span class="kw">fn</span> <span class="ident">is_getrandom_available</span>() <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+<span class="kw">fn</span> <span class="ident">is_getrandom_available</span>() -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
     <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="kw">unsafe</span> { <a class="ident" href="../../src/getrandom/linux_android.rs.html#40-44">getrandom</a>(<span class="ident">core::ptr::null_mut</span>(), <span class="number">0</span>, <span class="ident">libc::GRND_NONBLOCK</span>) };
     <span class="kw">if</span> <a class="ident" href="../../src/getrandom/linux_android.rs.html#28">res</a> <span class="op">&lt;</span> <span class="number">0</span> {
         <span class="kw">match</span> <a class="ident" href="../../src/getrandom/util_libc.rs.html#38">last_os_error</a>().<a class="ident" href="../../src/getrandom/error.rs.html#74">raw_os_error</a>() {
-            <span class="prelude-val">Some</span>(<span class="ident">libc::ENOSYS</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>, <span class="comment">// No kernel support</span>
-            <span class="prelude-val">Some</span>(<span class="ident">libc::EPERM</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,  <span class="comment">// Blocked by seccomp</span>
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">true</span>,
+            <span class="prelude-val">Some</span>(<span class="ident">libc::ENOSYS</span>) =&gt; <span class="bool-val">false</span>, <span class="comment">// No kernel support</span>
+            <span class="prelude-val">Some</span>(<span class="ident">libc::EPERM</span>) =&gt; <span class="bool-val">false</span>,  <span class="comment">// Blocked by seccomp</span>
+            <span class="kw">_</span> =&gt; <span class="bool-val">true</span>,
         }
     } <span class="kw">else</span> {
         <span class="bool-val">true</span>
@@ -87,7 +87,7 @@
     <span class="ident">buf</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">libc::c_void</a>,
     <span class="ident">buflen</span>: <a class="ident" href="../../libc/unix/type.size_t.html">libc::size_t</a>,
     <span class="ident">flags</span>: <a class="ident" href="../../libc/unix/type.c_uint.html">libc::c_uint</a>,
-) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="../../libc/unix/type.ssize_t.html">libc::ssize_t</a> {
+) -&gt; <a class="ident" href="../../libc/unix/type.ssize_t.html">libc::ssize_t</a> {
     <span class="ident">libc::syscall</span>(<span class="ident">libc::SYS_getrandom</span>, <a class="ident" href="../../src/getrandom/linux_android.rs.html#41">buf</a>, <a class="ident" href="../../src/getrandom/linux_android.rs.html#42">buflen</a>, <a class="ident" href="../../src/getrandom/linux_android.rs.html#43">flags</a>) <span class="kw">as</span> <a class="ident" href="../../libc/unix/type.ssize_t.html">libc::ssize_t</a>
 }
 </code></pre></div>

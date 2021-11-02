@@ -458,7 +458,7 @@
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">FramedRead</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">inner</span>: <span class="ident">length_delimited::FramedRead</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">FramedRead</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">inner</span>: <span class="ident">length_delimited::FramedRead</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) -&gt; <span class="ident">FramedRead</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
         <a class="ident" href="../../../src/h2/codec/framed_read.rs.html#20-29">FramedRead</a> {
             <span class="ident">inner</span>: <a class="ident" href="../../../src/h2/codec/framed_read.rs.html#48">inner</a>,
             <span class="ident">hpack</span>: <span class="ident">hpack::Decoder::new</span>(<a class="ident" href="../../../src/h2/frame/settings.rs.html#39">DEFAULT_SETTINGS_HEADER_TABLE_SIZE</a>),
@@ -467,7 +467,7 @@
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">decode_frame</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="kw-2">mut</span> <span class="ident">bytes</span>: <a class="ident" href="../../../bytes/bytes/struct.BytesMut.html">BytesMut</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../src/h2/frame/mod.rs.html#69-79">Frame</a><span class="op">&gt;</span>, <a class="ident" href="../../../src/h2/codec/error.rs.html#7-11">RecvError</a><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">decode_frame</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="kw-2">mut</span> <span class="ident">bytes</span>: <a class="ident" href="../../../bytes/bytes/struct.BytesMut.html">BytesMut</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../src/h2/frame/mod.rs.html#69-79">Frame</a><span class="op">&gt;</span>, <a class="ident" href="../../../src/h2/codec/error.rs.html#7-11">RecvError</a><span class="op">&gt;</span> {
         <span class="kw">use</span> <a class="ident" href="../../../src/h2/codec/error.rs.html#7-11"><span class="self">self</span>::RecvError</a>::<span class="kw-2">*</span>;
 
         <span class="macro">trace!</span>(<span class="string">&quot;decoding frame from {}B&quot;</span>, <a class="ident" href="../../../src/h2/codec/framed_read.rs.html#57">bytes</a>.<span class="ident">len</span>());
@@ -485,15 +485,15 @@
         <span class="macro">trace!</span>(<span class="string">&quot;    -&gt; kind={:?}&quot;</span>, <a class="ident" href="../../../src/h2/codec/framed_read.rs.html#70">kind</a>);
 
         <span class="macro">macro_rules!</span> <span class="ident">header_block</span> {
-            (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">frame</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">head</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">bytes</span>:<span class="ident">ident</span>) <span class="op">=</span><span class="op">&gt;</span> ({
+            (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">frame</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">head</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">bytes</span>:<span class="ident">ident</span>) =&gt; ({
                 <span class="comment">// Drop the frame header</span>
                 <span class="comment">// TODO: Change to drain: carllerche/bytes#130</span>
                 <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">bytes</span>.<span class="ident">split_to</span>(<span class="ident">frame::HEADER_LEN</span>);
 
                 <span class="comment">// Parse the header frame w/o parsing the payload</span>
                 <span class="kw">let</span> (<span class="kw-2">mut</span> <span class="ident">frame</span>, <span class="kw-2">mut</span> <span class="ident">payload</span>) <span class="op">=</span> <span class="kw">match</span> <span class="ident">frame</span>::<span class="macro-nonterminal">$</span><span class="macro-nonterminal">frame::load</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">head</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">bytes</span>) {
-                    <span class="prelude-val">Ok</span>(<span class="ident">res</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">res</span>,
-                    <span class="prelude-val">Err</span>(<span class="ident">frame::Error::InvalidDependencyId</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="prelude-val">Ok</span>(<span class="ident">res</span>) =&gt; <span class="ident">res</span>,
+                    <span class="prelude-val">Err</span>(<span class="ident">frame::Error::InvalidDependencyId</span>) =&gt; {
                         <span class="macro">proto_err!</span>(<span class="ident">stream</span>: <span class="string">&quot;invalid HEADERS dependency ID&quot;</span>);
                         <span class="comment">// A stream cannot depend on itself. An endpoint MUST</span>
                         <span class="comment">// treat this as a stream error (Section 5.4.2) of type</span>
@@ -503,7 +503,7 @@
                             <span class="ident">reason</span>: <span class="ident">Reason::PROTOCOL_ERROR</span>,
                         });
                     },
-                    <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; {
                         <span class="macro">proto_err!</span>(<span class="ident">conn</span>: <span class="string">&quot;failed to load frame; err={:?}&quot;</span>, <span class="ident">e</span>);
                         <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Connection</span>(<span class="ident">Reason::PROTOCOL_ERROR</span>));
                     }
@@ -513,13 +513,13 @@
 
                 <span class="comment">// Load the HPACK encoded headers</span>
                 <span class="kw">match</span> <span class="ident">frame</span>.<span class="ident">load_hpack</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">payload</span>, <span class="self">self</span>.<span class="ident">max_header_list_size</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">hpack</span>) {
-                    <span class="prelude-val">Ok</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {},
-                    <span class="prelude-val">Err</span>(<span class="ident">frame::Error::Hpack</span>(<span class="ident">hpack::DecoderError::NeedMore</span>(<span class="kw">_</span>))) <span class="kw">if</span> <span class="op">!</span><span class="ident">is_end_headers</span> <span class="op">=</span><span class="op">&gt;</span> {},
-                    <span class="prelude-val">Err</span>(<span class="ident">frame::Error::Hpack</span>(<span class="ident">e</span>)) <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; {},
+                    <span class="prelude-val">Err</span>(<span class="ident">frame::Error::Hpack</span>(<span class="ident">hpack::DecoderError::NeedMore</span>(<span class="kw">_</span>))) <span class="kw">if</span> <span class="op">!</span><span class="ident">is_end_headers</span> =&gt; {},
+                    <span class="prelude-val">Err</span>(<span class="ident">frame::Error::Hpack</span>(<span class="ident">e</span>)) =&gt; {
                         <span class="macro">debug!</span>(<span class="string">&quot;connection error COMPRESSION_ERROR -- {:?};&quot;</span>, <span class="ident">e</span>);
                         <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Connection</span>(<span class="ident">Reason::COMPRESSION_ERROR</span>));
                     },
-                    <span class="prelude-val">Err</span>(<span class="ident">frame::Error::MalformedMessage</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="prelude-val">Err</span>(<span class="ident">frame::Error::MalformedMessage</span>) =&gt; {
                         <span class="kw">let</span> <span class="ident">id</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">head</span>.<span class="ident">stream_id</span>();
                         <span class="macro">proto_err!</span>(<span class="ident">stream</span>: <span class="string">&quot;malformed header block; stream={:?}&quot;</span>, <span class="ident">id</span>);
                         <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Stream</span> {
@@ -527,7 +527,7 @@
                             <span class="ident">reason</span>: <span class="ident">Reason::PROTOCOL_ERROR</span>,
                         });
                     },
-                    <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; {
                         <span class="macro">proto_err!</span>(<span class="ident">conn</span>: <span class="string">&quot;failed HPACK decoding; err={:?}&quot;</span>, <span class="ident">e</span>);
                         <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Connection</span>(<span class="ident">Reason::PROTOCOL_ERROR</span>));
                     }
@@ -549,7 +549,7 @@
         }
 
         <span class="kw">let</span> <span class="ident">frame</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../../src/h2/codec/framed_read.rs.html#70">kind</a> {
-            <a class="ident" href="../../../src/h2/frame/head.rs.html#19">Kind::Settings</a> <span class="op">=</span><span class="op">&gt;</span> {
+            <a class="ident" href="../../../src/h2/frame/head.rs.html#19">Kind::Settings</a> =&gt; {
                 <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">frame::Settings::load</span>(<a class="ident" href="../../../src/h2/codec/framed_read.rs.html#63">head</a>, <span class="kw-2">&amp;</span><a class="ident" href="../../../src/h2/codec/framed_read.rs.html#57">bytes</a>[<a class="ident" href="../../../src/h2/frame/mod.rs.html#66">frame::HEADER_LEN</a>..]);
 
                 <a class="ident" href="../../../src/h2/codec/framed_read.rs.html#140">res</a>.<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> {
@@ -557,7 +557,7 @@
                     <a class="ident" href="../../../src/h2/codec/error.rs.html#8">Connection</a>(<span class="ident">Reason::PROTOCOL_ERROR</span>)
                 })<span class="question-mark">?</span>.<span class="ident">into</span>()
             },
-            <a class="ident" href="../../../src/h2/frame/head.rs.html#21">Kind::Ping</a> <span class="op">=</span><span class="op">&gt;</span> {
+            <a class="ident" href="../../../src/h2/frame/head.rs.html#21">Kind::Ping</a> =&gt; {
                 <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">frame::Ping::load</span>(<a class="ident" href="../../../src/h2/codec/framed_read.rs.html#63">head</a>, <span class="kw-2">&amp;</span><a class="ident" href="../../../src/h2/codec/framed_read.rs.html#57">bytes</a>[<a class="ident" href="../../../src/h2/frame/mod.rs.html#66">frame::HEADER_LEN</a>..]);
 
                 <a class="ident" href="../../../src/h2/codec/framed_read.rs.html#148">res</a>.<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> {
@@ -565,7 +565,7 @@
                     <a class="ident" href="../../../src/h2/codec/error.rs.html#8">Connection</a>(<span class="ident">Reason::PROTOCOL_ERROR</span>)
                 })<span class="question-mark">?</span>.<span class="ident">into</span>()
             },
-            <a class="ident" href="../../../src/h2/frame/head.rs.html#23">Kind::WindowUpdate</a> <span class="op">=</span><span class="op">&gt;</span> {
+            <a class="ident" href="../../../src/h2/frame/head.rs.html#23">Kind::WindowUpdate</a> =&gt; {
                 <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">frame::WindowUpdate::load</span>(<a class="ident" href="../../../src/h2/codec/framed_read.rs.html#63">head</a>, <span class="kw-2">&amp;</span><a class="ident" href="../../../src/h2/codec/framed_read.rs.html#57">bytes</a>[<a class="ident" href="../../../src/h2/frame/mod.rs.html#66">frame::HEADER_LEN</a>..]);
 
                 <a class="ident" href="../../../src/h2/codec/framed_read.rs.html#156">res</a>.<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> {
@@ -573,7 +573,7 @@
                     <a class="ident" href="../../../src/h2/codec/error.rs.html#8">Connection</a>(<span class="ident">Reason::PROTOCOL_ERROR</span>)
                 })<span class="question-mark">?</span>.<span class="ident">into</span>()
             },
-            <a class="ident" href="../../../src/h2/frame/head.rs.html#15">Kind::Data</a> <span class="op">=</span><span class="op">&gt;</span> {
+            <a class="ident" href="../../../src/h2/frame/head.rs.html#15">Kind::Data</a> =&gt; {
                 <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <a class="ident" href="../../../src/h2/codec/framed_read.rs.html#57">bytes</a>.<span class="ident">split_to</span>(<a class="ident" href="../../../src/h2/frame/mod.rs.html#66">frame::HEADER_LEN</a>);
                 <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">frame::Data::load</span>(<a class="ident" href="../../../src/h2/codec/framed_read.rs.html#63">head</a>, <a class="ident" href="../../../src/h2/codec/framed_read.rs.html#57">bytes</a>.<span class="ident">freeze</span>());
 
@@ -583,36 +583,36 @@
                     <a class="ident" href="../../../src/h2/codec/error.rs.html#8">Connection</a>(<span class="ident">Reason::PROTOCOL_ERROR</span>)
                 })<span class="question-mark">?</span>.<span class="ident">into</span>()
             },
-            <a class="ident" href="../../../src/h2/frame/head.rs.html#16">Kind::Headers</a> <span class="op">=</span><span class="op">&gt;</span> {
+            <a class="ident" href="../../../src/h2/frame/head.rs.html#16">Kind::Headers</a> =&gt; {
                 <span class="macro">header_block!</span>(<span class="ident">Headers</span>, <span class="ident">head</span>, <span class="ident">bytes</span>)
             },
-            <a class="ident" href="../../../src/h2/frame/head.rs.html#18">Kind::Reset</a> <span class="op">=</span><span class="op">&gt;</span> {
+            <a class="ident" href="../../../src/h2/frame/head.rs.html#18">Kind::Reset</a> =&gt; {
                 <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">frame::Reset::load</span>(<a class="ident" href="../../../src/h2/codec/framed_read.rs.html#63">head</a>, <span class="kw-2">&amp;</span><a class="ident" href="../../../src/h2/codec/framed_read.rs.html#57">bytes</a>[<a class="ident" href="../../../src/h2/frame/mod.rs.html#66">frame::HEADER_LEN</a>..]);
                 <a class="ident" href="../../../src/h2/codec/framed_read.rs.html#177">res</a>.<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> {
                     <span class="macro">proto_err!</span>(<span class="ident">conn</span>: <span class="string">&quot;failed to load RESET frame; err={:?}&quot;</span>, <a class="ident" href="../../../src/h2/codec/framed_read.rs.html#178">e</a>);
                     <a class="ident" href="../../../src/h2/codec/error.rs.html#8">Connection</a>(<span class="ident">Reason::PROTOCOL_ERROR</span>)
                 })<span class="question-mark">?</span>.<span class="ident">into</span>()
             },
-            <a class="ident" href="../../../src/h2/frame/head.rs.html#22">Kind::GoAway</a> <span class="op">=</span><span class="op">&gt;</span> {
+            <a class="ident" href="../../../src/h2/frame/head.rs.html#22">Kind::GoAway</a> =&gt; {
                 <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">frame::GoAway::load</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/h2/codec/framed_read.rs.html#57">bytes</a>[<a class="ident" href="../../../src/h2/frame/mod.rs.html#66">frame::HEADER_LEN</a>..]);
                 <a class="ident" href="../../../src/h2/codec/framed_read.rs.html#184">res</a>.<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> {
                     <span class="macro">proto_err!</span>(<span class="ident">conn</span>: <span class="string">&quot;failed to load GO_AWAY frame; err={:?}&quot;</span>, <a class="ident" href="../../../src/h2/codec/framed_read.rs.html#185">e</a>);
                     <a class="ident" href="../../../src/h2/codec/error.rs.html#8">Connection</a>(<span class="ident">Reason::PROTOCOL_ERROR</span>)
                 })<span class="question-mark">?</span>.<span class="ident">into</span>()
             },
-            <a class="ident" href="../../../src/h2/frame/head.rs.html#20">Kind::PushPromise</a> <span class="op">=</span><span class="op">&gt;</span> {
+            <a class="ident" href="../../../src/h2/frame/head.rs.html#20">Kind::PushPromise</a> =&gt; {
                 <span class="macro">header_block!</span>(<span class="ident">PushPromise</span>, <span class="ident">head</span>, <span class="ident">bytes</span>)
             },
-            <a class="ident" href="../../../src/h2/frame/head.rs.html#17">Kind::Priority</a> <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="kw">if</span> <a class="ident" href="../../../src/h2/codec/framed_read.rs.html#63">head</a>.<a class="ident" href="../../../src/h2/frame/head.rs.html#50">stream_id</a>() <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
+            <a class="ident" href="../../../src/h2/frame/head.rs.html#17">Kind::Priority</a> =&gt; {
+                <span class="kw">if</span> <a class="ident" href="../../../src/h2/codec/framed_read.rs.html#63">head</a>.<a class="ident" href="../../../src/h2/frame/head.rs.html#50">stream_id</a>() <span class="op">==</span> <span class="number">0</span> {
                     <span class="comment">// Invalid stream identifier</span>
                     <span class="macro">proto_err!</span>(<span class="ident">conn</span>: <span class="string">&quot;invalid stream ID 0&quot;</span>);
                     <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/h2/codec/error.rs.html#8">Connection</a>(<span class="ident">Reason::PROTOCOL_ERROR</span>));
                 }
 
                 <span class="kw">match</span> <span class="ident">frame::Priority::load</span>(<a class="ident" href="../../../src/h2/codec/framed_read.rs.html#63">head</a>, <span class="kw-2">&amp;</span><a class="ident" href="../../../src/h2/codec/framed_read.rs.html#57">bytes</a>[<a class="ident" href="../../../src/h2/frame/mod.rs.html#66">frame::HEADER_LEN</a>..]) {
-                    <span class="prelude-val">Ok</span>(<span class="ident">frame</span>) <span class="op">=</span><span class="op">&gt;</span> <a class="ident" href="../../../src/h2/codec/framed_read.rs.html#201">frame</a>.<span class="ident">into</span>(),
-                    <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/h2/frame/mod.rs.html#156">frame::Error::InvalidDependencyId</a>) <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="prelude-val">Ok</span>(<span class="ident">frame</span>) =&gt; <a class="ident" href="../../../src/h2/codec/framed_read.rs.html#201">frame</a>.<span class="ident">into</span>(),
+                    <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/h2/frame/mod.rs.html#156">frame::Error::InvalidDependencyId</a>) =&gt; {
                         <span class="comment">// A stream cannot depend on itself. An endpoint MUST</span>
                         <span class="comment">// treat this as a stream error (Section 5.4.2) of type</span>
                         <span class="comment">// `PROTOCOL_ERROR`.</span>
@@ -623,18 +623,18 @@
                             <span class="ident">reason</span>: <span class="ident">Reason::PROTOCOL_ERROR</span>,
                         });
                     },
-                    <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; {
                         <span class="macro">proto_err!</span>(<span class="ident">conn</span>: <span class="string">&quot;failed to load PRIORITY frame; err={:?};&quot;</span>, <a class="ident" href="../../../src/h2/codec/framed_read.rs.html#213">e</a>);
                         <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/h2/codec/error.rs.html#8">Connection</a>(<span class="ident">Reason::PROTOCOL_ERROR</span>));
                     }
                 }
             },
-            <a class="ident" href="../../../src/h2/frame/head.rs.html#24">Kind::Continuation</a> <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="kw">let</span> <span class="ident">is_end_headers</span> <span class="op">=</span> (<a class="ident" href="../../../src/h2/codec/framed_read.rs.html#63">head</a>.<a class="ident" href="../../../src/h2/frame/head.rs.html#58">flag</a>() <span class="op">&amp;</span> <span class="number">0x4</span>) <span class="op">=</span><span class="op">=</span> <span class="number">0x4</span>;
+            <a class="ident" href="../../../src/h2/frame/head.rs.html#24">Kind::Continuation</a> =&gt; {
+                <span class="kw">let</span> <span class="ident">is_end_headers</span> <span class="op">=</span> (<a class="ident" href="../../../src/h2/codec/framed_read.rs.html#63">head</a>.<a class="ident" href="../../../src/h2/frame/head.rs.html#58">flag</a>() <span class="op">&amp;</span> <span class="number">0x4</span>) <span class="op">==</span> <span class="number">0x4</span>;
 
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">partial</span> <span class="op">=</span> <span class="kw">match</span> <a class="self" href="../../../src/h2/codec/framed_read.rs.html#57">self</a>.<span class="ident">partial</span>.<span class="ident">take</span>() {
-                    <span class="prelude-val">Some</span>(<span class="ident">partial</span>) <span class="op">=</span><span class="op">&gt;</span> <a class="ident" href="../../../src/h2/codec/framed_read.rs.html#223">partial</a>,
-                    <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="prelude-val">Some</span>(<span class="ident">partial</span>) =&gt; <a class="ident" href="../../../src/h2/codec/framed_read.rs.html#223">partial</a>,
+                    <span class="prelude-val">None</span> =&gt; {
                         <span class="macro">proto_err!</span>(<span class="ident">conn</span>: <span class="string">&quot;received unexpected CONTINUATION frame&quot;</span>);
                         <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/h2/codec/error.rs.html#8">Connection</a>(<span class="ident">Reason::PROTOCOL_ERROR</span>));
                     }
@@ -675,9 +675,9 @@
                 }
 
                 <span class="kw">match</span> <a class="ident" href="../../../src/h2/codec/framed_read.rs.html#222">partial</a>.<span class="ident">frame</span>.<a class="ident" href="../../../src/h2/codec/framed_read.rs.html#387-392">load_hpack</a>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../../src/h2/codec/framed_read.rs.html#222">partial</a>.<span class="ident">buf</span>, <a class="self" href="../../../src/h2/codec/framed_read.rs.html#57">self</a>.<span class="ident">max_header_list_size</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="self" href="../../../src/h2/codec/framed_read.rs.html#57">self</a>.<span class="ident">hpack</span>) {
-                    <span class="prelude-val">Ok</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {},
-                    <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/h2/frame/mod.rs.html#159">frame::Error::Hpack</a>(<a class="ident" href="../../../src/h2/hpack/decoder.rs.html#38">hpack::DecoderError::NeedMore</a>(<span class="kw">_</span>))) <span class="kw">if</span> <span class="op">!</span><a class="ident" href="../../../src/h2/codec/framed_read.rs.html#220">is_end_headers</a> <span class="op">=</span><span class="op">&gt;</span> {},
-                    <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/h2/frame/mod.rs.html#150">frame::Error::MalformedMessage</a>) <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; {},
+                    <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/h2/frame/mod.rs.html#159">frame::Error::Hpack</a>(<a class="ident" href="../../../src/h2/hpack/decoder.rs.html#38">hpack::DecoderError::NeedMore</a>(<span class="kw">_</span>))) <span class="kw">if</span> <span class="op">!</span><a class="ident" href="../../../src/h2/codec/framed_read.rs.html#220">is_end_headers</a> =&gt; {},
+                    <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/h2/frame/mod.rs.html#150">frame::Error::MalformedMessage</a>) =&gt; {
                         <span class="kw">let</span> <span class="ident">id</span> <span class="op">=</span> <a class="ident" href="../../../src/h2/codec/framed_read.rs.html#63">head</a>.<a class="ident" href="../../../src/h2/frame/head.rs.html#50">stream_id</a>();
                         <span class="macro">proto_err!</span>(<span class="ident">stream</span>: <span class="string">&quot;malformed CONTINUATION frame; stream={:?}&quot;</span>, <a class="ident" href="../../../src/h2/codec/framed_read.rs.html#268">id</a>);
                         <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/h2/codec/error.rs.html#9">Stream</a> {
@@ -685,7 +685,7 @@
                             <span class="ident">reason</span>: <span class="ident">Reason::PROTOCOL_ERROR</span>,
                         });
                     },
-                    <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; {
                         <span class="macro">proto_err!</span>(<span class="ident">conn</span>: <span class="string">&quot;failed HPACK decoding; err={:?}&quot;</span>, <a class="ident" href="../../../src/h2/codec/framed_read.rs.html#275">e</a>);
                         <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/h2/codec/error.rs.html#8">Connection</a>(<span class="ident">Reason::PROTOCOL_ERROR</span>));
                     },
@@ -698,7 +698,7 @@
                     <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
                 }
             },
-            <a class="ident" href="../../../src/h2/frame/head.rs.html#25">Kind::Unknown</a> <span class="op">=</span><span class="op">&gt;</span> {
+            <a class="ident" href="../../../src/h2/frame/head.rs.html#25">Kind::Unknown</a> =&gt; {
                 <span class="comment">// Unknown frames are ignored</span>
                 <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
             },
@@ -707,18 +707,18 @@
         <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<a class="ident" href="../../../src/h2/codec/framed_read.rs.html#138">frame</a>))
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_ref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">T</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_ref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">T</span> {
         <a class="self" href="../../../src/h2/codec/framed_read.rs.html#297">self</a>.<span class="ident">inner</span>.<span class="ident">get_ref</span>()
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">T</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">T</span> {
         <a class="self" href="../../../src/h2/codec/framed_read.rs.html#301">self</a>.<span class="ident">inner</span>.<span class="ident">get_mut</span>()
     }
 
     <span class="doccomment">/// Returns the current max frame size setting</span>
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;unstable&quot;</span>)]</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">max_frame_size</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">max_frame_size</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">usize</span> {
         <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">max_frame_length</span>()
     }
 
@@ -750,12 +750,12 @@
     <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <a class="ident" href="../../../src/h2/frame/mod.rs.html#69-79">Frame</a>;
     <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <a class="ident" href="../../../src/h2/codec/error.rs.html#7-11">RecvError</a>;
 
-    <span class="kw">fn</span> <span class="ident">poll</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../src/h2/frame/mod.rs.html#69-79">Frame</a><span class="op">&gt;</span>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">poll</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../src/h2/frame/mod.rs.html#69-79">Frame</a><span class="op">&gt;</span>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
         <span class="kw">loop</span> {
             <span class="macro">trace!</span>(<span class="string">&quot;poll&quot;</span>);
             <span class="kw">let</span> <span class="ident">bytes</span> <span class="op">=</span> <span class="kw">match</span> <span class="macro">try_ready!</span>(<a class="self" href="../../../src/h2/codec/framed_read.rs.html#340">self</a>.<span class="ident">inner</span>.<span class="ident">poll</span>().<span class="ident">map_err</span>(<a class="ident" href="../../../src/h2/codec/framed_read.rs.html#357">map_err</a>)) {
-                <span class="prelude-val">Some</span>(<span class="ident">bytes</span>) <span class="op">=</span><span class="op">&gt;</span> <a class="ident" href="../../../src/h2/codec/framed_read.rs.html#344">bytes</a>,
-                <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Async::Ready</span>(<span class="prelude-val">None</span>)),
+                <span class="prelude-val">Some</span>(<span class="ident">bytes</span>) =&gt; <a class="ident" href="../../../src/h2/codec/framed_read.rs.html#344">bytes</a>,
+                <span class="prelude-val">None</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Async::Ready</span>(<span class="prelude-val">None</span>)),
             };
 
             <span class="macro">trace!</span>(<span class="string">&quot;poll; bytes={}B&quot;</span>, <a class="ident" href="../../../src/h2/codec/framed_read.rs.html#343">bytes</a>.<span class="ident">len</span>());
@@ -767,7 +767,7 @@
     }
 }
 
-<span class="kw">fn</span> <span class="ident">map_err</span>(<span class="ident">err</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="../../../src/h2/codec/error.rs.html#7-11">RecvError</a> {
+<span class="kw">fn</span> <span class="ident">map_err</span>(<span class="ident">err</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a>) -&gt; <a class="ident" href="../../../src/h2/codec/error.rs.html#7-11">RecvError</a> {
     <span class="kw">use</span> <span class="ident">tokio_io::codec::length_delimited::FrameTooBig</span>;
 
     <span class="kw">if</span> <span class="kw">let</span> <span class="ident">io::ErrorKind::InvalidData</span> <span class="op">=</span> <a class="ident" href="../../../src/h2/codec/framed_read.rs.html#357">err</a>.<span class="ident">kind</span>() {
@@ -783,17 +783,17 @@
 <span class="comment">// ===== impl Continuable =====</span>
 
 <span class="kw">impl</span> <a class="ident" href="../../../src/h2/codec/framed_read.rs.html#42-45">Continuable</a> {
-    <span class="kw">fn</span> <span class="ident">stream_id</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="../../../src/h2/frame/stream_id.rs.html#15">frame::StreamId</a> {
+    <span class="kw">fn</span> <span class="ident">stream_id</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="../../../src/h2/frame/stream_id.rs.html#15">frame::StreamId</a> {
         <span class="kw">match</span> <span class="kw-2">*</span><a class="self" href="../../../src/h2/codec/framed_read.rs.html#373">self</a> {
-            <a class="ident" href="../../../src/h2/codec/framed_read.rs.html#43">Continuable::Headers</a>(<span class="kw-2">ref</span> <span class="ident">h</span>) <span class="op">=</span><span class="op">&gt;</span> <a class="ident" href="../../../src/h2/codec/framed_read.rs.html#375">h</a>.<a class="ident" href="../../../src/h2/frame/headers.rs.html#215">stream_id</a>(),
-            <a class="ident" href="../../../src/h2/codec/framed_read.rs.html#44">Continuable::PushPromise</a>(<span class="kw-2">ref</span> <span class="ident">p</span>) <span class="op">=</span><span class="op">&gt;</span> <a class="ident" href="../../../src/h2/codec/framed_read.rs.html#376">p</a>.<a class="ident" href="../../../src/h2/frame/headers.rs.html#356">stream_id</a>(),
+            <a class="ident" href="../../../src/h2/codec/framed_read.rs.html#43">Continuable::Headers</a>(<span class="kw-2">ref</span> <span class="ident">h</span>) =&gt; <a class="ident" href="../../../src/h2/codec/framed_read.rs.html#375">h</a>.<a class="ident" href="../../../src/h2/frame/headers.rs.html#215">stream_id</a>(),
+            <a class="ident" href="../../../src/h2/codec/framed_read.rs.html#44">Continuable::PushPromise</a>(<span class="kw-2">ref</span> <span class="ident">p</span>) =&gt; <a class="ident" href="../../../src/h2/codec/framed_read.rs.html#376">p</a>.<a class="ident" href="../../../src/h2/frame/headers.rs.html#356">stream_id</a>(),
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">is_over_size</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    <span class="kw">fn</span> <span class="ident">is_over_size</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
         <span class="kw">match</span> <span class="kw-2">*</span><a class="self" href="../../../src/h2/codec/framed_read.rs.html#380">self</a> {
-            <a class="ident" href="../../../src/h2/codec/framed_read.rs.html#43">Continuable::Headers</a>(<span class="kw-2">ref</span> <span class="ident">h</span>) <span class="op">=</span><span class="op">&gt;</span> <a class="ident" href="../../../src/h2/codec/framed_read.rs.html#382">h</a>.<a class="ident" href="../../../src/h2/frame/headers.rs.html#235">is_over_size</a>(),
-            <a class="ident" href="../../../src/h2/codec/framed_read.rs.html#44">Continuable::PushPromise</a>(<span class="kw-2">ref</span> <span class="ident">p</span>) <span class="op">=</span><span class="op">&gt;</span> <a class="ident" href="../../../src/h2/codec/framed_read.rs.html#383">p</a>.<a class="ident" href="../../../src/h2/frame/headers.rs.html#372">is_over_size</a>(),
+            <a class="ident" href="../../../src/h2/codec/framed_read.rs.html#43">Continuable::Headers</a>(<span class="kw-2">ref</span> <span class="ident">h</span>) =&gt; <a class="ident" href="../../../src/h2/codec/framed_read.rs.html#382">h</a>.<a class="ident" href="../../../src/h2/frame/headers.rs.html#235">is_over_size</a>(),
+            <a class="ident" href="../../../src/h2/codec/framed_read.rs.html#44">Continuable::PushPromise</a>(<span class="kw-2">ref</span> <span class="ident">p</span>) =&gt; <a class="ident" href="../../../src/h2/codec/framed_read.rs.html#383">p</a>.<a class="ident" href="../../../src/h2/frame/headers.rs.html#372">is_over_size</a>(),
         }
     }
 
@@ -802,22 +802,22 @@
         <span class="ident">src</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../../bytes/bytes/struct.BytesMut.html">BytesMut</a>,
         <span class="ident">max_header_list_size</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
         <span class="ident">decoder</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../../src/h2/hpack/decoder.rs.html#17-23">hpack::Decoder</a>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../../src/h2/frame/mod.rs.html#122-160">frame::Error</a><span class="op">&gt;</span> {
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../../src/h2/frame/mod.rs.html#122-160">frame::Error</a><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="kw-2">*</span><a class="self" href="../../../src/h2/codec/framed_read.rs.html#388">self</a> {
-            <a class="ident" href="../../../src/h2/codec/framed_read.rs.html#43">Continuable::Headers</a>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">h</span>) <span class="op">=</span><span class="op">&gt;</span> <a class="ident" href="../../../src/h2/codec/framed_read.rs.html#394">h</a>.<a class="ident" href="../../../src/h2/frame/headers.rs.html#211">load_hpack</a>(<a class="ident" href="../../../src/h2/codec/framed_read.rs.html#389">src</a>, <a class="ident" href="../../../src/h2/codec/framed_read.rs.html#390">max_header_list_size</a>, <a class="ident" href="../../../src/h2/codec/framed_read.rs.html#391">decoder</a>),
-            <a class="ident" href="../../../src/h2/codec/framed_read.rs.html#44">Continuable::PushPromise</a>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">p</span>) <span class="op">=</span><span class="op">&gt;</span> <a class="ident" href="../../../src/h2/codec/framed_read.rs.html#395">p</a>.<a class="ident" href="../../../src/h2/frame/headers.rs.html#352">load_hpack</a>(<a class="ident" href="../../../src/h2/codec/framed_read.rs.html#389">src</a>, <a class="ident" href="../../../src/h2/codec/framed_read.rs.html#390">max_header_list_size</a>, <a class="ident" href="../../../src/h2/codec/framed_read.rs.html#391">decoder</a>),
+            <a class="ident" href="../../../src/h2/codec/framed_read.rs.html#43">Continuable::Headers</a>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">h</span>) =&gt; <a class="ident" href="../../../src/h2/codec/framed_read.rs.html#394">h</a>.<a class="ident" href="../../../src/h2/frame/headers.rs.html#211">load_hpack</a>(<a class="ident" href="../../../src/h2/codec/framed_read.rs.html#389">src</a>, <a class="ident" href="../../../src/h2/codec/framed_read.rs.html#390">max_header_list_size</a>, <a class="ident" href="../../../src/h2/codec/framed_read.rs.html#391">decoder</a>),
+            <a class="ident" href="../../../src/h2/codec/framed_read.rs.html#44">Continuable::PushPromise</a>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">p</span>) =&gt; <a class="ident" href="../../../src/h2/codec/framed_read.rs.html#395">p</a>.<a class="ident" href="../../../src/h2/frame/headers.rs.html#352">load_hpack</a>(<a class="ident" href="../../../src/h2/codec/framed_read.rs.html#389">src</a>, <a class="ident" href="../../../src/h2/codec/framed_read.rs.html#390">max_header_list_size</a>, <a class="ident" href="../../../src/h2/codec/framed_read.rs.html#391">decoder</a>),
         }
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><a class="ident" href="../../../src/h2/codec/framed_read.rs.html#42-45">Continuable</a><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Frame</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">cont</span>: <a class="ident" href="../../../src/h2/codec/framed_read.rs.html#42-45">Continuable</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">cont</span>: <a class="ident" href="../../../src/h2/codec/framed_read.rs.html#42-45">Continuable</a>) -&gt; <span class="self">Self</span> {
         <span class="kw">match</span> <a class="ident" href="../../../src/h2/codec/framed_read.rs.html#401">cont</a> {
-            <a class="ident" href="../../../src/h2/codec/framed_read.rs.html#43">Continuable::Headers</a>(<span class="kw-2">mut</span> <span class="ident">headers</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <a class="ident" href="../../../src/h2/codec/framed_read.rs.html#43">Continuable::Headers</a>(<span class="kw-2">mut</span> <span class="ident">headers</span>) =&gt; {
                 <a class="ident" href="../../../src/h2/codec/framed_read.rs.html#403">headers</a>.<a class="ident" href="../../../src/h2/frame/headers.rs.html#223">set_end_headers</a>();
                 <a class="ident" href="../../../src/h2/codec/framed_read.rs.html#403">headers</a>.<span class="ident">into</span>()
             }
-            <a class="ident" href="../../../src/h2/codec/framed_read.rs.html#44">Continuable::PushPromise</a>(<span class="kw-2">mut</span> <span class="ident">push</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <a class="ident" href="../../../src/h2/codec/framed_read.rs.html#44">Continuable::PushPromise</a>(<span class="kw-2">mut</span> <span class="ident">push</span>) =&gt; {
                 <a class="ident" href="../../../src/h2/codec/framed_read.rs.html#407">push</a>.<a class="ident" href="../../../src/h2/frame/headers.rs.html#368">set_end_headers</a>();
                 <a class="ident" href="../../../src/h2/codec/framed_read.rs.html#407">push</a>.<span class="ident">into</span>()
             }

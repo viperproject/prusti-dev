@@ -141,18 +141,18 @@
 }
 
 <span class="kw">impl</span> <a class="ident" href="../../../src/rustwide/crates/git.rs.html#9-11">GitRepo</a> {
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">url</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">url</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="self">Self</span> {
         <span class="self">Self</span> { <span class="ident">url</span>: <a class="ident" href="../../../src/rustwide/crates/git.rs.html#14">url</a>.<span class="ident">into</span>() }
     }
 
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">git_commit</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">workspace</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/rustwide/workspace.rs.html#193-195">Workspace</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a><span class="op">&gt;</span> {
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">git_commit</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">workspace</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/rustwide/workspace.rs.html#193-195">Workspace</a>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">Command::new</span>(<a class="ident" href="../../../src/rustwide/crates/git.rs.html#18">workspace</a>, <span class="string">&quot;git&quot;</span>)
             .<a class="ident" href="../../../src/rustwide/cmd/mod.rs.html#259">args</a>(<span class="kw-2">&amp;</span>[<span class="string">&quot;rev-parse&quot;</span>, <span class="string">&quot;HEAD&quot;</span>])
             .<a class="ident" href="../../../src/rustwide/cmd/mod.rs.html#275">cd</a>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/rustwide/crates/git.rs.html#18">self</a>.<a class="ident" href="../../../src/rustwide/crates/git.rs.html#40">cached_path</a>(<a class="ident" href="../../../src/rustwide/crates/git.rs.html#18">workspace</a>))
             .<a class="ident" href="../../../src/rustwide/cmd/mod.rs.html#358">run_capture</a>();
 
         <span class="kw">match</span> <a class="ident" href="../../../src/rustwide/crates/git.rs.html#19">res</a> {
-            <span class="prelude-val">Ok</span>(<span class="ident">out</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="prelude-val">Ok</span>(<span class="ident">out</span>) =&gt; {
                 <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">shaline</span>) <span class="op">=</span> <a class="ident" href="../../../src/rustwide/crates/git.rs.html#25">out</a>.<a class="ident" href="../../../src/rustwide/cmd/mod.rs.html#528">stdout_lines</a>().<span class="ident">get</span>(<span class="number">0</span>) {
                     <span class="kw">if</span> <span class="op">!</span><a class="ident" href="../../../src/rustwide/crates/git.rs.html#26">shaline</a>.<span class="ident">is_empty</span>() {
                         <span class="kw">return</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/rustwide/crates/git.rs.html#26">shaline</a>.<span class="ident">to_string</span>());
@@ -160,21 +160,21 @@
                 }
                 <span class="macro">warn!</span>(<span class="string">&quot;bad output from `git rev-parse HEAD`&quot;</span>);
             }
-            <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; {
                 <span class="macro">warn!</span>(<span class="string">&quot;unable to capture sha for {}: {}&quot;</span>, <a class="self" href="../../../src/rustwide/crates/git.rs.html#18">self</a>.<span class="ident">url</span>, <a class="ident" href="../../../src/rustwide/crates/git.rs.html#33">e</a>);
             }
         }
         <span class="prelude-val">None</span>
     }
 
-    <span class="kw">fn</span> <span class="ident">cached_path</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">workspace</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/rustwide/workspace.rs.html#193-195">Workspace</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/path/struct.PathBuf.html">PathBuf</a> {
+    <span class="kw">fn</span> <span class="ident">cached_path</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">workspace</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/rustwide/workspace.rs.html#193-195">Workspace</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/path/struct.PathBuf.html">PathBuf</a> {
         <a class="ident" href="../../../src/rustwide/crates/git.rs.html#40">workspace</a>
             .<a class="ident" href="../../../src/rustwide/workspace.rs.html#278">cache_dir</a>()
             .<span class="ident">join</span>(<span class="string">&quot;git-repos&quot;</span>)
             .<span class="ident">join</span>(<a class="ident" href="../../../src/rustwide/utils.rs.html#20"><span class="kw">crate</span>::utils::escape_path</a>(<a class="self" href="../../../src/rustwide/crates/git.rs.html#40">self</a>.<span class="ident">url</span>.<span class="ident">as_bytes</span>()))
     }
 
-    <span class="kw">fn</span> <span class="ident">suppress_password_prompt_args</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">workspace</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/rustwide/workspace.rs.html#193-195">Workspace</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">suppress_password_prompt_args</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">workspace</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/rustwide/workspace.rs.html#193-195">Workspace</a>) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a><span class="op">&gt;</span> {
         <span class="comment">// The first `-c credential.helper=` clears the list of existing helpers</span>
         <span class="macro">vec!</span>[
             <span class="string">&quot;-c&quot;</span>.<span class="ident">into</span>(),
@@ -193,7 +193,7 @@
 }
 
 <span class="kw">impl</span> <a class="ident" href="../../../src/rustwide/crates/mod.rs.html#10-14">CrateTrait</a> <span class="kw">for</span> <a class="ident" href="../../../src/rustwide/crates/git.rs.html#9-11">GitRepo</a> {
-    <span class="kw">fn</span> <span class="ident">fetch</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">workspace</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/rustwide/workspace.rs.html#193-195">Workspace</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../../failure/error/struct.Error.html">Error</a><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">fetch</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">workspace</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/rustwide/workspace.rs.html#193-195">Workspace</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../../failure/error/struct.Error.html">Error</a><span class="op">&gt;</span> {
         <span class="comment">// The credential helper that suppresses the password prompt shows this message when a</span>
         <span class="comment">// repository requires authentication:</span>
         <span class="comment">//</span>
@@ -235,7 +235,7 @@
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">purge_from_cache</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">workspace</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/rustwide/workspace.rs.html#193-195">Workspace</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../../failure/error/struct.Error.html">Error</a><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">purge_from_cache</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">workspace</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/rustwide/workspace.rs.html#193-195">Workspace</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../../failure/error/struct.Error.html">Error</a><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">path</span> <span class="op">=</span> <a class="self" href="../../../src/rustwide/crates/git.rs.html#108">self</a>.<a class="ident" href="../../../src/rustwide/crates/git.rs.html#40">cached_path</a>(<a class="ident" href="../../../src/rustwide/crates/git.rs.html#108">workspace</a>);
         <span class="kw">if</span> <a class="ident" href="../../../src/rustwide/crates/git.rs.html#109">path</a>.<span class="ident">exists</span>() {
             <a class="ident" href="../../../src/rustwide/utils.rs.html#74"><span class="kw">crate</span>::utils::remove_dir_all</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/rustwide/crates/git.rs.html#109">path</a>)<span class="question-mark">?</span>;
@@ -243,7 +243,7 @@
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">fn</span> <span class="ident">copy_source_to</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">workspace</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/rustwide/workspace.rs.html#193-195">Workspace</a>, <span class="ident">dest</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../../failure/error/struct.Error.html">Error</a><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">copy_source_to</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">workspace</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/rustwide/workspace.rs.html#193-195">Workspace</a>, <span class="ident">dest</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../../failure/error/struct.Error.html">Error</a><span class="op">&gt;</span> {
         <span class="ident">Command::new</span>(<a class="ident" href="../../../src/rustwide/crates/git.rs.html#116">workspace</a>, <span class="string">&quot;git&quot;</span>)
             .<a class="ident" href="../../../src/rustwide/cmd/mod.rs.html#259">args</a>(<span class="kw-2">&amp;</span>[<span class="string">&quot;clone&quot;</span>])
             .<a class="ident" href="../../../src/rustwide/cmd/mod.rs.html#259">args</a>(<span class="kw-2">&amp;</span>[<a class="self" href="../../../src/rustwide/crates/git.rs.html#116">self</a>.<a class="ident" href="../../../src/rustwide/crates/git.rs.html#40">cached_path</a>(<a class="ident" href="../../../src/rustwide/crates/git.rs.html#116">workspace</a>).<span class="ident">as_path</span>(), <a class="ident" href="../../../src/rustwide/crates/git.rs.html#116">dest</a>])
@@ -254,7 +254,7 @@
 }
 
 <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">std::fmt::Display</a> <span class="kw">for</span> <a class="ident" href="../../../src/rustwide/crates/git.rs.html#9-11">GitRepo</a> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">std::fmt::Formatter</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">std::fmt::Result</a> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">std::fmt::Formatter</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">std::fmt::Result</a> {
         <span class="macro">write!</span>(<a class="ident" href="../../../src/rustwide/crates/git.rs.html#127">f</a>, <span class="string">&quot;git repo {}&quot;</span>, <a class="self" href="../../../src/rustwide/crates/git.rs.html#127">self</a>.<span class="ident">url</span>)
     }
 }

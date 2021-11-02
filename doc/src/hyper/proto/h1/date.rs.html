@@ -103,7 +103,7 @@
     })
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">update_and_header_value</span>() <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="../../../../hyper/header/struct.HeaderValue.html">HeaderValue</a> {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">update_and_header_value</span>() -&gt; <a class="ident" href="../../../../hyper/header/struct.HeaderValue.html">HeaderValue</a> {
     <a class="ident" href="../../../../src/hyper/proto/h1/date.rs.html#38">CACHED</a>.<span class="ident">with</span>(<span class="op">|</span><span class="ident">cache</span><span class="op">|</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">cache</span> <span class="op">=</span> <a class="ident" href="../../../../src/hyper/proto/h1/date.rs.html#24">cache</a>.<span class="ident">borrow_mut</span>();
         <a class="ident" href="../../../../src/hyper/proto/h1/date.rs.html#25">cache</a>.<a class="ident" href="../../../../src/hyper/proto/h1/date.rs.html#55">check</a>();
@@ -121,7 +121,7 @@
 <span class="macro">thread_local!</span>(<span class="kw">static</span> <span class="ident">CACHED</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><a class="ident" href="../../../../src/hyper/proto/h1/date.rs.html#32-36">CachedDate</a><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">RefCell::new</span>(<span class="ident">CachedDate::new</span>()));
 
 <span class="kw">impl</span> <a class="ident" href="../../../../src/hyper/proto/h1/date.rs.html#32-36">CachedDate</a> {
-    <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="self">Self</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">cache</span> <span class="op">=</span> <a class="ident" href="../../../../src/hyper/proto/h1/date.rs.html#32-36">CachedDate</a> {
             <span class="ident">bytes</span>: [<span class="number">0</span>; <a class="ident" href="../../../../src/hyper/proto/h1/date.rs.html#9">DATE_VALUE_LENGTH</a>],
             <span class="ident">pos</span>: <span class="number">0</span>,
@@ -131,7 +131,7 @@
         <a class="ident" href="../../../../src/hyper/proto/h1/date.rs.html#42">cache</a>
     }
 
-    <span class="kw">fn</span> <span class="ident">buffer</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] {
+    <span class="kw">fn</span> <span class="ident">buffer</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] {
         <span class="kw-2">&amp;</span><a class="self" href="../../../../src/hyper/proto/h1/date.rs.html#51">self</a>.<span class="ident">bytes</span>[..]
     }
 
@@ -145,14 +145,14 @@
     <span class="kw">fn</span> <span class="ident">update</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">now</span>: <a class="ident" href="../../../../time/struct.Timespec.html">time::Timespec</a>) {
         <a class="self" href="../../../../src/hyper/proto/h1/date.rs.html#62">self</a>.<span class="ident">pos</span> <span class="op">=</span> <span class="number">0</span>;
         <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="macro">write!</span>(<a class="self" href="../../../../src/hyper/proto/h1/date.rs.html#62">self</a>, <span class="string">&quot;{}&quot;</span>, <span class="ident">time::at_utc</span>(<a class="ident" href="../../../../src/hyper/proto/h1/date.rs.html#62">now</a>).<span class="ident">rfc822</span>());
-        <span class="macro">debug_assert!</span>(<a class="self" href="../../../../src/hyper/proto/h1/date.rs.html#62">self</a>.<span class="ident">pos</span> <span class="op">=</span><span class="op">=</span> <a class="ident" href="../../../../src/hyper/proto/h1/date.rs.html#9">DATE_VALUE_LENGTH</a>);
+        <span class="macro">debug_assert!</span>(<a class="self" href="../../../../src/hyper/proto/h1/date.rs.html#62">self</a>.<span class="ident">pos</span> <span class="op">==</span> <a class="ident" href="../../../../src/hyper/proto/h1/date.rs.html#9">DATE_VALUE_LENGTH</a>);
         <a class="self" href="../../../../src/hyper/proto/h1/date.rs.html#62">self</a>.<span class="ident">next_update</span> <span class="op">=</span> <a class="ident" href="../../../../src/hyper/proto/h1/date.rs.html#62">now</a> <span class="op">+</span> <span class="ident">Duration::seconds</span>(<span class="number">1</span>);
         <a class="self" href="../../../../src/hyper/proto/h1/date.rs.html#62">self</a>.<span class="ident">next_update</span>.<span class="ident">nsec</span> <span class="op">=</span> <span class="number">0</span>;
     }
 }
 
 <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Write.html">fmt::Write</a> <span class="kw">for</span> <a class="ident" href="../../../../src/hyper/proto/h1/date.rs.html#32-36">CachedDate</a> {
-    <span class="kw">fn</span> <span class="ident">write_str</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">s</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+    <span class="kw">fn</span> <span class="ident">write_str</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">s</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
         <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <a class="ident" href="../../../../src/hyper/proto/h1/date.rs.html#72">s</a>.<span class="ident">len</span>();
         <a class="self" href="../../../../src/hyper/proto/h1/date.rs.html#72">self</a>.<span class="ident">bytes</span>[<a class="self" href="../../../../src/hyper/proto/h1/date.rs.html#72">self</a>.<span class="ident">pos</span>..<a class="self" href="../../../../src/hyper/proto/h1/date.rs.html#72">self</a>.<span class="ident">pos</span> <span class="op">+</span> <a class="ident" href="../../../../src/hyper/proto/h1/date.rs.html#73">len</a>].<span class="ident">copy_from_slice</span>(<a class="ident" href="../../../../src/hyper/proto/h1/date.rs.html#72">s</a>.<span class="ident">as_bytes</span>());
         <a class="self" href="../../../../src/hyper/proto/h1/date.rs.html#72">self</a>.<span class="ident">pos</span> <span class="op">+</span><span class="op">=</span> <a class="ident" href="../../../../src/hyper/proto/h1/date.rs.html#73">len</a>;

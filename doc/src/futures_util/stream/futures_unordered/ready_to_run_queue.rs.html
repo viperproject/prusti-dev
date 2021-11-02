@@ -168,11 +168,11 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// Note that this is unsafe as it required mutual exclusion (only one</span>
     <span class="doccomment">/// thread can call this) to be guaranteed elsewhere.</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">dequeue</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Dequeue</span><span class="op">&lt;</span><span class="ident">Fut</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">dequeue</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Dequeue</span><span class="op">&lt;</span><span class="ident">Fut</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">tail</span> <span class="op">=</span> <span class="kw-2">*</span><a class="self" href="../../../../src/futures_util/stream/futures_unordered/ready_to_run_queue.rs.html#49">self</a>.<span class="ident">tail</span>.<span class="ident">get</span>();
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">next</span> <span class="op">=</span> (<span class="kw-2">*</span><a class="ident" href="../../../../src/futures_util/stream/futures_unordered/ready_to_run_queue.rs.html#50">tail</a>).<span class="ident">next_ready_to_run</span>.<span class="ident">load</span>(<span class="ident">Acquire</span>);
 
-        <span class="kw">if</span> <a class="ident" href="../../../../src/futures_util/stream/futures_unordered/ready_to_run_queue.rs.html#50">tail</a> <span class="op">=</span><span class="op">=</span> <a class="self" href="../../../../src/futures_util/stream/futures_unordered/ready_to_run_queue.rs.html#49">self</a>.<a class="ident" href="../../../../src/futures_util/stream/futures_unordered/ready_to_run_queue.rs.html#85">stub</a>() {
+        <span class="kw">if</span> <a class="ident" href="../../../../src/futures_util/stream/futures_unordered/ready_to_run_queue.rs.html#50">tail</a> <span class="op">==</span> <a class="self" href="../../../../src/futures_util/stream/futures_unordered/ready_to_run_queue.rs.html#49">self</a>.<a class="ident" href="../../../../src/futures_util/stream/futures_unordered/ready_to_run_queue.rs.html#85">stub</a>() {
             <span class="kw">if</span> <a class="ident" href="../../../../src/futures_util/stream/futures_unordered/ready_to_run_queue.rs.html#51">next</a>.<span class="ident">is_null</span>() {
                 <span class="kw">return</span> <a class="ident" href="../../../../src/futures_util/stream/futures_unordered/ready_to_run_queue.rs.html#13">Dequeue::Empty</a>;
             }
@@ -204,7 +204,7 @@
         <a class="ident" href="../../../../src/futures_util/stream/futures_unordered/ready_to_run_queue.rs.html#14">Dequeue::Inconsistent</a>
     }
 
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">stub</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">Task</span><span class="op">&lt;</span><span class="ident">Fut</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">stub</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">Task</span><span class="op">&lt;</span><span class="ident">Fut</span><span class="op">&gt;</span> {
         <span class="kw-2">&amp;</span><span class="kw-2">*</span><a class="self" href="../../../../src/futures_util/stream/futures_unordered/ready_to_run_queue.rs.html#85">self</a>.<span class="ident">stub</span>
     }
 
@@ -222,9 +222,9 @@
         <span class="kw">loop</span> {
             <span class="comment">// SAFETY: We have the guarantee of mutual exclusion required by `dequeue`.</span>
             <span class="kw">match</span> <a class="self" href="../../../../src/futures_util/stream/futures_unordered/ready_to_run_queue.rs.html#99">self</a>.<a class="ident" href="../../../../src/futures_util/stream/futures_unordered/ready_to_run_queue.rs.html#49">dequeue</a>() {
-                <a class="ident" href="../../../../src/futures_util/stream/futures_unordered/ready_to_run_queue.rs.html#13">Dequeue::Empty</a> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">break</span>,
-                <a class="ident" href="../../../../src/futures_util/stream/futures_unordered/ready_to_run_queue.rs.html#14">Dequeue::Inconsistent</a> <span class="op">=</span><span class="op">&gt;</span> <a class="ident" href="../../../../src/futures_util/stream/futures_unordered/abort.rs.html#1">abort</a>(<span class="string">&quot;inconsistent in drop&quot;</span>),
-                <a class="ident" href="../../../../src/futures_util/stream/futures_unordered/ready_to_run_queue.rs.html#12">Dequeue::Data</a>(<span class="ident">ptr</span>) <span class="op">=</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<span class="ident">Arc::from_raw</span>(<a class="ident" href="../../../../src/futures_util/stream/futures_unordered/ready_to_run_queue.rs.html#105">ptr</a>)),
+                <a class="ident" href="../../../../src/futures_util/stream/futures_unordered/ready_to_run_queue.rs.html#13">Dequeue::Empty</a> =&gt; <span class="kw">break</span>,
+                <a class="ident" href="../../../../src/futures_util/stream/futures_unordered/ready_to_run_queue.rs.html#14">Dequeue::Inconsistent</a> =&gt; <a class="ident" href="../../../../src/futures_util/stream/futures_unordered/abort.rs.html#1">abort</a>(<span class="string">&quot;inconsistent in drop&quot;</span>),
+                <a class="ident" href="../../../../src/futures_util/stream/futures_unordered/ready_to_run_queue.rs.html#12">Dequeue::Data</a>(<span class="ident">ptr</span>) =&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<span class="ident">Arc::from_raw</span>(<a class="ident" href="../../../../src/futures_util/stream/futures_unordered/ready_to_run_queue.rs.html#105">ptr</a>)),
             }
         }
     }

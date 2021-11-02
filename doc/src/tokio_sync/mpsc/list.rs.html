@@ -382,7 +382,7 @@
     <span class="ident">free_head</span>: <span class="ident">NonNull</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">channel</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>() <span class="op">-</span><span class="op">&gt;</span> (<span class="ident">Tx</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <span class="ident">Rx</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">channel</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>() -&gt; (<span class="ident">Tx</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <span class="ident">Rx</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) {
     <span class="comment">// Create the initial block shared between the tx and rx halves.</span>
     <span class="kw">let</span> <span class="ident">initial_block</span> <span class="op">=</span> <span class="ident">Box::new</span>(<span class="ident">Block::new</span>(<span class="number">0</span>));
     <span class="kw">let</span> <span class="ident">initial_block_ptr</span> <span class="op">=</span> <span class="ident">Box::into_raw</span>(<a class="ident" href="../../../src/tokio_sync/mpsc/list.rs.html#38">initial_block</a>);
@@ -433,7 +433,7 @@
         <span class="kw">unsafe</span> { <a class="ident" href="../../../src/tokio_sync/mpsc/list.rs.html#82">block</a>.<span class="ident">as_ref</span>().<a class="ident" href="../../../src/tokio_sync/mpsc/block.rs.html#161">tx_close</a>() }
     }
 
-    <span class="kw">fn</span> <span class="ident">find_block</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">slot_index</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NonNull</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">find_block</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">slot_index</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="ident">NonNull</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="comment">// The start index of the block that contains `index`.</span>
         <span class="kw">let</span> <span class="ident">start_index</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio_sync/mpsc/block.rs.html#67">block::start_index</a>(<a class="ident" href="../../../src/tokio_sync/mpsc/list.rs.html#87">slot_index</a>);
 
@@ -496,7 +496,7 @@
                     <a class="self" href="../../../src/tokio_sync/mpsc/list.rs.html#87">self</a>.<span class="ident">block_tail</span>
                         .<span class="ident">compare_and_swap</span>(<a class="ident" href="../../../src/tokio_sync/mpsc/list.rs.html#95">block_ptr</a>, <a class="ident" href="../../../src/tokio_sync/mpsc/list.rs.html#122">next_block</a>.<span class="ident">as_ptr</span>(), <span class="ident">Release</span>);
 
-                <span class="kw">if</span> <a class="ident" href="../../../src/tokio_sync/mpsc/list.rs.html#146">actual</a> <span class="op">=</span><span class="op">=</span> <a class="ident" href="../../../src/tokio_sync/mpsc/list.rs.html#95">block_ptr</a> {
+                <span class="kw">if</span> <a class="ident" href="../../../src/tokio_sync/mpsc/list.rs.html#146">actual</a> <span class="op">==</span> <a class="ident" href="../../../src/tokio_sync/mpsc/list.rs.html#95">block_ptr</a> {
                     <span class="comment">// Synchronize with any senders</span>
                     <span class="kw">let</span> <span class="ident">tail_position</span> <span class="op">=</span> <a class="self" href="../../../src/tokio_sync/mpsc/list.rs.html#87">self</a>.<span class="ident">tail_position</span>.<span class="ident">fetch_add</span>(<span class="number">0</span>, <span class="ident">Release</span>);
 
@@ -545,11 +545,11 @@
         <span class="comment">// TODO: Unify this logic with Block::grow</span>
         <span class="kw">for</span> <span class="kw">_</span> <span class="kw">in</span> <span class="number">0</span>..<span class="number">3</span> {
             <span class="kw">match</span> <a class="ident" href="../../../src/tokio_sync/mpsc/list.rs.html#194">curr</a>.<span class="ident">as_ref</span>().<a class="ident" href="../../../src/tokio_sync/mpsc/block.rs.html#260-264">try_push</a>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../../src/tokio_sync/mpsc/list.rs.html#172">block</a>, <span class="ident">AcqRel</span>) {
-                <span class="prelude-val">Ok</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; {
                     <a class="ident" href="../../../src/tokio_sync/mpsc/list.rs.html#183">reused</a> <span class="op">=</span> <span class="bool-val">true</span>;
                     <span class="kw">break</span>;
                 }
-                <span class="prelude-val">Err</span>(<span class="ident">next</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="prelude-val">Err</span>(<span class="ident">next</span>) =&gt; {
                     <a class="ident" href="../../../src/tokio_sync/mpsc/list.rs.html#194">curr</a> <span class="op">=</span> <a class="ident" href="../../../src/tokio_sync/mpsc/list.rs.html#203">next</a>;
                 }
             }
@@ -563,7 +563,7 @@
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <span class="ident">Tx</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">fmt</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">fmt</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
         <a class="ident" href="../../../src/tokio_sync/mpsc/list.rs.html#217">fmt</a>.<span class="ident">debug_struct</span>(<span class="string">&quot;Tx&quot;</span>)
             .<span class="ident">field</span>(<span class="string">&quot;block_tail&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/tokio_sync/mpsc/list.rs.html#217">self</a>.<span class="ident">block_tail</span>.<span class="ident">load</span>(<span class="ident">Relaxed</span>))
             .<span class="ident">field</span>(<span class="string">&quot;tail_position&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/tokio_sync/mpsc/list.rs.html#217">self</a>.<span class="ident">tail_position</span>.<span class="ident">load</span>(<span class="ident">Relaxed</span>))
@@ -573,7 +573,7 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">Rx</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
     <span class="doccomment">/// Pop the next value off the queue</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">pop</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">tx</span>: <span class="kw-2">&amp;</span><span class="ident">Tx</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">block::Read</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">pop</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">tx</span>: <span class="kw-2">&amp;</span><span class="ident">Tx</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">block::Read</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="comment">// Advance `head`, if needed</span>
         <span class="kw">if</span> <span class="op">!</span><a class="self" href="../../../src/tokio_sync/mpsc/list.rs.html#227">self</a>.<a class="ident" href="../../../src/tokio_sync/mpsc/list.rs.html#252">try_advancing_head</a>() {
             <span class="macro">debug!</span>(<span class="string">&quot;+ !self.try_advancing_head() -&gt; false&quot;</span>);
@@ -598,7 +598,7 @@
     <span class="doccomment">/// Try advancing the block pointer to the block referenced by `self.index`.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Returns `true` if successful, `false` if there is no next block to load.</span>
-    <span class="kw">fn</span> <span class="ident">try_advancing_head</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    <span class="kw">fn</span> <span class="ident">try_advancing_head</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
         <span class="kw">let</span> <span class="ident">block_index</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio_sync/mpsc/block.rs.html#67">block::start_index</a>(<a class="self" href="../../../src/tokio_sync/mpsc/list.rs.html#252">self</a>.<span class="ident">index</span>);
 
         <span class="kw">loop</span> {
@@ -613,8 +613,8 @@
             };
 
             <span class="kw">let</span> <span class="ident">next_block</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../../src/tokio_sync/mpsc/list.rs.html#256">next_block</a> {
-                <span class="prelude-val">Some</span>(<span class="ident">next_block</span>) <span class="op">=</span><span class="op">&gt;</span> <a class="ident" href="../../../src/tokio_sync/mpsc/list.rs.html#267">next_block</a>,
-                <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="prelude-val">Some</span>(<span class="ident">next_block</span>) =&gt; <a class="ident" href="../../../src/tokio_sync/mpsc/list.rs.html#267">next_block</a>,
+                <span class="prelude-val">None</span> =&gt; {
                     <span class="kw">return</span> <span class="bool-val">false</span>;
                 }
             };
@@ -637,8 +637,8 @@
                 <span class="kw">let</span> <span class="ident">observed_tail_position</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio_sync/mpsc/list.rs.html#286">block</a>.<span class="ident">as_ref</span>().<a class="ident" href="../../../src/tokio_sync/mpsc/block.rs.html#224">observed_tail_position</a>();
 
                 <span class="kw">let</span> <span class="ident">required_index</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../../src/tokio_sync/mpsc/list.rs.html#288">observed_tail_position</a> {
-                    <span class="prelude-val">Some</span>(<span class="ident">i</span>) <span class="op">=</span><span class="op">&gt;</span> <a class="ident" href="../../../src/tokio_sync/mpsc/list.rs.html#291">i</a>,
-                    <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span>,
+                    <span class="prelude-val">Some</span>(<span class="ident">i</span>) =&gt; <a class="ident" href="../../../src/tokio_sync/mpsc/list.rs.html#291">i</a>,
+                    <span class="prelude-val">None</span> =&gt; <span class="kw">return</span>,
                 };
 
                 <span class="kw">if</span> <a class="ident" href="../../../src/tokio_sync/mpsc/list.rs.html#290">required_index</a> <span class="op">&gt;</span> <a class="self" href="../../../src/tokio_sync/mpsc/list.rs.html#279">self</a>.<span class="ident">index</span> {
@@ -688,7 +688,7 @@
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <span class="ident">Rx</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">fmt</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">fmt</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
         <a class="ident" href="../../../src/tokio_sync/mpsc/list.rs.html#342">fmt</a>.<span class="ident">debug_struct</span>(<span class="string">&quot;Rx&quot;</span>)
             .<span class="ident">field</span>(<span class="string">&quot;head&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/tokio_sync/mpsc/list.rs.html#342">self</a>.<span class="ident">head</span>)
             .<span class="ident">field</span>(<span class="string">&quot;index&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/tokio_sync/mpsc/list.rs.html#342">self</a>.<span class="ident">index</span>)

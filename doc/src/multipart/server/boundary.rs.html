@@ -639,7 +639,7 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> <span class="ident">BoundaryReader</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> <span class="kw">where</span> <span class="ident">R</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a> {
     <span class="doccomment">/// Internal API</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_reader</span><span class="op">&lt;</span><span class="ident">B</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">reader</span>: <span class="ident">R</span>, <span class="ident">boundary</span>: <span class="ident">B</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">BoundaryReader</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_reader</span><span class="op">&lt;</span><span class="ident">B</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">reader</span>: <span class="ident">R</span>, <span class="ident">boundary</span>: <span class="ident">B</span>) -&gt; <span class="ident">BoundaryReader</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">boundary</span> <span class="op">=</span> <a class="ident" href="../../../src/multipart/server/boundary.rs.html#44">boundary</a>.<span class="ident">into</span>();
         <span class="ident">safemem::prepend</span>(<span class="string">b&quot;--&quot;</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../../src/multipart/server/boundary.rs.html#45">boundary</a>);
         <span class="kw">let</span> <span class="ident">source</span> <span class="op">=</span> <span class="ident">BufReader::new</span>(<a class="ident" href="../../../src/multipart/server/boundary.rs.html#44">reader</a>).<span class="ident">set_policy</span>(<span class="ident">MinBuffered</span>(<a class="ident" href="../../../src/multipart/server/boundary.rs.html#24">MIN_BUF_SIZE</a>));
@@ -652,7 +652,7 @@
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">read_to_boundary</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io::Result</span><span class="op">&lt;</span><span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]<span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">read_to_boundary</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]<span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">buf</span> <span class="op">=</span> <a class="self" href="../../../src/multipart/server/boundary.rs.html#57">self</a>.<span class="ident">source</span>.<span class="ident">fill_buf</span>()<span class="question-mark">?</span>;
 
         <span class="macro">trace!</span>(<span class="string">&quot;Buf: {:?}&quot;</span>, <span class="ident">String::from_utf8_lossy</span>(<a class="ident" href="../../../src/multipart/server/boundary.rs.html#58">buf</a>));
@@ -660,20 +660,20 @@
         <span class="macro">debug!</span>(<span class="string">&quot;Before search Buf len: {} Search idx: {} State: {:?}&quot;</span>,
                <a class="ident" href="../../../src/multipart/server/boundary.rs.html#58">buf</a>.<span class="ident">len</span>(), <a class="self" href="../../../src/multipart/server/boundary.rs.html#57">self</a>.<span class="ident">search_idx</span>, <a class="self" href="../../../src/multipart/server/boundary.rs.html#57">self</a>.<span class="ident">state</span>);
 
-        <span class="kw">if</span> <a class="self" href="../../../src/multipart/server/boundary.rs.html#57">self</a>.<span class="ident">state</span> <span class="op">=</span><span class="op">=</span> <a class="ident" href="../../../src/multipart/server/boundary.rs.html#29">BoundaryRead</a> <span class="op">|</span><span class="op">|</span> <a class="self" href="../../../src/multipart/server/boundary.rs.html#57">self</a>.<span class="ident">state</span> <span class="op">=</span><span class="op">=</span> <a class="ident" href="../../../src/multipart/server/boundary.rs.html#30">AtEnd</a> {
+        <span class="kw">if</span> <a class="self" href="../../../src/multipart/server/boundary.rs.html#57">self</a>.<span class="ident">state</span> <span class="op">==</span> <a class="ident" href="../../../src/multipart/server/boundary.rs.html#29">BoundaryRead</a> <span class="op">|</span><span class="op">|</span> <a class="self" href="../../../src/multipart/server/boundary.rs.html#57">self</a>.<span class="ident">state</span> <span class="op">==</span> <a class="ident" href="../../../src/multipart/server/boundary.rs.html#30">AtEnd</a> {
             <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/multipart/server/boundary.rs.html#58">buf</a>[..<a class="self" href="../../../src/multipart/server/boundary.rs.html#57">self</a>.<span class="ident">search_idx</span>])
         }
 
-        <span class="kw">if</span> <a class="self" href="../../../src/multipart/server/boundary.rs.html#57">self</a>.<span class="ident">state</span> <span class="op">=</span><span class="op">=</span> <a class="ident" href="../../../src/multipart/server/boundary.rs.html#28">Searching</a> <span class="op">&amp;&amp;</span> <a class="self" href="../../../src/multipart/server/boundary.rs.html#57">self</a>.<span class="ident">search_idx</span> <span class="op">&lt;</span> <a class="ident" href="../../../src/multipart/server/boundary.rs.html#58">buf</a>.<span class="ident">len</span>() {
+        <span class="kw">if</span> <a class="self" href="../../../src/multipart/server/boundary.rs.html#57">self</a>.<span class="ident">state</span> <span class="op">==</span> <a class="ident" href="../../../src/multipart/server/boundary.rs.html#28">Searching</a> <span class="op">&amp;&amp;</span> <a class="self" href="../../../src/multipart/server/boundary.rs.html#57">self</a>.<span class="ident">search_idx</span> <span class="op">&lt;</span> <a class="ident" href="../../../src/multipart/server/boundary.rs.html#58">buf</a>.<span class="ident">len</span>() {
             <span class="kw">let</span> <span class="ident">lookahead</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="ident" href="../../../src/multipart/server/boundary.rs.html#58">buf</a>[<a class="self" href="../../../src/multipart/server/boundary.rs.html#57">self</a>.<span class="ident">search_idx</span>..];
 
             <span class="comment">// Look for the boundary, or if it isn&#39;t found, stop near the end.</span>
             <span class="kw">match</span> <a class="ident" href="../../../src/multipart/server/boundary.rs.html#200">find_boundary</a>(<a class="ident" href="../../../src/multipart/server/boundary.rs.html#70">lookahead</a>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/multipart/server/boundary.rs.html#57">self</a>.<span class="ident">boundary</span>) {
-                <span class="prelude-val">Ok</span>(<span class="ident">found_idx</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="prelude-val">Ok</span>(<span class="ident">found_idx</span>) =&gt; {
                     <a class="self" href="../../../src/multipart/server/boundary.rs.html#57">self</a>.<span class="ident">search_idx</span> <span class="op">+</span><span class="op">=</span> <a class="ident" href="../../../src/multipart/server/boundary.rs.html#74">found_idx</a>;
                     <a class="self" href="../../../src/multipart/server/boundary.rs.html#57">self</a>.<span class="ident">state</span> <span class="op">=</span> <a class="ident" href="../../../src/multipart/server/boundary.rs.html#29">BoundaryRead</a>;
                 },
-                <span class="prelude-val">Err</span>(<span class="ident">yield_len</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="prelude-val">Err</span>(<span class="ident">yield_len</span>) =&gt; {
                     <a class="self" href="../../../src/multipart/server/boundary.rs.html#57">self</a>.<span class="ident">search_idx</span> <span class="op">+</span><span class="op">=</span> <a class="ident" href="../../../src/multipart/server/boundary.rs.html#78">yield_len</a>;
                 }
             }
@@ -689,7 +689,7 @@
             <span class="macro">trace!</span>(<span class="string">&quot;Two bytes before: {:?} ({:?}) (\&quot;\\r\\n\&quot;: {:?})&quot;</span>,
                    <span class="ident">String::from_utf8_lossy</span>(<a class="ident" href="../../../src/multipart/server/boundary.rs.html#89">two_bytes_before</a>), <a class="ident" href="../../../src/multipart/server/boundary.rs.html#89">two_bytes_before</a>, <span class="string">b&quot;\r\n&quot;</span>);
 
-            <span class="kw">if</span> <a class="ident" href="../../../src/multipart/server/boundary.rs.html#89">two_bytes_before</a> <span class="op">=</span><span class="op">=</span> <span class="kw-2">*</span><span class="string">b&quot;\r\n&quot;</span> {
+            <span class="kw">if</span> <a class="ident" href="../../../src/multipart/server/boundary.rs.html#89">two_bytes_before</a> <span class="op">==</span> <span class="kw-2">*</span><span class="string">b&quot;\r\n&quot;</span> {
                 <span class="macro">debug!</span>(<span class="string">&quot;Subtract two!&quot;</span>);
                 <a class="self" href="../../../src/multipart/server/boundary.rs.html#57">self</a>.<span class="ident">search_idx</span> <span class="op">-</span><span class="op">=</span> <span class="number">2</span>;
             }
@@ -709,17 +709,17 @@
         <a class="self" href="../../../src/multipart/server/boundary.rs.html#107">self</a>.<span class="ident">source</span>.<span class="ident">policy_mut</span>().<span class="number">0</span> <span class="op">=</span> <a class="ident" href="../../../src/multipart/server/boundary.rs.html#109">min_buf_size</a>;
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">consume_boundary</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a><span class="op">&gt;</span> {
-        <span class="kw">if</span> <a class="self" href="../../../src/multipart/server/boundary.rs.html#114">self</a>.<span class="ident">state</span> <span class="op">=</span><span class="op">=</span> <a class="ident" href="../../../src/multipart/server/boundary.rs.html#30">AtEnd</a> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">consume_boundary</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a><span class="op">&gt;</span> {
+        <span class="kw">if</span> <a class="self" href="../../../src/multipart/server/boundary.rs.html#114">self</a>.<span class="ident">state</span> <span class="op">==</span> <a class="ident" href="../../../src/multipart/server/boundary.rs.html#30">AtEnd</a> {
             <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="bool-val">false</span>);
         }
 
-        <span class="kw">while</span> <a class="self" href="../../../src/multipart/server/boundary.rs.html#114">self</a>.<span class="ident">state</span> <span class="op">=</span><span class="op">=</span> <a class="ident" href="../../../src/multipart/server/boundary.rs.html#28">Searching</a> {
+        <span class="kw">while</span> <a class="self" href="../../../src/multipart/server/boundary.rs.html#114">self</a>.<span class="ident">state</span> <span class="op">==</span> <a class="ident" href="../../../src/multipart/server/boundary.rs.html#28">Searching</a> {
             <span class="macro">debug!</span>(<span class="string">&quot;Boundary not found yet&quot;</span>);
 
             <span class="kw">let</span> <span class="ident">buf_len</span> <span class="op">=</span> <a class="self" href="../../../src/multipart/server/boundary.rs.html#114">self</a>.<a class="ident" href="../../../src/multipart/server/boundary.rs.html#57">read_to_boundary</a>()<span class="question-mark">?</span>.<span class="ident">len</span>();
 
-            <span class="kw">if</span> <a class="ident" href="../../../src/multipart/server/boundary.rs.html#122">buf_len</a> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> <span class="op">&amp;&amp;</span> <a class="self" href="../../../src/multipart/server/boundary.rs.html#114">self</a>.<span class="ident">state</span> <span class="op">=</span><span class="op">=</span> <a class="ident" href="../../../src/multipart/server/boundary.rs.html#28">Searching</a> {
+            <span class="kw">if</span> <a class="ident" href="../../../src/multipart/server/boundary.rs.html#122">buf_len</a> <span class="op">==</span> <span class="number">0</span> <span class="op">&amp;&amp;</span> <a class="self" href="../../../src/multipart/server/boundary.rs.html#114">self</a>.<span class="ident">state</span> <span class="op">==</span> <a class="ident" href="../../../src/multipart/server/boundary.rs.html#28">Searching</a> {
                 <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">io::Error::new</span>(<span class="ident">io::ErrorKind::UnexpectedEof</span>,
                                           <span class="string">&quot;unexpected end of request body&quot;</span>));
             }
@@ -763,9 +763,9 @@
             <span class="kw">let</span> <span class="ident">last_two</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="ident" href="../../../src/multipart/server/boundary.rs.html#135">buf</a>[<a class="ident" href="../../../src/multipart/server/boundary.rs.html#138">consume_amt</a> <span class="op">-</span> <span class="number">2</span> .. <a class="ident" href="../../../src/multipart/server/boundary.rs.html#138">consume_amt</a>];
 
             <span class="kw">match</span> <a class="ident" href="../../../src/multipart/server/boundary.rs.html#165">last_two</a> {
-                <span class="string">b&quot;\r\n&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <a class="self" href="../../../src/multipart/server/boundary.rs.html#114">self</a>.<span class="ident">state</span> <span class="op">=</span> <a class="ident" href="../../../src/multipart/server/boundary.rs.html#28">Searching</a>,
-                <span class="string">b&quot;--&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <a class="self" href="../../../src/multipart/server/boundary.rs.html#114">self</a>.<span class="ident">state</span> <span class="op">=</span> <a class="ident" href="../../../src/multipart/server/boundary.rs.html#30">AtEnd</a>,
-                <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">io::Error::new</span>(
+                <span class="string">b&quot;\r\n&quot;</span> =&gt; <a class="self" href="../../../src/multipart/server/boundary.rs.html#114">self</a>.<span class="ident">state</span> <span class="op">=</span> <a class="ident" href="../../../src/multipart/server/boundary.rs.html#28">Searching</a>,
+                <span class="string">b&quot;--&quot;</span> =&gt; <a class="self" href="../../../src/multipart/server/boundary.rs.html#114">self</a>.<span class="ident">state</span> <span class="op">=</span> <a class="ident" href="../../../src/multipart/server/boundary.rs.html#30">AtEnd</a>,
+                <span class="kw">_</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">io::Error::new</span>(
                     <span class="ident">io::ErrorKind::InvalidData</span>,
                     <span class="macro">format!</span>(<span class="string">&quot;unexpected bytes following multipart boundary: {:X} {:X}&quot;</span>,
                             <a class="ident" href="../../../src/multipart/server/boundary.rs.html#165">last_two</a>[<span class="number">0</span>], <a class="ident" href="../../../src/multipart/server/boundary.rs.html#165">last_two</a>[<span class="number">1</span>])
@@ -795,7 +795,7 @@
 }
 
 <span class="doccomment">/// Find the boundary occurrence or the highest length to safely yield</span>
-<span class="kw">fn</span> <span class="ident">find_boundary</span>(<span class="ident">buf</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], <span class="ident">boundary</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">find_boundary</span>(<span class="ident">buf</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], <span class="ident">boundary</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span> {
     <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">idx</span>) <span class="op">=</span> <span class="ident">twoway::find_bytes</span>(<a class="ident" href="../../../src/multipart/server/boundary.rs.html#200">buf</a>, <a class="ident" href="../../../src/multipart/server/boundary.rs.html#200">boundary</a>) {
         <span class="kw">return</span> <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/multipart/server/boundary.rs.html#201">idx</a>);
     }
@@ -814,7 +814,7 @@
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;bench&quot;</span>)]</span>
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">BoundaryReader</span><span class="op">&lt;</span><span class="ident">io::Cursor</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<span class="ident">u8</span>]<span class="op">&gt;</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">new_with_bytes</span>(<span class="ident">bytes</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<span class="ident">u8</span>], <span class="ident">boundary</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">new_with_bytes</span>(<span class="ident">bytes</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<span class="ident">u8</span>], <span class="ident">boundary</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="self">Self</span> {
         <span class="ident"><span class="self">Self</span>::from_reader</span>(<span class="ident">io::Cursor::new</span>(<span class="ident">bytes</span>), <span class="ident">boundary</span>)
     }
 
@@ -827,13 +827,13 @@
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> <span class="ident">Borrow</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">BoundaryReader</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">borrow</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">R</span> {
+    <span class="kw">fn</span> <span class="ident">borrow</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">R</span> {
         <a class="self" href="../../../src/multipart/server/boundary.rs.html#232">self</a>.<span class="ident">source</span>.<span class="ident">get_ref</span>()
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a> <span class="kw">for</span> <span class="ident">BoundaryReader</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> <span class="kw">where</span> <span class="ident">R</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a> {
-    <span class="kw">fn</span> <span class="ident">read</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">out</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">read</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">out</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">read</span> <span class="op">=</span> {
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> <a class="self" href="../../../src/multipart/server/boundary.rs.html#238">self</a>.<a class="ident" href="../../../src/multipart/server/boundary.rs.html#57">read_to_boundary</a>()<span class="question-mark">?</span>;
             <span class="comment">// This shouldn&#39;t ever be an error so unwrapping is fine.</span>
@@ -846,7 +846,7 @@
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.BufRead.html">BufRead</a> <span class="kw">for</span> <span class="ident">BoundaryReader</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> <span class="kw">where</span> <span class="ident">R</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a> {
-    <span class="kw">fn</span> <span class="ident">fill_buf</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io::Result</span><span class="op">&lt;</span><span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]<span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">fill_buf</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]<span class="op">&gt;</span> {
         <a class="self" href="../../../src/multipart/server/boundary.rs.html#251">self</a>.<a class="ident" href="../../../src/multipart/server/boundary.rs.html#57">read_to_boundary</a>()
     }
 
@@ -894,7 +894,7 @@
     }
 
     <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">SplitReader</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-        <span class="kw">fn</span> <span class="ident">split</span>(<span class="ident">data</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<span class="ident">u8</span>], <span class="ident">at</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">SplitReader</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
+        <span class="kw">fn</span> <span class="ident">split</span>(<span class="ident">data</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<span class="ident">u8</span>], <span class="ident">at</span>: <span class="ident">usize</span>) -&gt; <span class="ident">SplitReader</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
             <span class="kw">let</span> (<span class="ident">left</span>, <span class="ident">right</span>) <span class="op">=</span> <span class="ident">data</span>.<span class="ident">split_at</span>(<span class="ident">at</span>);
 
             <span class="ident">SplitReader</span> { 
@@ -905,14 +905,14 @@
     }
 
     <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">Read</span> <span class="kw">for</span> <span class="ident">SplitReader</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-        <span class="kw">fn</span> <span class="ident">read</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">dst</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io::Result</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
-            <span class="kw">fn</span> <span class="ident">copy_bytes_partial</span>(<span class="ident">src</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">dst</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
+        <span class="kw">fn</span> <span class="ident">read</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">dst</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>]) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
+            <span class="kw">fn</span> <span class="ident">copy_bytes_partial</span>(<span class="ident">src</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">dst</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>]) -&gt; <span class="ident">usize</span> {
                 <span class="ident">src</span>.<span class="ident">read</span>(<span class="ident">dst</span>).<span class="ident">unwrap</span>()
             }
 
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">copy_amt</span> <span class="op">=</span> <span class="ident">copy_bytes_partial</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">left</span>, <span class="ident">dst</span>);
 
-            <span class="kw">if</span> <span class="ident">copy_amt</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
+            <span class="kw">if</span> <span class="ident">copy_amt</span> <span class="op">==</span> <span class="number">0</span> {
                 <span class="ident">copy_amt</span> <span class="op">=</span> <span class="ident">copy_bytes_partial</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">right</span>, <span class="ident">dst</span>)
             };
 

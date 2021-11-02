@@ -15,7 +15,7 @@ allocated memory.</p>
 <p>Unlike <a href="trait.GlobalAlloc.html" title="GlobalAlloc"><code>GlobalAlloc</code></a>, zero-sized allocations are allowed in <code>Allocator</code>. If an underlying
 allocator does not support this (like jemalloc) or return a null pointer (such as
 <code>libc::malloc</code>), this must be caught by the implementation.</p>
-<h3 id="currently-allocated-memory" class="section-header"><a href="#currently-allocated-memory">Currently allocated memory</a></h3>
+<h4 id="currently-allocated-memory" class="section-header"><a href="#currently-allocated-memory">Currently allocated memory</a></h4>
 <p>Some of the methods require that a memory block be <em>currently allocated</em> via an allocator. This
 means that:</p>
 <ul>
@@ -30,7 +30,7 @@ directly by being passed to <a href="trait.Allocator.html#tymethod.deallocate"><
 remains valid.</p>
 </li>
 </ul>
-<h3 id="memory-fitting" class="section-header"><a href="#memory-fitting">Memory fitting</a></h3>
+<h4 id="memory-fitting" class="section-header"><a href="#memory-fitting">Memory fitting</a></h4>
 <p>Some of the methods require that a layout <em>fit</em> a memory block. What it means for a layout to
 “fit” a memory block means (or equivalently, for a memory block to “fit” a layout) is that the
 following conditions must hold:</p>
@@ -46,7 +46,7 @@ following conditions must hold:</p>
 </ul>
 </li>
 </ul>
-<h1 id="safety" class="section-header"><a href="#safety">Safety</a></h1>
+<h2 id="safety" class="section-header"><a href="#safety">Safety</a></h2>
 <ul>
 <li>
 <p>Memory blocks returned from an allocator must point to valid memory and retain their validity
@@ -65,7 +65,7 @@ method of the allocator.</p>
 <p>On success, returns a <a href="https://doc.rust-lang.org/nightly/core/ptr/non_null/struct.NonNull.html" title="NonNull"><code>NonNull&lt;[u8]&gt;</code></a> meeting the size and alignment guarantees of <code>layout</code>.</p>
 <p>The returned block may have a larger size than specified by <code>layout.size()</code>, and may or may
 not have its contents initialized.</p>
-<h1 id="errors" class="section-header"><a href="#errors">Errors</a></h1>
+<h5 id="errors" class="section-header"><a href="#errors">Errors</a></h5>
 <p>Returning <code>Err</code> indicates that either memory is exhausted or <code>layout</code> does not meet
 allocator’s size or alignment constraints.</p>
 <p>Implementations are encouraged to return <code>Err</code> on memory exhaustion rather than panicking or
@@ -74,13 +74,13 @@ this trait atop an underlying native allocation library that aborts on memory ex
 <p>Clients wishing to abort computation in response to an allocation error are encouraged to
 call the <a href="../../alloc/alloc/fn.handle_alloc_error.html"><code>handle_alloc_error</code></a> function, rather than directly invoking <code>panic!</code> or similar.</p>
 </div></details><details class="rustdoc-toggle" open><summary><div id="tymethod.deallocate" class="method has-srclink"><div class="rightside"><a class="srclink" href="https://doc.rust-lang.org/nightly/src/core/alloc/mod.rs.html#154" title="goto source code">[src]</a></div><h4 class="code-header">unsafe fn <a href="#tymethod.deallocate" class="fnname">deallocate</a>(&amp;self, ptr: <a class="struct" href="https://doc.rust-lang.org/nightly/core/ptr/non_null/struct.NonNull.html" title="struct core::ptr::non_null::NonNull">NonNull</a>&lt;<a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;, layout: <a class="struct" href="struct.Layout.html" title="struct nom::lib::std::alloc::Layout">Layout</a>)</h4></div></summary><div class="item-info"><div class="stab unstable"><span class="emoji">🔬</span> This is a nightly-only experimental API. (<code>allocator_api</code>)</div></div><div class="docblock"><p>Deallocates the memory referenced by <code>ptr</code>.</p>
-<h1 id="safety-1" class="section-header"><a href="#safety-1">Safety</a></h1>
+<h5 id="safety-1" class="section-header"><a href="#safety-1">Safety</a></h5>
 <ul>
 <li><code>ptr</code> must denote a block of memory <a href="#currently-allocated-memory"><em>currently allocated</em></a> via this allocator, and</li>
 <li><code>layout</code> must <a href="#memory-fitting"><em>fit</em></a> that block of memory.</li>
 </ul>
 </div></details></div><h2 id="provided-methods" class="small-section-header">Provided methods<a href="#provided-methods" class="anchor"></a></h2><div class="methods"><details class="rustdoc-toggle" open><summary><div id="method.allocate_zeroed" class="method has-srclink"><div class="rightside"><a class="srclink" href="https://doc.rust-lang.org/nightly/src/core/alloc/mod.rs.html#138" title="goto source code">[src]</a></div><h4 class="code-header">fn <a href="#method.allocate_zeroed" class="fnname">allocate_zeroed</a>(&amp;self, layout: <a class="struct" href="struct.Layout.html" title="struct nom::lib::std::alloc::Layout">Layout</a>) -&gt; <a class="enum" href="../result/enum.Result.html" title="enum nom::lib::std::result::Result">Result</a>&lt;<a class="struct" href="https://doc.rust-lang.org/nightly/core/ptr/non_null/struct.NonNull.html" title="struct core::ptr::non_null::NonNull">NonNull</a>&lt;<a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.slice.html">[</a><a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.slice.html">]</a>&gt;, <a class="struct" href="struct.AllocError.html" title="struct nom::lib::std::alloc::AllocError">AllocError</a>&gt;</h4></div></summary><div class="item-info"><div class="stab unstable"><span class="emoji">🔬</span> This is a nightly-only experimental API. (<code>allocator_api</code>)</div></div><div class="docblock"><p>Behaves like <code>allocate</code>, but also ensures that the returned memory is zero-initialized.</p>
-<h1 id="errors-1" class="section-header"><a href="#errors-1">Errors</a></h1>
+<h5 id="errors-1" class="section-header"><a href="#errors-1">Errors</a></h5>
 <p>Returning <code>Err</code> indicates that either memory is exhausted or <code>layout</code> does not meet
 allocator’s size or alignment constraints.</p>
 <p>Implementations are encouraged to return <code>Err</code> on memory exhaustion rather than panicking or
@@ -98,13 +98,13 @@ considered unusable unless it was transferred back to the caller again via the r
 of this method.</p>
 <p>If this method returns <code>Err</code>, then ownership of the memory block has not been transferred to
 this allocator, and the contents of the memory block are unaltered.</p>
-<h1 id="safety-2" class="section-header"><a href="#safety-2">Safety</a></h1>
+<h5 id="safety-2" class="section-header"><a href="#safety-2">Safety</a></h5>
 <ul>
 <li><code>ptr</code> must denote a block of memory <a href="#currently-allocated-memory"><em>currently allocated</em></a> via this allocator.</li>
 <li><code>old_layout</code> must <a href="#memory-fitting"><em>fit</em></a> that block of memory (The <code>new_layout</code> argument need not fit it.).</li>
 <li><code>new_layout.size()</code> must be greater than or equal to <code>old_layout.size()</code>.</li>
 </ul>
-<h1 id="errors-2" class="section-header"><a href="#errors-2">Errors</a></h1>
+<h5 id="errors-2" class="section-header"><a href="#errors-2">Errors</a></h5>
 <p>Returns <code>Err</code> if the new layout does not meet the allocator’s size and alignment
 constraints of the allocator, or if growing otherwise fails.</p>
 <p>Implementations are encouraged to return <code>Err</code> on memory exhaustion rather than panicking or
@@ -125,13 +125,13 @@ requested when it was allocated.</li>
 <li>Bytes <code>old_size..new_size</code> are zeroed. <code>new_size</code> refers to the size of the memory
 block returned by the <code>grow_zeroed</code> call.</li>
 </ul>
-<h1 id="safety-3" class="section-header"><a href="#safety-3">Safety</a></h1>
+<h5 id="safety-3" class="section-header"><a href="#safety-3">Safety</a></h5>
 <ul>
 <li><code>ptr</code> must denote a block of memory <a href="#currently-allocated-memory"><em>currently allocated</em></a> via this allocator.</li>
 <li><code>old_layout</code> must <a href="#memory-fitting"><em>fit</em></a> that block of memory (The <code>new_layout</code> argument need not fit it.).</li>
 <li><code>new_layout.size()</code> must be greater than or equal to <code>old_layout.size()</code>.</li>
 </ul>
-<h1 id="errors-3" class="section-header"><a href="#errors-3">Errors</a></h1>
+<h5 id="errors-3" class="section-header"><a href="#errors-3">Errors</a></h5>
 <p>Returns <code>Err</code> if the new layout does not meet the allocator’s size and alignment
 constraints of the allocator, or if growing otherwise fails.</p>
 <p>Implementations are encouraged to return <code>Err</code> on memory exhaustion rather than panicking or
@@ -149,13 +149,13 @@ considered unusable unless it was transferred back to the caller again via the r
 of this method.</p>
 <p>If this method returns <code>Err</code>, then ownership of the memory block has not been transferred to
 this allocator, and the contents of the memory block are unaltered.</p>
-<h1 id="safety-4" class="section-header"><a href="#safety-4">Safety</a></h1>
+<h5 id="safety-4" class="section-header"><a href="#safety-4">Safety</a></h5>
 <ul>
 <li><code>ptr</code> must denote a block of memory <a href="#currently-allocated-memory"><em>currently allocated</em></a> via this allocator.</li>
 <li><code>old_layout</code> must <a href="#memory-fitting"><em>fit</em></a> that block of memory (The <code>new_layout</code> argument need not fit it.).</li>
 <li><code>new_layout.size()</code> must be smaller than or equal to <code>old_layout.size()</code>.</li>
 </ul>
-<h1 id="errors-4" class="section-header"><a href="#errors-4">Errors</a></h1>
+<h5 id="errors-4" class="section-header"><a href="#errors-4">Errors</a></h5>
 <p>Returns <code>Err</code> if the new layout does not meet the allocator’s size and alignment
 constraints of the allocator, or if shrinking otherwise fails.</p>
 <p>Implementations are encouraged to return <code>Err</code> on memory exhaustion rather than panicking or

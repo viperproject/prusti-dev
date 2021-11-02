@@ -1641,12 +1641,12 @@
 <span class="kw">const</span> <span class="ident">AVERAGE_HEADER_SIZE</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> <span class="op">=</span> <span class="number">30</span>; <span class="comment">// totally scientific</span>
 
 <span class="macro">macro_rules!</span> <span class="ident">header_name</span> {
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">bytes</span>:<span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> ({
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">bytes</span>:<span class="ident">expr</span>) =&gt; ({
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">debug_assertions</span>)]</span>
         {
             <span class="kw">match</span> <span class="ident">HeaderName::from_bytes</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">bytes</span>) {
-                <span class="prelude-val">Ok</span>(<span class="ident">name</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">name</span>,
-                <span class="prelude-val">Err</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic!</span>(<span class="string">&quot;illegal header name from httparse: {:?}&quot;</span>, <span class="ident">::bytes::Bytes::from</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">bytes</span>)),
+                <span class="prelude-val">Ok</span>(<span class="ident">name</span>) =&gt; <span class="ident">name</span>,
+                <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <span class="macro">panic!</span>(<span class="string">&quot;illegal header name from httparse: {:?}&quot;</span>, <span class="ident">::bytes::Bytes::from</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">bytes</span>)),
             }
         }
 
@@ -1659,13 +1659,13 @@
 }
 
 <span class="macro">macro_rules!</span> <span class="ident">header_value</span> {
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">bytes</span>:<span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> ({
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">bytes</span>:<span class="ident">expr</span>) =&gt; ({
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">debug_assertions</span>)]</span>
         {
             <span class="kw">let</span> <span class="ident">__hvb</span>: <span class="ident">::bytes::Bytes</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">bytes</span>;
             <span class="kw">match</span> <span class="ident">HeaderValue::from_shared</span>(<span class="ident">__hvb</span>.<span class="ident">clone</span>()) {
-                <span class="prelude-val">Ok</span>(<span class="ident">name</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">name</span>,
-                <span class="prelude-val">Err</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic!</span>(<span class="string">&quot;illegal header value from httparse: {:?}&quot;</span>, <span class="ident">__hvb</span>),
+                <span class="prelude-val">Ok</span>(<span class="ident">name</span>) =&gt; <span class="ident">name</span>,
+                <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <span class="macro">panic!</span>(<span class="string">&quot;illegal header value from httparse: {:?}&quot;</span>, <span class="ident">__hvb</span>),
             }
         }
 
@@ -1690,7 +1690,7 @@
     <span class="kw">type</span> <span class="ident">Outgoing</span> <span class="op">=</span> <a class="ident" href="../../../../hyper/struct.StatusCode.html">StatusCode</a>;
     <span class="kw">const</span> <span class="ident">LOG</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> <span class="op">=</span> <span class="string">&quot;{role=server}&quot;</span>;
 
-    <span class="kw">fn</span> <span class="ident">parse</span>(<span class="ident">buf</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../../../bytes/bytes/struct.BytesMut.html">BytesMut</a>, <span class="ident">ctx</span>: <a class="ident" href="../../../../src/hyper/proto/h1/mod.rs.html#65-68">ParseContext</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ParseResult</span><span class="op">&lt;</span><a class="ident" href="../../../../src/hyper/proto/mod.rs.html#25">RequestLine</a><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">parse</span>(<span class="ident">buf</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../../../bytes/bytes/struct.BytesMut.html">BytesMut</a>, <span class="ident">ctx</span>: <a class="ident" href="../../../../src/hyper/proto/h1/mod.rs.html#65-68">ParseContext</a>) -&gt; <span class="ident">ParseResult</span><span class="op">&lt;</span><a class="ident" href="../../../../src/hyper/proto/mod.rs.html#25">RequestLine</a><span class="op">&gt;</span> {
         <span class="kw">if</span> <a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#71">buf</a>.<span class="ident">is_empty</span>() {
             <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
         }
@@ -1713,14 +1713,14 @@
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">req</span> <span class="op">=</span> <span class="ident">httparse::Request::new</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#89">headers</a>);
             <span class="kw">let</span> <span class="ident">bytes</span> <span class="op">=</span> <a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#71">buf</a>.<span class="ident">as_ref</span>();
             <span class="kw">match</span> <a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#91">req</a>.<span class="ident">parse</span>(<a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#92">bytes</a>) {
-                <span class="prelude-val">Ok</span>(<span class="ident">httparse::Status::Complete</span>(<span class="ident">parsed_len</span>)) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="prelude-val">Ok</span>(<span class="ident">httparse::Status::Complete</span>(<span class="ident">parsed_len</span>)) =&gt; {
                     <span class="macro">trace!</span>(<span class="string">&quot;Request.parse Complete({})&quot;</span>, <a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#94">parsed_len</a>);
                     <a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#80">len</a> <span class="op">=</span> <a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#94">parsed_len</a>;
                     <a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#78">subject</a> <span class="op">=</span> <a class="ident" href="../../../../src/hyper/proto/mod.rs.html#25">RequestLine</a>(
                         <span class="ident">Method::from_bytes</span>(<a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#91">req</a>.<span class="ident">method</span>.<span class="ident">unwrap</span>().<span class="ident">as_bytes</span>())<span class="question-mark">?</span>,
                         <a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#91">req</a>.<span class="ident">path</span>.<span class="ident">unwrap</span>().<span class="ident">parse</span>()<span class="question-mark">?</span>
                     );
-                    <a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#79">version</a> <span class="op">=</span> <span class="kw">if</span> <a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#91">req</a>.<span class="ident">version</span>.<span class="ident">unwrap</span>() <span class="op">=</span><span class="op">=</span> <span class="number">1</span> {
+                    <a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#79">version</a> <span class="op">=</span> <span class="kw">if</span> <a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#91">req</a>.<span class="ident">version</span>.<span class="ident">unwrap</span>() <span class="op">==</span> <span class="number">1</span> {
                         <a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#76">keep_alive</a> <span class="op">=</span> <span class="bool-val">true</span>;
                         <a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#77">is_http_11</a> <span class="op">=</span> <span class="bool-val">true</span>;
                         <span class="ident">Version::HTTP_11</span>
@@ -1733,10 +1733,10 @@
                     <a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#943-947">record_header_indices</a>(<a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#92">bytes</a>, <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#91">req</a>.<span class="ident">headers</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#87">headers_indices</a>)<span class="question-mark">?</span>;
                     <a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#81">headers_len</a> <span class="op">=</span> <a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#91">req</a>.<span class="ident">headers</span>.<span class="ident">len</span>();
                 }
-                <span class="prelude-val">Ok</span>(<span class="ident">httparse::Status::Partial</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>),
-                <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="kw">match</span> <a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#115">err</a> {
+                <span class="prelude-val">Ok</span>(<span class="ident">httparse::Status::Partial</span>) =&gt; <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>),
+                <span class="prelude-val">Err</span>(<span class="ident">err</span>) =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="kw">match</span> <a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#115">err</a> {
                     <span class="comment">// if invalid Token, try to determine if for method or path</span>
-                    <span class="ident">httparse::Error::Token</span> <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="ident">httparse::Error::Token</span> =&gt; {
                         <span class="kw">if</span> <a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#91">req</a>.<span class="ident">method</span>.<span class="ident">is_none</span>() {
                             <a class="ident" href="../../../../src/hyper/error.rs.html#61">Parse::Method</a>
                         } <span class="kw">else</span> {
@@ -1744,7 +1744,7 @@
                             <a class="ident" href="../../../../src/hyper/error.rs.html#64">Parse::Uri</a>
                         }
                     },
-                    <span class="ident">other</span> <span class="op">=</span><span class="op">&gt;</span> <a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#125">other</a>.<span class="ident">into</span>(),
+                    <span class="ident">other</span> =&gt; <a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#125">other</a>.<span class="ident">into</span>(),
                 }),
             }
         };
@@ -1766,7 +1766,7 @@
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">con_len</span> <span class="op">=</span> <span class="prelude-val">None</span>;
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">is_te</span> <span class="op">=</span> <span class="bool-val">false</span>;
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">is_te_chunked</span> <span class="op">=</span> <span class="bool-val">false</span>;
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">wants_upgrade</span> <span class="op">=</span> <a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#78">subject</a>.<span class="number">0</span> <span class="op">=</span><span class="op">=</span> <span class="ident">Method::CONNECT</span>;
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">wants_upgrade</span> <span class="op">=</span> <a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#78">subject</a>.<span class="number">0</span> <span class="op">==</span> <span class="ident">Method::CONNECT</span>;
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">headers</span> <span class="op">=</span> <a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#71">ctx</a>.<span class="ident">cached_headers</span>
             .<span class="ident">take</span>()
@@ -1779,7 +1779,7 @@
             <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="macro">header_value!</span>(<a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#130">slice</a>.<span class="ident">slice</span>(<a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#155">header</a>.<span class="ident">value</span>.<span class="number">0</span>, <a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#155">header</a>.<span class="ident">value</span>.<span class="number">1</span>));
 
             <span class="kw">match</span> <a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#156">name</a> {
-                <a class="ident" href="../../../../hyper/header/constant.TRANSFER_ENCODING.html">header::TRANSFER_ENCODING</a> <span class="op">=</span><span class="op">&gt;</span> {
+                <a class="ident" href="../../../../hyper/header/constant.TRANSFER_ENCODING.html">header::TRANSFER_ENCODING</a> =&gt; {
                     <span class="comment">// https://tools.ietf.org/html/rfc7230#section-3.3.3</span>
                     <span class="comment">// If Transfer-Encoding header is present, and &#39;chunked&#39; is</span>
                     <span class="comment">// not the final encoding, and this is a Request, then it is</span>
@@ -1796,7 +1796,7 @@
                         <a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#146">is_te_chunked</a> <span class="op">=</span> <span class="bool-val">false</span>;
                     }
                 },
-                <a class="ident" href="../../../../hyper/header/constant.CONTENT_LENGTH.html">header::CONTENT_LENGTH</a> <span class="op">=</span><span class="op">&gt;</span> {
+                <a class="ident" href="../../../../hyper/header/constant.CONTENT_LENGTH.html">header::CONTENT_LENGTH</a> =&gt; {
                     <span class="kw">if</span> <a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#145">is_te</a> {
                         <span class="kw">continue</span>;
                     }
@@ -1818,7 +1818,7 @@
                     <a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#142">decoder</a> <span class="op">=</span> <span class="ident">DecodedLength::checked_new</span>(<a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#181">len</a>)<span class="question-mark">?</span>;
                     <a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#144">con_len</a> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#181">len</a>);
                 },
-                <a class="ident" href="../../../../hyper/header/constant.CONNECTION.html">header::CONNECTION</a> <span class="op">=</span><span class="op">&gt;</span> {
+                <a class="ident" href="../../../../hyper/header/constant.CONNECTION.html">header::CONNECTION</a> =&gt; {
                     <span class="comment">// keep_alive was previously set to default for Version</span>
                     <span class="kw">if</span> <a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#76">keep_alive</a> {
                         <span class="comment">// HTTP/1.1</span>
@@ -1829,15 +1829,15 @@
                         <a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#76">keep_alive</a> <span class="op">=</span> <a class="ident" href="../../../../src/hyper/headers.rs.html#6">headers::connection_keep_alive</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#157">value</a>);
                     }
                 },
-                <a class="ident" href="../../../../hyper/header/constant.EXPECT.html">header::EXPECT</a> <span class="op">=</span><span class="op">&gt;</span> {
-                    <a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#143">expect_continue</a> <span class="op">=</span> <a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#157">value</a>.<span class="ident">as_bytes</span>() <span class="op">=</span><span class="op">=</span> <span class="string">b&quot;100-continue&quot;</span>;
+                <a class="ident" href="../../../../hyper/header/constant.EXPECT.html">header::EXPECT</a> =&gt; {
+                    <a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#143">expect_continue</a> <span class="op">=</span> <a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#157">value</a>.<span class="ident">as_bytes</span>() <span class="op">==</span> <span class="string">b&quot;100-continue&quot;</span>;
                 },
-                <a class="ident" href="../../../../hyper/header/constant.UPGRADE.html">header::UPGRADE</a> <span class="op">=</span><span class="op">&gt;</span> {
+                <a class="ident" href="../../../../hyper/header/constant.UPGRADE.html">header::UPGRADE</a> =&gt; {
                     <span class="comment">// Upgrades are only allowed with HTTP/1.1</span>
                     <a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#147">wants_upgrade</a> <span class="op">=</span> <a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#77">is_http_11</a>;
                 },
 
-                <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> (),
+                <span class="kw">_</span> =&gt; (),
             }
 
             <a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#149">headers</a>.<span class="ident">append</span>(<a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#156">name</a>, <a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#157">value</a>);
@@ -1863,7 +1863,7 @@
         }))
     }
 
-    <span class="kw">fn</span> <span class="ident">encode</span>(<span class="kw-2">mut</span> <span class="ident">msg</span>: <span class="ident">Encode</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Outgoing</span><span class="op">&gt;</span>, <span class="kw-2">mut</span> <span class="ident">dst</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">::Result</span><span class="op">&lt;</span><a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#12-15">Encoder</a><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">encode</span>(<span class="kw-2">mut</span> <span class="ident">msg</span>: <span class="ident">Encode</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Outgoing</span><span class="op">&gt;</span>, <span class="kw-2">mut</span> <span class="ident">dst</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><span class="op">&gt;</span>) -&gt; <span class="ident">::Result</span><span class="op">&lt;</span><a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#12-15">Encoder</a><span class="op">&gt;</span> {
         <span class="macro">trace!</span>(
             <span class="string">&quot;Server::encode status={:?}, body={:?}, req_method={:?}&quot;</span>,
             <a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#244">msg</a>.<span class="ident">head</span>.<span class="ident">subject</span>,
@@ -1878,9 +1878,9 @@
         <span class="comment">// This is because Service only allows returning a single Response, and</span>
         <span class="comment">// so if you try to reply with a e.g. 100 Continue, you have no way of</span>
         <span class="comment">// replying with the latter status code response.</span>
-        <span class="kw">let</span> (<span class="ident">ret</span>, <span class="kw-2">mut</span> <span class="ident">is_last</span>) <span class="op">=</span> <span class="kw">if</span> <a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#244">msg</a>.<span class="ident">head</span>.<span class="ident">subject</span> <span class="op">=</span><span class="op">=</span> <span class="ident">StatusCode::SWITCHING_PROTOCOLS</span> {
+        <span class="kw">let</span> (<span class="ident">ret</span>, <span class="kw-2">mut</span> <span class="ident">is_last</span>) <span class="op">=</span> <span class="kw">if</span> <a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#244">msg</a>.<span class="ident">head</span>.<span class="ident">subject</span> <span class="op">==</span> <span class="ident">StatusCode::SWITCHING_PROTOCOLS</span> {
             (<span class="prelude-val">Ok</span>(()), <span class="bool-val">true</span>)
-        } <span class="kw">else</span> <span class="kw">if</span> <a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#244">msg</a>.<span class="ident">req_method</span> <span class="op">=</span><span class="op">=</span> <span class="kw-2">&amp;</span><span class="prelude-val">Some</span>(<span class="ident">Method::CONNECT</span>) <span class="op">&amp;&amp;</span> <a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#244">msg</a>.<span class="ident">head</span>.<span class="ident">subject</span>.<span class="ident">is_success</span>() {
+        } <span class="kw">else</span> <span class="kw">if</span> <a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#244">msg</a>.<span class="ident">req_method</span> <span class="op">==</span> <span class="kw-2">&amp;</span><span class="prelude-val">Some</span>(<span class="ident">Method::CONNECT</span>) <span class="op">&amp;&amp;</span> <a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#244">msg</a>.<span class="ident">head</span>.<span class="ident">subject</span>.<span class="ident">is_success</span>() {
             <span class="comment">// Sending content-length or transfer-encoding header on 2xx response</span>
             <span class="comment">// to CONNECT is forbidden in RFC 7231.</span>
             <a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#253">wrote_len</a> <span class="op">=</span> <span class="bool-val">true</span>;
@@ -1905,17 +1905,17 @@
 
         <span class="kw">let</span> <span class="ident">init_cap</span> <span class="op">=</span> <span class="number">30</span> <span class="op">+</span> <a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#244">msg</a>.<span class="ident">head</span>.<span class="ident">headers</span>.<span class="ident">len</span>() <span class="op">*</span> <a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#19">AVERAGE_HEADER_SIZE</a>;
         <a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#244">dst</a>.<span class="ident">reserve</span>(<a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#284">init_cap</a>);
-        <span class="kw">if</span> <a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#244">msg</a>.<span class="ident">head</span>.<span class="ident">version</span> <span class="op">=</span><span class="op">=</span> <span class="ident">Version::HTTP_11</span> <span class="op">&amp;&amp;</span> <a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#244">msg</a>.<span class="ident">head</span>.<span class="ident">subject</span> <span class="op">=</span><span class="op">=</span> <span class="ident">StatusCode::OK</span> {
+        <span class="kw">if</span> <a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#244">msg</a>.<span class="ident">head</span>.<span class="ident">version</span> <span class="op">==</span> <span class="ident">Version::HTTP_11</span> <span class="op">&amp;&amp;</span> <a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#244">msg</a>.<span class="ident">head</span>.<span class="ident">subject</span> <span class="op">==</span> <span class="ident">StatusCode::OK</span> {
             <a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#1060">extend</a>(<a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#244">dst</a>, <span class="string">b&quot;HTTP/1.1 200 OK\r\n&quot;</span>);
         } <span class="kw">else</span> {
             <span class="kw">match</span> <a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#244">msg</a>.<span class="ident">head</span>.<span class="ident">version</span> {
-                <span class="ident">Version::HTTP_10</span> <span class="op">=</span><span class="op">&gt;</span> <a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#1060">extend</a>(<a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#244">dst</a>, <span class="string">b&quot;HTTP/1.0 &quot;</span>),
-                <span class="ident">Version::HTTP_11</span> <span class="op">=</span><span class="op">&gt;</span> <a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#1060">extend</a>(<a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#244">dst</a>, <span class="string">b&quot;HTTP/1.1 &quot;</span>),
-                <span class="ident">Version::HTTP_2</span> <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">Version::HTTP_10</span> =&gt; <a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#1060">extend</a>(<a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#244">dst</a>, <span class="string">b&quot;HTTP/1.0 &quot;</span>),
+                <span class="ident">Version::HTTP_11</span> =&gt; <a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#1060">extend</a>(<a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#244">dst</a>, <span class="string">b&quot;HTTP/1.1 &quot;</span>),
+                <span class="ident">Version::HTTP_2</span> =&gt; {
                     <span class="macro">warn!</span>(<span class="string">&quot;response with HTTP2 version coerced to HTTP/1.1&quot;</span>);
                     <a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#1060">extend</a>(<a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#244">dst</a>, <span class="string">b&quot;HTTP/1.1 &quot;</span>);
                 },
-                <span class="ident">other</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic!</span>(<span class="string">&quot;unexpected response version: {:?}&quot;</span>, <a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#296">other</a>),
+                <span class="ident">other</span> =&gt; <span class="macro">panic!</span>(<span class="string">&quot;unexpected response version: {:?}&quot;</span>, <a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#296">other</a>),
             }
 
             <a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#1060">extend</a>(<a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#244">dst</a>, <a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#244">msg</a>.<span class="ident">head</span>.<span class="ident">subject</span>.<span class="ident">as_str</span>().<span class="ident">as_bytes</span>());
@@ -1929,14 +1929,14 @@
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">wrote_date</span> <span class="op">=</span> <span class="bool-val">false</span>;
         <span class="lifetime">&#39;headers</span>: <span class="kw">for</span> (<span class="ident">name</span>, <span class="kw-2">mut</span> <span class="ident">values</span>) <span class="kw">in</span> <a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#244">msg</a>.<span class="ident">head</span>.<span class="ident">headers</span>.<span class="ident">drain</span>() {
             <span class="kw">match</span> <a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#308">name</a> {
-                <a class="ident" href="../../../../hyper/header/constant.CONTENT_LENGTH.html">header::CONTENT_LENGTH</a> <span class="op">=</span><span class="op">&gt;</span> {
+                <a class="ident" href="../../../../hyper/header/constant.CONTENT_LENGTH.html">header::CONTENT_LENGTH</a> =&gt; {
                     <span class="kw">if</span> <a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#253">wrote_len</a> {
                         <span class="macro">warn!</span>(<span class="string">&quot;unexpected content-length found, canceling&quot;</span>);
                         <a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#280">rewind</a>(<a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#244">dst</a>);
                         <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">::Error::new_user_header</span>());
                     }
                     <span class="kw">match</span> <a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#244">msg</a>.<span class="ident">body</span> {
-                        <span class="prelude-val">Some</span>(<a class="ident" href="../../../../src/hyper/proto/mod.rs.html#33">BodyLength::Known</a>(<span class="ident">known_len</span>)) <span class="op">=</span><span class="op">&gt;</span> {
+                        <span class="prelude-val">Some</span>(<a class="ident" href="../../../../src/hyper/proto/mod.rs.html#33">BodyLength::Known</a>(<span class="ident">known_len</span>)) =&gt; {
                             <span class="comment">// The Payload claims to know a length, and</span>
                             <span class="comment">// the headers are already set. For performance</span>
                             <span class="comment">// reasons, we are just going to trust that</span>
@@ -1965,7 +1965,7 @@
                                 }
                                 <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="ident">len</span>, <span class="ident">value</span>)) <span class="op">=</span> <a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#329">folded</a> {
                                     <span class="macro">assert!</span>(
-                                        <a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#344">len</a> <span class="op">=</span><span class="op">=</span> <a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#317">known_len</a>,
+                                        <a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#344">len</a> <span class="op">==</span> <a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#317">known_len</a>,
                                         <span class="string">&quot;payload claims content-length of {}, custom content-length header claims {}&quot;</span>,
                                         <a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#317">known_len</a>,
                                         <a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#344">len</a>,
@@ -1981,7 +1981,7 @@
                                 }
                             }
                         },
-                        <span class="prelude-val">Some</span>(<a class="ident" href="../../../../src/hyper/proto/mod.rs.html#35">BodyLength::Unknown</a>) <span class="op">=</span><span class="op">&gt;</span> {
+                        <span class="prelude-val">Some</span>(<a class="ident" href="../../../../src/hyper/proto/mod.rs.html#35">BodyLength::Unknown</a>) =&gt; {
                             <span class="comment">// The Payload impl didn&#39;t know how long the</span>
                             <span class="comment">// body is, but a length header was included.</span>
                             <span class="comment">// We have to parse the value to return our</span>
@@ -2017,14 +2017,14 @@
                                 <span class="kw">continue</span> <span class="lifetime">&#39;headers</span>;
                             }
                         },
-                        <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> {
+                        <span class="prelude-val">None</span> =&gt; {
                             <span class="comment">// We have no body to actually send,</span>
                             <span class="comment">// but the headers claim a content-length.</span>
                             <span class="comment">// There&#39;s only 2 ways this makes sense:</span>
                             <span class="comment">//</span>
                             <span class="comment">// - The header says the length is `0`.</span>
                             <span class="comment">// - This is a response to a `HEAD` request.</span>
-                            <span class="kw">if</span> <a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#244">msg</a>.<span class="ident">req_method</span> <span class="op">=</span><span class="op">=</span> <span class="kw-2">&amp;</span><span class="prelude-val">Some</span>(<span class="ident">Method::HEAD</span>) {
+                            <span class="kw">if</span> <a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#244">msg</a>.<span class="ident">req_method</span> <span class="op">==</span> <span class="kw-2">&amp;</span><span class="prelude-val">Some</span>(<span class="ident">Method::HEAD</span>) {
                                 <span class="macro">debug_assert_eq!</span>(<a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#306">encoder</a>, <span class="ident">Encoder::length</span>(<span class="number">0</span>));
                             } <span class="kw">else</span> {
                                 <span class="kw">for</span> <a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#408">value</a> <span class="kw">in</span> <a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#308">values</a> {
@@ -2038,14 +2038,14 @@
                     }
                     <a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#253">wrote_len</a> <span class="op">=</span> <span class="bool-val">true</span>;
                 },
-                <a class="ident" href="../../../../hyper/header/constant.TRANSFER_ENCODING.html">header::TRANSFER_ENCODING</a> <span class="op">=</span><span class="op">&gt;</span> {
+                <a class="ident" href="../../../../hyper/header/constant.TRANSFER_ENCODING.html">header::TRANSFER_ENCODING</a> =&gt; {
                     <span class="kw">if</span> <a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#253">wrote_len</a> {
                         <span class="macro">warn!</span>(<span class="string">&quot;unexpected transfer-encoding found, canceling&quot;</span>);
                         <a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#280">rewind</a>(<a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#244">dst</a>);
                         <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">::Error::new_user_header</span>());
                     }
                     <span class="comment">// check that we actually can send a chunked body...</span>
-                    <span class="kw">if</span> <a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#244">msg</a>.<span class="ident">head</span>.<span class="ident">version</span> <span class="op">=</span><span class="op">=</span> <span class="ident">Version::HTTP_10</span> <span class="op">|</span><span class="op">|</span> <span class="op">!</span><span class="ident">Server::can_chunked</span>(<a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#244">msg</a>.<span class="ident">req_method</span>, <a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#244">msg</a>.<span class="ident">head</span>.<span class="ident">subject</span>) {
+                    <span class="kw">if</span> <a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#244">msg</a>.<span class="ident">head</span>.<span class="ident">version</span> <span class="op">==</span> <span class="ident">Version::HTTP_10</span> <span class="op">|</span><span class="op">|</span> <span class="op">!</span><span class="ident">Server::can_chunked</span>(<a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#244">msg</a>.<span class="ident">req_method</span>, <a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#244">msg</a>.<span class="ident">head</span>.<span class="ident">subject</span>) {
                         <span class="kw">continue</span>;
                     }
                     <a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#253">wrote_len</a> <span class="op">=</span> <span class="bool-val">true</span>;
@@ -2073,7 +2073,7 @@
                     }
                     <span class="kw">continue</span> <span class="lifetime">&#39;headers</span>;
                 },
-                <a class="ident" href="../../../../hyper/header/constant.CONNECTION.html">header::CONNECTION</a> <span class="op">=</span><span class="op">&gt;</span> {
+                <a class="ident" href="../../../../hyper/header/constant.CONNECTION.html">header::CONNECTION</a> =&gt; {
                     <span class="kw">if</span> <span class="op">!</span><a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#259">is_last</a> {
                         <span class="kw">for</span> <a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#456">value</a> <span class="kw">in</span> <a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#308">values</a> {
                             <a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#1060">extend</a>(<a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#244">dst</a>, <a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#308">name</a>.<span class="ident">as_str</span>().<span class="ident">as_bytes</span>());
@@ -2088,10 +2088,10 @@
                         <span class="kw">continue</span> <span class="lifetime">&#39;headers</span>;
                     }
                 },
-                <a class="ident" href="../../../../hyper/header/constant.DATE.html">header::DATE</a> <span class="op">=</span><span class="op">&gt;</span> {
+                <a class="ident" href="../../../../hyper/header/constant.DATE.html">header::DATE</a> =&gt; {
                     <a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#307">wrote_date</a> <span class="op">=</span> <span class="bool-val">true</span>;
                 },
-                <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> (),
+                <span class="kw">_</span> =&gt; (),
             }
             <span class="comment">//TODO: this should perhaps instead combine them into</span>
             <span class="comment">//single lines, as RFC7230 suggests is preferable.</span>
@@ -2105,8 +2105,8 @@
 
         <span class="kw">if</span> <span class="op">!</span><a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#253">wrote_len</a> {
             <a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#306">encoder</a> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#244">msg</a>.<span class="ident">body</span> {
-                <span class="prelude-val">Some</span>(<a class="ident" href="../../../../src/hyper/proto/mod.rs.html#35">BodyLength::Unknown</a>) <span class="op">=</span><span class="op">&gt;</span> {
-                    <span class="kw">if</span> <a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#244">msg</a>.<span class="ident">head</span>.<span class="ident">version</span> <span class="op">=</span><span class="op">=</span> <span class="ident">Version::HTTP_10</span> <span class="op">|</span><span class="op">|</span> <span class="op">!</span><span class="ident">Server::can_chunked</span>(<a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#244">msg</a>.<span class="ident">req_method</span>, <a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#244">msg</a>.<span class="ident">head</span>.<span class="ident">subject</span>) {
+                <span class="prelude-val">Some</span>(<a class="ident" href="../../../../src/hyper/proto/mod.rs.html#35">BodyLength::Unknown</a>) =&gt; {
+                    <span class="kw">if</span> <a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#244">msg</a>.<span class="ident">head</span>.<span class="ident">version</span> <span class="op">==</span> <span class="ident">Version::HTTP_10</span> <span class="op">|</span><span class="op">|</span> <span class="op">!</span><span class="ident">Server::can_chunked</span>(<a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#244">msg</a>.<span class="ident">req_method</span>, <a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#244">msg</a>.<span class="ident">head</span>.<span class="ident">subject</span>) {
                         <span class="ident">Encoder::close_delimited</span>()
                     } <span class="kw">else</span> {
                         <a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#1060">extend</a>(<a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#244">dst</a>, <span class="string">b&quot;transfer-encoding: chunked\r\n&quot;</span>);
@@ -2114,14 +2114,14 @@
                     }
                 },
                 <span class="prelude-val">None</span> <span class="op">|</span>
-                <span class="prelude-val">Some</span>(<a class="ident" href="../../../../src/hyper/proto/mod.rs.html#33">BodyLength::Known</a>(<span class="number">0</span>)) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="prelude-val">Some</span>(<a class="ident" href="../../../../src/hyper/proto/mod.rs.html#33">BodyLength::Known</a>(<span class="number">0</span>)) =&gt; {
                     <span class="kw">if</span> <a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#244">msg</a>.<span class="ident">head</span>.<span class="ident">subject</span> <span class="op">!</span><span class="op">=</span> <span class="ident">StatusCode::NOT_MODIFIED</span> {
                         <a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#1060">extend</a>(<a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#244">dst</a>, <span class="string">b&quot;content-length: 0\r\n&quot;</span>);
                     }
                     <span class="ident">Encoder::length</span>(<span class="number">0</span>)
                 },
-                <span class="prelude-val">Some</span>(<a class="ident" href="../../../../src/hyper/proto/mod.rs.html#33">BodyLength::Known</a>(<span class="ident">len</span>)) <span class="op">=</span><span class="op">&gt;</span> {
-                    <span class="kw">if</span> <a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#244">msg</a>.<span class="ident">head</span>.<span class="ident">subject</span> <span class="op">=</span><span class="op">=</span> <span class="ident">StatusCode::NOT_MODIFIED</span> {
+                <span class="prelude-val">Some</span>(<a class="ident" href="../../../../src/hyper/proto/mod.rs.html#33">BodyLength::Known</a>(<span class="ident">len</span>)) =&gt; {
+                    <span class="kw">if</span> <a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#244">msg</a>.<span class="ident">head</span>.<span class="ident">subject</span> <span class="op">==</span> <span class="ident">StatusCode::NOT_MODIFIED</span> {
                         <span class="ident">Encoder::length</span>(<span class="number">0</span>)
                     } <span class="kw">else</span> {
                         <a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#1060">extend</a>(<a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#244">dst</a>, <span class="string">b&quot;content-length: &quot;</span>);
@@ -2155,19 +2155,19 @@
         <a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#259">ret</a>.<span class="ident">map</span>(<span class="op">|</span>()<span class="op">|</span> <a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#306">encoder</a>.<a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#74">set_last</a>(<a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#259">is_last</a>))
     }
 
-    <span class="kw">fn</span> <span class="ident">on_error</span>(<span class="ident">err</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/hyper/error.rs.html#16-18">::Error</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">MessageHead</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Outgoing</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">on_error</span>(<span class="ident">err</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/hyper/error.rs.html#16-18">::Error</a>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">MessageHead</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Outgoing</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="kw">use</span> <a class="ident" href="../../../../src/hyper/error.rs.html#26-57">::error::Kind</a>;
         <span class="kw">let</span> <span class="ident">status</span> <span class="op">=</span> <span class="kw">match</span> <span class="kw-2">*</span><a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#536">err</a>.<a class="ident" href="../../../../src/hyper/error.rs.html#168">kind</a>() {
             <a class="ident" href="../../../../src/hyper/error.rs.html#27">Kind::Parse</a>(<a class="ident" href="../../../../src/hyper/error.rs.html#61">Parse::Method</a>) <span class="op">|</span>
             <a class="ident" href="../../../../src/hyper/error.rs.html#27">Kind::Parse</a>(<a class="ident" href="../../../../src/hyper/error.rs.html#65">Parse::Header</a>) <span class="op">|</span>
             <a class="ident" href="../../../../src/hyper/error.rs.html#27">Kind::Parse</a>(<a class="ident" href="../../../../src/hyper/error.rs.html#64">Parse::Uri</a>)    <span class="op">|</span>
-            <a class="ident" href="../../../../src/hyper/error.rs.html#27">Kind::Parse</a>(<a class="ident" href="../../../../src/hyper/error.rs.html#62">Parse::Version</a>) <span class="op">=</span><span class="op">&gt;</span> {
+            <a class="ident" href="../../../../src/hyper/error.rs.html#27">Kind::Parse</a>(<a class="ident" href="../../../../src/hyper/error.rs.html#62">Parse::Version</a>) =&gt; {
                 <span class="ident">StatusCode::BAD_REQUEST</span>
             },
-            <a class="ident" href="../../../../src/hyper/error.rs.html#27">Kind::Parse</a>(<a class="ident" href="../../../../src/hyper/error.rs.html#66">Parse::TooLarge</a>) <span class="op">=</span><span class="op">&gt;</span> {
+            <a class="ident" href="../../../../src/hyper/error.rs.html#27">Kind::Parse</a>(<a class="ident" href="../../../../src/hyper/error.rs.html#66">Parse::TooLarge</a>) =&gt; {
                 <span class="ident">StatusCode::REQUEST_HEADER_FIELDS_TOO_LARGE</span>
             },
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">None</span>,
+            <span class="kw">_</span> =&gt; <span class="kw">return</span> <span class="prelude-val">None</span>,
         };
 
         <span class="macro">debug!</span>(<span class="string">&quot;sending automatic response ({}) for parse error&quot;</span>, <a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#538">status</a>);
@@ -2176,7 +2176,7 @@
         <span class="prelude-val">Some</span>(<a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#552">msg</a>)
     }
 
-    <span class="kw">fn</span> <span class="ident">is_server</span>() <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    <span class="kw">fn</span> <span class="ident">is_server</span>() -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
         <span class="bool-val">true</span>
     }
 
@@ -2186,14 +2186,14 @@
 }
 
 <span class="kw">impl</span> <a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#64">Server</a> {
-    <span class="kw">fn</span> <span class="ident">can_have_body</span>(<span class="ident">method</span>: <span class="kw-2">&amp;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../../hyper/struct.Method.html">Method</a><span class="op">&gt;</span>, <span class="ident">status</span>: <a class="ident" href="../../../../hyper/struct.StatusCode.html">StatusCode</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    <span class="kw">fn</span> <span class="ident">can_have_body</span>(<span class="ident">method</span>: <span class="kw-2">&amp;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../../hyper/struct.Method.html">Method</a><span class="op">&gt;</span>, <span class="ident">status</span>: <a class="ident" href="../../../../hyper/struct.StatusCode.html">StatusCode</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
         <span class="ident">Server::can_chunked</span>(<a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#567">method</a>, <a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#567">status</a>)
     }
 
-    <span class="kw">fn</span> <span class="ident">can_chunked</span>(<span class="ident">method</span>: <span class="kw-2">&amp;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../../hyper/struct.Method.html">Method</a><span class="op">&gt;</span>, <span class="ident">status</span>: <a class="ident" href="../../../../hyper/struct.StatusCode.html">StatusCode</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">if</span> <a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#571">method</a> <span class="op">=</span><span class="op">=</span> <span class="kw-2">&amp;</span><span class="prelude-val">Some</span>(<span class="ident">Method::HEAD</span>) {
+    <span class="kw">fn</span> <span class="ident">can_chunked</span>(<span class="ident">method</span>: <span class="kw-2">&amp;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../../hyper/struct.Method.html">Method</a><span class="op">&gt;</span>, <span class="ident">status</span>: <a class="ident" href="../../../../hyper/struct.StatusCode.html">StatusCode</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <span class="kw">if</span> <a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#571">method</a> <span class="op">==</span> <span class="kw-2">&amp;</span><span class="prelude-val">Some</span>(<span class="ident">Method::HEAD</span>) {
             <span class="bool-val">false</span>
-        } <span class="kw">else</span> <span class="kw">if</span> <a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#571">method</a> <span class="op">=</span><span class="op">=</span> <span class="kw-2">&amp;</span><span class="prelude-val">Some</span>(<span class="ident">Method::CONNECT</span>) <span class="op">&amp;&amp;</span> <a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#571">status</a>.<span class="ident">is_success</span>() {
+        } <span class="kw">else</span> <span class="kw">if</span> <a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#571">method</a> <span class="op">==</span> <span class="kw-2">&amp;</span><span class="prelude-val">Some</span>(<span class="ident">Method::CONNECT</span>) <span class="op">&amp;&amp;</span> <a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#571">status</a>.<span class="ident">is_success</span>() {
             <span class="bool-val">false</span>
         } <span class="kw">else</span> {
             <span class="kw">match</span> <a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#571">status</a> {
@@ -2201,8 +2201,8 @@
                 <span class="comment">// would be 100...199 =&gt; false</span>
                 <span class="ident">StatusCode::SWITCHING_PROTOCOLS</span> <span class="op">|</span>
                 <span class="ident">StatusCode::NO_CONTENT</span> <span class="op">|</span>
-                <span class="ident">StatusCode::NOT_MODIFIED</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
-                <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">true</span>,
+                <span class="ident">StatusCode::NOT_MODIFIED</span> =&gt; <span class="bool-val">false</span>,
+                <span class="kw">_</span> =&gt; <span class="bool-val">true</span>,
             }
         }
     }
@@ -2213,7 +2213,7 @@
     <span class="kw">type</span> <span class="ident">Outgoing</span> <span class="op">=</span> <a class="ident" href="../../../../src/hyper/proto/mod.rs.html#25">RequestLine</a>;
     <span class="kw">const</span> <span class="ident">LOG</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> <span class="op">=</span> <span class="string">&quot;{role=client}&quot;</span>;
 
-    <span class="kw">fn</span> <span class="ident">parse</span>(<span class="ident">buf</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../../../bytes/bytes/struct.BytesMut.html">BytesMut</a>, <span class="ident">ctx</span>: <a class="ident" href="../../../../src/hyper/proto/h1/mod.rs.html#65-68">ParseContext</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ParseResult</span><span class="op">&lt;</span><a class="ident" href="../../../../hyper/struct.StatusCode.html">StatusCode</a><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">parse</span>(<span class="ident">buf</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../../../bytes/bytes/struct.BytesMut.html">BytesMut</a>, <span class="ident">ctx</span>: <a class="ident" href="../../../../src/hyper/proto/h1/mod.rs.html#65-68">ParseContext</a>) -&gt; <span class="ident">ParseResult</span><span class="op">&lt;</span><a class="ident" href="../../../../hyper/struct.StatusCode.html">StatusCode</a><span class="op">&gt;</span> {
         <span class="comment">// Loop to skip information status code headers (100 Continue, etc).</span>
         <span class="kw">loop</span> {
             <span class="kw">if</span> <a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#594">buf</a>.<span class="ident">is_empty</span>() {
@@ -2227,10 +2227,10 @@
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">httparse::Response::new</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#603">headers</a>);
                 <span class="kw">let</span> <span class="ident">bytes</span> <span class="op">=</span> <a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#594">buf</a>.<span class="ident">as_ref</span>();
                 <span class="kw">match</span> <a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#605">res</a>.<span class="ident">parse</span>(<a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#606">bytes</a>)<span class="question-mark">?</span> {
-                    <span class="ident">httparse::Status::Complete</span>(<span class="ident">len</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="ident">httparse::Status::Complete</span>(<span class="ident">len</span>) =&gt; {
                         <span class="macro">trace!</span>(<span class="string">&quot;Response.parse Complete({})&quot;</span>, <a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#608">len</a>);
                         <span class="kw">let</span> <span class="ident">status</span> <span class="op">=</span> <span class="ident">StatusCode::from_u16</span>(<a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#605">res</a>.<span class="ident">code</span>.<span class="ident">unwrap</span>())<span class="question-mark">?</span>;
-                        <span class="kw">let</span> <span class="ident">version</span> <span class="op">=</span> <span class="kw">if</span> <a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#605">res</a>.<span class="ident">version</span>.<span class="ident">unwrap</span>() <span class="op">=</span><span class="op">=</span> <span class="number">1</span> {
+                        <span class="kw">let</span> <span class="ident">version</span> <span class="op">=</span> <span class="kw">if</span> <a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#605">res</a>.<span class="ident">version</span>.<span class="ident">unwrap</span>() <span class="op">==</span> <span class="number">1</span> {
                             <span class="ident">Version::HTTP_11</span>
                         } <span class="kw">else</span> {
                             <span class="ident">Version::HTTP_10</span>
@@ -2239,7 +2239,7 @@
                         <span class="kw">let</span> <span class="ident">headers_len</span> <span class="op">=</span> <a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#605">res</a>.<span class="ident">headers</span>.<span class="ident">len</span>();
                         (<a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#608">len</a>, <a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#610">status</a>, <a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#611">version</a>, <a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#617">headers_len</a>)
                     },
-                    <span class="ident">httparse::Status::Partial</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>),
+                    <span class="ident">httparse::Status::Partial</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>),
                 }
             };
 
@@ -2249,7 +2249,7 @@
                 .<span class="ident">take</span>()
                 .<span class="ident">unwrap_or_else</span>(<span class="ident">HeaderMap::new</span>);
 
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">keep_alive</span> <span class="op">=</span> <a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#602">version</a> <span class="op">=</span><span class="op">=</span> <span class="ident">Version::HTTP_11</span>;
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">keep_alive</span> <span class="op">=</span> <a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#602">version</a> <span class="op">==</span> <span class="ident">Version::HTTP_11</span>;
 
             <a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#626">headers</a>.<span class="ident">reserve</span>(<a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#602">headers_len</a>);
             <span class="kw">for</span> <a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#633">header</a> <span class="kw">in</span> <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#601">headers_indices</a>[..<a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#602">headers_len</a>] {
@@ -2290,7 +2290,7 @@
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">encode</span>(<span class="ident">msg</span>: <span class="ident">Encode</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Outgoing</span><span class="op">&gt;</span>, <span class="ident">dst</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">::Result</span><span class="op">&lt;</span><a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#12-15">Encoder</a><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">encode</span>(<span class="ident">msg</span>: <span class="ident">Encode</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Outgoing</span><span class="op">&gt;</span>, <span class="ident">dst</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><span class="op">&gt;</span>) -&gt; <span class="ident">::Result</span><span class="op">&lt;</span><a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#12-15">Encoder</a><span class="op">&gt;</span> {
         <span class="macro">trace!</span>(<span class="string">&quot;Client::encode method={:?}, body={:?}&quot;</span>, <a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#671">msg</a>.<span class="ident">head</span>.<span class="ident">subject</span>.<span class="number">0</span>, <a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#671">msg</a>.<span class="ident">body</span>);
 
         <span class="kw-2">*</span><a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#671">msg</a>.<span class="ident">req_method</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#671">msg</a>.<span class="ident">head</span>.<span class="ident">subject</span>.<span class="number">0</span>.<span class="ident">clone</span>());
@@ -2307,13 +2307,13 @@
         <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="macro">write!</span>(<a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#1044">FastWrite</a>(<a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#671">dst</a>), <span class="string">&quot;{} &quot;</span>, <a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#671">msg</a>.<span class="ident">head</span>.<span class="ident">subject</span>.<span class="number">1</span>);
 
         <span class="kw">match</span> <a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#671">msg</a>.<span class="ident">head</span>.<span class="ident">version</span> {
-            <span class="ident">Version::HTTP_10</span> <span class="op">=</span><span class="op">&gt;</span> <a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#1060">extend</a>(<a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#671">dst</a>, <span class="string">b&quot;HTTP/1.0&quot;</span>),
-            <span class="ident">Version::HTTP_11</span> <span class="op">=</span><span class="op">&gt;</span> <a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#1060">extend</a>(<a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#671">dst</a>, <span class="string">b&quot;HTTP/1.1&quot;</span>),
-            <span class="ident">Version::HTTP_2</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Version::HTTP_10</span> =&gt; <a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#1060">extend</a>(<a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#671">dst</a>, <span class="string">b&quot;HTTP/1.0&quot;</span>),
+            <span class="ident">Version::HTTP_11</span> =&gt; <a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#1060">extend</a>(<a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#671">dst</a>, <span class="string">b&quot;HTTP/1.1&quot;</span>),
+            <span class="ident">Version::HTTP_2</span> =&gt; {
                 <span class="macro">warn!</span>(<span class="string">&quot;request with HTTP2 version coerced to HTTP/1.1&quot;</span>);
                 <a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#1060">extend</a>(<a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#671">dst</a>, <span class="string">b&quot;HTTP/1.1&quot;</span>);
             },
-            <span class="ident">other</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic!</span>(<span class="string">&quot;unexpected request version: {:?}&quot;</span>, <a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#694">other</a>),
+            <span class="ident">other</span> =&gt; <span class="macro">panic!</span>(<span class="string">&quot;unexpected request version: {:?}&quot;</span>, <a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#694">other</a>),
         }
         <a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#1060">extend</a>(<a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#671">dst</a>, <span class="string">b&quot;\r\n&quot;</span>);
 
@@ -2328,12 +2328,12 @@
         <span class="prelude-val">Ok</span>(<a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#676">body</a>)
     }
 
-    <span class="kw">fn</span> <span class="ident">on_error</span>(<span class="ident">_err</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/hyper/error.rs.html#16-18">::Error</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">MessageHead</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Outgoing</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">on_error</span>(<span class="ident">_err</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/hyper/error.rs.html#16-18">::Error</a>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">MessageHead</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Outgoing</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="comment">// we can&#39;t tell the server about any errors it creates</span>
         <span class="prelude-val">None</span>
     }
 
-    <span class="kw">fn</span> <span class="ident">is_client</span>() <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    <span class="kw">fn</span> <span class="ident">is_client</span>() -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
         <span class="bool-val">true</span>
     }
 }
@@ -2342,7 +2342,7 @@
     <span class="doccomment">/// Returns Some(length, wants_upgrade) if successful.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Returns None if this message head should be skipped (like a 100 status).</span>
-    <span class="kw">fn</span> <span class="ident">decoder</span>(<span class="ident">inc</span>: <span class="kw-2">&amp;</span><span class="ident">MessageHead</span><span class="op">&lt;</span><a class="ident" href="../../../../hyper/struct.StatusCode.html">StatusCode</a><span class="op">&gt;</span>, <span class="ident">method</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../../hyper/struct.Method.html">Method</a><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span>(<a class="ident" href="../../../../src/hyper/proto/mod.rs.html#51">DecodedLength</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>)<span class="op">&gt;</span>, <a class="ident" href="../../../../src/hyper/error.rs.html#60-68">Parse</a><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">decoder</span>(<span class="ident">inc</span>: <span class="kw-2">&amp;</span><span class="ident">MessageHead</span><span class="op">&lt;</span><a class="ident" href="../../../../hyper/struct.StatusCode.html">StatusCode</a><span class="op">&gt;</span>, <span class="ident">method</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../../hyper/struct.Method.html">Method</a><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span>(<a class="ident" href="../../../../src/hyper/proto/mod.rs.html#51">DecodedLength</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>)<span class="op">&gt;</span>, <a class="ident" href="../../../../src/hyper/error.rs.html#60-68">Parse</a><span class="op">&gt;</span> {
         <span class="comment">// According to https://tools.ietf.org/html/rfc7230#section-3.3.3</span>
         <span class="comment">// 1. HEAD responses, and Status 1xx, 204, and 304 cannot have a body.</span>
         <span class="comment">// 2. Status 2xx to a CONNECT cannot have a body.</span>
@@ -2353,26 +2353,26 @@
         <span class="comment">// 7. Read till EOF.</span>
 
         <span class="kw">match</span> <a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#723">inc</a>.<span class="ident">subject</span>.<span class="ident">as_u16</span>() {
-            <span class="number">101</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="number">101</span> =&gt; {
                 <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>((<span class="ident">DecodedLength::ZERO</span>, <span class="bool-val">true</span>)));
             },
-            <span class="number">100</span>..<span class="op">=</span><span class="number">199</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="number">100</span>..<span class="op">=</span><span class="number">199</span> =&gt; {
                 <span class="macro">trace!</span>(<span class="string">&quot;ignoring informational response: {}&quot;</span>, <a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#723">inc</a>.<span class="ident">subject</span>.<span class="ident">as_u16</span>());
                 <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
             },
             <span class="number">204</span> <span class="op">|</span>
-            <span class="number">304</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>((<span class="ident">DecodedLength::ZERO</span>, <span class="bool-val">false</span>))),
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> (),
+            <span class="number">304</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>((<span class="ident">DecodedLength::ZERO</span>, <span class="bool-val">false</span>))),
+            <span class="kw">_</span> =&gt; (),
         }
         <span class="kw">match</span> <span class="kw-2">*</span><a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#723">method</a> {
-            <span class="prelude-val">Some</span>(<span class="ident">Method::HEAD</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="prelude-val">Some</span>(<span class="ident">Method::HEAD</span>) =&gt; {
                 <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>((<span class="ident">DecodedLength::ZERO</span>, <span class="bool-val">false</span>)));
             }
-            <span class="prelude-val">Some</span>(<span class="ident">Method::CONNECT</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">if</span> <span class="kw">let</span> <span class="number">200</span>..<span class="op">=</span><span class="number">299</span> <span class="op">=</span> <a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#723">inc</a>.<span class="ident">subject</span>.<span class="ident">as_u16</span>() {
+            <span class="prelude-val">Some</span>(<span class="ident">Method::CONNECT</span>) =&gt; <span class="kw">if</span> <span class="kw">let</span> <span class="number">200</span>..<span class="op">=</span><span class="number">299</span> <span class="op">=</span> <a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#723">inc</a>.<span class="ident">subject</span>.<span class="ident">as_u16</span>() {
                 <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>((<span class="ident">DecodedLength::ZERO</span>, <span class="bool-val">true</span>)));
             }
-            <span class="prelude-val">Some</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {},
-            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; {},
+            <span class="prelude-val">None</span> =&gt; {
                 <span class="macro">trace!</span>(<span class="string">&quot;Client::decoder is missing the Method&quot;</span>);
             }
         }
@@ -2382,7 +2382,7 @@
             <span class="comment">// If Transfer-Encoding header is present, and &#39;chunked&#39; is</span>
             <span class="comment">// not the final encoding, and this is a Request, then it is</span>
             <span class="comment">// mal-formed. A server should respond with 400 Bad Request.</span>
-            <span class="kw">if</span> <a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#723">inc</a>.<span class="ident">version</span> <span class="op">=</span><span class="op">=</span> <span class="ident">Version::HTTP_10</span> {
+            <span class="kw">if</span> <a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#723">inc</a>.<span class="ident">version</span> <span class="op">==</span> <span class="ident">Version::HTTP_10</span> {
                 <span class="macro">debug!</span>(<span class="string">&quot;HTTP/1.0 cannot have Transfer-Encoding header&quot;</span>);
                 <span class="prelude-val">Err</span>(<a class="ident" href="../../../../src/hyper/error.rs.html#65">Parse::Header</a>)
             } <span class="kw">else</span> <span class="kw">if</span> <a class="ident" href="../../../../src/hyper/headers.rs.html#73">headers::transfer_encoding_is_chunked</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#723">inc</a>.<span class="ident">headers</span>) {
@@ -2404,7 +2404,7 @@
 }
 
 <span class="kw">impl</span> <a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#62">Client</a> {
-    <span class="kw">fn</span> <span class="ident">set_length</span>(<span class="ident">head</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../../../src/hyper/proto/mod.rs.html#22">RequestHead</a>, <span class="ident">body</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../../src/hyper/proto/mod.rs.html#31-36">BodyLength</a><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#12-15">Encoder</a> {
+    <span class="kw">fn</span> <span class="ident">set_length</span>(<span class="ident">head</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../../../src/hyper/proto/mod.rs.html#22">RequestHead</a>, <span class="ident">body</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../../src/hyper/proto/mod.rs.html#31-36">BodyLength</a><span class="op">&gt;</span>) -&gt; <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#12-15">Encoder</a> {
         <span class="kw">let</span> <span class="ident">body</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">body</span>) <span class="op">=</span> <a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#785">body</a> {
             <a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#786">body</a>
         } <span class="kw">else</span> {
@@ -2413,7 +2413,7 @@
         };
 
         <span class="comment">// HTTP/1.0 doesn&#39;t know about chunked</span>
-        <span class="kw">let</span> <span class="ident">can_chunked</span> <span class="op">=</span> <a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#785">head</a>.<span class="ident">version</span> <span class="op">=</span><span class="op">=</span> <span class="ident">Version::HTTP_11</span>;
+        <span class="kw">let</span> <span class="ident">can_chunked</span> <span class="op">=</span> <a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#785">head</a>.<span class="ident">version</span> <span class="op">==</span> <span class="ident">Version::HTTP_11</span>;
         <span class="kw">let</span> <span class="ident">headers</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#785">head</a>.<span class="ident">headers</span>;
 
         <span class="comment">// If the user already set specific headers, we should respect them, regardless</span>
@@ -2447,7 +2447,7 @@
         <span class="comment">// make sure `chunked` is the final encoding.</span>
         <span class="kw">let</span> <span class="ident">encoder</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#795">headers</a>.<span class="ident">entry</span>(<a class="ident" href="../../../../hyper/header/constant.TRANSFER_ENCODING.html">header::TRANSFER_ENCODING</a>)
             .<span class="ident">expect</span>(<span class="string">&quot;TRANSFER_ENCODING is valid HeaderName&quot;</span>) {
-            <span class="ident">Entry::Occupied</span>(<span class="ident">te</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Entry::Occupied</span>(<span class="ident">te</span>) =&gt; {
                 <a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#805">should_remove_con_len</a> <span class="op">=</span> <span class="bool-val">true</span>;
                 <span class="kw">if</span> <a class="ident" href="../../../../src/hyper/headers.rs.html#77">headers::is_chunked</a>(<a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#828">te</a>.<span class="ident">iter</span>()) {
                     <span class="prelude-val">Some</span>(<span class="ident">Encoder::chunked</span>())
@@ -2474,7 +2474,7 @@
                     <span class="prelude-val">Some</span>(<span class="ident">Encoder::chunked</span>())
                 }
             },
-            <span class="ident">Entry::Vacant</span>(<span class="ident">te</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Entry::Vacant</span>(<span class="ident">te</span>) =&gt; {
                 <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">len</span>) <span class="op">=</span> <a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#804">existing_con_len</a> {
                     <span class="prelude-val">Some</span>(<span class="ident">Encoder::length</span>(<a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#856">len</a>))
                 } <span class="kw">else</span> <span class="kw">if</span> <span class="kw">let</span> <a class="ident" href="../../../../src/hyper/proto/mod.rs.html#35">BodyLength::Unknown</a> <span class="op">=</span> <a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#786">body</a> {
@@ -2486,10 +2486,10 @@
                     <span class="kw">match</span> <a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#785">head</a>.<span class="ident">subject</span>.<span class="number">0</span> {
                         <span class="ident">Method::GET</span> <span class="op">|</span>
                         <span class="ident">Method::HEAD</span> <span class="op">|</span>
-                        <span class="ident">Method::CONNECT</span> <span class="op">=</span><span class="op">&gt;</span> {
+                        <span class="ident">Method::CONNECT</span> =&gt; {
                             <span class="prelude-val">Some</span>(<span class="ident">Encoder::length</span>(<span class="number">0</span>))
                         },
-                        <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {
+                        <span class="kw">_</span> =&gt; {
                             <a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#855">te</a>.<span class="ident">insert</span>(<span class="ident">HeaderValue::from_static</span>(<span class="string">&quot;chunked&quot;</span>));
                             <span class="prelude-val">Some</span>(<span class="ident">Encoder::chunked</span>())
                         },
@@ -2522,7 +2522,7 @@
     }
 }
 
-<span class="kw">fn</span> <span class="ident">set_content_length</span>(<span class="ident">headers</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../../../hyper/struct.HeaderMap.html">HeaderMap</a>, <span class="ident">len</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#12-15">Encoder</a> {
+<span class="kw">fn</span> <span class="ident">set_content_length</span>(<span class="ident">headers</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../../../hyper/struct.HeaderMap.html">HeaderMap</a>, <span class="ident">len</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) -&gt; <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#12-15">Encoder</a> {
     <span class="comment">// At this point, there should not be a valid Content-Length</span>
     <span class="comment">// header. However, since we&#39;ll be indexing in anyways, we can</span>
     <span class="comment">// warn the user if there was an existing illegal header.</span>
@@ -2533,7 +2533,7 @@
     <span class="kw">if</span> <span class="macro">cfg!</span>(<span class="ident">debug_assertions</span>) {
         <span class="kw">match</span> <a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#903">headers</a>.<span class="ident">entry</span>(<a class="ident" href="../../../../hyper/header/constant.CONTENT_LENGTH.html">header::CONTENT_LENGTH</a>)
             .<span class="ident">expect</span>(<span class="string">&quot;CONTENT_LENGTH is valid HeaderName&quot;</span>) {
-            <span class="ident">Entry::Occupied</span>(<span class="kw-2">mut</span> <span class="ident">cl</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Entry::Occupied</span>(<span class="kw-2">mut</span> <span class="ident">cl</span>) =&gt; {
                 <span class="comment">// Internal sanity check, we should have already determined</span>
                 <span class="comment">// that the header was illegal before calling this function.</span>
                 <span class="macro">debug_assert!</span>(<a class="ident" href="../../../../src/hyper/headers.rs.html#36">headers::content_length_parse_all_values</a>(<a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#914">cl</a>.<span class="ident">iter</span>()).<span class="ident">is_none</span>());
@@ -2545,7 +2545,7 @@
                 <a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#914">cl</a>.<span class="ident">insert</span>(<span class="ident">HeaderValue::from</span>(<a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#903">len</a>));
                 <span class="ident">Encoder::length</span>(<a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#903">len</a>)
             },
-            <span class="ident">Entry::Vacant</span>(<span class="ident">cl</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Entry::Vacant</span>(<span class="ident">cl</span>) =&gt; {
                 <a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#926">cl</a>.<span class="ident">insert</span>(<span class="ident">HeaderValue::from</span>(<a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#903">len</a>));
                 <span class="ident">Encoder::length</span>(<a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#903">len</a>)
             }
@@ -2566,7 +2566,7 @@
     <span class="ident">bytes</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
     <span class="ident">headers</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="../../../../httparse/struct.Header.html">httparse::Header</a>],
     <span class="ident">indices</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#938-941">HeaderIndices</a>]
-) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../../../src/hyper/error.rs.html#60-68">::error::Parse</a><span class="op">&gt;</span> {
+) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../../../src/hyper/error.rs.html#60-68">::error::Parse</a><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">bytes_ptr</span> <span class="op">=</span> <a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#944">bytes</a>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
 
     <span class="comment">// FIXME: This should be a single plain `for` loop.</span>
@@ -2578,7 +2578,7 @@
                 <span class="macro-nonterminal">$</span><span class="macro-nonterminal">body1</span>: <span class="ident">block</span>
                 <span class="macro-nonterminal">$</span><span class="macro-nonterminal">body2</span>: <span class="ident">block</span>
             }
-        ) <span class="op">=</span><span class="op">&gt;</span> {
+        ) =&gt; {
             <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">i</span> <span class="kw">in</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">iter</span> {
                 <span class="macro-nonterminal">$</span><span class="macro-nonterminal">body1</span>
                 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">cfg</span>)<span class="op">+</span>))]</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">body2</span>
@@ -2633,7 +2633,7 @@
     <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">c</span>) <span class="op">=</span> <a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#1000">iter</a>.<span class="ident">next</span>() {
       <a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#997">dst</a>.<span class="ident">push</span>(<span class="kw-2">*</span><a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#1011">c</a>);
 
-      <span class="kw">if</span> <span class="kw-2">*</span><a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#1011">c</a> <span class="op">=</span><span class="op">=</span> <span class="string">b&#39;-&#39;</span> {
+      <span class="kw">if</span> <span class="kw-2">*</span><a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#1011">c</a> <span class="op">==</span> <span class="string">b&#39;-&#39;</span> {
           <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">c</span>) <span class="op">=</span> <a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#1000">iter</a>.<span class="ident">next</span>() {
               <span class="kw">if</span> <span class="kw-2">*</span><a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#1015">c</a> <span class="op">&gt;</span><span class="op">=</span> <span class="string">b&#39;a&#39;</span> <span class="op">&amp;&amp;</span> <span class="kw-2">*</span><a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#1015">c</a> <span class="op">&lt;</span><span class="op">=</span> <span class="string">b&#39;z&#39;</span> {
                   <a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#997">dst</a>.<span class="ident">push</span>(<span class="kw-2">*</span><a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#1015">c</a> <span class="op">^</span> <span class="string">b&#39; &#39;</span>);
@@ -2667,13 +2667,13 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Write.html">fmt::Write</a> <span class="kw">for</span> <span class="ident">FastWrite</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">write_str</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">s</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+    <span class="kw">fn</span> <span class="ident">write_str</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">s</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
         <a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#1060">extend</a>(<a class="self" href="../../../../src/hyper/proto/h1/role.rs.html#1048">self</a>.<span class="number">0</span>, <a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#1048">s</a>.<span class="ident">as_bytes</span>());
         <span class="prelude-val">Ok</span>(())
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">write_fmt</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">args</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/struct.Arguments.html">fmt::Arguments</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+    <span class="kw">fn</span> <span class="ident">write_fmt</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">args</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/struct.Arguments.html">fmt::Arguments</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
         <span class="ident">fmt::write</span>(<a class="self" href="../../../../src/hyper/proto/h1/role.rs.html#1054">self</a>, <a class="ident" href="../../../../src/hyper/proto/h1/role.rs.html#1054">args</a>)
     }
 }
@@ -2739,7 +2739,7 @@
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_decoder_request</span>() {
-        <span class="kw">fn</span> <span class="ident">parse</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ParsedMessage</span><span class="op">&lt;</span><span class="ident">RequestLine</span><span class="op">&gt;</span> {
+        <span class="kw">fn</span> <span class="ident">parse</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="ident">ParsedMessage</span><span class="op">&lt;</span><span class="ident">RequestLine</span><span class="op">&gt;</span> {
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">bytes</span> <span class="op">=</span> <span class="ident">BytesMut::from</span>(<span class="ident">s</span>);
             <span class="ident">Server::parse</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">bytes</span>, <span class="ident">ParseContext</span> {
                 <span class="ident">cached_headers</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="prelude-val">None</span>,
@@ -2749,7 +2749,7 @@
                 .<span class="ident">expect</span>(<span class="string">&quot;parse complete&quot;</span>)
         }
 
-        <span class="kw">fn</span> <span class="ident">parse_err</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">comment</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">::error::Parse</span> {
+        <span class="kw">fn</span> <span class="ident">parse_err</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">comment</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="ident">::error::Parse</span> {
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">bytes</span> <span class="op">=</span> <span class="ident">BytesMut::from</span>(<span class="ident">s</span>);
             <span class="ident">Server::parse</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">bytes</span>, <span class="ident">ParseContext</span> {
                 <span class="ident">cached_headers</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="prelude-val">None</span>,
@@ -2880,7 +2880,7 @@
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_decoder_response</span>() {
 
-        <span class="kw">fn</span> <span class="ident">parse</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ParsedMessage</span><span class="op">&lt;</span><span class="ident">StatusCode</span><span class="op">&gt;</span> {
+        <span class="kw">fn</span> <span class="ident">parse</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="ident">ParsedMessage</span><span class="op">&lt;</span><span class="ident">StatusCode</span><span class="op">&gt;</span> {
             <span class="ident">parse_with_method</span>(<span class="ident">s</span>, <span class="ident">Method::GET</span>)
         }
 
@@ -2894,7 +2894,7 @@
                 .<span class="ident">is_none</span>())
         }
 
-        <span class="kw">fn</span> <span class="ident">parse_with_method</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">m</span>: <span class="ident">Method</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ParsedMessage</span><span class="op">&lt;</span><span class="ident">StatusCode</span><span class="op">&gt;</span> {
+        <span class="kw">fn</span> <span class="ident">parse_with_method</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">m</span>: <span class="ident">Method</span>) -&gt; <span class="ident">ParsedMessage</span><span class="op">&lt;</span><span class="ident">StatusCode</span><span class="op">&gt;</span> {
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">bytes</span> <span class="op">=</span> <span class="ident">BytesMut::from</span>(<span class="ident">s</span>);
             <span class="ident">Client::parse</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">bytes</span>, <span class="ident">ParseContext</span> {
                 <span class="ident">cached_headers</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="prelude-val">None</span>,
@@ -2904,7 +2904,7 @@
                 .<span class="ident">expect</span>(<span class="string">&quot;parse complete&quot;</span>)
         }
 
-        <span class="kw">fn</span> <span class="ident">parse_err</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">::error::Parse</span> {
+        <span class="kw">fn</span> <span class="ident">parse_err</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="ident">::error::Parse</span> {
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">bytes</span> <span class="op">=</span> <span class="ident">BytesMut::from</span>(<span class="ident">s</span>);
             <span class="ident">Client::parse</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">bytes</span>, <span class="ident">ParseContext</span> {
                 <span class="ident">cached_headers</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="prelude-val">None</span>,

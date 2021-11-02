@@ -108,7 +108,7 @@
 <span class="doccomment">/// (if found).</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// [`BufRead::read_until`]: https://doc.rust-lang.org/std/io/trait.BufRead.html#method.read_until</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">read_until</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span>(<span class="ident">a</span>: <span class="ident">A</span>, <span class="ident">byte</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, <span class="ident">buf</span>: <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ReadUntil</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span>
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">read_until</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span>(<span class="ident">a</span>: <span class="ident">A</span>, <span class="ident">byte</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, <span class="ident">buf</span>: <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><span class="op">&gt;</span>) -&gt; <span class="ident">ReadUntil</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span>
 <span class="kw">where</span>
     <span class="ident">A</span>: <a class="ident" href="../../../src/tokio_io/async_read.rs.html#35-155">AsyncRead</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.BufRead.html">BufRead</a>,
 {
@@ -128,25 +128,25 @@
     <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> (<span class="ident">A</span>, <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><span class="op">&gt;</span>);
     <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a>;
 
-    <span class="kw">fn</span> <span class="ident">poll</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span>(<span class="ident">A</span>, <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><span class="op">&gt;</span>), <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">poll</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span>(<span class="ident">A</span>, <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><span class="op">&gt;</span>), <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a><span class="op">&gt;</span> {
         <span class="kw">match</span> <a class="self" href="../../../src/tokio_io/io/read_until.rs.html#55">self</a>.<span class="ident">state</span> {
             <a class="ident" href="../../../src/tokio_io/io/read_until.rs.html#21">State::Reading</a> {
                 <span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">a</span>,
                 <span class="ident">byte</span>,
                 <span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">buf</span>,
-            } <span class="op">=</span><span class="op">&gt;</span> {
+            } =&gt; {
                 <span class="comment">// If we get `Ok(n)`, then we know the stream hit EOF or the delimiter.</span>
                 <span class="comment">// and just return it, as we are finished.</span>
                 <span class="comment">// If we hit &quot;would block&quot; then all the read data so far</span>
                 <span class="comment">// is in our buffer, and otherwise we propagate errors.</span>
                 <span class="macro">try_nb!</span>(<a class="ident" href="../../../src/tokio_io/io/read_until.rs.html#58">a</a>.<span class="ident">read_until</span>(<a class="ident" href="../../../src/tokio_io/io/read_until.rs.html#59">byte</a>, <a class="ident" href="../../../src/tokio_io/io/read_until.rs.html#60">buf</a>));
             }
-            <a class="ident" href="../../../src/tokio_io/io/read_until.rs.html#22">State::Empty</a> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic!</span>(<span class="string">&quot;poll ReadUntil after it&#39;s done&quot;</span>),
+            <a class="ident" href="../../../src/tokio_io/io/read_until.rs.html#22">State::Empty</a> =&gt; <span class="macro">panic!</span>(<span class="string">&quot;poll ReadUntil after it&#39;s done&quot;</span>),
         }
 
         <span class="kw">match</span> <span class="ident">mem::replace</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="self" href="../../../src/tokio_io/io/read_until.rs.html#55">self</a>.<span class="ident">state</span>, <a class="ident" href="../../../src/tokio_io/io/read_until.rs.html#22">State::Empty</a>) {
-            <a class="ident" href="../../../src/tokio_io/io/read_until.rs.html#21">State::Reading</a> { <span class="ident">a</span>, <span class="ident">byte</span>: <span class="kw">_</span>, <span class="ident">buf</span> } <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>((<a class="ident" href="../../../src/tokio_io/io/read_until.rs.html#72">a</a>, <a class="ident" href="../../../src/tokio_io/io/read_until.rs.html#72">buf</a>).<span class="ident">into</span>()),
-            <a class="ident" href="../../../src/tokio_io/io/read_until.rs.html#22">State::Empty</a> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable!</span>(),
+            <a class="ident" href="../../../src/tokio_io/io/read_until.rs.html#21">State::Reading</a> { <span class="ident">a</span>, <span class="ident">byte</span>: <span class="kw">_</span>, <span class="ident">buf</span> } =&gt; <span class="prelude-val">Ok</span>((<a class="ident" href="../../../src/tokio_io/io/read_until.rs.html#72">a</a>, <a class="ident" href="../../../src/tokio_io/io/read_until.rs.html#72">buf</a>).<span class="ident">into</span>()),
+            <a class="ident" href="../../../src/tokio_io/io/read_until.rs.html#22">State::Empty</a> =&gt; <span class="macro">unreachable!</span>(),
         }
     }
 }

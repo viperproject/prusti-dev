@@ -29,16 +29,16 @@ spaces and tabs, you can do it like this:</p>
 
 <span class="attribute">#[<span class="ident">macro_export</span>]</span>
 <span class="macro">macro_rules!</span> <span class="ident">sp</span> (
-  (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">i</span>:<span class="ident">expr</span>, $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">args</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) <span class="op">=</span><span class="op">&gt;</span> (
+  (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">i</span>:<span class="ident">expr</span>, $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">args</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) =&gt; (
     {
       <span class="kw">use</span> <span class="ident">nom::Err</span>;
 
       <span class="kw">match</span> <span class="macro">sep!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">i</span>, <span class="ident">space</span>, $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">args</span>)<span class="kw-2">*</span>) {
-        <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">e</span>),
-        <span class="prelude-val">Ok</span>((<span class="ident">i1</span>,<span class="ident">o</span>))    <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; <span class="prelude-val">Err</span>(<span class="ident">e</span>),
+        <span class="prelude-val">Ok</span>((<span class="ident">i1</span>,<span class="ident">o</span>))    =&gt; {
           <span class="kw">match</span> <span class="ident">space</span>(<span class="ident">i1</span>) {
-            <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">Err::convert</span>(<span class="ident">e</span>)),
-            <span class="prelude-val">Ok</span>((<span class="ident">i2</span>,<span class="kw">_</span>))    <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>((<span class="ident">i2</span>, <span class="ident">o</span>))
+            <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; <span class="prelude-val">Err</span>(<span class="ident">Err::convert</span>(<span class="ident">e</span>)),
+            <span class="prelude-val">Ok</span>((<span class="ident">i2</span>,<span class="kw">_</span>))    =&gt; <span class="prelude-val">Ok</span>((<span class="ident">i2</span>, <span class="ident">o</span>))
           }
         }
       }
@@ -67,7 +67,7 @@ and modify them to support a new combinator:</p>
 <li>reference it in the definition of <code>sep!</code> as follows:</li>
 </ul>
 
-<div class='information'><div class='tooltip ignore'>ⓘ</div></div><div class="example-wrap"><pre class="rust rust-example-rendered ignore"><code> (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">i</span>:<span class="ident">expr</span>,  <span class="macro-nonterminal">$</span><span class="macro-nonterminal">separator</span>:<span class="ident">path</span>, <span class="ident">my_combinator</span> <span class="op">!</span> ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">rest</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) ) <span class="op">=</span><span class="op">&gt;</span> {
+<div class='information'><div class='tooltip ignore'>ⓘ</div></div><div class="example-wrap"><pre class="rust rust-example-rendered ignore"><code> (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">i</span>:<span class="ident">expr</span>,  <span class="macro-nonterminal">$</span><span class="macro-nonterminal">separator</span>:<span class="ident">path</span>, <span class="ident">my_combinator</span> <span class="op">!</span> ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">rest</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) ) =&gt; {
    <span class="macro">wrap_sep!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">i</span>,
      <span class="macro-nonterminal">$</span><span class="macro-nonterminal">separator</span>,
      <span class="macro">my_combinator_sep!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">separator</span>, $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">rest</span>)<span class="kw-2">*</span>)

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;gimli-0.25.0&#x2F;src&#x2F;leb128.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>leb128.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../gimli/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;gimli-0.26.1&#x2F;src&#x2F;leb128.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>leb128.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../gimli/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -600,6 +600,16 @@
 <span id="600">600</span>
 <span id="601">601</span>
 <span id="602">602</span>
+<span id="603">603</span>
+<span id="604">604</span>
+<span id="605">605</span>
+<span id="606">606</span>
+<span id="607">607</span>
+<span id="608">608</span>
+<span id="609">609</span>
+<span id="610">610</span>
+<span id="611">611</span>
+<span id="612">612</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Read and write DWARF&#39;s &quot;Little Endian Base 128&quot; (LEB128) variable length</span>
 <span class="doccomment">//! integer encoding.</span>
 <span class="doccomment">//!</span>
@@ -647,103 +657,113 @@
 <span class="doccomment">//! ```</span>
 
 <span class="kw">const</span> <span class="ident">CONTINUATION_BIT</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a> <span class="op">=</span> <span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">7</span>;
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;read&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;read-core&quot;</span>)]</span>
 <span class="kw">const</span> <span class="ident">SIGN_BIT</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a> <span class="op">=</span> <span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">6</span>;
 
 <span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">fn</span> <span class="ident">low_bits_of_byte</span>(<span class="ident">byte</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a> {
+<span class="kw">fn</span> <span class="ident">low_bits_of_byte</span>(<span class="ident">byte</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a> {
     <a class="ident" href="../../src/gimli/leb128.rs.html#52">byte</a> <span class="op">&amp;</span> <span class="op">!</span><a class="ident" href="../../src/gimli/leb128.rs.html#47">CONTINUATION_BIT</a>
 }
 
 <span class="attribute">#[<span class="ident">inline</span>]</span>
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">dead_code</span>)]</span>
-<span class="kw">fn</span> <span class="ident">low_bits_of_u64</span>(<span class="ident">val</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a> {
+<span class="kw">fn</span> <span class="ident">low_bits_of_u64</span>(<span class="ident">val</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a> {
     <span class="kw">let</span> <span class="ident">byte</span> <span class="op">=</span> <a class="ident" href="../../src/gimli/leb128.rs.html#58">val</a> <span class="op">&amp;</span> <span class="ident">u64::from</span>(<span class="ident">core::u8::MAX</span>);
     <a class="ident" href="../../src/gimli/leb128.rs.html#52">low_bits_of_byte</a>(<a class="ident" href="../../src/gimli/leb128.rs.html#59">byte</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>)
 }
 
 <span class="doccomment">/// A module for reading signed and unsigned integers that have been LEB128</span>
 <span class="doccomment">/// encoded.</span>
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;read&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;read-core&quot;</span>)]</span>
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">read</span> {
     <span class="kw">use</span> <span class="kw">super</span>::{<a class="ident" href="../../src/gimli/leb128.rs.html#52">low_bits_of_byte</a>, <a class="ident" href="../../src/gimli/leb128.rs.html#47">CONTINUATION_BIT</a>, <a class="ident" href="../../src/gimli/leb128.rs.html#49">SIGN_BIT</a>};
-    <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::read</span>::{<a class="ident" href="../../src/gimli/read/mod.rs.html#240-395">Error</a>, <a class="ident" href="../../src/gimli/read/reader.rs.html#208-478">Reader</a>, <span class="prelude-ty">Result</span>};
+    <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::read</span>::{<a class="ident" href="../../src/gimli/read/mod.rs.html#271-434">Error</a>, <a class="ident" href="../../src/gimli/read/reader.rs.html#215-502">Reader</a>, <span class="prelude-ty">Result</span>};
+
+    <span class="doccomment">/// Read bytes until the LEB128 continuation bit is not set.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">skip</span><span class="op">&lt;</span><span class="ident">R</span>: <a class="ident" href="../../src/gimli/read/reader.rs.html#215-502">Reader</a><span class="op">&gt;</span>(<span class="ident">r</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">R</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+        <span class="kw">loop</span> {
+            <span class="kw">let</span> <span class="ident">byte</span> <span class="op">=</span> <a class="ident" href="../../src/gimli/leb128.rs.html#71">r</a>.<a class="ident" href="../../src/gimli/read/reader.rs.html#321">read_u8</a>()<span class="question-mark">?</span>;
+            <span class="kw">if</span> <a class="ident" href="../../src/gimli/leb128.rs.html#73">byte</a> <span class="op">&amp;</span> <a class="ident" href="../../src/gimli/leb128.rs.html#47">CONTINUATION_BIT</a> <span class="op">==</span> <span class="number">0</span> {
+                <span class="kw">return</span> <span class="prelude-val">Ok</span>(());
+            }
+        }
+    }
 
     <span class="doccomment">/// Read an unsigned LEB128 number from the given `Reader` and</span>
     <span class="doccomment">/// return it or an error if reading failed.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">unsigned</span><span class="op">&lt;</span><span class="ident">R</span>: <a class="ident" href="../../src/gimli/read/reader.rs.html#208-478">Reader</a><span class="op">&gt;</span>(<span class="ident">r</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">R</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">unsigned</span><span class="op">&lt;</span><span class="ident">R</span>: <a class="ident" href="../../src/gimli/read/reader.rs.html#215-502">Reader</a><span class="op">&gt;</span>(<span class="ident">r</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">R</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">result</span> <span class="op">=</span> <span class="number">0</span>;
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">shift</span> <span class="op">=</span> <span class="number">0</span>;
 
         <span class="kw">loop</span> {
-            <span class="kw">let</span> <span class="ident">byte</span> <span class="op">=</span> <a class="ident" href="../../src/gimli/leb128.rs.html#72">r</a>.<a class="ident" href="../../src/gimli/read/reader.rs.html#302">read_u8</a>()<span class="question-mark">?</span>;
-            <span class="kw">if</span> <a class="ident" href="../../src/gimli/leb128.rs.html#74">shift</a> <span class="op">=</span><span class="op">=</span> <span class="number">63</span> <span class="op">&amp;&amp;</span> <a class="ident" href="../../src/gimli/leb128.rs.html#77">byte</a> <span class="op">!</span><span class="op">=</span> <span class="number">0x00</span> <span class="op">&amp;&amp;</span> <a class="ident" href="../../src/gimli/leb128.rs.html#77">byte</a> <span class="op">!</span><span class="op">=</span> <span class="number">0x01</span> {
-                <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../src/gimli/read/mod.rs.html#255">Error::BadUnsignedLeb128</a>);
+            <span class="kw">let</span> <span class="ident">byte</span> <span class="op">=</span> <a class="ident" href="../../src/gimli/leb128.rs.html#82">r</a>.<a class="ident" href="../../src/gimli/read/reader.rs.html#321">read_u8</a>()<span class="question-mark">?</span>;
+            <span class="kw">if</span> <a class="ident" href="../../src/gimli/leb128.rs.html#84">shift</a> <span class="op">==</span> <span class="number">63</span> <span class="op">&amp;&amp;</span> <a class="ident" href="../../src/gimli/leb128.rs.html#87">byte</a> <span class="op">!</span><span class="op">=</span> <span class="number">0x00</span> <span class="op">&amp;&amp;</span> <a class="ident" href="../../src/gimli/leb128.rs.html#87">byte</a> <span class="op">!</span><span class="op">=</span> <span class="number">0x01</span> {
+                <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../src/gimli/read/mod.rs.html#286">Error::BadUnsignedLeb128</a>);
             }
 
-            <span class="kw">let</span> <span class="ident">low_bits</span> <span class="op">=</span> <span class="ident">u64::from</span>(<a class="ident" href="../../src/gimli/leb128.rs.html#52">low_bits_of_byte</a>(<a class="ident" href="../../src/gimli/leb128.rs.html#77">byte</a>));
-            <a class="ident" href="../../src/gimli/leb128.rs.html#73">result</a> <span class="op">|</span><span class="op">=</span> <a class="ident" href="../../src/gimli/leb128.rs.html#82">low_bits</a> <span class="op">&lt;</span><span class="op">&lt;</span> <a class="ident" href="../../src/gimli/leb128.rs.html#74">shift</a>;
+            <span class="kw">let</span> <span class="ident">low_bits</span> <span class="op">=</span> <span class="ident">u64::from</span>(<a class="ident" href="../../src/gimli/leb128.rs.html#52">low_bits_of_byte</a>(<a class="ident" href="../../src/gimli/leb128.rs.html#87">byte</a>));
+            <a class="ident" href="../../src/gimli/leb128.rs.html#83">result</a> <span class="op">|</span><span class="op">=</span> <a class="ident" href="../../src/gimli/leb128.rs.html#92">low_bits</a> <span class="op">&lt;</span><span class="op">&lt;</span> <a class="ident" href="../../src/gimli/leb128.rs.html#84">shift</a>;
 
-            <span class="kw">if</span> <a class="ident" href="../../src/gimli/leb128.rs.html#77">byte</a> <span class="op">&amp;</span> <a class="ident" href="../../src/gimli/leb128.rs.html#47">CONTINUATION_BIT</a> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
-                <span class="kw">return</span> <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/gimli/leb128.rs.html#73">result</a>);
+            <span class="kw">if</span> <a class="ident" href="../../src/gimli/leb128.rs.html#87">byte</a> <span class="op">&amp;</span> <a class="ident" href="../../src/gimli/leb128.rs.html#47">CONTINUATION_BIT</a> <span class="op">==</span> <span class="number">0</span> {
+                <span class="kw">return</span> <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/gimli/leb128.rs.html#83">result</a>);
             }
 
-            <a class="ident" href="../../src/gimli/leb128.rs.html#74">shift</a> <span class="op">+</span><span class="op">=</span> <span class="number">7</span>;
+            <a class="ident" href="../../src/gimli/leb128.rs.html#84">shift</a> <span class="op">+</span><span class="op">=</span> <span class="number">7</span>;
         }
     }
 
     <span class="doccomment">/// Read an LEB128 u16 from the given `Reader` and</span>
     <span class="doccomment">/// return it or an error if reading failed.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">u16</span><span class="op">&lt;</span><span class="ident">R</span>: <a class="ident" href="../../src/gimli/read/reader.rs.html#208-478">Reader</a><span class="op">&gt;</span>(<span class="ident">r</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">R</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u16.html">u16</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">byte</span> <span class="op">=</span> <a class="ident" href="../../src/gimli/leb128.rs.html#95">r</a>.<a class="ident" href="../../src/gimli/read/reader.rs.html#302">read_u8</a>()<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">u16::from</span>(<a class="ident" href="../../src/gimli/leb128.rs.html#52">low_bits_of_byte</a>(<a class="ident" href="../../src/gimli/leb128.rs.html#96">byte</a>));
-        <span class="kw">if</span> <a class="ident" href="../../src/gimli/leb128.rs.html#96">byte</a> <span class="op">&amp;</span> <a class="ident" href="../../src/gimli/leb128.rs.html#47">CONTINUATION_BIT</a> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
-            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/gimli/leb128.rs.html#97">result</a>);
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">u16</span><span class="op">&lt;</span><span class="ident">R</span>: <a class="ident" href="../../src/gimli/read/reader.rs.html#215-502">Reader</a><span class="op">&gt;</span>(<span class="ident">r</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">R</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u16.html">u16</a><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="ident">byte</span> <span class="op">=</span> <a class="ident" href="../../src/gimli/leb128.rs.html#105">r</a>.<a class="ident" href="../../src/gimli/read/reader.rs.html#321">read_u8</a>()<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">u16::from</span>(<a class="ident" href="../../src/gimli/leb128.rs.html#52">low_bits_of_byte</a>(<a class="ident" href="../../src/gimli/leb128.rs.html#106">byte</a>));
+        <span class="kw">if</span> <a class="ident" href="../../src/gimli/leb128.rs.html#106">byte</a> <span class="op">&amp;</span> <a class="ident" href="../../src/gimli/leb128.rs.html#47">CONTINUATION_BIT</a> <span class="op">==</span> <span class="number">0</span> {
+            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/gimli/leb128.rs.html#107">result</a>);
         }
 
-        <span class="kw">let</span> <span class="ident">byte</span> <span class="op">=</span> <a class="ident" href="../../src/gimli/leb128.rs.html#95">r</a>.<a class="ident" href="../../src/gimli/read/reader.rs.html#302">read_u8</a>()<span class="question-mark">?</span>;
-        <a class="ident" href="../../src/gimli/leb128.rs.html#97">result</a> <span class="op">|</span><span class="op">=</span> <span class="ident">u16::from</span>(<a class="ident" href="../../src/gimli/leb128.rs.html#52">low_bits_of_byte</a>(<a class="ident" href="../../src/gimli/leb128.rs.html#102">byte</a>)) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">7</span>;
-        <span class="kw">if</span> <a class="ident" href="../../src/gimli/leb128.rs.html#102">byte</a> <span class="op">&amp;</span> <a class="ident" href="../../src/gimli/leb128.rs.html#47">CONTINUATION_BIT</a> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
-            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/gimli/leb128.rs.html#97">result</a>);
+        <span class="kw">let</span> <span class="ident">byte</span> <span class="op">=</span> <a class="ident" href="../../src/gimli/leb128.rs.html#105">r</a>.<a class="ident" href="../../src/gimli/read/reader.rs.html#321">read_u8</a>()<span class="question-mark">?</span>;
+        <a class="ident" href="../../src/gimli/leb128.rs.html#107">result</a> <span class="op">|</span><span class="op">=</span> <span class="ident">u16::from</span>(<a class="ident" href="../../src/gimli/leb128.rs.html#52">low_bits_of_byte</a>(<a class="ident" href="../../src/gimli/leb128.rs.html#112">byte</a>)) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">7</span>;
+        <span class="kw">if</span> <a class="ident" href="../../src/gimli/leb128.rs.html#112">byte</a> <span class="op">&amp;</span> <a class="ident" href="../../src/gimli/leb128.rs.html#47">CONTINUATION_BIT</a> <span class="op">==</span> <span class="number">0</span> {
+            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/gimli/leb128.rs.html#107">result</a>);
         }
 
-        <span class="kw">let</span> <span class="ident">byte</span> <span class="op">=</span> <a class="ident" href="../../src/gimli/leb128.rs.html#95">r</a>.<a class="ident" href="../../src/gimli/read/reader.rs.html#302">read_u8</a>()<span class="question-mark">?</span>;
-        <span class="kw">if</span> <a class="ident" href="../../src/gimli/leb128.rs.html#108">byte</a> <span class="op">&gt;</span> <span class="number">0x03</span> {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../src/gimli/read/mod.rs.html#255">Error::BadUnsignedLeb128</a>);
+        <span class="kw">let</span> <span class="ident">byte</span> <span class="op">=</span> <a class="ident" href="../../src/gimli/leb128.rs.html#105">r</a>.<a class="ident" href="../../src/gimli/read/reader.rs.html#321">read_u8</a>()<span class="question-mark">?</span>;
+        <span class="kw">if</span> <a class="ident" href="../../src/gimli/leb128.rs.html#118">byte</a> <span class="op">&gt;</span> <span class="number">0x03</span> {
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../src/gimli/read/mod.rs.html#286">Error::BadUnsignedLeb128</a>);
         }
-        <a class="ident" href="../../src/gimli/leb128.rs.html#97">result</a> <span class="op">+</span><span class="op">=</span> <span class="ident">u16::from</span>(<a class="ident" href="../../src/gimli/leb128.rs.html#108">byte</a>) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">14</span>;
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/gimli/leb128.rs.html#97">result</a>)
+        <a class="ident" href="../../src/gimli/leb128.rs.html#107">result</a> <span class="op">+</span><span class="op">=</span> <span class="ident">u16::from</span>(<a class="ident" href="../../src/gimli/leb128.rs.html#118">byte</a>) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">14</span>;
+        <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/gimli/leb128.rs.html#107">result</a>)
     }
 
     <span class="doccomment">/// Read a signed LEB128 number from the given `Reader` and</span>
     <span class="doccomment">/// return it or an error if reading failed.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">signed</span><span class="op">&lt;</span><span class="ident">R</span>: <a class="ident" href="../../src/gimli/read/reader.rs.html#208-478">Reader</a><span class="op">&gt;</span>(<span class="ident">r</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">R</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.i64.html">i64</a><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">signed</span><span class="op">&lt;</span><span class="ident">R</span>: <a class="ident" href="../../src/gimli/read/reader.rs.html#215-502">Reader</a><span class="op">&gt;</span>(<span class="ident">r</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">R</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.i64.html">i64</a><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">result</span> <span class="op">=</span> <span class="number">0</span>;
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">shift</span> <span class="op">=</span> <span class="number">0</span>;
         <span class="kw">let</span> <span class="ident">size</span> <span class="op">=</span> <span class="number">64</span>;
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">byte</span>;
 
         <span class="kw">loop</span> {
-            <a class="ident" href="../../src/gimli/leb128.rs.html#122">byte</a> <span class="op">=</span> <a class="ident" href="../../src/gimli/leb128.rs.html#118">r</a>.<a class="ident" href="../../src/gimli/read/reader.rs.html#302">read_u8</a>()<span class="question-mark">?</span>;
-            <span class="kw">if</span> <a class="ident" href="../../src/gimli/leb128.rs.html#120">shift</a> <span class="op">=</span><span class="op">=</span> <span class="number">63</span> <span class="op">&amp;&amp;</span> <a class="ident" href="../../src/gimli/leb128.rs.html#122">byte</a> <span class="op">!</span><span class="op">=</span> <span class="number">0x00</span> <span class="op">&amp;&amp;</span> <a class="ident" href="../../src/gimli/leb128.rs.html#122">byte</a> <span class="op">!</span><span class="op">=</span> <span class="number">0x7f</span> {
-                <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../src/gimli/read/mod.rs.html#257">Error::BadSignedLeb128</a>);
+            <a class="ident" href="../../src/gimli/leb128.rs.html#132">byte</a> <span class="op">=</span> <a class="ident" href="../../src/gimli/leb128.rs.html#128">r</a>.<a class="ident" href="../../src/gimli/read/reader.rs.html#321">read_u8</a>()<span class="question-mark">?</span>;
+            <span class="kw">if</span> <a class="ident" href="../../src/gimli/leb128.rs.html#130">shift</a> <span class="op">==</span> <span class="number">63</span> <span class="op">&amp;&amp;</span> <a class="ident" href="../../src/gimli/leb128.rs.html#132">byte</a> <span class="op">!</span><span class="op">=</span> <span class="number">0x00</span> <span class="op">&amp;&amp;</span> <a class="ident" href="../../src/gimli/leb128.rs.html#132">byte</a> <span class="op">!</span><span class="op">=</span> <span class="number">0x7f</span> {
+                <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../src/gimli/read/mod.rs.html#288">Error::BadSignedLeb128</a>);
             }
 
-            <span class="kw">let</span> <span class="ident">low_bits</span> <span class="op">=</span> <span class="ident">i64::from</span>(<a class="ident" href="../../src/gimli/leb128.rs.html#52">low_bits_of_byte</a>(<a class="ident" href="../../src/gimli/leb128.rs.html#122">byte</a>));
-            <a class="ident" href="../../src/gimli/leb128.rs.html#119">result</a> <span class="op">|</span><span class="op">=</span> <a class="ident" href="../../src/gimli/leb128.rs.html#130">low_bits</a> <span class="op">&lt;</span><span class="op">&lt;</span> <a class="ident" href="../../src/gimli/leb128.rs.html#120">shift</a>;
-            <a class="ident" href="../../src/gimli/leb128.rs.html#120">shift</a> <span class="op">+</span><span class="op">=</span> <span class="number">7</span>;
+            <span class="kw">let</span> <span class="ident">low_bits</span> <span class="op">=</span> <span class="ident">i64::from</span>(<a class="ident" href="../../src/gimli/leb128.rs.html#52">low_bits_of_byte</a>(<a class="ident" href="../../src/gimli/leb128.rs.html#132">byte</a>));
+            <a class="ident" href="../../src/gimli/leb128.rs.html#129">result</a> <span class="op">|</span><span class="op">=</span> <a class="ident" href="../../src/gimli/leb128.rs.html#140">low_bits</a> <span class="op">&lt;</span><span class="op">&lt;</span> <a class="ident" href="../../src/gimli/leb128.rs.html#130">shift</a>;
+            <a class="ident" href="../../src/gimli/leb128.rs.html#130">shift</a> <span class="op">+</span><span class="op">=</span> <span class="number">7</span>;
 
-            <span class="kw">if</span> <a class="ident" href="../../src/gimli/leb128.rs.html#122">byte</a> <span class="op">&amp;</span> <a class="ident" href="../../src/gimli/leb128.rs.html#47">CONTINUATION_BIT</a> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
+            <span class="kw">if</span> <a class="ident" href="../../src/gimli/leb128.rs.html#132">byte</a> <span class="op">&amp;</span> <a class="ident" href="../../src/gimli/leb128.rs.html#47">CONTINUATION_BIT</a> <span class="op">==</span> <span class="number">0</span> {
                 <span class="kw">break</span>;
             }
         }
 
-        <span class="kw">if</span> <a class="ident" href="../../src/gimli/leb128.rs.html#120">shift</a> <span class="op">&lt;</span> <a class="ident" href="../../src/gimli/leb128.rs.html#121">size</a> <span class="op">&amp;&amp;</span> (<a class="ident" href="../../src/gimli/leb128.rs.html#49">SIGN_BIT</a> <span class="op">&amp;</span> <a class="ident" href="../../src/gimli/leb128.rs.html#122">byte</a>) <span class="op">=</span><span class="op">=</span> <a class="ident" href="../../src/gimli/leb128.rs.html#49">SIGN_BIT</a> {
+        <span class="kw">if</span> <a class="ident" href="../../src/gimli/leb128.rs.html#130">shift</a> <span class="op">&lt;</span> <a class="ident" href="../../src/gimli/leb128.rs.html#131">size</a> <span class="op">&amp;&amp;</span> (<a class="ident" href="../../src/gimli/leb128.rs.html#49">SIGN_BIT</a> <span class="op">&amp;</span> <a class="ident" href="../../src/gimli/leb128.rs.html#132">byte</a>) <span class="op">==</span> <a class="ident" href="../../src/gimli/leb128.rs.html#49">SIGN_BIT</a> {
             <span class="comment">// Sign extend the result.</span>
-            <a class="ident" href="../../src/gimli/leb128.rs.html#119">result</a> <span class="op">|</span><span class="op">=</span> <span class="op">!</span><span class="number">0</span> <span class="op">&lt;</span><span class="op">&lt;</span> <a class="ident" href="../../src/gimli/leb128.rs.html#120">shift</a>;
+            <a class="ident" href="../../src/gimli/leb128.rs.html#129">result</a> <span class="op">|</span><span class="op">=</span> <span class="op">!</span><span class="number">0</span> <span class="op">&lt;</span><span class="op">&lt;</span> <a class="ident" href="../../src/gimli/leb128.rs.html#130">shift</a>;
         }
 
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/gimli/leb128.rs.html#119">result</a>)
+        <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/gimli/leb128.rs.html#129">result</a>)
     }
 }
 
@@ -756,7 +776,7 @@
     <span class="doccomment">/// Write the given unsigned number using the LEB128 encoding to the given</span>
     <span class="doccomment">/// `std::io::Write`able. Returns the number of bytes written to `w`, or an</span>
     <span class="doccomment">/// error if writing failed.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">unsigned</span><span class="op">&lt;</span><span class="ident">W</span><span class="op">&gt;</span>(<span class="ident">w</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">W</span>, <span class="kw-2">mut</span> <span class="ident">val</span>: <span class="ident">u64</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">usize</span>, <span class="ident">io::Error</span><span class="op">&gt;</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">unsigned</span><span class="op">&lt;</span><span class="ident">W</span><span class="op">&gt;</span>(<span class="ident">w</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">W</span>, <span class="kw-2">mut</span> <span class="ident">val</span>: <span class="ident">u64</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">usize</span>, <span class="ident">io::Error</span><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">W</span>: <span class="ident">io::Write</span>,
     {
@@ -773,19 +793,19 @@
             <span class="ident">w</span>.<span class="ident">write_all</span>(<span class="kw-2">&amp;</span><span class="ident">buf</span>)<span class="question-mark">?</span>;
             <span class="ident">bytes_written</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
 
-            <span class="kw">if</span> <span class="ident">val</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
+            <span class="kw">if</span> <span class="ident">val</span> <span class="op">==</span> <span class="number">0</span> {
                 <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">bytes_written</span>);
             }
         }
     }
 
     <span class="doccomment">/// Return the size of the LEB128 encoding of the given unsigned number.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">uleb128_size</span>(<span class="kw-2">mut</span> <span class="ident">val</span>: <span class="ident">u64</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">uleb128_size</span>(<span class="kw-2">mut</span> <span class="ident">val</span>: <span class="ident">u64</span>) -&gt; <span class="ident">usize</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">size</span> <span class="op">=</span> <span class="number">0</span>;
         <span class="kw">loop</span> {
             <span class="ident">val</span> <span class="op">&gt;</span><span class="op">&gt;</span><span class="op">=</span> <span class="number">7</span>;
             <span class="ident">size</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
-            <span class="kw">if</span> <span class="ident">val</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
+            <span class="kw">if</span> <span class="ident">val</span> <span class="op">==</span> <span class="number">0</span> {
                 <span class="kw">return</span> <span class="ident">size</span>;
             }
         }
@@ -794,7 +814,7 @@
     <span class="doccomment">/// Write the given signed number using the LEB128 encoding to the given</span>
     <span class="doccomment">/// `std::io::Write`able. Returns the number of bytes written to `w`, or an</span>
     <span class="doccomment">/// error if writing failed.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">signed</span><span class="op">&lt;</span><span class="ident">W</span><span class="op">&gt;</span>(<span class="ident">w</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">W</span>, <span class="kw-2">mut</span> <span class="ident">val</span>: <span class="ident">i64</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">usize</span>, <span class="ident">io::Error</span><span class="op">&gt;</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">signed</span><span class="op">&lt;</span><span class="ident">W</span><span class="op">&gt;</span>(<span class="ident">w</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">W</span>, <span class="kw-2">mut</span> <span class="ident">val</span>: <span class="ident">i64</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">usize</span>, <span class="ident">io::Error</span><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">W</span>: <span class="ident">io::Write</span>,
     {
@@ -803,7 +823,7 @@
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">byte</span> <span class="op">=</span> <span class="ident">val</span> <span class="kw">as</span> <span class="ident">u8</span>;
             <span class="comment">// Keep the sign bit for testing</span>
             <span class="ident">val</span> <span class="op">&gt;</span><span class="op">&gt;</span><span class="op">=</span> <span class="number">6</span>;
-            <span class="kw">let</span> <span class="ident">done</span> <span class="op">=</span> <span class="ident">val</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> <span class="op">|</span><span class="op">|</span> <span class="ident">val</span> <span class="op">=</span><span class="op">=</span> <span class="op">-</span><span class="number">1</span>;
+            <span class="kw">let</span> <span class="ident">done</span> <span class="op">=</span> <span class="ident">val</span> <span class="op">==</span> <span class="number">0</span> <span class="op">|</span><span class="op">|</span> <span class="ident">val</span> <span class="op">==</span> <span class="op">-</span><span class="number">1</span>;
             <span class="kw">if</span> <span class="ident">done</span> {
                 <span class="ident">byte</span> <span class="op">&amp;=</span> <span class="op">!</span><span class="ident">CONTINUATION_BIT</span>;
             } <span class="kw">else</span> {
@@ -824,11 +844,11 @@
     }
 
     <span class="doccomment">/// Return the size of the LEB128 encoding of the given signed number.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">sleb128_size</span>(<span class="kw-2">mut</span> <span class="ident">val</span>: <span class="ident">i64</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">sleb128_size</span>(<span class="kw-2">mut</span> <span class="ident">val</span>: <span class="ident">i64</span>) -&gt; <span class="ident">usize</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">size</span> <span class="op">=</span> <span class="number">0</span>;
         <span class="kw">loop</span> {
             <span class="ident">val</span> <span class="op">&gt;</span><span class="op">&gt;</span><span class="op">=</span> <span class="number">6</span>;
-            <span class="kw">let</span> <span class="ident">done</span> <span class="op">=</span> <span class="ident">val</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> <span class="op">|</span><span class="op">|</span> <span class="ident">val</span> <span class="op">=</span><span class="op">=</span> <span class="op">-</span><span class="number">1</span>;
+            <span class="kw">let</span> <span class="ident">done</span> <span class="op">=</span> <span class="ident">val</span> <span class="op">==</span> <span class="number">0</span> <span class="op">|</span><span class="op">|</span> <span class="ident">val</span> <span class="op">==</span> <span class="op">-</span><span class="number">1</span>;
             <span class="ident">val</span> <span class="op">&gt;</span><span class="op">&gt;</span><span class="op">=</span> <span class="number">1</span>;
             <span class="ident">size</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
             <span class="kw">if</span> <span class="ident">done</span> {
@@ -846,17 +866,17 @@
     <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::read</span>::{<span class="ident">EndianSlice</span>, <span class="ident">Error</span>, <span class="ident">ReaderOffsetId</span>};
 
     <span class="kw">trait</span> <span class="ident">ResultExt</span> {
-        <span class="kw">fn</span> <span class="ident">map_eof</span>(<span class="self">self</span>, <span class="ident">input</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
+        <span class="kw">fn</span> <span class="ident">map_eof</span>(<span class="self">self</span>, <span class="ident">input</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) -&gt; <span class="self">Self</span>;
     }
 
     <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">ResultExt</span> <span class="kw">for</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">Error</span><span class="op">&gt;</span> {
-        <span class="kw">fn</span> <span class="ident">map_eof</span>(<span class="self">self</span>, <span class="ident">input</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+        <span class="kw">fn</span> <span class="ident">map_eof</span>(<span class="self">self</span>, <span class="ident">input</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) -&gt; <span class="self">Self</span> {
             <span class="kw">match</span> <span class="self">self</span> {
-                <span class="prelude-val">Err</span>(<span class="ident">Error::UnexpectedEof</span>(<span class="ident">id</span>)) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="prelude-val">Err</span>(<span class="ident">Error::UnexpectedEof</span>(<span class="ident">id</span>)) =&gt; {
                     <span class="kw">let</span> <span class="ident">id</span> <span class="op">=</span> <span class="ident">ReaderOffsetId</span>(<span class="ident">id</span>.<span class="number">0</span> <span class="op">-</span> <span class="ident">input</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="ident">u64</span>);
                     <span class="prelude-val">Err</span>(<span class="ident">Error::UnexpectedEof</span>(<span class="ident">id</span>))
                 }
-                <span class="ident">r</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">r</span>,
+                <span class="ident">r</span> =&gt; <span class="ident">r</span>,
             }
         }
     }
@@ -1025,8 +1045,8 @@
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> [<span class="number">0</span>; <span class="number">1</span>];
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">writable</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">buf</span>[..];
         <span class="kw">match</span> <span class="ident">write::unsigned</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">writable</span>, <span class="number">128</span>) {
-            <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">assert_eq!</span>(<span class="ident">e</span>.<span class="ident">kind</span>(), <span class="ident">std::io::ErrorKind::WriteZero</span>),
-            <span class="ident">otherwise</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic!</span>(<span class="string">&quot;Unexpected: {:?}&quot;</span>, <span class="ident">otherwise</span>),
+            <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; <span class="macro">assert_eq!</span>(<span class="ident">e</span>.<span class="ident">kind</span>(), <span class="ident">std::io::ErrorKind::WriteZero</span>),
+            <span class="ident">otherwise</span> =&gt; <span class="macro">panic!</span>(<span class="string">&quot;Unexpected: {:?}&quot;</span>, <span class="ident">otherwise</span>),
         }
     }
 
@@ -1035,8 +1055,8 @@
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> [<span class="number">0</span>; <span class="number">1</span>];
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">writable</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">buf</span>[..];
         <span class="kw">match</span> <span class="ident">write::signed</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">writable</span>, <span class="number">128</span>) {
-            <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">assert_eq!</span>(<span class="ident">e</span>.<span class="ident">kind</span>(), <span class="ident">std::io::ErrorKind::WriteZero</span>),
-            <span class="ident">otherwise</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic!</span>(<span class="string">&quot;Unexpected: {:?}&quot;</span>, <span class="ident">otherwise</span>),
+            <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; <span class="macro">assert_eq!</span>(<span class="ident">e</span>.<span class="ident">kind</span>(), <span class="ident">std::io::ErrorKind::WriteZero</span>),
+            <span class="ident">otherwise</span> =&gt; <span class="macro">panic!</span>(<span class="string">&quot;Unexpected: {:?}&quot;</span>, <span class="ident">otherwise</span>),
         }
     }
 

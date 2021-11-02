@@ -541,11 +541,11 @@
 
 <span class="kw">impl</span> <a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#52-54">State</a> {
     <span class="doccomment">/// Opens the send-half of a stream if it is not already open.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">send_open</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">eos</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../../../src/h2/codec/error.rs.html#28-63">UserError</a><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">send_open</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">eos</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../../../src/h2/codec/error.rs.html#28-63">UserError</a><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">local</span> <span class="op">=</span> <a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#71">Streaming</a>;
 
         <a class="self" href="../../../../src/h2/proto/streams/state.rs.html#93">self</a>.<span class="ident">inner</span> <span class="op">=</span> <span class="kw">match</span> <a class="self" href="../../../../src/h2/proto/streams/state.rs.html#93">self</a>.<span class="ident">inner</span> {
-            <a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#58">Idle</a> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">if</span> <a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#93">eos</a> {
+            <a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#58">Idle</a> =&gt; <span class="kw">if</span> <a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#93">eos</a> {
                 <a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#63">HalfClosedLocal</a>(<a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#70">AwaitingHeaders</a>)
             } <span class="kw">else</span> {
                 <a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#62">Open</a> {
@@ -556,7 +556,7 @@
             <a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#62">Open</a> {
                 <span class="ident">local</span>: <a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#70">AwaitingHeaders</a>,
                 <span class="ident">remote</span>,
-            } <span class="op">=</span><span class="op">&gt;</span> <span class="kw">if</span> <a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#93">eos</a> {
+            } =&gt; <span class="kw">if</span> <a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#93">eos</a> {
                 <a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#63">HalfClosedLocal</a>(<a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#107">remote</a>)
             } <span class="kw">else</span> {
                 <a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#62">Open</a> {
@@ -564,12 +564,12 @@
                     <a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#107">remote</a>,
                 }
             },
-            <a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#64">HalfClosedRemote</a>(<a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#70">AwaitingHeaders</a>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">if</span> <a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#93">eos</a> {
+            <a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#64">HalfClosedRemote</a>(<a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#70">AwaitingHeaders</a>) =&gt; <span class="kw">if</span> <a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#93">eos</a> {
                 <a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#65">Closed</a>(<a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#76">Cause::EndStream</a>)
             } <span class="kw">else</span> {
                 <a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#64">HalfClosedRemote</a>(<a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#94">local</a>)
             },
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="kw">_</span> =&gt; {
                 <span class="comment">// All other transitions result in a protocol error</span>
                 <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../../../src/h2/codec/error.rs.html#33">UnexpectedFrameType</a>);
             },
@@ -581,12 +581,12 @@
     <span class="doccomment">/// Opens the receive-half of the stream when a HEADERS frame is received.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Returns true if this transitions the state to Open.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">recv_open</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">eos</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>, <a class="ident" href="../../../../src/h2/codec/error.rs.html#7-11">RecvError</a><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">recv_open</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">eos</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>, <a class="ident" href="../../../../src/h2/codec/error.rs.html#7-11">RecvError</a><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">remote</span> <span class="op">=</span> <a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#71">Streaming</a>;
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">initial</span> <span class="op">=</span> <span class="bool-val">false</span>;
 
         <a class="self" href="../../../../src/h2/proto/streams/state.rs.html#133">self</a>.<span class="ident">inner</span> <span class="op">=</span> <span class="kw">match</span> <a class="self" href="../../../../src/h2/proto/streams/state.rs.html#133">self</a>.<span class="ident">inner</span> {
-            <a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#58">Idle</a> <span class="op">=</span><span class="op">&gt;</span> {
+            <a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#58">Idle</a> =&gt; {
                 <a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#135">initial</a> <span class="op">=</span> <span class="bool-val">true</span>;
 
                 <span class="kw">if</span> <a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#133">eos</a> {
@@ -598,7 +598,7 @@
                     }
                 }
             },
-            <a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#61">ReservedRemote</a> <span class="op">=</span><span class="op">&gt;</span> {
+            <a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#61">ReservedRemote</a> =&gt; {
                 <a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#135">initial</a> <span class="op">=</span> <span class="bool-val">true</span>;
 
                 <span class="kw">if</span> <a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#133">eos</a> {
@@ -610,7 +610,7 @@
             <a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#62">Open</a> {
                 <span class="ident">local</span>,
                 <span class="ident">remote</span>: <a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#70">AwaitingHeaders</a>,
-            } <span class="op">=</span><span class="op">&gt;</span> <span class="kw">if</span> <a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#133">eos</a> {
+            } =&gt; <span class="kw">if</span> <a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#133">eos</a> {
                 <a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#64">HalfClosedRemote</a>(<a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#160">local</a>)
             } <span class="kw">else</span> {
                 <a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#62">Open</a> {
@@ -618,12 +618,12 @@
                     <a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#134">remote</a>,
                 }
             },
-            <a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#63">HalfClosedLocal</a>(<a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#70">AwaitingHeaders</a>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">if</span> <a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#133">eos</a> {
+            <a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#63">HalfClosedLocal</a>(<a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#70">AwaitingHeaders</a>) =&gt; <span class="kw">if</span> <a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#133">eos</a> {
                 <a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#65">Closed</a>(<a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#76">Cause::EndStream</a>)
             } <span class="kw">else</span> {
                 <a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#63">HalfClosedLocal</a>(<a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#134">remote</a>)
             },
-            <span class="ident">state</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">state</span> =&gt; {
                 <span class="comment">// All other transitions result in a protocol error</span>
                 <span class="macro">proto_err!</span>(<span class="ident">conn</span>: <span class="string">&quot;recv_open: in unexpected state {:?}&quot;</span>, <a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#175">state</a>);
                 <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../../../src/h2/codec/error.rs.html#8">RecvError::Connection</a>(<span class="ident">Reason::PROTOCOL_ERROR</span>));
@@ -634,13 +634,13 @@
     }
 
     <span class="doccomment">/// Transition from Idle -&gt; ReservedRemote</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">reserve_remote</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../../../src/h2/codec/error.rs.html#7-11">RecvError</a><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">reserve_remote</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../../../src/h2/codec/error.rs.html#7-11">RecvError</a><span class="op">&gt;</span> {
         <span class="kw">match</span> <a class="self" href="../../../../src/h2/proto/streams/state.rs.html#186">self</a>.<span class="ident">inner</span> {
-            <a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#58">Idle</a> <span class="op">=</span><span class="op">&gt;</span> {
+            <a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#58">Idle</a> =&gt; {
                 <a class="self" href="../../../../src/h2/proto/streams/state.rs.html#186">self</a>.<span class="ident">inner</span> <span class="op">=</span> <a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#61">ReservedRemote</a>;
                 <span class="prelude-val">Ok</span>(())
             },
-            <span class="ident">state</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">state</span> =&gt; {
                 <span class="macro">proto_err!</span>(<span class="ident">conn</span>: <span class="string">&quot;reserve_remote: in unexpected state {:?}&quot;</span>, <a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#192">state</a>);
                 <span class="prelude-val">Err</span>(<a class="ident" href="../../../../src/h2/codec/error.rs.html#8">RecvError::Connection</a>(<span class="ident">Reason::PROTOCOL_ERROR</span>))
             }
@@ -648,22 +648,22 @@
     }
 
     <span class="doccomment">/// Indicates that the remote side will not send more data to the local.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">recv_close</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../../../src/h2/codec/error.rs.html#7-11">RecvError</a><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">recv_close</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../../../src/h2/codec/error.rs.html#7-11">RecvError</a><span class="op">&gt;</span> {
         <span class="kw">match</span> <a class="self" href="../../../../src/h2/proto/streams/state.rs.html#200">self</a>.<span class="ident">inner</span> {
             <a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#62">Open</a> {
                 <span class="ident">local</span>, ..
-            } <span class="op">=</span><span class="op">&gt;</span> {
+            } =&gt; {
                 <span class="comment">// The remote side will continue to receive data.</span>
                 <span class="macro">trace!</span>(<span class="string">&quot;recv_close: Open =&gt; HalfClosedRemote({:?})&quot;</span>, <a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#203">local</a>);
                 <a class="self" href="../../../../src/h2/proto/streams/state.rs.html#200">self</a>.<span class="ident">inner</span> <span class="op">=</span> <a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#64">HalfClosedRemote</a>(<a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#203">local</a>);
                 <span class="prelude-val">Ok</span>(())
             },
-            <a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#63">HalfClosedLocal</a>(..) <span class="op">=</span><span class="op">&gt;</span> {
+            <a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#63">HalfClosedLocal</a>(..) =&gt; {
                 <span class="macro">trace!</span>(<span class="string">&quot;recv_close: HalfClosedLocal =&gt; Closed&quot;</span>);
                 <a class="self" href="../../../../src/h2/proto/streams/state.rs.html#200">self</a>.<span class="ident">inner</span> <span class="op">=</span> <a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#65">Closed</a>(<a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#76">Cause::EndStream</a>);
                 <span class="prelude-val">Ok</span>(())
             },
-            <span class="ident">state</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">state</span> =&gt; {
                 <span class="macro">proto_err!</span>(<span class="ident">conn</span>: <span class="string">&quot;recv_close: in unexpected state {:?}&quot;</span>, <a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#215">state</a>);
                 <span class="prelude-val">Err</span>(<a class="ident" href="../../../../src/h2/codec/error.rs.html#8">RecvError::Connection</a>(<span class="ident">Reason::PROTOCOL_ERROR</span>))
             }
@@ -679,7 +679,7 @@
         <span class="kw">match</span> <a class="self" href="../../../../src/h2/proto/streams/state.rs.html#227">self</a>.<span class="ident">inner</span> {
             <span class="comment">// If the stream is already in a `Closed` state, do nothing,</span>
             <span class="comment">// provided that there are no frames still in the send queue.</span>
-            <a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#65">Closed</a>(..) <span class="kw">if</span> <span class="op">!</span><a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#227">queued</a> <span class="op">=</span><span class="op">&gt;</span> {},
+            <a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#65">Closed</a>(..) <span class="kw">if</span> <span class="op">!</span><a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#227">queued</a> =&gt; {},
             <span class="comment">// A notionally `Closed` stream may still have queued frames in</span>
             <span class="comment">// the following cases:</span>
             <span class="comment">//</span>
@@ -694,7 +694,7 @@
             <span class="comment">// In either of these cases, we want to overwrite the stream&#39;s</span>
             <span class="comment">// previous state with the received RST_STREAM, so that the queue</span>
             <span class="comment">// will be cleared by `Prioritize::pop_frame`.</span>
-            <span class="ident">state</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">state</span> =&gt; {
                 <span class="macro">trace!</span>(
                     <span class="string">&quot;recv_reset; reason={:?}; state={:?}; queued={:?}&quot;</span>,
                     <a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#227">reason</a>, <a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#246">state</a>, <a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#227">queued</a>
@@ -710,12 +710,12 @@
         <span class="kw">use</span> <a class="ident" href="../../../../src/h2/proto/error.rs.html#8-11">proto::Error</a>::<span class="kw-2">*</span>;
 
         <span class="kw">match</span> <a class="self" href="../../../../src/h2/proto/streams/state.rs.html#258">self</a>.<span class="ident">inner</span> {
-            <a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#65">Closed</a>(..) <span class="op">=</span><span class="op">&gt;</span> {},
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#65">Closed</a>(..) =&gt; {},
+            <span class="kw">_</span> =&gt; {
                 <span class="macro">trace!</span>(<span class="string">&quot;recv_err; err={:?}&quot;</span>, <a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#258">err</a>);
                 <a class="self" href="../../../../src/h2/proto/streams/state.rs.html#258">self</a>.<span class="ident">inner</span> <span class="op">=</span> <a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#65">Closed</a>(<span class="kw">match</span> <span class="kw-2">*</span><a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#258">err</a> {
-                    <a class="ident" href="../../../../src/h2/proto/error.rs.html#9">Proto</a>(<span class="ident">reason</span>) <span class="op">=</span><span class="op">&gt;</span> <a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#78">Cause::LocallyReset</a>(<a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#266">reason</a>),
-                    <a class="ident" href="../../../../src/h2/proto/error.rs.html#10">Io</a>(..) <span class="op">=</span><span class="op">&gt;</span> <a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#79">Cause::Io</a>,
+                    <a class="ident" href="../../../../src/h2/proto/error.rs.html#9">Proto</a>(<span class="ident">reason</span>) =&gt; <a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#78">Cause::LocallyReset</a>(<a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#266">reason</a>),
+                    <a class="ident" href="../../../../src/h2/proto/error.rs.html#10">Io</a>(..) =&gt; <a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#79">Cause::Io</a>,
                 });
             },
         }
@@ -723,8 +723,8 @@
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">recv_eof</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) {
         <span class="kw">match</span> <a class="self" href="../../../../src/h2/proto/streams/state.rs.html#273">self</a>.<span class="ident">inner</span> {
-            <a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#65">Closed</a>(..) <span class="op">=</span><span class="op">&gt;</span> {},
-            <span class="ident">s</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#65">Closed</a>(..) =&gt; {},
+            <span class="ident">s</span> =&gt; {
                 <span class="macro">trace!</span>(<span class="string">&quot;recv_eof; state={:?}&quot;</span>, <a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#276">s</a>);
                 <a class="self" href="../../../../src/h2/proto/streams/state.rs.html#273">self</a>.<span class="ident">inner</span> <span class="op">=</span> <a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#65">Closed</a>(<a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#79">Cause::Io</a>);
             }
@@ -736,16 +736,16 @@
         <span class="kw">match</span> <a class="self" href="../../../../src/h2/proto/streams/state.rs.html#284">self</a>.<span class="ident">inner</span> {
             <a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#62">Open</a> {
                 <span class="ident">remote</span>, ..
-            } <span class="op">=</span><span class="op">&gt;</span> {
+            } =&gt; {
                 <span class="comment">// The remote side will continue to receive data.</span>
                 <span class="macro">trace!</span>(<span class="string">&quot;send_close: Open =&gt; HalfClosedLocal({:?})&quot;</span>, <a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#287">remote</a>);
                 <a class="self" href="../../../../src/h2/proto/streams/state.rs.html#284">self</a>.<span class="ident">inner</span> <span class="op">=</span> <a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#63">HalfClosedLocal</a>(<a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#287">remote</a>);
             },
-            <a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#64">HalfClosedRemote</a>(..) <span class="op">=</span><span class="op">&gt;</span> {
+            <a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#64">HalfClosedRemote</a>(..) =&gt; {
                 <span class="macro">trace!</span>(<span class="string">&quot;send_close: HalfClosedRemote =&gt; Closed&quot;</span>);
                 <a class="self" href="../../../../src/h2/proto/streams/state.rs.html#284">self</a>.<span class="ident">inner</span> <span class="op">=</span> <a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#65">Closed</a>(<a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#76">Cause::EndStream</a>);
             },
-            <span class="ident">state</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic!</span>(<span class="string">&quot;send_close: unexpected state {:?}&quot;</span>, <a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#297">state</a>),
+            <span class="ident">state</span> =&gt; <span class="macro">panic!</span>(<span class="string">&quot;send_close: unexpected state {:?}&quot;</span>, <a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#297">state</a>),
         }
     }
 
@@ -760,135 +760,135 @@
         <a class="self" href="../../../../src/h2/proto/streams/state.rs.html#307">self</a>.<span class="ident">inner</span> <span class="op">=</span> <a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#65">Closed</a>(<a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#88">Cause::Scheduled</a>(<a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#307">reason</a>));
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_scheduled_reset</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../../src/h2/frame/reason.rs.html#20">Reason</a><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_scheduled_reset</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../../src/h2/frame/reason.rs.html#20">Reason</a><span class="op">&gt;</span> {
         <span class="kw">match</span> <a class="self" href="../../../../src/h2/proto/streams/state.rs.html#312">self</a>.<span class="ident">inner</span> {
-            <a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#65">Closed</a>(<a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#88">Cause::Scheduled</a>(<span class="ident">reason</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#314">reason</a>),
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
+            <a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#65">Closed</a>(<a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#88">Cause::Scheduled</a>(<span class="ident">reason</span>)) =&gt; <span class="prelude-val">Some</span>(<a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#314">reason</a>),
+            <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_scheduled_reset</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_scheduled_reset</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
         <span class="kw">match</span> <a class="self" href="../../../../src/h2/proto/streams/state.rs.html#319">self</a>.<span class="ident">inner</span> {
-            <a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#65">Closed</a>(<a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#88">Cause::Scheduled</a>(..)) <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">true</span>,
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
+            <a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#65">Closed</a>(<a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#88">Cause::Scheduled</a>(..)) =&gt; <span class="bool-val">true</span>,
+            <span class="kw">_</span> =&gt; <span class="bool-val">false</span>,
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_local_reset</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_local_reset</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
         <span class="kw">match</span> <a class="self" href="../../../../src/h2/proto/streams/state.rs.html#326">self</a>.<span class="ident">inner</span> {
-            <a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#65">Closed</a>(<a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#78">Cause::LocallyReset</a>(<span class="kw">_</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">true</span>,
-            <a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#65">Closed</a>(<a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#88">Cause::Scheduled</a>(..)) <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">true</span>,
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
+            <a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#65">Closed</a>(<a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#78">Cause::LocallyReset</a>(<span class="kw">_</span>)) =&gt; <span class="bool-val">true</span>,
+            <a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#65">Closed</a>(<a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#88">Cause::Scheduled</a>(..)) =&gt; <span class="bool-val">true</span>,
+            <span class="kw">_</span> =&gt; <span class="bool-val">false</span>,
         }
     }
 
     <span class="doccomment">/// Returns true if the stream is already reset.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_reset</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_reset</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
         <span class="kw">match</span> <a class="self" href="../../../../src/h2/proto/streams/state.rs.html#335">self</a>.<span class="ident">inner</span> {
-            <a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#65">Closed</a>(<a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#76">Cause::EndStream</a>) <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
-            <a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#65">Closed</a>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">true</span>,
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
+            <a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#65">Closed</a>(<a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#76">Cause::EndStream</a>) =&gt; <span class="bool-val">false</span>,
+            <a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#65">Closed</a>(<span class="kw">_</span>) =&gt; <span class="bool-val">true</span>,
+            <span class="kw">_</span> =&gt; <span class="bool-val">false</span>,
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_send_streaming</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_send_streaming</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
         <span class="kw">match</span> <a class="self" href="../../../../src/h2/proto/streams/state.rs.html#343">self</a>.<span class="ident">inner</span> {
             <a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#62">Open</a> {
                 <span class="ident">local</span>: <a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#71">Streaming</a>,
                 ..
-            } <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">true</span>,
-            <a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#64">HalfClosedRemote</a>(<a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#71">Streaming</a>) <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">true</span>,
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
+            } =&gt; <span class="bool-val">true</span>,
+            <a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#64">HalfClosedRemote</a>(<a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#71">Streaming</a>) =&gt; <span class="bool-val">true</span>,
+            <span class="kw">_</span> =&gt; <span class="bool-val">false</span>,
         }
     }
 
     <span class="doccomment">/// Returns true when the stream is in a state to receive headers</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_recv_headers</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_recv_headers</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
         <span class="kw">match</span> <a class="self" href="../../../../src/h2/proto/streams/state.rs.html#355">self</a>.<span class="ident">inner</span> {
-            <a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#58">Idle</a> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">true</span>,
+            <a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#58">Idle</a> =&gt; <span class="bool-val">true</span>,
             <a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#62">Open</a> {
                 <span class="ident">remote</span>: <a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#70">AwaitingHeaders</a>,
                 ..
-            } <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">true</span>,
-            <a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#63">HalfClosedLocal</a>(<a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#70">AwaitingHeaders</a>) <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">true</span>,
-            <a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#61">ReservedRemote</a> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">true</span>,
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
+            } =&gt; <span class="bool-val">true</span>,
+            <a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#63">HalfClosedLocal</a>(<a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#70">AwaitingHeaders</a>) =&gt; <span class="bool-val">true</span>,
+            <a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#61">ReservedRemote</a> =&gt; <span class="bool-val">true</span>,
+            <span class="kw">_</span> =&gt; <span class="bool-val">false</span>,
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_recv_streaming</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_recv_streaming</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
         <span class="kw">match</span> <a class="self" href="../../../../src/h2/proto/streams/state.rs.html#368">self</a>.<span class="ident">inner</span> {
             <a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#62">Open</a> {
                 <span class="ident">remote</span>: <a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#71">Streaming</a>,
                 ..
-            } <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">true</span>,
-            <a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#63">HalfClosedLocal</a>(<a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#71">Streaming</a>) <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">true</span>,
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
+            } =&gt; <span class="bool-val">true</span>,
+            <a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#63">HalfClosedLocal</a>(<a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#71">Streaming</a>) =&gt; <span class="bool-val">true</span>,
+            <span class="kw">_</span> =&gt; <span class="bool-val">false</span>,
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_closed</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_closed</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
         <span class="kw">match</span> <a class="self" href="../../../../src/h2/proto/streams/state.rs.html#379">self</a>.<span class="ident">inner</span> {
-            <a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#65">Closed</a>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">true</span>,
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
+            <a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#65">Closed</a>(<span class="kw">_</span>) =&gt; <span class="bool-val">true</span>,
+            <span class="kw">_</span> =&gt; <span class="bool-val">false</span>,
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_recv_closed</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_recv_closed</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
         <span class="kw">match</span> <a class="self" href="../../../../src/h2/proto/streams/state.rs.html#386">self</a>.<span class="ident">inner</span> {
-            <a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#65">Closed</a>(..) <span class="op">|</span> <a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#64">HalfClosedRemote</a>(..) <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">true</span>,
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
+            <a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#65">Closed</a>(..) <span class="op">|</span> <a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#64">HalfClosedRemote</a>(..) =&gt; <span class="bool-val">true</span>,
+            <span class="kw">_</span> =&gt; <span class="bool-val">false</span>,
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_send_closed</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_send_closed</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
         <span class="kw">match</span> <a class="self" href="../../../../src/h2/proto/streams/state.rs.html#393">self</a>.<span class="ident">inner</span> {
-            <a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#65">Closed</a>(..) <span class="op">|</span> <a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#63">HalfClosedLocal</a>(..) <span class="op">|</span> <a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#61">ReservedRemote</a> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">true</span>,
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
+            <a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#65">Closed</a>(..) <span class="op">|</span> <a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#63">HalfClosedLocal</a>(..) <span class="op">|</span> <a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#61">ReservedRemote</a> =&gt; <span class="bool-val">true</span>,
+            <span class="kw">_</span> =&gt; <span class="bool-val">false</span>,
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_idle</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_idle</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
         <span class="kw">match</span> <a class="self" href="../../../../src/h2/proto/streams/state.rs.html#400">self</a>.<span class="ident">inner</span> {
-            <a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#58">Idle</a> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">true</span>,
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
+            <a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#58">Idle</a> =&gt; <span class="bool-val">true</span>,
+            <span class="kw">_</span> =&gt; <span class="bool-val">false</span>,
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ensure_recv_open</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>, <a class="ident" href="../../../../src/h2/proto/error.rs.html#8-11">proto::Error</a><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ensure_recv_open</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>, <a class="ident" href="../../../../src/h2/proto/error.rs.html#8-11">proto::Error</a><span class="op">&gt;</span> {
         <span class="comment">// TODO: Is this correct?</span>
         <span class="kw">match</span> <a class="self" href="../../../../src/h2/proto/streams/state.rs.html#407">self</a>.<span class="ident">inner</span> {
             <a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#65">Closed</a>(<a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#77">Cause::Proto</a>(<span class="ident">reason</span>)) <span class="op">|</span>
             <a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#65">Closed</a>(<a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#78">Cause::LocallyReset</a>(<span class="ident">reason</span>)) <span class="op">|</span>
-            <a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#65">Closed</a>(<a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#88">Cause::Scheduled</a>(<span class="ident">reason</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../../../src/h2/proto/error.rs.html#9">proto::Error::Proto</a>(<a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#410">reason</a>)),
-            <a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#65">Closed</a>(<a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#79">Cause::Io</a>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../../../src/h2/proto/error.rs.html#10">proto::Error::Io</a>(<span class="ident">io::ErrorKind::BrokenPipe</span>.<span class="ident">into</span>())),
+            <a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#65">Closed</a>(<a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#88">Cause::Scheduled</a>(<span class="ident">reason</span>)) =&gt; <span class="prelude-val">Err</span>(<a class="ident" href="../../../../src/h2/proto/error.rs.html#9">proto::Error::Proto</a>(<a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#410">reason</a>)),
+            <a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#65">Closed</a>(<a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#79">Cause::Io</a>) =&gt; <span class="prelude-val">Err</span>(<a class="ident" href="../../../../src/h2/proto/error.rs.html#10">proto::Error::Io</a>(<span class="ident">io::ErrorKind::BrokenPipe</span>.<span class="ident">into</span>())),
             <a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#65">Closed</a>(<a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#76">Cause::EndStream</a>) <span class="op">|</span>
-            <a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#64">HalfClosedRemote</a>(..) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="bool-val">false</span>),
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="bool-val">true</span>),
+            <a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#64">HalfClosedRemote</a>(..) =&gt; <span class="prelude-val">Ok</span>(<span class="bool-val">false</span>),
+            <span class="kw">_</span> =&gt; <span class="prelude-val">Ok</span>(<span class="bool-val">true</span>),
         }
     }
 
     <span class="doccomment">/// Returns a reason if the stream has been reset.</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">ensure_reason</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">mode</span>: <a class="ident" href="../../../../src/h2/proto/streams/send.rs.html#31-34">PollReset</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../../src/h2/frame/reason.rs.html#20">Reason</a><span class="op">&gt;</span>, <a class="ident" href="../../../../src/h2/error.rs.html#19-21">::Error</a><span class="op">&gt;</span> {
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">ensure_reason</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">mode</span>: <a class="ident" href="../../../../src/h2/proto/streams/send.rs.html#31-34">PollReset</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../../src/h2/frame/reason.rs.html#20">Reason</a><span class="op">&gt;</span>, <a class="ident" href="../../../../src/h2/error.rs.html#19-21">::Error</a><span class="op">&gt;</span> {
         <span class="kw">match</span> <a class="self" href="../../../../src/h2/proto/streams/state.rs.html#421">self</a>.<span class="ident">inner</span> {
             <a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#65">Closed</a>(<a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#77">Cause::Proto</a>(<span class="ident">reason</span>)) <span class="op">|</span>
             <a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#65">Closed</a>(<a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#78">Cause::LocallyReset</a>(<span class="ident">reason</span>)) <span class="op">|</span>
-            <a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#65">Closed</a>(<a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#88">Cause::Scheduled</a>(<span class="ident">reason</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#423">reason</a>)),
-            <a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#65">Closed</a>(<a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#79">Cause::Io</a>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../../../src/h2/proto/error.rs.html#10">proto::Error::Io</a>(<span class="ident">io::ErrorKind::BrokenPipe</span>.<span class="ident">into</span>()).<span class="ident">into</span>()),
+            <a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#65">Closed</a>(<a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#88">Cause::Scheduled</a>(<span class="ident">reason</span>)) =&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#423">reason</a>)),
+            <a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#65">Closed</a>(<a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#79">Cause::Io</a>) =&gt; <span class="prelude-val">Err</span>(<a class="ident" href="../../../../src/h2/proto/error.rs.html#10">proto::Error::Io</a>(<span class="ident">io::ErrorKind::BrokenPipe</span>.<span class="ident">into</span>()).<span class="ident">into</span>()),
             <a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#62">Open</a> { <span class="ident">local</span>: <a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#71">Streaming</a>, .. } <span class="op">|</span>
-            <a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#64">HalfClosedRemote</a>(<a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#71">Streaming</a>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#421">mode</a> {
-                <a class="ident" href="../../../../src/h2/proto/streams/send.rs.html#32">PollReset::AwaitingHeaders</a> <span class="op">=</span><span class="op">&gt;</span> {
+            <a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#64">HalfClosedRemote</a>(<a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#71">Streaming</a>) =&gt; <span class="kw">match</span> <a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#421">mode</a> {
+                <a class="ident" href="../../../../src/h2/proto/streams/send.rs.html#32">PollReset::AwaitingHeaders</a> =&gt; {
                     <span class="prelude-val">Err</span>(<a class="ident" href="../../../../src/h2/codec/error.rs.html#59">UserError::PollResetAfterSendResponse</a>.<span class="ident">into</span>())
                 },
-                <a class="ident" href="../../../../src/h2/proto/streams/send.rs.html#33">PollReset::Streaming</a> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>),
+                <a class="ident" href="../../../../src/h2/proto/streams/send.rs.html#33">PollReset::Streaming</a> =&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>),
             },
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>),
+            <span class="kw">_</span> =&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>),
         }
     }
 }
 
 <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for</span> <a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#52-54">State</a> {
-    <span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#52-54">State</a> {
+    <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#52-54">State</a> {
         <a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#52-54">State</a> {
             <span class="ident">inner</span>: <a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#58">Inner::Idle</a>,
         }
@@ -896,7 +896,7 @@
 }
 
 <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for</span> <a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#69-72">Peer</a> {
-    <span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="self">Self</span> {
         <a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#70">AwaitingHeaders</a>
     }
 }

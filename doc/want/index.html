@@ -10,7 +10,7 @@ doesn’t mean the work would be used by the receiver.</p>
 <p>This is where something like <code>want</code> comes in. Added to a channel, you can
 make sure that the <code>tx</code> only creates the message and sends it when the <code>rx</code>
 has <code>poll()</code> for it, and the buffer was empty.</p>
-<h1 id="example" class="section-header"><a href="#example">Example</a></h1>
+<h2 id="example" class="section-header"><a href="#example">Example</a></h2>
 <div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">futures</span>;
 <span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">want</span>;
 
@@ -27,14 +27,14 @@ has <code>poll()</code> for it, and the buffer was empty.</p>
 <span class="ident">spawn</span>(<span class="ident">futures::future::poll_fn</span>(<span class="kw">move</span> <span class="op">|</span><span class="op">|</span> <span class="kw">loop</span> {
 
     <span class="kw">match</span> <span class="ident">rx</span>.<span class="ident">poll</span>() {
-        <span class="prelude-val">Ok</span>(<span class="ident">Async::Ready</span>(<span class="prelude-val">Some</span>(<span class="ident">_msg</span>))) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="prelude-val">Ok</span>(<span class="ident">Async::Ready</span>(<span class="prelude-val">Some</span>(<span class="ident">_msg</span>))) =&gt; {
             <span class="macro">println!</span>(<span class="string">&quot;got a message&quot;</span>);
         },
-        <span class="prelude-val">Ok</span>(<span class="ident">Async::Ready</span>(<span class="prelude-val">None</span>)) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="prelude-val">Ok</span>(<span class="ident">Async::Ready</span>(<span class="prelude-val">None</span>)) =&gt; {
             <span class="macro">println!</span>(<span class="string">&quot;DONE&quot;</span>);
             <span class="kw">return</span> <span class="prelude-val">Ok</span>::<span class="op">&lt;</span><span class="kw">_</span>, ()<span class="op">&gt;</span>(<span class="ident">Async::Ready</span>(()));
         },
-        <span class="prelude-val">Ok</span>(<span class="ident">Async::NotReady</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="prelude-val">Ok</span>(<span class="ident">Async::NotReady</span>) =&gt; {
             <span class="comment">// Maybe something comes up that prevents us from ever</span>
             <span class="comment">// using the expensive message.</span>
             <span class="comment">//</span>
@@ -46,7 +46,7 @@ has <code>poll()</code> for it, and the buffer was empty.</p>
             <span class="comment">// But we can use it! So tell the `want` channel.</span>
             <span class="ident">tk</span>.<span class="ident">want</span>();
         },
-        <span class="prelude-val">Err</span>(()) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable!</span>(<span class="string">&quot;mpsc doesn&#39;t error&quot;</span>),
+        <span class="prelude-val">Err</span>(()) =&gt; <span class="macro">unreachable!</span>(<span class="string">&quot;mpsc doesn&#39;t error&quot;</span>),
     }
 }));
 
@@ -55,13 +55,13 @@ has <code>poll()</code> for it, and the buffer was empty.</p>
     <span class="comment">// It&#39;s expensive to create a new message, so we wait until the</span>
     <span class="comment">// receiving end truly *wants* the message.</span>
     <span class="kw">match</span> <span class="ident">gv</span>.<span class="ident">poll_want</span>() {
-        <span class="prelude-val">Ok</span>(<span class="ident">Async::Ready</span>(())) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="prelude-val">Ok</span>(<span class="ident">Async::Ready</span>(())) =&gt; {
             <span class="comment">// They want it, let&#39;s go!</span>
             <span class="ident">tx</span>.<span class="ident">try_send</span>(<span class="ident">Expensive</span>).<span class="ident">unwrap</span>();
             <span class="prelude-val">Ok</span>(<span class="ident">Async::Ready</span>(()))
         },
-        <span class="prelude-val">Ok</span>(<span class="ident">Async::NotReady</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">Async::NotReady</span>),
-        <span class="prelude-val">Err</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="prelude-val">Ok</span>(<span class="ident">Async::NotReady</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="ident">Async::NotReady</span>),
+        <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; {
             <span class="comment">// Looks like they will never want it...</span>
             <span class="prelude-val">Err</span>(())
         }
@@ -69,12 +69,12 @@ has <code>poll()</code> for it, and the buffer was empty.</p>
 }));
 </code></pre></div>
 </div></details><h2 id="structs" class="section-header"><a href="#structs">Structs</a></h2>
-<div class="item-table"><div class="item-left module-item"><a class="struct" href="struct.Closed.html" title="want::Closed struct">Closed</a></div><div class="item-right docblock-short"><p>The <code>Taker</code> has canceled its interest in a value.</p>
-</div><div class="item-left module-item"><a class="struct" href="struct.Giver.html" title="want::Giver struct">Giver</a></div><div class="item-right docblock-short"><p>An entity that gives a value when wanted.</p>
-</div><div class="item-left module-item"><a class="struct" href="struct.SharedGiver.html" title="want::SharedGiver struct">SharedGiver</a></div><div class="item-right docblock-short"><p>A cloneable <code>Giver</code>.</p>
-</div><div class="item-left module-item"><a class="struct" href="struct.Taker.html" title="want::Taker struct">Taker</a></div><div class="item-right docblock-short"><p>An entity that wants a value.</p>
-</div></div><h2 id="functions" class="section-header"><a href="#functions">Functions</a></h2>
-<div class="item-table"><div class="item-left module-item"><a class="fn" href="fn.new.html" title="want::new fn">new</a></div><div class="item-right docblock-short"><p>Create a new <code>want</code> channel.</p>
-</div></div></section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../" data-current-crate="want" data-search-index-js="../search-index.js" data-search-js="../search.js"></div>
+<div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.Closed.html" title="want::Closed struct">Closed</a></div><div class="item-right docblock-short"><p>The <code>Taker</code> has canceled its interest in a value.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.Giver.html" title="want::Giver struct">Giver</a></div><div class="item-right docblock-short"><p>An entity that gives a value when wanted.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.SharedGiver.html" title="want::SharedGiver struct">SharedGiver</a></div><div class="item-right docblock-short"><p>A cloneable <code>Giver</code>.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.Taker.html" title="want::Taker struct">Taker</a></div><div class="item-right docblock-short"><p>An entity that wants a value.</p>
+</div></div></div><h2 id="functions" class="section-header"><a href="#functions">Functions</a></h2>
+<div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="fn" href="fn.new.html" title="want::new fn">new</a></div><div class="item-right docblock-short"><p>Create a new <code>want</code> channel.</p>
+</div></div></div></section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../" data-current-crate="want" data-search-index-js="../search-index.js" data-search-js="../search.js"></div>
     <script src="../main.js"></script>
 </body></html>

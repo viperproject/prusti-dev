@@ -386,7 +386,7 @@
 <span class="comment">// ===== impl Backup =====</span>
 
 <span class="kw">impl</span> <a class="ident" href="../../../src/tokio_threadpool/pool/backup.rs.html#30-48">Backup</a> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="../../../src/tokio_threadpool/pool/backup.rs.html#30-48">Backup</a> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <a class="ident" href="../../../src/tokio_threadpool/pool/backup.rs.html#30-48">Backup</a> {
         <a class="ident" href="../../../src/tokio_threadpool/pool/backup.rs.html#30-48">Backup</a> {
             <span class="ident">handoff</span>: <span class="ident">UnsafeCell::new</span>(<span class="prelude-val">None</span>),
             <span class="ident">state</span>: <span class="ident">AtomicUsize::new</span>(<span class="ident">State::new</span>().<span class="ident">into</span>()),
@@ -415,7 +415,7 @@
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_running</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_running</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
         <span class="kw">let</span> <span class="ident">state</span>: <a class="ident" href="../../../src/tokio_threadpool/pool/backup.rs.html#62">State</a> <span class="op">=</span> <a class="self" href="../../../src/tokio_threadpool/pool/backup.rs.html#110">self</a>.<span class="ident">state</span>.<span class="ident">load</span>(<span class="ident">Relaxed</span>).<span class="ident">into</span>();
         <a class="ident" href="../../../src/tokio_threadpool/pool/backup.rs.html#111">state</a>.<a class="ident" href="../../../src/tokio_threadpool/pool/backup.rs.html#251">is_running</a>()
     }
@@ -423,7 +423,7 @@
     <span class="doccomment">/// Hands off the worker to a thread.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Returns `true` if the thread needs to be spawned.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">worker_handoff</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">worker_id</span>: <a class="ident" href="../../../src/tokio_threadpool/worker/mod.rs.html#82">WorkerId</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">worker_handoff</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">worker_id</span>: <a class="ident" href="../../../src/tokio_threadpool/worker/mod.rs.html#82">WorkerId</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
         <span class="kw">unsafe</span> {
             <span class="comment">// The backup worker should not already have been handoff a worker.</span>
             <span class="macro">debug_assert!</span>((<span class="kw-2">*</span><a class="self" href="../../../src/tokio_threadpool/pool/backup.rs.html#118">self</a>.<span class="ident">handoff</span>.<span class="ident">get</span>()).<span class="ident">is_none</span>());
@@ -466,7 +466,7 @@
     }
 
     <span class="doccomment">/// Wait for a worker handoff</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">wait_for_handoff</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">timeout</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="../../../src/tokio_threadpool/pool/backup.rs.html#54-58">Handoff</a> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">wait_for_handoff</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">timeout</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a><span class="op">&gt;</span>) -&gt; <a class="ident" href="../../../src/tokio_threadpool/pool/backup.rs.html#54-58">Handoff</a> {
         <span class="kw">let</span> <span class="ident">sleep_until</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio_threadpool/pool/backup.rs.html#161">timeout</a>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">dur</span><span class="op">|</span> <span class="ident">Instant::now</span>() <span class="op">+</span> <a class="ident" href="../../../src/tokio_threadpool/pool/backup.rs.html#162">dur</a>);
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">state</span>: <a class="ident" href="../../../src/tokio_threadpool/pool/backup.rs.html#62">State</a> <span class="op">=</span> <a class="self" href="../../../src/tokio_threadpool/pool/backup.rs.html#161">self</a>.<span class="ident">state</span>.<span class="ident">load</span>(<span class="ident">Acquire</span>).<span class="ident">into</span>();
 
@@ -482,11 +482,11 @@
             }
 
             <span class="kw">match</span> <a class="ident" href="../../../src/tokio_threadpool/pool/backup.rs.html#162">sleep_until</a> {
-                <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="prelude-val">None</span> =&gt; {
                     <a class="self" href="../../../src/tokio_threadpool/pool/backup.rs.html#161">self</a>.<span class="ident">park</span>.<a class="ident" href="../../../src/tokio_threadpool/park/default_park.rs.html#48">park_sync</a>(<span class="prelude-val">None</span>);
                     <a class="ident" href="../../../src/tokio_threadpool/pool/backup.rs.html#163">state</a> <span class="op">=</span> <a class="self" href="../../../src/tokio_threadpool/pool/backup.rs.html#161">self</a>.<span class="ident">state</span>.<span class="ident">load</span>(<span class="ident">Acquire</span>).<span class="ident">into</span>();
                 }
-                <span class="prelude-val">Some</span>(<span class="ident">when</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="prelude-val">Some</span>(<span class="ident">when</span>) =&gt; {
                     <span class="kw">let</span> <span class="ident">now</span> <span class="op">=</span> <span class="ident">Instant::now</span>();
 
                     <span class="kw">if</span> <a class="ident" href="../../../src/tokio_threadpool/pool/backup.rs.html#182">now</a> <span class="op">&lt;</span> <a class="ident" href="../../../src/tokio_threadpool/pool/backup.rs.html#181">when</a> {
@@ -504,7 +504,7 @@
                             .<span class="ident">compare_and_swap</span>(<a class="ident" href="../../../src/tokio_threadpool/pool/backup.rs.html#163">state</a>.<span class="ident">into</span>(), <a class="ident" href="../../../src/tokio_threadpool/pool/backup.rs.html#191">next</a>.<span class="ident">into</span>(), <span class="ident">AcqRel</span>)
                             .<span class="ident">into</span>();
 
-                        <span class="kw">if</span> <a class="ident" href="../../../src/tokio_threadpool/pool/backup.rs.html#194">actual</a> <span class="op">=</span><span class="op">=</span> <a class="ident" href="../../../src/tokio_threadpool/pool/backup.rs.html#163">state</a> {
+                        <span class="kw">if</span> <a class="ident" href="../../../src/tokio_threadpool/pool/backup.rs.html#194">actual</a> <span class="op">==</span> <a class="ident" href="../../../src/tokio_threadpool/pool/backup.rs.html#163">state</a> {
                             <span class="macro">debug_assert!</span>(<span class="op">!</span><a class="ident" href="../../../src/tokio_threadpool/pool/backup.rs.html#191">next</a>.<a class="ident" href="../../../src/tokio_threadpool/pool/backup.rs.html#251">is_running</a>());
                             <span class="kw">return</span> <a class="ident" href="../../../src/tokio_threadpool/pool/backup.rs.html#56">Handoff::Idle</a>;
                         }
@@ -516,7 +516,7 @@
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_pushed</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_pushed</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
         <span class="kw">let</span> <span class="ident">state</span>: <a class="ident" href="../../../src/tokio_threadpool/pool/backup.rs.html#62">State</a> <span class="op">=</span> <a class="self" href="../../../src/tokio_threadpool/pool/backup.rs.html#211">self</a>.<span class="ident">state</span>.<span class="ident">load</span>(<span class="ident">Relaxed</span>).<span class="ident">into</span>();
         <a class="ident" href="../../../src/tokio_threadpool/pool/backup.rs.html#212">state</a>.<a class="ident" href="../../../src/tokio_threadpool/pool/backup.rs.html#243">is_pushed</a>()
     }
@@ -527,7 +527,7 @@
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">next_sleeper</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="../../../src/tokio_threadpool/pool/backup.rs.html#51">BackupId</a> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">next_sleeper</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="../../../src/tokio_threadpool/pool/backup.rs.html#51">BackupId</a> {
         <span class="kw">unsafe</span> { <span class="kw-2">*</span><a class="self" href="../../../src/tokio_threadpool/pool/backup.rs.html#222">self</a>.<span class="ident">next_sleeper</span>.<span class="ident">get</span>() }
     }
 
@@ -543,21 +543,21 @@
 
 <span class="kw">impl</span> <a class="ident" href="../../../src/tokio_threadpool/pool/backup.rs.html#62">State</a> {
     <span class="doccomment">/// Returns a new, default, thread `State`</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="../../../src/tokio_threadpool/pool/backup.rs.html#62">State</a> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <a class="ident" href="../../../src/tokio_threadpool/pool/backup.rs.html#62">State</a> {
         <a class="ident" href="../../../src/tokio_threadpool/pool/backup.rs.html#62">State</a>(<span class="number">0</span>)
     }
 
     <span class="doccomment">/// Returns true if the thread entry is pushed in the sleeper stack</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_pushed</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../src/tokio_threadpool/pool/backup.rs.html#243">self</a>.<span class="number">0</span> <span class="op">&amp;</span> <a class="ident" href="../../../src/tokio_threadpool/pool/backup.rs.html#70">PUSHED</a> <span class="op">=</span><span class="op">=</span> <a class="ident" href="../../../src/tokio_threadpool/pool/backup.rs.html#70">PUSHED</a>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_pushed</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a class="self" href="../../../src/tokio_threadpool/pool/backup.rs.html#243">self</a>.<span class="number">0</span> <span class="op">&amp;</span> <a class="ident" href="../../../src/tokio_threadpool/pool/backup.rs.html#70">PUSHED</a> <span class="op">==</span> <a class="ident" href="../../../src/tokio_threadpool/pool/backup.rs.html#70">PUSHED</a>
     }
 
     <span class="kw">fn</span> <span class="ident">unset_pushed</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) {
         <a class="self" href="../../../src/tokio_threadpool/pool/backup.rs.html#247">self</a>.<span class="number">0</span> <span class="op">&amp;=</span> <span class="op">!</span><a class="ident" href="../../../src/tokio_threadpool/pool/backup.rs.html#70">PUSHED</a>;
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_running</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../src/tokio_threadpool/pool/backup.rs.html#251">self</a>.<span class="number">0</span> <span class="op">&amp;</span> <a class="ident" href="../../../src/tokio_threadpool/pool/backup.rs.html#73">RUNNING</a> <span class="op">=</span><span class="op">=</span> <a class="ident" href="../../../src/tokio_threadpool/pool/backup.rs.html#73">RUNNING</a>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_running</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a class="self" href="../../../src/tokio_threadpool/pool/backup.rs.html#251">self</a>.<span class="number">0</span> <span class="op">&amp;</span> <a class="ident" href="../../../src/tokio_threadpool/pool/backup.rs.html#73">RUNNING</a> <span class="op">==</span> <a class="ident" href="../../../src/tokio_threadpool/pool/backup.rs.html#73">RUNNING</a>
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_running</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) {
@@ -568,11 +568,11 @@
         <a class="self" href="../../../src/tokio_threadpool/pool/backup.rs.html#259">self</a>.<span class="number">0</span> <span class="op">&amp;=</span> <span class="op">!</span><a class="ident" href="../../../src/tokio_threadpool/pool/backup.rs.html#73">RUNNING</a>;
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_terminated</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../src/tokio_threadpool/pool/backup.rs.html#263">self</a>.<span class="number">0</span> <span class="op">&amp;</span> <a class="ident" href="../../../src/tokio_threadpool/pool/backup.rs.html#76">TERMINATED</a> <span class="op">=</span><span class="op">=</span> <a class="ident" href="../../../src/tokio_threadpool/pool/backup.rs.html#76">TERMINATED</a>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_terminated</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a class="self" href="../../../src/tokio_threadpool/pool/backup.rs.html#263">self</a>.<span class="number">0</span> <span class="op">&amp;</span> <a class="ident" href="../../../src/tokio_threadpool/pool/backup.rs.html#76">TERMINATED</a> <span class="op">==</span> <a class="ident" href="../../../src/tokio_threadpool/pool/backup.rs.html#76">TERMINATED</a>
     }
 
-    <span class="kw">fn</span> <span class="ident">worker_handoff</span>(<span class="ident">state</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicUsize.html">AtomicUsize</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="../../../src/tokio_threadpool/pool/backup.rs.html#62">State</a> {
+    <span class="kw">fn</span> <span class="ident">worker_handoff</span>(<span class="ident">state</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicUsize.html">AtomicUsize</a>) -&gt; <a class="ident" href="../../../src/tokio_threadpool/pool/backup.rs.html#62">State</a> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">curr</span>: <a class="ident" href="../../../src/tokio_threadpool/pool/backup.rs.html#62">State</a> <span class="op">=</span> <a class="ident" href="../../../src/tokio_threadpool/pool/backup.rs.html#267">state</a>.<span class="ident">load</span>(<span class="ident">Acquire</span>).<span class="ident">into</span>();
 
         <span class="kw">loop</span> {
@@ -584,7 +584,7 @@
                 .<span class="ident">compare_and_swap</span>(<a class="ident" href="../../../src/tokio_threadpool/pool/backup.rs.html#268">curr</a>.<span class="ident">into</span>(), <a class="ident" href="../../../src/tokio_threadpool/pool/backup.rs.html#271">next</a>.<span class="ident">into</span>(), <span class="ident">AcqRel</span>)
                 .<span class="ident">into</span>();
 
-            <span class="kw">if</span> <a class="ident" href="../../../src/tokio_threadpool/pool/backup.rs.html#275">actual</a> <span class="op">=</span><span class="op">=</span> <a class="ident" href="../../../src/tokio_threadpool/pool/backup.rs.html#268">curr</a> {
+            <span class="kw">if</span> <a class="ident" href="../../../src/tokio_threadpool/pool/backup.rs.html#275">actual</a> <span class="op">==</span> <a class="ident" href="../../../src/tokio_threadpool/pool/backup.rs.html#268">curr</a> {
                 <span class="kw">return</span> <a class="ident" href="../../../src/tokio_threadpool/pool/backup.rs.html#268">curr</a>;
             }
 
@@ -594,19 +594,19 @@
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../../src/tokio_threadpool/pool/backup.rs.html#62">State</a> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">src</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="../../../src/tokio_threadpool/pool/backup.rs.html#62">State</a> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">src</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a class="ident" href="../../../src/tokio_threadpool/pool/backup.rs.html#62">State</a> {
         <a class="ident" href="../../../src/tokio_threadpool/pool/backup.rs.html#62">State</a>(<a class="ident" href="../../../src/tokio_threadpool/pool/backup.rs.html#289">src</a>)
     }
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio_threadpool/pool/backup.rs.html#62">State</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">src</span>: <a class="ident" href="../../../src/tokio_threadpool/pool/backup.rs.html#62">State</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">src</span>: <a class="ident" href="../../../src/tokio_threadpool/pool/backup.rs.html#62">State</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
         <a class="ident" href="../../../src/tokio_threadpool/pool/backup.rs.html#295">src</a>.<span class="number">0</span>
     }
 }
 
 <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <a class="ident" href="../../../src/tokio_threadpool/pool/backup.rs.html#62">State</a> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">fmt</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">fmt</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
         <a class="ident" href="../../../src/tokio_threadpool/pool/backup.rs.html#301">fmt</a>.<span class="ident">debug_struct</span>(<span class="string">&quot;backup::State&quot;</span>)
             .<span class="ident">field</span>(<span class="string">&quot;is_pushed&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/tokio_threadpool/pool/backup.rs.html#301">self</a>.<a class="ident" href="../../../src/tokio_threadpool/pool/backup.rs.html#243">is_pushed</a>())
             .<span class="ident">field</span>(<span class="string">&quot;is_running&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/tokio_threadpool/pool/backup.rs.html#301">self</a>.<a class="ident" href="../../../src/tokio_threadpool/pool/backup.rs.html#251">is_running</a>())

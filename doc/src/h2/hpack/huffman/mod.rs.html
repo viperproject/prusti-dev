@@ -230,7 +230,7 @@
 <span class="kw">const</span> <span class="ident">DECODED</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a> <span class="op">=</span> <span class="number">2</span>;
 <span class="kw">const</span> <span class="ident">ERROR</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a> <span class="op">=</span> <span class="number">4</span>;
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">decode</span>(<span class="ident">src</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], <span class="ident">buf</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../../../bytes/bytes/struct.BytesMut.html">BytesMut</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../../../bytes/bytes/struct.BytesMut.html">BytesMut</a>, <a class="ident" href="../../../../src/h2/hpack/decoder.rs.html#28-39">DecoderError</a><span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">decode</span>(<span class="ident">src</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], <span class="ident">buf</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../../../bytes/bytes/struct.BytesMut.html">BytesMut</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../../../bytes/bytes/struct.BytesMut.html">BytesMut</a>, <a class="ident" href="../../../../src/h2/hpack/decoder.rs.html#28-39">DecoderError</a><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">decoder</span> <span class="op">=</span> <span class="ident">Decoder::new</span>();
 
     <span class="comment">// Max compression ratio is &gt;= 0.5</span>
@@ -254,7 +254,7 @@
 }
 
 <span class="comment">// TODO: return error when there is not enough room to encode the value</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">encode</span><span class="op">&lt;</span><span class="ident">B</span>: <a class="ident" href="../../../../bytes/buf/buf_mut/trait.BufMut.html">BufMut</a><span class="op">&gt;</span>(<span class="ident">src</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], <span class="ident">dst</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">B</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../../../src/h2/hpack/encoder.rs.html#26-28">EncoderError</a><span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">encode</span><span class="op">&lt;</span><span class="ident">B</span>: <a class="ident" href="../../../../bytes/buf/buf_mut/trait.BufMut.html">BufMut</a><span class="op">&gt;</span>(<span class="ident">src</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], <span class="ident">dst</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">B</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../../../src/h2/hpack/encoder.rs.html#26-28">EncoderError</a><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">bits</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> <span class="op">=</span> <span class="number">0</span>;
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">bits_left</span> <span class="op">=</span> <span class="number">40</span>;
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">rem</span> <span class="op">=</span> <a class="ident" href="../../../../src/h2/hpack/huffman/mod.rs.html#44">dst</a>.<span class="ident">remaining_mut</span>();
@@ -266,7 +266,7 @@
         <a class="ident" href="../../../../src/h2/hpack/huffman/mod.rs.html#46">bits_left</a> <span class="op">-</span><span class="op">=</span> <a class="ident" href="../../../../src/h2/hpack/huffman/mod.rs.html#50">nbits</a>;
 
         <span class="kw">while</span> <a class="ident" href="../../../../src/h2/hpack/huffman/mod.rs.html#46">bits_left</a> <span class="op">&lt;</span><span class="op">=</span> <span class="number">32</span> {
-            <span class="kw">if</span> <a class="ident" href="../../../../src/h2/hpack/huffman/mod.rs.html#47">rem</a> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
+            <span class="kw">if</span> <a class="ident" href="../../../../src/h2/hpack/huffman/mod.rs.html#47">rem</a> <span class="op">==</span> <span class="number">0</span> {
                 <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../../../src/h2/hpack/encoder.rs.html#27">EncoderError::BufferOverflow</a>);
             }
 
@@ -279,7 +279,7 @@
     }
 
     <span class="kw">if</span> <a class="ident" href="../../../../src/h2/hpack/huffman/mod.rs.html#46">bits_left</a> <span class="op">!</span><span class="op">=</span> <span class="number">40</span> {
-        <span class="kw">if</span> <a class="ident" href="../../../../src/h2/hpack/huffman/mod.rs.html#47">rem</a> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
+        <span class="kw">if</span> <a class="ident" href="../../../../src/h2/hpack/huffman/mod.rs.html#47">rem</a> <span class="op">==</span> <span class="number">0</span> {
             <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../../../src/h2/hpack/encoder.rs.html#27">EncoderError::BufferOverflow</a>);
         }
 
@@ -292,7 +292,7 @@
 }
 
 <span class="kw">impl</span> <a class="ident" href="../../../../src/h2/hpack/huffman/mod.rs.html#9-12">Decoder</a> {
-    <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="../../../../src/h2/hpack/huffman/mod.rs.html#9-12">Decoder</a> {
+    <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <a class="ident" href="../../../../src/h2/hpack/huffman/mod.rs.html#9-12">Decoder</a> {
         <a class="ident" href="../../../../src/h2/hpack/huffman/mod.rs.html#9-12">Decoder</a> {
             <span class="ident">state</span>: <span class="number">0</span>,
             <span class="ident">maybe_eos</span>: <span class="bool-val">false</span>,
@@ -300,29 +300,29 @@
     }
 
     <span class="comment">// Decodes 4 bits</span>
-    <span class="kw">fn</span> <span class="ident">decode4</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">input</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><span class="op">&gt;</span>, <a class="ident" href="../../../../src/h2/hpack/decoder.rs.html#28-39">DecoderError</a><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">decode4</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">input</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><span class="op">&gt;</span>, <a class="ident" href="../../../../src/h2/hpack/decoder.rs.html#28-39">DecoderError</a><span class="op">&gt;</span> {
         <span class="comment">// (next-state, byte, flags)</span>
         <span class="kw">let</span> (<span class="ident">next</span>, <span class="ident">byte</span>, <span class="ident">flags</span>) <span class="op">=</span> <a class="ident" href="../../../../src/h2/hpack/huffman/table.rs.html#265-5130">DECODE_TABLE</a>[<a class="self" href="../../../../src/h2/hpack/huffman/mod.rs.html#90">self</a>.<span class="ident">state</span>][<a class="ident" href="../../../../src/h2/hpack/huffman/mod.rs.html#90">input</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>];
 
-        <span class="kw">if</span> <a class="ident" href="../../../../src/h2/hpack/huffman/mod.rs.html#92">flags</a> <span class="op">&amp;</span> <a class="ident" href="../../../../src/h2/hpack/huffman/mod.rs.html#18">ERROR</a> <span class="op">=</span><span class="op">=</span> <a class="ident" href="../../../../src/h2/hpack/huffman/mod.rs.html#18">ERROR</a> {
+        <span class="kw">if</span> <a class="ident" href="../../../../src/h2/hpack/huffman/mod.rs.html#92">flags</a> <span class="op">&amp;</span> <a class="ident" href="../../../../src/h2/hpack/huffman/mod.rs.html#18">ERROR</a> <span class="op">==</span> <a class="ident" href="../../../../src/h2/hpack/huffman/mod.rs.html#18">ERROR</a> {
             <span class="comment">// Data followed the EOS marker</span>
             <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../../../src/h2/hpack/decoder.rs.html#32">DecoderError::InvalidHuffmanCode</a>);
         }
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">ret</span> <span class="op">=</span> <span class="prelude-val">None</span>;
 
-        <span class="kw">if</span> <a class="ident" href="../../../../src/h2/hpack/huffman/mod.rs.html#92">flags</a> <span class="op">&amp;</span> <a class="ident" href="../../../../src/h2/hpack/huffman/mod.rs.html#17">DECODED</a> <span class="op">=</span><span class="op">=</span> <a class="ident" href="../../../../src/h2/hpack/huffman/mod.rs.html#17">DECODED</a> {
+        <span class="kw">if</span> <a class="ident" href="../../../../src/h2/hpack/huffman/mod.rs.html#92">flags</a> <span class="op">&amp;</span> <a class="ident" href="../../../../src/h2/hpack/huffman/mod.rs.html#17">DECODED</a> <span class="op">==</span> <a class="ident" href="../../../../src/h2/hpack/huffman/mod.rs.html#17">DECODED</a> {
             <a class="ident" href="../../../../src/h2/hpack/huffman/mod.rs.html#99">ret</a> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../../src/h2/hpack/huffman/mod.rs.html#92">byte</a>);
         }
 
         <a class="self" href="../../../../src/h2/hpack/huffman/mod.rs.html#90">self</a>.<span class="ident">state</span> <span class="op">=</span> <a class="ident" href="../../../../src/h2/hpack/huffman/mod.rs.html#92">next</a>;
-        <a class="self" href="../../../../src/h2/hpack/huffman/mod.rs.html#90">self</a>.<span class="ident">maybe_eos</span> <span class="op">=</span> <a class="ident" href="../../../../src/h2/hpack/huffman/mod.rs.html#92">flags</a> <span class="op">&amp;</span> <a class="ident" href="../../../../src/h2/hpack/huffman/mod.rs.html#16">MAYBE_EOS</a> <span class="op">=</span><span class="op">=</span> <a class="ident" href="../../../../src/h2/hpack/huffman/mod.rs.html#16">MAYBE_EOS</a>;
+        <a class="self" href="../../../../src/h2/hpack/huffman/mod.rs.html#90">self</a>.<span class="ident">maybe_eos</span> <span class="op">=</span> <a class="ident" href="../../../../src/h2/hpack/huffman/mod.rs.html#92">flags</a> <span class="op">&amp;</span> <a class="ident" href="../../../../src/h2/hpack/huffman/mod.rs.html#16">MAYBE_EOS</a> <span class="op">==</span> <a class="ident" href="../../../../src/h2/hpack/huffman/mod.rs.html#16">MAYBE_EOS</a>;
 
         <span class="prelude-val">Ok</span>(<a class="ident" href="../../../../src/h2/hpack/huffman/mod.rs.html#99">ret</a>)
     }
 
-    <span class="kw">fn</span> <span class="ident">is_final</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../../src/h2/hpack/huffman/mod.rs.html#111">self</a>.<span class="ident">state</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> <span class="op">|</span><span class="op">|</span> <a class="self" href="../../../../src/h2/hpack/huffman/mod.rs.html#111">self</a>.<span class="ident">maybe_eos</span>
+    <span class="kw">fn</span> <span class="ident">is_final</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a class="self" href="../../../../src/h2/hpack/huffman/mod.rs.html#111">self</a>.<span class="ident">state</span> <span class="op">==</span> <span class="number">0</span> <span class="op">|</span><span class="op">|</span> <a class="self" href="../../../../src/h2/hpack/huffman/mod.rs.html#111">self</a>.<span class="ident">maybe_eos</span>
     }
 }
 
@@ -330,7 +330,7 @@
 <span class="kw">mod</span> <span class="ident">test</span> {
     <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
 
-    <span class="kw">fn</span> <span class="ident">decode</span>(<span class="ident">src</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">BytesMut</span>, <span class="ident">DecoderError</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">decode</span>(<span class="ident">src</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">BytesMut</span>, <span class="ident">DecoderError</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> <span class="ident">BytesMut::new</span>();
         <span class="ident"><span class="kw">super</span>::decode</span>(<span class="ident">src</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">buf</span>)
     }

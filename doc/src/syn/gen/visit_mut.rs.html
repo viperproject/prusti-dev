@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;syn-1.0.76&#x2F;src&#x2F;gen&#x2F;visit_mut.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>visit_mut.rs - source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../syn/index.html'><div class='logo-container rust-logo'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">   1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;syn-1.0.81&#x2F;src&#x2F;gen&#x2F;visit_mut.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>visit_mut.rs - source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../syn/index.html'><div class='logo-container rust-logo'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">   1</span>
 <span id="2">   2</span>
 <span id="3">   3</span>
 <span id="4">   4</span>
@@ -3791,18 +3791,18 @@
 <span class="kw">use</span> <a class="ident" href="../../../proc_macro2/struct.Span.html">proc_macro2::Span</a>;
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
 <span class="macro">macro_rules!</span> <span class="ident">full</span> {
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">e</span>:<span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> {
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">e</span>:<span class="ident">expr</span>) =&gt; {
         <span class="macro-nonterminal">$</span><span class="macro-nonterminal">e</span>
     };
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)))]</span>
 <span class="macro">macro_rules!</span> <span class="ident">full</span> {
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">e</span>:<span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> {
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">e</span>:<span class="ident">expr</span>) =&gt; {
         <span class="macro">unreachable!</span>()
     };
 }
 <span class="macro">macro_rules!</span> <span class="ident">skip</span> {
-    ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tt</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) <span class="op">=</span><span class="op">&gt;</span> {};
+    ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tt</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) =&gt; {};
 }
 <span class="doccomment">/// Syntax tree traversal to mutate an exclusive borrow of a syntax tree in</span>
 <span class="doccomment">/// place.</span>
@@ -3829,11 +3829,11 @@
         <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#807-809">visit_arm_mut</a>(<a class="self" href="../../../src/syn/gen/visit_mut.rs.html#47">self</a>, <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#47">i</a>);
     }
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
-    <span class="kw">fn</span> <span class="ident">visit_attr_style_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">i</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../../src/syn/attr.rs.html#310-333">AttrStyle</a>) {
+    <span class="kw">fn</span> <span class="ident">visit_attr_style_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">i</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../../src/syn/attr.rs.html#311-334">AttrStyle</a>) {
         <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#826-828">visit_attr_style_mut</a>(<a class="self" href="../../../src/syn/gen/visit_mut.rs.html#51">self</a>, <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#51">i</a>);
     }
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
-    <span class="kw">fn</span> <span class="ident">visit_attribute_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">i</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../../src/syn/attr.rs.html#11-155">Attribute</a>) {
+    <span class="kw">fn</span> <span class="ident">visit_attribute_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">i</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../../src/syn/attr.rs.html#12-156">Attribute</a>) {
         <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#838-840">visit_attribute_mut</a>(<a class="self" href="../../../src/syn/gen/visit_mut.rs.html#55">self</a>, <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#55">i</a>);
     }
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
@@ -4259,15 +4259,15 @@
         <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#2649-2651">visit_member_mut</a>(<a class="self" href="../../../src/syn/gen/visit_mut.rs.html#477">self</a>, <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#477">i</a>);
     }
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
-    <span class="kw">fn</span> <span class="ident">visit_meta_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">i</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../../src/syn/attr.rs.html#335-369">Meta</a>) {
+    <span class="kw">fn</span> <span class="ident">visit_meta_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">i</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../../src/syn/attr.rs.html#336-370">Meta</a>) {
         <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#2663-2665">visit_meta_mut</a>(<a class="self" href="../../../src/syn/gen/visit_mut.rs.html#481">self</a>, <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#481">i</a>);
     }
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
-    <span class="kw">fn</span> <span class="ident">visit_meta_list_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">i</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../../src/syn/attr.rs.html#371-382">MetaList</a>) {
+    <span class="kw">fn</span> <span class="ident">visit_meta_list_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">i</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../../src/syn/attr.rs.html#372-383">MetaList</a>) {
         <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#2680-2682">visit_meta_list_mut</a>(<a class="self" href="../../../src/syn/gen/visit_mut.rs.html#485">self</a>, <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#485">i</a>);
     }
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
-    <span class="kw">fn</span> <span class="ident">visit_meta_name_value_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">i</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../../src/syn/attr.rs.html#384-395">MetaNameValue</a>) {
+    <span class="kw">fn</span> <span class="ident">visit_meta_name_value_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">i</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../../src/syn/attr.rs.html#385-396">MetaNameValue</a>) {
         <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#2695-2697">visit_meta_name_value_mut</a>(<a class="self" href="../../../src/syn/gen/visit_mut.rs.html#489">self</a>, <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#489">i</a>);
     }
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
@@ -4275,7 +4275,7 @@
         <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#2704-2706">visit_method_turbofish_mut</a>(<a class="self" href="../../../src/syn/gen/visit_mut.rs.html#493">self</a>, <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#493">i</a>);
     }
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
-    <span class="kw">fn</span> <span class="ident">visit_nested_meta_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">i</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../../src/syn/attr.rs.html#411-425">NestedMeta</a>) {
+    <span class="kw">fn</span> <span class="ident">visit_nested_meta_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">i</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../../src/syn/attr.rs.html#412-426">NestedMeta</a>) {
         <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#2720-2722">visit_nested_meta_mut</a>(<a class="self" href="../../../src/syn/gen/visit_mut.rs.html#497">self</a>, <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#497">i</a>);
     }
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
@@ -4604,19 +4604,19 @@
     };
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">visit_attr_style_mut</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span>(<span class="ident">v</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">V</span>, <span class="ident">node</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../../src/syn/attr.rs.html#310-333">AttrStyle</a>)
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">visit_attr_style_mut</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span>(<span class="ident">v</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">V</span>, <span class="ident">node</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../../src/syn/attr.rs.html#311-334">AttrStyle</a>)
 <span class="kw">where</span>
     <span class="ident">V</span>: <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#34-775">VisitMut</a> <span class="op">+</span> <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>,
 {
     <span class="kw">match</span> <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#826">node</a> {
-        <a class="ident" href="../../../src/syn/attr.rs.html#330">AttrStyle::Outer</a> <span class="op">=</span><span class="op">&gt;</span> {}
-        <a class="ident" href="../../../src/syn/attr.rs.html#331">AttrStyle::Inner</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/attr.rs.html#331">AttrStyle::Outer</a> =&gt; {}
+        <a class="ident" href="../../../src/syn/attr.rs.html#332">AttrStyle::Inner</a>(<span class="ident">_binding_0</span>) =&gt; {
             <a class="ident" href="../../../src/syn/gen/up/gen_helper.rs.html#120">tokens_helper</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#826">v</a>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#832">_binding_0</a>.<span class="ident">spans</span>);
         }
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">visit_attribute_mut</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span>(<span class="ident">v</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">V</span>, <span class="ident">node</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../../src/syn/attr.rs.html#11-155">Attribute</a>)
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">visit_attribute_mut</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span>(<span class="ident">v</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">V</span>, <span class="ident">node</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../../src/syn/attr.rs.html#12-156">Attribute</a>)
 <span class="kw">where</span>
     <span class="ident">V</span>: <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#34-775">VisitMut</a> <span class="op">+</span> <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>,
 {
@@ -4646,88 +4646,88 @@
     <span class="ident">V</span>: <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#34-775">VisitMut</a> <span class="op">+</span> <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>,
 {
     <span class="kw">match</span> <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#863">node</a> {
-        <a class="ident" href="../../../src/syn/op.rs.html#9">BinOp::Add</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/op.rs.html#9">BinOp::Add</a>(<span class="ident">_binding_0</span>) =&gt; {
             <a class="ident" href="../../../src/syn/gen/up/gen_helper.rs.html#120">tokens_helper</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#863">v</a>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#868">_binding_0</a>.<span class="ident">spans</span>);
         }
-        <a class="ident" href="../../../src/syn/op.rs.html#11">BinOp::Sub</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/op.rs.html#11">BinOp::Sub</a>(<span class="ident">_binding_0</span>) =&gt; {
             <a class="ident" href="../../../src/syn/gen/up/gen_helper.rs.html#120">tokens_helper</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#863">v</a>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#871">_binding_0</a>.<span class="ident">spans</span>);
         }
-        <a class="ident" href="../../../src/syn/op.rs.html#13">BinOp::Mul</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/op.rs.html#13">BinOp::Mul</a>(<span class="ident">_binding_0</span>) =&gt; {
             <a class="ident" href="../../../src/syn/gen/up/gen_helper.rs.html#120">tokens_helper</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#863">v</a>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#874">_binding_0</a>.<span class="ident">spans</span>);
         }
-        <a class="ident" href="../../../src/syn/op.rs.html#15">BinOp::Div</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/op.rs.html#15">BinOp::Div</a>(<span class="ident">_binding_0</span>) =&gt; {
             <a class="ident" href="../../../src/syn/gen/up/gen_helper.rs.html#120">tokens_helper</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#863">v</a>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#877">_binding_0</a>.<span class="ident">spans</span>);
         }
-        <a class="ident" href="../../../src/syn/op.rs.html#17">BinOp::Rem</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/op.rs.html#17">BinOp::Rem</a>(<span class="ident">_binding_0</span>) =&gt; {
             <a class="ident" href="../../../src/syn/gen/up/gen_helper.rs.html#120">tokens_helper</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#863">v</a>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#880">_binding_0</a>.<span class="ident">spans</span>);
         }
-        <a class="ident" href="../../../src/syn/op.rs.html#19">BinOp::And</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/op.rs.html#19">BinOp::And</a>(<span class="ident">_binding_0</span>) =&gt; {
             <a class="ident" href="../../../src/syn/gen/up/gen_helper.rs.html#120">tokens_helper</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#863">v</a>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#883">_binding_0</a>.<span class="ident">spans</span>);
         }
-        <a class="ident" href="../../../src/syn/op.rs.html#21">BinOp::Or</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/op.rs.html#21">BinOp::Or</a>(<span class="ident">_binding_0</span>) =&gt; {
             <a class="ident" href="../../../src/syn/gen/up/gen_helper.rs.html#120">tokens_helper</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#863">v</a>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#886">_binding_0</a>.<span class="ident">spans</span>);
         }
-        <a class="ident" href="../../../src/syn/op.rs.html#23">BinOp::BitXor</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/op.rs.html#23">BinOp::BitXor</a>(<span class="ident">_binding_0</span>) =&gt; {
             <a class="ident" href="../../../src/syn/gen/up/gen_helper.rs.html#120">tokens_helper</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#863">v</a>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#889">_binding_0</a>.<span class="ident">spans</span>);
         }
-        <a class="ident" href="../../../src/syn/op.rs.html#25">BinOp::BitAnd</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/op.rs.html#25">BinOp::BitAnd</a>(<span class="ident">_binding_0</span>) =&gt; {
             <a class="ident" href="../../../src/syn/gen/up/gen_helper.rs.html#120">tokens_helper</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#863">v</a>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#892">_binding_0</a>.<span class="ident">spans</span>);
         }
-        <a class="ident" href="../../../src/syn/op.rs.html#27">BinOp::BitOr</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/op.rs.html#27">BinOp::BitOr</a>(<span class="ident">_binding_0</span>) =&gt; {
             <a class="ident" href="../../../src/syn/gen/up/gen_helper.rs.html#120">tokens_helper</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#863">v</a>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#895">_binding_0</a>.<span class="ident">spans</span>);
         }
-        <a class="ident" href="../../../src/syn/op.rs.html#29">BinOp::Shl</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/op.rs.html#29">BinOp::Shl</a>(<span class="ident">_binding_0</span>) =&gt; {
             <a class="ident" href="../../../src/syn/gen/up/gen_helper.rs.html#120">tokens_helper</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#863">v</a>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#898">_binding_0</a>.<span class="ident">spans</span>);
         }
-        <a class="ident" href="../../../src/syn/op.rs.html#31">BinOp::Shr</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/op.rs.html#31">BinOp::Shr</a>(<span class="ident">_binding_0</span>) =&gt; {
             <a class="ident" href="../../../src/syn/gen/up/gen_helper.rs.html#120">tokens_helper</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#863">v</a>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#901">_binding_0</a>.<span class="ident">spans</span>);
         }
-        <a class="ident" href="../../../src/syn/op.rs.html#33">BinOp::Eq</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/op.rs.html#33">BinOp::Eq</a>(<span class="ident">_binding_0</span>) =&gt; {
             <a class="ident" href="../../../src/syn/gen/up/gen_helper.rs.html#120">tokens_helper</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#863">v</a>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#904">_binding_0</a>.<span class="ident">spans</span>);
         }
-        <a class="ident" href="../../../src/syn/op.rs.html#35">BinOp::Lt</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/op.rs.html#35">BinOp::Lt</a>(<span class="ident">_binding_0</span>) =&gt; {
             <a class="ident" href="../../../src/syn/gen/up/gen_helper.rs.html#120">tokens_helper</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#863">v</a>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#907">_binding_0</a>.<span class="ident">spans</span>);
         }
-        <a class="ident" href="../../../src/syn/op.rs.html#37">BinOp::Le</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/op.rs.html#37">BinOp::Le</a>(<span class="ident">_binding_0</span>) =&gt; {
             <a class="ident" href="../../../src/syn/gen/up/gen_helper.rs.html#120">tokens_helper</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#863">v</a>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#910">_binding_0</a>.<span class="ident">spans</span>);
         }
-        <a class="ident" href="../../../src/syn/op.rs.html#39">BinOp::Ne</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/op.rs.html#39">BinOp::Ne</a>(<span class="ident">_binding_0</span>) =&gt; {
             <a class="ident" href="../../../src/syn/gen/up/gen_helper.rs.html#120">tokens_helper</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#863">v</a>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#913">_binding_0</a>.<span class="ident">spans</span>);
         }
-        <a class="ident" href="../../../src/syn/op.rs.html#41">BinOp::Ge</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/op.rs.html#41">BinOp::Ge</a>(<span class="ident">_binding_0</span>) =&gt; {
             <a class="ident" href="../../../src/syn/gen/up/gen_helper.rs.html#120">tokens_helper</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#863">v</a>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#916">_binding_0</a>.<span class="ident">spans</span>);
         }
-        <a class="ident" href="../../../src/syn/op.rs.html#43">BinOp::Gt</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/op.rs.html#43">BinOp::Gt</a>(<span class="ident">_binding_0</span>) =&gt; {
             <a class="ident" href="../../../src/syn/gen/up/gen_helper.rs.html#120">tokens_helper</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#863">v</a>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#919">_binding_0</a>.<span class="ident">spans</span>);
         }
-        <a class="ident" href="../../../src/syn/op.rs.html#45">BinOp::AddEq</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/op.rs.html#45">BinOp::AddEq</a>(<span class="ident">_binding_0</span>) =&gt; {
             <a class="ident" href="../../../src/syn/gen/up/gen_helper.rs.html#120">tokens_helper</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#863">v</a>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#922">_binding_0</a>.<span class="ident">spans</span>);
         }
-        <a class="ident" href="../../../src/syn/op.rs.html#47">BinOp::SubEq</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/op.rs.html#47">BinOp::SubEq</a>(<span class="ident">_binding_0</span>) =&gt; {
             <a class="ident" href="../../../src/syn/gen/up/gen_helper.rs.html#120">tokens_helper</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#863">v</a>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#925">_binding_0</a>.<span class="ident">spans</span>);
         }
-        <a class="ident" href="../../../src/syn/op.rs.html#49">BinOp::MulEq</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/op.rs.html#49">BinOp::MulEq</a>(<span class="ident">_binding_0</span>) =&gt; {
             <a class="ident" href="../../../src/syn/gen/up/gen_helper.rs.html#120">tokens_helper</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#863">v</a>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#928">_binding_0</a>.<span class="ident">spans</span>);
         }
-        <a class="ident" href="../../../src/syn/op.rs.html#51">BinOp::DivEq</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/op.rs.html#51">BinOp::DivEq</a>(<span class="ident">_binding_0</span>) =&gt; {
             <a class="ident" href="../../../src/syn/gen/up/gen_helper.rs.html#120">tokens_helper</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#863">v</a>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#931">_binding_0</a>.<span class="ident">spans</span>);
         }
-        <a class="ident" href="../../../src/syn/op.rs.html#53">BinOp::RemEq</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/op.rs.html#53">BinOp::RemEq</a>(<span class="ident">_binding_0</span>) =&gt; {
             <a class="ident" href="../../../src/syn/gen/up/gen_helper.rs.html#120">tokens_helper</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#863">v</a>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#934">_binding_0</a>.<span class="ident">spans</span>);
         }
-        <a class="ident" href="../../../src/syn/op.rs.html#55">BinOp::BitXorEq</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/op.rs.html#55">BinOp::BitXorEq</a>(<span class="ident">_binding_0</span>) =&gt; {
             <a class="ident" href="../../../src/syn/gen/up/gen_helper.rs.html#120">tokens_helper</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#863">v</a>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#937">_binding_0</a>.<span class="ident">spans</span>);
         }
-        <a class="ident" href="../../../src/syn/op.rs.html#57">BinOp::BitAndEq</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/op.rs.html#57">BinOp::BitAndEq</a>(<span class="ident">_binding_0</span>) =&gt; {
             <a class="ident" href="../../../src/syn/gen/up/gen_helper.rs.html#120">tokens_helper</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#863">v</a>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#940">_binding_0</a>.<span class="ident">spans</span>);
         }
-        <a class="ident" href="../../../src/syn/op.rs.html#59">BinOp::BitOrEq</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/op.rs.html#59">BinOp::BitOrEq</a>(<span class="ident">_binding_0</span>) =&gt; {
             <a class="ident" href="../../../src/syn/gen/up/gen_helper.rs.html#120">tokens_helper</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#863">v</a>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#943">_binding_0</a>.<span class="ident">spans</span>);
         }
-        <a class="ident" href="../../../src/syn/op.rs.html#61">BinOp::ShlEq</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/op.rs.html#61">BinOp::ShlEq</a>(<span class="ident">_binding_0</span>) =&gt; {
             <a class="ident" href="../../../src/syn/gen/up/gen_helper.rs.html#120">tokens_helper</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#863">v</a>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#946">_binding_0</a>.<span class="ident">spans</span>);
         }
-        <a class="ident" href="../../../src/syn/op.rs.html#63">BinOp::ShrEq</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/op.rs.html#63">BinOp::ShrEq</a>(<span class="ident">_binding_0</span>) =&gt; {
             <a class="ident" href="../../../src/syn/gen/up/gen_helper.rs.html#120">tokens_helper</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#863">v</a>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#949">_binding_0</a>.<span class="ident">spans</span>);
         }
     }
@@ -4807,13 +4807,13 @@
     <span class="ident">V</span>: <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#34-775">VisitMut</a> <span class="op">+</span> <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>,
 {
     <span class="kw">match</span> <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#1024">node</a> {
-        <a class="ident" href="../../../src/syn/derive.rs.html#40">Data::Struct</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/derive.rs.html#40">Data::Struct</a>(<span class="ident">_binding_0</span>) =&gt; {
             <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#1024">v</a>.<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#95">visit_data_struct_mut</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#1029">_binding_0</a>);
         }
-        <a class="ident" href="../../../src/syn/derive.rs.html#43">Data::Enum</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/derive.rs.html#43">Data::Enum</a>(<span class="ident">_binding_0</span>) =&gt; {
             <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#1024">v</a>.<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#91">visit_data_enum_mut</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#1032">_binding_0</a>);
         }
-        <a class="ident" href="../../../src/syn/derive.rs.html#46">Data::Union</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/derive.rs.html#46">Data::Union</a>(<span class="ident">_binding_0</span>) =&gt; {
             <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#1024">v</a>.<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#99">visit_data_union_mut</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#1035">_binding_0</a>);
         }
     }
@@ -4871,127 +4871,127 @@
     <span class="ident">V</span>: <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#34-775">VisitMut</a> <span class="op">+</span> <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>,
 {
     <span class="kw">match</span> <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#1088">node</a> {
-        <a class="ident" href="../../../src/syn/expr.rs.html#92">Expr::Array</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/expr.rs.html#92">Expr::Array</a>(<span class="ident">_binding_0</span>) =&gt; {
             <span class="macro">full!</span>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#1088">v</a>.<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#111">visit_expr_array_mut</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#1093">_binding_0</a>));
         }
-        <a class="ident" href="../../../src/syn/expr.rs.html#95">Expr::Assign</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/expr.rs.html#95">Expr::Assign</a>(<span class="ident">_binding_0</span>) =&gt; {
             <span class="macro">full!</span>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#1088">v</a>.<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#115">visit_expr_assign_mut</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#1096">_binding_0</a>));
         }
-        <a class="ident" href="../../../src/syn/expr.rs.html#98">Expr::AssignOp</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/expr.rs.html#98">Expr::AssignOp</a>(<span class="ident">_binding_0</span>) =&gt; {
             <span class="macro">full!</span>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#1088">v</a>.<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#119">visit_expr_assign_op_mut</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#1099">_binding_0</a>));
         }
-        <a class="ident" href="../../../src/syn/expr.rs.html#101">Expr::Async</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/expr.rs.html#101">Expr::Async</a>(<span class="ident">_binding_0</span>) =&gt; {
             <span class="macro">full!</span>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#1088">v</a>.<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#123">visit_expr_async_mut</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#1102">_binding_0</a>));
         }
-        <a class="ident" href="../../../src/syn/expr.rs.html#104">Expr::Await</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/expr.rs.html#104">Expr::Await</a>(<span class="ident">_binding_0</span>) =&gt; {
             <span class="macro">full!</span>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#1088">v</a>.<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#127">visit_expr_await_mut</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#1105">_binding_0</a>));
         }
-        <a class="ident" href="../../../src/syn/expr.rs.html#107">Expr::Binary</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/expr.rs.html#107">Expr::Binary</a>(<span class="ident">_binding_0</span>) =&gt; {
             <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#1088">v</a>.<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#131">visit_expr_binary_mut</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#1108">_binding_0</a>);
         }
-        <a class="ident" href="../../../src/syn/expr.rs.html#110">Expr::Block</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/expr.rs.html#110">Expr::Block</a>(<span class="ident">_binding_0</span>) =&gt; {
             <span class="macro">full!</span>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#1088">v</a>.<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#135">visit_expr_block_mut</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#1111">_binding_0</a>));
         }
-        <a class="ident" href="../../../src/syn/expr.rs.html#113">Expr::Box</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/expr.rs.html#113">Expr::Box</a>(<span class="ident">_binding_0</span>) =&gt; {
             <span class="macro">full!</span>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#1088">v</a>.<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#139">visit_expr_box_mut</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#1114">_binding_0</a>));
         }
-        <a class="ident" href="../../../src/syn/expr.rs.html#117">Expr::Break</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/expr.rs.html#117">Expr::Break</a>(<span class="ident">_binding_0</span>) =&gt; {
             <span class="macro">full!</span>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#1088">v</a>.<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#143">visit_expr_break_mut</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#1117">_binding_0</a>));
         }
-        <a class="ident" href="../../../src/syn/expr.rs.html#120">Expr::Call</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/expr.rs.html#120">Expr::Call</a>(<span class="ident">_binding_0</span>) =&gt; {
             <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#1088">v</a>.<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#147">visit_expr_call_mut</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#1120">_binding_0</a>);
         }
-        <a class="ident" href="../../../src/syn/expr.rs.html#123">Expr::Cast</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/expr.rs.html#123">Expr::Cast</a>(<span class="ident">_binding_0</span>) =&gt; {
             <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#1088">v</a>.<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#151">visit_expr_cast_mut</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#1123">_binding_0</a>);
         }
-        <a class="ident" href="../../../src/syn/expr.rs.html#126">Expr::Closure</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/expr.rs.html#126">Expr::Closure</a>(<span class="ident">_binding_0</span>) =&gt; {
             <span class="macro">full!</span>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#1088">v</a>.<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#155">visit_expr_closure_mut</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#1126">_binding_0</a>));
         }
-        <a class="ident" href="../../../src/syn/expr.rs.html#129">Expr::Continue</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/expr.rs.html#129">Expr::Continue</a>(<span class="ident">_binding_0</span>) =&gt; {
             <span class="macro">full!</span>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#1088">v</a>.<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#159">visit_expr_continue_mut</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#1129">_binding_0</a>));
         }
-        <a class="ident" href="../../../src/syn/expr.rs.html#133">Expr::Field</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/expr.rs.html#133">Expr::Field</a>(<span class="ident">_binding_0</span>) =&gt; {
             <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#1088">v</a>.<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#163">visit_expr_field_mut</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#1132">_binding_0</a>);
         }
-        <a class="ident" href="../../../src/syn/expr.rs.html#136">Expr::ForLoop</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/expr.rs.html#136">Expr::ForLoop</a>(<span class="ident">_binding_0</span>) =&gt; {
             <span class="macro">full!</span>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#1088">v</a>.<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#167">visit_expr_for_loop_mut</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#1135">_binding_0</a>));
         }
-        <a class="ident" href="../../../src/syn/expr.rs.html#143">Expr::Group</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/expr.rs.html#143">Expr::Group</a>(<span class="ident">_binding_0</span>) =&gt; {
             <span class="macro">full!</span>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#1088">v</a>.<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#171">visit_expr_group_mut</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#1138">_binding_0</a>));
         }
-        <a class="ident" href="../../../src/syn/expr.rs.html#150">Expr::If</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/expr.rs.html#150">Expr::If</a>(<span class="ident">_binding_0</span>) =&gt; {
             <span class="macro">full!</span>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#1088">v</a>.<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#175">visit_expr_if_mut</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#1141">_binding_0</a>));
         }
-        <a class="ident" href="../../../src/syn/expr.rs.html#153">Expr::Index</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/expr.rs.html#153">Expr::Index</a>(<span class="ident">_binding_0</span>) =&gt; {
             <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#1088">v</a>.<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#179">visit_expr_index_mut</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#1144">_binding_0</a>);
         }
-        <a class="ident" href="../../../src/syn/expr.rs.html#156">Expr::Let</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/expr.rs.html#156">Expr::Let</a>(<span class="ident">_binding_0</span>) =&gt; {
             <span class="macro">full!</span>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#1088">v</a>.<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#183">visit_expr_let_mut</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#1147">_binding_0</a>));
         }
-        <a class="ident" href="../../../src/syn/expr.rs.html#159">Expr::Lit</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/expr.rs.html#159">Expr::Lit</a>(<span class="ident">_binding_0</span>) =&gt; {
             <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#1088">v</a>.<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#187">visit_expr_lit_mut</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#1150">_binding_0</a>);
         }
-        <a class="ident" href="../../../src/syn/expr.rs.html#162">Expr::Loop</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/expr.rs.html#162">Expr::Loop</a>(<span class="ident">_binding_0</span>) =&gt; {
             <span class="macro">full!</span>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#1088">v</a>.<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#191">visit_expr_loop_mut</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#1153">_binding_0</a>));
         }
-        <a class="ident" href="../../../src/syn/expr.rs.html#165">Expr::Macro</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/expr.rs.html#165">Expr::Macro</a>(<span class="ident">_binding_0</span>) =&gt; {
             <span class="macro">full!</span>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#1088">v</a>.<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#195">visit_expr_macro_mut</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#1156">_binding_0</a>));
         }
-        <a class="ident" href="../../../src/syn/expr.rs.html#168">Expr::Match</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/expr.rs.html#168">Expr::Match</a>(<span class="ident">_binding_0</span>) =&gt; {
             <span class="macro">full!</span>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#1088">v</a>.<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#199">visit_expr_match_mut</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#1159">_binding_0</a>));
         }
-        <a class="ident" href="../../../src/syn/expr.rs.html#171">Expr::MethodCall</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/expr.rs.html#171">Expr::MethodCall</a>(<span class="ident">_binding_0</span>) =&gt; {
             <span class="macro">full!</span>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#1088">v</a>.<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#203">visit_expr_method_call_mut</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#1162">_binding_0</a>));
         }
-        <a class="ident" href="../../../src/syn/expr.rs.html#174">Expr::Paren</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/expr.rs.html#174">Expr::Paren</a>(<span class="ident">_binding_0</span>) =&gt; {
             <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#1088">v</a>.<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#207">visit_expr_paren_mut</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#1165">_binding_0</a>);
         }
-        <a class="ident" href="../../../src/syn/expr.rs.html#180">Expr::Path</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/expr.rs.html#180">Expr::Path</a>(<span class="ident">_binding_0</span>) =&gt; {
             <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#1088">v</a>.<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#211">visit_expr_path_mut</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#1168">_binding_0</a>);
         }
-        <a class="ident" href="../../../src/syn/expr.rs.html#183">Expr::Range</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/expr.rs.html#183">Expr::Range</a>(<span class="ident">_binding_0</span>) =&gt; {
             <span class="macro">full!</span>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#1088">v</a>.<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#215">visit_expr_range_mut</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#1171">_binding_0</a>));
         }
-        <a class="ident" href="../../../src/syn/expr.rs.html#186">Expr::Reference</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/expr.rs.html#186">Expr::Reference</a>(<span class="ident">_binding_0</span>) =&gt; {
             <span class="macro">full!</span>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#1088">v</a>.<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#219">visit_expr_reference_mut</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#1174">_binding_0</a>));
         }
-        <a class="ident" href="../../../src/syn/expr.rs.html#189">Expr::Repeat</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/expr.rs.html#189">Expr::Repeat</a>(<span class="ident">_binding_0</span>) =&gt; {
             <span class="macro">full!</span>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#1088">v</a>.<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#223">visit_expr_repeat_mut</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#1177">_binding_0</a>));
         }
-        <a class="ident" href="../../../src/syn/expr.rs.html#192">Expr::Return</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/expr.rs.html#192">Expr::Return</a>(<span class="ident">_binding_0</span>) =&gt; {
             <span class="macro">full!</span>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#1088">v</a>.<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#227">visit_expr_return_mut</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#1180">_binding_0</a>));
         }
-        <a class="ident" href="../../../src/syn/expr.rs.html#198">Expr::Struct</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/expr.rs.html#198">Expr::Struct</a>(<span class="ident">_binding_0</span>) =&gt; {
             <span class="macro">full!</span>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#1088">v</a>.<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#231">visit_expr_struct_mut</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#1183">_binding_0</a>));
         }
-        <a class="ident" href="../../../src/syn/expr.rs.html#201">Expr::Try</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/expr.rs.html#201">Expr::Try</a>(<span class="ident">_binding_0</span>) =&gt; {
             <span class="macro">full!</span>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#1088">v</a>.<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#235">visit_expr_try_mut</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#1186">_binding_0</a>));
         }
-        <a class="ident" href="../../../src/syn/expr.rs.html#204">Expr::TryBlock</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/expr.rs.html#204">Expr::TryBlock</a>(<span class="ident">_binding_0</span>) =&gt; {
             <span class="macro">full!</span>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#1088">v</a>.<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#239">visit_expr_try_block_mut</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#1189">_binding_0</a>));
         }
-        <a class="ident" href="../../../src/syn/expr.rs.html#207">Expr::Tuple</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/expr.rs.html#207">Expr::Tuple</a>(<span class="ident">_binding_0</span>) =&gt; {
             <span class="macro">full!</span>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#1088">v</a>.<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#243">visit_expr_tuple_mut</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#1192">_binding_0</a>));
         }
-        <a class="ident" href="../../../src/syn/expr.rs.html#210">Expr::Type</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/expr.rs.html#210">Expr::Type</a>(<span class="ident">_binding_0</span>) =&gt; {
             <span class="macro">full!</span>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#1088">v</a>.<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#247">visit_expr_type_mut</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#1195">_binding_0</a>));
         }
-        <a class="ident" href="../../../src/syn/expr.rs.html#213">Expr::Unary</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/expr.rs.html#213">Expr::Unary</a>(<span class="ident">_binding_0</span>) =&gt; {
             <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#1088">v</a>.<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#251">visit_expr_unary_mut</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#1198">_binding_0</a>);
         }
-        <a class="ident" href="../../../src/syn/expr.rs.html#216">Expr::Unsafe</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/expr.rs.html#216">Expr::Unsafe</a>(<span class="ident">_binding_0</span>) =&gt; {
             <span class="macro">full!</span>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#1088">v</a>.<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#255">visit_expr_unsafe_mut</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#1201">_binding_0</a>));
         }
-        <a class="ident" href="../../../src/syn/expr.rs.html#219">Expr::Verbatim</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/expr.rs.html#219">Expr::Verbatim</a>(<span class="ident">_binding_0</span>) =&gt; {
             <span class="macro">skip!</span>(<span class="ident">_binding_0</span>);
         }
-        <a class="ident" href="../../../src/syn/expr.rs.html#222">Expr::While</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/expr.rs.html#222">Expr::While</a>(<span class="ident">_binding_0</span>) =&gt; {
             <span class="macro">full!</span>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#1088">v</a>.<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#259">visit_expr_while_mut</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#1207">_binding_0</a>));
         }
-        <a class="ident" href="../../../src/syn/expr.rs.html#225">Expr::Yield</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/expr.rs.html#225">Expr::Yield</a>(<span class="ident">_binding_0</span>) =&gt; {
             <span class="macro">full!</span>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#1088">v</a>.<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#263">visit_expr_yield_mut</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#1210">_binding_0</a>));
         }
-        <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable!</span>(),
+        <span class="kw">_</span> =&gt; <span class="macro">unreachable!</span>(),
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
@@ -5594,13 +5594,13 @@
     <span class="ident">V</span>: <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#34-775">VisitMut</a> <span class="op">+</span> <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>,
 {
     <span class="kw">match</span> <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#1811">node</a> {
-        <a class="ident" href="../../../src/syn/data.rs.html#40">Fields::Named</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/data.rs.html#40">Fields::Named</a>(<span class="ident">_binding_0</span>) =&gt; {
             <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#1811">v</a>.<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#283">visit_fields_named_mut</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#1816">_binding_0</a>);
         }
-        <a class="ident" href="../../../src/syn/data.rs.html#43">Fields::Unnamed</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/data.rs.html#43">Fields::Unnamed</a>(<span class="ident">_binding_0</span>) =&gt; {
             <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#1811">v</a>.<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#287">visit_fields_unnamed_mut</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#1819">_binding_0</a>);
         }
-        <a class="ident" href="../../../src/syn/data.rs.html#46">Fields::Unit</a> <span class="op">=</span><span class="op">&gt;</span> {}
+        <a class="ident" href="../../../src/syn/data.rs.html#46">Fields::Unit</a> =&gt; {}
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
@@ -5650,10 +5650,10 @@
     <span class="ident">V</span>: <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#34-775">VisitMut</a> <span class="op">+</span> <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>,
 {
     <span class="kw">match</span> <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#1867">node</a> {
-        <a class="ident" href="../../../src/syn/item.rs.html#948">FnArg::Receiver</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/item.rs.html#948">FnArg::Receiver</a>(<span class="ident">_binding_0</span>) =&gt; {
             <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#1867">v</a>.<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#601">visit_receiver_mut</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#1872">_binding_0</a>);
         }
-        <a class="ident" href="../../../src/syn/item.rs.html#951">FnArg::Typed</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/item.rs.html#951">FnArg::Typed</a>(<span class="ident">_binding_0</span>) =&gt; {
             <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#1867">v</a>.<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#561">visit_pat_type_mut</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#1875">_binding_0</a>);
         }
     }
@@ -5664,22 +5664,22 @@
     <span class="ident">V</span>: <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#34-775">VisitMut</a> <span class="op">+</span> <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>,
 {
     <span class="kw">match</span> <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#1881">node</a> {
-        <a class="ident" href="../../../src/syn/item.rs.html#569">ForeignItem::Fn</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/item.rs.html#569">ForeignItem::Fn</a>(<span class="ident">_binding_0</span>) =&gt; {
             <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#1881">v</a>.<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#303">visit_foreign_item_fn_mut</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#1886">_binding_0</a>);
         }
-        <a class="ident" href="../../../src/syn/item.rs.html#572">ForeignItem::Static</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/item.rs.html#572">ForeignItem::Static</a>(<span class="ident">_binding_0</span>) =&gt; {
             <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#1881">v</a>.<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#311">visit_foreign_item_static_mut</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#1889">_binding_0</a>);
         }
-        <a class="ident" href="../../../src/syn/item.rs.html#575">ForeignItem::Type</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/item.rs.html#575">ForeignItem::Type</a>(<span class="ident">_binding_0</span>) =&gt; {
             <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#1881">v</a>.<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#315">visit_foreign_item_type_mut</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#1892">_binding_0</a>);
         }
-        <a class="ident" href="../../../src/syn/item.rs.html#578">ForeignItem::Macro</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/item.rs.html#578">ForeignItem::Macro</a>(<span class="ident">_binding_0</span>) =&gt; {
             <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#1881">v</a>.<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#307">visit_foreign_item_macro_mut</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#1895">_binding_0</a>);
         }
-        <a class="ident" href="../../../src/syn/item.rs.html#581">ForeignItem::Verbatim</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/item.rs.html#581">ForeignItem::Verbatim</a>(<span class="ident">_binding_0</span>) =&gt; {
             <span class="macro">skip!</span>(<span class="ident">_binding_0</span>);
         }
-        <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable!</span>(),
+        <span class="kw">_</span> =&gt; <span class="macro">unreachable!</span>(),
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
@@ -5744,19 +5744,19 @@
     <span class="ident">V</span>: <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#34-775">VisitMut</a> <span class="op">+</span> <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>,
 {
     <span class="kw">match</span> <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#1961">node</a> {
-        <a class="ident" href="../../../src/syn/path.rs.html#109">GenericArgument::Lifetime</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/path.rs.html#109">GenericArgument::Lifetime</a>(<span class="ident">_binding_0</span>) =&gt; {
             <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#1961">v</a>.<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#433">visit_lifetime_mut</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#1966">_binding_0</a>);
         }
-        <a class="ident" href="../../../src/syn/path.rs.html#111">GenericArgument::Type</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/path.rs.html#111">GenericArgument::Type</a>(<span class="ident">_binding_0</span>) =&gt; {
             <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#1961">v</a>.<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#648">visit_type_mut</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#1969">_binding_0</a>);
         }
-        <a class="ident" href="../../../src/syn/path.rs.html#114">GenericArgument::Binding</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/path.rs.html#114">GenericArgument::Binding</a>(<span class="ident">_binding_0</span>) =&gt; {
             <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#1961">v</a>.<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#67">visit_binding_mut</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#1972">_binding_0</a>);
         }
-        <a class="ident" href="../../../src/syn/path.rs.html#116">GenericArgument::Constraint</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/path.rs.html#116">GenericArgument::Constraint</a>(<span class="ident">_binding_0</span>) =&gt; {
             <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#1961">v</a>.<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#83">visit_constraint_mut</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#1975">_binding_0</a>);
         }
-        <a class="ident" href="../../../src/syn/path.rs.html#121">GenericArgument::Const</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/path.rs.html#121">GenericArgument::Const</a>(<span class="ident">_binding_0</span>) =&gt; {
             <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#1961">v</a>.<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#107">visit_expr_mut</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#1978">_binding_0</a>);
         }
     }
@@ -5767,10 +5767,10 @@
     <span class="ident">V</span>: <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#34-775">VisitMut</a> <span class="op">+</span> <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>,
 {
     <span class="kw">match</span> <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#1984">node</a> {
-        <a class="ident" href="../../../src/syn/expr.rs.html#980">GenericMethodArgument::Type</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/expr.rs.html#980">GenericMethodArgument::Type</a>(<span class="ident">_binding_0</span>) =&gt; {
             <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#1984">v</a>.<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#648">visit_type_mut</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#1989">_binding_0</a>);
         }
-        <a class="ident" href="../../../src/syn/expr.rs.html#985">GenericMethodArgument::Const</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/expr.rs.html#985">GenericMethodArgument::Const</a>(<span class="ident">_binding_0</span>) =&gt; {
             <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#1984">v</a>.<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#107">visit_expr_mut</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#1992">_binding_0</a>);
         }
     }
@@ -5781,13 +5781,13 @@
     <span class="ident">V</span>: <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#34-775">VisitMut</a> <span class="op">+</span> <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>,
 {
     <span class="kw">match</span> <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#1998">node</a> {
-        <a class="ident" href="../../../src/syn/generics.rs.html#38">GenericParam::Type</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/generics.rs.html#38">GenericParam::Type</a>(<span class="ident">_binding_0</span>) =&gt; {
             <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#1998">v</a>.<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#680">visit_type_param_mut</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#2003">_binding_0</a>);
         }
-        <a class="ident" href="../../../src/syn/generics.rs.html#41">GenericParam::Lifetime</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/generics.rs.html#41">GenericParam::Lifetime</a>(<span class="ident">_binding_0</span>) =&gt; {
             <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#1998">v</a>.<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#437">visit_lifetime_def_mut</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#2006">_binding_0</a>);
         }
-        <a class="ident" href="../../../src/syn/generics.rs.html#44">GenericParam::Const</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/generics.rs.html#44">GenericParam::Const</a>(<span class="ident">_binding_0</span>) =&gt; {
             <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#1998">v</a>.<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#79">visit_const_param_mut</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#2009">_binding_0</a>);
         }
     }
@@ -5828,22 +5828,22 @@
     <span class="ident">V</span>: <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#34-775">VisitMut</a> <span class="op">+</span> <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>,
 {
     <span class="kw">match</span> <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#2045">node</a> {
-        <a class="ident" href="../../../src/syn/item.rs.html#793">ImplItem::Const</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/item.rs.html#793">ImplItem::Const</a>(<span class="ident">_binding_0</span>) =&gt; {
             <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#2045">v</a>.<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#342">visit_impl_item_const_mut</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#2050">_binding_0</a>);
         }
-        <a class="ident" href="../../../src/syn/item.rs.html#796">ImplItem::Method</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/item.rs.html#796">ImplItem::Method</a>(<span class="ident">_binding_0</span>) =&gt; {
             <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#2045">v</a>.<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#350">visit_impl_item_method_mut</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#2053">_binding_0</a>);
         }
-        <a class="ident" href="../../../src/syn/item.rs.html#799">ImplItem::Type</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/item.rs.html#799">ImplItem::Type</a>(<span class="ident">_binding_0</span>) =&gt; {
             <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#2045">v</a>.<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#354">visit_impl_item_type_mut</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#2056">_binding_0</a>);
         }
-        <a class="ident" href="../../../src/syn/item.rs.html#802">ImplItem::Macro</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/item.rs.html#802">ImplItem::Macro</a>(<span class="ident">_binding_0</span>) =&gt; {
             <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#2045">v</a>.<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#346">visit_impl_item_macro_mut</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#2059">_binding_0</a>);
         }
-        <a class="ident" href="../../../src/syn/item.rs.html#805">ImplItem::Verbatim</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/item.rs.html#805">ImplItem::Verbatim</a>(<span class="ident">_binding_0</span>) =&gt; {
             <span class="macro">skip!</span>(<span class="ident">_binding_0</span>);
         }
-        <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable!</span>(),
+        <span class="kw">_</span> =&gt; <span class="macro">unreachable!</span>(),
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
@@ -5927,58 +5927,58 @@
     <span class="ident">V</span>: <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#34-775">VisitMut</a> <span class="op">+</span> <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>,
 {
     <span class="kw">match</span> <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#2144">node</a> {
-        <a class="ident" href="../../../src/syn/item.rs.html#22">Item::Const</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/item.rs.html#22">Item::Const</a>(<span class="ident">_binding_0</span>) =&gt; {
             <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#2144">v</a>.<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#366">visit_item_const_mut</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#2149">_binding_0</a>);
         }
-        <a class="ident" href="../../../src/syn/item.rs.html#25">Item::Enum</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/item.rs.html#25">Item::Enum</a>(<span class="ident">_binding_0</span>) =&gt; {
             <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#2144">v</a>.<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#370">visit_item_enum_mut</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#2152">_binding_0</a>);
         }
-        <a class="ident" href="../../../src/syn/item.rs.html#28">Item::ExternCrate</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/item.rs.html#28">Item::ExternCrate</a>(<span class="ident">_binding_0</span>) =&gt; {
             <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#2144">v</a>.<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#374">visit_item_extern_crate_mut</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#2155">_binding_0</a>);
         }
-        <a class="ident" href="../../../src/syn/item.rs.html#32">Item::Fn</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/item.rs.html#32">Item::Fn</a>(<span class="ident">_binding_0</span>) =&gt; {
             <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#2144">v</a>.<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#378">visit_item_fn_mut</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#2158">_binding_0</a>);
         }
-        <a class="ident" href="../../../src/syn/item.rs.html#35">Item::ForeignMod</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/item.rs.html#35">Item::ForeignMod</a>(<span class="ident">_binding_0</span>) =&gt; {
             <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#2144">v</a>.<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#382">visit_item_foreign_mod_mut</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#2161">_binding_0</a>);
         }
-        <a class="ident" href="../../../src/syn/item.rs.html#39">Item::Impl</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/item.rs.html#39">Item::Impl</a>(<span class="ident">_binding_0</span>) =&gt; {
             <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#2144">v</a>.<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#386">visit_item_impl_mut</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#2164">_binding_0</a>);
         }
-        <a class="ident" href="../../../src/syn/item.rs.html#42">Item::Macro</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/item.rs.html#42">Item::Macro</a>(<span class="ident">_binding_0</span>) =&gt; {
             <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#2144">v</a>.<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#390">visit_item_macro_mut</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#2167">_binding_0</a>);
         }
-        <a class="ident" href="../../../src/syn/item.rs.html#45">Item::Macro2</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/item.rs.html#45">Item::Macro2</a>(<span class="ident">_binding_0</span>) =&gt; {
             <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#2144">v</a>.<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#394">visit_item_macro2_mut</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#2170">_binding_0</a>);
         }
-        <a class="ident" href="../../../src/syn/item.rs.html#48">Item::Mod</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/item.rs.html#48">Item::Mod</a>(<span class="ident">_binding_0</span>) =&gt; {
             <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#2144">v</a>.<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#398">visit_item_mod_mut</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#2173">_binding_0</a>);
         }
-        <a class="ident" href="../../../src/syn/item.rs.html#51">Item::Static</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/item.rs.html#51">Item::Static</a>(<span class="ident">_binding_0</span>) =&gt; {
             <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#2144">v</a>.<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#402">visit_item_static_mut</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#2176">_binding_0</a>);
         }
-        <a class="ident" href="../../../src/syn/item.rs.html#54">Item::Struct</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/item.rs.html#54">Item::Struct</a>(<span class="ident">_binding_0</span>) =&gt; {
             <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#2144">v</a>.<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#406">visit_item_struct_mut</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#2179">_binding_0</a>);
         }
-        <a class="ident" href="../../../src/syn/item.rs.html#57">Item::Trait</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/item.rs.html#57">Item::Trait</a>(<span class="ident">_binding_0</span>) =&gt; {
             <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#2144">v</a>.<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#410">visit_item_trait_mut</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#2182">_binding_0</a>);
         }
-        <a class="ident" href="../../../src/syn/item.rs.html#60">Item::TraitAlias</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/item.rs.html#60">Item::TraitAlias</a>(<span class="ident">_binding_0</span>) =&gt; {
             <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#2144">v</a>.<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#414">visit_item_trait_alias_mut</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#2185">_binding_0</a>);
         }
-        <a class="ident" href="../../../src/syn/item.rs.html#63">Item::Type</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/item.rs.html#63">Item::Type</a>(<span class="ident">_binding_0</span>) =&gt; {
             <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#2144">v</a>.<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#418">visit_item_type_mut</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#2188">_binding_0</a>);
         }
-        <a class="ident" href="../../../src/syn/item.rs.html#66">Item::Union</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/item.rs.html#66">Item::Union</a>(<span class="ident">_binding_0</span>) =&gt; {
             <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#2144">v</a>.<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#422">visit_item_union_mut</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#2191">_binding_0</a>);
         }
-        <a class="ident" href="../../../src/syn/item.rs.html#69">Item::Use</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/item.rs.html#69">Item::Use</a>(<span class="ident">_binding_0</span>) =&gt; {
             <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#2144">v</a>.<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#426">visit_item_use_mut</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#2194">_binding_0</a>);
         }
-        <a class="ident" href="../../../src/syn/item.rs.html#72">Item::Verbatim</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/item.rs.html#72">Item::Verbatim</a>(<span class="ident">_binding_0</span>) =&gt; {
             <span class="macro">skip!</span>(<span class="ident">_binding_0</span>);
         }
-        <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable!</span>(),
+        <span class="kw">_</span> =&gt; <span class="macro">unreachable!</span>(),
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
@@ -6320,28 +6320,28 @@
     <span class="ident">V</span>: <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#34-775">VisitMut</a> <span class="op">+</span> <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>,
 {
     <span class="kw">match</span> <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#2537">node</a> {
-        <a class="ident" href="../../../src/syn/lit.rs.html#27">Lit::Str</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/lit.rs.html#27">Lit::Str</a>(<span class="ident">_binding_0</span>) =&gt; {
             <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#2537">v</a>.<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#461">visit_lit_str_mut</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#2542">_binding_0</a>);
         }
-        <a class="ident" href="../../../src/syn/lit.rs.html#30">Lit::ByteStr</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/lit.rs.html#30">Lit::ByteStr</a>(<span class="ident">_binding_0</span>) =&gt; {
             <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#2537">v</a>.<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#449">visit_lit_byte_str_mut</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#2545">_binding_0</a>);
         }
-        <a class="ident" href="../../../src/syn/lit.rs.html#33">Lit::Byte</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/lit.rs.html#33">Lit::Byte</a>(<span class="ident">_binding_0</span>) =&gt; {
             <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#2537">v</a>.<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#446">visit_lit_byte_mut</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#2548">_binding_0</a>);
         }
-        <a class="ident" href="../../../src/syn/lit.rs.html#36">Lit::Char</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/lit.rs.html#36">Lit::Char</a>(<span class="ident">_binding_0</span>) =&gt; {
             <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#2537">v</a>.<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#452">visit_lit_char_mut</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#2551">_binding_0</a>);
         }
-        <a class="ident" href="../../../src/syn/lit.rs.html#39">Lit::Int</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/lit.rs.html#39">Lit::Int</a>(<span class="ident">_binding_0</span>) =&gt; {
             <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#2537">v</a>.<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#458">visit_lit_int_mut</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#2554">_binding_0</a>);
         }
-        <a class="ident" href="../../../src/syn/lit.rs.html#44">Lit::Float</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/lit.rs.html#44">Lit::Float</a>(<span class="ident">_binding_0</span>) =&gt; {
             <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#2537">v</a>.<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#455">visit_lit_float_mut</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#2557">_binding_0</a>);
         }
-        <a class="ident" href="../../../src/syn/lit.rs.html#47">Lit::Bool</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/lit.rs.html#47">Lit::Bool</a>(<span class="ident">_binding_0</span>) =&gt; {
             <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#2537">v</a>.<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#443">visit_lit_bool_mut</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#2560">_binding_0</a>);
         }
-        <a class="ident" href="../../../src/syn/lit.rs.html#50">Lit::Verbatim</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/lit.rs.html#50">Lit::Verbatim</a>(<span class="ident">_binding_0</span>) =&gt; {
             <span class="macro">skip!</span>(<span class="ident">_binding_0</span>);
         }
     }
@@ -6415,13 +6415,13 @@
     <span class="ident">V</span>: <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#34-775">VisitMut</a> <span class="op">+</span> <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>,
 {
     <span class="kw">match</span> <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#2632">node</a> {
-        <a class="ident" href="../../../src/syn/mac.rs.html#31">MacroDelimiter::Paren</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/mac.rs.html#31">MacroDelimiter::Paren</a>(<span class="ident">_binding_0</span>) =&gt; {
             <a class="ident" href="../../../src/syn/gen/up/gen_helper.rs.html#120">tokens_helper</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#2632">v</a>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#2637">_binding_0</a>.<span class="ident">span</span>);
         }
-        <a class="ident" href="../../../src/syn/mac.rs.html#32">MacroDelimiter::Brace</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/mac.rs.html#32">MacroDelimiter::Brace</a>(<span class="ident">_binding_0</span>) =&gt; {
             <a class="ident" href="../../../src/syn/gen/up/gen_helper.rs.html#120">tokens_helper</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#2632">v</a>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#2640">_binding_0</a>.<span class="ident">span</span>);
         }
-        <a class="ident" href="../../../src/syn/mac.rs.html#33">MacroDelimiter::Bracket</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/mac.rs.html#33">MacroDelimiter::Bracket</a>(<span class="ident">_binding_0</span>) =&gt; {
             <a class="ident" href="../../../src/syn/gen/up/gen_helper.rs.html#120">tokens_helper</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#2632">v</a>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#2643">_binding_0</a>.<span class="ident">span</span>);
         }
     }
@@ -6432,33 +6432,33 @@
     <span class="ident">V</span>: <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#34-775">VisitMut</a> <span class="op">+</span> <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>,
 {
     <span class="kw">match</span> <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#2649">node</a> {
-        <a class="ident" href="../../../src/syn/expr.rs.html#848">Member::Named</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/expr.rs.html#848">Member::Named</a>(<span class="ident">_binding_0</span>) =&gt; {
             <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#2649">v</a>.<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#334">visit_ident_mut</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#2654">_binding_0</a>);
         }
-        <a class="ident" href="../../../src/syn/expr.rs.html#850">Member::Unnamed</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/expr.rs.html#850">Member::Unnamed</a>(<span class="ident">_binding_0</span>) =&gt; {
             <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#2649">v</a>.<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#358">visit_index_mut</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#2657">_binding_0</a>);
         }
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">visit_meta_mut</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span>(<span class="ident">v</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">V</span>, <span class="ident">node</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../../src/syn/attr.rs.html#335-369">Meta</a>)
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">visit_meta_mut</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span>(<span class="ident">v</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">V</span>, <span class="ident">node</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../../src/syn/attr.rs.html#336-370">Meta</a>)
 <span class="kw">where</span>
     <span class="ident">V</span>: <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#34-775">VisitMut</a> <span class="op">+</span> <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>,
 {
     <span class="kw">match</span> <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#2663">node</a> {
-        <a class="ident" href="../../../src/syn/attr.rs.html#361">Meta::Path</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/attr.rs.html#362">Meta::Path</a>(<span class="ident">_binding_0</span>) =&gt; {
             <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#2663">v</a>.<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#569">visit_path_mut</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#2668">_binding_0</a>);
         }
-        <a class="ident" href="../../../src/syn/attr.rs.html#364">Meta::List</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/attr.rs.html#365">Meta::List</a>(<span class="ident">_binding_0</span>) =&gt; {
             <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#2663">v</a>.<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#485">visit_meta_list_mut</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#2671">_binding_0</a>);
         }
-        <a class="ident" href="../../../src/syn/attr.rs.html#367">Meta::NameValue</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/attr.rs.html#368">Meta::NameValue</a>(<span class="ident">_binding_0</span>) =&gt; {
             <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#2663">v</a>.<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#489">visit_meta_name_value_mut</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#2674">_binding_0</a>);
         }
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">visit_meta_list_mut</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span>(<span class="ident">v</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">V</span>, <span class="ident">node</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../../src/syn/attr.rs.html#371-382">MetaList</a>)
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">visit_meta_list_mut</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span>(<span class="ident">v</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">V</span>, <span class="ident">node</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../../src/syn/attr.rs.html#372-383">MetaList</a>)
 <span class="kw">where</span>
     <span class="ident">V</span>: <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#34-775">VisitMut</a> <span class="op">+</span> <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>,
 {
@@ -6473,7 +6473,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">visit_meta_name_value_mut</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span>(<span class="ident">v</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">V</span>, <span class="ident">node</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../../src/syn/attr.rs.html#384-395">MetaNameValue</a>)
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">visit_meta_name_value_mut</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span>(<span class="ident">v</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">V</span>, <span class="ident">node</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../../src/syn/attr.rs.html#385-396">MetaNameValue</a>)
 <span class="kw">where</span>
     <span class="ident">V</span>: <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#34-775">VisitMut</a> <span class="op">+</span> <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>,
 {
@@ -6498,15 +6498,15 @@
     <a class="ident" href="../../../src/syn/gen/up/gen_helper.rs.html#120">tokens_helper</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#2704">v</a>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#2704">node</a>.<span class="ident">gt_token</span>.<span class="ident">spans</span>);
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">visit_nested_meta_mut</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span>(<span class="ident">v</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">V</span>, <span class="ident">node</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../../src/syn/attr.rs.html#411-425">NestedMeta</a>)
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">visit_nested_meta_mut</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span>(<span class="ident">v</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">V</span>, <span class="ident">node</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../../src/syn/attr.rs.html#412-426">NestedMeta</a>)
 <span class="kw">where</span>
     <span class="ident">V</span>: <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#34-775">VisitMut</a> <span class="op">+</span> <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>,
 {
     <span class="kw">match</span> <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#2720">node</a> {
-        <a class="ident" href="../../../src/syn/attr.rs.html#420">NestedMeta::Meta</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/attr.rs.html#421">NestedMeta::Meta</a>(<span class="ident">_binding_0</span>) =&gt; {
             <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#2720">v</a>.<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#481">visit_meta_mut</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#2725">_binding_0</a>);
         }
-        <a class="ident" href="../../../src/syn/attr.rs.html#423">NestedMeta::Lit</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/attr.rs.html#424">NestedMeta::Lit</a>(<span class="ident">_binding_0</span>) =&gt; {
             <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#2720">v</a>.<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#440">visit_lit_mut</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#2728">_binding_0</a>);
         }
     }
@@ -6534,55 +6534,55 @@
     <span class="ident">V</span>: <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#34-775">VisitMut</a> <span class="op">+</span> <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>,
 {
     <span class="kw">match</span> <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#2751">node</a> {
-        <a class="ident" href="../../../src/syn/pat.rs.html#19">Pat::Box</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/pat.rs.html#19">Pat::Box</a>(<span class="ident">_binding_0</span>) =&gt; {
             <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#2751">v</a>.<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#509">visit_pat_box_mut</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#2756">_binding_0</a>);
         }
-        <a class="ident" href="../../../src/syn/pat.rs.html#22">Pat::Ident</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/pat.rs.html#22">Pat::Ident</a>(<span class="ident">_binding_0</span>) =&gt; {
             <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#2751">v</a>.<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#513">visit_pat_ident_mut</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#2759">_binding_0</a>);
         }
-        <a class="ident" href="../../../src/syn/pat.rs.html#28">Pat::Lit</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/pat.rs.html#28">Pat::Lit</a>(<span class="ident">_binding_0</span>) =&gt; {
             <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#2751">v</a>.<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#517">visit_pat_lit_mut</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#2762">_binding_0</a>);
         }
-        <a class="ident" href="../../../src/syn/pat.rs.html#31">Pat::Macro</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/pat.rs.html#31">Pat::Macro</a>(<span class="ident">_binding_0</span>) =&gt; {
             <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#2751">v</a>.<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#521">visit_pat_macro_mut</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#2765">_binding_0</a>);
         }
-        <a class="ident" href="../../../src/syn/pat.rs.html#34">Pat::Or</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/pat.rs.html#34">Pat::Or</a>(<span class="ident">_binding_0</span>) =&gt; {
             <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#2751">v</a>.<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#525">visit_pat_or_mut</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#2768">_binding_0</a>);
         }
-        <a class="ident" href="../../../src/syn/pat.rs.html#43">Pat::Path</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/pat.rs.html#43">Pat::Path</a>(<span class="ident">_binding_0</span>) =&gt; {
             <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#2751">v</a>.<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#529">visit_pat_path_mut</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#2771">_binding_0</a>);
         }
-        <a class="ident" href="../../../src/syn/pat.rs.html#46">Pat::Range</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/pat.rs.html#46">Pat::Range</a>(<span class="ident">_binding_0</span>) =&gt; {
             <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#2751">v</a>.<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#533">visit_pat_range_mut</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#2774">_binding_0</a>);
         }
-        <a class="ident" href="../../../src/syn/pat.rs.html#49">Pat::Reference</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/pat.rs.html#49">Pat::Reference</a>(<span class="ident">_binding_0</span>) =&gt; {
             <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#2751">v</a>.<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#537">visit_pat_reference_mut</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#2777">_binding_0</a>);
         }
-        <a class="ident" href="../../../src/syn/pat.rs.html#52">Pat::Rest</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/pat.rs.html#52">Pat::Rest</a>(<span class="ident">_binding_0</span>) =&gt; {
             <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#2751">v</a>.<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#541">visit_pat_rest_mut</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#2780">_binding_0</a>);
         }
-        <a class="ident" href="../../../src/syn/pat.rs.html#55">Pat::Slice</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/pat.rs.html#55">Pat::Slice</a>(<span class="ident">_binding_0</span>) =&gt; {
             <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#2751">v</a>.<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#545">visit_pat_slice_mut</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#2783">_binding_0</a>);
         }
-        <a class="ident" href="../../../src/syn/pat.rs.html#58">Pat::Struct</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/pat.rs.html#58">Pat::Struct</a>(<span class="ident">_binding_0</span>) =&gt; {
             <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#2751">v</a>.<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#549">visit_pat_struct_mut</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#2786">_binding_0</a>);
         }
-        <a class="ident" href="../../../src/syn/pat.rs.html#61">Pat::Tuple</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/pat.rs.html#61">Pat::Tuple</a>(<span class="ident">_binding_0</span>) =&gt; {
             <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#2751">v</a>.<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#553">visit_pat_tuple_mut</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#2789">_binding_0</a>);
         }
-        <a class="ident" href="../../../src/syn/pat.rs.html#64">Pat::TupleStruct</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/pat.rs.html#64">Pat::TupleStruct</a>(<span class="ident">_binding_0</span>) =&gt; {
             <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#2751">v</a>.<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#557">visit_pat_tuple_struct_mut</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#2792">_binding_0</a>);
         }
-        <a class="ident" href="../../../src/syn/pat.rs.html#67">Pat::Type</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/pat.rs.html#67">Pat::Type</a>(<span class="ident">_binding_0</span>) =&gt; {
             <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#2751">v</a>.<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#561">visit_pat_type_mut</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#2795">_binding_0</a>);
         }
-        <a class="ident" href="../../../src/syn/pat.rs.html#70">Pat::Verbatim</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/pat.rs.html#70">Pat::Verbatim</a>(<span class="ident">_binding_0</span>) =&gt; {
             <span class="macro">skip!</span>(<span class="ident">_binding_0</span>);
         }
-        <a class="ident" href="../../../src/syn/pat.rs.html#73">Pat::Wild</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/pat.rs.html#73">Pat::Wild</a>(<span class="ident">_binding_0</span>) =&gt; {
             <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#2751">v</a>.<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#565">visit_pat_wild_mut</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#2801">_binding_0</a>);
         }
-        <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable!</span>(),
+        <span class="kw">_</span> =&gt; <span class="macro">unreachable!</span>(),
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
@@ -6814,11 +6814,11 @@
     <span class="ident">V</span>: <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#34-775">VisitMut</a> <span class="op">+</span> <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>,
 {
     <span class="kw">match</span> <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#3031">node</a> {
-        <a class="ident" href="../../../src/syn/path.rs.html#69">PathArguments::None</a> <span class="op">=</span><span class="op">&gt;</span> {}
-        <a class="ident" href="../../../src/syn/path.rs.html#71">PathArguments::AngleBracketed</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/path.rs.html#69">PathArguments::None</a> =&gt; {}
+        <a class="ident" href="../../../src/syn/path.rs.html#71">PathArguments::AngleBracketed</a>(<span class="ident">_binding_0</span>) =&gt; {
             <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#3031">v</a>.<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#40-43">visit_angle_bracketed_generic_arguments_mut</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#3037">_binding_0</a>);
         }
-        <a class="ident" href="../../../src/syn/path.rs.html#73">PathArguments::Parenthesized</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/path.rs.html#73">PathArguments::Parenthesized</a>(<span class="ident">_binding_0</span>) =&gt; {
             <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#3031">v</a>.<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#501">visit_parenthesized_generic_arguments_mut</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#3040">_binding_0</a>);
         }
     }
@@ -6892,10 +6892,10 @@
     <span class="ident">V</span>: <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#34-775">VisitMut</a> <span class="op">+</span> <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>,
 {
     <span class="kw">match</span> <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#3109">node</a> {
-        <a class="ident" href="../../../src/syn/expr.rs.html#1063">RangeLimits::HalfOpen</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/expr.rs.html#1063">RangeLimits::HalfOpen</a>(<span class="ident">_binding_0</span>) =&gt; {
             <a class="ident" href="../../../src/syn/gen/up/gen_helper.rs.html#120">tokens_helper</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#3109">v</a>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#3114">_binding_0</a>.<span class="ident">spans</span>);
         }
-        <a class="ident" href="../../../src/syn/expr.rs.html#1065">RangeLimits::Closed</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/expr.rs.html#1065">RangeLimits::Closed</a>(<span class="ident">_binding_0</span>) =&gt; {
             <a class="ident" href="../../../src/syn/gen/up/gen_helper.rs.html#120">tokens_helper</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#3109">v</a>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#3117">_binding_0</a>.<span class="ident">spans</span>);
         }
     }
@@ -6925,8 +6925,8 @@
     <span class="ident">V</span>: <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#34-775">VisitMut</a> <span class="op">+</span> <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>,
 {
     <span class="kw">match</span> <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#3142">node</a> {
-        <a class="ident" href="../../../src/syn/ty.rs.html#331">ReturnType::Default</a> <span class="op">=</span><span class="op">&gt;</span> {}
-        <a class="ident" href="../../../src/syn/ty.rs.html#333">ReturnType::Type</a>(<span class="ident">_binding_0</span>, <span class="ident">_binding_1</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/ty.rs.html#331">ReturnType::Default</a> =&gt; {}
+        <a class="ident" href="../../../src/syn/ty.rs.html#333">ReturnType::Type</a>(<span class="ident">_binding_0</span>, <span class="ident">_binding_1</span>) =&gt; {
             <a class="ident" href="../../../src/syn/gen/up/gen_helper.rs.html#120">tokens_helper</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#3142">v</a>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#3148">_binding_0</a>.<span class="ident">spans</span>);
             <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#3142">v</a>.<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#648">visit_type_mut</a>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="kw-2">*</span><a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#3148">_binding_1</a>);
         }
@@ -6976,16 +6976,16 @@
     <span class="ident">V</span>: <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#34-775">VisitMut</a> <span class="op">+</span> <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>,
 {
     <span class="kw">match</span> <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#3193">node</a> {
-        <a class="ident" href="../../../src/syn/stmt.rs.html#22">Stmt::Local</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/stmt.rs.html#22">Stmt::Local</a>(<span class="ident">_binding_0</span>) =&gt; {
             <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#3193">v</a>.<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#465">visit_local_mut</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#3198">_binding_0</a>);
         }
-        <a class="ident" href="../../../src/syn/stmt.rs.html#25">Stmt::Item</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/stmt.rs.html#25">Stmt::Item</a>(<span class="ident">_binding_0</span>) =&gt; {
             <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#3193">v</a>.<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#362">visit_item_mut</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#3201">_binding_0</a>);
         }
-        <a class="ident" href="../../../src/syn/stmt.rs.html#28">Stmt::Expr</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/stmt.rs.html#28">Stmt::Expr</a>(<span class="ident">_binding_0</span>) =&gt; {
             <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#3193">v</a>.<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#107">visit_expr_mut</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#3204">_binding_0</a>);
         }
-        <a class="ident" href="../../../src/syn/stmt.rs.html#31">Stmt::Semi</a>(<span class="ident">_binding_0</span>, <span class="ident">_binding_1</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/stmt.rs.html#31">Stmt::Semi</a>(<span class="ident">_binding_0</span>, <span class="ident">_binding_1</span>) =&gt; {
             <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#3193">v</a>.<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#107">visit_expr_mut</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#3207">_binding_0</a>);
             <a class="ident" href="../../../src/syn/gen/up/gen_helper.rs.html#120">tokens_helper</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#3193">v</a>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#3207">_binding_1</a>.<span class="ident">spans</span>);
         }
@@ -7011,8 +7011,8 @@
     <span class="ident">V</span>: <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#34-775">VisitMut</a> <span class="op">+</span> <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>,
 {
     <span class="kw">match</span> <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#3228">node</a> {
-        <a class="ident" href="../../../src/syn/generics.rs.html#506">TraitBoundModifier::None</a> <span class="op">=</span><span class="op">&gt;</span> {}
-        <a class="ident" href="../../../src/syn/generics.rs.html#507">TraitBoundModifier::Maybe</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/generics.rs.html#506">TraitBoundModifier::None</a> =&gt; {}
+        <a class="ident" href="../../../src/syn/generics.rs.html#507">TraitBoundModifier::Maybe</a>(<span class="ident">_binding_0</span>) =&gt; {
             <a class="ident" href="../../../src/syn/gen/up/gen_helper.rs.html#120">tokens_helper</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#3228">v</a>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#3234">_binding_0</a>.<span class="ident">spans</span>);
         }
     }
@@ -7023,22 +7023,22 @@
     <span class="ident">V</span>: <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#34-775">VisitMut</a> <span class="op">+</span> <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>,
 {
     <span class="kw">match</span> <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#3240">node</a> {
-        <a class="ident" href="../../../src/syn/item.rs.html#680">TraitItem::Const</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/item.rs.html#680">TraitItem::Const</a>(<span class="ident">_binding_0</span>) =&gt; {
             <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#3240">v</a>.<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#632">visit_trait_item_const_mut</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#3245">_binding_0</a>);
         }
-        <a class="ident" href="../../../src/syn/item.rs.html#683">TraitItem::Method</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/item.rs.html#683">TraitItem::Method</a>(<span class="ident">_binding_0</span>) =&gt; {
             <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#3240">v</a>.<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#640">visit_trait_item_method_mut</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#3248">_binding_0</a>);
         }
-        <a class="ident" href="../../../src/syn/item.rs.html#686">TraitItem::Type</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/item.rs.html#686">TraitItem::Type</a>(<span class="ident">_binding_0</span>) =&gt; {
             <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#3240">v</a>.<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#644">visit_trait_item_type_mut</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#3251">_binding_0</a>);
         }
-        <a class="ident" href="../../../src/syn/item.rs.html#689">TraitItem::Macro</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/item.rs.html#689">TraitItem::Macro</a>(<span class="ident">_binding_0</span>) =&gt; {
             <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#3240">v</a>.<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#636">visit_trait_item_macro_mut</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#3254">_binding_0</a>);
         }
-        <a class="ident" href="../../../src/syn/item.rs.html#692">TraitItem::Verbatim</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/item.rs.html#692">TraitItem::Verbatim</a>(<span class="ident">_binding_0</span>) =&gt; {
             <span class="macro">skip!</span>(<span class="ident">_binding_0</span>);
         }
-        <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable!</span>(),
+        <span class="kw">_</span> =&gt; <span class="macro">unreachable!</span>(),
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
@@ -7121,52 +7121,52 @@
     <span class="ident">V</span>: <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#34-775">VisitMut</a> <span class="op">+</span> <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>,
 {
     <span class="kw">match</span> <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#3338">node</a> {
-        <a class="ident" href="../../../src/syn/ty.rs.html#19">Type::Array</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/ty.rs.html#19">Type::Array</a>(<span class="ident">_binding_0</span>) =&gt; {
             <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#3338">v</a>.<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#652">visit_type_array_mut</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#3343">_binding_0</a>);
         }
-        <a class="ident" href="../../../src/syn/ty.rs.html#22">Type::BareFn</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/ty.rs.html#22">Type::BareFn</a>(<span class="ident">_binding_0</span>) =&gt; {
             <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#3338">v</a>.<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#656">visit_type_bare_fn_mut</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#3346">_binding_0</a>);
         }
-        <a class="ident" href="../../../src/syn/ty.rs.html#25">Type::Group</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/ty.rs.html#25">Type::Group</a>(<span class="ident">_binding_0</span>) =&gt; {
             <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#3338">v</a>.<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#660">visit_type_group_mut</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#3349">_binding_0</a>);
         }
-        <a class="ident" href="../../../src/syn/ty.rs.html#29">Type::ImplTrait</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/ty.rs.html#29">Type::ImplTrait</a>(<span class="ident">_binding_0</span>) =&gt; {
             <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#3338">v</a>.<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#664">visit_type_impl_trait_mut</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#3352">_binding_0</a>);
         }
-        <a class="ident" href="../../../src/syn/ty.rs.html#32">Type::Infer</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/ty.rs.html#32">Type::Infer</a>(<span class="ident">_binding_0</span>) =&gt; {
             <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#3338">v</a>.<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#668">visit_type_infer_mut</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#3355">_binding_0</a>);
         }
-        <a class="ident" href="../../../src/syn/ty.rs.html#35">Type::Macro</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/ty.rs.html#35">Type::Macro</a>(<span class="ident">_binding_0</span>) =&gt; {
             <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#3338">v</a>.<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#672">visit_type_macro_mut</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#3358">_binding_0</a>);
         }
-        <a class="ident" href="../../../src/syn/ty.rs.html#38">Type::Never</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/ty.rs.html#38">Type::Never</a>(<span class="ident">_binding_0</span>) =&gt; {
             <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#3338">v</a>.<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#676">visit_type_never_mut</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#3361">_binding_0</a>);
         }
-        <a class="ident" href="../../../src/syn/ty.rs.html#41">Type::Paren</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/ty.rs.html#41">Type::Paren</a>(<span class="ident">_binding_0</span>) =&gt; {
             <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#3338">v</a>.<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#688">visit_type_paren_mut</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#3364">_binding_0</a>);
         }
-        <a class="ident" href="../../../src/syn/ty.rs.html#45">Type::Path</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/ty.rs.html#45">Type::Path</a>(<span class="ident">_binding_0</span>) =&gt; {
             <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#3338">v</a>.<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#692">visit_type_path_mut</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#3367">_binding_0</a>);
         }
-        <a class="ident" href="../../../src/syn/ty.rs.html#48">Type::Ptr</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/ty.rs.html#48">Type::Ptr</a>(<span class="ident">_binding_0</span>) =&gt; {
             <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#3338">v</a>.<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#696">visit_type_ptr_mut</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#3370">_binding_0</a>);
         }
-        <a class="ident" href="../../../src/syn/ty.rs.html#51">Type::Reference</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/ty.rs.html#51">Type::Reference</a>(<span class="ident">_binding_0</span>) =&gt; {
             <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#3338">v</a>.<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#700">visit_type_reference_mut</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#3373">_binding_0</a>);
         }
-        <a class="ident" href="../../../src/syn/ty.rs.html#54">Type::Slice</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/ty.rs.html#54">Type::Slice</a>(<span class="ident">_binding_0</span>) =&gt; {
             <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#3338">v</a>.<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#704">visit_type_slice_mut</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#3376">_binding_0</a>);
         }
-        <a class="ident" href="../../../src/syn/ty.rs.html#58">Type::TraitObject</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/ty.rs.html#58">Type::TraitObject</a>(<span class="ident">_binding_0</span>) =&gt; {
             <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#3338">v</a>.<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#708">visit_type_trait_object_mut</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#3379">_binding_0</a>);
         }
-        <a class="ident" href="../../../src/syn/ty.rs.html#61">Type::Tuple</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/ty.rs.html#61">Type::Tuple</a>(<span class="ident">_binding_0</span>) =&gt; {
             <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#3338">v</a>.<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#712">visit_type_tuple_mut</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#3382">_binding_0</a>);
         }
-        <a class="ident" href="../../../src/syn/ty.rs.html#64">Type::Verbatim</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/ty.rs.html#64">Type::Verbatim</a>(<span class="ident">_binding_0</span>) =&gt; {
             <span class="macro">skip!</span>(<span class="ident">_binding_0</span>);
         }
-        <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable!</span>(),
+        <span class="kw">_</span> =&gt; <span class="macro">unreachable!</span>(),
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
@@ -7282,10 +7282,10 @@
     <span class="ident">V</span>: <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#34-775">VisitMut</a> <span class="op">+</span> <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>,
 {
     <span class="kw">match</span> <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#3499">node</a> {
-        <a class="ident" href="../../../src/syn/generics.rs.html#477">TypeParamBound::Trait</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/generics.rs.html#477">TypeParamBound::Trait</a>(<span class="ident">_binding_0</span>) =&gt; {
             <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#3499">v</a>.<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#620">visit_trait_bound_mut</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#3504">_binding_0</a>);
         }
-        <a class="ident" href="../../../src/syn/generics.rs.html#478">TypeParamBound::Lifetime</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/generics.rs.html#478">TypeParamBound::Lifetime</a>(<span class="ident">_binding_0</span>) =&gt; {
             <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#3499">v</a>.<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#433">visit_lifetime_mut</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#3507">_binding_0</a>);
         }
     }
@@ -7380,13 +7380,13 @@
     <span class="ident">V</span>: <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#34-775">VisitMut</a> <span class="op">+</span> <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>,
 {
     <span class="kw">match</span> <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#3597">node</a> {
-        <a class="ident" href="../../../src/syn/op.rs.html#75">UnOp::Deref</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/op.rs.html#75">UnOp::Deref</a>(<span class="ident">_binding_0</span>) =&gt; {
             <a class="ident" href="../../../src/syn/gen/up/gen_helper.rs.html#120">tokens_helper</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#3597">v</a>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#3602">_binding_0</a>.<span class="ident">spans</span>);
         }
-        <a class="ident" href="../../../src/syn/op.rs.html#77">UnOp::Not</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/op.rs.html#77">UnOp::Not</a>(<span class="ident">_binding_0</span>) =&gt; {
             <a class="ident" href="../../../src/syn/gen/up/gen_helper.rs.html#120">tokens_helper</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#3597">v</a>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#3605">_binding_0</a>.<span class="ident">spans</span>);
         }
-        <a class="ident" href="../../../src/syn/op.rs.html#79">UnOp::Neg</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/op.rs.html#79">UnOp::Neg</a>(<span class="ident">_binding_0</span>) =&gt; {
             <a class="ident" href="../../../src/syn/gen/up/gen_helper.rs.html#120">tokens_helper</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#3597">v</a>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#3608">_binding_0</a>.<span class="ident">spans</span>);
         }
     }
@@ -7443,19 +7443,19 @@
     <span class="ident">V</span>: <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#34-775">VisitMut</a> <span class="op">+</span> <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>,
 {
     <span class="kw">match</span> <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#3660">node</a> {
-        <a class="ident" href="../../../src/syn/item.rs.html#485">UseTree::Path</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/item.rs.html#485">UseTree::Path</a>(<span class="ident">_binding_0</span>) =&gt; {
             <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#3660">v</a>.<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#732">visit_use_path_mut</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#3665">_binding_0</a>);
         }
-        <a class="ident" href="../../../src/syn/item.rs.html#488">UseTree::Name</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/item.rs.html#488">UseTree::Name</a>(<span class="ident">_binding_0</span>) =&gt; {
             <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#3660">v</a>.<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#728">visit_use_name_mut</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#3668">_binding_0</a>);
         }
-        <a class="ident" href="../../../src/syn/item.rs.html#491">UseTree::Rename</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/item.rs.html#491">UseTree::Rename</a>(<span class="ident">_binding_0</span>) =&gt; {
             <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#3660">v</a>.<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#736">visit_use_rename_mut</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#3671">_binding_0</a>);
         }
-        <a class="ident" href="../../../src/syn/item.rs.html#494">UseTree::Glob</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/item.rs.html#494">UseTree::Glob</a>(<span class="ident">_binding_0</span>) =&gt; {
             <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#3660">v</a>.<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#720">visit_use_glob_mut</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#3674">_binding_0</a>);
         }
-        <a class="ident" href="../../../src/syn/item.rs.html#497">UseTree::Group</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/item.rs.html#497">UseTree::Group</a>(<span class="ident">_binding_0</span>) =&gt; {
             <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#3660">v</a>.<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#724">visit_use_group_mut</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#3677">_binding_0</a>);
         }
     }
@@ -7517,16 +7517,16 @@
     <span class="ident">V</span>: <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#34-775">VisitMut</a> <span class="op">+</span> <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>,
 {
     <span class="kw">match</span> <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#3734">node</a> {
-        <a class="ident" href="../../../src/syn/data.rs.html#188">Visibility::Public</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/data.rs.html#188">Visibility::Public</a>(<span class="ident">_binding_0</span>) =&gt; {
             <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#3734">v</a>.<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#756">visit_vis_public_mut</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#3739">_binding_0</a>);
         }
-        <a class="ident" href="../../../src/syn/data.rs.html#191">Visibility::Crate</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/data.rs.html#191">Visibility::Crate</a>(<span class="ident">_binding_0</span>) =&gt; {
             <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#3734">v</a>.<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#752">visit_vis_crate_mut</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#3742">_binding_0</a>);
         }
-        <a class="ident" href="../../../src/syn/data.rs.html#195">Visibility::Restricted</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/data.rs.html#195">Visibility::Restricted</a>(<span class="ident">_binding_0</span>) =&gt; {
             <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#3734">v</a>.<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#760">visit_vis_restricted_mut</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#3745">_binding_0</a>);
         }
-        <a class="ident" href="../../../src/syn/data.rs.html#198">Visibility::Inherited</a> <span class="op">=</span><span class="op">&gt;</span> {}
+        <a class="ident" href="../../../src/syn/data.rs.html#198">Visibility::Inherited</a> =&gt; {}
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
@@ -7549,13 +7549,13 @@
     <span class="ident">V</span>: <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#34-775">VisitMut</a> <span class="op">+</span> <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>,
 {
     <span class="kw">match</span> <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#3766">node</a> {
-        <a class="ident" href="../../../src/syn/generics.rs.html#538">WherePredicate::Type</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/generics.rs.html#538">WherePredicate::Type</a>(<span class="ident">_binding_0</span>) =&gt; {
             <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#3766">v</a>.<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#589">visit_predicate_type_mut</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#3771">_binding_0</a>);
         }
-        <a class="ident" href="../../../src/syn/generics.rs.html#541">WherePredicate::Lifetime</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/generics.rs.html#541">WherePredicate::Lifetime</a>(<span class="ident">_binding_0</span>) =&gt; {
             <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#3766">v</a>.<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#585">visit_predicate_lifetime_mut</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#3774">_binding_0</a>);
         }
-        <a class="ident" href="../../../src/syn/generics.rs.html#544">WherePredicate::Eq</a>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/syn/generics.rs.html#544">WherePredicate::Eq</a>(<span class="ident">_binding_0</span>) =&gt; {
             <a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#3766">v</a>.<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#581">visit_predicate_eq_mut</a>(<a class="ident" href="../../../src/syn/gen/visit_mut.rs.html#3777">_binding_0</a>);
         }
     }

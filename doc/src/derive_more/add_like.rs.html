@@ -151,7 +151,7 @@
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/index.html">std::iter</a>;
 <span class="kw">use</span> <span class="ident">syn</span>::{<a class="ident" href="../../syn/derive/enum.Data.html">Data</a>, <a class="ident" href="../../syn/derive/struct.DataEnum.html">DataEnum</a>, <a class="ident" href="../../syn/derive/struct.DeriveInput.html">DeriveInput</a>, <a class="ident" href="../../syn/data/struct.Field.html">Field</a>, <a class="ident" href="../../syn/data/enum.Fields.html">Fields</a>, <span class="ident">Ident</span>};
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">expand</span>(<span class="ident">input</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../syn/derive/struct.DeriveInput.html">DeriveInput</a>, <span class="ident">trait_name</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="../../proc_macro2/struct.TokenStream.html">TokenStream</a> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">expand</span>(<span class="ident">input</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../syn/derive/struct.DeriveInput.html">DeriveInput</a>, <span class="ident">trait_name</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <a class="ident" href="../../proc_macro2/struct.TokenStream.html">TokenStream</a> {
     <span class="kw">let</span> <span class="ident">trait_name</span> <span class="op">=</span> <a class="ident" href="../../src/derive_more/add_like.rs.html#11">trait_name</a>.<span class="ident">trim_end_matches</span>(<span class="string">&quot;Self&quot;</span>);
     <span class="kw">let</span> <span class="ident">trait_ident</span> <span class="op">=</span> <span class="ident">Ident::new</span>(<a class="ident" href="../../src/derive_more/add_like.rs.html#12">trait_name</a>, <span class="ident">Span::call_site</span>());
     <span class="kw">let</span> <span class="ident">method_name</span> <span class="op">=</span> <a class="ident" href="../../src/derive_more/add_like.rs.html#12">trait_name</a>.<span class="ident">to_lowercase</span>();
@@ -162,30 +162,30 @@
     <span class="kw">let</span> (<span class="ident">impl_generics</span>, <span class="ident">ty_generics</span>, <span class="ident">where_clause</span>) <span class="op">=</span> <a class="ident" href="../../src/derive_more/add_like.rs.html#18">generics</a>.<span class="ident">split_for_impl</span>();
 
     <span class="kw">let</span> (<span class="ident">output_type</span>, <span class="ident">block</span>) <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../src/derive_more/add_like.rs.html#11">input</a>.<span class="ident">data</span> {
-        <span class="ident">Data::Struct</span>(<span class="kw-2">ref</span> <span class="ident">data_struct</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <a class="ident" href="../../src/derive_more/add_like.rs.html#22">data_struct</a>.<span class="ident">fields</span> {
-            <span class="ident">Fields::Unnamed</span>(<span class="kw-2">ref</span> <span class="ident">fields</span>) <span class="op">=</span><span class="op">&gt;</span> (
+        <span class="ident">Data::Struct</span>(<span class="kw-2">ref</span> <span class="ident">data_struct</span>) =&gt; <span class="kw">match</span> <a class="ident" href="../../src/derive_more/add_like.rs.html#22">data_struct</a>.<span class="ident">fields</span> {
+            <span class="ident">Fields::Unnamed</span>(<span class="kw-2">ref</span> <span class="ident">fields</span>) =&gt; (
                 <span class="macro">quote!</span>(#<span class="ident">input_type</span>#<span class="ident">ty_generics</span>),
                 <a class="ident" href="../../src/derive_more/add_like.rs.html#52-56">tuple_content</a>(<a class="ident" href="../../src/derive_more/add_like.rs.html#16">input_type</a>, <span class="kw-2">&amp;</span><a class="ident" href="../../src/derive_more/utils.rs.html#239">unnamed_to_vec</a>(<a class="ident" href="../../src/derive_more/add_like.rs.html#23">fields</a>), <span class="kw-2">&amp;</span><a class="ident" href="../../src/derive_more/add_like.rs.html#15">method_ident</a>),
             ),
-            <span class="ident">Fields::Named</span>(<span class="kw-2">ref</span> <span class="ident">fields</span>) <span class="op">=</span><span class="op">&gt;</span> (
+            <span class="ident">Fields::Named</span>(<span class="kw-2">ref</span> <span class="ident">fields</span>) =&gt; (
                 <span class="macro">quote!</span>(#<span class="ident">input_type</span>#<span class="ident">ty_generics</span>),
                 <a class="ident" href="../../src/derive_more/add_like.rs.html#61-65">struct_content</a>(<a class="ident" href="../../src/derive_more/add_like.rs.html#16">input_type</a>, <span class="kw-2">&amp;</span><a class="ident" href="../../src/derive_more/utils.rs.html#243">named_to_vec</a>(<a class="ident" href="../../src/derive_more/add_like.rs.html#27">fields</a>), <span class="kw-2">&amp;</span><a class="ident" href="../../src/derive_more/add_like.rs.html#15">method_ident</a>),
             ),
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic!</span>(<span class="string">&quot;Unit structs cannot use derive({})&quot;</span>, <a class="ident" href="../../src/derive_more/add_like.rs.html#12">trait_name</a>),
+            <span class="kw">_</span> =&gt; <span class="macro">panic!</span>(<span class="string">&quot;Unit structs cannot use derive({})&quot;</span>, <a class="ident" href="../../src/derive_more/add_like.rs.html#12">trait_name</a>),
         },
-        <span class="ident">Data::Enum</span>(<span class="kw-2">ref</span> <span class="ident">data_enum</span>) <span class="op">=</span><span class="op">&gt;</span> (
+        <span class="ident">Data::Enum</span>(<span class="kw-2">ref</span> <span class="ident">data_enum</span>) =&gt; (
             <span class="macro">quote!</span>(<span class="ident">::core::result::Result</span><span class="op">&lt;</span>#<span class="ident">input_type</span>#<span class="ident">ty_generics</span>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span><span class="op">&gt;</span>),
             <a class="ident" href="../../src/derive_more/add_like.rs.html#74-78">enum_content</a>(<a class="ident" href="../../src/derive_more/add_like.rs.html#16">input_type</a>, <a class="ident" href="../../src/derive_more/add_like.rs.html#33">data_enum</a>, <span class="kw-2">&amp;</span><a class="ident" href="../../src/derive_more/add_like.rs.html#15">method_ident</a>),
         ),
 
-        <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic!</span>(<span class="string">&quot;Only structs and enums can use derive({})&quot;</span>, <a class="ident" href="../../src/derive_more/add_like.rs.html#12">trait_name</a>),
+        <span class="kw">_</span> =&gt; <span class="macro">panic!</span>(<span class="string">&quot;Only structs and enums can use derive({})&quot;</span>, <a class="ident" href="../../src/derive_more/add_like.rs.html#12">trait_name</a>),
     };
 
     <span class="macro">quote!</span>(
         <span class="ident">impl</span>#<span class="ident">impl_generics</span> <span class="ident">::core::ops</span>::#<span class="ident">trait_ident</span> <span class="kw">for</span> #<span class="ident">input_type</span>#<span class="ident">ty_generics</span> #<span class="ident">where_clause</span> {
             <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> #<span class="ident">output_type</span>;
             <span class="attribute">#[<span class="ident">inline</span>]</span>
-            <span class="kw">fn</span> #<span class="ident">method_ident</span>(<span class="self">self</span>, <span class="ident">rhs</span>: #<span class="ident">input_type</span>#<span class="ident">ty_generics</span>) <span class="op">-</span><span class="op">&gt;</span> #<span class="ident">output_type</span> {
+            <span class="kw">fn</span> #<span class="ident">method_ident</span>(<span class="self">self</span>, <span class="ident">rhs</span>: #<span class="ident">input_type</span>#<span class="ident">ty_generics</span>) -&gt; #<span class="ident">output_type</span> {
                 #<span class="ident">block</span>
             }
         }
@@ -196,7 +196,7 @@
     <span class="ident">input_type</span>: <span class="kw-2">&amp;</span><span class="ident">T</span>,
     <span class="ident">fields</span>: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span><a class="ident" href="../../syn/data/struct.Field.html">Field</a>],
     <span class="ident">method_ident</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../proc_macro2/struct.Ident.html">Ident</a>,
-) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="../../proc_macro2/struct.TokenStream.html">TokenStream</a> {
+) -&gt; <a class="ident" href="../../proc_macro2/struct.TokenStream.html">TokenStream</a> {
     <span class="kw">let</span> <span class="ident">exprs</span> <span class="op">=</span> <a class="ident" href="../../src/derive_more/add_helpers.rs.html#5">tuple_exprs</a>(<a class="ident" href="../../src/derive_more/add_like.rs.html#54">fields</a>, <a class="ident" href="../../src/derive_more/add_like.rs.html#55">method_ident</a>);
     <span class="macro">quote!</span>(#<span class="ident">input_type</span>(#(#<span class="ident">exprs</span>),<span class="kw-2">*</span>))
 }
@@ -205,7 +205,7 @@
     <span class="ident">input_type</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../proc_macro2/struct.Ident.html">Ident</a>,
     <span class="ident">fields</span>: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span><a class="ident" href="../../syn/data/struct.Field.html">Field</a>],
     <span class="ident">method_ident</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../proc_macro2/struct.Ident.html">Ident</a>,
-) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="../../proc_macro2/struct.TokenStream.html">TokenStream</a> {
+) -&gt; <a class="ident" href="../../proc_macro2/struct.TokenStream.html">TokenStream</a> {
     <span class="comment">// It&#39;s safe to unwrap because struct fields always have an identifier</span>
     <span class="kw">let</span> <span class="ident">exprs</span> <span class="op">=</span> <a class="ident" href="../../src/derive_more/add_helpers.rs.html#17">struct_exprs</a>(<a class="ident" href="../../src/derive_more/add_like.rs.html#63">fields</a>, <a class="ident" href="../../src/derive_more/add_like.rs.html#64">method_ident</a>);
     <span class="kw">let</span> <span class="ident">field_names</span> <span class="op">=</span> <a class="ident" href="../../src/derive_more/utils.rs.html#96">field_idents</a>(<a class="ident" href="../../src/derive_more/add_like.rs.html#63">fields</a>);
@@ -218,7 +218,7 @@
     <span class="ident">input_type</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../proc_macro2/struct.Ident.html">Ident</a>,
     <span class="ident">data_enum</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../syn/derive/struct.DataEnum.html">DataEnum</a>,
     <span class="ident">method_ident</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../proc_macro2/struct.Ident.html">Ident</a>,
-) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="../../proc_macro2/struct.TokenStream.html">TokenStream</a> {
+) -&gt; <a class="ident" href="../../proc_macro2/struct.TokenStream.html">TokenStream</a> {
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">matches</span> <span class="op">=</span> <span class="macro">vec!</span>[];
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">method_iter</span> <span class="op">=</span> <span class="ident">iter::repeat</span>(<a class="ident" href="../../src/derive_more/add_like.rs.html#77">method_ident</a>);
 
@@ -227,7 +227,7 @@
         <span class="kw">let</span> <span class="ident">subtype</span> <span class="op">=</span> <span class="macro">quote!</span>(#<span class="ident">input_type</span>::#<span class="ident">subtype</span>);
 
         <span class="kw">match</span> <a class="ident" href="../../src/derive_more/add_like.rs.html#82">variant</a>.<span class="ident">fields</span> {
-            <span class="ident">Fields::Unnamed</span>(<span class="kw-2">ref</span> <span class="ident">fields</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Fields::Unnamed</span>(<span class="kw-2">ref</span> <span class="ident">fields</span>) =&gt; {
                 <span class="comment">// The patern that is outputted should look like this:</span>
                 <span class="comment">// (Subtype(left_vars), TypePath(right_vars)) =&gt; Ok(TypePath(exprs))</span>
                 <span class="kw">let</span> <span class="ident">size</span> <span class="op">=</span> <a class="ident" href="../../src/derive_more/utils.rs.html#239">unnamed_to_vec</a>(<a class="ident" href="../../src/derive_more/add_like.rs.html#87">fields</a>).<span class="ident">len</span>();
@@ -236,13 +236,13 @@
                 <span class="kw">let</span> <span class="ident">method_iter</span> <span class="op">=</span> <a class="ident" href="../../src/derive_more/add_like.rs.html#80">method_iter</a>.<span class="ident">by_ref</span>();
                 <span class="kw">let</span> <span class="ident">matcher</span> <span class="op">=</span> <span class="macro">quote!</span> {
                     (#<span class="ident">subtype</span>(#(#<span class="ident">l_vars</span>),<span class="kw-2">*</span>),
-                     #<span class="ident">subtype</span>(#(#<span class="ident">r_vars</span>),<span class="kw-2">*</span>)) <span class="op">=</span><span class="op">&gt;</span> {
+                     #<span class="ident">subtype</span>(#(#<span class="ident">r_vars</span>),<span class="kw-2">*</span>)) =&gt; {
                         <span class="ident">::core::result::Result::Ok</span>(#<span class="ident">subtype</span>(#(#<span class="ident">l_vars</span>.#<span class="ident">method_iter</span>(#<span class="ident">r_vars</span>)),<span class="kw-2">*</span>))
                     }
                 };
                 <a class="ident" href="../../src/derive_more/add_like.rs.html#79">matches</a>.<span class="ident">push</span>(<a class="ident" href="../../src/derive_more/add_like.rs.html#94">matcher</a>);
             }
-            <span class="ident">Fields::Named</span>(<span class="kw-2">ref</span> <span class="ident">fields</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Fields::Named</span>(<span class="kw-2">ref</span> <span class="ident">fields</span>) =&gt; {
                 <span class="comment">// The patern that is outputted should look like this:</span>
                 <span class="comment">// (Subtype{a: __l_a, ...}, Subtype{a: __r_a, ...} =&gt; {</span>
                 <span class="comment">//     Ok(Subtype{a: __l_a.add(__r_a), ...})</span>
@@ -255,16 +255,16 @@
                 <span class="kw">let</span> <span class="ident">method_iter</span> <span class="op">=</span> <a class="ident" href="../../src/derive_more/add_like.rs.html#80">method_iter</a>.<span class="ident">by_ref</span>();
                 <span class="kw">let</span> <span class="ident">matcher</span> <span class="op">=</span> <span class="macro">quote!</span> {
                     (#<span class="ident">subtype</span>{#(#<span class="ident">field_names</span>: #<span class="ident">l_vars</span>),<span class="kw-2">*</span>},
-                     #<span class="ident">subtype</span>{#(#<span class="ident">field_names</span>: #<span class="ident">r_vars</span>),<span class="kw-2">*</span>}) <span class="op">=</span><span class="op">&gt;</span> {
+                     #<span class="ident">subtype</span>{#(#<span class="ident">field_names</span>: #<span class="ident">r_vars</span>),<span class="kw-2">*</span>}) =&gt; {
                         <span class="ident">::core::result::Result::Ok</span>(#<span class="ident">subtype</span>{#(#<span class="ident">field_names</span>: #<span class="ident">l_vars</span>.#<span class="ident">method_iter</span>(#<span class="ident">r_vars</span>)),<span class="kw-2">*</span>})
                     }
                 };
                 <a class="ident" href="../../src/derive_more/add_like.rs.html#79">matches</a>.<span class="ident">push</span>(<a class="ident" href="../../src/derive_more/add_like.rs.html#113">matcher</a>);
             }
-            <span class="ident">Fields::Unit</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Fields::Unit</span> =&gt; {
                 <span class="kw">let</span> <span class="ident">message</span> <span class="op">=</span>
                     <span class="macro">format!</span>(<span class="string">&quot;Cannot {}() unit variants&quot;</span>, <a class="ident" href="../../src/derive_more/add_like.rs.html#77">method_ident</a>.<span class="ident">to_string</span>());
-                <a class="ident" href="../../src/derive_more/add_like.rs.html#79">matches</a>.<span class="ident">push</span>(<span class="macro">quote!</span>((#<span class="ident">subtype</span>, #<span class="ident">subtype</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">::core::result::Result::Err</span>(#<span class="ident">message</span>)));
+                <a class="ident" href="../../src/derive_more/add_like.rs.html#79">matches</a>.<span class="ident">push</span>(<span class="macro">quote!</span>((#<span class="ident">subtype</span>, #<span class="ident">subtype</span>) =&gt; <span class="ident">::core::result::Result::Err</span>(#<span class="ident">message</span>)));
             }
         }
     }
@@ -276,7 +276,7 @@
             <span class="string">&quot;Trying to {} mismatched enum variants&quot;</span>,
             <a class="ident" href="../../src/derive_more/add_like.rs.html#77">method_ident</a>.<span class="ident">to_string</span>()
         );
-        <a class="ident" href="../../src/derive_more/add_like.rs.html#79">matches</a>.<span class="ident">push</span>(<span class="macro">quote!</span>(<span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">::core::result::Result::Err</span>(#<span class="ident">message</span>)));
+        <a class="ident" href="../../src/derive_more/add_like.rs.html#79">matches</a>.<span class="ident">push</span>(<span class="macro">quote!</span>(<span class="kw">_</span> =&gt; <span class="ident">::core::result::Result::Err</span>(#<span class="ident">message</span>)));
     }
     <span class="macro">quote!</span>(
         <span class="kw">match</span> (<span class="self">self</span>, <span class="ident">rhs</span>) {

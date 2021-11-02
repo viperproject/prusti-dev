@@ -92,13 +92,13 @@
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">parse</span>(
     <span class="ident">uri</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a><span class="op">&gt;</span>,
     <span class="ident">text</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>,
-) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">HashMap</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <a class="ident" href="../../../../src/config/value.rs.html#118-139">Value</a><span class="op">&gt;</span>, <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">dyn</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/error/trait.Error.html">Error</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a><span class="op">&gt;</span><span class="op">&gt;</span> {
+) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">HashMap</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <a class="ident" href="../../../../src/config/value.rs.html#118-139">Value</a><span class="op">&gt;</span>, <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">dyn</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/error/trait.Error.html">Error</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a><span class="op">&gt;</span><span class="op">&gt;</span> {
     <span class="comment">// Parse a YAML object from file</span>
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">docs</span> <span class="op">=</span> <span class="ident">yaml::YamlLoader::load_from_str</span>(<a class="ident" href="../../../../src/config/file/format/yaml.rs.html#11">text</a>)<span class="question-mark">?</span>;
     <span class="kw">let</span> <span class="ident">root</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../../../src/config/file/format/yaml.rs.html#14">docs</a>.<span class="ident">len</span>() {
-        <span class="number">0</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">yaml::Yaml::Hash</span>(<span class="ident">yaml::yaml::Hash::new</span>()),
-        <span class="number">1</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">mem::replace</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../../../src/config/file/format/yaml.rs.html#14">docs</a>[<span class="number">0</span>], <span class="ident">yaml::Yaml::Null</span>),
-        <span class="ident">n</span> <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="number">0</span> =&gt; <span class="ident">yaml::Yaml::Hash</span>(<span class="ident">yaml::yaml::Hash::new</span>()),
+        <span class="number">1</span> =&gt; <span class="ident">mem::replace</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../../../src/config/file/format/yaml.rs.html#14">docs</a>[<span class="number">0</span>], <span class="ident">yaml::Yaml::Null</span>),
+        <span class="ident">n</span> =&gt; {
             <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Box::new</span>(<a class="ident" href="../../../../src/config/file/format/yaml.rs.html#71">MultipleDocumentsError</a>(<a class="ident" href="../../../../src/config/file/format/yaml.rs.html#18">n</a>)));
         }
     };
@@ -106,22 +106,22 @@
     <span class="comment">// TODO: Have a proper error fire if the root of a file is ever not a Table</span>
     <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <a class="ident" href="../../../../src/config/file/format/yaml.rs.html#32">from_yaml_value</a>(<a class="ident" href="../../../../src/config/file/format/yaml.rs.html#10">uri</a>, <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/config/file/format/yaml.rs.html#15">root</a>);
     <span class="kw">match</span> <a class="ident" href="../../../../src/config/file/format/yaml.rs.html#24">value</a>.<span class="ident">kind</span> {
-        <a class="ident" href="../../../../src/config/value.rs.html#15">ValueKind::Table</a>(<span class="ident">map</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<a class="ident" href="../../../../src/config/file/format/yaml.rs.html#26">map</a>),
+        <a class="ident" href="../../../../src/config/value.rs.html#15">ValueKind::Table</a>(<span class="ident">map</span>) =&gt; <span class="prelude-val">Ok</span>(<a class="ident" href="../../../../src/config/file/format/yaml.rs.html#26">map</a>),
 
-        <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">HashMap::new</span>()),
+        <span class="kw">_</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident">HashMap::new</span>()),
     }
 }
 
-<span class="kw">fn</span> <span class="ident">from_yaml_value</span>(<span class="ident">uri</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a><span class="op">&gt;</span>, <span class="ident">value</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../yaml_rust/yaml/enum.Yaml.html">yaml::Yaml</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="../../../../src/config/value.rs.html#118-139">Value</a> {
+<span class="kw">fn</span> <span class="ident">from_yaml_value</span>(<span class="ident">uri</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a><span class="op">&gt;</span>, <span class="ident">value</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../yaml_rust/yaml/enum.Yaml.html">yaml::Yaml</a>) -&gt; <a class="ident" href="../../../../src/config/value.rs.html#118-139">Value</a> {
     <span class="kw">match</span> <span class="kw-2">*</span><a class="ident" href="../../../../src/config/file/format/yaml.rs.html#32">value</a> {
-        <span class="ident">yaml::Yaml::String</span>(<span class="kw-2">ref</span> <span class="ident">value</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Value::new</span>(<a class="ident" href="../../../../src/config/file/format/yaml.rs.html#32">uri</a>, <a class="ident" href="../../../../src/config/value.rs.html#14">ValueKind::String</a>(<a class="ident" href="../../../../src/config/file/format/yaml.rs.html#34">value</a>.<span class="ident">clone</span>())),
-        <span class="ident">yaml::Yaml::Real</span>(<span class="kw-2">ref</span> <span class="ident">value</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">yaml::Yaml::String</span>(<span class="kw-2">ref</span> <span class="ident">value</span>) =&gt; <span class="ident">Value::new</span>(<a class="ident" href="../../../../src/config/file/format/yaml.rs.html#32">uri</a>, <a class="ident" href="../../../../src/config/value.rs.html#14">ValueKind::String</a>(<a class="ident" href="../../../../src/config/file/format/yaml.rs.html#34">value</a>.<span class="ident">clone</span>())),
+        <span class="ident">yaml::Yaml::Real</span>(<span class="kw-2">ref</span> <span class="ident">value</span>) =&gt; {
             <span class="comment">// TODO: Figure out in what cases this can panic?</span>
             <span class="ident">Value::new</span>(<a class="ident" href="../../../../src/config/file/format/yaml.rs.html#32">uri</a>, <a class="ident" href="../../../../src/config/value.rs.html#13">ValueKind::Float</a>(<a class="ident" href="../../../../src/config/file/format/yaml.rs.html#35">value</a>.<span class="ident">parse</span>::<span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.f64.html">f64</a><span class="op">&gt;</span>().<span class="ident">unwrap</span>()))
         }
-        <span class="ident">yaml::Yaml::Integer</span>(<span class="ident">value</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Value::new</span>(<a class="ident" href="../../../../src/config/file/format/yaml.rs.html#32">uri</a>, <a class="ident" href="../../../../src/config/value.rs.html#12">ValueKind::Integer</a>(<a class="ident" href="../../../../src/config/file/format/yaml.rs.html#39">value</a>)),
-        <span class="ident">yaml::Yaml::Boolean</span>(<span class="ident">value</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Value::new</span>(<a class="ident" href="../../../../src/config/file/format/yaml.rs.html#32">uri</a>, <a class="ident" href="../../../../src/config/value.rs.html#11">ValueKind::Boolean</a>(<a class="ident" href="../../../../src/config/file/format/yaml.rs.html#40">value</a>)),
-        <span class="ident">yaml::Yaml::Hash</span>(<span class="kw-2">ref</span> <span class="ident">table</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">yaml::Yaml::Integer</span>(<span class="ident">value</span>) =&gt; <span class="ident">Value::new</span>(<a class="ident" href="../../../../src/config/file/format/yaml.rs.html#32">uri</a>, <a class="ident" href="../../../../src/config/value.rs.html#12">ValueKind::Integer</a>(<a class="ident" href="../../../../src/config/file/format/yaml.rs.html#39">value</a>)),
+        <span class="ident">yaml::Yaml::Boolean</span>(<span class="ident">value</span>) =&gt; <span class="ident">Value::new</span>(<a class="ident" href="../../../../src/config/file/format/yaml.rs.html#32">uri</a>, <a class="ident" href="../../../../src/config/value.rs.html#11">ValueKind::Boolean</a>(<a class="ident" href="../../../../src/config/file/format/yaml.rs.html#40">value</a>)),
+        <span class="ident">yaml::Yaml::Hash</span>(<span class="kw-2">ref</span> <span class="ident">table</span>) =&gt; {
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">m</span> <span class="op">=</span> <span class="ident">HashMap::new</span>();
             <span class="kw">for</span> (<span class="ident">key</span>, <span class="ident">value</span>) <span class="kw">in</span> <a class="ident" href="../../../../src/config/file/format/yaml.rs.html#41">table</a> {
                 <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">k</span>) <span class="op">=</span> <a class="ident" href="../../../../src/config/file/format/yaml.rs.html#43">key</a>.<span class="ident">as_str</span>() {
@@ -131,7 +131,7 @@
             }
             <span class="ident">Value::new</span>(<a class="ident" href="../../../../src/config/file/format/yaml.rs.html#32">uri</a>, <a class="ident" href="../../../../src/config/value.rs.html#15">ValueKind::Table</a>(<a class="ident" href="../../../../src/config/file/format/yaml.rs.html#42">m</a>))
         }
-        <span class="ident">yaml::Yaml::Array</span>(<span class="kw-2">ref</span> <span class="ident">array</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">yaml::Yaml::Array</span>(<span class="kw-2">ref</span> <span class="ident">array</span>) =&gt; {
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">l</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
 
             <span class="kw">for</span> <a class="ident" href="../../../../src/config/file/format/yaml.rs.html#54">value</a> <span class="kw">in</span> <a class="ident" href="../../../../src/config/file/format/yaml.rs.html#51">array</a> {
@@ -146,7 +146,7 @@
         <span class="comment">//               using the index trait badly or on a type error but we send back nil.</span>
         <span class="comment">// 3. Alias – No idea what to do with this and there is a note in the lib that its</span>
         <span class="comment">//            not fully supported yet anyway</span>
-        <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Value::new</span>(<a class="ident" href="../../../../src/config/file/format/yaml.rs.html#32">uri</a>, <a class="ident" href="../../../../src/config/value.rs.html#10">ValueKind::Nil</a>),
+        <span class="kw">_</span> =&gt; <span class="ident">Value::new</span>(<a class="ident" href="../../../../src/config/file/format/yaml.rs.html#32">uri</a>, <a class="ident" href="../../../../src/config/value.rs.html#10">ValueKind::Nil</a>),
     }
 }
 
@@ -154,13 +154,13 @@
 <span class="kw">struct</span> <span class="ident">MultipleDocumentsError</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
 
 <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for</span> <a class="ident" href="../../../../src/config/file/format/yaml.rs.html#71">MultipleDocumentsError</a> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">format</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">format</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
         <span class="macro">write!</span>(<a class="ident" href="../../../../src/config/file/format/yaml.rs.html#74">format</a>, <span class="string">&quot;Got {} YAML documents, expected 1&quot;</span>, <a class="self" href="../../../../src/config/file/format/yaml.rs.html#74">self</a>.<span class="number">0</span>)
     }
 }
 
 <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/error/trait.Error.html">Error</a> <span class="kw">for</span> <a class="ident" href="../../../../src/config/file/format/yaml.rs.html#71">MultipleDocumentsError</a> {
-    <span class="kw">fn</span> <span class="ident">description</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> {
+    <span class="kw">fn</span> <span class="ident">description</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> {
         <span class="string">&quot;More than one YAML document provided&quot;</span>
     }
 }

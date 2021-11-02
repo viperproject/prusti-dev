@@ -449,7 +449,7 @@
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">expand</span>(
     <span class="ident">input</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../syn/derive/struct.DeriveInput.html">syn::DeriveInput</a>,
     <span class="ident">trait_name</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>,
-) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../proc_macro2/struct.TokenStream.html">TokenStream</a><span class="op">&gt;</span> {
+) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../proc_macro2/struct.TokenStream.html">TokenStream</a><span class="op">&gt;</span> {
     <span class="kw">let</span> <a class="ident" href="../../syn/derive/struct.DeriveInput.html">syn::DeriveInput</a> {
         <span class="ident">ident</span>, <span class="ident">generics</span>, ..
     } <span class="op">=</span> <a class="ident" href="../../src/derive_more/error.rs.html#11">input</a>;
@@ -466,19 +466,19 @@
         .<span class="ident">params</span>
         .<span class="ident">iter</span>()
         .<span class="ident">filter_map</span>(<span class="op">|</span><span class="ident">generic</span><span class="op">|</span> <span class="kw">match</span> <a class="ident" href="../../src/derive_more/error.rs.html#29">generic</a> {
-            <span class="ident">syn::GenericParam::Type</span>(<span class="ident">ty</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../src/derive_more/error.rs.html#30">ty</a>.<span class="ident">ident</span>.<span class="ident">clone</span>()),
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
+            <span class="ident">syn::GenericParam::Type</span>(<span class="ident">ty</span>) =&gt; <span class="prelude-val">Some</span>(<a class="ident" href="../../src/derive_more/error.rs.html#30">ty</a>.<span class="ident">ident</span>.<span class="ident">clone</span>()),
+            <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
         })
         .<span class="ident">collect</span>();
 
     <span class="kw">let</span> (<span class="ident">bounds</span>, <span class="ident">source</span>, <span class="ident">backtrace</span>) <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../src/derive_more/error.rs.html#18">state</a>.<span class="ident">derive_type</span> {
-        <a class="ident" href="../../src/derive_more/utils.rs.html#257">DeriveType::Named</a> <span class="op">|</span> <a class="ident" href="../../src/derive_more/utils.rs.html#256">DeriveType::Unnamed</a> <span class="op">=</span><span class="op">&gt;</span> <a class="ident" href="../../src/derive_more/error.rs.html#92-95">render_struct</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/derive_more/error.rs.html#26">type_params</a>, <span class="kw-2">&amp;</span><a class="ident" href="../../src/derive_more/error.rs.html#18">state</a>)<span class="question-mark">?</span>,
-        <a class="ident" href="../../src/derive_more/utils.rs.html#258">DeriveType::Enum</a> <span class="op">=</span><span class="op">&gt;</span> <a class="ident" href="../../src/derive_more/error.rs.html#104-107">render_enum</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/derive_more/error.rs.html#26">type_params</a>, <span class="kw-2">&amp;</span><a class="ident" href="../../src/derive_more/error.rs.html#18">state</a>)<span class="question-mark">?</span>,
+        <a class="ident" href="../../src/derive_more/utils.rs.html#257">DeriveType::Named</a> <span class="op">|</span> <a class="ident" href="../../src/derive_more/utils.rs.html#256">DeriveType::Unnamed</a> =&gt; <a class="ident" href="../../src/derive_more/error.rs.html#92-95">render_struct</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/derive_more/error.rs.html#26">type_params</a>, <span class="kw-2">&amp;</span><a class="ident" href="../../src/derive_more/error.rs.html#18">state</a>)<span class="question-mark">?</span>,
+        <a class="ident" href="../../src/derive_more/utils.rs.html#258">DeriveType::Enum</a> =&gt; <a class="ident" href="../../src/derive_more/error.rs.html#104-107">render_enum</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/derive_more/error.rs.html#26">type_params</a>, <span class="kw-2">&amp;</span><a class="ident" href="../../src/derive_more/error.rs.html#18">state</a>)<span class="question-mark">?</span>,
     };
 
     <span class="kw">let</span> <span class="ident">source</span> <span class="op">=</span> <a class="ident" href="../../src/derive_more/error.rs.html#35">source</a>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">source</span><span class="op">|</span> {
         <span class="macro">quote!</span> {
-            <span class="kw">fn</span> <span class="ident">source</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span>(<span class="kw">dyn</span> <span class="ident">::std::error::Error</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>)<span class="op">&gt;</span> {
+            <span class="kw">fn</span> <span class="ident">source</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span>(<span class="kw">dyn</span> <span class="ident">::std::error::Error</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>)<span class="op">&gt;</span> {
                 #<span class="ident">source</span>
             }
         }
@@ -486,7 +486,7 @@
 
     <span class="kw">let</span> <span class="ident">backtrace</span> <span class="op">=</span> <a class="ident" href="../../src/derive_more/error.rs.html#35">backtrace</a>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">backtrace</span><span class="op">|</span> {
         <span class="macro">quote!</span> {
-            <span class="kw">fn</span> <span class="ident">backtrace</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">::std::backtrace::Backtrace</span><span class="op">&gt;</span> {
+            <span class="kw">fn</span> <span class="ident">backtrace</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">::std::backtrace::Backtrace</span><span class="op">&gt;</span> {
                 #<span class="ident">backtrace</span>
             }
         }
@@ -531,7 +531,7 @@
 <span class="kw">fn</span> <span class="ident">render_struct</span>(
     <span class="ident">type_params</span>: <span class="kw-2">&amp;</span><span class="ident">HashSet</span><span class="op">&lt;</span><a class="ident" href="../../proc_macro2/struct.Ident.html">syn::Ident</a><span class="op">&gt;</span>,
     <span class="ident">state</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/derive_more/utils.rs.html#261-278">State</a>,
-) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="ident">HashSet</span><span class="op">&lt;</span><a class="ident" href="../../syn/ty/enum.Type.html">syn::Type</a><span class="op">&gt;</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../proc_macro2/struct.TokenStream.html">TokenStream</a><span class="op">&gt;</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../proc_macro2/struct.TokenStream.html">TokenStream</a><span class="op">&gt;</span>)<span class="op">&gt;</span> {
+) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="ident">HashSet</span><span class="op">&lt;</span><a class="ident" href="../../syn/ty/enum.Type.html">syn::Type</a><span class="op">&gt;</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../proc_macro2/struct.TokenStream.html">TokenStream</a><span class="op">&gt;</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../proc_macro2/struct.TokenStream.html">TokenStream</a><span class="op">&gt;</span>)<span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">parsed_fields</span> <span class="op">=</span> <a class="ident" href="../../src/derive_more/error.rs.html#226-229">parse_fields</a>(<a class="ident" href="../../src/derive_more/error.rs.html#93">type_params</a>, <a class="ident" href="../../src/derive_more/error.rs.html#94">state</a>)<span class="question-mark">?</span>;
 
     <span class="kw">let</span> <span class="ident">source</span> <span class="op">=</span> <a class="ident" href="../../src/derive_more/error.rs.html#96">parsed_fields</a>.<a class="ident" href="../../src/derive_more/error.rs.html#193">render_source_as_struct</a>();
@@ -543,7 +543,7 @@
 <span class="kw">fn</span> <span class="ident">render_enum</span>(
     <span class="ident">type_params</span>: <span class="kw-2">&amp;</span><span class="ident">HashSet</span><span class="op">&lt;</span><a class="ident" href="../../proc_macro2/struct.Ident.html">syn::Ident</a><span class="op">&gt;</span>,
     <span class="ident">state</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/derive_more/utils.rs.html#261-278">State</a>,
-) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="ident">HashSet</span><span class="op">&lt;</span><a class="ident" href="../../syn/ty/enum.Type.html">syn::Type</a><span class="op">&gt;</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../proc_macro2/struct.TokenStream.html">TokenStream</a><span class="op">&gt;</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../proc_macro2/struct.TokenStream.html">TokenStream</a><span class="op">&gt;</span>)<span class="op">&gt;</span> {
+) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="ident">HashSet</span><span class="op">&lt;</span><a class="ident" href="../../syn/ty/enum.Type.html">syn::Type</a><span class="op">&gt;</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../proc_macro2/struct.TokenStream.html">TokenStream</a><span class="op">&gt;</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../proc_macro2/struct.TokenStream.html">TokenStream</a><span class="op">&gt;</span>)<span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">bounds</span> <span class="op">=</span> <span class="ident">HashSet::default</span>();
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">source_match_arms</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">backtrace_match_arms</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
@@ -579,7 +579,7 @@
 
     <span class="kw">let</span> <span class="ident">render</span> <span class="op">=</span> <span class="op">|</span><span class="ident">match_arms</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../proc_macro2/struct.TokenStream.html">TokenStream</a><span class="op">&gt;</span><span class="op">|</span> {
         <span class="kw">if</span> <span class="op">!</span><a class="ident" href="../../src/derive_more/error.rs.html#141">match_arms</a>.<span class="ident">is_empty</span>() <span class="op">&amp;&amp;</span> <a class="ident" href="../../src/derive_more/error.rs.html#141">match_arms</a>.<span class="ident">len</span>() <span class="op">&lt;</span> <a class="ident" href="../../src/derive_more/error.rs.html#106">state</a>.<span class="ident">variants</span>.<span class="ident">len</span>() {
-            <a class="ident" href="../../src/derive_more/error.rs.html#141">match_arms</a>.<span class="ident">push</span>(<span class="macro">quote!</span>(<span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>));
+            <a class="ident" href="../../src/derive_more/error.rs.html#141">match_arms</a>.<span class="ident">push</span>(<span class="macro">quote!</span>(<span class="kw">_</span> =&gt; <span class="prelude-val">None</span>));
         }
 
         <span class="kw">if</span> <span class="op">!</span><a class="ident" href="../../src/derive_more/error.rs.html#141">match_arms</a>.<span class="ident">is_empty</span>() {
@@ -601,7 +601,7 @@
     <span class="prelude-val">Ok</span>((<a class="ident" href="../../src/derive_more/error.rs.html#108">bounds</a>, <a class="ident" href="../../src/derive_more/error.rs.html#159">source</a>, <a class="ident" href="../../src/derive_more/error.rs.html#160">backtrace</a>))
 }
 
-<span class="kw">fn</span> <span class="ident">allowed_attr_params</span>() <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="../../src/derive_more/utils.rs.html#281-286">AttrParams</a> {
+<span class="kw">fn</span> <span class="ident">allowed_attr_params</span>() -&gt; <a class="ident" href="../../src/derive_more/utils.rs.html#281-286">AttrParams</a> {
     <a class="ident" href="../../src/derive_more/utils.rs.html#281-286">AttrParams</a> {
         <span class="ident">enum_</span>: <span class="macro">vec!</span>[<span class="string">&quot;ignore&quot;</span>],
         <span class="ident">struct_</span>: <span class="macro">vec!</span>[<span class="string">&quot;ignore&quot;</span>],
@@ -618,7 +618,7 @@
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;input</span>, <span class="lifetime">&#39;state</span><span class="op">&gt;</span> <span class="ident">ParsedFields</span><span class="op">&lt;</span><span class="lifetime">&#39;input</span>, <span class="lifetime">&#39;state</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">data</span>: <span class="ident">MultiFieldData</span><span class="op">&lt;</span><span class="lifetime">&#39;input</span>, <span class="lifetime">&#39;state</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">data</span>: <span class="ident">MultiFieldData</span><span class="op">&lt;</span><span class="lifetime">&#39;input</span>, <span class="lifetime">&#39;state</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
         <span class="self">Self</span> {
             <a class="ident" href="../../src/derive_more/error.rs.html#182">data</a>,
             <span class="ident">source</span>: <span class="prelude-val">None</span>,
@@ -629,33 +629,33 @@
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;input</span>, <span class="lifetime">&#39;state</span><span class="op">&gt;</span> <span class="ident">ParsedFields</span><span class="op">&lt;</span><span class="lifetime">&#39;input</span>, <span class="lifetime">&#39;state</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">render_source_as_struct</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../proc_macro2/struct.TokenStream.html">TokenStream</a><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">render_source_as_struct</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../proc_macro2/struct.TokenStream.html">TokenStream</a><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">source</span> <span class="op">=</span> <a class="self" href="../../src/derive_more/error.rs.html#193">self</a>.<span class="ident">source</span><span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">ident</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="self" href="../../src/derive_more/error.rs.html#193">self</a>.<span class="ident">data</span>.<span class="ident">members</span>[<a class="ident" href="../../src/derive_more/error.rs.html#194">source</a>];
         <span class="prelude-val">Some</span>(<a class="ident" href="../../src/derive_more/error.rs.html#219-221">render_some</a>(<span class="macro">quote!</span>(<span class="kw-2">&amp;</span>#<span class="ident">ident</span>)))
     }
 
-    <span class="kw">fn</span> <span class="ident">render_source_as_enum_variant_match_arm</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../proc_macro2/struct.TokenStream.html">TokenStream</a><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">render_source_as_enum_variant_match_arm</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../proc_macro2/struct.TokenStream.html">TokenStream</a><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">source</span> <span class="op">=</span> <a class="self" href="../../src/derive_more/error.rs.html#199">self</a>.<span class="ident">source</span><span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">pattern</span> <span class="op">=</span> <a class="self" href="../../src/derive_more/error.rs.html#199">self</a>.<span class="ident">data</span>.<a class="ident" href="../../src/derive_more/utils.rs.html#854-858">matcher</a>(<span class="kw-2">&amp;</span>[<a class="ident" href="../../src/derive_more/error.rs.html#200">source</a>], <span class="kw-2">&amp;</span>[<span class="macro">quote!</span>(<span class="ident">source</span>)]);
         <span class="kw">let</span> <span class="ident">expr</span> <span class="op">=</span> <a class="ident" href="../../src/derive_more/error.rs.html#219-221">render_some</a>(<span class="macro">quote!</span>(<span class="ident">source</span>));
-        <span class="prelude-val">Some</span>(<span class="macro">quote!</span>(#<span class="ident">pattern</span> <span class="op">=</span><span class="op">&gt;</span> #<span class="ident">expr</span>))
+        <span class="prelude-val">Some</span>(<span class="macro">quote!</span>(#<span class="ident">pattern</span> =&gt; #<span class="ident">expr</span>))
     }
 
-    <span class="kw">fn</span> <span class="ident">render_backtrace_as_struct</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../proc_macro2/struct.TokenStream.html">TokenStream</a><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">render_backtrace_as_struct</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../proc_macro2/struct.TokenStream.html">TokenStream</a><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">backtrace</span> <span class="op">=</span> <a class="self" href="../../src/derive_more/error.rs.html#206">self</a>.<span class="ident">backtrace</span><span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">backtrace_expr</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="self" href="../../src/derive_more/error.rs.html#206">self</a>.<span class="ident">data</span>.<span class="ident">members</span>[<a class="ident" href="../../src/derive_more/error.rs.html#207">backtrace</a>];
         <span class="prelude-val">Some</span>(<span class="macro">quote!</span>(<span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>#<span class="ident">backtrace_expr</span>)))
     }
 
-    <span class="kw">fn</span> <span class="ident">render_backtrace_as_enum_variant_match_arm</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../proc_macro2/struct.TokenStream.html">TokenStream</a><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">render_backtrace_as_enum_variant_match_arm</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../proc_macro2/struct.TokenStream.html">TokenStream</a><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">backtrace</span> <span class="op">=</span> <a class="self" href="../../src/derive_more/error.rs.html#212">self</a>.<span class="ident">backtrace</span><span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">pattern</span> <span class="op">=</span> <a class="self" href="../../src/derive_more/error.rs.html#212">self</a>.<span class="ident">data</span>.<a class="ident" href="../../src/derive_more/utils.rs.html#854-858">matcher</a>(<span class="kw-2">&amp;</span>[<a class="ident" href="../../src/derive_more/error.rs.html#213">backtrace</a>], <span class="kw-2">&amp;</span>[<span class="macro">quote!</span>(<span class="ident">backtrace</span>)]);
-        <span class="prelude-val">Some</span>(<span class="macro">quote!</span>(#<span class="ident">pattern</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">backtrace</span>)))
+        <span class="prelude-val">Some</span>(<span class="macro">quote!</span>(#<span class="ident">pattern</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">backtrace</span>)))
     }
 }
 
-<span class="kw">fn</span> <span class="ident">render_some</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">expr</span>: <span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>
+<span class="kw">fn</span> <span class="ident">render_some</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">expr</span>: <span class="ident">T</span>) -&gt; <a class="ident" href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>
 <span class="kw">where</span>
     <span class="ident">T</span>: <a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">quote::ToTokens</a>,
 {
@@ -665,36 +665,36 @@
 <span class="kw">fn</span> <span class="ident">parse_fields</span><span class="op">&lt;</span><span class="lifetime">&#39;input</span>, <span class="lifetime">&#39;state</span><span class="op">&gt;</span>(
     <span class="ident">type_params</span>: <span class="kw-2">&amp;</span><span class="ident">HashSet</span><span class="op">&lt;</span><a class="ident" href="../../proc_macro2/struct.Ident.html">syn::Ident</a><span class="op">&gt;</span>,
     <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;state</span> <span class="ident">State</span><span class="op">&lt;</span><span class="lifetime">&#39;input</span><span class="op">&gt;</span>,
-) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">ParsedFields</span><span class="op">&lt;</span><span class="lifetime">&#39;input</span>, <span class="lifetime">&#39;state</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">ParsedFields</span><span class="op">&lt;</span><span class="lifetime">&#39;input</span>, <span class="lifetime">&#39;state</span><span class="op">&gt;</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">parsed_fields</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../src/derive_more/error.rs.html#228">state</a>.<span class="ident">derive_type</span> {
-        <a class="ident" href="../../src/derive_more/utils.rs.html#257">DeriveType::Named</a> <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../src/derive_more/utils.rs.html#257">DeriveType::Named</a> =&gt; {
             <a class="ident" href="../../src/derive_more/error.rs.html#329-334">parse_fields_impl</a>(<a class="ident" href="../../src/derive_more/error.rs.html#228">state</a>, <span class="op">|</span><span class="ident">attr</span>, <span class="ident">field</span>, <span class="kw">_</span><span class="op">|</span> {
                 <span class="comment">// Unwrapping is safe, cause fields in named struct</span>
                 <span class="comment">// always have an ident</span>
                 <span class="kw">let</span> <span class="ident">ident</span> <span class="op">=</span> <a class="ident" href="../../src/derive_more/error.rs.html#232">field</a>.<span class="ident">ident</span>.<span class="ident">as_ref</span>().<span class="ident">unwrap</span>();
 
                 <span class="kw">match</span> <a class="ident" href="../../src/derive_more/error.rs.html#232">attr</a> {
-                    <span class="string">&quot;source&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <a class="ident" href="../../src/derive_more/error.rs.html#235">ident</a> <span class="op">=</span><span class="op">=</span> <span class="string">&quot;source&quot;</span>,
-                    <span class="string">&quot;backtrace&quot;</span> <span class="op">=</span><span class="op">&gt;</span> {
-                        <a class="ident" href="../../src/derive_more/error.rs.html#235">ident</a> <span class="op">=</span><span class="op">=</span> <span class="string">&quot;backtrace&quot;</span>
+                    <span class="string">&quot;source&quot;</span> =&gt; <a class="ident" href="../../src/derive_more/error.rs.html#235">ident</a> <span class="op">==</span> <span class="string">&quot;source&quot;</span>,
+                    <span class="string">&quot;backtrace&quot;</span> =&gt; {
+                        <a class="ident" href="../../src/derive_more/error.rs.html#235">ident</a> <span class="op">==</span> <span class="string">&quot;backtrace&quot;</span>
                             <span class="op">|</span><span class="op">|</span> <a class="ident" href="../../src/derive_more/error.rs.html#284">is_type_path_ends_with_segment</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/derive_more/error.rs.html#232">field</a>.<span class="ident">ty</span>, <span class="string">&quot;Backtrace&quot;</span>)
                     }
-                    <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable!</span>(),
+                    <span class="kw">_</span> =&gt; <span class="macro">unreachable!</span>(),
                 }
             })
         }
 
-        <a class="ident" href="../../src/derive_more/utils.rs.html#256">DeriveType::Unnamed</a> <span class="op">=</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../src/derive_more/utils.rs.html#256">DeriveType::Unnamed</a> =&gt; {
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">parsed_fields</span> <span class="op">=</span>
                 <a class="ident" href="../../src/derive_more/error.rs.html#329-334">parse_fields_impl</a>(<a class="ident" href="../../src/derive_more/error.rs.html#228">state</a>, <span class="op">|</span><span class="ident">attr</span>, <span class="ident">field</span>, <span class="ident">len</span><span class="op">|</span> <span class="kw">match</span> <a class="ident" href="../../src/derive_more/error.rs.html#250">attr</a> {
-                    <span class="string">&quot;source&quot;</span> <span class="op">=</span><span class="op">&gt;</span> {
-                        <a class="ident" href="../../src/derive_more/error.rs.html#250">len</a> <span class="op">=</span><span class="op">=</span> <span class="number">1</span>
+                    <span class="string">&quot;source&quot;</span> =&gt; {
+                        <a class="ident" href="../../src/derive_more/error.rs.html#250">len</a> <span class="op">==</span> <span class="number">1</span>
                             <span class="op">&amp;&amp;</span> <span class="op">!</span><a class="ident" href="../../src/derive_more/error.rs.html#284">is_type_path_ends_with_segment</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/derive_more/error.rs.html#250">field</a>.<span class="ident">ty</span>, <span class="string">&quot;Backtrace&quot;</span>)
                     }
-                    <span class="string">&quot;backtrace&quot;</span> <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="string">&quot;backtrace&quot;</span> =&gt; {
                         <a class="ident" href="../../src/derive_more/error.rs.html#284">is_type_path_ends_with_segment</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/derive_more/error.rs.html#250">field</a>.<span class="ident">ty</span>, <span class="string">&quot;Backtrace&quot;</span>)
                     }
-                    <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable!</span>(),
+                    <span class="kw">_</span> =&gt; <span class="macro">unreachable!</span>(),
                 })<span class="question-mark">?</span>;
 
             <a class="ident" href="../../src/derive_more/error.rs.html#249">parsed_fields</a>.<span class="ident">source</span> <span class="op">=</span> <a class="ident" href="../../src/derive_more/error.rs.html#249">parsed_fields</a>
@@ -704,7 +704,7 @@
             <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/derive_more/error.rs.html#249">parsed_fields</a>)
         }
 
-        <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable!</span>(),
+        <span class="kw">_</span> =&gt; <span class="macro">unreachable!</span>(),
     }<span class="question-mark">?</span>;
 
     <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">source</span>) <span class="op">=</span> <a class="ident" href="../../src/derive_more/error.rs.html#230">parsed_fields</a>.<span class="ident">source</span> {
@@ -720,10 +720,10 @@
 
 <span class="doccomment">/// Checks if `ty` is [`syn::Type::Path`] and ends with segment matching `tail`</span>
 <span class="doccomment">/// and doesn&#39;t contain any generic parameters.</span>
-<span class="kw">fn</span> <span class="ident">is_type_path_ends_with_segment</span>(<span class="ident">ty</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../syn/ty/enum.Type.html">syn::Type</a>, <span class="ident">tail</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+<span class="kw">fn</span> <span class="ident">is_type_path_ends_with_segment</span>(<span class="ident">ty</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../syn/ty/enum.Type.html">syn::Type</a>, <span class="ident">tail</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
     <span class="kw">let</span> <span class="ident">ty</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../src/derive_more/error.rs.html#284">ty</a> {
-        <span class="ident">syn::Type::Path</span>(<span class="ident">ty</span>) <span class="op">=</span><span class="op">&gt;</span> <a class="ident" href="../../src/derive_more/error.rs.html#286">ty</a>,
-        <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="bool-val">false</span>,
+        <span class="ident">syn::Type::Path</span>(<span class="ident">ty</span>) =&gt; <a class="ident" href="../../src/derive_more/error.rs.html#286">ty</a>,
+        <span class="kw">_</span> =&gt; <span class="kw">return</span> <span class="bool-val">false</span>,
     };
 
     <span class="comment">// Unwrapping is safe, cause &#39;syn::TypePath.path.segments&#39;</span>
@@ -731,17 +731,17 @@
     <span class="kw">let</span> <span class="ident">segment</span> <span class="op">=</span> <a class="ident" href="../../src/derive_more/error.rs.html#285">ty</a>.<span class="ident">path</span>.<span class="ident">segments</span>.<span class="ident">last</span>().<span class="ident">unwrap</span>();
 
     <span class="kw">match</span> <a class="ident" href="../../src/derive_more/error.rs.html#292">segment</a>.<span class="ident">arguments</span> {
-        <span class="ident">syn::PathArguments::None</span> <span class="op">=</span><span class="op">&gt;</span> (),
-        <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="bool-val">false</span>,
+        <span class="ident">syn::PathArguments::None</span> =&gt; (),
+        <span class="kw">_</span> =&gt; <span class="kw">return</span> <span class="bool-val">false</span>,
     };
 
-    <a class="ident" href="../../src/derive_more/error.rs.html#292">segment</a>.<span class="ident">ident</span> <span class="op">=</span><span class="op">=</span> <a class="ident" href="../../src/derive_more/error.rs.html#284">tail</a>
+    <a class="ident" href="../../src/derive_more/error.rs.html#292">segment</a>.<span class="ident">ident</span> <span class="op">==</span> <a class="ident" href="../../src/derive_more/error.rs.html#284">tail</a>
 }
 
 <span class="kw">fn</span> <span class="ident">infer_source_field</span>(
     <span class="ident">fields</span>: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span><a class="ident" href="../../syn/data/struct.Field.html">syn::Field</a>],
     <span class="ident">parsed_fields</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/derive_more/error.rs.html#174-179">ParsedFields</a>,
-) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span> {
+) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span> {
     <span class="comment">// if we have exactly two fields</span>
     <span class="kw">if</span> <a class="ident" href="../../src/derive_more/error.rs.html#303">fields</a>.<span class="ident">len</span>() <span class="op">!</span><span class="op">=</span> <span class="number">2</span> {
         <span class="kw">return</span> <span class="prelude-val">None</span>;
@@ -768,9 +768,9 @@
 <span class="kw">fn</span> <span class="ident">parse_fields_impl</span><span class="op">&lt;</span><span class="lifetime">&#39;input</span>, <span class="lifetime">&#39;state</span>, <span class="ident">P</span><span class="op">&gt;</span>(
     <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;state</span> <span class="ident">State</span><span class="op">&lt;</span><span class="lifetime">&#39;input</span><span class="op">&gt;</span>,
     <span class="ident">is_valid_default_field_for_attr</span>: <span class="ident">P</span>,
-) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">ParsedFields</span><span class="op">&lt;</span><span class="lifetime">&#39;input</span>, <span class="lifetime">&#39;state</span><span class="op">&gt;</span><span class="op">&gt;</span>
+) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">ParsedFields</span><span class="op">&lt;</span><span class="lifetime">&#39;input</span>, <span class="lifetime">&#39;state</span><span class="op">&gt;</span><span class="op">&gt;</span>
 <span class="kw">where</span>
-    <span class="ident">P</span>: <span class="ident">Fn</span>(<span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, <span class="kw-2">&amp;</span><a class="ident" href="../../syn/data/struct.Field.html">syn::Field</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+    <span class="ident">P</span>: <span class="ident">Fn</span>(<span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, <span class="kw-2">&amp;</span><a class="ident" href="../../syn/data/struct.Field.html">syn::Field</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
 {
     <span class="kw">let</span> <a class="ident" href="../../src/derive_more/utils.rs.html#809-828">MultiFieldData</a> { <span class="ident">fields</span>, <span class="ident">infos</span>, .. } <span class="op">=</span> <a class="ident" href="../../src/derive_more/error.rs.html#330">state</a>.<a class="ident" href="../../src/derive_more/utils.rs.html#642">enabled_fields_data</a>();
 
@@ -815,19 +815,19 @@
     <span class="ident">iter</span>: <span class="kw">impl</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> (<span class="ident">usize</span>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">syn::Field</span>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">MetaInfo</span>)<span class="op">&gt;</span> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>,
     <span class="ident">attr</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>,
     <span class="ident">value</span>: <span class="ident">V</span>,
-) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="../../syn/data/struct.Field.html">syn::Field</a>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="../../src/derive_more/utils.rs.html#1139-1149">MetaInfo</a>)<span class="op">&gt;</span><span class="op">&gt;</span>
+) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="../../syn/data/struct.Field.html">syn::Field</a>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="../../src/derive_more/utils.rs.html#1139-1149">MetaInfo</a>)<span class="op">&gt;</span><span class="op">&gt;</span>
 <span class="kw">where</span>
-    <span class="ident">P</span>: <span class="ident">Fn</span>(<span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, <span class="kw-2">&amp;</span><a class="ident" href="../../syn/data/struct.Field.html">syn::Field</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-    <span class="ident">V</span>: <span class="ident">Fn</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/derive_more/utils.rs.html#1139-1149">MetaInfo</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a><span class="op">&gt;</span>,
+    <span class="ident">P</span>: <span class="ident">Fn</span>(<span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, <span class="kw-2">&amp;</span><a class="ident" href="../../syn/data/struct.Field.html">syn::Field</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+    <span class="ident">V</span>: <span class="ident">Fn</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/derive_more/utils.rs.html#1139-1149">MetaInfo</a>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a><span class="op">&gt;</span>,
 {
     <span class="kw">let</span> <span class="ident">explicit_fields</span> <span class="op">=</span> <a class="ident" href="../../src/derive_more/error.rs.html#376">iter</a>.<span class="ident">clone</span>().<span class="ident">filter</span>(<span class="op">|</span>(<span class="kw">_</span>, <span class="kw">_</span>, <span class="ident">info</span>)<span class="op">|</span> <span class="kw">match</span> <a class="ident" href="../../src/derive_more/error.rs.html#378">value</a>(<a class="ident" href="../../src/derive_more/error.rs.html#384">info</a>) {
-        <span class="prelude-val">Some</span>(<span class="bool-val">true</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">true</span>,
-        <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
+        <span class="prelude-val">Some</span>(<span class="bool-val">true</span>) =&gt; <span class="bool-val">true</span>,
+        <span class="kw">_</span> =&gt; <span class="bool-val">false</span>,
     });
 
     <span class="kw">let</span> <span class="ident">inferred_fields</span> <span class="op">=</span> <a class="ident" href="../../src/derive_more/error.rs.html#376">iter</a>.<span class="ident">filter</span>(<span class="op">|</span>(<span class="kw">_</span>, <span class="ident">field</span>, <span class="ident">info</span>)<span class="op">|</span> <span class="kw">match</span> <a class="ident" href="../../src/derive_more/error.rs.html#378">value</a>(<a class="ident" href="../../src/derive_more/error.rs.html#389">info</a>) {
-        <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <a class="ident" href="../../src/derive_more/error.rs.html#374">is_valid_default_field_for_attr</a>(<a class="ident" href="../../src/derive_more/error.rs.html#377">attr</a>, <a class="ident" href="../../src/derive_more/error.rs.html#389">field</a>, <a class="ident" href="../../src/derive_more/error.rs.html#375">len</a>),
-        <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
+        <span class="prelude-val">None</span> =&gt; <a class="ident" href="../../src/derive_more/error.rs.html#374">is_valid_default_field_for_attr</a>(<a class="ident" href="../../src/derive_more/error.rs.html#377">attr</a>, <a class="ident" href="../../src/derive_more/error.rs.html#389">field</a>, <a class="ident" href="../../src/derive_more/error.rs.html#375">len</a>),
+        <span class="kw">_</span> =&gt; <span class="bool-val">false</span>,
     });
 
     <span class="kw">let</span> <span class="ident">field</span> <span class="op">=</span> <a class="ident" href="../../src/derive_more/error.rs.html#415-418">assert_iter_contains_zero_or_one_item</a>(
@@ -840,8 +840,8 @@
     )<span class="question-mark">?</span>;
 
     <span class="kw">let</span> <span class="ident">field</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../src/derive_more/error.rs.html#394">field</a> {
-        <span class="ident">field</span> @ <span class="prelude-val">Some</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <a class="ident" href="../../src/derive_more/error.rs.html#404">field</a>,
-        <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <a class="ident" href="../../src/derive_more/error.rs.html#415-418">assert_iter_contains_zero_or_one_item</a>(
+        <span class="ident">field</span> @ <span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; <a class="ident" href="../../src/derive_more/error.rs.html#404">field</a>,
+        <span class="prelude-val">None</span> =&gt; <a class="ident" href="../../src/derive_more/error.rs.html#415-418">assert_iter_contains_zero_or_one_item</a>(
             <a class="ident" href="../../src/derive_more/error.rs.html#389">inferred_fields</a>,
             <span class="string">&quot;Conflicting fields found. Consider specifying some \
              `#[error(...)]` attributes to resolve conflict.&quot;</span>,
@@ -854,10 +854,10 @@
 <span class="kw">fn</span> <span class="ident">assert_iter_contains_zero_or_one_item</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(
     <span class="kw-2">mut</span> <span class="ident">iter</span>: <span class="kw">impl</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> (<span class="ident">usize</span>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">syn::Field</span>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">MetaInfo</span>)<span class="op">&gt;</span>,
     <span class="ident">error_msg</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>,
-) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="../../syn/data/struct.Field.html">syn::Field</a>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="../../src/derive_more/utils.rs.html#1139-1149">MetaInfo</a>)<span class="op">&gt;</span><span class="op">&gt;</span> {
+) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="../../syn/data/struct.Field.html">syn::Field</a>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="../../src/derive_more/utils.rs.html#1139-1149">MetaInfo</a>)<span class="op">&gt;</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">item</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../src/derive_more/error.rs.html#416">iter</a>.<span class="ident">next</span>() {
-        <span class="prelude-val">Some</span>(<span class="ident">item</span>) <span class="op">=</span><span class="op">&gt;</span> <a class="ident" href="../../src/derive_more/error.rs.html#420">item</a>,
-        <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>),
+        <span class="prelude-val">Some</span>(<span class="ident">item</span>) =&gt; <a class="ident" href="../../src/derive_more/error.rs.html#420">item</a>,
+        <span class="prelude-val">None</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>),
     };
 
     <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="ident">field</span>, <span class="kw">_</span>)) <span class="op">=</span> <a class="ident" href="../../src/derive_more/error.rs.html#416">iter</a>.<span class="ident">next</span>() {

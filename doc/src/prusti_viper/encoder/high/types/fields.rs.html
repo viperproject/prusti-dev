@@ -56,12 +56,12 @@
 <span class="kw">use</span> <a class="ident" href="../../../../../vir/legacy/ast/common/struct.Field.html">prusti_common::vir::Field</a>;
 <span class="kw">use</span> <a class="ident" href="../../../../../vir/gen/high/index.html">vir_crate::high</a> <span class="kw">as</span> <span class="ident">vir</span>;
 
-<span class="kw">pub</span>(<span class="kw">in</span> <a class="ident" href="../../../../../src/prusti_viper/encoder/mod.rs.html#33"><span class="kw">super</span>::<span class="kw">super</span></a>) <span class="kw">fn</span> <span class="ident">create_value_field</span>(<span class="ident">ty</span>: <a class="ident" href="../../../../../vir/gen/high/ast/ty/enum.Type.html">vir::Type</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">EncodingResult</span><span class="op">&lt;</span><a class="ident" href="../../../../../vir/gen/high/ast/field/struct.FieldDecl.html">vir::FieldDecl</a><span class="op">&gt;</span> {
+<span class="kw">pub</span>(<span class="kw">in</span> <a class="ident" href="../../../../../src/prusti_viper/encoder/mod.rs.html#33"><span class="kw">super</span>::<span class="kw">super</span></a>) <span class="kw">fn</span> <span class="ident">create_value_field</span>(<span class="ident">ty</span>: <a class="ident" href="../../../../../vir/gen/high/ast/ty/enum.Type.html">vir::Type</a>) -&gt; <span class="ident">EncodingResult</span><span class="op">&lt;</span><a class="ident" href="../../../../../vir/gen/high/ast/field/struct.FieldDecl.html">vir::FieldDecl</a><span class="op">&gt;</span> {
     <span class="macro">trace!</span>(<span class="string">&quot;Encode value field for type &#39;{:?}&#39;&quot;</span>, <a class="ident" href="../../../../../src/prusti_viper/encoder/high/types/fields.rs.html#8">ty</a>);
     <span class="kw">let</span> <span class="ident">field_decl</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../../../../src/prusti_viper/encoder/high/types/fields.rs.html#8">ty</a> {
-        <span class="ident">vir::Type::Bool</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">vir::FieldDecl::new</span>(<span class="string">&quot;val_bool&quot;</span>, <span class="ident">vir::Type::MBool</span>),
+        <span class="ident">vir::Type::Bool</span> =&gt; <span class="ident">vir::FieldDecl::new</span>(<span class="string">&quot;val_bool&quot;</span>, <span class="ident">vir::Type::MBool</span>),
 
-        <span class="ident">vir::Type::Int</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">vir::FieldDecl::new</span>(<span class="string">&quot;val_int&quot;</span>, <span class="ident">vir::Type::MInt</span>),
+        <span class="ident">vir::Type::Int</span>(<span class="kw">_</span>) =&gt; <span class="ident">vir::FieldDecl::new</span>(<span class="string">&quot;val_int&quot;</span>, <span class="ident">vir::Type::MInt</span>),
 
         <span class="comment">// For composed data structures, we typically use a snapshot rather than a field.</span>
         <span class="comment">// To unify how parameters are passed to functions, we treat them like a reference.</span>
@@ -70,13 +70,13 @@
         <span class="op">|</span> <span class="ident">vir::Type::Enum</span>(<span class="kw">_</span>)
         <span class="op">|</span> <span class="ident">vir::Type::Closure</span>(<span class="kw">_</span>)
         <span class="op">|</span> <span class="ident">vir::Type::FunctionDef</span>(<span class="kw">_</span>)
-        <span class="op">|</span> <span class="ident">vir::Type::FnPointer</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">vir::FieldDecl::new</span>(<span class="string">&quot;val_ref&quot;</span>, <a class="ident" href="../../../../../src/prusti_viper/encoder/high/types/fields.rs.html#8">ty</a>),
+        <span class="op">|</span> <span class="ident">vir::Type::FnPointer</span> =&gt; <span class="ident">vir::FieldDecl::new</span>(<span class="string">&quot;val_ref&quot;</span>, <a class="ident" href="../../../../../src/prusti_viper/encoder/high/types/fields.rs.html#8">ty</a>),
 
-        <span class="ident">vir::Type::Reference</span>(<a class="ident" href="../../../../../vir/gen/high/ast/ty/struct.Reference.html">vir::ty::Reference</a> { <span class="ident">target_type</span>, .. }) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">vir::Type::Reference</span>(<a class="ident" href="../../../../../vir/gen/high/ast/ty/struct.Reference.html">vir::ty::Reference</a> { <span class="ident">target_type</span>, .. }) =&gt; {
             <span class="ident">vir::FieldDecl::new</span>(<span class="string">&quot;val_ref&quot;</span>, (<span class="kw-2">*</span><a class="ident" href="../../../../../src/prusti_viper/encoder/high/types/fields.rs.html#24">target_type</a>).<span class="ident">clone</span>())
         }
 
-        <span class="ident">vir::Type::Array</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="ident">vir::Type::Slice</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">vir::Type::Array</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="ident">vir::Type::Slice</span>(<span class="kw">_</span>) =&gt; {
             <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">EncodingError::internal</span>(<span class="macro">format!</span>(
                 <span class="string">&quot;create_value_field should not be called for {}&quot;</span>,
                 <a class="ident" href="../../../../../src/prusti_viper/encoder/high/types/fields.rs.html#8">ty</a>
@@ -89,14 +89,14 @@
         <span class="op">|</span> <span class="ident">vir::Type::Never</span>
         <span class="op">|</span> <span class="ident">vir::Type::Str</span>
         <span class="op">|</span> <span class="ident">vir::Type::Projection</span>(<span class="kw">_</span>)
-        <span class="op">|</span> <span class="ident">vir::Type::Unsupported</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="op">|</span> <span class="ident">vir::Type::Unsupported</span>(<span class="kw">_</span>) =&gt; {
             <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">EncodingError::unsupported</span>(<span class="macro">format!</span>(
                 <span class="string">&quot;{} type is not supported&quot;</span>,
                 <a class="ident" href="../../../../../src/prusti_viper/encoder/high/types/fields.rs.html#8">ty</a>
             )));
         }
 
-        <span class="ident">vir::Type::MBool</span> <span class="op">|</span> <span class="ident">vir::Type::MInt</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable!</span>(),
+        <span class="ident">vir::Type::MBool</span> <span class="op">|</span> <span class="ident">vir::Type::MInt</span> =&gt; <span class="macro">unreachable!</span>(),
     };
     <span class="prelude-val">Ok</span>(<a class="ident" href="../../../../../src/prusti_viper/encoder/high/types/fields.rs.html#10">field_decl</a>)
 }

@@ -225,7 +225,7 @@
 <span class="comment">// ===== impl BackupStack =====</span>
 
 <span class="kw">impl</span> <a class="ident" href="../../../src/tokio_threadpool/pool/backup_stack.rs.html#7-9">BackupStack</a> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="../../../src/tokio_threadpool/pool/backup_stack.rs.html#7-9">BackupStack</a> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <a class="ident" href="../../../src/tokio_threadpool/pool/backup_stack.rs.html#7-9">BackupStack</a> {
         <span class="kw">let</span> <span class="ident">state</span> <span class="op">=</span> <span class="ident">AtomicUsize::new</span>(<span class="ident">State::new</span>().<span class="ident">into</span>());
         <a class="ident" href="../../../src/tokio_threadpool/pool/backup_stack.rs.html#7-9">BackupStack</a> { <a class="ident" href="../../../src/tokio_threadpool/pool/backup_stack.rs.html#38">state</a> }
     }
@@ -238,7 +238,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// Returns `Err` if the pool has transitioned to the `TERMINATED` state.</span>
     <span class="doccomment">/// When terminated, pushing new entries is no longer permitted.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">push</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">entries</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="../../../src/tokio_threadpool/pool/backup.rs.html#30-48">Backup</a>], <span class="ident">id</span>: <a class="ident" href="../../../src/tokio_threadpool/pool/backup.rs.html#51">BackupId</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), ()<span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">push</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">entries</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="../../../src/tokio_threadpool/pool/backup.rs.html#30-48">Backup</a>], <span class="ident">id</span>: <a class="ident" href="../../../src/tokio_threadpool/pool/backup.rs.html#51">BackupId</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), ()<span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">state</span>: <a class="ident" href="../../../src/tokio_threadpool/pool/backup_stack.rs.html#12">State</a> <span class="op">=</span> <a class="self" href="../../../src/tokio_threadpool/pool/backup_stack.rs.html#50">self</a>.<span class="ident">state</span>.<span class="ident">load</span>(<span class="ident">Acquire</span>).<span class="ident">into</span>();
 
         <a class="ident" href="../../../src/tokio_threadpool/pool/backup_stack.rs.html#50">entries</a>[<a class="ident" href="../../../src/tokio_threadpool/pool/backup_stack.rs.html#50">id</a>.<span class="number">0</span>].<a class="ident" href="../../../src/tokio_threadpool/pool/backup.rs.html#216">set_pushed</a>(<span class="ident">AcqRel</span>);
@@ -248,7 +248,7 @@
 
             <span class="kw">let</span> <span class="ident">head</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio_threadpool/pool/backup_stack.rs.html#51">state</a>.<a class="ident" href="../../../src/tokio_threadpool/pool/backup_stack.rs.html#167">head</a>();
 
-            <span class="kw">if</span> <a class="ident" href="../../../src/tokio_threadpool/pool/backup_stack.rs.html#58">head</a> <span class="op">=</span><span class="op">=</span> <a class="ident" href="../../../src/tokio_threadpool/pool/backup_stack.rs.html#23">TERMINATED</a> {
+            <span class="kw">if</span> <a class="ident" href="../../../src/tokio_threadpool/pool/backup_stack.rs.html#58">head</a> <span class="op">==</span> <a class="ident" href="../../../src/tokio_threadpool/pool/backup_stack.rs.html#23">TERMINATED</a> {
                 <span class="comment">// The pool is terminated, cannot push the sleeper.</span>
                 <span class="kw">return</span> <span class="prelude-val">Err</span>(());
             }
@@ -261,7 +261,7 @@
                 .<span class="ident">compare_and_swap</span>(<a class="ident" href="../../../src/tokio_threadpool/pool/backup_stack.rs.html#51">state</a>.<span class="ident">into</span>(), <a class="ident" href="../../../src/tokio_threadpool/pool/backup_stack.rs.html#56">next</a>.<span class="ident">into</span>(), <span class="ident">AcqRel</span>)
                 .<span class="ident">into</span>();
 
-            <span class="kw">if</span> <a class="ident" href="../../../src/tokio_threadpool/pool/backup_stack.rs.html#51">state</a> <span class="op">=</span><span class="op">=</span> <a class="ident" href="../../../src/tokio_threadpool/pool/backup_stack.rs.html#68">actual</a> {
+            <span class="kw">if</span> <a class="ident" href="../../../src/tokio_threadpool/pool/backup_stack.rs.html#51">state</a> <span class="op">==</span> <a class="ident" href="../../../src/tokio_threadpool/pool/backup_stack.rs.html#68">actual</a> {
                 <span class="kw">return</span> <span class="prelude-val">Ok</span>(());
             }
 
@@ -282,11 +282,11 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// * `Ok(None)` if the stack is empty.</span>
     <span class="doccomment">/// * `Err(_)` is returned if the pool has been shutdown.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">pop</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">entries</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="../../../src/tokio_threadpool/pool/backup.rs.html#30-48">Backup</a>], <span class="ident">terminate</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio_threadpool/pool/backup.rs.html#51">BackupId</a><span class="op">&gt;</span>, ()<span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">pop</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">entries</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="../../../src/tokio_threadpool/pool/backup.rs.html#30-48">Backup</a>], <span class="ident">terminate</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio_threadpool/pool/backup.rs.html#51">BackupId</a><span class="op">&gt;</span>, ()<span class="op">&gt;</span> {
         <span class="comment">// Figure out the empty value</span>
         <span class="kw">let</span> <span class="ident">terminal</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../../src/tokio_threadpool/pool/backup_stack.rs.html#94">terminate</a> {
-            <span class="bool-val">true</span> <span class="op">=</span><span class="op">&gt;</span> <a class="ident" href="../../../src/tokio_threadpool/pool/backup_stack.rs.html#23">TERMINATED</a>,
-            <span class="bool-val">false</span> <span class="op">=</span><span class="op">&gt;</span> <a class="ident" href="../../../src/tokio_threadpool/pool/backup_stack.rs.html#20">EMPTY</a>,
+            <span class="bool-val">true</span> =&gt; <a class="ident" href="../../../src/tokio_threadpool/pool/backup_stack.rs.html#23">TERMINATED</a>,
+            <span class="bool-val">false</span> =&gt; <a class="ident" href="../../../src/tokio_threadpool/pool/backup_stack.rs.html#20">EMPTY</a>,
         };
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">state</span>: <a class="ident" href="../../../src/tokio_threadpool/pool/backup_stack.rs.html#12">State</a> <span class="op">=</span> <a class="self" href="../../../src/tokio_threadpool/pool/backup_stack.rs.html#94">self</a>.<span class="ident">state</span>.<span class="ident">load</span>(<span class="ident">Acquire</span>).<span class="ident">into</span>();
@@ -294,12 +294,12 @@
         <span class="kw">loop</span> {
             <span class="kw">let</span> <span class="ident">head</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio_threadpool/pool/backup_stack.rs.html#101">state</a>.<a class="ident" href="../../../src/tokio_threadpool/pool/backup_stack.rs.html#167">head</a>();
 
-            <span class="kw">if</span> <a class="ident" href="../../../src/tokio_threadpool/pool/backup_stack.rs.html#104">head</a> <span class="op">=</span><span class="op">=</span> <a class="ident" href="../../../src/tokio_threadpool/pool/backup_stack.rs.html#20">EMPTY</a> {
+            <span class="kw">if</span> <a class="ident" href="../../../src/tokio_threadpool/pool/backup_stack.rs.html#104">head</a> <span class="op">==</span> <a class="ident" href="../../../src/tokio_threadpool/pool/backup_stack.rs.html#20">EMPTY</a> {
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">next</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio_threadpool/pool/backup_stack.rs.html#101">state</a>;
                 <a class="ident" href="../../../src/tokio_threadpool/pool/backup_stack.rs.html#107">next</a>.<a class="ident" href="../../../src/tokio_threadpool/pool/backup_stack.rs.html#171">set_head</a>(<a class="ident" href="../../../src/tokio_threadpool/pool/backup_stack.rs.html#96">terminal</a>);
 
-                <span class="kw">if</span> <a class="ident" href="../../../src/tokio_threadpool/pool/backup_stack.rs.html#107">next</a> <span class="op">=</span><span class="op">=</span> <a class="ident" href="../../../src/tokio_threadpool/pool/backup_stack.rs.html#101">state</a> {
-                    <span class="macro">debug_assert!</span>(<a class="ident" href="../../../src/tokio_threadpool/pool/backup_stack.rs.html#96">terminal</a> <span class="op">=</span><span class="op">=</span> <a class="ident" href="../../../src/tokio_threadpool/pool/backup_stack.rs.html#20">EMPTY</a>);
+                <span class="kw">if</span> <a class="ident" href="../../../src/tokio_threadpool/pool/backup_stack.rs.html#107">next</a> <span class="op">==</span> <a class="ident" href="../../../src/tokio_threadpool/pool/backup_stack.rs.html#101">state</a> {
+                    <span class="macro">debug_assert!</span>(<a class="ident" href="../../../src/tokio_threadpool/pool/backup_stack.rs.html#96">terminal</a> <span class="op">==</span> <a class="ident" href="../../../src/tokio_threadpool/pool/backup_stack.rs.html#20">EMPTY</a>);
                     <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
                 }
 
@@ -314,7 +314,7 @@
                 }
 
                 <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
-            } <span class="kw">else</span> <span class="kw">if</span> <a class="ident" href="../../../src/tokio_threadpool/pool/backup_stack.rs.html#104">head</a> <span class="op">=</span><span class="op">=</span> <a class="ident" href="../../../src/tokio_threadpool/pool/backup_stack.rs.html#23">TERMINATED</a> {
+            } <span class="kw">else</span> <span class="kw">if</span> <a class="ident" href="../../../src/tokio_threadpool/pool/backup_stack.rs.html#104">head</a> <span class="op">==</span> <a class="ident" href="../../../src/tokio_threadpool/pool/backup_stack.rs.html#23">TERMINATED</a> {
                 <span class="kw">return</span> <span class="prelude-val">Err</span>(());
             }
 
@@ -327,7 +327,7 @@
             <span class="comment">// TERMINATED can never be set as the &quot;next pointer&quot; on a worker.</span>
             <span class="macro">debug_assert!</span>(<a class="ident" href="../../../src/tokio_threadpool/pool/backup_stack.rs.html#134">next_head</a> <span class="op">!</span><span class="op">=</span> <a class="ident" href="../../../src/tokio_threadpool/pool/backup_stack.rs.html#23">TERMINATED</a>);
 
-            <span class="kw">if</span> <a class="ident" href="../../../src/tokio_threadpool/pool/backup_stack.rs.html#134">next_head</a> <span class="op">=</span><span class="op">=</span> <a class="ident" href="../../../src/tokio_threadpool/pool/backup_stack.rs.html#20">EMPTY</a> {
+            <span class="kw">if</span> <a class="ident" href="../../../src/tokio_threadpool/pool/backup_stack.rs.html#134">next_head</a> <span class="op">==</span> <a class="ident" href="../../../src/tokio_threadpool/pool/backup_stack.rs.html#20">EMPTY</a> {
                 <a class="ident" href="../../../src/tokio_threadpool/pool/backup_stack.rs.html#132">next</a>.<a class="ident" href="../../../src/tokio_threadpool/pool/backup_stack.rs.html#171">set_head</a>(<a class="ident" href="../../../src/tokio_threadpool/pool/backup_stack.rs.html#96">terminal</a>);
             } <span class="kw">else</span> {
                 <a class="ident" href="../../../src/tokio_threadpool/pool/backup_stack.rs.html#132">next</a>.<a class="ident" href="../../../src/tokio_threadpool/pool/backup_stack.rs.html#171">set_head</a>(<a class="ident" href="../../../src/tokio_threadpool/pool/backup_stack.rs.html#134">next_head</a>);
@@ -338,7 +338,7 @@
                 .<span class="ident">compare_and_swap</span>(<a class="ident" href="../../../src/tokio_threadpool/pool/backup_stack.rs.html#101">state</a>.<span class="ident">into</span>(), <a class="ident" href="../../../src/tokio_threadpool/pool/backup_stack.rs.html#132">next</a>.<span class="ident">into</span>(), <span class="ident">AcqRel</span>)
                 .<span class="ident">into</span>();
 
-            <span class="kw">if</span> <a class="ident" href="../../../src/tokio_threadpool/pool/backup_stack.rs.html#145">actual</a> <span class="op">=</span><span class="op">=</span> <a class="ident" href="../../../src/tokio_threadpool/pool/backup_stack.rs.html#101">state</a> {
+            <span class="kw">if</span> <a class="ident" href="../../../src/tokio_threadpool/pool/backup_stack.rs.html#145">actual</a> <span class="op">==</span> <a class="ident" href="../../../src/tokio_threadpool/pool/backup_stack.rs.html#101">state</a> {
                 <span class="macro">debug_assert!</span>(<a class="ident" href="../../../src/tokio_threadpool/pool/backup_stack.rs.html#94">entries</a>[<a class="ident" href="../../../src/tokio_threadpool/pool/backup_stack.rs.html#104">head</a>.<span class="number">0</span>].<a class="ident" href="../../../src/tokio_threadpool/pool/backup.rs.html#211">is_pushed</a>());
                 <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<a class="ident" href="../../../src/tokio_threadpool/pool/backup_stack.rs.html#104">head</a>));
             }
@@ -351,11 +351,11 @@
 <span class="comment">// ===== impl State =====</span>
 
 <span class="kw">impl</span> <a class="ident" href="../../../src/tokio_threadpool/pool/backup_stack.rs.html#12">State</a> {
-    <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="../../../src/tokio_threadpool/pool/backup_stack.rs.html#12">State</a> {
+    <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <a class="ident" href="../../../src/tokio_threadpool/pool/backup_stack.rs.html#12">State</a> {
         <a class="ident" href="../../../src/tokio_threadpool/pool/backup_stack.rs.html#12">State</a>(<a class="ident" href="../../../src/tokio_threadpool/pool/backup_stack.rs.html#20">EMPTY</a>.<span class="number">0</span>)
     }
 
-    <span class="kw">fn</span> <span class="ident">head</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="../../../src/tokio_threadpool/pool/backup.rs.html#51">BackupId</a> {
+    <span class="kw">fn</span> <span class="ident">head</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="../../../src/tokio_threadpool/pool/backup.rs.html#51">BackupId</a> {
         <a class="ident" href="../../../src/tokio_threadpool/pool/backup.rs.html#51">BackupId</a>(<a class="self" href="../../../src/tokio_threadpool/pool/backup_stack.rs.html#167">self</a>.<span class="number">0</span> <span class="op">&amp;</span> <a class="ident" href="../../../src/tokio_threadpool/pool/backup_stack.rs.html#17">STACK_MASK</a>)
     }
 
@@ -370,13 +370,13 @@
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../../src/tokio_threadpool/pool/backup_stack.rs.html#12">State</a> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">src</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">src</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="self">Self</span> {
         <a class="ident" href="../../../src/tokio_threadpool/pool/backup_stack.rs.html#12">State</a>(<a class="ident" href="../../../src/tokio_threadpool/pool/backup_stack.rs.html#182">src</a>)
     }
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio_threadpool/pool/backup_stack.rs.html#12">State</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">src</span>: <a class="ident" href="../../../src/tokio_threadpool/pool/backup_stack.rs.html#12">State</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">src</span>: <a class="ident" href="../../../src/tokio_threadpool/pool/backup_stack.rs.html#12">State</a>) -&gt; <span class="self">Self</span> {
         <a class="ident" href="../../../src/tokio_threadpool/pool/backup_stack.rs.html#188">src</a>.<span class="number">0</span>
     }
 }

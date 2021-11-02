@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;tokio-1.12.0&#x2F;src&#x2F;runtime&#x2F;driver.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>driver.rs - source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../tokio/index.html'><div class='logo-container rust-logo'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;tokio-1.13.0&#x2F;src&#x2F;runtime&#x2F;driver.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>driver.rs - source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../tokio/index.html'><div class='logo-container rust-logo'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -220,7 +220,7 @@
     <span class="kw">type</span> <span class="ident">IoStack</span> <span class="op">=</span> <span class="ident"><span class="kw">crate</span>::park::either::Either</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio/runtime/driver.rs.html#81">ProcessDriver</a>, <a class="ident" href="../../../src/tokio/park/thread.rs.html#11-13">ParkThread</a><span class="op">&gt;</span>;
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type</span> <span class="ident">IoHandle</span> <span class="op">=</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio/io/driver/mod.rs.html#50-52"><span class="kw">crate</span>::io::driver::Handle</a><span class="op">&gt;</span>;
 
-    <span class="kw">fn</span> <span class="ident">create_io_stack</span>(<span class="ident">enabled</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io::Result</span><span class="op">&lt;</span>(<a class="ident" href="../../../src/tokio/runtime/driver.rs.html#12">IoStack</a>, <a class="ident" href="../../../src/tokio/runtime/driver.rs.html#13">IoHandle</a>, <a class="ident" href="../../../src/tokio/runtime/driver.rs.html#57">SignalHandle</a>)<span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">create_io_stack</span>(<span class="ident">enabled</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>(<a class="ident" href="../../../src/tokio/runtime/driver.rs.html#12">IoStack</a>, <a class="ident" href="../../../src/tokio/runtime/driver.rs.html#13">IoHandle</a>, <a class="ident" href="../../../src/tokio/runtime/driver.rs.html#57">SignalHandle</a>)<span class="op">&gt;</span> {
         <span class="kw">use</span> <a class="ident" href="../../../src/tokio/park/either.rs.html#8-11"><span class="kw">crate</span>::park::either::Either</a>;
 
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">loom</span>)]</span>
@@ -246,7 +246,7 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type</span> <span class="ident">IoHandle</span> <span class="op">=</span> ();
     <span class="kw">type</span> <span class="ident">IoStack</span> <span class="op">=</span> <span class="ident">ParkThread</span>;
 
-    <span class="kw">fn</span> <span class="ident">create_io_stack</span>(<span class="ident">_enabled</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io::Result</span><span class="op">&lt;</span>(<span class="ident">IoStack</span>, <span class="ident">IoHandle</span>, <span class="ident">SignalHandle</span>)<span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">create_io_stack</span>(<span class="ident">_enabled</span>: <span class="ident">bool</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>(<span class="ident">IoStack</span>, <span class="ident">IoHandle</span>, <span class="ident">SignalHandle</span>)<span class="op">&gt;</span> {
         <span class="prelude-val">Ok</span>((<span class="ident">ParkThread::new</span>(), <span class="ident">Default::default</span>(), <span class="ident">Default::default</span>()))
     }
 }
@@ -254,7 +254,7 @@
 <span class="comment">// ===== signal driver =====</span>
 
 <span class="macro">macro_rules!</span> <span class="ident">cfg_signal_internal_and_unix</span> {
-    ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">item</span>:<span class="ident">item</span>)<span class="kw-2">*</span>) <span class="op">=</span><span class="op">&gt;</span> {
+    ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">item</span>:<span class="ident">item</span>)<span class="kw-2">*</span>) =&gt; {
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">unix</span>)]</span>
         <span class="macro">cfg_signal_internal!</span> { $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">item</span>)<span class="op">*</span> }
     }
@@ -264,7 +264,7 @@
     <span class="kw">type</span> <span class="ident">SignalDriver</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/signal/unix/driver.rs.html#23-32"><span class="kw">crate</span>::signal::unix::driver::Driver</a>;
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type</span> <span class="ident">SignalHandle</span> <span class="op">=</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio/signal/unix/driver.rs.html#35-37"><span class="kw">crate</span>::signal::unix::driver::Handle</a><span class="op">&gt;</span>;
 
-    <span class="kw">fn</span> <span class="ident">create_signal_driver</span>(<span class="ident">io_driver</span>: <a class="ident" href="../../../src/tokio/runtime/driver.rs.html#11">IoDriver</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io::Result</span><span class="op">&lt;</span>(<a class="ident" href="../../../src/tokio/runtime/driver.rs.html#56">SignalDriver</a>, <a class="ident" href="../../../src/tokio/runtime/driver.rs.html#57">SignalHandle</a>)<span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">create_signal_driver</span>(<span class="ident">io_driver</span>: <a class="ident" href="../../../src/tokio/runtime/driver.rs.html#11">IoDriver</a>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>(<a class="ident" href="../../../src/tokio/runtime/driver.rs.html#56">SignalDriver</a>, <a class="ident" href="../../../src/tokio/runtime/driver.rs.html#57">SignalHandle</a>)<span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">driver</span> <span class="op">=</span> <span class="ident"><span class="kw">crate</span>::signal::unix::driver::Driver::new</span>(<a class="ident" href="../../../src/tokio/runtime/driver.rs.html#59">io_driver</a>)<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">handle</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/runtime/driver.rs.html#60">driver</a>.<a class="ident" href="../../../src/tokio/signal/unix/driver.rs.html#92">handle</a>();
         <span class="prelude-val">Ok</span>((<a class="ident" href="../../../src/tokio/runtime/driver.rs.html#60">driver</a>, <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/tokio/runtime/driver.rs.html#61">handle</a>)))
@@ -277,7 +277,7 @@
     <span class="macro">cfg_io_driver!</span> {
         <span class="kw">type</span> <span class="ident">SignalDriver</span> <span class="op">=</span> <span class="ident">IoDriver</span>;
 
-        <span class="kw">fn</span> <span class="ident">create_signal_driver</span>(<span class="ident">io_driver</span>: <span class="ident">IoDriver</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io::Result</span><span class="op">&lt;</span>(<span class="ident">SignalDriver</span>, <span class="ident">SignalHandle</span>)<span class="op">&gt;</span> {
+        <span class="kw">fn</span> <span class="ident">create_signal_driver</span>(<span class="ident">io_driver</span>: <span class="ident">IoDriver</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>(<span class="ident">SignalDriver</span>, <span class="ident">SignalHandle</span>)<span class="op">&gt;</span> {
             <span class="prelude-val">Ok</span>((<span class="ident">io_driver</span>, ()))
         }
     }
@@ -288,7 +288,7 @@
 <span class="macro">cfg_process_driver!</span> {
     <span class="kw">type</span> <span class="ident">ProcessDriver</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/process/unix/driver.rs.html#14-17"><span class="kw">crate</span>::process::unix::driver::Driver</a>;
 
-    <span class="kw">fn</span> <span class="ident">create_process_driver</span>(<span class="ident">signal_driver</span>: <a class="ident" href="../../../src/tokio/runtime/driver.rs.html#56">SignalDriver</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="../../../src/tokio/runtime/driver.rs.html#81">ProcessDriver</a> {
+    <span class="kw">fn</span> <span class="ident">create_process_driver</span>(<span class="ident">signal_driver</span>: <a class="ident" href="../../../src/tokio/runtime/driver.rs.html#56">SignalDriver</a>) -&gt; <a class="ident" href="../../../src/tokio/runtime/driver.rs.html#81">ProcessDriver</a> {
         <span class="ident"><span class="kw">crate</span>::process::unix::driver::Driver::new</span>(<a class="ident" href="../../../src/tokio/runtime/driver.rs.html#83">signal_driver</a>)
     }
 }
@@ -297,7 +297,7 @@
     <span class="macro">cfg_io_driver!</span> {
         <span class="kw">type</span> <span class="ident">ProcessDriver</span> <span class="op">=</span> <span class="ident">SignalDriver</span>;
 
-        <span class="kw">fn</span> <span class="ident">create_process_driver</span>(<span class="ident">signal_driver</span>: <span class="ident">SignalDriver</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ProcessDriver</span> {
+        <span class="kw">fn</span> <span class="ident">create_process_driver</span>(<span class="ident">signal_driver</span>: <span class="ident">SignalDriver</span>) -&gt; <span class="ident">ProcessDriver</span> {
             <span class="ident">signal_driver</span>
         }
     }
@@ -311,7 +311,7 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type</span> <span class="ident">Clock</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/time/clock.rs.html#13"><span class="kw">crate</span>::time::Clock</a>;
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type</span> <span class="ident">TimeHandle</span> <span class="op">=</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio/time/driver/handle.rs.html#7-10"><span class="kw">crate</span>::time::driver::Handle</a><span class="op">&gt;</span>;
 
-    <span class="kw">fn</span> <span class="ident">create_clock</span>(<span class="ident">enable_pausing</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>, <span class="ident">start_paused</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="../../../src/tokio/runtime/driver.rs.html#103">Clock</a> {
+    <span class="kw">fn</span> <span class="ident">create_clock</span>(<span class="ident">enable_pausing</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>, <span class="ident">start_paused</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <a class="ident" href="../../../src/tokio/runtime/driver.rs.html#103">Clock</a> {
         <span class="ident"><span class="kw">crate</span>::time::Clock::new</span>(<a class="ident" href="../../../src/tokio/runtime/driver.rs.html#106">enable_pausing</a>, <a class="ident" href="../../../src/tokio/runtime/driver.rs.html#106">start_paused</a>)
     }
 
@@ -319,7 +319,7 @@
         <span class="ident">enable</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
         <span class="ident">io_stack</span>: <a class="ident" href="../../../src/tokio/runtime/driver.rs.html#12">IoStack</a>,
         <span class="ident">clock</span>: <a class="ident" href="../../../src/tokio/runtime/driver.rs.html#103">Clock</a>,
-    ) <span class="op">-</span><span class="op">&gt;</span> (<a class="ident" href="../../../src/tokio/runtime/driver.rs.html#101">TimeDriver</a>, <a class="ident" href="../../../src/tokio/runtime/driver.rs.html#104">TimeHandle</a>) {
+    ) -&gt; (<a class="ident" href="../../../src/tokio/runtime/driver.rs.html#101">TimeDriver</a>, <a class="ident" href="../../../src/tokio/runtime/driver.rs.html#104">TimeHandle</a>) {
         <span class="kw">use</span> <a class="ident" href="../../../src/tokio/park/either.rs.html#8-11"><span class="kw">crate</span>::park::either::Either</a>;
 
         <span class="kw">if</span> <a class="ident" href="../../../src/tokio/runtime/driver.rs.html#111">enable</a> {
@@ -339,7 +339,7 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type</span> <span class="ident">Clock</span> <span class="op">=</span> ();
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type</span> <span class="ident">TimeHandle</span> <span class="op">=</span> ();
 
-    <span class="kw">fn</span> <span class="ident">create_clock</span>(<span class="ident">_enable_pausing</span>: <span class="ident">bool</span>, <span class="ident">_start_paused</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Clock</span> {
+    <span class="kw">fn</span> <span class="ident">create_clock</span>(<span class="ident">_enable_pausing</span>: <span class="ident">bool</span>, <span class="ident">_start_paused</span>: <span class="ident">bool</span>) -&gt; <span class="ident">Clock</span> {
         ()
     }
 
@@ -347,7 +347,7 @@
         <span class="ident">_enable</span>: <span class="ident">bool</span>,
         <span class="ident">io_stack</span>: <span class="ident">IoStack</span>,
         <span class="ident">_clock</span>: <span class="ident">Clock</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> (<span class="ident">TimeDriver</span>, <span class="ident">TimeHandle</span>) {
+    ) -&gt; (<span class="ident">TimeDriver</span>, <span class="ident">TimeHandle</span>) {
         (<span class="ident">io_stack</span>, ())
     }
 }
@@ -374,7 +374,7 @@
 }
 
 <span class="kw">impl</span> <a class="ident" href="../../../src/tokio/runtime/driver.rs.html#150-152">Driver</a> {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">cfg</span>: <a class="ident" href="../../../src/tokio/runtime/driver.rs.html#161-166">Cfg</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io::Result</span><span class="op">&lt;</span>(<span class="self">Self</span>, <a class="ident" href="../../../src/tokio/runtime/driver.rs.html#154-159">Resources</a>)<span class="op">&gt;</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">cfg</span>: <a class="ident" href="../../../src/tokio/runtime/driver.rs.html#161-166">Cfg</a>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>(<span class="self">Self</span>, <a class="ident" href="../../../src/tokio/runtime/driver.rs.html#154-159">Resources</a>)<span class="op">&gt;</span> {
         <span class="kw">let</span> (<span class="ident">io_stack</span>, <span class="ident">io_handle</span>, <span class="ident">signal_handle</span>) <span class="op">=</span> <a class="ident" href="../../../src/tokio/runtime/driver.rs.html#15">create_io_stack</a>(<a class="ident" href="../../../src/tokio/runtime/driver.rs.html#169">cfg</a>.<span class="ident">enable_io</span>)<span class="question-mark">?</span>;
 
         <span class="kw">let</span> <span class="ident">clock</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/runtime/driver.rs.html#106">create_clock</a>(<a class="ident" href="../../../src/tokio/runtime/driver.rs.html#169">cfg</a>.<span class="ident">enable_pause_time</span>, <a class="ident" href="../../../src/tokio/runtime/driver.rs.html#169">cfg</a>.<span class="ident">start_paused</span>);
@@ -398,15 +398,15 @@
     <span class="kw">type</span> <span class="ident">Unpark</span> <span class="op">=</span> <span class="op">&lt;</span><a class="ident" href="../../../src/tokio/runtime/driver.rs.html#101">TimeDriver</a> <span class="kw">as</span> <span class="ident">Park</span><span class="op">&gt;</span><span class="ident">::Unpark</span>;
     <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <span class="op">&lt;</span><a class="ident" href="../../../src/tokio/runtime/driver.rs.html#101">TimeDriver</a> <span class="kw">as</span> <span class="ident">Park</span><span class="op">&gt;</span><span class="ident">::Error</span>;
 
-    <span class="kw">fn</span> <span class="ident">unpark</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::Unpark</span> {
+    <span class="kw">fn</span> <span class="ident">unpark</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident"><span class="self">Self</span>::Unpark</span> {
         <a class="self" href="../../../src/tokio/runtime/driver.rs.html#193">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../src/tokio/park/mod.rs.html#57">unpark</a>()
     }
 
-    <span class="kw">fn</span> <span class="ident">park</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">park</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
         <a class="self" href="../../../src/tokio/runtime/driver.rs.html#197">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../src/tokio/park/mod.rs.html#70">park</a>()
     }
 
-    <span class="kw">fn</span> <span class="ident">park_timeout</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">duration</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">park_timeout</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">duration</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
         <a class="self" href="../../../src/tokio/runtime/driver.rs.html#201">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../src/tokio/park/mod.rs.html#86">park_timeout</a>(<a class="ident" href="../../../src/tokio/runtime/driver.rs.html#201">duration</a>)
     }
 

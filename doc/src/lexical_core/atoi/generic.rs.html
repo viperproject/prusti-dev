@@ -767,29 +767,29 @@
 <span class="macro">perftools_inline!</span>{
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;format&quot;</span>)]</span>
 <span class="kw">fn</span> <span class="ident">validate_no_leading_zeros</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="ident">digits</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">digit_separator</span>: <span class="ident">u8</span>, <span class="ident">ptr</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">u8</span>)
-    <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ParseResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span>
+    -&gt; <span class="ident">ParseResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span>
 {
     <span class="comment">// Check if the next character is a sign symbol.</span>
     <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="ident">distance</span>(<span class="ident">digits</span>.<span class="ident">as_ptr</span>(), <span class="ident">ptr</span>);
     <span class="kw">let</span> <span class="ident">digits</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="macro">index!</span>(<span class="ident">digits</span>[..<span class="ident">index</span>]);
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">iter</span> <span class="op">=</span> <span class="ident">iterate_digits_ignore_separator</span>(<span class="ident">digits</span>, <span class="ident">digit_separator</span>);
     <span class="kw">let</span> <span class="ident">is_zero</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">iter</span>.<span class="ident">next</span>() {
-        <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="string">b&#39;+&#39;</span>) <span class="op">|</span> <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="string">b&#39;-&#39;</span>)   <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
-        <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="string">b&#39;0&#39;</span>)                 <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">true</span>,
-        <span class="kw">_</span>                           <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Ok</span>(())
+        <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="string">b&#39;+&#39;</span>) <span class="op">|</span> <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="string">b&#39;-&#39;</span>)   =&gt; <span class="bool-val">false</span>,
+        <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="string">b&#39;0&#39;</span>)                 =&gt; <span class="bool-val">true</span>,
+        <span class="kw">_</span>                           =&gt; <span class="kw">return</span> <span class="prelude-val">Ok</span>(())
     };
 
     <span class="comment">// Only here if we have a leading 0 or sign symbol.</span>
     <span class="kw">match</span> <span class="ident">iter</span>.<span class="ident">next</span>() {
-        <span class="prelude-val">Some</span>(<span class="kw">_</span>) <span class="kw">if</span> <span class="ident">is_zero</span>  <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Err</span>((<span class="ident">ErrorCode::InvalidLeadingZeros</span>, <span class="ident">digits</span>.<span class="ident">as_ptr</span>())),
-        <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="string">b&#39;0&#39;</span>)         <span class="op">=</span><span class="op">&gt;</span> (),
-        <span class="kw">_</span>                   <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Ok</span>(())
+        <span class="prelude-val">Some</span>(<span class="kw">_</span>) <span class="kw">if</span> <span class="ident">is_zero</span>  =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>((<span class="ident">ErrorCode::InvalidLeadingZeros</span>, <span class="ident">digits</span>.<span class="ident">as_ptr</span>())),
+        <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="string">b&#39;0&#39;</span>)         =&gt; (),
+        <span class="kw">_</span>                   =&gt; <span class="kw">return</span> <span class="prelude-val">Ok</span>(())
     }
 
     <span class="comment">// Only here if we have a leading 0 symbol.</span>
     <span class="kw">match</span> <span class="ident">iter</span>.<span class="ident">next</span>() {
-        <span class="prelude-val">Some</span>(<span class="kw">_</span>)             <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>((<span class="ident">ErrorCode::InvalidLeadingZeros</span>, <span class="ident">digits</span>.<span class="ident">as_ptr</span>())),
-        <span class="kw">_</span>                   <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(())
+        <span class="prelude-val">Some</span>(<span class="kw">_</span>)             =&gt; <span class="prelude-val">Err</span>((<span class="ident">ErrorCode::InvalidLeadingZeros</span>, <span class="ident">digits</span>.<span class="ident">as_ptr</span>())),
+        <span class="kw">_</span>                   =&gt; <span class="prelude-val">Ok</span>(())
     }
 }}
 
@@ -798,19 +798,19 @@
 
 <span class="doccomment">/// Iterate over the digits and iteratively process them.</span>
 <span class="macro">macro_rules!</span> <span class="ident">parse_digits</span> {
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">value</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">iter</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">radix</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">op</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">code</span>:<span class="ident">ident</span>) <span class="op">=</span><span class="op">&gt;</span> (
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">value</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">iter</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">radix</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">op</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">code</span>:<span class="ident">ident</span>) =&gt; (
         <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">c</span>) <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">iter</span>.<span class="ident">next</span>() {
             <span class="kw">let</span> <span class="ident">digit</span> <span class="op">=</span> <span class="kw">match</span> <span class="macro">to_digit!</span>(<span class="kw-2">*</span><span class="ident">c</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">radix</span>) {
-                <span class="prelude-val">Some</span>(<span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">v</span>,
-                <span class="prelude-val">None</span>    <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Ok</span>((<span class="macro-nonterminal">$</span><span class="macro-nonterminal">value</span>, <span class="ident">c</span>)),
+                <span class="prelude-val">Some</span>(<span class="ident">v</span>) =&gt; <span class="ident">v</span>,
+                <span class="prelude-val">None</span>    =&gt; <span class="kw">return</span> <span class="prelude-val">Ok</span>((<span class="macro-nonterminal">$</span><span class="macro-nonterminal">value</span>, <span class="ident">c</span>)),
             };
             <span class="macro-nonterminal">$</span><span class="macro-nonterminal">value</span> <span class="op">=</span> <span class="kw">match</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">value</span>.<span class="ident">checked_mul</span>(<span class="ident">as_cast</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">radix</span>)) {
-                <span class="prelude-val">Some</span>(<span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">v</span>,
-                <span class="prelude-val">None</span>    <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Err</span>((<span class="ident">ErrorCode</span>::<span class="macro-nonterminal">$</span><span class="macro-nonterminal">code</span>, <span class="ident">c</span>)),
+                <span class="prelude-val">Some</span>(<span class="ident">v</span>) =&gt; <span class="ident">v</span>,
+                <span class="prelude-val">None</span>    =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>((<span class="ident">ErrorCode</span>::<span class="macro-nonterminal">$</span><span class="macro-nonterminal">code</span>, <span class="ident">c</span>)),
             };
             <span class="macro-nonterminal">$</span><span class="macro-nonterminal">value</span> <span class="op">=</span> <span class="kw">match</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">value</span>.<span class="macro-nonterminal">$</span><span class="macro-nonterminal">op</span>(<span class="ident">as_cast</span>(<span class="ident">digit</span>)) {
-                <span class="prelude-val">Some</span>(<span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">v</span>,
-                <span class="prelude-val">None</span>    <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Err</span>((<span class="ident">ErrorCode</span>::<span class="macro-nonterminal">$</span><span class="macro-nonterminal">code</span>, <span class="ident">c</span>)),
+                <span class="prelude-val">Some</span>(<span class="ident">v</span>) =&gt; <span class="ident">v</span>,
+                <span class="prelude-val">None</span>    =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>((<span class="ident">ErrorCode</span>::<span class="macro-nonterminal">$</span><span class="macro-nonterminal">code</span>, <span class="ident">c</span>)),
             };
         }
     );
@@ -819,12 +819,12 @@
 <span class="comment">// Parse the digits for the atoi processor.</span>
 <span class="macro">perftools_inline_always!</span>{
 <span class="kw">fn</span> <span class="ident">parse_digits</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span>, <span class="ident">Iter</span><span class="op">&gt;</span>(<span class="ident">digits</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], <span class="kw-2">mut</span> <span class="ident">iter</span>: <span class="ident">Iter</span>, <span class="ident">radix</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>, <span class="ident">sign</span>: <a class="ident" href="../../../src/lexical_core/util/sign.rs.html#10-15">Sign</a>)
-    <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ParseResult</span><span class="op">&lt;</span>(<span class="ident">T</span>, <span class="kw-2">*</span><span class="kw">const</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>)<span class="op">&gt;</span>
+    -&gt; <span class="ident">ParseResult</span><span class="op">&lt;</span>(<span class="ident">T</span>, <span class="kw-2">*</span><span class="kw">const</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>)<span class="op">&gt;</span>
     <span class="kw">where</span> <span class="ident">T</span>: <a class="ident" href="../../../src/lexical_core/util/num.rs.html#72-363">Integer</a>,
           <span class="ident">Iter</span>: <span class="ident">AsPtrIterator</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><span class="op">&gt;</span>
 {
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">T::ZERO</span>;
-    <span class="kw">if</span> <a class="ident" href="../../../src/lexical_core/atoi/generic.rs.html#141">sign</a> <span class="op">=</span><span class="op">=</span> <a class="ident" href="../../../src/lexical_core/util/sign.rs.html#14">Sign::Positive</a> {
+    <span class="kw">if</span> <a class="ident" href="../../../src/lexical_core/atoi/generic.rs.html#141">sign</a> <span class="op">==</span> <a class="ident" href="../../../src/lexical_core/util/sign.rs.html#14">Sign::Positive</a> {
         <span class="macro">parse_digits!</span>(<span class="ident">value</span>, <span class="ident">iter</span>, <span class="ident">radix</span>, <a class="ident" href="../../../src/lexical_core/util/num.rs.html#146">checked_add</a>, <span class="ident">Overflow</span>);
     } <span class="kw">else</span> {
         <span class="macro">parse_digits!</span>(<span class="ident">value</span>, <span class="ident">iter</span>, <span class="ident">radix</span>, <a class="ident" href="../../../src/lexical_core/util/num.rs.html#147">checked_sub</a>, <span class="ident">Underflow</span>);
@@ -837,7 +837,7 @@
 <span class="comment">// Standalone atoi processor without a digit separator.</span>
 <span class="macro">perftools_inline_always!</span>{
 <span class="kw">fn</span> <span class="ident">standalone</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">bytes</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], <span class="ident">radix</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>)
-    <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ParseResult</span><span class="op">&lt;</span>(<span class="ident">T</span>, <span class="kw-2">*</span><span class="kw">const</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>)<span class="op">&gt;</span>
+    -&gt; <span class="ident">ParseResult</span><span class="op">&lt;</span>(<span class="ident">T</span>, <span class="kw-2">*</span><span class="kw">const</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>)<span class="op">&gt;</span>
     <span class="kw">where</span> <span class="ident">T</span>: <a class="ident" href="../../../src/lexical_core/util/num.rs.html#72-363">Integer</a>
 {
     <span class="kw">let</span> (<span class="ident">sign</span>, <span class="ident">digits</span>) <span class="op">=</span> <span class="macro">parse_sign!</span>(<span class="ident">bytes</span>, <span class="ident">T::IS_SIGNED</span>, <span class="ident">Empty</span>);
@@ -850,7 +850,7 @@
 <span class="macro">perftools_inline_always!</span>{
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;format&quot;</span>)]</span>
 <span class="kw">fn</span> <span class="ident">standalone_iltc</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">bytes</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">radix</span>: <span class="ident">u32</span>, <span class="ident">digit_separator</span>: <span class="ident">u8</span>)
-    <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ParseResult</span><span class="op">&lt;</span>(<span class="ident">T</span>, <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">u8</span>)<span class="op">&gt;</span>
+    -&gt; <span class="ident">ParseResult</span><span class="op">&lt;</span>(<span class="ident">T</span>, <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">u8</span>)<span class="op">&gt;</span>
     <span class="kw">where</span> <span class="ident">T</span>: <span class="ident">Integer</span>
 {
     <span class="kw">let</span> (<span class="ident">sign</span>, <span class="ident">digits</span>) <span class="op">=</span> <span class="ident">parse_sign_lc_separator</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">bytes</span>, <span class="ident">digit_separator</span>);
@@ -867,9 +867,9 @@
 <span class="macro">macro_rules!</span> <span class="ident">standalone_atoi_separator</span> {
     (
         <span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>:<span class="ident">ident</span>,
-        <span class="ident">sign</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">sign</span>:<span class="ident">ident</span>,
-        <span class="ident">consume</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">consume</span>:<span class="ident">ident</span>
-    ) <span class="op">=</span><span class="op">&gt;</span> (
+        <span class="ident">sign</span> =&gt; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">sign</span>:<span class="ident">ident</span>,
+        <span class="ident">consume</span> =&gt; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">consume</span>:<span class="ident">ident</span>
+    ) =&gt; (
         <span class="macro">perftools_inline_always!</span>{
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;format&quot;</span>)]</span>
         <span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(
@@ -877,7 +877,7 @@
             <span class="ident">radix</span>: <span class="ident">u32</span>,
             <span class="ident">digit_separator</span>: <span class="ident">u8</span>
         )
-            <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ParseResult</span><span class="op">&lt;</span>(<span class="ident">T</span>, <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">u8</span>)<span class="op">&gt;</span>
+            -&gt; <span class="ident">ParseResult</span><span class="op">&lt;</span>(<span class="ident">T</span>, <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">u8</span>)<span class="op">&gt;</span>
             <span class="kw">where</span> <span class="ident">T</span>: <span class="ident">Integer</span>
         {
             <span class="comment">// Parse the sign, and error if we have no more digits.</span>
@@ -897,80 +897,80 @@
 
 <span class="macro">standalone_atoi_separator!</span>(
     <span class="kw">fn</span> <span class="ident">standalone_i</span>,
-    <span class="ident">sign</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">parse_sign_no_separator</span>,
-    <span class="ident">consume</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">consume_digits_i</span>
+    <span class="ident">sign</span> =&gt; <span class="ident">parse_sign_no_separator</span>,
+    <span class="ident">consume</span> =&gt; <span class="ident">consume_digits_i</span>
 );
 
 <span class="macro">standalone_atoi_separator!</span>(
     <span class="kw">fn</span> <span class="ident">standalone_ic</span>,
-    <span class="ident">sign</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">parse_sign_no_separator</span>,
-    <span class="ident">consume</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">consume_digits_ic</span>
+    <span class="ident">sign</span> =&gt; <span class="ident">parse_sign_no_separator</span>,
+    <span class="ident">consume</span> =&gt; <span class="ident">consume_digits_ic</span>
 );
 
 <span class="macro">standalone_atoi_separator!</span>(
     <span class="kw">fn</span> <span class="ident">standalone_l</span>,
-    <span class="ident">sign</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">parse_sign_l_separator</span>,
-    <span class="ident">consume</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">consume_digits_l</span>
+    <span class="ident">sign</span> =&gt; <span class="ident">parse_sign_l_separator</span>,
+    <span class="ident">consume</span> =&gt; <span class="ident">consume_digits_l</span>
 );
 
 <span class="macro">standalone_atoi_separator!</span>(
     <span class="kw">fn</span> <span class="ident">standalone_lc</span>,
-    <span class="ident">sign</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">parse_sign_lc_separator</span>,
-    <span class="ident">consume</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">consume_digits_lc</span>
+    <span class="ident">sign</span> =&gt; <span class="ident">parse_sign_lc_separator</span>,
+    <span class="ident">consume</span> =&gt; <span class="ident">consume_digits_lc</span>
 );
 
 <span class="macro">standalone_atoi_separator!</span>(
     <span class="kw">fn</span> <span class="ident">standalone_t</span>,
-    <span class="ident">sign</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">parse_sign_no_separator</span>,
-    <span class="ident">consume</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">consume_digits_t</span>
+    <span class="ident">sign</span> =&gt; <span class="ident">parse_sign_no_separator</span>,
+    <span class="ident">consume</span> =&gt; <span class="ident">consume_digits_t</span>
 );
 
 <span class="macro">standalone_atoi_separator!</span>(
     <span class="kw">fn</span> <span class="ident">standalone_tc</span>,
-    <span class="ident">sign</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">parse_sign_no_separator</span>,
-    <span class="ident">consume</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">consume_digits_tc</span>
+    <span class="ident">sign</span> =&gt; <span class="ident">parse_sign_no_separator</span>,
+    <span class="ident">consume</span> =&gt; <span class="ident">consume_digits_tc</span>
 );
 
 <span class="macro">standalone_atoi_separator!</span>(
     <span class="kw">fn</span> <span class="ident">standalone_il</span>,
-    <span class="ident">sign</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">parse_sign_l_separator</span>,
-    <span class="ident">consume</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">consume_digits_il</span>
+    <span class="ident">sign</span> =&gt; <span class="ident">parse_sign_l_separator</span>,
+    <span class="ident">consume</span> =&gt; <span class="ident">consume_digits_il</span>
 );
 
 <span class="macro">standalone_atoi_separator!</span>(
     <span class="kw">fn</span> <span class="ident">standalone_ilc</span>,
-    <span class="ident">sign</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">parse_sign_lc_separator</span>,
-    <span class="ident">consume</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">consume_digits_ilc</span>
+    <span class="ident">sign</span> =&gt; <span class="ident">parse_sign_lc_separator</span>,
+    <span class="ident">consume</span> =&gt; <span class="ident">consume_digits_ilc</span>
 );
 
 <span class="macro">standalone_atoi_separator!</span>(
     <span class="kw">fn</span> <span class="ident">standalone_it</span>,
-    <span class="ident">sign</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">parse_sign_no_separator</span>,
-    <span class="ident">consume</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">consume_digits_it</span>
+    <span class="ident">sign</span> =&gt; <span class="ident">parse_sign_no_separator</span>,
+    <span class="ident">consume</span> =&gt; <span class="ident">consume_digits_it</span>
 );
 
 <span class="macro">standalone_atoi_separator!</span>(
     <span class="kw">fn</span> <span class="ident">standalone_itc</span>,
-    <span class="ident">sign</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">parse_sign_no_separator</span>,
-    <span class="ident">consume</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">consume_digits_itc</span>
+    <span class="ident">sign</span> =&gt; <span class="ident">parse_sign_no_separator</span>,
+    <span class="ident">consume</span> =&gt; <span class="ident">consume_digits_itc</span>
 );
 
 <span class="macro">standalone_atoi_separator!</span>(
     <span class="kw">fn</span> <span class="ident">standalone_lt</span>,
-    <span class="ident">sign</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">parse_sign_l_separator</span>,
-    <span class="ident">consume</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">consume_digits_lt</span>
+    <span class="ident">sign</span> =&gt; <span class="ident">parse_sign_l_separator</span>,
+    <span class="ident">consume</span> =&gt; <span class="ident">consume_digits_lt</span>
 );
 
 <span class="macro">standalone_atoi_separator!</span>(
     <span class="kw">fn</span> <span class="ident">standalone_ltc</span>,
-    <span class="ident">sign</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">parse_sign_lc_separator</span>,
-    <span class="ident">consume</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">consume_digits_ltc</span>
+    <span class="ident">sign</span> =&gt; <span class="ident">parse_sign_lc_separator</span>,
+    <span class="ident">consume</span> =&gt; <span class="ident">consume_digits_ltc</span>
 );
 
 <span class="macro">standalone_atoi_separator!</span>(
     <span class="kw">fn</span> <span class="ident">standalone_ilt</span>,
-    <span class="ident">sign</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">parse_sign_l_separator</span>,
-    <span class="ident">consume</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">consume_digits_ilt</span>
+    <span class="ident">sign</span> =&gt; <span class="ident">parse_sign_l_separator</span>,
+    <span class="ident">consume</span> =&gt; <span class="ident">consume_digits_ilt</span>
 );
 
 <span class="comment">// API</span>
@@ -978,7 +978,7 @@
 <span class="comment">// Standalone atoi processor without a digit separator.</span>
 <span class="macro">perftools_inline_always!</span>{
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">standalone_no_separator</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">bytes</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], <span class="ident">radix</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>)
-    <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ParseResult</span><span class="op">&lt;</span>(<span class="ident">T</span>, <span class="kw-2">*</span><span class="kw">const</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>)<span class="op">&gt;</span>
+    -&gt; <span class="ident">ParseResult</span><span class="op">&lt;</span>(<span class="ident">T</span>, <span class="kw-2">*</span><span class="kw">const</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>)<span class="op">&gt;</span>
     <span class="kw">where</span> <span class="ident">T</span>: <a class="ident" href="../../../src/lexical_core/util/num.rs.html#72-363">Integer</a>
 {
     <a class="ident" href="../../../src/lexical_core/atoi/generic.rs.html#159-161">standalone</a>(<a class="ident" href="../../../src/lexical_core/atoi/generic.rs.html#300">bytes</a>, <a class="ident" href="../../../src/lexical_core/atoi/generic.rs.html#300">radix</a>)
@@ -988,7 +988,7 @@
 <span class="macro">perftools_inline_always!</span>{
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;format&quot;</span>)]</span>
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">standalone_separator</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span>(<span class="ident">bytes</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">radix</span>: <span class="ident">u32</span>, <span class="ident">format</span>: <span class="ident">NumberFormat</span>)
-    <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ParseResult</span><span class="op">&lt;</span>(<span class="ident">V</span>, <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">u8</span>)<span class="op">&gt;</span>
+    -&gt; <span class="ident">ParseResult</span><span class="op">&lt;</span>(<span class="ident">V</span>, <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">u8</span>)<span class="op">&gt;</span>
     <span class="kw">where</span> <span class="ident">V</span>: <span class="ident">Integer</span>
 {
     <span class="kw">const</span> <span class="ident">I</span>: <span class="ident">NumberFormat</span> <span class="op">=</span> <span class="ident">NumberFormat::INTEGER_INTERNAL_DIGIT_SEPARATOR</span>;
@@ -1009,22 +1009,22 @@
 
     <span class="kw">let</span> <span class="ident">digit_separator</span> <span class="op">=</span> <span class="ident">format</span>.<span class="ident">digit_separator</span>();
     <span class="kw">let</span> (<span class="ident">value</span>, <span class="ident">ptr</span>) <span class="op">=</span> <span class="kw">match</span> <span class="ident">format</span> <span class="op">&amp;</span> <span class="ident">NumberFormat::INTEGER_DIGIT_SEPARATOR_FLAG_MASK</span> {
-        <span class="ident">I</span>       <span class="op">=</span><span class="op">&gt;</span> <span class="ident">standalone_i</span>(<span class="ident">bytes</span>, <span class="ident">radix</span>, <span class="ident">digit_separator</span>),
-        <span class="ident">IC</span>      <span class="op">=</span><span class="op">&gt;</span> <span class="ident">standalone_ic</span>(<span class="ident">bytes</span>, <span class="ident">radix</span>, <span class="ident">digit_separator</span>),
-        <span class="ident">L</span>       <span class="op">=</span><span class="op">&gt;</span> <span class="ident">standalone_l</span>(<span class="ident">bytes</span>, <span class="ident">radix</span>, <span class="ident">digit_separator</span>),
-        <span class="ident">LC</span>      <span class="op">=</span><span class="op">&gt;</span> <span class="ident">standalone_lc</span>(<span class="ident">bytes</span>, <span class="ident">radix</span>, <span class="ident">digit_separator</span>),
-        <span class="ident">T</span>       <span class="op">=</span><span class="op">&gt;</span> <span class="ident">standalone_t</span>(<span class="ident">bytes</span>, <span class="ident">radix</span>, <span class="ident">digit_separator</span>),
-        <span class="ident">TC</span>      <span class="op">=</span><span class="op">&gt;</span> <span class="ident">standalone_tc</span>(<span class="ident">bytes</span>, <span class="ident">radix</span>, <span class="ident">digit_separator</span>),
-        <span class="ident">IL</span>      <span class="op">=</span><span class="op">&gt;</span> <span class="ident">standalone_il</span>(<span class="ident">bytes</span>, <span class="ident">radix</span>, <span class="ident">digit_separator</span>),
-        <span class="ident">ILC</span>     <span class="op">=</span><span class="op">&gt;</span> <span class="ident">standalone_ilc</span>(<span class="ident">bytes</span>, <span class="ident">radix</span>, <span class="ident">digit_separator</span>),
-        <span class="ident">IT</span>      <span class="op">=</span><span class="op">&gt;</span> <span class="ident">standalone_it</span>(<span class="ident">bytes</span>, <span class="ident">radix</span>, <span class="ident">digit_separator</span>),
-        <span class="ident">ITC</span>     <span class="op">=</span><span class="op">&gt;</span> <span class="ident">standalone_itc</span>(<span class="ident">bytes</span>, <span class="ident">radix</span>, <span class="ident">digit_separator</span>),
-        <span class="ident">LT</span>      <span class="op">=</span><span class="op">&gt;</span> <span class="ident">standalone_lt</span>(<span class="ident">bytes</span>, <span class="ident">radix</span>, <span class="ident">digit_separator</span>),
-        <span class="ident">LTC</span>     <span class="op">=</span><span class="op">&gt;</span> <span class="ident">standalone_ltc</span>(<span class="ident">bytes</span>, <span class="ident">radix</span>, <span class="ident">digit_separator</span>),
-        <span class="ident">ILT</span>     <span class="op">=</span><span class="op">&gt;</span> <span class="ident">standalone_ilt</span>(<span class="ident">bytes</span>, <span class="ident">radix</span>, <span class="ident">digit_separator</span>),
-        <span class="ident">ILTC</span>    <span class="op">=</span><span class="op">&gt;</span> <span class="ident">standalone_iltc</span>(<span class="ident">bytes</span>, <span class="ident">radix</span>, <span class="ident">digit_separator</span>),
+        <span class="ident">I</span>       =&gt; <span class="ident">standalone_i</span>(<span class="ident">bytes</span>, <span class="ident">radix</span>, <span class="ident">digit_separator</span>),
+        <span class="ident">IC</span>      =&gt; <span class="ident">standalone_ic</span>(<span class="ident">bytes</span>, <span class="ident">radix</span>, <span class="ident">digit_separator</span>),
+        <span class="ident">L</span>       =&gt; <span class="ident">standalone_l</span>(<span class="ident">bytes</span>, <span class="ident">radix</span>, <span class="ident">digit_separator</span>),
+        <span class="ident">LC</span>      =&gt; <span class="ident">standalone_lc</span>(<span class="ident">bytes</span>, <span class="ident">radix</span>, <span class="ident">digit_separator</span>),
+        <span class="ident">T</span>       =&gt; <span class="ident">standalone_t</span>(<span class="ident">bytes</span>, <span class="ident">radix</span>, <span class="ident">digit_separator</span>),
+        <span class="ident">TC</span>      =&gt; <span class="ident">standalone_tc</span>(<span class="ident">bytes</span>, <span class="ident">radix</span>, <span class="ident">digit_separator</span>),
+        <span class="ident">IL</span>      =&gt; <span class="ident">standalone_il</span>(<span class="ident">bytes</span>, <span class="ident">radix</span>, <span class="ident">digit_separator</span>),
+        <span class="ident">ILC</span>     =&gt; <span class="ident">standalone_ilc</span>(<span class="ident">bytes</span>, <span class="ident">radix</span>, <span class="ident">digit_separator</span>),
+        <span class="ident">IT</span>      =&gt; <span class="ident">standalone_it</span>(<span class="ident">bytes</span>, <span class="ident">radix</span>, <span class="ident">digit_separator</span>),
+        <span class="ident">ITC</span>     =&gt; <span class="ident">standalone_itc</span>(<span class="ident">bytes</span>, <span class="ident">radix</span>, <span class="ident">digit_separator</span>),
+        <span class="ident">LT</span>      =&gt; <span class="ident">standalone_lt</span>(<span class="ident">bytes</span>, <span class="ident">radix</span>, <span class="ident">digit_separator</span>),
+        <span class="ident">LTC</span>     =&gt; <span class="ident">standalone_ltc</span>(<span class="ident">bytes</span>, <span class="ident">radix</span>, <span class="ident">digit_separator</span>),
+        <span class="ident">ILT</span>     =&gt; <span class="ident">standalone_ilt</span>(<span class="ident">bytes</span>, <span class="ident">radix</span>, <span class="ident">digit_separator</span>),
+        <span class="ident">ILTC</span>    =&gt; <span class="ident">standalone_iltc</span>(<span class="ident">bytes</span>, <span class="ident">radix</span>, <span class="ident">digit_separator</span>),
         <span class="comment">// No digit separator match.</span>
-        <span class="kw">_</span>       <span class="op">=</span><span class="op">&gt;</span> <span class="ident">standalone</span>(<span class="ident">bytes</span>, <span class="ident">radix</span>)
+        <span class="kw">_</span>       =&gt; <span class="ident">standalone</span>(<span class="ident">bytes</span>, <span class="ident">radix</span>)
     }<span class="question-mark">?</span>;
 
     <span class="comment">// Check if we have any leading zeros.</span>
@@ -1042,29 +1042,29 @@
 <span class="comment">// This is the same as the u128 divisor, so don&#39;t duplicate the values</span>
 <span class="comment">// there.</span>
 <span class="macro">perftools_inline_always!</span>{
-<span class="kw">fn</span> <span class="ident">step_u64</span>(<span class="ident">radix</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
+<span class="kw">fn</span> <span class="ident">step_u64</span>(<span class="ident">radix</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
     <a class="ident" href="../../../src/lexical_core/util/div128.rs.html#103">u128_divisor</a>(<a class="ident" href="../../../src/lexical_core/atoi/generic.rs.html#365">radix</a>).<span class="number">1</span>
 }}
 
 <span class="comment">// Add 64-bit temporary to the 128-bit value.</span>
 <span class="macro">macro_rules!</span> <span class="ident">add_temporary_128</span> {
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">value</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tmp</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">step_power</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ptr</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">op</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">code</span>:<span class="ident">ident</span>) <span class="op">=</span><span class="op">&gt;</span> (
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">value</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tmp</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">step_power</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ptr</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">op</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">code</span>:<span class="ident">ident</span>) =&gt; (
         <span class="kw">if</span> <span class="op">!</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">value</span>.<span class="ident">is_zero</span>() {
             <span class="macro-nonterminal">$</span><span class="macro-nonterminal">value</span> <span class="op">=</span> <span class="kw">match</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">value</span>.<span class="ident">checked_mul</span>(<span class="ident">as_cast</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">step_power</span>)) {
-                <span class="prelude-val">Some</span>(<span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">v</span>,
-                <span class="prelude-val">None</span>    <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Err</span>((<span class="ident">ErrorCode</span>::<span class="macro-nonterminal">$</span><span class="macro-nonterminal">code</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ptr</span>)),
+                <span class="prelude-val">Some</span>(<span class="ident">v</span>) =&gt; <span class="ident">v</span>,
+                <span class="prelude-val">None</span>    =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>((<span class="ident">ErrorCode</span>::<span class="macro-nonterminal">$</span><span class="macro-nonterminal">code</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ptr</span>)),
             };
         }
         <span class="macro-nonterminal">$</span><span class="macro-nonterminal">value</span> <span class="op">=</span> <span class="kw">match</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">value</span>.<span class="macro-nonterminal">$</span><span class="macro-nonterminal">op</span>(<span class="ident">as_cast</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tmp</span>)) {
-            <span class="prelude-val">Some</span>(<span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">v</span>,
-            <span class="prelude-val">None</span>    <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Err</span>((<span class="ident">ErrorCode</span>::<span class="macro-nonterminal">$</span><span class="macro-nonterminal">code</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ptr</span>)),
+            <span class="prelude-val">Some</span>(<span class="ident">v</span>) =&gt; <span class="ident">v</span>,
+            <span class="prelude-val">None</span>    =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>((<span class="ident">ErrorCode</span>::<span class="macro-nonterminal">$</span><span class="macro-nonterminal">code</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ptr</span>)),
         };
     );
 }
 
 <span class="doccomment">/// Iterate over the digits and iteratively process them.</span>
 <span class="macro">macro_rules!</span> <span class="ident">parse_digits_u128</span> {
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">value</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">iter</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">radix</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">step</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">op</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">code</span>:<span class="ident">ident</span>) <span class="op">=</span><span class="op">&gt;</span> ({
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">value</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">iter</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">radix</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">step</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">op</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">code</span>:<span class="ident">ident</span>) =&gt; ({
         <span class="comment">// Break the input into chunks of len `step`, which can be parsed</span>
         <span class="comment">// as a 64-bit integer.</span>
         <span class="kw">while</span> <span class="op">!</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">iter</span>.<span class="ident">consumed</span>() {
@@ -1074,8 +1074,8 @@
                 <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">c</span>) <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">iter</span>.<span class="ident">next</span>() {
                     <span class="ident">index</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
                     <span class="kw">let</span> <span class="ident">digit</span> <span class="op">=</span> <span class="kw">match</span> <span class="macro">to_digit!</span>(<span class="kw-2">*</span><span class="ident">c</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">radix</span>) {
-                        <span class="prelude-val">Some</span>(<span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">v</span>,
-                        <span class="prelude-val">None</span>    <span class="op">=</span><span class="op">&gt;</span> {
+                        <span class="prelude-val">Some</span>(<span class="ident">v</span>) =&gt; <span class="ident">v</span>,
+                        <span class="prelude-val">None</span>    =&gt; {
                             <span class="comment">// Add temporary to value and return early.</span>
                             <span class="kw">let</span> <span class="ident">radix_pow</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">radix</span>.<span class="ident">as_u64</span>().<span class="ident">pow</span>(<span class="ident">index</span>.<span class="ident">as_u32</span>());
                             <span class="macro">add_temporary_128!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">value</span>, <span class="ident">value</span>, <span class="ident">radix_pow</span>, <span class="ident">c</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">op</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">code</span>);
@@ -1101,7 +1101,7 @@
 <span class="comment">// Quickly parse digits using a 64-bit intermediate for the 128-bit atoi processor.</span>
 <span class="macro">perftools_inline_always!</span>{
 <span class="kw">fn</span> <span class="ident">parse_digits_128_fast</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">W</span>, <span class="ident">N</span>, <span class="ident">Iter</span><span class="op">&gt;</span>(<span class="ident">digits</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], <span class="ident">iter</span>: <span class="ident">Iter</span>, <span class="ident">radix</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>, <span class="ident">sign</span>: <a class="ident" href="../../../src/lexical_core/util/sign.rs.html#10-15">Sign</a>)
-    <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ParseResult</span><span class="op">&lt;</span>(<span class="ident">W</span>, <span class="kw-2">*</span><span class="kw">const</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>)<span class="op">&gt;</span>
+    -&gt; <span class="ident">ParseResult</span><span class="op">&lt;</span>(<span class="ident">W</span>, <span class="kw-2">*</span><span class="kw">const</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>)<span class="op">&gt;</span>
     <span class="kw">where</span> <span class="ident">W</span>: <a class="ident" href="../../../src/lexical_core/util/num.rs.html#72-363">Integer</a>,
           <span class="ident">N</span>: <a class="ident" href="../../../src/lexical_core/util/num.rs.html#72-363">Integer</a>,
           <span class="ident">Iter</span>: <span class="ident">ConsumedIterator</span><span class="op">&lt;</span><span class="ident">Item</span><span class="op">=</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">AsPtrIterator</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><span class="op">&gt;</span>
@@ -1113,12 +1113,12 @@
 <span class="comment">// Slowly parse digits for the 128-bit atoi processor.</span>
 <span class="macro">perftools_inline_always!</span>{
 <span class="kw">fn</span> <span class="ident">parse_digits_128_slow</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span>, <span class="ident">Iter</span><span class="op">&gt;</span>(<span class="ident">digits</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], <span class="kw-2">mut</span> <span class="ident">iter</span>: <span class="ident">Iter</span>, <span class="ident">radix</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>, <span class="ident">step</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="ident">sign</span>: <a class="ident" href="../../../src/lexical_core/util/sign.rs.html#10-15">Sign</a>)
-    <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ParseResult</span><span class="op">&lt;</span>(<span class="ident">T</span>, <span class="kw-2">*</span><span class="kw">const</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>)<span class="op">&gt;</span>
+    -&gt; <span class="ident">ParseResult</span><span class="op">&lt;</span>(<span class="ident">T</span>, <span class="kw-2">*</span><span class="kw">const</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>)<span class="op">&gt;</span>
     <span class="kw">where</span> <span class="ident">T</span>: <a class="ident" href="../../../src/lexical_core/util/num.rs.html#72-363">Integer</a>,
           <span class="ident">Iter</span>: <span class="ident">ConsumedIterator</span><span class="op">&lt;</span><span class="ident">Item</span><span class="op">=</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">AsPtrIterator</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><span class="op">&gt;</span>
 {
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">T::ZERO</span>;
-    <span class="kw">if</span> <a class="ident" href="../../../src/lexical_core/atoi/generic.rs.html#435">sign</a> <span class="op">=</span><span class="op">=</span> <a class="ident" href="../../../src/lexical_core/util/sign.rs.html#14">Sign::Positive</a> {
+    <span class="kw">if</span> <a class="ident" href="../../../src/lexical_core/atoi/generic.rs.html#435">sign</a> <span class="op">==</span> <a class="ident" href="../../../src/lexical_core/util/sign.rs.html#14">Sign::Positive</a> {
         <span class="macro">parse_digits_u128!</span>(<span class="ident">value</span>, <span class="ident">iter</span>, <span class="ident">radix</span>, <span class="ident">step</span>, <a class="ident" href="../../../src/lexical_core/util/num.rs.html#146">checked_add</a>, <span class="ident">Overflow</span>)
     } <span class="kw">else</span> {
         <span class="macro">parse_digits_u128!</span>(<span class="ident">value</span>, <span class="ident">iter</span>, <span class="ident">radix</span>, <span class="ident">step</span>, <a class="ident" href="../../../src/lexical_core/util/num.rs.html#147">checked_sub</a>, <span class="ident">Underflow</span>)
@@ -1136,7 +1136,7 @@
 <span class="comment">// arithmetic.</span>
 <span class="macro">perftools_inline_always!</span>{
 <span class="kw">fn</span> <span class="ident">parse_digits_128</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">W</span>, <span class="ident">N</span>, <span class="ident">Iter</span><span class="op">&gt;</span>(<span class="ident">digits</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], <span class="ident">iter</span>: <span class="ident">Iter</span>, <span class="ident">radix</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>, <span class="ident">sign</span>: <a class="ident" href="../../../src/lexical_core/util/sign.rs.html#10-15">Sign</a>)
-    <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ParseResult</span><span class="op">&lt;</span>(<span class="ident">W</span>, <span class="kw-2">*</span><span class="kw">const</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>)<span class="op">&gt;</span>
+    -&gt; <span class="ident">ParseResult</span><span class="op">&lt;</span>(<span class="ident">W</span>, <span class="kw-2">*</span><span class="kw">const</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>)<span class="op">&gt;</span>
     <span class="kw">where</span> <span class="ident">W</span>: <a class="ident" href="../../../src/lexical_core/util/num.rs.html#72-363">Integer</a>,
           <span class="ident">N</span>: <a class="ident" href="../../../src/lexical_core/util/num.rs.html#72-363">Integer</a>,
           <span class="ident">Iter</span>: <span class="ident">ConsumedIterator</span><span class="op">&lt;</span><span class="ident">Item</span><span class="op">=</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">AsPtrIterator</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><span class="op">&gt;</span>
@@ -1157,7 +1157,7 @@
 <span class="comment">// Standalone atoi processor for 128-bit integers without a digit separator.</span>
 <span class="macro">perftools_inline_always!</span>{
 <span class="kw">fn</span> <span class="ident">standalone_128</span><span class="op">&lt;</span><span class="ident">W</span>, <span class="ident">N</span><span class="op">&gt;</span>(<span class="ident">bytes</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], <span class="ident">radix</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>)
-    <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ParseResult</span><span class="op">&lt;</span>(<span class="ident">W</span>, <span class="kw-2">*</span><span class="kw">const</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>)<span class="op">&gt;</span>
+    -&gt; <span class="ident">ParseResult</span><span class="op">&lt;</span>(<span class="ident">W</span>, <span class="kw-2">*</span><span class="kw">const</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>)<span class="op">&gt;</span>
     <span class="kw">where</span> <span class="ident">W</span>: <a class="ident" href="../../../src/lexical_core/util/num.rs.html#72-363">Integer</a>,
           <span class="ident">N</span>: <a class="ident" href="../../../src/lexical_core/util/num.rs.html#72-363">Integer</a>
 {
@@ -1171,7 +1171,7 @@
 <span class="macro">perftools_inline_always!</span>{
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;format&quot;</span>)]</span>
 <span class="kw">fn</span> <span class="ident">standalone_128_iltc</span><span class="op">&lt;</span><span class="ident">W</span>, <span class="ident">N</span><span class="op">&gt;</span>(<span class="ident">bytes</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">radix</span>: <span class="ident">u32</span>, <span class="ident">digit_separator</span>: <span class="ident">u8</span>)
-    <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ParseResult</span><span class="op">&lt;</span>(<span class="ident">W</span>, <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">u8</span>)<span class="op">&gt;</span>
+    -&gt; <span class="ident">ParseResult</span><span class="op">&lt;</span>(<span class="ident">W</span>, <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">u8</span>)<span class="op">&gt;</span>
     <span class="kw">where</span> <span class="ident">W</span>: <span class="ident">Integer</span>,
           <span class="ident">N</span>: <span class="ident">Integer</span>
 {
@@ -1189,9 +1189,9 @@
 <span class="macro">macro_rules!</span> <span class="ident">standalone_atoi_128_separator</span> {
     (
         <span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>:<span class="ident">ident</span>,
-        <span class="ident">sign</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">sign</span>:<span class="ident">ident</span>,
-        <span class="ident">consume</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">consume</span>:<span class="ident">ident</span>
-    ) <span class="op">=</span><span class="op">&gt;</span> (
+        <span class="ident">sign</span> =&gt; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">sign</span>:<span class="ident">ident</span>,
+        <span class="ident">consume</span> =&gt; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">consume</span>:<span class="ident">ident</span>
+    ) =&gt; (
         <span class="macro">perftools_inline!</span>{
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;format&quot;</span>)]</span>
         <span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span><span class="op">&lt;</span><span class="ident">W</span>, <span class="ident">N</span><span class="op">&gt;</span>(
@@ -1199,7 +1199,7 @@
             <span class="ident">radix</span>: <span class="ident">u32</span>,
             <span class="ident">digit_separator</span>: <span class="ident">u8</span>
         )
-            <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ParseResult</span><span class="op">&lt;</span>(<span class="ident">W</span>, <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">u8</span>)<span class="op">&gt;</span>
+            -&gt; <span class="ident">ParseResult</span><span class="op">&lt;</span>(<span class="ident">W</span>, <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">u8</span>)<span class="op">&gt;</span>
             <span class="kw">where</span> <span class="ident">W</span>: <span class="ident">Integer</span>,
                   <span class="ident">N</span>: <span class="ident">Integer</span>
         {
@@ -1219,80 +1219,80 @@
 
 <span class="macro">standalone_atoi_128_separator!</span>(
     <span class="kw">fn</span> <span class="ident">standalone_128_i</span>,
-    <span class="ident">sign</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">parse_sign_no_separator</span>,
-    <span class="ident">consume</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">consume_digits_i</span>
+    <span class="ident">sign</span> =&gt; <span class="ident">parse_sign_no_separator</span>,
+    <span class="ident">consume</span> =&gt; <span class="ident">consume_digits_i</span>
 );
 
 <span class="macro">standalone_atoi_128_separator!</span>(
     <span class="kw">fn</span> <span class="ident">standalone_128_ic</span>,
-    <span class="ident">sign</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">parse_sign_no_separator</span>,
-    <span class="ident">consume</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">consume_digits_ic</span>
+    <span class="ident">sign</span> =&gt; <span class="ident">parse_sign_no_separator</span>,
+    <span class="ident">consume</span> =&gt; <span class="ident">consume_digits_ic</span>
 );
 
 <span class="macro">standalone_atoi_128_separator!</span>(
     <span class="kw">fn</span> <span class="ident">standalone_128_l</span>,
-    <span class="ident">sign</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">parse_sign_l_separator</span>,
-    <span class="ident">consume</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">consume_digits_l</span>
+    <span class="ident">sign</span> =&gt; <span class="ident">parse_sign_l_separator</span>,
+    <span class="ident">consume</span> =&gt; <span class="ident">consume_digits_l</span>
 );
 
 <span class="macro">standalone_atoi_128_separator!</span>(
     <span class="kw">fn</span> <span class="ident">standalone_128_lc</span>,
-    <span class="ident">sign</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">parse_sign_lc_separator</span>,
-    <span class="ident">consume</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">consume_digits_lc</span>
+    <span class="ident">sign</span> =&gt; <span class="ident">parse_sign_lc_separator</span>,
+    <span class="ident">consume</span> =&gt; <span class="ident">consume_digits_lc</span>
 );
 
 <span class="macro">standalone_atoi_128_separator!</span>(
     <span class="kw">fn</span> <span class="ident">standalone_128_t</span>,
-    <span class="ident">sign</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">parse_sign_no_separator</span>,
-    <span class="ident">consume</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">consume_digits_t</span>
+    <span class="ident">sign</span> =&gt; <span class="ident">parse_sign_no_separator</span>,
+    <span class="ident">consume</span> =&gt; <span class="ident">consume_digits_t</span>
 );
 
 <span class="macro">standalone_atoi_128_separator!</span>(
     <span class="kw">fn</span> <span class="ident">standalone_128_tc</span>,
-    <span class="ident">sign</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">parse_sign_no_separator</span>,
-    <span class="ident">consume</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">consume_digits_tc</span>
+    <span class="ident">sign</span> =&gt; <span class="ident">parse_sign_no_separator</span>,
+    <span class="ident">consume</span> =&gt; <span class="ident">consume_digits_tc</span>
 );
 
 <span class="macro">standalone_atoi_128_separator!</span>(
     <span class="kw">fn</span> <span class="ident">standalone_128_il</span>,
-    <span class="ident">sign</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">parse_sign_l_separator</span>,
-    <span class="ident">consume</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">consume_digits_il</span>
+    <span class="ident">sign</span> =&gt; <span class="ident">parse_sign_l_separator</span>,
+    <span class="ident">consume</span> =&gt; <span class="ident">consume_digits_il</span>
 );
 
 <span class="macro">standalone_atoi_128_separator!</span>(
     <span class="kw">fn</span> <span class="ident">standalone_128_ilc</span>,
-    <span class="ident">sign</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">parse_sign_lc_separator</span>,
-    <span class="ident">consume</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">consume_digits_ilc</span>
+    <span class="ident">sign</span> =&gt; <span class="ident">parse_sign_lc_separator</span>,
+    <span class="ident">consume</span> =&gt; <span class="ident">consume_digits_ilc</span>
 );
 
 <span class="macro">standalone_atoi_128_separator!</span>(
     <span class="kw">fn</span> <span class="ident">standalone_128_it</span>,
-    <span class="ident">sign</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">parse_sign_no_separator</span>,
-    <span class="ident">consume</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">consume_digits_it</span>
+    <span class="ident">sign</span> =&gt; <span class="ident">parse_sign_no_separator</span>,
+    <span class="ident">consume</span> =&gt; <span class="ident">consume_digits_it</span>
 );
 
 <span class="macro">standalone_atoi_128_separator!</span>(
     <span class="kw">fn</span> <span class="ident">standalone_128_itc</span>,
-    <span class="ident">sign</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">parse_sign_no_separator</span>,
-    <span class="ident">consume</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">consume_digits_itc</span>
+    <span class="ident">sign</span> =&gt; <span class="ident">parse_sign_no_separator</span>,
+    <span class="ident">consume</span> =&gt; <span class="ident">consume_digits_itc</span>
 );
 
 <span class="macro">standalone_atoi_128_separator!</span>(
     <span class="kw">fn</span> <span class="ident">standalone_128_lt</span>,
-    <span class="ident">sign</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">parse_sign_l_separator</span>,
-    <span class="ident">consume</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">consume_digits_lt</span>
+    <span class="ident">sign</span> =&gt; <span class="ident">parse_sign_l_separator</span>,
+    <span class="ident">consume</span> =&gt; <span class="ident">consume_digits_lt</span>
 );
 
 <span class="macro">standalone_atoi_128_separator!</span>(
     <span class="kw">fn</span> <span class="ident">standalone_128_ltc</span>,
-    <span class="ident">sign</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">parse_sign_lc_separator</span>,
-    <span class="ident">consume</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">consume_digits_ltc</span>
+    <span class="ident">sign</span> =&gt; <span class="ident">parse_sign_lc_separator</span>,
+    <span class="ident">consume</span> =&gt; <span class="ident">consume_digits_ltc</span>
 );
 
 <span class="macro">standalone_atoi_128_separator!</span>(
     <span class="kw">fn</span> <span class="ident">standalone_128_ilt</span>,
-    <span class="ident">sign</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">parse_sign_l_separator</span>,
-    <span class="ident">consume</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">consume_digits_ilt</span>
+    <span class="ident">sign</span> =&gt; <span class="ident">parse_sign_l_separator</span>,
+    <span class="ident">consume</span> =&gt; <span class="ident">consume_digits_ilt</span>
 );
 
 <span class="comment">// API</span>
@@ -1300,7 +1300,7 @@
 <span class="comment">// Standalone atoi processor for u128 without a digit separator.</span>
 <span class="macro">perftools_inline_always!</span>{
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">standalone_128_no_separator</span><span class="op">&lt;</span><span class="ident">W</span>, <span class="ident">N</span><span class="op">&gt;</span>(<span class="ident">bytes</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], <span class="ident">radix</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>)
-    <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ParseResult</span><span class="op">&lt;</span>(<span class="ident">W</span>, <span class="kw-2">*</span><span class="kw">const</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>)<span class="op">&gt;</span>
+    -&gt; <span class="ident">ParseResult</span><span class="op">&lt;</span>(<span class="ident">W</span>, <span class="kw-2">*</span><span class="kw">const</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>)<span class="op">&gt;</span>
     <span class="kw">where</span> <span class="ident">W</span>: <a class="ident" href="../../../src/lexical_core/util/num.rs.html#72-363">Integer</a>,
           <span class="ident">N</span>: <a class="ident" href="../../../src/lexical_core/util/num.rs.html#72-363">Integer</a>
 {
@@ -1311,7 +1311,7 @@
 <span class="macro">perftools_inline_always!</span>{
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;format&quot;</span>)]</span>
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">standalone_128_separator</span><span class="op">&lt;</span><span class="ident">W</span>, <span class="ident">N</span><span class="op">&gt;</span>(<span class="ident">bytes</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">radix</span>: <span class="ident">u32</span>, <span class="ident">format</span>: <span class="ident">NumberFormat</span>)
-    <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ParseResult</span><span class="op">&lt;</span>(<span class="ident">W</span>, <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">u8</span>)<span class="op">&gt;</span>
+    -&gt; <span class="ident">ParseResult</span><span class="op">&lt;</span>(<span class="ident">W</span>, <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">u8</span>)<span class="op">&gt;</span>
     <span class="kw">where</span> <span class="ident">W</span>: <span class="ident">Integer</span>,
           <span class="ident">N</span>: <span class="ident">Integer</span>
 {
@@ -1333,22 +1333,22 @@
 
     <span class="kw">let</span> <span class="ident">digit_separator</span> <span class="op">=</span> <span class="ident">format</span>.<span class="ident">digit_separator</span>();
     <span class="kw">let</span> (<span class="ident">value</span>, <span class="ident">ptr</span>) <span class="op">=</span> <span class="kw">match</span> <span class="ident">format</span> <span class="op">&amp;</span> <span class="ident">NumberFormat::INTEGER_DIGIT_SEPARATOR_FLAG_MASK</span> {
-        <span class="ident">I</span>       <span class="op">=</span><span class="op">&gt;</span> <span class="ident">standalone_128_i</span>::<span class="op">&lt;</span><span class="ident">W</span>, <span class="ident">N</span><span class="op">&gt;</span>(<span class="ident">bytes</span>, <span class="ident">radix</span>, <span class="ident">digit_separator</span>),
-        <span class="ident">IC</span>      <span class="op">=</span><span class="op">&gt;</span> <span class="ident">standalone_128_ic</span>::<span class="op">&lt;</span><span class="ident">W</span>, <span class="ident">N</span><span class="op">&gt;</span>(<span class="ident">bytes</span>, <span class="ident">radix</span>, <span class="ident">digit_separator</span>),
-        <span class="ident">L</span>       <span class="op">=</span><span class="op">&gt;</span> <span class="ident">standalone_128_l</span>::<span class="op">&lt;</span><span class="ident">W</span>, <span class="ident">N</span><span class="op">&gt;</span>(<span class="ident">bytes</span>, <span class="ident">radix</span>, <span class="ident">digit_separator</span>),
-        <span class="ident">LC</span>      <span class="op">=</span><span class="op">&gt;</span> <span class="ident">standalone_128_lc</span>::<span class="op">&lt;</span><span class="ident">W</span>, <span class="ident">N</span><span class="op">&gt;</span>(<span class="ident">bytes</span>, <span class="ident">radix</span>, <span class="ident">digit_separator</span>),
-        <span class="ident">T</span>       <span class="op">=</span><span class="op">&gt;</span> <span class="ident">standalone_128_t</span>::<span class="op">&lt;</span><span class="ident">W</span>, <span class="ident">N</span><span class="op">&gt;</span>(<span class="ident">bytes</span>, <span class="ident">radix</span>, <span class="ident">digit_separator</span>),
-        <span class="ident">TC</span>      <span class="op">=</span><span class="op">&gt;</span> <span class="ident">standalone_128_tc</span>::<span class="op">&lt;</span><span class="ident">W</span>, <span class="ident">N</span><span class="op">&gt;</span>(<span class="ident">bytes</span>, <span class="ident">radix</span>, <span class="ident">digit_separator</span>),
-        <span class="ident">IL</span>      <span class="op">=</span><span class="op">&gt;</span> <span class="ident">standalone_128_il</span>::<span class="op">&lt;</span><span class="ident">W</span>, <span class="ident">N</span><span class="op">&gt;</span>(<span class="ident">bytes</span>, <span class="ident">radix</span>, <span class="ident">digit_separator</span>),
-        <span class="ident">ILC</span>     <span class="op">=</span><span class="op">&gt;</span> <span class="ident">standalone_128_ilc</span>::<span class="op">&lt;</span><span class="ident">W</span>, <span class="ident">N</span><span class="op">&gt;</span>(<span class="ident">bytes</span>, <span class="ident">radix</span>, <span class="ident">digit_separator</span>),
-        <span class="ident">IT</span>      <span class="op">=</span><span class="op">&gt;</span> <span class="ident">standalone_128_it</span>::<span class="op">&lt;</span><span class="ident">W</span>, <span class="ident">N</span><span class="op">&gt;</span>(<span class="ident">bytes</span>, <span class="ident">radix</span>, <span class="ident">digit_separator</span>),
-        <span class="ident">ITC</span>     <span class="op">=</span><span class="op">&gt;</span> <span class="ident">standalone_128_itc</span>::<span class="op">&lt;</span><span class="ident">W</span>, <span class="ident">N</span><span class="op">&gt;</span>(<span class="ident">bytes</span>, <span class="ident">radix</span>, <span class="ident">digit_separator</span>),
-        <span class="ident">LT</span>      <span class="op">=</span><span class="op">&gt;</span> <span class="ident">standalone_128_lt</span>::<span class="op">&lt;</span><span class="ident">W</span>, <span class="ident">N</span><span class="op">&gt;</span>(<span class="ident">bytes</span>, <span class="ident">radix</span>, <span class="ident">digit_separator</span>),
-        <span class="ident">LTC</span>     <span class="op">=</span><span class="op">&gt;</span> <span class="ident">standalone_128_ltc</span>::<span class="op">&lt;</span><span class="ident">W</span>, <span class="ident">N</span><span class="op">&gt;</span>(<span class="ident">bytes</span>, <span class="ident">radix</span>, <span class="ident">digit_separator</span>),
-        <span class="ident">ILT</span>     <span class="op">=</span><span class="op">&gt;</span> <span class="ident">standalone_128_ilt</span>::<span class="op">&lt;</span><span class="ident">W</span>, <span class="ident">N</span><span class="op">&gt;</span>(<span class="ident">bytes</span>, <span class="ident">radix</span>, <span class="ident">digit_separator</span>),
-        <span class="ident">ILTC</span>    <span class="op">=</span><span class="op">&gt;</span> <span class="ident">standalone_128_iltc</span>::<span class="op">&lt;</span><span class="ident">W</span>, <span class="ident">N</span><span class="op">&gt;</span>(<span class="ident">bytes</span>, <span class="ident">radix</span>, <span class="ident">digit_separator</span>),
+        <span class="ident">I</span>       =&gt; <span class="ident">standalone_128_i</span>::<span class="op">&lt;</span><span class="ident">W</span>, <span class="ident">N</span><span class="op">&gt;</span>(<span class="ident">bytes</span>, <span class="ident">radix</span>, <span class="ident">digit_separator</span>),
+        <span class="ident">IC</span>      =&gt; <span class="ident">standalone_128_ic</span>::<span class="op">&lt;</span><span class="ident">W</span>, <span class="ident">N</span><span class="op">&gt;</span>(<span class="ident">bytes</span>, <span class="ident">radix</span>, <span class="ident">digit_separator</span>),
+        <span class="ident">L</span>       =&gt; <span class="ident">standalone_128_l</span>::<span class="op">&lt;</span><span class="ident">W</span>, <span class="ident">N</span><span class="op">&gt;</span>(<span class="ident">bytes</span>, <span class="ident">radix</span>, <span class="ident">digit_separator</span>),
+        <span class="ident">LC</span>      =&gt; <span class="ident">standalone_128_lc</span>::<span class="op">&lt;</span><span class="ident">W</span>, <span class="ident">N</span><span class="op">&gt;</span>(<span class="ident">bytes</span>, <span class="ident">radix</span>, <span class="ident">digit_separator</span>),
+        <span class="ident">T</span>       =&gt; <span class="ident">standalone_128_t</span>::<span class="op">&lt;</span><span class="ident">W</span>, <span class="ident">N</span><span class="op">&gt;</span>(<span class="ident">bytes</span>, <span class="ident">radix</span>, <span class="ident">digit_separator</span>),
+        <span class="ident">TC</span>      =&gt; <span class="ident">standalone_128_tc</span>::<span class="op">&lt;</span><span class="ident">W</span>, <span class="ident">N</span><span class="op">&gt;</span>(<span class="ident">bytes</span>, <span class="ident">radix</span>, <span class="ident">digit_separator</span>),
+        <span class="ident">IL</span>      =&gt; <span class="ident">standalone_128_il</span>::<span class="op">&lt;</span><span class="ident">W</span>, <span class="ident">N</span><span class="op">&gt;</span>(<span class="ident">bytes</span>, <span class="ident">radix</span>, <span class="ident">digit_separator</span>),
+        <span class="ident">ILC</span>     =&gt; <span class="ident">standalone_128_ilc</span>::<span class="op">&lt;</span><span class="ident">W</span>, <span class="ident">N</span><span class="op">&gt;</span>(<span class="ident">bytes</span>, <span class="ident">radix</span>, <span class="ident">digit_separator</span>),
+        <span class="ident">IT</span>      =&gt; <span class="ident">standalone_128_it</span>::<span class="op">&lt;</span><span class="ident">W</span>, <span class="ident">N</span><span class="op">&gt;</span>(<span class="ident">bytes</span>, <span class="ident">radix</span>, <span class="ident">digit_separator</span>),
+        <span class="ident">ITC</span>     =&gt; <span class="ident">standalone_128_itc</span>::<span class="op">&lt;</span><span class="ident">W</span>, <span class="ident">N</span><span class="op">&gt;</span>(<span class="ident">bytes</span>, <span class="ident">radix</span>, <span class="ident">digit_separator</span>),
+        <span class="ident">LT</span>      =&gt; <span class="ident">standalone_128_lt</span>::<span class="op">&lt;</span><span class="ident">W</span>, <span class="ident">N</span><span class="op">&gt;</span>(<span class="ident">bytes</span>, <span class="ident">radix</span>, <span class="ident">digit_separator</span>),
+        <span class="ident">LTC</span>     =&gt; <span class="ident">standalone_128_ltc</span>::<span class="op">&lt;</span><span class="ident">W</span>, <span class="ident">N</span><span class="op">&gt;</span>(<span class="ident">bytes</span>, <span class="ident">radix</span>, <span class="ident">digit_separator</span>),
+        <span class="ident">ILT</span>     =&gt; <span class="ident">standalone_128_ilt</span>::<span class="op">&lt;</span><span class="ident">W</span>, <span class="ident">N</span><span class="op">&gt;</span>(<span class="ident">bytes</span>, <span class="ident">radix</span>, <span class="ident">digit_separator</span>),
+        <span class="ident">ILTC</span>    =&gt; <span class="ident">standalone_128_iltc</span>::<span class="op">&lt;</span><span class="ident">W</span>, <span class="ident">N</span><span class="op">&gt;</span>(<span class="ident">bytes</span>, <span class="ident">radix</span>, <span class="ident">digit_separator</span>),
         <span class="comment">// No digit separator match.</span>
-        <span class="kw">_</span>       <span class="op">=</span><span class="op">&gt;</span> <span class="ident">standalone_128</span>::<span class="op">&lt;</span><span class="ident">W</span>, <span class="ident">N</span><span class="op">&gt;</span>(<span class="ident">bytes</span>, <span class="ident">radix</span>)
+        <span class="kw">_</span>       =&gt; <span class="ident">standalone_128</span>::<span class="op">&lt;</span><span class="ident">W</span>, <span class="ident">N</span><span class="op">&gt;</span>(<span class="ident">bytes</span>, <span class="ident">radix</span>)
     }<span class="question-mark">?</span>;
 
     <span class="comment">// Check if we have any leading zeros.</span>

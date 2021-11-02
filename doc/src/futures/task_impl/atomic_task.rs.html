@@ -419,7 +419,7 @@
 
 <span class="kw">impl</span> <a class="ident" href="../../../src/futures/task_impl/atomic_task.rs.html#27-30">AtomicTask</a> {
     <span class="doccomment">/// Create an `AtomicTask` initialized with the given `Task`</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="../../../src/futures/task_impl/atomic_task.rs.html#27-30">AtomicTask</a> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <a class="ident" href="../../../src/futures/task_impl/atomic_task.rs.html#27-30">AtomicTask</a> {
         <span class="comment">// Make sure that task is Sync</span>
         <span class="kw">trait</span> <span class="ident">AssertSync</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> {}
         <span class="kw">impl</span> <a class="ident" href="../../../src/futures/task_impl/atomic_task.rs.html#141">AssertSync</a> <span class="kw">for</span> <a class="ident" href="../../../src/futures/task_impl/mod.rs.html#86-90">Task</a> {}
@@ -454,7 +454,7 @@
     <span class="doccomment">/// but there is no guarantee as to which caller will succeed.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">register_task</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">task</span>: <a class="ident" href="../../../src/futures/task_impl/mod.rs.html#86-90">Task</a>) {
         <span class="kw">match</span> <a class="self" href="../../../src/futures/task_impl/atomic_task.rs.html#172">self</a>.<span class="ident">state</span>.<span class="ident">compare_and_swap</span>(<a class="ident" href="../../../src/futures/task_impl/atomic_task.rs.html#129">WAITING</a>, <a class="ident" href="../../../src/futures/task_impl/atomic_task.rs.html#132">REGISTERING</a>, <span class="ident">Acquire</span>) {
-            <a class="ident" href="../../../src/futures/task_impl/atomic_task.rs.html#129">WAITING</a> <span class="op">=</span><span class="op">&gt;</span> {
+            <a class="ident" href="../../../src/futures/task_impl/atomic_task.rs.html#129">WAITING</a> =&gt; {
                 <span class="kw">unsafe</span> {
                     <span class="comment">// Locked acquired, update the waker cell</span>
                     <span class="kw-2">*</span><a class="self" href="../../../src/futures/task_impl/atomic_task.rs.html#172">self</a>.<span class="ident">task</span>.<span class="ident">get</span>() <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/futures/task_impl/atomic_task.rs.html#172">task</a>.<span class="ident">clone</span>());
@@ -470,8 +470,8 @@
                         <a class="ident" href="../../../src/futures/task_impl/atomic_task.rs.html#132">REGISTERING</a>, <a class="ident" href="../../../src/futures/task_impl/atomic_task.rs.html#129">WAITING</a>, <span class="ident">AcqRel</span>, <span class="ident">Acquire</span>);
 
                     <span class="kw">match</span> <a class="ident" href="../../../src/futures/task_impl/atomic_task.rs.html#186">res</a> {
-                        <span class="prelude-val">Ok</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {}
-                        <span class="prelude-val">Err</span>(<span class="ident">actual</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                        <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; {}
+                        <span class="prelude-val">Err</span>(<span class="ident">actual</span>) =&gt; {
                             <span class="comment">// This branch can only be reached if a</span>
                             <span class="comment">// concurrent thread called `notify`. In this</span>
                             <span class="comment">// case, `actual` **must** be `REGISTERING |</span>
@@ -493,13 +493,13 @@
                     }
                 }
             }
-            <a class="ident" href="../../../src/futures/task_impl/atomic_task.rs.html#135">NOTIFYING</a> <span class="op">=</span><span class="op">&gt;</span> {
+            <a class="ident" href="../../../src/futures/task_impl/atomic_task.rs.html#135">NOTIFYING</a> =&gt; {
                 <span class="comment">// Currently in the process of notifying the task, i.e.,</span>
                 <span class="comment">// `notify` is currently being called on the old task handle.</span>
                 <span class="comment">// So, we call notify on the new task handle</span>
                 <a class="ident" href="../../../src/futures/task_impl/atomic_task.rs.html#172">task</a>.<a class="ident" href="../../../src/futures/task_impl/mod.rs.html#145">notify</a>();
             }
-            <span class="ident">state</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">state</span> =&gt; {
                 <span class="comment">// In this case, a concurrent thread is holding the</span>
                 <span class="comment">// &quot;registering&quot; lock. This probably indicates a bug in the</span>
                 <span class="comment">// caller&#39;s code as racing to call `register` doesn&#39;t make much</span>
@@ -508,8 +508,8 @@
                 <span class="comment">// We just want to maintain memory safety. It is ok to drop the</span>
                 <span class="comment">// call to `register`.</span>
                 <span class="macro">debug_assert!</span>(
-                    <a class="ident" href="../../../src/futures/task_impl/atomic_task.rs.html#219">state</a> <span class="op">=</span><span class="op">=</span> <a class="ident" href="../../../src/futures/task_impl/atomic_task.rs.html#132">REGISTERING</a> <span class="op">|</span><span class="op">|</span>
-                    <a class="ident" href="../../../src/futures/task_impl/atomic_task.rs.html#219">state</a> <span class="op">=</span><span class="op">=</span> <a class="ident" href="../../../src/futures/task_impl/atomic_task.rs.html#132">REGISTERING</a> <span class="op">|</span> <a class="ident" href="../../../src/futures/task_impl/atomic_task.rs.html#135">NOTIFYING</a>);
+                    <a class="ident" href="../../../src/futures/task_impl/atomic_task.rs.html#219">state</a> <span class="op">==</span> <a class="ident" href="../../../src/futures/task_impl/atomic_task.rs.html#132">REGISTERING</a> <span class="op">|</span><span class="op">|</span>
+                    <a class="ident" href="../../../src/futures/task_impl/atomic_task.rs.html#219">state</a> <span class="op">==</span> <a class="ident" href="../../../src/futures/task_impl/atomic_task.rs.html#132">REGISTERING</a> <span class="op">|</span> <a class="ident" href="../../../src/futures/task_impl/atomic_task.rs.html#135">NOTIFYING</a>);
             }
         }
     }
@@ -522,7 +522,7 @@
         <span class="comment">// cell as well as to establish a `release` ordering with whatever</span>
         <span class="comment">// memory the `AtomicTask` is associated with.</span>
         <span class="kw">match</span> <a class="self" href="../../../src/futures/task_impl/atomic_task.rs.html#237">self</a>.<span class="ident">state</span>.<span class="ident">fetch_or</span>(<a class="ident" href="../../../src/futures/task_impl/atomic_task.rs.html#135">NOTIFYING</a>, <span class="ident">AcqRel</span>) {
-            <a class="ident" href="../../../src/futures/task_impl/atomic_task.rs.html#129">WAITING</a> <span class="op">=</span><span class="op">&gt;</span> {
+            <a class="ident" href="../../../src/futures/task_impl/atomic_task.rs.html#129">WAITING</a> =&gt; {
                 <span class="comment">// The notifying lock has been acquired.</span>
                 <span class="kw">let</span> <span class="ident">task</span> <span class="op">=</span> <span class="kw">unsafe</span> { (<span class="kw-2">*</span><a class="self" href="../../../src/futures/task_impl/atomic_task.rs.html#237">self</a>.<span class="ident">task</span>.<span class="ident">get</span>()).<span class="ident">take</span>() };
 
@@ -533,7 +533,7 @@
                     <a class="ident" href="../../../src/futures/task_impl/atomic_task.rs.html#249">task</a>.<a class="ident" href="../../../src/futures/task_impl/mod.rs.html#145">notify</a>();
                 }
             }
-            <span class="ident">state</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">state</span> =&gt; {
                 <span class="comment">// There is a concurrent thread currently updating the</span>
                 <span class="comment">// associated task.</span>
                 <span class="comment">//</span>
@@ -542,22 +542,22 @@
                 <span class="comment">// not.</span>
                 <span class="comment">//</span>
                 <span class="macro">debug_assert!</span>(
-                    <a class="ident" href="../../../src/futures/task_impl/atomic_task.rs.html#253">state</a> <span class="op">=</span><span class="op">=</span> <a class="ident" href="../../../src/futures/task_impl/atomic_task.rs.html#132">REGISTERING</a> <span class="op">|</span><span class="op">|</span>
-                    <a class="ident" href="../../../src/futures/task_impl/atomic_task.rs.html#253">state</a> <span class="op">=</span><span class="op">=</span> <a class="ident" href="../../../src/futures/task_impl/atomic_task.rs.html#132">REGISTERING</a> <span class="op">|</span> <a class="ident" href="../../../src/futures/task_impl/atomic_task.rs.html#135">NOTIFYING</a> <span class="op">|</span><span class="op">|</span>
-                    <a class="ident" href="../../../src/futures/task_impl/atomic_task.rs.html#253">state</a> <span class="op">=</span><span class="op">=</span> <a class="ident" href="../../../src/futures/task_impl/atomic_task.rs.html#135">NOTIFYING</a>);
+                    <a class="ident" href="../../../src/futures/task_impl/atomic_task.rs.html#253">state</a> <span class="op">==</span> <a class="ident" href="../../../src/futures/task_impl/atomic_task.rs.html#132">REGISTERING</a> <span class="op">|</span><span class="op">|</span>
+                    <a class="ident" href="../../../src/futures/task_impl/atomic_task.rs.html#253">state</a> <span class="op">==</span> <a class="ident" href="../../../src/futures/task_impl/atomic_task.rs.html#132">REGISTERING</a> <span class="op">|</span> <a class="ident" href="../../../src/futures/task_impl/atomic_task.rs.html#135">NOTIFYING</a> <span class="op">|</span><span class="op">|</span>
+                    <a class="ident" href="../../../src/futures/task_impl/atomic_task.rs.html#253">state</a> <span class="op">==</span> <a class="ident" href="../../../src/futures/task_impl/atomic_task.rs.html#135">NOTIFYING</a>);
             }
         }
     }
 }
 
 <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for</span> <a class="ident" href="../../../src/futures/task_impl/atomic_task.rs.html#27-30">AtomicTask</a> {
-    <span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="self">Self</span> {
         <span class="ident">AtomicTask::new</span>()
     }
 }
 
 <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <a class="ident" href="../../../src/futures/task_impl/atomic_task.rs.html#27-30">AtomicTask</a> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">fmt</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">fmt</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
         <span class="macro">write!</span>(<a class="ident" href="../../../src/futures/task_impl/atomic_task.rs.html#277">fmt</a>, <span class="string">&quot;AtomicTask&quot;</span>)
     }
 }

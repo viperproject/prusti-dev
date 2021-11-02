@@ -576,7 +576,7 @@
 
 <span class="kw">impl</span> <a class="ident" href="../../../src/http/uri/path.rs.html#12-15">PathAndQuery</a> {
     <span class="comment">// Not public while `bytes` is unstable.</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">from_shared</span>(<span class="kw-2">mut</span> <span class="ident">src</span>: <a class="ident" href="../../../bytes/bytes/struct.Bytes.html">Bytes</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <a class="ident" href="../../../src/http/uri/mod.rs.html#122">InvalidUri</a><span class="op">&gt;</span> {
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">from_shared</span>(<span class="kw-2">mut</span> <span class="ident">src</span>: <a class="ident" href="../../../bytes/bytes/struct.Bytes.html">Bytes</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <a class="ident" href="../../../src/http/uri/mod.rs.html#122">InvalidUri</a><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">query</span> <span class="op">=</span> <a class="ident" href="../../../src/http/uri/path.rs.html#17">NONE</a>;
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">fragment</span> <span class="op">=</span> <span class="prelude-val">None</span>;
 
@@ -588,12 +588,12 @@
             <span class="kw">for</span> (<span class="ident">i</span>, <span class="kw-2">&amp;</span><span class="ident">b</span>) <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../../src/http/uri/path.rs.html#27">iter</a> {
                 <span class="comment">// See https://url.spec.whatwg.org/#path-state</span>
                 <span class="kw">match</span> <a class="ident" href="../../../src/http/uri/path.rs.html#30">b</a> {
-                    <span class="string">b&#39;?&#39;</span> <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="string">b&#39;?&#39;</span> =&gt; {
                         <span class="macro">debug_assert_eq!</span>(<a class="ident" href="../../../src/http/uri/path.rs.html#22">query</a>, <a class="ident" href="../../../src/http/uri/path.rs.html#17">NONE</a>);
                         <a class="ident" href="../../../src/http/uri/path.rs.html#22">query</a> <span class="op">=</span> <a class="ident" href="../../../src/http/uri/path.rs.html#30">i</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>;
                         <span class="kw">break</span>;
                     }
-                    <span class="string">b&#39;#&#39;</span> <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="string">b&#39;#&#39;</span> =&gt; {
                         <a class="ident" href="../../../src/http/uri/path.rs.html#23">fragment</a> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/http/uri/path.rs.html#30">i</a>);
                         <span class="kw">break</span>;
                     }
@@ -607,7 +607,7 @@
                     <span class="number">0x40</span>..<span class="op">=</span><span class="number">0x5F</span> <span class="op">|</span>
                     <span class="number">0x61</span>..<span class="op">=</span><span class="number">0x7A</span> <span class="op">|</span>
                     <span class="number">0x7C</span> <span class="op">|</span>
-                    <span class="number">0x7E</span> <span class="op">=</span><span class="op">&gt;</span> {},
+                    <span class="number">0x7E</span> =&gt; {},
 
                     <span class="comment">// These are code points that are supposed to be</span>
                     <span class="comment">// percent-encoded in the path but there are clients</span>
@@ -619,9 +619,9 @@
                     <span class="comment">// to send requests with JSON directly embedded in</span>
                     <span class="comment">// the URI path. Yes, those things happen for real.</span>
                     <span class="string">b&#39;&quot;&#39;</span> <span class="op">|</span>
-                    <span class="string">b&#39;{&#39;</span> <span class="op">|</span> <span class="string">b&#39;}&#39;</span> <span class="op">=</span><span class="op">&gt;</span> {},
+                    <span class="string">b&#39;{&#39;</span> <span class="op">|</span> <span class="string">b&#39;}&#39;</span> =&gt; {},
 
-                    <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/http/uri/mod.rs.html#130">ErrorKind::InvalidUriChar</a>.<span class="ident">into</span>()),
+                    <span class="kw">_</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/http/uri/mod.rs.html#130">ErrorKind::InvalidUriChar</a>.<span class="ident">into</span>()),
                 }
             }
 
@@ -637,14 +637,14 @@
                         <span class="number">0x21</span> <span class="op">|</span>
                         <span class="number">0x24</span>..<span class="op">=</span><span class="number">0x3B</span> <span class="op">|</span>
                         <span class="number">0x3D</span> <span class="op">|</span>
-                        <span class="number">0x3F</span>..<span class="op">=</span><span class="number">0x7E</span> <span class="op">=</span><span class="op">&gt;</span> {},
+                        <span class="number">0x3F</span>..<span class="op">=</span><span class="number">0x7E</span> =&gt; {},
 
-                        <span class="string">b&#39;#&#39;</span> <span class="op">=</span><span class="op">&gt;</span> {
+                        <span class="string">b&#39;#&#39;</span> =&gt; {
                             <a class="ident" href="../../../src/http/uri/path.rs.html#23">fragment</a> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/http/uri/path.rs.html#72">i</a>);
                             <span class="kw">break</span>;
                         }
 
-                        <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/http/uri/mod.rs.html#130">ErrorKind::InvalidUriChar</a>.<span class="ident">into</span>()),
+                        <span class="kw">_</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/http/uri/mod.rs.html#130">ErrorKind::InvalidUriChar</a>.<span class="ident">into</span>()),
                     }
                 }
             }
@@ -679,7 +679,7 @@
     <span class="doccomment">/// assert_eq!(v.query(), Some(&quot;world&quot;));</span>
     <span class="doccomment">/// ```</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_static</span>(<span class="ident">src</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_static</span>(<span class="ident">src</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="self">Self</span> {
         <span class="kw">let</span> <span class="ident">src</span> <span class="op">=</span> <span class="ident">Bytes::from_static</span>(<a class="ident" href="../../../src/http/uri/path.rs.html#124">src</a>.<span class="ident">as_bytes</span>());
 
         <span class="ident">PathAndQuery::from_shared</span>(<a class="ident" href="../../../src/http/uri/path.rs.html#125">src</a>).<span class="ident">unwrap</span>()
@@ -689,7 +689,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// This will try to prevent a copy if the type passed is the type used</span>
     <span class="doccomment">/// internally, and will copy the data if it is not.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_maybe_shared</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">src</span>: <span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <a class="ident" href="../../../src/http/uri/mod.rs.html#122">InvalidUri</a><span class="op">&gt;</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_maybe_shared</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">src</span>: <span class="ident">T</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <a class="ident" href="../../../src/http/uri/mod.rs.html#122">InvalidUri</a><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">T</span>: <span class="ident">AsRef</span><span class="op">&lt;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]<span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
     {
@@ -700,21 +700,21 @@
         <span class="ident">PathAndQuery::try_from</span>(<a class="ident" href="../../../src/http/uri/path.rs.html#134">src</a>.<span class="ident">as_ref</span>())
     }
 
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">empty</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">empty</span>() -&gt; <span class="self">Self</span> {
         <a class="ident" href="../../../src/http/uri/path.rs.html#12-15">PathAndQuery</a> {
             <span class="ident">data</span>: <span class="ident">ByteStr::new</span>(),
             <span class="ident">query</span>: <a class="ident" href="../../../src/http/uri/path.rs.html#17">NONE</a>,
         }
     }
 
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">slash</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">slash</span>() -&gt; <span class="self">Self</span> {
         <a class="ident" href="../../../src/http/uri/path.rs.html#12-15">PathAndQuery</a> {
             <span class="ident">data</span>: <span class="ident">ByteStr::from_static</span>(<span class="string">&quot;/&quot;</span>),
             <span class="ident">query</span>: <a class="ident" href="../../../src/http/uri/path.rs.html#17">NONE</a>,
         }
     }
 
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">star</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">star</span>() -&gt; <span class="self">Self</span> {
         <a class="ident" href="../../../src/http/uri/path.rs.html#12-15">PathAndQuery</a> {
             <span class="ident">data</span>: <span class="ident">ByteStr::from_static</span>(<span class="string">&quot;*&quot;</span>),
             <span class="ident">query</span>: <a class="ident" href="../../../src/http/uri/path.rs.html#17">NONE</a>,
@@ -744,8 +744,8 @@
     <span class="doccomment">/// assert_eq!(path_and_query.path(), &quot;/hello/world&quot;);</span>
     <span class="doccomment">/// ```</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">path</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> {
-        <span class="kw">let</span> <span class="ident">ret</span> <span class="op">=</span> <span class="kw">if</span> <a class="self" href="../../../src/http/uri/path.rs.html#189">self</a>.<span class="ident">query</span> <span class="op">=</span><span class="op">=</span> <a class="ident" href="../../../src/http/uri/path.rs.html#17">NONE</a> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">path</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> {
+        <span class="kw">let</span> <span class="ident">ret</span> <span class="op">=</span> <span class="kw">if</span> <a class="self" href="../../../src/http/uri/path.rs.html#189">self</a>.<span class="ident">query</span> <span class="op">==</span> <a class="ident" href="../../../src/http/uri/path.rs.html#17">NONE</a> {
             <span class="kw-2">&amp;</span><a class="self" href="../../../src/http/uri/path.rs.html#189">self</a>.<span class="ident">data</span>[..]
         } <span class="kw">else</span> {
             <span class="kw-2">&amp;</span><a class="self" href="../../../src/http/uri/path.rs.html#189">self</a>.<span class="ident">data</span>[..<a class="self" href="../../../src/http/uri/path.rs.html#189">self</a>.<span class="ident">query</span> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>]
@@ -793,8 +793,8 @@
     <span class="doccomment">/// assert!(path_and_query.query().is_none());</span>
     <span class="doccomment">/// ```</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">query</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a><span class="op">&gt;</span> {
-        <span class="kw">if</span> <a class="self" href="../../../src/http/uri/path.rs.html#238">self</a>.<span class="ident">query</span> <span class="op">=</span><span class="op">=</span> <a class="ident" href="../../../src/http/uri/path.rs.html#17">NONE</a> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">query</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a><span class="op">&gt;</span> {
+        <span class="kw">if</span> <a class="self" href="../../../src/http/uri/path.rs.html#238">self</a>.<span class="ident">query</span> <span class="op">==</span> <a class="ident" href="../../../src/http/uri/path.rs.html#17">NONE</a> {
             <span class="prelude-val">None</span>
         } <span class="kw">else</span> {
             <span class="kw">let</span> <span class="ident">i</span> <span class="op">=</span> <a class="self" href="../../../src/http/uri/path.rs.html#238">self</a>.<span class="ident">query</span> <span class="op">+</span> <span class="number">1</span>;
@@ -824,7 +824,7 @@
     <span class="doccomment">/// assert_eq!(path_and_query.as_str(), &quot;/hello/world&quot;);</span>
     <span class="doccomment">/// ```</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_str</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_str</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> {
         <span class="kw">let</span> <span class="ident">ret</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="self" href="../../../src/http/uri/path.rs.html#269">self</a>.<span class="ident">data</span>[..];
         <span class="kw">if</span> <a class="ident" href="../../../src/http/uri/path.rs.html#270">ret</a>.<span class="ident">is_empty</span>() {
             <span class="kw">return</span> <span class="string">&quot;/&quot;</span>;
@@ -836,7 +836,7 @@
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">TryFrom</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]<span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../../src/http/uri/path.rs.html#12-15">PathAndQuery</a> {
     <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <a class="ident" href="../../../src/http/uri/mod.rs.html#122">InvalidUri</a>;
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">try_from</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">try_from</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
         <span class="ident">PathAndQuery::from_shared</span>(<span class="ident">Bytes::copy_from_slice</span>(<a class="ident" href="../../../src/http/uri/path.rs.html#281">s</a>))
     }
 }
@@ -844,7 +844,7 @@
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">TryFrom</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../../src/http/uri/path.rs.html#12-15">PathAndQuery</a> {
     <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <a class="ident" href="../../../src/http/uri/mod.rs.html#122">InvalidUri</a>;
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">try_from</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">try_from</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
         <span class="ident">TryFrom::try_from</span>(<a class="ident" href="../../../src/http/uri/path.rs.html#289">s</a>.<span class="ident">as_bytes</span>())
     }
 }
@@ -852,7 +852,7 @@
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">TryFrom</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../../src/http/uri/path.rs.html#12-15">PathAndQuery</a> {
     <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <a class="ident" href="../../../src/http/uri/mod.rs.html#122">InvalidUri</a>;
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">try_from</span>(<span class="ident">vec</span>: <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">try_from</span>(<span class="ident">vec</span>: <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
         <span class="ident">PathAndQuery::from_shared</span>(<a class="ident" href="../../../src/http/uri/path.rs.html#297">vec</a>.<span class="ident">into</span>())
     }
 }
@@ -860,7 +860,7 @@
 <span class="kw">impl</span> <span class="ident">TryFrom</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../../src/http/uri/path.rs.html#12-15">PathAndQuery</a> {
     <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <a class="ident" href="../../../src/http/uri/mod.rs.html#122">InvalidUri</a>;
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">try_from</span>(<span class="ident">s</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">try_from</span>(<span class="ident">s</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
         <span class="ident">PathAndQuery::from_shared</span>(<a class="ident" href="../../../src/http/uri/path.rs.html#305">s</a>.<span class="ident">into</span>())
     }
 }
@@ -868,7 +868,7 @@
 <span class="kw">impl</span> <span class="ident">TryFrom</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../../src/http/uri/path.rs.html#12-15">PathAndQuery</a> {
     <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <a class="ident" href="../../../src/http/uri/mod.rs.html#122">InvalidUri</a>;
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">try_from</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">try_from</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
         <span class="ident">TryFrom::try_from</span>(<a class="ident" href="../../../src/http/uri/path.rs.html#313">s</a>.<span class="ident">as_bytes</span>())
     }
 }
@@ -876,23 +876,23 @@
 <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/str/traits/trait.FromStr.html">FromStr</a> <span class="kw">for</span> <a class="ident" href="../../../src/http/uri/path.rs.html#12-15">PathAndQuery</a> {
     <span class="kw">type</span> <span class="prelude-val">Err</span> <span class="op">=</span> <a class="ident" href="../../../src/http/uri/mod.rs.html#122">InvalidUri</a>;
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from_str</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <a class="ident" href="../../../src/http/uri/mod.rs.html#122">InvalidUri</a><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">from_str</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <a class="ident" href="../../../src/http/uri/mod.rs.html#122">InvalidUri</a><span class="op">&gt;</span> {
         <span class="ident">TryFrom::try_from</span>(<a class="ident" href="../../../src/http/uri/path.rs.html#321">s</a>)
     }
 }
 
 <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <a class="ident" href="../../../src/http/uri/path.rs.html#12-15">PathAndQuery</a> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
         <span class="ident">fmt::Display::fmt</span>(<a class="self" href="../../../src/http/uri/path.rs.html#327">self</a>, <a class="ident" href="../../../src/http/uri/path.rs.html#327">f</a>)
     }
 }
 
 <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for</span> <a class="ident" href="../../../src/http/uri/path.rs.html#12-15">PathAndQuery</a> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">fmt</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">fmt</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
         <span class="kw">if</span> <span class="op">!</span><a class="self" href="../../../src/http/uri/path.rs.html#333">self</a>.<span class="ident">data</span>.<span class="ident">is_empty</span>() {
             <span class="kw">match</span> <a class="self" href="../../../src/http/uri/path.rs.html#333">self</a>.<span class="ident">data</span>.<span class="ident">as_bytes</span>()[<span class="number">0</span>] {
-                <span class="string">b&#39;/&#39;</span> <span class="op">|</span> <span class="string">b&#39;*&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write!</span>(<a class="ident" href="../../../src/http/uri/path.rs.html#333">fmt</a>, <span class="string">&quot;{}&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/http/uri/path.rs.html#333">self</a>.<span class="ident">data</span>[..]),
-                <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write!</span>(<a class="ident" href="../../../src/http/uri/path.rs.html#333">fmt</a>, <span class="string">&quot;/{}&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/http/uri/path.rs.html#333">self</a>.<span class="ident">data</span>[..]),
+                <span class="string">b&#39;/&#39;</span> <span class="op">|</span> <span class="string">b&#39;*&#39;</span> =&gt; <span class="macro">write!</span>(<a class="ident" href="../../../src/http/uri/path.rs.html#333">fmt</a>, <span class="string">&quot;{}&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/http/uri/path.rs.html#333">self</a>.<span class="ident">data</span>[..]),
+                <span class="kw">_</span> =&gt; <span class="macro">write!</span>(<a class="ident" href="../../../src/http/uri/path.rs.html#333">fmt</a>, <span class="string">&quot;/{}&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/http/uri/path.rs.html#333">self</a>.<span class="ident">data</span>[..]),
             }
         } <span class="kw">else</span> {
             <span class="macro">write!</span>(<a class="ident" href="../../../src/http/uri/path.rs.html#333">fmt</a>, <span class="string">&quot;/&quot;</span>)
@@ -904,8 +904,8 @@
 
 <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/cmp/trait.PartialEq.html">PartialEq</a> <span class="kw">for</span> <a class="ident" href="../../../src/http/uri/path.rs.html#12-15">PathAndQuery</a> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/http/uri/path.rs.html#12-15">PathAndQuery</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../src/http/uri/path.rs.html#349">self</a>.<span class="ident">data</span> <span class="op">=</span><span class="op">=</span> <a class="ident" href="../../../src/http/uri/path.rs.html#349">other</a>.<span class="ident">data</span>
+    <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/http/uri/path.rs.html#12-15">PathAndQuery</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a class="self" href="../../../src/http/uri/path.rs.html#349">self</a>.<span class="ident">data</span> <span class="op">==</span> <a class="ident" href="../../../src/http/uri/path.rs.html#349">other</a>.<span class="ident">data</span>
     }
 }
 
@@ -913,91 +913,91 @@
 
 <span class="kw">impl</span> <span class="ident">PartialEq</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../../src/http/uri/path.rs.html#12-15">PathAndQuery</a> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../src/http/uri/path.rs.html#358">self</a>.<a class="ident" href="../../../src/http/uri/path.rs.html#269">as_str</a>() <span class="op">=</span><span class="op">=</span> <a class="ident" href="../../../src/http/uri/path.rs.html#358">other</a>
+    <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a class="self" href="../../../src/http/uri/path.rs.html#358">self</a>.<a class="ident" href="../../../src/http/uri/path.rs.html#269">as_str</a>() <span class="op">==</span> <a class="ident" href="../../../src/http/uri/path.rs.html#358">other</a>
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">PartialEq</span><span class="op">&lt;</span><a class="ident" href="../../../src/http/uri/path.rs.html#12-15">PathAndQuery</a><span class="op">&gt;</span> <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/http/uri/path.rs.html#12-15">PathAndQuery</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../src/http/uri/path.rs.html#365">self</a> <span class="op">=</span><span class="op">=</span> <span class="kw-2">&amp;</span><a class="ident" href="../../../src/http/uri/path.rs.html#365">other</a>.<a class="ident" href="../../../src/http/uri/path.rs.html#269">as_str</a>()
+    <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/http/uri/path.rs.html#12-15">PathAndQuery</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a class="self" href="../../../src/http/uri/path.rs.html#365">self</a> <span class="op">==</span> <span class="kw-2">&amp;</span><a class="ident" href="../../../src/http/uri/path.rs.html#365">other</a>.<a class="ident" href="../../../src/http/uri/path.rs.html#269">as_str</a>()
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">PartialEq</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../../src/http/uri/path.rs.html#12-15">PathAndQuery</a> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="op">&amp;&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../src/http/uri/path.rs.html#372">self</a>.<a class="ident" href="../../../src/http/uri/path.rs.html#269">as_str</a>() <span class="op">=</span><span class="op">=</span> <span class="kw-2">*</span><a class="ident" href="../../../src/http/uri/path.rs.html#372">other</a>
+    <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="op">&amp;&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a class="self" href="../../../src/http/uri/path.rs.html#372">self</a>.<a class="ident" href="../../../src/http/uri/path.rs.html#269">as_str</a>() <span class="op">==</span> <span class="kw-2">*</span><a class="ident" href="../../../src/http/uri/path.rs.html#372">other</a>
     }
 }
 
 <span class="kw">impl</span> <span class="ident">PartialEq</span><span class="op">&lt;</span><a class="ident" href="../../../src/http/uri/path.rs.html#12-15">PathAndQuery</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/http/uri/path.rs.html#12-15">PathAndQuery</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../src/http/uri/path.rs.html#379">self</a> <span class="op">=</span><span class="op">=</span> <a class="ident" href="../../../src/http/uri/path.rs.html#379">other</a>.<a class="ident" href="../../../src/http/uri/path.rs.html#269">as_str</a>()
+    <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/http/uri/path.rs.html#12-15">PathAndQuery</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a class="self" href="../../../src/http/uri/path.rs.html#379">self</a> <span class="op">==</span> <a class="ident" href="../../../src/http/uri/path.rs.html#379">other</a>.<a class="ident" href="../../../src/http/uri/path.rs.html#269">as_str</a>()
     }
 }
 
 <span class="kw">impl</span> <span class="ident">PartialEq</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../../src/http/uri/path.rs.html#12-15">PathAndQuery</a> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../src/http/uri/path.rs.html#386">self</a>.<a class="ident" href="../../../src/http/uri/path.rs.html#269">as_str</a>() <span class="op">=</span><span class="op">=</span> <a class="ident" href="../../../src/http/uri/path.rs.html#386">other</a>.<span class="ident">as_str</span>()
+    <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a class="self" href="../../../src/http/uri/path.rs.html#386">self</a>.<a class="ident" href="../../../src/http/uri/path.rs.html#269">as_str</a>() <span class="op">==</span> <a class="ident" href="../../../src/http/uri/path.rs.html#386">other</a>.<span class="ident">as_str</span>()
     }
 }
 
 <span class="kw">impl</span> <span class="ident">PartialEq</span><span class="op">&lt;</span><a class="ident" href="../../../src/http/uri/path.rs.html#12-15">PathAndQuery</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/http/uri/path.rs.html#12-15">PathAndQuery</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../src/http/uri/path.rs.html#393">self</a>.<span class="ident">as_str</span>() <span class="op">=</span><span class="op">=</span> <a class="ident" href="../../../src/http/uri/path.rs.html#393">other</a>.<a class="ident" href="../../../src/http/uri/path.rs.html#269">as_str</a>()
+    <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/http/uri/path.rs.html#12-15">PathAndQuery</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a class="self" href="../../../src/http/uri/path.rs.html#393">self</a>.<span class="ident">as_str</span>() <span class="op">==</span> <a class="ident" href="../../../src/http/uri/path.rs.html#393">other</a>.<a class="ident" href="../../../src/http/uri/path.rs.html#269">as_str</a>()
     }
 }
 
 <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/cmp/trait.PartialOrd.html">PartialOrd</a> <span class="kw">for</span> <a class="ident" href="../../../src/http/uri/path.rs.html#12-15">PathAndQuery</a> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">partial_cmp</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/http/uri/path.rs.html#12-15">PathAndQuery</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html">cmp::Ordering</a><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">partial_cmp</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/http/uri/path.rs.html#12-15">PathAndQuery</a>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html">cmp::Ordering</a><span class="op">&gt;</span> {
         <a class="self" href="../../../src/http/uri/path.rs.html#400">self</a>.<a class="ident" href="../../../src/http/uri/path.rs.html#269">as_str</a>().<span class="ident">partial_cmp</span>(<a class="ident" href="../../../src/http/uri/path.rs.html#400">other</a>.<a class="ident" href="../../../src/http/uri/path.rs.html#269">as_str</a>())
     }
 }
 
 <span class="kw">impl</span> <span class="ident">PartialOrd</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../../src/http/uri/path.rs.html#12-15">PathAndQuery</a> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">partial_cmp</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html">cmp::Ordering</a><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">partial_cmp</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html">cmp::Ordering</a><span class="op">&gt;</span> {
         <a class="self" href="../../../src/http/uri/path.rs.html#407">self</a>.<a class="ident" href="../../../src/http/uri/path.rs.html#269">as_str</a>().<span class="ident">partial_cmp</span>(<a class="ident" href="../../../src/http/uri/path.rs.html#407">other</a>)
     }
 }
 
 <span class="kw">impl</span> <span class="ident">PartialOrd</span><span class="op">&lt;</span><a class="ident" href="../../../src/http/uri/path.rs.html#12-15">PathAndQuery</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">partial_cmp</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/http/uri/path.rs.html#12-15">PathAndQuery</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html">cmp::Ordering</a><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">partial_cmp</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/http/uri/path.rs.html#12-15">PathAndQuery</a>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html">cmp::Ordering</a><span class="op">&gt;</span> {
         <a class="self" href="../../../src/http/uri/path.rs.html#414">self</a>.<span class="ident">partial_cmp</span>(<a class="ident" href="../../../src/http/uri/path.rs.html#414">other</a>.<a class="ident" href="../../../src/http/uri/path.rs.html#269">as_str</a>())
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">PartialOrd</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../../src/http/uri/path.rs.html#12-15">PathAndQuery</a> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">partial_cmp</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="op">&amp;&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html">cmp::Ordering</a><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">partial_cmp</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="op">&amp;&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html">cmp::Ordering</a><span class="op">&gt;</span> {
         <a class="self" href="../../../src/http/uri/path.rs.html#421">self</a>.<a class="ident" href="../../../src/http/uri/path.rs.html#269">as_str</a>().<span class="ident">partial_cmp</span>(<span class="kw-2">*</span><a class="ident" href="../../../src/http/uri/path.rs.html#421">other</a>)
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">PartialOrd</span><span class="op">&lt;</span><a class="ident" href="../../../src/http/uri/path.rs.html#12-15">PathAndQuery</a><span class="op">&gt;</span> <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">partial_cmp</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/http/uri/path.rs.html#12-15">PathAndQuery</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html">cmp::Ordering</a><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">partial_cmp</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/http/uri/path.rs.html#12-15">PathAndQuery</a>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html">cmp::Ordering</a><span class="op">&gt;</span> {
         <a class="self" href="../../../src/http/uri/path.rs.html#428">self</a>.<span class="ident">partial_cmp</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/http/uri/path.rs.html#428">other</a>.<a class="ident" href="../../../src/http/uri/path.rs.html#269">as_str</a>())
     }
 }
 
 <span class="kw">impl</span> <span class="ident">PartialOrd</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../../src/http/uri/path.rs.html#12-15">PathAndQuery</a> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">partial_cmp</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html">cmp::Ordering</a><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">partial_cmp</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html">cmp::Ordering</a><span class="op">&gt;</span> {
         <a class="self" href="../../../src/http/uri/path.rs.html#435">self</a>.<a class="ident" href="../../../src/http/uri/path.rs.html#269">as_str</a>().<span class="ident">partial_cmp</span>(<a class="ident" href="../../../src/http/uri/path.rs.html#435">other</a>.<span class="ident">as_str</span>())
     }
 }
 
 <span class="kw">impl</span> <span class="ident">PartialOrd</span><span class="op">&lt;</span><a class="ident" href="../../../src/http/uri/path.rs.html#12-15">PathAndQuery</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">partial_cmp</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/http/uri/path.rs.html#12-15">PathAndQuery</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html">cmp::Ordering</a><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">partial_cmp</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/http/uri/path.rs.html#12-15">PathAndQuery</a>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html">cmp::Ordering</a><span class="op">&gt;</span> {
         <a class="self" href="../../../src/http/uri/path.rs.html#442">self</a>.<span class="ident">as_str</span>().<span class="ident">partial_cmp</span>(<a class="ident" href="../../../src/http/uri/path.rs.html#442">other</a>.<a class="ident" href="../../../src/http/uri/path.rs.html#269">as_str</a>())
     }
 }
@@ -1110,7 +1110,7 @@
         <span class="macro">assert_eq!</span>(<span class="string">r#&quot;/{&quot;bread&quot;:&quot;baguette&quot;}&quot;#</span>, <span class="ident">pq</span>(<span class="string">r#&quot;/{&quot;bread&quot;:&quot;baguette&quot;}&quot;#</span>).<span class="ident">path</span>());
     }
 
-    <span class="kw">fn</span> <span class="ident">pq</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">PathAndQuery</span> {
+    <span class="kw">fn</span> <span class="ident">pq</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="ident">PathAndQuery</span> {
         <span class="ident">s</span>.<span class="ident">parse</span>().<span class="ident">expect</span>(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;parsing {}&quot;</span>, <span class="ident">s</span>))
     }
 }

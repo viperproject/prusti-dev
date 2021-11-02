@@ -45,7 +45,7 @@
 <span class="kw">use</span> <span class="ident">quote::quote</span>;
 <span class="kw">use</span> <span class="ident">syn</span>::{<a class="ident" href="../../syn/derive/enum.Data.html">Data</a>, <a class="ident" href="../../syn/derive/struct.DeriveInput.html">DeriveInput</a>, <a class="ident" href="../../syn/data/enum.Fields.html">Fields</a>, <span class="ident">Ident</span>};
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">expand</span>(<span class="ident">input</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../syn/derive/struct.DeriveInput.html">DeriveInput</a>, <span class="ident">trait_name</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="../../proc_macro2/struct.TokenStream.html">TokenStream</a> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">expand</span>(<span class="ident">input</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../syn/derive/struct.DeriveInput.html">DeriveInput</a>, <span class="ident">trait_name</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <a class="ident" href="../../proc_macro2/struct.TokenStream.html">TokenStream</a> {
     <span class="kw">let</span> <span class="ident">trait_ident</span> <span class="op">=</span> <span class="ident">Ident::new</span>(<a class="ident" href="../../src/derive_more/add_assign_like.rs.html#7">trait_name</a>, <span class="ident">Span::call_site</span>());
     <span class="kw">let</span> <span class="ident">method_name</span> <span class="op">=</span> <a class="ident" href="../../src/derive_more/add_assign_like.rs.html#7">trait_name</a>.<span class="ident">to_string</span>();
     <span class="kw">let</span> <span class="ident">method_name</span> <span class="op">=</span> <a class="ident" href="../../src/derive_more/add_assign_like.rs.html#9">method_name</a>.<span class="ident">trim_end_matches</span>(<span class="string">&quot;Assign&quot;</span>);
@@ -57,17 +57,17 @@
     <span class="kw">let</span> (<span class="ident">impl_generics</span>, <span class="ident">ty_generics</span>, <span class="ident">where_clause</span>) <span class="op">=</span> <a class="ident" href="../../src/derive_more/add_assign_like.rs.html#15">generics</a>.<span class="ident">split_for_impl</span>();
 
     <span class="kw">let</span> <span class="ident">exprs</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../src/derive_more/add_assign_like.rs.html#7">input</a>.<span class="ident">data</span> {
-        <span class="ident">Data::Struct</span>(<span class="kw-2">ref</span> <span class="ident">data_struct</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <a class="ident" href="../../src/derive_more/add_assign_like.rs.html#19">data_struct</a>.<span class="ident">fields</span> {
-            <span class="ident">Fields::Unnamed</span>(<span class="kw-2">ref</span> <span class="ident">fields</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">Data::Struct</span>(<span class="kw-2">ref</span> <span class="ident">data_struct</span>) =&gt; <span class="kw">match</span> <a class="ident" href="../../src/derive_more/add_assign_like.rs.html#19">data_struct</a>.<span class="ident">fields</span> {
+            <span class="ident">Fields::Unnamed</span>(<span class="kw-2">ref</span> <span class="ident">fields</span>) =&gt; {
                 <a class="ident" href="../../src/derive_more/add_helpers.rs.html#5">tuple_exprs</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/derive_more/utils.rs.html#239">unnamed_to_vec</a>(<a class="ident" href="../../src/derive_more/add_assign_like.rs.html#20">fields</a>), <span class="kw-2">&amp;</span><a class="ident" href="../../src/derive_more/add_assign_like.rs.html#12">method_ident</a>)
             }
-            <span class="ident">Fields::Named</span>(<span class="kw-2">ref</span> <span class="ident">fields</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Fields::Named</span>(<span class="kw-2">ref</span> <span class="ident">fields</span>) =&gt; {
                 <a class="ident" href="../../src/derive_more/add_helpers.rs.html#17">struct_exprs</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/derive_more/utils.rs.html#243">named_to_vec</a>(<a class="ident" href="../../src/derive_more/add_assign_like.rs.html#23">fields</a>), <span class="kw-2">&amp;</span><a class="ident" href="../../src/derive_more/add_assign_like.rs.html#12">method_ident</a>)
             }
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic!</span>(<span class="string">&quot;Unit structs cannot use derive({})&quot;</span>, <a class="ident" href="../../src/derive_more/add_assign_like.rs.html#7">trait_name</a>),
+            <span class="kw">_</span> =&gt; <span class="macro">panic!</span>(<span class="string">&quot;Unit structs cannot use derive({})&quot;</span>, <a class="ident" href="../../src/derive_more/add_assign_like.rs.html#7">trait_name</a>),
         },
 
-        <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic!</span>(<span class="string">&quot;Only structs can use derive({})&quot;</span>, <a class="ident" href="../../src/derive_more/add_assign_like.rs.html#7">trait_name</a>),
+        <span class="kw">_</span> =&gt; <span class="macro">panic!</span>(<span class="string">&quot;Only structs can use derive({})&quot;</span>, <a class="ident" href="../../src/derive_more/add_assign_like.rs.html#7">trait_name</a>),
     };
 
     <span class="macro">quote!</span>(

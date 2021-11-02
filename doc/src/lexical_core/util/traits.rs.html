@@ -551,10 +551,10 @@
 
 <span class="doccomment">/// Map partial result to complete result.</span>
 <span class="macro">macro_rules!</span> <span class="ident">to_complete</span> {
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">cb</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">bytes</span>:<span class="ident">expr</span> $(,<span class="macro-nonterminal">$</span><span class="macro-nonterminal">args</span>:<span class="ident">expr</span>)<span class="kw-2">*</span>) <span class="op">=</span><span class="op">&gt;</span> {
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">cb</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">bytes</span>:<span class="ident">expr</span> $(,<span class="macro-nonterminal">$</span><span class="macro-nonterminal">args</span>:<span class="ident">expr</span>)<span class="kw-2">*</span>) =&gt; {
         <span class="kw">match</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">cb</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">bytes</span> $(,<span class="macro-nonterminal">$</span><span class="macro-nonterminal">args</span>)<span class="kw-2">*</span>) {
-            <span class="prelude-val">Err</span>(<span class="ident">e</span>)                  <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">e</span>),
-            <span class="prelude-val">Ok</span>((<span class="ident">value</span>, <span class="ident">processed</span>))  <span class="op">=</span><span class="op">&gt;</span> <span class="kw">if</span> <span class="ident">processed</span> <span class="op">=</span><span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">bytes</span>.<span class="ident">len</span>() {
+            <span class="prelude-val">Err</span>(<span class="ident">e</span>)                  =&gt; <span class="prelude-val">Err</span>(<span class="ident">e</span>),
+            <span class="prelude-val">Ok</span>((<span class="ident">value</span>, <span class="ident">processed</span>))  =&gt; <span class="kw">if</span> <span class="ident">processed</span> <span class="op">==</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">bytes</span>.<span class="ident">len</span>() {
                 <span class="prelude-val">Ok</span>(<span class="ident">value</span>)
             } <span class="kw">else</span>{
                 <span class="prelude-val">Err</span>((<span class="ident">ErrorCode::InvalidDigit</span>, <span class="ident">processed</span>).<span class="ident">into</span>())
@@ -579,7 +579,7 @@
     <span class="doccomment">/// digit, and therefore may mask an invalid digit error.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// * `bytes`   - Slice containing a numeric string.</span>
-    <span class="kw">fn</span> <span class="ident">from_lexical</span>(<span class="ident">bytes</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>;
+    <span class="kw">fn</span> <span class="ident">from_lexical</span>(<span class="ident">bytes</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>;
 
     <span class="doccomment">/// Checked parser for a string-to-number conversion.</span>
     <span class="doccomment">///</span>
@@ -592,7 +592,7 @@
     <span class="doccomment">/// any errors that occurred during parsing.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// * `bytes`   - Slice containing a numeric string.</span>
-    <span class="kw">fn</span> <span class="ident">from_lexical_partial</span>(<span class="ident">bytes</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="self">Self</span>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>)<span class="op">&gt;</span>;
+    <span class="kw">fn</span> <span class="ident">from_lexical_partial</span>(<span class="ident">bytes</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="self">Self</span>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>)<span class="op">&gt;</span>;
 
     <span class="doccomment">/// Checked parser for a string-to-number conversion.</span>
     <span class="doccomment">///</span>
@@ -612,7 +612,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// Panics if the radix is not in the range `[2, 36]`.</span>
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;radix&quot;</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">from_lexical_radix</span>(<span class="ident">bytes</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">radix</span>: <span class="ident">u8</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>;
+    <span class="kw">fn</span> <span class="ident">from_lexical_radix</span>(<span class="ident">bytes</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">radix</span>: <span class="ident">u8</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>;
 
     <span class="doccomment">/// Checked parser for a string-to-number conversion.</span>
     <span class="doccomment">///</span>
@@ -631,35 +631,35 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// Panics if the radix is not in the range `[2, 36]`.</span>
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;radix&quot;</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">from_lexical_partial_radix</span>(<span class="ident">bytes</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">radix</span>: <span class="ident">u8</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="self">Self</span>, <span class="ident">usize</span>)<span class="op">&gt;</span>;
+    <span class="kw">fn</span> <span class="ident">from_lexical_partial_radix</span>(<span class="ident">bytes</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">radix</span>: <span class="ident">u8</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="self">Self</span>, <span class="ident">usize</span>)<span class="op">&gt;</span>;
 }
 
 <span class="comment">// Implement FromLexical for numeric type.</span>
 <span class="macro">macro_rules!</span> <span class="ident">from_lexical</span> {
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">cb</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span>:<span class="ident">ty</span>) <span class="op">=</span><span class="op">&gt;</span> (
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">cb</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span>:<span class="ident">ty</span>) =&gt; (
         <span class="kw">impl</span> <span class="ident">FromLexical</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span> {
             <span class="attribute">#[<span class="ident">inline</span>]</span>
-            <span class="kw">fn</span> <span class="ident">from_lexical</span>(<span class="ident">bytes</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span><span class="op">&gt;</span>
+            <span class="kw">fn</span> <span class="ident">from_lexical</span>(<span class="ident">bytes</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span><span class="op">&gt;</span>
             {
                 <span class="macro">to_complete!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">cb</span>, <span class="ident">bytes</span>, <span class="number">10</span>)
             }
 
             <span class="attribute">#[<span class="ident">inline</span>]</span>
-            <span class="kw">fn</span> <span class="ident">from_lexical_partial</span>(<span class="ident">bytes</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span>, <span class="ident">usize</span>)<span class="op">&gt;</span>
+            <span class="kw">fn</span> <span class="ident">from_lexical_partial</span>(<span class="ident">bytes</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span>, <span class="ident">usize</span>)<span class="op">&gt;</span>
             {
                 <span class="macro-nonterminal">$</span><span class="macro-nonterminal">cb</span>(<span class="ident">bytes</span>, <span class="number">10</span>)
             }
 
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;radix&quot;</span>)]</span>
             <span class="attribute">#[<span class="ident">inline</span>]</span>
-            <span class="kw">fn</span> <span class="ident">from_lexical_radix</span>(<span class="ident">bytes</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">radix</span>: <span class="ident">u8</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span><span class="op">&gt;</span>
+            <span class="kw">fn</span> <span class="ident">from_lexical_radix</span>(<span class="ident">bytes</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">radix</span>: <span class="ident">u8</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span><span class="op">&gt;</span>
             {
                 <span class="macro">to_complete!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">cb</span>, <span class="ident">bytes</span>, <span class="ident">radix</span>.<span class="ident">as_u32</span>())
             }
 
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;radix&quot;</span>)]</span>
             <span class="attribute">#[<span class="ident">inline</span>]</span>
-            <span class="kw">fn</span> <span class="ident">from_lexical_partial_radix</span>(<span class="ident">bytes</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">radix</span>: <span class="ident">u8</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span>, <span class="ident">usize</span>)<span class="op">&gt;</span>
+            <span class="kw">fn</span> <span class="ident">from_lexical_partial_radix</span>(<span class="ident">bytes</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">radix</span>: <span class="ident">u8</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span>, <span class="ident">usize</span>)<span class="op">&gt;</span>
             {
                 <span class="macro-nonterminal">$</span><span class="macro-nonterminal">cb</span>(<span class="ident">bytes</span>, <span class="ident">radix</span>.<span class="ident">as_u32</span>())
             }
@@ -681,7 +681,7 @@
     <span class="doccomment">/// or an error containing any errors that occurred during parsing.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// * `bytes`   - Slice containing a numeric string.</span>
-    <span class="kw">fn</span> <span class="ident">from_lexical_lossy</span>(<span class="ident">bytes</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>;
+    <span class="kw">fn</span> <span class="ident">from_lexical_lossy</span>(<span class="ident">bytes</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>;
 
     <span class="doccomment">/// Lossy, checked parser for a string-to-number conversion.</span>
     <span class="doccomment">///</span>
@@ -695,7 +695,7 @@
     <span class="doccomment">/// any errors that occurred during parsing.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// * `bytes`   - Slice containing a numeric string.</span>
-    <span class="kw">fn</span> <span class="ident">from_lexical_partial_lossy</span>(<span class="ident">bytes</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="self">Self</span>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>)<span class="op">&gt;</span>;
+    <span class="kw">fn</span> <span class="ident">from_lexical_partial_lossy</span>(<span class="ident">bytes</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="self">Self</span>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>)<span class="op">&gt;</span>;
 
     <span class="doccomment">/// Lossy, checked parser for a string-to-number conversion.</span>
     <span class="doccomment">///</span>
@@ -713,7 +713,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// Panics if the radix is not in the range `[2, 36]`.</span>
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;radix&quot;</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">from_lexical_lossy_radix</span>(<span class="ident">bytes</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">radix</span>: <span class="ident">u8</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>;
+    <span class="kw">fn</span> <span class="ident">from_lexical_lossy_radix</span>(<span class="ident">bytes</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">radix</span>: <span class="ident">u8</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>;
 
     <span class="doccomment">/// Lossy, checked parser for a string-to-number conversion.</span>
     <span class="doccomment">///</span>
@@ -733,35 +733,35 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// Panics if the radix is not in the range `[2, 36]`.</span>
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;radix&quot;</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">from_lexical_partial_lossy_radix</span>(<span class="ident">bytes</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">radix</span>: <span class="ident">u8</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="self">Self</span>, <span class="ident">usize</span>)<span class="op">&gt;</span>;
+    <span class="kw">fn</span> <span class="ident">from_lexical_partial_lossy_radix</span>(<span class="ident">bytes</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">radix</span>: <span class="ident">u8</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="self">Self</span>, <span class="ident">usize</span>)<span class="op">&gt;</span>;
 }
 
 <span class="comment">// Implement FromLexicalLossy for numeric type.</span>
 <span class="macro">macro_rules!</span> <span class="ident">from_lexical_lossy</span> {
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">cb</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span>:<span class="ident">ty</span>) <span class="op">=</span><span class="op">&gt;</span> (
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">cb</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span>:<span class="ident">ty</span>) =&gt; (
         <span class="kw">impl</span> <span class="ident">FromLexicalLossy</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span> {
             <span class="attribute">#[<span class="ident">inline</span>]</span>
-            <span class="kw">fn</span> <span class="ident">from_lexical_lossy</span>(<span class="ident">bytes</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span><span class="op">&gt;</span>
+            <span class="kw">fn</span> <span class="ident">from_lexical_lossy</span>(<span class="ident">bytes</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span><span class="op">&gt;</span>
             {
                 <span class="macro">to_complete!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">cb</span>, <span class="ident">bytes</span>, <span class="number">10</span>)
             }
 
             <span class="attribute">#[<span class="ident">inline</span>]</span>
-            <span class="kw">fn</span> <span class="ident">from_lexical_partial_lossy</span>(<span class="ident">bytes</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span>, <span class="ident">usize</span>)<span class="op">&gt;</span>
+            <span class="kw">fn</span> <span class="ident">from_lexical_partial_lossy</span>(<span class="ident">bytes</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span>, <span class="ident">usize</span>)<span class="op">&gt;</span>
             {
                 <span class="macro-nonterminal">$</span><span class="macro-nonterminal">cb</span>(<span class="ident">bytes</span>, <span class="number">10</span>)
             }
 
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;radix&quot;</span>)]</span>
             <span class="attribute">#[<span class="ident">inline</span>]</span>
-            <span class="kw">fn</span> <span class="ident">from_lexical_lossy_radix</span>(<span class="ident">bytes</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">radix</span>: <span class="ident">u8</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span><span class="op">&gt;</span>
+            <span class="kw">fn</span> <span class="ident">from_lexical_lossy_radix</span>(<span class="ident">bytes</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">radix</span>: <span class="ident">u8</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span><span class="op">&gt;</span>
             {
                 <span class="macro">to_complete!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">cb</span>, <span class="ident">bytes</span>, <span class="ident">radix</span>.<span class="ident">as_u32</span>())
             }
 
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;radix&quot;</span>)]</span>
             <span class="attribute">#[<span class="ident">inline</span>]</span>
-            <span class="kw">fn</span> <span class="ident">from_lexical_partial_lossy_radix</span>(<span class="ident">bytes</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">radix</span>: <span class="ident">u8</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span>, <span class="ident">usize</span>)<span class="op">&gt;</span>
+            <span class="kw">fn</span> <span class="ident">from_lexical_partial_lossy_radix</span>(<span class="ident">bytes</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">radix</span>: <span class="ident">u8</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span>, <span class="ident">usize</span>)<span class="op">&gt;</span>
             {
                 <span class="macro-nonterminal">$</span><span class="macro-nonterminal">cb</span>(<span class="ident">bytes</span>, <span class="ident">radix</span>.<span class="ident">as_u32</span>())
             }
@@ -786,7 +786,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// * `bytes`   - Slice containing a numeric string.</span>
     <span class="doccomment">/// * `format`  - Numerical format.</span>
-    <span class="kw">fn</span> <span class="ident">from_lexical_format</span>(<span class="ident">bytes</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">format</span>: <span class="ident">NumberFormat</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>;
+    <span class="kw">fn</span> <span class="ident">from_lexical_format</span>(<span class="ident">bytes</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">format</span>: <span class="ident">NumberFormat</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>;
 
     <span class="doccomment">/// Checked parser for a string-to-number conversion.</span>
     <span class="doccomment">///</span>
@@ -802,7 +802,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// * `bytes`   - Slice containing a numeric string.</span>
     <span class="doccomment">/// * `format`  - Numerical format.</span>
-    <span class="kw">fn</span> <span class="ident">from_lexical_partial_format</span>(<span class="ident">bytes</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">format</span>: <span class="ident">NumberFormat</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="self">Self</span>, <span class="ident">usize</span>)<span class="op">&gt;</span>;
+    <span class="kw">fn</span> <span class="ident">from_lexical_partial_format</span>(<span class="ident">bytes</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">format</span>: <span class="ident">NumberFormat</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="self">Self</span>, <span class="ident">usize</span>)<span class="op">&gt;</span>;
 
     <span class="doccomment">/// Checked parser for a string-to-number conversion.</span>
     <span class="doccomment">///</span>
@@ -822,7 +822,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// Panics if the radix is not in the range `[2, 36]`.</span>
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;radix&quot;</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">from_lexical_format_radix</span>(<span class="ident">bytes</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">radix</span>: <span class="ident">u8</span>, <span class="ident">format</span>: <span class="ident">NumberFormat</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>;
+    <span class="kw">fn</span> <span class="ident">from_lexical_format_radix</span>(<span class="ident">bytes</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">radix</span>: <span class="ident">u8</span>, <span class="ident">format</span>: <span class="ident">NumberFormat</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>;
 
     <span class="doccomment">/// Checked parser for a string-to-number conversion.</span>
     <span class="doccomment">///</span>
@@ -844,36 +844,36 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// Panics if the radix is not in the range `[2, 36]`.</span>
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;radix&quot;</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">from_lexical_partial_format_radix</span>(<span class="ident">bytes</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">radix</span>: <span class="ident">u8</span>, <span class="ident">format</span>: <span class="ident">NumberFormat</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="self">Self</span>, <span class="ident">usize</span>)<span class="op">&gt;</span>;
+    <span class="kw">fn</span> <span class="ident">from_lexical_partial_format_radix</span>(<span class="ident">bytes</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">radix</span>: <span class="ident">u8</span>, <span class="ident">format</span>: <span class="ident">NumberFormat</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="self">Self</span>, <span class="ident">usize</span>)<span class="op">&gt;</span>;
 }
 
 <span class="comment">// Implement FromLexicalFormat for numeric type.</span>
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;format&quot;</span>)]</span>
 <span class="macro">macro_rules!</span> <span class="ident">from_lexical_format</span> {
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">cb</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span>:<span class="ident">ty</span>) <span class="op">=</span><span class="op">&gt;</span> (
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">cb</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span>:<span class="ident">ty</span>) =&gt; (
         <span class="kw">impl</span> <span class="ident">FromLexicalFormat</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span> {
             <span class="attribute">#[<span class="ident">inline</span>]</span>
-            <span class="kw">fn</span> <span class="ident">from_lexical_format</span>(<span class="ident">bytes</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">format</span>: <span class="ident">NumberFormat</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span><span class="op">&gt;</span>
+            <span class="kw">fn</span> <span class="ident">from_lexical_format</span>(<span class="ident">bytes</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">format</span>: <span class="ident">NumberFormat</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span><span class="op">&gt;</span>
             {
                 <span class="macro">to_complete!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">cb</span>, <span class="ident">bytes</span>, <span class="number">10</span>, <span class="ident">format</span>)
             }
 
             <span class="attribute">#[<span class="ident">inline</span>]</span>
-            <span class="kw">fn</span> <span class="ident">from_lexical_partial_format</span>(<span class="ident">bytes</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">format</span>: <span class="ident">NumberFormat</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span>, <span class="ident">usize</span>)<span class="op">&gt;</span>
+            <span class="kw">fn</span> <span class="ident">from_lexical_partial_format</span>(<span class="ident">bytes</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">format</span>: <span class="ident">NumberFormat</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span>, <span class="ident">usize</span>)<span class="op">&gt;</span>
             {
                 <span class="macro-nonterminal">$</span><span class="macro-nonterminal">cb</span>(<span class="ident">bytes</span>, <span class="number">10</span>, <span class="ident">format</span>)
             }
 
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;radix&quot;</span>)]</span>
             <span class="attribute">#[<span class="ident">inline</span>]</span>
-            <span class="kw">fn</span> <span class="ident">from_lexical_format_radix</span>(<span class="ident">bytes</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">radix</span>: <span class="ident">u8</span>, <span class="ident">format</span>: <span class="ident">NumberFormat</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span><span class="op">&gt;</span>
+            <span class="kw">fn</span> <span class="ident">from_lexical_format_radix</span>(<span class="ident">bytes</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">radix</span>: <span class="ident">u8</span>, <span class="ident">format</span>: <span class="ident">NumberFormat</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span><span class="op">&gt;</span>
             {
                 <span class="macro">to_complete!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">cb</span>, <span class="ident">bytes</span>, <span class="ident">radix</span>.<span class="ident">as_u32</span>(), <span class="ident">format</span>)
             }
 
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;radix&quot;</span>)]</span>
             <span class="attribute">#[<span class="ident">inline</span>]</span>
-            <span class="kw">fn</span> <span class="ident">from_lexical_partial_format_radix</span>(<span class="ident">bytes</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">radix</span>: <span class="ident">u8</span>, <span class="ident">format</span>: <span class="ident">NumberFormat</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span>, <span class="ident">usize</span>)<span class="op">&gt;</span>
+            <span class="kw">fn</span> <span class="ident">from_lexical_partial_format_radix</span>(<span class="ident">bytes</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">radix</span>: <span class="ident">u8</span>, <span class="ident">format</span>: <span class="ident">NumberFormat</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span>, <span class="ident">usize</span>)<span class="op">&gt;</span>
             {
                 <span class="macro-nonterminal">$</span><span class="macro-nonterminal">cb</span>(<span class="ident">bytes</span>, <span class="ident">radix</span>.<span class="ident">as_u32</span>(), <span class="ident">format</span>)
             }
@@ -900,7 +900,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// * `bytes`   - Slice containing a numeric string.</span>
     <span class="doccomment">/// * `format`  - Numerical format.</span>
-    <span class="kw">fn</span> <span class="ident">from_lexical_lossy_format</span>(<span class="ident">bytes</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">format</span>: <span class="ident">NumberFormat</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>;
+    <span class="kw">fn</span> <span class="ident">from_lexical_lossy_format</span>(<span class="ident">bytes</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">format</span>: <span class="ident">NumberFormat</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>;
 
     <span class="doccomment">/// Lossy, checked parser for a string-to-number conversion.</span>
     <span class="doccomment">///</span>
@@ -918,7 +918,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// * `bytes`   - Slice containing a numeric string.</span>
     <span class="doccomment">/// * `format`  - Numerical format.</span>
-    <span class="kw">fn</span> <span class="ident">from_lexical_partial_lossy_format</span>(<span class="ident">bytes</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">format</span>: <span class="ident">NumberFormat</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="self">Self</span>, <span class="ident">usize</span>)<span class="op">&gt;</span>;
+    <span class="kw">fn</span> <span class="ident">from_lexical_partial_lossy_format</span>(<span class="ident">bytes</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">format</span>: <span class="ident">NumberFormat</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="self">Self</span>, <span class="ident">usize</span>)<span class="op">&gt;</span>;
 
     <span class="doccomment">/// Lossy, checked parser for a string-to-number conversion.</span>
     <span class="doccomment">///</span>
@@ -940,7 +940,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// Panics if the radix is not in the range `[2, 36]`.</span>
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;radix&quot;</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">from_lexical_lossy_format_radix</span>(<span class="ident">bytes</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">radix</span>: <span class="ident">u8</span>, <span class="ident">format</span>: <span class="ident">NumberFormat</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>;
+    <span class="kw">fn</span> <span class="ident">from_lexical_lossy_format_radix</span>(<span class="ident">bytes</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">radix</span>: <span class="ident">u8</span>, <span class="ident">format</span>: <span class="ident">NumberFormat</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>;
 
     <span class="doccomment">/// Lossy, checked parser for a string-to-number conversion.</span>
     <span class="doccomment">///</span>
@@ -964,24 +964,24 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// Panics if the radix is not in the range `[2, 36]`.</span>
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;radix&quot;</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">from_lexical_partial_lossy_format_radix</span>(<span class="ident">bytes</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">radix</span>: <span class="ident">u8</span>, <span class="ident">format</span>: <span class="ident">NumberFormat</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="self">Self</span>, <span class="ident">usize</span>)<span class="op">&gt;</span>;
+    <span class="kw">fn</span> <span class="ident">from_lexical_partial_lossy_format_radix</span>(<span class="ident">bytes</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">radix</span>: <span class="ident">u8</span>, <span class="ident">format</span>: <span class="ident">NumberFormat</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="self">Self</span>, <span class="ident">usize</span>)<span class="op">&gt;</span>;
 }
 
 <span class="comment">// Implement FromLexicalLossyFormat for numeric type.</span>
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;format&quot;</span>)]</span>
 <span class="macro">macro_rules!</span> <span class="ident">from_lexical_lossy_format</span> {
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">cb</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span>:<span class="ident">ty</span>) <span class="op">=</span><span class="op">&gt;</span> (
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">cb</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span>:<span class="ident">ty</span>) =&gt; (
         <span class="kw">impl</span> <span class="ident">FromLexicalLossyFormat</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span> {
             <span class="attribute">#[<span class="ident">inline</span>]</span>
             <span class="kw">fn</span> <span class="ident">from_lexical_lossy_format</span>(<span class="ident">bytes</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">format</span>: <span class="ident">NumberFormat</span>)
-                <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span><span class="op">&gt;</span>
+                -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span><span class="op">&gt;</span>
             {
                 <span class="macro">to_complete!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">cb</span>, <span class="ident">bytes</span>, <span class="number">10</span>, <span class="ident">format</span>)
             }
 
             <span class="attribute">#[<span class="ident">inline</span>]</span>
             <span class="kw">fn</span> <span class="ident">from_lexical_partial_lossy_format</span>(<span class="ident">bytes</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">format</span>: <span class="ident">NumberFormat</span>)
-                <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span>, <span class="ident">usize</span>)<span class="op">&gt;</span>
+                -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span>, <span class="ident">usize</span>)<span class="op">&gt;</span>
             {
                 <span class="macro-nonterminal">$</span><span class="macro-nonterminal">cb</span>(<span class="ident">bytes</span>, <span class="number">10</span>, <span class="ident">format</span>)
             }
@@ -989,7 +989,7 @@
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;radix&quot;</span>)]</span>
             <span class="attribute">#[<span class="ident">inline</span>]</span>
             <span class="kw">fn</span> <span class="ident">from_lexical_lossy_format_radix</span>(<span class="ident">bytes</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">radix</span>: <span class="ident">u8</span>, <span class="ident">format</span>: <span class="ident">NumberFormat</span>)
-                <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span><span class="op">&gt;</span>
+                -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span><span class="op">&gt;</span>
             {
                 <span class="macro">to_complete!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">cb</span>, <span class="ident">bytes</span>, <span class="ident">radix</span>.<span class="ident">as_u32</span>(), <span class="ident">format</span>)
             }
@@ -997,7 +997,7 @@
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;radix&quot;</span>)]</span>
             <span class="attribute">#[<span class="ident">inline</span>]</span>
             <span class="kw">fn</span> <span class="ident">from_lexical_partial_lossy_format_radix</span>(<span class="ident">bytes</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">radix</span>: <span class="ident">u8</span>, <span class="ident">format</span>: <span class="ident">NumberFormat</span>)
-                <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span>, <span class="ident">usize</span>)<span class="op">&gt;</span>
+                -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span>, <span class="ident">usize</span>)<span class="op">&gt;</span>
             {
                 <span class="macro-nonterminal">$</span><span class="macro-nonterminal">cb</span>(<span class="ident">bytes</span>, <span class="ident">radix</span>.<span class="ident">as_u32</span>(), <span class="ident">format</span>)
             }
@@ -1033,7 +1033,7 @@
     <span class="doccomment">/// [`FORMATTED_SIZE_DECIMAL`] elements.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// [`FORMATTED_SIZE_DECIMAL`]: trait.Number.html#associatedconstant.FORMATTED_SIZE_DECIMAL</span>
-    <span class="kw">fn</span> <span class="ident">to_lexical</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">bytes</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>];
+    <span class="kw">fn</span> <span class="ident">to_lexical</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">bytes</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>];
 
      <span class="doccomment">/// Serializer for a number-to-string conversion.</span>
     <span class="doccomment">///</span>
@@ -1055,16 +1055,16 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [`FORMATTED_SIZE`]: trait.Number.html#associatedconstant.FORMATTED_SIZE</span>
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;radix&quot;</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">to_lexical_radix</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">radix</span>: <span class="ident">u8</span>, <span class="ident">bytes</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> [<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> [<span class="ident">u8</span>];
+    <span class="kw">fn</span> <span class="ident">to_lexical_radix</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">radix</span>: <span class="ident">u8</span>, <span class="ident">bytes</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> [<span class="ident">u8</span>]) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> [<span class="ident">u8</span>];
 }
 
 <span class="comment">// Implement ToLexical for numeric type.</span>
 <span class="macro">macro_rules!</span> <span class="ident">to_lexical</span> {
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">cb</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span>:<span class="ident">ty</span>) <span class="op">=</span><span class="op">&gt;</span> (
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">cb</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span>:<span class="ident">ty</span>) =&gt; (
         <span class="kw">impl</span> <span class="ident">ToLexical</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span> {
             <span class="attribute">#[<span class="ident">inline</span>]</span>
             <span class="kw">fn</span> <span class="ident">to_lexical</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">bytes</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> [<span class="ident">u8</span>])
-                <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> [<span class="ident">u8</span>]
+                -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> [<span class="ident">u8</span>]
             {
                 <span class="macro">assert_buffer!</span>(<span class="number">10</span>, <span class="ident">bytes</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span>);
                 <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">cb</span>(<span class="self">self</span>, <span class="number">10</span>, <span class="ident">bytes</span>);
@@ -1074,7 +1074,7 @@
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;radix&quot;</span>)]</span>
             <span class="attribute">#[<span class="ident">inline</span>]</span>
             <span class="kw">fn</span> <span class="ident">to_lexical_radix</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">radix</span>: <span class="ident">u8</span>, <span class="ident">bytes</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> [<span class="ident">u8</span>])
-                <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> [<span class="ident">u8</span>]
+                -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> [<span class="ident">u8</span>]
             {
                 <span class="macro">assert_radix!</span>(<span class="ident">radix</span>);
                 <span class="macro">assert_buffer!</span>(<span class="ident">radix</span>, <span class="ident">bytes</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span>);

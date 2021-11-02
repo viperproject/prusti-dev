@@ -64,7 +64,7 @@
 <span class="kw">use</span> <a class="ident" href="../../prusti_common/vir/struct.Program.html"><span class="kw">crate</span>::vir::Program</a>;
 
 <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">VerificationService</span> {
-    <span class="kw">fn</span> <span class="ident">verify</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">request</span>: <a class="ident" href="../../src/prusti_common/verification_service.rs.html#12-15">VerificationRequest</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="../../viper/verification_result/enum.VerificationResult.html">viper::VerificationResult</a>;
+    <span class="kw">fn</span> <span class="ident">verify</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">request</span>: <a class="ident" href="../../src/prusti_common/verification_service.rs.html#12-15">VerificationRequest</a>) -&gt; <a class="ident" href="../../viper/verification_result/enum.VerificationResult.html">viper::VerificationResult</a>;
 }
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Serialize</span>, <span class="ident">Deserialize</span>)]</span>
@@ -84,27 +84,27 @@ Expresses which backend (silicon or carbon) should be used, and provides command
 }
 
 <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for</span> <a class="ident" href="../../src/prusti_common/verification_service.rs.html#22-25">ViperBackendConfig</a> {
-    <span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="kw">let</span> <span class="ident">backend</span> <span class="op">=</span> <span class="ident">VerificationBackend::from_str</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/prusti_common/config.rs.html#207">config::viper_backend</a>()).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">verifier_args</span> <span class="op">=</span> <a class="ident" href="../../src/prusti_common/config.rs.html#291">config::extra_verifier_args</a>();
+    <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="self">Self</span> {
+        <span class="kw">let</span> <span class="ident">backend</span> <span class="op">=</span> <span class="ident">VerificationBackend::from_str</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/prusti_common/config.rs.html#205">config::viper_backend</a>()).<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">verifier_args</span> <span class="op">=</span> <a class="ident" href="../../src/prusti_common/config.rs.html#289">config::extra_verifier_args</a>();
         <span class="kw">match</span> <a class="ident" href="../../src/prusti_common/verification_service.rs.html#29">backend</a> {
-            <span class="ident">VerificationBackend::Silicon</span> <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="kw">if</span> <a class="ident" href="../../src/prusti_common/config.rs.html#306">config::use_more_complete_exhale</a>() {
+            <span class="ident">VerificationBackend::Silicon</span> =&gt; {
+                <span class="kw">if</span> <a class="ident" href="../../src/prusti_common/config.rs.html#304">config::use_more_complete_exhale</a>() {
                     <a class="ident" href="../../src/prusti_common/verification_service.rs.html#30">verifier_args</a>.<span class="ident">push</span>(<span class="string">&quot;--enableMoreCompleteExhale&quot;</span>.<span class="ident">to_string</span>());
                 }
-                <span class="kw">if</span> <a class="ident" href="../../src/prusti_common/config.rs.html#331">config::produce_counterexample</a>() {
+                <span class="kw">if</span> <a class="ident" href="../../src/prusti_common/config.rs.html#329">config::produce_counterexample</a>() {
                     <a class="ident" href="../../src/prusti_common/verification_service.rs.html#30">verifier_args</a>.<span class="ident">push</span>(<span class="string">&quot;--counterexample&quot;</span>.<span class="ident">to_string</span>());
                     <a class="ident" href="../../src/prusti_common/verification_service.rs.html#30">verifier_args</a>.<span class="ident">push</span>(<span class="string">&quot;mapped&quot;</span>.<span class="ident">to_string</span>());
                 }
 
                 <a class="ident" href="../../src/prusti_common/verification_service.rs.html#30">verifier_args</a>.<span class="ident">extend</span>(<span class="macro">vec!</span>[
                     <span class="string">&quot;--assertTimeout&quot;</span>.<span class="ident">to_string</span>(),
-                    <a class="ident" href="../../src/prusti_common/config.rs.html#301">config::assert_timeout</a>().<span class="ident">to_string</span>(),
+                    <a class="ident" href="../../src/prusti_common/config.rs.html#299">config::assert_timeout</a>().<span class="ident">to_string</span>(),
                     <span class="string">&quot;--logLevel&quot;</span>.<span class="ident">to_string</span>(),
                     <span class="string">&quot;ERROR&quot;</span>.<span class="ident">to_string</span>(),
                 ]);
             }
-            <span class="ident">VerificationBackend::Carbon</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">VerificationBackend::Carbon</span> =&gt; {
                 <a class="ident" href="../../src/prusti_common/verification_service.rs.html#30">verifier_args</a>.<span class="ident">extend</span>(<span class="macro">vec!</span>[
                     <span class="string">&quot;--disableAllocEncoding&quot;</span>.<span class="ident">to_string</span>(),
                 ]);

@@ -116,7 +116,7 @@
 <span class="kw">use</span> <span class="ident">syn</span>::{<a class="ident" href="../../syn/parse/trait.Parser.html">parse::Parser</a>, <a class="ident" href="../../syn/punctuated/struct.Punctuated.html">punctuated::Punctuated</a>, <a class="ident" href="../../syn/expr/enum.Expr.html">Expr</a>, <a class="ident" href="../../syn/expr/struct.Index.html">Index</a>, <span class="ident">Token</span>};
 
 <span class="doccomment">/// The `stream_select!` macro.</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">stream_select</span>(<span class="ident">input</span>: <a class="ident" href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>, <a class="ident" href="../../syn/error/struct.Error.html">syn::Error</a><span class="op">&gt;</span> {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">stream_select</span>(<span class="ident">input</span>: <a class="ident" href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>, <a class="ident" href="../../syn/error/struct.Error.html">syn::Error</a><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">args</span> <span class="op">=</span> <span class="ident">Punctuated</span>::<span class="op">&lt;</span><a class="ident" href="../../syn/expr/enum.Expr.html">Expr</a>, <span class="macro">Token!</span>[,]<span class="op">&gt;</span><span class="ident">::parse_terminated</span>.<span class="ident">parse2</span>(<a class="ident" href="../../src/futures_macro/stream_select.rs.html#6">input</a>)<span class="question-mark">?</span>;
     <span class="kw">if</span> <a class="ident" href="../../src/futures_macro/stream_select.rs.html#7">args</a>.<span class="ident">len</span>() <span class="op">&lt;</span> <span class="number">2</span> {
         <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="macro">quote!</span> {
@@ -146,12 +146,12 @@
             {
                 <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="ident">ITEM</span>;
 
-                <span class="kw">fn</span> <span class="ident">poll_next</span>(<span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">::std::pin::Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">__futures_crate::task::Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">__futures_crate::task::Poll</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+                <span class="kw">fn</span> <span class="ident">poll_next</span>(<span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">::std::pin::Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">__futures_crate::task::Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">__futures_crate::task::Poll</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span><span class="op">&gt;</span> {
                     <span class="kw">match</span> <span class="self">self</span>.<span class="ident">get_mut</span>() {
                         #(
-                            <span class="self">Self</span>::#<span class="ident">generic_idents</span>(#<span class="ident">generic_idents</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">::std::pin::Pin::new</span>(#<span class="ident">generic_idents</span>).<span class="ident">poll_next</span>(<span class="ident">cx</span>)
+                            <span class="self">Self</span>::#<span class="ident">generic_idents</span>(#<span class="ident">generic_idents</span>) =&gt; <span class="ident">::std::pin::Pin::new</span>(#<span class="ident">generic_idents</span>).<span class="ident">poll_next</span>(<span class="ident">cx</span>)
                         ),<span class="kw-2">*</span>,
-                        <span class="ident"><span class="self">Self</span>::None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic!</span>(<span class="string">&quot;StreamEnum::None should never be polled!&quot;</span>),
+                        <span class="ident"><span class="self">Self</span>::None</span> =&gt; <span class="macro">panic!</span>(<span class="string">&quot;StreamEnum::None should never be polled!&quot;</span>),
                     }
                 }
             }
@@ -161,7 +161,7 @@
             {
                 <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="ident">ITEM</span>;
 
-                <span class="kw">fn</span> <span class="ident">poll_next</span>(<span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">::std::pin::Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">__futures_crate::task::Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">__futures_crate::task::Poll</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+                <span class="kw">fn</span> <span class="ident">poll_next</span>(<span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">::std::pin::Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">__futures_crate::task::Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">__futures_crate::task::Poll</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span><span class="op">&gt;</span> {
                     <span class="kw">let</span> <span class="self">Self</span>(#(<span class="kw-2">ref</span> <span class="kw-2">mut</span> #<span class="ident">field_idents</span>),<span class="kw-2">*</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_mut</span>();
                     #(
                         <span class="kw">let</span> <span class="kw-2">mut</span> #<span class="ident">field_idents_2</span> <span class="op">=</span> <span class="bool-val">false</span>;
@@ -176,18 +176,18 @@
                                 <span class="kw">continue</span>;
                             } <span class="kw">else</span> {
                                 <span class="kw">match</span> <span class="ident">__futures_crate::stream::Stream::poll_next</span>(<span class="ident">::std::pin::Pin::new</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">s</span>), <span class="ident">cx</span>) {
-                                    <span class="ident">r</span> @ <span class="ident">__futures_crate::task::Poll::Ready</span>(<span class="prelude-val">Some</span>(<span class="kw">_</span>)) <span class="op">=</span><span class="op">&gt;</span> {
+                                    <span class="ident">r</span> @ <span class="ident">__futures_crate::task::Poll::Ready</span>(<span class="prelude-val">Some</span>(<span class="kw">_</span>)) =&gt; {
                                         <span class="kw">return</span> <span class="ident">r</span>;
                                     },
-                                    <span class="ident">__futures_crate::task::Poll::Pending</span> <span class="op">=</span><span class="op">&gt;</span> {
+                                    <span class="ident">__futures_crate::task::Poll::Pending</span> =&gt; {
                                         <span class="ident">any_pending</span> <span class="op">=</span> <span class="bool-val">true</span>;
                                     },
-                                    <span class="ident">__futures_crate::task::Poll::Ready</span>(<span class="prelude-val">None</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                                    <span class="ident">__futures_crate::task::Poll::Ready</span>(<span class="prelude-val">None</span>) =&gt; {
                                         <span class="kw">match</span> <span class="ident">s</span> {
                                             #(
-                                                <span class="ident">StreamEnum</span>::#<span class="ident">generic_idents</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> { #<span class="ident">field_idents_2</span> <span class="op">=</span> <span class="bool-val">true</span>; }
+                                                <span class="ident">StreamEnum</span>::#<span class="ident">generic_idents</span>(<span class="kw">_</span>) =&gt; { #<span class="ident">field_idents_2</span> <span class="op">=</span> <span class="bool-val">true</span>; }
                                             ),<span class="kw-2">*</span>,
-                                            <span class="ident">StreamEnum::None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic!</span>(<span class="string">&quot;StreamEnum::None should never be polled!&quot;</span>),
+                                            <span class="ident">StreamEnum::None</span> =&gt; <span class="macro">panic!</span>(<span class="string">&quot;StreamEnum::None should never be polled!&quot;</span>),
                                         }
                                     },
                                 }
@@ -206,7 +206,7 @@
                     }
                 }
 
-                <span class="kw">fn</span> <span class="ident">size_hint</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> (<span class="ident">usize</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>) {
+                <span class="kw">fn</span> <span class="ident">size_hint</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<span class="ident">usize</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>) {
                     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">s</span> <span class="op">=</span> (<span class="number">0</span>, <span class="prelude-val">Some</span>(<span class="number">0</span>));
                     #(
                         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">new_hint</span>) <span class="op">=</span> <span class="self">self</span>.#<span class="ident">field_indices</span>.<span class="ident">as_ref</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">s</span><span class="op">|</span> <span class="ident">s</span>.<span class="ident">size_hint</span>()) {

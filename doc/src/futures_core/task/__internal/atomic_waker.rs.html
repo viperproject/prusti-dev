@@ -606,7 +606,7 @@
 
 <span class="kw">impl</span> <a class="ident" href="../../../../src/futures_core/task/__internal/atomic_waker.rs.html#89-92">AtomicWaker</a> {
     <span class="doccomment">/// Create an `AtomicWaker`.</span>
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="self">Self</span> {
         <span class="comment">// Make sure that task is Sync</span>
         <span class="kw">trait</span> <span class="ident">AssertSync</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> {}
         <span class="kw">impl</span> <a class="ident" href="../../../../src/futures_core/task/__internal/atomic_waker.rs.html#202">AssertSync</a> <span class="kw">for</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a> {}
@@ -670,7 +670,7 @@
             .<span class="ident">compare_exchange</span>(<a class="ident" href="../../../../src/futures_core/task/__internal/atomic_waker.rs.html#190">WAITING</a>, <a class="ident" href="../../../../src/futures_core/task/__internal/atomic_waker.rs.html#193">REGISTERING</a>, <span class="ident">Acquire</span>, <span class="ident">Acquire</span>)
             .<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <a class="ident" href="../../../../src/futures_core/task/__internal/atomic_waker.rs.html#262">x</a>)
         {
-            <a class="ident" href="../../../../src/futures_core/task/__internal/atomic_waker.rs.html#190">WAITING</a> <span class="op">=</span><span class="op">&gt;</span> {
+            <a class="ident" href="../../../../src/futures_core/task/__internal/atomic_waker.rs.html#190">WAITING</a> =&gt; {
                 <span class="kw">unsafe</span> {
                     <span class="comment">// Locked acquired, update the waker cell</span>
                     <span class="kw-2">*</span><a class="self" href="../../../../src/futures_core/task/__internal/atomic_waker.rs.html#258">self</a>.<span class="ident">waker</span>.<span class="ident">get</span>() <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../../src/futures_core/task/__internal/atomic_waker.rs.html#258">waker</a>.<span class="ident">clone</span>());
@@ -688,14 +688,14 @@
                     <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <a class="self" href="../../../../src/futures_core/task/__internal/atomic_waker.rs.html#258">self</a>.<span class="ident">state</span>.<span class="ident">compare_exchange</span>(<a class="ident" href="../../../../src/futures_core/task/__internal/atomic_waker.rs.html#193">REGISTERING</a>, <a class="ident" href="../../../../src/futures_core/task/__internal/atomic_waker.rs.html#190">WAITING</a>, <span class="ident">AcqRel</span>, <span class="ident">Acquire</span>);
 
                     <span class="kw">match</span> <a class="ident" href="../../../../src/futures_core/task/__internal/atomic_waker.rs.html#279">res</a> {
-                        <span class="prelude-val">Ok</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                        <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; {
                             <span class="comment">// memory ordering: acquired self.state during CAS</span>
                             <span class="comment">// - if previous wakes went through it syncs with</span>
                             <span class="comment">//   their final release (`fetch_and`)</span>
                             <span class="comment">// - if there was no previous wake the next wake</span>
                             <span class="comment">//   will wake us, no sync needed.</span>
                         }
-                        <span class="prelude-val">Err</span>(<span class="ident">actual</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                        <span class="prelude-val">Err</span>(<span class="ident">actual</span>) =&gt; {
                             <span class="comment">// This branch can only be reached if at least one</span>
                             <span class="comment">// concurrent thread called `wake`. In this</span>
                             <span class="comment">// case, `actual` **must** be `REGISTERING |</span>
@@ -724,7 +724,7 @@
                     }
                 }
             }
-            <a class="ident" href="../../../../src/futures_core/task/__internal/atomic_waker.rs.html#196">WAKING</a> <span class="op">=</span><span class="op">&gt;</span> {
+            <a class="ident" href="../../../../src/futures_core/task/__internal/atomic_waker.rs.html#196">WAKING</a> =&gt; {
                 <span class="comment">// Currently in the process of waking the task, i.e.,</span>
                 <span class="comment">// `wake` is currently being called on the old task handle.</span>
                 <span class="comment">//</span>
@@ -738,7 +738,7 @@
                 <span class="comment">// to register).</span>
                 <a class="ident" href="../../../../src/futures_core/task/__internal/atomic_waker.rs.html#258">waker</a>.<span class="ident">wake_by_ref</span>();
             }
-            <span class="ident">state</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">state</span> =&gt; {
                 <span class="comment">// In this case, a concurrent thread is holding the</span>
                 <span class="comment">// &quot;registering&quot; lock. This probably indicates a bug in the</span>
                 <span class="comment">// caller&#39;s code as racing to call `register` doesn&#39;t make much</span>
@@ -749,7 +749,7 @@
                 <span class="comment">//</span>
                 <span class="comment">// We just want to maintain memory safety. It is ok to drop the</span>
                 <span class="comment">// call to `register`.</span>
-                <span class="macro">debug_assert!</span>(<a class="ident" href="../../../../src/futures_core/task/__internal/atomic_waker.rs.html#332">state</a> <span class="op">=</span><span class="op">=</span> <a class="ident" href="../../../../src/futures_core/task/__internal/atomic_waker.rs.html#193">REGISTERING</a> <span class="op">|</span><span class="op">|</span> <a class="ident" href="../../../../src/futures_core/task/__internal/atomic_waker.rs.html#332">state</a> <span class="op">=</span><span class="op">=</span> <a class="ident" href="../../../../src/futures_core/task/__internal/atomic_waker.rs.html#193">REGISTERING</a> <span class="op">|</span> <a class="ident" href="../../../../src/futures_core/task/__internal/atomic_waker.rs.html#196">WAKING</a>);
+                <span class="macro">debug_assert!</span>(<a class="ident" href="../../../../src/futures_core/task/__internal/atomic_waker.rs.html#332">state</a> <span class="op">==</span> <a class="ident" href="../../../../src/futures_core/task/__internal/atomic_waker.rs.html#193">REGISTERING</a> <span class="op">|</span><span class="op">|</span> <a class="ident" href="../../../../src/futures_core/task/__internal/atomic_waker.rs.html#332">state</a> <span class="op">==</span> <a class="ident" href="../../../../src/futures_core/task/__internal/atomic_waker.rs.html#193">REGISTERING</a> <span class="op">|</span> <a class="ident" href="../../../../src/futures_core/task/__internal/atomic_waker.rs.html#196">WAKING</a>);
             }
         }
     }
@@ -771,12 +771,12 @@
     <span class="doccomment">/// atomic action.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// If a waker has not been registered, this returns `None`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">take</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">take</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a><span class="op">&gt;</span> {
         <span class="comment">// AcqRel ordering is used in order to acquire the value of the `task`</span>
         <span class="comment">// cell as well as to establish a `release` ordering with whatever</span>
         <span class="comment">// memory the `AtomicWaker` is associated with.</span>
         <span class="kw">match</span> <a class="self" href="../../../../src/futures_core/task/__internal/atomic_waker.rs.html#365">self</a>.<span class="ident">state</span>.<span class="ident">fetch_or</span>(<a class="ident" href="../../../../src/futures_core/task/__internal/atomic_waker.rs.html#196">WAKING</a>, <span class="ident">AcqRel</span>) {
-            <a class="ident" href="../../../../src/futures_core/task/__internal/atomic_waker.rs.html#190">WAITING</a> <span class="op">=</span><span class="op">&gt;</span> {
+            <a class="ident" href="../../../../src/futures_core/task/__internal/atomic_waker.rs.html#190">WAITING</a> =&gt; {
                 <span class="comment">// The waking lock has been acquired.</span>
                 <span class="kw">let</span> <span class="ident">waker</span> <span class="op">=</span> <span class="kw">unsafe</span> { (<span class="kw-2">*</span><a class="self" href="../../../../src/futures_core/task/__internal/atomic_waker.rs.html#365">self</a>.<span class="ident">waker</span>.<span class="ident">get</span>()).<span class="ident">take</span>() };
 
@@ -785,7 +785,7 @@
 
                 <a class="ident" href="../../../../src/futures_core/task/__internal/atomic_waker.rs.html#372">waker</a>
             }
-            <span class="ident">state</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">state</span> =&gt; {
                 <span class="comment">// There is a concurrent thread currently updating the</span>
                 <span class="comment">// associated task.</span>
                 <span class="comment">//</span>
@@ -794,7 +794,7 @@
                 <span class="comment">// not.</span>
                 <span class="comment">//</span>
                 <span class="macro">debug_assert!</span>(
-                    <a class="ident" href="../../../../src/futures_core/task/__internal/atomic_waker.rs.html#379">state</a> <span class="op">=</span><span class="op">=</span> <a class="ident" href="../../../../src/futures_core/task/__internal/atomic_waker.rs.html#193">REGISTERING</a> <span class="op">|</span><span class="op">|</span> <a class="ident" href="../../../../src/futures_core/task/__internal/atomic_waker.rs.html#379">state</a> <span class="op">=</span><span class="op">=</span> <a class="ident" href="../../../../src/futures_core/task/__internal/atomic_waker.rs.html#193">REGISTERING</a> <span class="op">|</span> <a class="ident" href="../../../../src/futures_core/task/__internal/atomic_waker.rs.html#196">WAKING</a> <span class="op">|</span><span class="op">|</span> <a class="ident" href="../../../../src/futures_core/task/__internal/atomic_waker.rs.html#379">state</a> <span class="op">=</span><span class="op">=</span> <a class="ident" href="../../../../src/futures_core/task/__internal/atomic_waker.rs.html#196">WAKING</a>
+                    <a class="ident" href="../../../../src/futures_core/task/__internal/atomic_waker.rs.html#379">state</a> <span class="op">==</span> <a class="ident" href="../../../../src/futures_core/task/__internal/atomic_waker.rs.html#193">REGISTERING</a> <span class="op">|</span><span class="op">|</span> <a class="ident" href="../../../../src/futures_core/task/__internal/atomic_waker.rs.html#379">state</a> <span class="op">==</span> <a class="ident" href="../../../../src/futures_core/task/__internal/atomic_waker.rs.html#193">REGISTERING</a> <span class="op">|</span> <a class="ident" href="../../../../src/futures_core/task/__internal/atomic_waker.rs.html#196">WAKING</a> <span class="op">|</span><span class="op">|</span> <a class="ident" href="../../../../src/futures_core/task/__internal/atomic_waker.rs.html#379">state</a> <span class="op">==</span> <a class="ident" href="../../../../src/futures_core/task/__internal/atomic_waker.rs.html#196">WAKING</a>
                 );
                 <span class="prelude-val">None</span>
             }
@@ -803,13 +803,13 @@
 }
 
 <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for</span> <a class="ident" href="../../../../src/futures_core/task/__internal/atomic_waker.rs.html#89-92">AtomicWaker</a> {
-    <span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="self">Self</span> {
         <span class="ident"><span class="self">Self</span>::new</span>()
     }
 }
 
 <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <a class="ident" href="../../../../src/futures_core/task/__internal/atomic_waker.rs.html#89-92">AtomicWaker</a> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
         <span class="macro">write!</span>(<a class="ident" href="../../../../src/futures_core/task/__internal/atomic_waker.rs.html#403">f</a>, <span class="string">&quot;AtomicWaker&quot;</span>)
     }
 }

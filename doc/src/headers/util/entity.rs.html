@@ -332,21 +332,21 @@
     }
     */</span>
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_static</span>(<span class="ident">bytes</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="../../../src/headers/util/entity.rs.html#36">EntityTag</a> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_static</span>(<span class="ident">bytes</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <a class="ident" href="../../../src/headers/util/entity.rs.html#36">EntityTag</a> {
         <span class="kw">let</span> <span class="ident">val</span> <span class="op">=</span> <span class="ident">HeaderValue::from_static</span>(<a class="ident" href="../../../src/headers/util/entity.rs.html#63">bytes</a>);
         <span class="kw">match</span> <span class="ident">EntityTag::from_val</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/headers/util/entity.rs.html#64">val</a>) {
-            <span class="prelude-val">Some</span>(<span class="ident">tag</span>) <span class="op">=</span><span class="op">&gt;</span> <a class="ident" href="../../../src/headers/util/entity.rs.html#66">tag</a>,
-            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="prelude-val">Some</span>(<span class="ident">tag</span>) =&gt; <a class="ident" href="../../../src/headers/util/entity.rs.html#66">tag</a>,
+            <span class="prelude-val">None</span> =&gt; {
                 <span class="macro">panic!</span>(<span class="string">&quot;invalid static string for EntityTag: {:?}&quot;</span>, <a class="ident" href="../../../src/headers/util/entity.rs.html#63">bytes</a>);
             }
         }
     }
 
     <span class="doccomment">/// Get the tag.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">tag</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">tag</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] {
         <span class="kw">let</span> <span class="ident">bytes</span> <span class="op">=</span> <a class="self" href="../../../src/headers/util/entity.rs.html#74">self</a>.<span class="number">0</span>.<span class="ident">as_bytes</span>();
         <span class="kw">let</span> <span class="ident">end</span> <span class="op">=</span> <a class="ident" href="../../../src/headers/util/entity.rs.html#75">bytes</a>.<span class="ident">len</span>() <span class="op">-</span> <span class="number">1</span>;
-        <span class="kw">if</span> <a class="ident" href="../../../src/headers/util/entity.rs.html#75">bytes</a>[<span class="number">0</span>] <span class="op">=</span><span class="op">=</span> <span class="string">b&#39;W&#39;</span> {
+        <span class="kw">if</span> <a class="ident" href="../../../src/headers/util/entity.rs.html#75">bytes</a>[<span class="number">0</span>] <span class="op">==</span> <span class="string">b&#39;W&#39;</span> {
             <span class="comment">// W/&quot;&lt;tag&gt;&quot;</span>
             <span class="kw-2">&amp;</span><a class="ident" href="../../../src/headers/util/entity.rs.html#75">bytes</a>[<span class="number">3</span>..<a class="ident" href="../../../src/headers/util/entity.rs.html#76">end</a>]
         } <span class="kw">else</span> {
@@ -356,34 +356,34 @@
     }
 
     <span class="doccomment">/// Return if this is a &quot;weak&quot; tag.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_weak</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../src/headers/util/entity.rs.html#87">self</a>.<span class="number">0</span>.<span class="ident">as_bytes</span>()[<span class="number">0</span>] <span class="op">=</span><span class="op">=</span> <span class="string">b&#39;W&#39;</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_weak</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a class="self" href="../../../src/headers/util/entity.rs.html#87">self</a>.<span class="number">0</span>.<span class="ident">as_bytes</span>()[<span class="number">0</span>] <span class="op">==</span> <span class="string">b&#39;W&#39;</span>
     }
 
     <span class="doccomment">/// For strong comparison two entity-tags are equivalent if both are not weak and their</span>
     <span class="doccomment">/// opaque-tags match character-by-character.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">strong_eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/headers/util/entity.rs.html#36">EntityTag</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="op">!</span><a class="self" href="../../../src/headers/util/entity.rs.html#93">self</a>.<a class="ident" href="../../../src/headers/util/entity.rs.html#87">is_weak</a>() <span class="op">&amp;&amp;</span> <span class="op">!</span><a class="ident" href="../../../src/headers/util/entity.rs.html#93">other</a>.<a class="ident" href="../../../src/headers/util/entity.rs.html#87">is_weak</a>() <span class="op">&amp;&amp;</span> <a class="self" href="../../../src/headers/util/entity.rs.html#93">self</a>.<a class="ident" href="../../../src/headers/util/entity.rs.html#74">tag</a>() <span class="op">=</span><span class="op">=</span> <a class="ident" href="../../../src/headers/util/entity.rs.html#93">other</a>.<a class="ident" href="../../../src/headers/util/entity.rs.html#74">tag</a>()
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">strong_eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/headers/util/entity.rs.html#36">EntityTag</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <span class="op">!</span><a class="self" href="../../../src/headers/util/entity.rs.html#93">self</a>.<a class="ident" href="../../../src/headers/util/entity.rs.html#87">is_weak</a>() <span class="op">&amp;&amp;</span> <span class="op">!</span><a class="ident" href="../../../src/headers/util/entity.rs.html#93">other</a>.<a class="ident" href="../../../src/headers/util/entity.rs.html#87">is_weak</a>() <span class="op">&amp;&amp;</span> <a class="self" href="../../../src/headers/util/entity.rs.html#93">self</a>.<a class="ident" href="../../../src/headers/util/entity.rs.html#74">tag</a>() <span class="op">==</span> <a class="ident" href="../../../src/headers/util/entity.rs.html#93">other</a>.<a class="ident" href="../../../src/headers/util/entity.rs.html#74">tag</a>()
     }
 
     <span class="doccomment">/// For weak comparison two entity-tags are equivalent if their</span>
     <span class="doccomment">/// opaque-tags match character-by-character, regardless of either or</span>
     <span class="doccomment">/// both being tagged as &quot;weak&quot;.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">weak_eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/headers/util/entity.rs.html#36">EntityTag</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../src/headers/util/entity.rs.html#100">self</a>.<a class="ident" href="../../../src/headers/util/entity.rs.html#74">tag</a>() <span class="op">=</span><span class="op">=</span> <a class="ident" href="../../../src/headers/util/entity.rs.html#100">other</a>.<a class="ident" href="../../../src/headers/util/entity.rs.html#74">tag</a>()
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">weak_eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/headers/util/entity.rs.html#36">EntityTag</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a class="self" href="../../../src/headers/util/entity.rs.html#100">self</a>.<a class="ident" href="../../../src/headers/util/entity.rs.html#74">tag</a>() <span class="op">==</span> <a class="ident" href="../../../src/headers/util/entity.rs.html#100">other</a>.<a class="ident" href="../../../src/headers/util/entity.rs.html#74">tag</a>()
     }
 
     <span class="doccomment">/// The inverse of `EntityTag.strong_eq()`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">strong_ne</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/headers/util/entity.rs.html#36">EntityTag</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">strong_ne</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/headers/util/entity.rs.html#36">EntityTag</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
         <span class="op">!</span><a class="self" href="../../../src/headers/util/entity.rs.html#105">self</a>.<a class="ident" href="../../../src/headers/util/entity.rs.html#93">strong_eq</a>(<a class="ident" href="../../../src/headers/util/entity.rs.html#105">other</a>)
     }
 
     <span class="doccomment">/// The inverse of `EntityTag.weak_eq()`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">weak_ne</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/headers/util/entity.rs.html#36">EntityTag</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">weak_ne</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/headers/util/entity.rs.html#36">EntityTag</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
         <span class="op">!</span><a class="self" href="../../../src/headers/util/entity.rs.html#110">self</a>.<a class="ident" href="../../../src/headers/util/entity.rs.html#100">weak_eq</a>(<a class="ident" href="../../../src/headers/util/entity.rs.html#110">other</a>)
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">from_val</span>(<span class="ident">val</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../http/header/value/struct.HeaderValue.html">HeaderValue</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../src/headers/util/entity.rs.html#36">EntityTag</a><span class="op">&gt;</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">from_val</span>(<span class="ident">val</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../http/header/value/struct.HeaderValue.html">HeaderValue</a>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../src/headers/util/entity.rs.html#36">EntityTag</a><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">slice</span> <span class="op">=</span> <a class="ident" href="../../../src/headers/util/entity.rs.html#114">val</a>.<span class="ident">as_bytes</span>();
         <span class="kw">let</span> <span class="ident">length</span> <span class="op">=</span> <a class="ident" href="../../../src/headers/util/entity.rs.html#115">slice</a>.<span class="ident">len</span>();
 
@@ -394,16 +394,16 @@
 
         <span class="kw">let</span> <span class="ident">start</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../../src/headers/util/entity.rs.html#115">slice</a>[<span class="number">0</span>] {
             <span class="comment">// &quot;&lt;tag&gt;&quot;</span>
-            <span class="string">b&#39;&quot;&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">1</span>,
+            <span class="string">b&#39;&quot;&#39;</span> =&gt; <span class="number">1</span>,
             <span class="comment">// W/&quot;&lt;tag&gt;&quot;</span>
-            <span class="string">b&#39;W&#39;</span> <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="kw">if</span> <a class="ident" href="../../../src/headers/util/entity.rs.html#116">length</a> <span class="op">&gt;</span><span class="op">=</span> <span class="number">4</span> <span class="op">&amp;&amp;</span> <a class="ident" href="../../../src/headers/util/entity.rs.html#115">slice</a>[<span class="number">1</span>] <span class="op">=</span><span class="op">=</span> <span class="string">b&#39;/&#39;</span> <span class="op">&amp;&amp;</span> <a class="ident" href="../../../src/headers/util/entity.rs.html#115">slice</a>[<span class="number">2</span>] <span class="op">=</span><span class="op">=</span> <span class="string">b&#39;&quot;&#39;</span> {
+            <span class="string">b&#39;W&#39;</span> =&gt; {
+                <span class="kw">if</span> <a class="ident" href="../../../src/headers/util/entity.rs.html#116">length</a> <span class="op">&gt;</span><span class="op">=</span> <span class="number">4</span> <span class="op">&amp;&amp;</span> <a class="ident" href="../../../src/headers/util/entity.rs.html#115">slice</a>[<span class="number">1</span>] <span class="op">==</span> <span class="string">b&#39;/&#39;</span> <span class="op">&amp;&amp;</span> <a class="ident" href="../../../src/headers/util/entity.rs.html#115">slice</a>[<span class="number">2</span>] <span class="op">==</span> <span class="string">b&#39;&quot;&#39;</span> {
                     <span class="number">3</span>
                 } <span class="kw">else</span> {
                     <span class="kw">return</span> <span class="prelude-val">None</span>;
                 }
             },
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">None</span>,
+            <span class="kw">_</span> =&gt; <span class="kw">return</span> <span class="prelude-val">None</span>,
         };
 
         <span class="kw">if</span> <a class="ident" href="../../../src/headers/util/entity.rs.html#174">check_slice_validity</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/headers/util/entity.rs.html#115">slice</a>[<a class="ident" href="../../../src/headers/util/entity.rs.html#123">start</a>..<a class="ident" href="../../../src/headers/util/entity.rs.html#116">length</a><span class="op">-</span><span class="number">1</span>]) {
@@ -415,7 +415,7 @@
 }
 
 <span class="kw">impl</span> <a class="ident" href="../../../src/headers/util/mod.rs.html#78-84"><span class="kw">super</span>::TryFromValues</a> <span class="kw">for</span> <a class="ident" href="../../../src/headers/util/entity.rs.html#36">EntityTag</a> {
-    <span class="kw">fn</span> <span class="ident">try_from_values</span><span class="op">&lt;</span><span class="lifetime">&#39;i</span>, <span class="ident">I</span><span class="op">&gt;</span>(<span class="ident">values</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">I</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <a class="ident" href="../../../headers/struct.Error.html">::Error</a><span class="op">&gt;</span>
+    <span class="kw">fn</span> <span class="ident">try_from_values</span><span class="op">&lt;</span><span class="lifetime">&#39;i</span>, <span class="ident">I</span><span class="op">&gt;</span>(<span class="ident">values</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">I</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <a class="ident" href="../../../headers/struct.Error.html">::Error</a><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">I</span>: <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;i</span> <a class="ident" href="../../../http/header/value/struct.HeaderValue.html">HeaderValue</a><span class="op">&gt;</span>,
     {
@@ -427,13 +427,13 @@
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><a class="ident" href="../../../src/headers/util/entity.rs.html#36">EntityTag</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../../http/header/value/struct.HeaderValue.html">HeaderValue</a> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">tag</span>: <a class="ident" href="../../../src/headers/util/entity.rs.html#36">EntityTag</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="../../../http/header/value/struct.HeaderValue.html">HeaderValue</a> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">tag</span>: <a class="ident" href="../../../src/headers/util/entity.rs.html#36">EntityTag</a>) -&gt; <a class="ident" href="../../../http/header/value/struct.HeaderValue.html">HeaderValue</a> {
         <a class="ident" href="../../../src/headers/util/entity.rs.html#158">tag</a>.<span class="number">0</span>
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="../../../src/headers/util/entity.rs.html#36">EntityTag</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../../http/header/value/struct.HeaderValue.html">HeaderValue</a> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">tag</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="../../../src/headers/util/entity.rs.html#36">EntityTag</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="../../../http/header/value/struct.HeaderValue.html">HeaderValue</a> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">tag</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="../../../src/headers/util/entity.rs.html#36">EntityTag</a>) -&gt; <a class="ident" href="../../../http/header/value/struct.HeaderValue.html">HeaderValue</a> {
         <a class="ident" href="../../../src/headers/util/entity.rs.html#164">tag</a>.<span class="number">0</span>.<span class="ident">clone</span>()
     }
 }
@@ -443,7 +443,7 @@
 <span class="doccomment">/// 1. `%x21`, or</span>
 <span class="doccomment">/// 2. in the range `%x23` to `%x7E`, or</span>
 <span class="doccomment">/// 3. above `%x80`</span>
-<span class="kw">fn</span> <span class="ident">check_slice_validity</span>(<span class="ident">slice</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+<span class="kw">fn</span> <span class="ident">check_slice_validity</span>(<span class="ident">slice</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
     <a class="ident" href="../../../src/headers/util/entity.rs.html#174">slice</a>.<span class="ident">iter</span>().<span class="ident">all</span>(<span class="op">|</span><span class="kw-2">&amp;</span><span class="ident">c</span><span class="op">|</span> {
         <span class="comment">// HeaderValue already validates that this doesnt contain control</span>
         <span class="comment">// characters, so we only need to look for DQUOTE (`&quot;`).</span>
@@ -462,7 +462,7 @@
 <span class="kw">mod</span> <span class="ident">tests</span> {
     <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
 
-    <span class="kw">fn</span> <span class="ident">parse</span>(<span class="ident">slice</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">EntityTag</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">parse</span>(<span class="ident">slice</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">EntityTag</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">val</span> <span class="op">=</span> <span class="ident">HeaderValue::from_bytes</span>(<span class="ident">slice</span>).<span class="ident">ok</span>()<span class="question-mark">?</span>;
         <span class="ident">EntityTag::from_val</span>(<span class="kw-2">&amp;</span><span class="ident">val</span>)
     }
@@ -483,7 +483,7 @@
     <span class="kw">fn</span> <span class="ident">test_etag_parse_failures</span>() {
         <span class="comment">// Expected failures</span>
         <span class="macro">macro_rules!</span> <span class="ident">fails</span> {
-            (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">slice</span>:<span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">slice</span>:<span class="ident">expr</span>) =&gt; {
                 <span class="macro">assert_eq!</span>(<span class="ident">parse</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">slice</span>), <span class="prelude-val">None</span>);
             }
         }

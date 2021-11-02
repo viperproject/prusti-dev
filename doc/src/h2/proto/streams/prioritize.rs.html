@@ -941,7 +941,7 @@
 <span class="comment">// ===== impl Prioritize =====</span>
 
 <span class="kw">impl</span> <a class="ident" href="../../../../src/h2/proto/streams/prioritize.rs.html#24-54">Prioritize</a> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">config</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/h2/proto/streams/mod.rs.html#34-61">Config</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="../../../../src/h2/proto/streams/prioritize.rs.html#24-54">Prioritize</a> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">config</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/h2/proto/streams/mod.rs.html#34-61">Config</a>) -&gt; <a class="ident" href="../../../../src/h2/proto/streams/prioritize.rs.html#24-54">Prioritize</a> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">flow</span> <span class="op">=</span> <span class="ident">FlowControl::new</span>();
 
         <a class="ident" href="../../../../src/h2/proto/streams/prioritize.rs.html#80">flow</a>.<a class="ident" href="../../../../src/h2/proto/streams/flow_control.rs.html#112">inc_window</a>(<a class="ident" href="../../../../src/h2/proto/streams/prioritize.rs.html#79">config</a>.<span class="ident">remote_init_window_sz</span>)
@@ -1001,7 +1001,7 @@
         <span class="ident">stream</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../../../src/h2/proto/streams/store.rs.html#19-22">store::Ptr</a>,
         <span class="ident">counts</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../../../src/h2/proto/streams/counts.rs.html#6-28">Counts</a>,
         <span class="ident">task</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../../futures/task_impl/struct.Task.html">Task</a><span class="op">&gt;</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../../../src/h2/codec/error.rs.html#28-63">UserError</a><span class="op">&gt;</span>
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../../../src/h2/codec/error.rs.html#28-63">UserError</a><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">B</span>: <a class="ident" href="../../../../bytes/buf/buf/trait.Buf.html">Buf</a>,
     {
@@ -1059,7 +1059,7 @@
         <span class="comment">// Sending out zero length data frames can be done to signal</span>
         <span class="comment">// end-of-stream.</span>
         <span class="comment">//</span>
-        <span class="kw">if</span> <a class="ident" href="../../../../src/h2/proto/streams/prioritize.rs.html#136">stream</a>.<span class="ident">send_flow</span>.<a class="ident" href="../../../../src/h2/proto/streams/flow_control.rs.html#64">available</a>() <span class="op">&gt;</span> <span class="number">0</span> <span class="op">|</span><span class="op">|</span> <a class="ident" href="../../../../src/h2/proto/streams/prioritize.rs.html#136">stream</a>.<span class="ident">buffered_send_data</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
+        <span class="kw">if</span> <a class="ident" href="../../../../src/h2/proto/streams/prioritize.rs.html#136">stream</a>.<span class="ident">send_flow</span>.<a class="ident" href="../../../../src/h2/proto/streams/flow_control.rs.html#64">available</a>() <span class="op">&gt;</span> <span class="number">0</span> <span class="op">|</span><span class="op">|</span> <a class="ident" href="../../../../src/h2/proto/streams/prioritize.rs.html#136">stream</a>.<span class="ident">buffered_send_data</span> <span class="op">==</span> <span class="number">0</span> {
             <span class="comment">// The stream currently has capacity to send the data frame, so</span>
             <span class="comment">// queue it up and notify the connection task.</span>
             <a class="self" href="../../../../src/h2/proto/streams/prioritize.rs.html#133">self</a>.<a class="ident" href="../../../../src/h2/proto/streams/prioritize.rs.html#101-107">queue_frame</a>(<a class="ident" href="../../../../src/h2/proto/streams/prioritize.rs.html#134">frame</a>.<span class="ident">into</span>(), <a class="ident" href="../../../../src/h2/proto/streams/prioritize.rs.html#135">buffer</a>, <a class="ident" href="../../../../src/h2/proto/streams/prioritize.rs.html#136">stream</a>, <a class="ident" href="../../../../src/h2/proto/streams/prioritize.rs.html#138">task</a>);
@@ -1093,7 +1093,7 @@
         <span class="comment">// If it were less, then we could never send out the buffered data.</span>
         <span class="kw">let</span> <span class="ident">capacity</span> <span class="op">=</span> <a class="ident" href="../../../../src/h2/proto/streams/prioritize.rs.html#216">capacity</a> <span class="op">+</span> <a class="ident" href="../../../../src/h2/proto/streams/prioritize.rs.html#217">stream</a>.<span class="ident">buffered_send_data</span>;
 
-        <span class="kw">if</span> <a class="ident" href="../../../../src/h2/proto/streams/prioritize.rs.html#229">capacity</a> <span class="op">=</span><span class="op">=</span> <a class="ident" href="../../../../src/h2/proto/streams/prioritize.rs.html#217">stream</a>.<span class="ident">requested_send_capacity</span> {
+        <span class="kw">if</span> <a class="ident" href="../../../../src/h2/proto/streams/prioritize.rs.html#229">capacity</a> <span class="op">==</span> <a class="ident" href="../../../../src/h2/proto/streams/prioritize.rs.html#217">stream</a>.<span class="ident">requested_send_capacity</span> {
             <span class="comment">// Nothing to do</span>
         } <span class="kw">else</span> <span class="kw">if</span> <a class="ident" href="../../../../src/h2/proto/streams/prioritize.rs.html#229">capacity</a> <span class="op">&lt;</span> <a class="ident" href="../../../../src/h2/proto/streams/prioritize.rs.html#217">stream</a>.<span class="ident">requested_send_capacity</span> {
             <span class="comment">// Update the target requested capacity</span>
@@ -1132,7 +1132,7 @@
         <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
         <span class="ident">inc</span>: <a class="ident" href="../../../../src/h2/proto/mod.rs.html#33">WindowSize</a>,
         <span class="ident">stream</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../../../src/h2/proto/streams/store.rs.html#19-22">store::Ptr</a>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../../../src/h2/frame/reason.rs.html#20">Reason</a><span class="op">&gt;</span> {
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../../../src/h2/frame/reason.rs.html#20">Reason</a><span class="op">&gt;</span> {
         <span class="macro">trace!</span>(
             <span class="string">&quot;recv_stream_window_update; stream={:?}; state={:?}; inc={}; flow={:?}&quot;</span>,
             <a class="ident" href="../../../../src/h2/proto/streams/prioritize.rs.html#269">stream</a>.<span class="ident">id</span>,
@@ -1141,7 +1141,7 @@
             <a class="ident" href="../../../../src/h2/proto/streams/prioritize.rs.html#269">stream</a>.<span class="ident">send_flow</span>
         );
 
-        <span class="kw">if</span> <a class="ident" href="../../../../src/h2/proto/streams/prioritize.rs.html#269">stream</a>.<span class="ident">state</span>.<a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#393">is_send_closed</a>() <span class="op">&amp;&amp;</span> <a class="ident" href="../../../../src/h2/proto/streams/prioritize.rs.html#269">stream</a>.<span class="ident">buffered_send_data</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
+        <span class="kw">if</span> <a class="ident" href="../../../../src/h2/proto/streams/prioritize.rs.html#269">stream</a>.<span class="ident">state</span>.<a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#393">is_send_closed</a>() <span class="op">&amp;&amp;</span> <a class="ident" href="../../../../src/h2/proto/streams/prioritize.rs.html#269">stream</a>.<span class="ident">buffered_send_data</span> <span class="op">==</span> <span class="number">0</span> {
             <span class="comment">// We can&#39;t send any data, so don&#39;t bother doing anything else.</span>
             <span class="kw">return</span> <span class="prelude-val">Ok</span>(());
         }
@@ -1161,7 +1161,7 @@
         <span class="ident">inc</span>: <a class="ident" href="../../../../src/h2/proto/mod.rs.html#33">WindowSize</a>,
         <span class="ident">store</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../../../src/h2/proto/streams/store.rs.html#13-16">Store</a>,
         <span class="ident">counts</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../../../src/h2/proto/streams/counts.rs.html#6-28">Counts</a>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../../../src/h2/frame/reason.rs.html#20">Reason</a><span class="op">&gt;</span> {
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../../../src/h2/frame/reason.rs.html#20">Reason</a><span class="op">&gt;</span> {
         <span class="comment">// Update the connection&#39;s window</span>
         <a class="self" href="../../../../src/h2/proto/streams/prioritize.rs.html#295">self</a>.<span class="ident">flow</span>.<a class="ident" href="../../../../src/h2/proto/streams/flow_control.rs.html#112">inc_window</a>(<a class="ident" href="../../../../src/h2/proto/streams/prioritize.rs.html#296">inc</a>)<span class="question-mark">?</span>;
 
@@ -1213,8 +1213,8 @@
         <span class="comment">// Assign newly acquired capacity to streams pending capacity.</span>
         <span class="kw">while</span> <a class="self" href="../../../../src/h2/proto/streams/prioritize.rs.html#337">self</a>.<span class="ident">flow</span>.<a class="ident" href="../../../../src/h2/proto/streams/flow_control.rs.html#64">available</a>() <span class="op">&gt;</span> <span class="number">0</span> {
             <span class="kw">let</span> <span class="ident">stream</span> <span class="op">=</span> <span class="kw">match</span> <a class="self" href="../../../../src/h2/proto/streams/prioritize.rs.html#337">self</a>.<span class="ident">pending_capacity</span>.<a class="ident" href="../../../../src/h2/proto/streams/store.rs.html#283-285">pop</a>(<a class="ident" href="../../../../src/h2/proto/streams/prioritize.rs.html#339">store</a>) {
-                <span class="prelude-val">Some</span>(<span class="ident">stream</span>) <span class="op">=</span><span class="op">&gt;</span> <a class="ident" href="../../../../src/h2/proto/streams/prioritize.rs.html#351">stream</a>,
-                <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span>,
+                <span class="prelude-val">Some</span>(<span class="ident">stream</span>) =&gt; <a class="ident" href="../../../../src/h2/proto/streams/prioritize.rs.html#351">stream</a>,
+                <span class="prelude-val">None</span> =&gt; <span class="kw">return</span>,
             };
 
             <span class="comment">// Streams pending capacity may have been reset before capacity</span>
@@ -1260,7 +1260,7 @@
             <a class="self" href="../../../../src/h2/proto/streams/prioritize.rs.html#373">self</a>.<span class="ident">flow</span>.<a class="ident" href="../../../../src/h2/proto/streams/flow_control.rs.html#64">available</a>()
         );
 
-        <span class="kw">if</span> <a class="ident" href="../../../../src/h2/proto/streams/prioritize.rs.html#382">additional</a> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
+        <span class="kw">if</span> <a class="ident" href="../../../../src/h2/proto/streams/prioritize.rs.html#382">additional</a> <span class="op">==</span> <span class="number">0</span> {
             <span class="comment">// Nothing more to do</span>
             <span class="kw">return</span>;
         }
@@ -1351,7 +1351,7 @@
         <span class="ident">store</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../../../src/h2/proto/streams/store.rs.html#13-16">Store</a>,
         <span class="ident">counts</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../../../src/h2/proto/streams/counts.rs.html#6-28">Counts</a>,
         <span class="ident">dst</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Codec</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">Prioritized</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span>(), <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a><span class="op">&gt;</span>
+    ) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span>(), <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">T</span>: <a class="ident" href="../../../../tokio_io/async_write/trait.AsyncWrite.html">AsyncWrite</a>,
         <span class="ident">B</span>: <a class="ident" href="../../../../bytes/buf/buf/trait.Buf.html">Buf</a>,
@@ -1371,7 +1371,7 @@
             <a class="self" href="../../../../src/h2/proto/streams/prioritize.rs.html#484">self</a>.<a class="ident" href="../../../../src/h2/proto/streams/prioritize.rs.html#821">schedule_pending_open</a>(<a class="ident" href="../../../../src/h2/proto/streams/prioritize.rs.html#486">store</a>, <a class="ident" href="../../../../src/h2/proto/streams/prioritize.rs.html#487">counts</a>);
 
             <span class="kw">match</span> <a class="self" href="../../../../src/h2/proto/streams/prioritize.rs.html#484">self</a>.<a class="ident" href="../../../../src/h2/proto/streams/prioritize.rs.html#651-659">pop_frame</a>(<a class="ident" href="../../../../src/h2/proto/streams/prioritize.rs.html#485">buffer</a>, <a class="ident" href="../../../../src/h2/proto/streams/prioritize.rs.html#486">store</a>, <a class="ident" href="../../../../src/h2/proto/streams/prioritize.rs.html#501">max_frame_len</a>, <a class="ident" href="../../../../src/h2/proto/streams/prioritize.rs.html#487">counts</a>) {
-                <span class="prelude-val">Some</span>(<span class="ident">frame</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="prelude-val">Some</span>(<span class="ident">frame</span>) =&gt; {
                     <span class="macro">trace!</span>(<span class="string">&quot;writing frame={:?}&quot;</span>, <a class="ident" href="../../../../src/h2/proto/streams/prioritize.rs.html#509">frame</a>);
 
                     <span class="macro">debug_assert_eq!</span>(<a class="self" href="../../../../src/h2/proto/streams/prioritize.rs.html#484">self</a>.<span class="ident">in_flight_data_frame</span>, <a class="ident" href="../../../../src/h2/proto/streams/prioritize.rs.html#59">InFlightData::Nothing</a>);
@@ -1386,7 +1386,7 @@
                     <span class="comment">// Because, always try to reclaim...</span>
                     <a class="self" href="../../../../src/h2/proto/streams/prioritize.rs.html#484">self</a>.<a class="ident" href="../../../../src/h2/proto/streams/prioritize.rs.html#547-554">reclaim_frame</a>(<a class="ident" href="../../../../src/h2/proto/streams/prioritize.rs.html#485">buffer</a>, <a class="ident" href="../../../../src/h2/proto/streams/prioritize.rs.html#486">store</a>, <a class="ident" href="../../../../src/h2/proto/streams/prioritize.rs.html#488">dst</a>);
                 },
-                <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="prelude-val">None</span> =&gt; {
                     <span class="comment">// Try to flush the codec.</span>
                     <span class="macro">try_ready!</span>(<a class="ident" href="../../../../src/h2/proto/streams/prioritize.rs.html#488">dst</a>.<a class="ident" href="../../../../src/h2/codec/mod.rs.html#153">flush</a>());
 
@@ -1414,7 +1414,7 @@
         <span class="ident">buffer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Buffer</span><span class="op">&lt;</span><span class="ident">Frame</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span><span class="op">&gt;</span>,
         <span class="ident">store</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../../../src/h2/proto/streams/store.rs.html#13-16">Store</a>,
         <span class="ident">dst</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Codec</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">Prioritized</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>
+    ) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>
     <span class="kw">where</span>
         <span class="ident">B</span>: <a class="ident" href="../../../../bytes/buf/buf/trait.Buf.html">Buf</a>,
     {
@@ -1432,12 +1432,12 @@
             <span class="kw">let</span> <span class="ident">key</span> <span class="op">=</span> <a class="ident" href="../../../../src/h2/proto/streams/prioritize.rs.html#559">frame</a>.<a class="ident" href="../../../../src/h2/frame/data.rs.html#82">payload</a>().<span class="ident">stream</span>;
 
             <span class="kw">match</span> <span class="ident">mem::replace</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="self" href="../../../../src/h2/proto/streams/prioritize.rs.html#548">self</a>.<span class="ident">in_flight_data_frame</span>, <a class="ident" href="../../../../src/h2/proto/streams/prioritize.rs.html#59">InFlightData::Nothing</a>) {
-                <a class="ident" href="../../../../src/h2/proto/streams/prioritize.rs.html#59">InFlightData::Nothing</a> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic!</span>(<span class="string">&quot;wasn&#39;t expecting a frame to reclaim&quot;</span>),
-                <a class="ident" href="../../../../src/h2/proto/streams/prioritize.rs.html#63">InFlightData::Drop</a> <span class="op">=</span><span class="op">&gt;</span> {
+                <a class="ident" href="../../../../src/h2/proto/streams/prioritize.rs.html#59">InFlightData::Nothing</a> =&gt; <span class="macro">panic!</span>(<span class="string">&quot;wasn&#39;t expecting a frame to reclaim&quot;</span>),
+                <a class="ident" href="../../../../src/h2/proto/streams/prioritize.rs.html#63">InFlightData::Drop</a> =&gt; {
                     <span class="macro">trace!</span>(<span class="string">&quot;not reclaiming frame for cancelled stream&quot;</span>);
                     <span class="kw">return</span> <span class="bool-val">false</span>;
                 }
-                <a class="ident" href="../../../../src/h2/proto/streams/prioritize.rs.html#61">InFlightData::DataFrame</a>(<span class="ident">k</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <a class="ident" href="../../../../src/h2/proto/streams/prioritize.rs.html#61">InFlightData::DataFrame</a>(<span class="ident">k</span>) =&gt; {
                     <span class="macro">debug_assert_eq!</span>(<a class="ident" href="../../../../src/h2/proto/streams/prioritize.rs.html#575">k</a>, <a class="ident" href="../../../../src/h2/proto/streams/prioritize.rs.html#567">key</a>);
                 }
             }
@@ -1492,7 +1492,7 @@
         <a class="ident" href="../../../../src/h2/proto/streams/prioritize.rs.html#619">stream</a>.<span class="ident">buffered_send_data</span> <span class="op">=</span> <span class="number">0</span>;
         <a class="ident" href="../../../../src/h2/proto/streams/prioritize.rs.html#619">stream</a>.<span class="ident">requested_send_capacity</span> <span class="op">=</span> <span class="number">0</span>;
         <span class="kw">if</span> <span class="kw">let</span> <a class="ident" href="../../../../src/h2/proto/streams/prioritize.rs.html#61">InFlightData::DataFrame</a>(<span class="ident">key</span>) <span class="op">=</span> <a class="self" href="../../../../src/h2/proto/streams/prioritize.rs.html#619">self</a>.<span class="ident">in_flight_data_frame</span> {
-            <span class="kw">if</span> <a class="ident" href="../../../../src/h2/proto/streams/prioritize.rs.html#619">stream</a>.<a class="ident" href="../../../../src/h2/proto/streams/store.rs.html#327">key</a>() <span class="op">=</span><span class="op">=</span> <a class="ident" href="../../../../src/h2/proto/streams/prioritize.rs.html#629">key</a> {
+            <span class="kw">if</span> <a class="ident" href="../../../../src/h2/proto/streams/prioritize.rs.html#619">stream</a>.<a class="ident" href="../../../../src/h2/proto/streams/store.rs.html#327">key</a>() <span class="op">==</span> <a class="ident" href="../../../../src/h2/proto/streams/prioritize.rs.html#629">key</a> {
                 <span class="comment">// This stream could get cleaned up now - don&#39;t allow the buffered frame to get reclaimed.</span>
                 <a class="self" href="../../../../src/h2/proto/streams/prioritize.rs.html#619">self</a>.<span class="ident">in_flight_data_frame</span> <span class="op">=</span> <a class="ident" href="../../../../src/h2/proto/streams/prioritize.rs.html#63">InFlightData::Drop</a>;
             }
@@ -1519,7 +1519,7 @@
         <span class="ident">store</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../../../src/h2/proto/streams/store.rs.html#13-16">Store</a>,
         <span class="ident">max_len</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
         <span class="ident">counts</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../../../src/h2/proto/streams/counts.rs.html#6-28">Counts</a>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Frame</span><span class="op">&lt;</span><span class="ident">Prioritized</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>
+    ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Frame</span><span class="op">&lt;</span><span class="ident">Prioritized</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">B</span>: <a class="ident" href="../../../../bytes/buf/buf/trait.Buf.html">Buf</a>,
     {
@@ -1527,7 +1527,7 @@
 
         <span class="kw">loop</span> {
             <span class="kw">match</span> <a class="self" href="../../../../src/h2/proto/streams/prioritize.rs.html#652">self</a>.<span class="ident">pending_send</span>.<a class="ident" href="../../../../src/h2/proto/streams/store.rs.html#283-285">pop</a>(<a class="ident" href="../../../../src/h2/proto/streams/prioritize.rs.html#654">store</a>) {
-                <span class="prelude-val">Some</span>(<span class="kw-2">mut</span> <span class="ident">stream</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="prelude-val">Some</span>(<span class="kw-2">mut</span> <span class="ident">stream</span>) =&gt; {
                     <span class="macro">trace!</span>(<span class="string">&quot;pop_frame; stream={:?}; stream.state={:?}&quot;</span>,
                         <a class="ident" href="../../../../src/h2/proto/streams/prioritize.rs.html#665">stream</a>.<span class="ident">id</span>, <a class="ident" href="../../../../src/h2/proto/streams/prioritize.rs.html#665">stream</a>.<span class="ident">state</span>);
 
@@ -1542,7 +1542,7 @@
                         <a class="ident" href="../../../../src/h2/proto/streams/prioritize.rs.html#665">stream</a>.<span class="ident">id</span>, <a class="ident" href="../../../../src/h2/proto/streams/prioritize.rs.html#674">is_pending_reset</a>);
 
                     <span class="kw">let</span> <span class="ident">frame</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../../../src/h2/proto/streams/prioritize.rs.html#665">stream</a>.<span class="ident">pending_send</span>.<a class="ident" href="../../../../src/h2/proto/streams/buffer.rs.html#87">pop_front</a>(<a class="ident" href="../../../../src/h2/proto/streams/prioritize.rs.html#653">buffer</a>) {
-                        <span class="prelude-val">Some</span>(<a class="ident" href="../../../../src/h2/frame/mod.rs.html#70">Frame::Data</a>(<span class="kw-2">mut</span> <span class="ident">frame</span>)) <span class="op">=</span><span class="op">&gt;</span> {
+                        <span class="prelude-val">Some</span>(<a class="ident" href="../../../../src/h2/frame/mod.rs.html#70">Frame::Data</a>(<span class="kw-2">mut</span> <span class="ident">frame</span>)) =&gt; {
                             <span class="comment">// Get the amount of capacity remaining for stream&#39;s</span>
                             <span class="comment">// window.</span>
                             <span class="kw">let</span> <span class="ident">stream_capacity</span> <span class="op">=</span> <a class="ident" href="../../../../src/h2/proto/streams/prioritize.rs.html#665">stream</a>.<span class="ident">send_flow</span>.<a class="ident" href="../../../../src/h2/proto/streams/flow_control.rs.html#64">available</a>();
@@ -1562,7 +1562,7 @@
 
                             <span class="comment">// Zero length data frames always have capacity to</span>
                             <span class="comment">// be sent.</span>
-                            <span class="kw">if</span> <a class="ident" href="../../../../src/h2/proto/streams/prioritize.rs.html#684">sz</a> <span class="op">&gt;</span> <span class="number">0</span> <span class="op">&amp;&amp;</span> <a class="ident" href="../../../../src/h2/proto/streams/prioritize.rs.html#683">stream_capacity</a> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
+                            <span class="kw">if</span> <a class="ident" href="../../../../src/h2/proto/streams/prioritize.rs.html#684">sz</a> <span class="op">&gt;</span> <span class="number">0</span> <span class="op">&amp;&amp;</span> <a class="ident" href="../../../../src/h2/proto/streams/prioritize.rs.html#683">stream_capacity</a> <span class="op">==</span> <span class="number">0</span> {
                                 <span class="macro">trace!</span>(
                                     <span class="string">&quot; --&gt; stream capacity is 0; requested={}&quot;</span>,
                                     <a class="ident" href="../../../../src/h2/proto/streams/prioritize.rs.html#665">stream</a>.<span class="ident">requested_send_capacity</span>
@@ -1632,13 +1632,13 @@
                                 }
                             }))
                         },
-                        <span class="prelude-val">Some</span>(<span class="ident">frame</span>) <span class="op">=</span><span class="op">&gt;</span> <a class="ident" href="../../../../src/h2/proto/streams/prioritize.rs.html#770">frame</a>.<a class="ident" href="../../../../src/h2/frame/mod.rs.html#82-84">map</a>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span>
+                        <span class="prelude-val">Some</span>(<span class="ident">frame</span>) =&gt; <a class="ident" href="../../../../src/h2/proto/streams/prioritize.rs.html#770">frame</a>.<a class="ident" href="../../../../src/h2/frame/mod.rs.html#82-84">map</a>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span>
                             <span class="macro">unreachable!</span>(
                                 <span class="string">&quot;Frame::map closure will only be called \
                                  on DATA frames.&quot;</span>
                              )
                         ),
-                        <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> {
+                        <span class="prelude-val">None</span> =&gt; {
                             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">reason</span>) <span class="op">=</span> <a class="ident" href="../../../../src/h2/proto/streams/prioritize.rs.html#665">stream</a>.<span class="ident">state</span>.<a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#312">get_scheduled_reset</a>() {
                                 <a class="ident" href="../../../../src/h2/proto/streams/prioritize.rs.html#665">stream</a>.<span class="ident">state</span>.<a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#302">set_reset</a>(<a class="ident" href="../../../../src/h2/proto/streams/prioritize.rs.html#777">reason</a>);
 
@@ -1678,7 +1678,7 @@
 
                     <span class="kw">return</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../../src/h2/proto/streams/prioritize.rs.html#679">frame</a>);
                 },
-                <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">None</span>,
+                <span class="prelude-val">None</span> =&gt; <span class="kw">return</span> <span class="prelude-val">None</span>,
             }
         }
     }
@@ -1706,11 +1706,11 @@
 <span class="kw">where</span>
     <span class="ident">B</span>: <a class="ident" href="../../../../bytes/buf/buf/trait.Buf.html">Buf</a>,
 {
-    <span class="kw">fn</span> <span class="ident">remaining</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
+    <span class="kw">fn</span> <span class="ident">remaining</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
         <a class="self" href="../../../../src/h2/proto/streams/prioritize.rs.html#844">self</a>.<span class="ident">inner</span>.<span class="ident">remaining</span>()
     }
 
-    <span class="kw">fn</span> <span class="ident">bytes</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] {
+    <span class="kw">fn</span> <span class="ident">bytes</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] {
         <a class="self" href="../../../../src/h2/proto/streams/prioritize.rs.html#848">self</a>.<span class="ident">inner</span>.<span class="ident">bytes</span>()
     }
 
@@ -1720,7 +1720,7 @@
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">B</span>: <a class="ident" href="../../../../bytes/buf/buf/trait.Buf.html">Buf</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <span class="ident">Prioritized</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">fmt</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">fmt</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
         <a class="ident" href="../../../../src/h2/proto/streams/prioritize.rs.html#858">fmt</a>.<span class="ident">debug_struct</span>(<span class="string">&quot;Prioritized&quot;</span>)
             .<span class="ident">field</span>(<span class="string">&quot;remaining&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../../src/h2/proto/streams/prioritize.rs.html#858">self</a>.<span class="ident">inner</span>.<span class="ident">get_ref</span>().<span class="ident">remaining</span>())
             .<span class="ident">field</span>(<span class="string">&quot;end_of_stream&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../../src/h2/proto/streams/prioritize.rs.html#858">self</a>.<span class="ident">end_of_stream</span>)

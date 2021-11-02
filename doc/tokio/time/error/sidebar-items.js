@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["Elapsed","Error returned by `Timeout`."],["Error","Errors encountered by the timer implementation."]]});
+initSidebarItems({"struct":[["Elapsed","Errors returned by `Timeout`."],["Error","Errors encountered by the timer implementation."]]});

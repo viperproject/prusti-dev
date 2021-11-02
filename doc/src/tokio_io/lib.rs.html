@@ -114,13 +114,13 @@
 <span class="doccomment">/// it indicates `WouldBlock` or otherwise `Err` is returned.</span>
 <span class="attribute">#[<span class="ident">macro_export</span>]</span>
 <span class="macro">macro_rules!</span> <span class="ident">try_nb</span> {
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">e</span>:<span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> {
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">e</span>:<span class="ident">expr</span>) =&gt; {
         <span class="kw">match</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">e</span> {
-            <span class="prelude-val">Ok</span>(<span class="ident">t</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">t</span>,
-            <span class="prelude-val">Err</span>(<span class="kw-2">ref</span> <span class="ident">e</span>) <span class="kw">if</span> <span class="ident">e</span>.<span class="ident">kind</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">::std::io::ErrorKind::WouldBlock</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="prelude-val">Ok</span>(<span class="ident">t</span>) =&gt; <span class="ident">t</span>,
+            <span class="prelude-val">Err</span>(<span class="kw-2">ref</span> <span class="ident">e</span>) <span class="kw">if</span> <span class="ident">e</span>.<span class="ident">kind</span>() <span class="op">==</span> <span class="ident">::std::io::ErrorKind::WouldBlock</span> =&gt; {
                 <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">::futures::Async::NotReady</span>);
             }
-            <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">e</span>.<span class="ident">into</span>()),
+            <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">e</span>.<span class="ident">into</span>()),
         }
     };
 }

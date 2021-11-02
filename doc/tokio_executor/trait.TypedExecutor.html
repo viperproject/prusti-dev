@@ -11,7 +11,7 @@ submitted, the executor takes ownership of the future and becomes
 responsible for driving the future to completion.</p>
 <p>This trait is useful as a bound for applications and libraries in order to
 be generic over futures that are <code>Send</code> vs. <code>!Send</code>.</p>
-<h1 id="examples" class="section-header"><a href="#examples">Examples</a></h1>
+<h2 id="examples" class="section-header"><a href="#examples">Examples</a></h2>
 <p>Consider a function that provides an API for draining a <code>Stream</code> in the
 background. To do this, a task must be spawned to perform the draining. As
 such, the function takes a stream and an executor on which the background
@@ -26,7 +26,7 @@ task is spawned.</p>
 <span class="kw">use</span> <span class="ident">tokio::sync::oneshot</span>;
 
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">drain</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">E</span><span class="op">&gt;</span>(<span class="ident">stream</span>: <span class="ident">T</span>, <span class="ident">executor</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">E</span>)
-    <span class="op">-</span><span class="op">&gt;</span> <span class="kw">impl</span> <span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> (), <span class="ident">Error</span> <span class="op">=</span> ()<span class="op">&gt;</span>
+    -&gt; <span class="kw">impl</span> <span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> (), <span class="ident">Error</span> <span class="op">=</span> ()<span class="op">&gt;</span>
 <span class="kw">where</span>
     <span class="ident">T</span>: <span class="ident">Stream</span>,
     <span class="ident">E</span>: <span class="ident">TypedExecutor</span><span class="op">&lt;</span><span class="ident">Drain</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>
@@ -51,7 +51,7 @@ task is spawned.</p>
     <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> ();
     <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> ();
 
-    <span class="kw">fn</span> <span class="ident">poll</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">poll</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
         <span class="kw">loop</span> {
             <span class="kw">let</span> <span class="ident">item</span> <span class="op">=</span> <span class="macro">try_ready!</span>(
                 <span class="self">self</span>.<span class="ident">stream</span>.<span class="ident">poll</span>()
@@ -71,11 +71,11 @@ the supplied executor is able to spawn <code>!Send</code> types.</p>
 <p><code>future</code> is passed to the executor, which will begin running it. The
 executor takes ownership of the future and becomes responsible for
 driving the future to completion.</p>
-<h1 id="panics" class="section-header"><a href="#panics">Panics</a></h1>
+<h5 id="panics" class="section-header"><a href="#panics">Panics</a></h5>
 <p>Implementations are encouraged to avoid panics. However, panics are
 permitted and the caller should check the implementation specific
 documentation for more details on possible panics.</p>
-<h1 id="examples-1" class="section-header"><a href="#examples-1">Examples</a></h1>
+<h5 id="examples-1" class="section-header"><a href="#examples-1">Examples</a></h5>
 <div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">fn</span> <span class="ident">example</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">my_executor</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">T</span>)
 <span class="kw">where</span>
     <span class="ident">T</span>: <span class="ident">TypedExecutor</span><span class="op">&lt;</span><span class="ident">MyFuture</span><span class="op">&gt;</span>,
@@ -89,7 +89,7 @@ documentation for more details on possible panics.</p>
     <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> ();
     <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> ();
 
-    <span class="kw">fn</span> <span class="ident">poll</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span>(), ()<span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">poll</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span>(), ()<span class="op">&gt;</span> {
         <span class="macro">println!</span>(<span class="string">&quot;running on the executor&quot;</span>);
         <span class="prelude-val">Ok</span>(().<span class="ident">into</span>())
     }
@@ -101,10 +101,10 @@ succeed, but may fail. If <code>status</code> returns <code>Err</code>, a call t
 <em>probably</em> fail, but may succeed.</p>
 <p>This allows a caller to avoid creating the task if the call to <code>spawn</code>
 has a high likelihood of failing.</p>
-<h1 id="panics-1" class="section-header"><a href="#panics-1">Panics</a></h1>
+<h5 id="panics-1" class="section-header"><a href="#panics-1">Panics</a></h5>
 <p>This function must not panic. Implementers must ensure that panics do
 not happen.</p>
-<h1 id="examples-2" class="section-header"><a href="#examples-2">Examples</a></h1>
+<h5 id="examples-2" class="section-header"><a href="#examples-2">Examples</a></h5>
 <div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">fn</span> <span class="ident">example</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">my_executor</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">T</span>)
 <span class="kw">where</span>
     <span class="ident">T</span>: <span class="ident">TypedExecutor</span><span class="op">&lt;</span><span class="ident">MyFuture</span><span class="op">&gt;</span>,
@@ -122,7 +122,7 @@ not happen.</p>
     <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> ();
     <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> ();
 
-    <span class="kw">fn</span> <span class="ident">poll</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span>(), ()<span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">poll</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span>(), ()<span class="op">&gt;</span> {
         <span class="macro">println!</span>(<span class="string">&quot;running on the executor&quot;</span>);
         <span class="prelude-val">Ok</span>(().<span class="ident">into</span>())
     }

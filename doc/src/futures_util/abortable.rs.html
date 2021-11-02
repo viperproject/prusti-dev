@@ -240,7 +240,7 @@
     <span class="doccomment">/// assert_eq!(stream.next().await, None);</span>
     <span class="doccomment">/// # });</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">task</span>: <span class="ident">T</span>, <span class="ident">reg</span>: <a class="ident" href="../../src/futures_util/abortable.rs.html#77-79">AbortRegistration</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">task</span>: <span class="ident">T</span>, <span class="ident">reg</span>: <a class="ident" href="../../src/futures_util/abortable.rs.html#77-79">AbortRegistration</a>) -&gt; <span class="self">Self</span> {
         <span class="self">Self</span> { <a class="ident" href="../../src/futures_util/abortable.rs.html#58">task</a>, <span class="ident">inner</span>: <a class="ident" href="../../src/futures_util/abortable.rs.html#58">reg</a>.<span class="ident">inner</span> }
     }
 
@@ -250,7 +250,7 @@
     <span class="doccomment">/// * `abort` was called after the task had completed.</span>
     <span class="doccomment">/// * `abort` was called while the task was being polled - the task may still be running and</span>
     <span class="doccomment">/// will not be stopped until `poll` returns.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_aborted</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_aborted</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
         <a class="self" href="../../src/futures_util/abortable.rs.html#68">self</a>.<span class="ident">inner</span>.<span class="ident">aborted</span>.<span class="ident">load</span>(<span class="ident">Ordering::Relaxed</span>)
     }
 }
@@ -274,7 +274,7 @@
     <span class="doccomment">/// to abort a running future or stream.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// This function is usually paired with a call to [`Abortable::new`].</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_pair</span>() <span class="op">-</span><span class="op">&gt;</span> (<span class="self">Self</span>, <a class="ident" href="../../src/futures_util/abortable.rs.html#77-79">AbortRegistration</a>) {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_pair</span>() -&gt; (<span class="self">Self</span>, <a class="ident" href="../../src/futures_util/abortable.rs.html#77-79">AbortRegistration</a>) {
         <span class="kw">let</span> <span class="ident">inner</span> <span class="op">=</span>
             <span class="ident">Arc::new</span>(<a class="ident" href="../../src/futures_util/abortable.rs.html#103-106">AbortInner</a> { <span class="ident">waker</span>: <span class="ident">AtomicWaker::new</span>(), <span class="ident">aborted</span>: <span class="ident">AtomicBool::new</span>(<span class="bool-val">false</span>) });
 
@@ -295,7 +295,7 @@
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Aborted</span>;
 
 <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for</span> <a class="ident" href="../../src/futures_util/abortable.rs.html#110">Aborted</a> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
         <span class="macro">write!</span>(<a class="ident" href="../../src/futures_util/abortable.rs.html#113">f</a>, <span class="string">&quot;`Abortable` future has been aborted&quot;</span>)
     }
 }
@@ -307,8 +307,8 @@
     <span class="kw">fn</span> <span class="ident">try_poll</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span>(
         <span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span><span class="op">&gt;</span>,
         <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
-        <span class="ident">poll</span>: <span class="kw">impl</span> <span class="ident">Fn</span>(<span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">T</span><span class="op">&gt;</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">I</span>, <a class="ident" href="../../src/futures_util/abortable.rs.html#110">Aborted</a><span class="op">&gt;</span><span class="op">&gt;</span> {
+        <span class="ident">poll</span>: <span class="kw">impl</span> <span class="ident">Fn</span>(<span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">T</span><span class="op">&gt;</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span>,
+    ) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">I</span>, <a class="ident" href="../../src/futures_util/abortable.rs.html#110">Aborted</a><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="comment">// Check if the task has been aborted</span>
         <span class="kw">if</span> <a class="self" href="../../src/futures_util/abortable.rs.html#123">self</a>.<a class="ident" href="../../src/futures_util/abortable.rs.html#68">is_aborted</a>() {
             <span class="kw">return</span> <span class="ident">Poll::Ready</span>(<span class="prelude-val">Err</span>(<a class="ident" href="../../src/futures_util/abortable.rs.html#110">Aborted</a>));
@@ -340,7 +340,7 @@
 {
     <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Fut::Output</span>, <a class="ident" href="../../src/futures_util/abortable.rs.html#110">Aborted</a><span class="op">&gt;</span>;
 
-    <span class="kw">fn</span> <span class="ident">poll</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Output</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">poll</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Output</span><span class="op">&gt;</span> {
         <a class="self" href="../../src/futures_util/abortable.rs.html#158">self</a>.<a class="ident" href="../../src/futures_util/abortable.rs.html#122-126">try_poll</a>(<a class="ident" href="../../src/futures_util/abortable.rs.html#158">cx</a>, <span class="op">|</span><span class="ident">fut</span>, <span class="ident">cx</span><span class="op">|</span> <a class="ident" href="../../src/futures_util/abortable.rs.html#159">fut</a>.<span class="ident">poll</span>(<a class="ident" href="../../src/futures_util/abortable.rs.html#159">cx</a>))
     }
 }
@@ -351,7 +351,7 @@
 {
     <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="ident">St::Item</span>;
 
-    <span class="kw">fn</span> <span class="ident">poll_next</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">poll_next</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <a class="self" href="../../src/futures_util/abortable.rs.html#169">self</a>.<a class="ident" href="../../src/futures_util/abortable.rs.html#122-126">try_poll</a>(<a class="ident" href="../../src/futures_util/abortable.rs.html#169">cx</a>, <span class="op">|</span><span class="ident">stream</span>, <span class="ident">cx</span><span class="op">|</span> <a class="ident" href="../../src/futures_util/abortable.rs.html#170">stream</a>.<span class="ident">poll_next</span>(<a class="ident" href="../../src/futures_util/abortable.rs.html#170">cx</a>)).<span class="ident">map</span>(<span class="ident">Result::ok</span>).<span class="ident">map</span>(<span class="ident">Option::flatten</span>)
     }
 }

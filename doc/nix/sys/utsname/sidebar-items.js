@@ -1,1 +1,1 @@
-initSidebarItems({"fn":[["uname",""]],"struct":[["UtsName",""]]});
+initSidebarItems({"fn":[["uname","Get system identification"]],"struct":[["UtsName","Describes the running system.  Return type of [`uname`]."]]});

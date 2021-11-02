@@ -705,7 +705,7 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// p.send(3).unwrap();</span>
 <span class="doccomment">/// ```</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">channel</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>() <span class="op">-</span><span class="op">&gt;</span> (<span class="ident">Sender</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <span class="ident">Receiver</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">channel</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>() -&gt; (<span class="ident">Sender</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <span class="ident">Receiver</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) {
     <span class="kw">let</span> <span class="ident">inner</span> <span class="op">=</span> <span class="ident">Arc::new</span>(<span class="ident">Inner::new</span>());
     <span class="kw">let</span> <span class="ident">receiver</span> <span class="op">=</span> <a class="ident" href="../../../src/futures/sync/oneshot.rs.html#20-22">Receiver</a> {
         <span class="ident">inner</span>: <a class="ident" href="../../../src/futures/sync/oneshot.rs.html#98">inner</a>.<span class="ident">clone</span>(),
@@ -717,7 +717,7 @@
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">Inner</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Inner</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="ident">Inner</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
         <a class="ident" href="../../../src/futures/sync/oneshot.rs.html#36-68">Inner</a> {
             <span class="ident">complete</span>: <span class="ident">AtomicBool::new</span>(<span class="bool-val">false</span>),
             <span class="ident">data</span>: <span class="ident">Lock::new</span>(<span class="prelude-val">None</span>),
@@ -726,7 +726,7 @@
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">send</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">t</span>: <span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">T</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">send</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">t</span>: <span class="ident">T</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">T</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <a class="self" href="../../../src/futures/sync/oneshot.rs.html#118">self</a>.<span class="ident">complete</span>.<span class="ident">load</span>(<span class="ident">SeqCst</span>) {
             <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/futures/sync/oneshot.rs.html#118">t</a>)
         }
@@ -759,7 +759,7 @@
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">poll_cancel</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span>(), ()<span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">poll_cancel</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span>(), ()<span class="op">&gt;</span> {
         <span class="comment">// Fast path up first, just read the flag and see if our other half is</span>
         <span class="comment">// gone. This flag is set both in our destructor and the oneshot</span>
         <span class="comment">// destructor, but our destructor hasn&#39;t run yet so if it&#39;s set then the</span>
@@ -783,8 +783,8 @@
         <span class="comment">// later on. So... we then try to see the flag later on!</span>
         <span class="kw">let</span> <span class="ident">handle</span> <span class="op">=</span> <a class="ident" href="../../../src/futures/task_impl/mod.rs.html#117">task::current</a>();
         <span class="kw">match</span> <a class="self" href="../../../src/futures/sync/oneshot.rs.html#151">self</a>.<span class="ident">tx_task</span>.<a class="ident" href="../../../src/futures/lock.rs.html#57">try_lock</a>() {
-            <span class="prelude-val">Some</span>(<span class="kw-2">mut</span> <span class="ident">p</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">*</span><a class="ident" href="../../../src/futures/sync/oneshot.rs.html#175">p</a> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/futures/sync/oneshot.rs.html#173">handle</a>),
-            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/futures/poll.rs.html#26">Async::Ready</a>(())),
+            <span class="prelude-val">Some</span>(<span class="kw-2">mut</span> <span class="ident">p</span>) =&gt; <span class="kw-2">*</span><a class="ident" href="../../../src/futures/sync/oneshot.rs.html#175">p</a> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/futures/sync/oneshot.rs.html#173">handle</a>),
+            <span class="prelude-val">None</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/futures/poll.rs.html#26">Async::Ready</a>(())),
         }
         <span class="kw">if</span> <a class="self" href="../../../src/futures/sync/oneshot.rs.html#151">self</a>.<span class="ident">complete</span>.<span class="ident">load</span>(<span class="ident">SeqCst</span>) {
             <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/futures/poll.rs.html#26">Async::Ready</a>(()))
@@ -793,7 +793,7 @@
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">is_canceled</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    <span class="kw">fn</span> <span class="ident">is_canceled</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
         <a class="self" href="../../../src/futures/sync/oneshot.rs.html#185">self</a>.<span class="ident">complete</span>.<span class="ident">load</span>(<span class="ident">SeqCst</span>)
     }
 
@@ -839,7 +839,7 @@
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">try_recv</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <a class="ident" href="../../../src/futures/sync/oneshot.rs.html#402">Canceled</a><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">try_recv</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <a class="ident" href="../../../src/futures/sync/oneshot.rs.html#402">Canceled</a><span class="op">&gt;</span> {
         <span class="comment">// If we&#39;re complete, either `::close_rx` or `::drop_tx` was called.</span>
         <span class="comment">// We can assume a successful send if data is present.</span>
         <span class="kw">if</span> <a class="self" href="../../../src/futures/sync/oneshot.rs.html#231">self</a>.<span class="ident">complete</span>.<span class="ident">load</span>(<span class="ident">SeqCst</span>) {
@@ -856,7 +856,7 @@
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">recv</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">T</span>, <a class="ident" href="../../../src/futures/sync/oneshot.rs.html#402">Canceled</a><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">recv</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">T</span>, <a class="ident" href="../../../src/futures/sync/oneshot.rs.html#402">Canceled</a><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">done</span> <span class="op">=</span> <span class="bool-val">false</span>;
 
         <span class="comment">// Check to see if some data has arrived. If it hasn&#39;t then we need to</span>
@@ -871,8 +871,8 @@
         } <span class="kw">else</span> {
             <span class="kw">let</span> <span class="ident">task</span> <span class="op">=</span> <a class="ident" href="../../../src/futures/task_impl/mod.rs.html#117">task::current</a>();
             <span class="kw">match</span> <a class="self" href="../../../src/futures/sync/oneshot.rs.html#248">self</a>.<span class="ident">rx_task</span>.<a class="ident" href="../../../src/futures/lock.rs.html#57">try_lock</a>() {
-                <span class="prelude-val">Some</span>(<span class="kw-2">mut</span> <span class="ident">slot</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">*</span><a class="ident" href="../../../src/futures/sync/oneshot.rs.html#263">slot</a> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/futures/sync/oneshot.rs.html#261">task</a>),
-                <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <a class="ident" href="../../../src/futures/sync/oneshot.rs.html#249">done</a> <span class="op">=</span> <span class="bool-val">true</span>,
+                <span class="prelude-val">Some</span>(<span class="kw-2">mut</span> <span class="ident">slot</span>) =&gt; <span class="kw-2">*</span><a class="ident" href="../../../src/futures/sync/oneshot.rs.html#263">slot</a> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/futures/sync/oneshot.rs.html#261">task</a>),
+                <span class="prelude-val">None</span> =&gt; <a class="ident" href="../../../src/futures/sync/oneshot.rs.html#249">done</a> <span class="op">=</span> <span class="bool-val">true</span>,
             }
         }
 
@@ -948,7 +948,7 @@
     <span class="doccomment">/// then `Ok(())` is returned. If the receiving end was deallocated before</span>
     <span class="doccomment">/// this function was called, however, then `Err` is returned with the value</span>
     <span class="doccomment">/// provided.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">send</span>(<span class="self">self</span>, <span class="ident">t</span>: <span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">T</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">send</span>(<span class="self">self</span>, <span class="ident">t</span>: <span class="ident">T</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">T</span><span class="op">&gt;</span> {
         <a class="self" href="../../../src/futures/sync/oneshot.rs.html#340">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../src/futures/sync/oneshot.rs.html#118">send</a>(<a class="ident" href="../../../src/futures/sync/oneshot.rs.html#340">t</a>)
     }
 
@@ -979,7 +979,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// If you&#39;re calling this function from a context that does not have a</span>
     <span class="doccomment">/// task, then you can use the `is_canceled` API instead.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">poll_cancel</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span>(), ()<span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">poll_cancel</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span>(), ()<span class="op">&gt;</span> {
         <a class="self" href="../../../src/futures/sync/oneshot.rs.html#371">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../src/futures/sync/oneshot.rs.html#151">poll_cancel</a>()
     }
 
@@ -996,7 +996,7 @@
     <span class="doccomment">/// cancellation hasn&#39;t happened yet. This can be useful when working on a</span>
     <span class="doccomment">/// non-futures related thread, though, which would otherwise panic if</span>
     <span class="doccomment">/// `poll_cancel` were called.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_canceled</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_canceled</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
         <a class="self" href="../../../src/futures/sync/oneshot.rs.html#388">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../src/futures/sync/oneshot.rs.html#185">is_canceled</a>()
     }
 }
@@ -1013,13 +1013,13 @@
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Canceled</span>;
 
 <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for</span> <a class="ident" href="../../../src/futures/sync/oneshot.rs.html#402">Canceled</a> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">fmt</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">fmt</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
         <span class="macro">write!</span>(<a class="ident" href="../../../src/futures/sync/oneshot.rs.html#405">fmt</a>, <span class="string">&quot;oneshot canceled&quot;</span>)
     }
 }
 
 <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/error/trait.Error.html">Error</a> <span class="kw">for</span> <a class="ident" href="../../../src/futures/sync/oneshot.rs.html#402">Canceled</a> {
-    <span class="kw">fn</span> <span class="ident">description</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> {
+    <span class="kw">fn</span> <span class="ident">description</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> {
         <span class="string">&quot;oneshot canceled&quot;</span>
     }
 }
@@ -1046,7 +1046,7 @@
     <span class="doccomment">/// date) unless [`::close`](Receiver::close) has been called first.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Returns an error if the sender was dropped.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">try_recv</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <a class="ident" href="../../../src/futures/sync/oneshot.rs.html#402">Canceled</a><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">try_recv</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <a class="ident" href="../../../src/futures/sync/oneshot.rs.html#402">Canceled</a><span class="op">&gt;</span> {
         <a class="self" href="../../../src/futures/sync/oneshot.rs.html#438">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../src/futures/sync/oneshot.rs.html#231">try_recv</a>()
     }
 }
@@ -1055,7 +1055,7 @@
     <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="ident">T</span>;
     <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <a class="ident" href="../../../src/futures/sync/oneshot.rs.html#402">Canceled</a>;
 
-    <span class="kw">fn</span> <span class="ident">poll</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">T</span>, <a class="ident" href="../../../src/futures/sync/oneshot.rs.html#402">Canceled</a><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">poll</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">T</span>, <a class="ident" href="../../../src/futures/sync/oneshot.rs.html#402">Canceled</a><span class="op">&gt;</span> {
         <a class="self" href="../../../src/futures/sync/oneshot.rs.html#447">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../src/futures/sync/oneshot.rs.html#248">recv</a>()
     }
 }
@@ -1117,7 +1117,7 @@
 <span class="doccomment">/// panics. If a future running on an executor panics that typically means that</span>
 <span class="doccomment">/// the executor drops the future, which falls into the above case of not</span>
 <span class="doccomment">/// running the future to completion essentially.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">spawn</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">E</span><span class="op">&gt;</span>(<span class="ident">future</span>: <span class="ident">F</span>, <span class="ident">executor</span>: <span class="kw-2">&amp;</span><span class="ident">E</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">SpawnHandle</span><span class="op">&lt;</span><span class="ident">F::Item</span>, <span class="ident">F::Error</span><span class="op">&gt;</span>
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">spawn</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">E</span><span class="op">&gt;</span>(<span class="ident">future</span>: <span class="ident">F</span>, <span class="ident">executor</span>: <span class="kw-2">&amp;</span><span class="ident">E</span>) -&gt; <span class="ident">SpawnHandle</span><span class="op">&lt;</span><span class="ident">F::Item</span>, <span class="ident">F::Error</span><span class="op">&gt;</span>
     <span class="kw">where</span> <span class="ident">F</span>: <a class="ident" href="../../../src/futures/future/mod.rs.html#178-1016">Future</a>,
           <span class="ident">E</span>: <span class="ident">Executor</span><span class="op">&lt;</span><span class="ident">Execute</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 {
@@ -1137,8 +1137,8 @@
 <span class="doccomment">/// For more information see the `spawn` function in this module. This function</span>
 <span class="doccomment">/// is just a thin wrapper around `spawn` which will execute the closure on the</span>
 <span class="doccomment">/// executor provided and then complete the future that the closure returns.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">spawn_fn</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">R</span>, <span class="ident">E</span><span class="op">&gt;</span>(<span class="ident">f</span>: <span class="ident">F</span>, <span class="ident">executor</span>: <span class="kw-2">&amp;</span><span class="ident">E</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">SpawnHandle</span><span class="op">&lt;</span><span class="ident">R::Item</span>, <span class="ident">R::Error</span><span class="op">&gt;</span>
-    <span class="kw">where</span> <span class="ident">F</span>: <span class="ident">FnOnce</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">R</span>,
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">spawn_fn</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">R</span>, <span class="ident">E</span><span class="op">&gt;</span>(<span class="ident">f</span>: <span class="ident">F</span>, <span class="ident">executor</span>: <span class="kw-2">&amp;</span><span class="ident">E</span>) -&gt; <span class="ident">SpawnHandle</span><span class="op">&lt;</span><span class="ident">R::Item</span>, <span class="ident">R::Error</span><span class="op">&gt;</span>
+    <span class="kw">where</span> <span class="ident">F</span>: <span class="ident">FnOnce</span>() -&gt; <span class="ident">R</span>,
           <span class="ident">R</span>: <a class="ident" href="../../../src/futures/future/mod.rs.html#1039-1050">IntoFuture</a>,
           <span class="ident">E</span>: <span class="ident">Executor</span><span class="op">&lt;</span><span class="ident">Execute</span><span class="op">&lt;</span><span class="ident">Lazy</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">R</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 {
@@ -1160,18 +1160,18 @@
     <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="ident">T</span>;
     <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <span class="ident">E</span>;
 
-    <span class="kw">fn</span> <span class="ident">poll</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">E</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">poll</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">E</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <a class="self" href="../../../src/futures/sync/oneshot.rs.html#552">self</a>.<span class="ident">rx</span>.<span class="ident">inner</span>.<a class="ident" href="../../../src/futures/sync/oneshot.rs.html#248">recv</a>() {
-            <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/futures/poll.rs.html#26">Async::Ready</a>(<span class="prelude-val">Ok</span>(<span class="ident">t</span>))) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/futures/sync/oneshot.rs.html#554">t</a>.<span class="ident">into</span>()),
-            <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/futures/poll.rs.html#26">Async::Ready</a>(<span class="prelude-val">Err</span>(<span class="ident">e</span>))) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/futures/sync/oneshot.rs.html#555">e</a>),
-            <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/futures/poll.rs.html#29">Async::NotReady</a>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/futures/poll.rs.html#29">Async::NotReady</a>),
-            <span class="prelude-val">Err</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic!</span>(<span class="string">&quot;future was canceled before completion&quot;</span>),
+            <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/futures/poll.rs.html#26">Async::Ready</a>(<span class="prelude-val">Ok</span>(<span class="ident">t</span>))) =&gt; <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/futures/sync/oneshot.rs.html#554">t</a>.<span class="ident">into</span>()),
+            <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/futures/poll.rs.html#26">Async::Ready</a>(<span class="prelude-val">Err</span>(<span class="ident">e</span>))) =&gt; <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/futures/sync/oneshot.rs.html#555">e</a>),
+            <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/futures/poll.rs.html#29">Async::NotReady</a>) =&gt; <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/futures/poll.rs.html#29">Async::NotReady</a>),
+            <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <span class="macro">panic!</span>(<span class="string">&quot;future was canceled before completion&quot;</span>),
         }
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a>, <span class="ident">E</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <span class="ident">SpawnHandle</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">E</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
         <a class="ident" href="../../../src/futures/sync/oneshot.rs.html#563">f</a>.<span class="ident">debug_struct</span>(<span class="string">&quot;SpawnHandle&quot;</span>)
          .<span class="ident">finish</span>()
     }
@@ -1187,7 +1187,7 @@
     <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> ();
     <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> ();
 
-    <span class="kw">fn</span> <span class="ident">poll</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span>(), ()<span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">poll</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span>(), ()<span class="op">&gt;</span> {
         <span class="comment">// If we&#39;re canceled then we may want to bail out early.</span>
         <span class="comment">//</span>
         <span class="comment">// If the `forget` function was called, though, then we keep going.</span>
@@ -1198,9 +1198,9 @@
         }
 
         <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="kw">match</span> <a class="self" href="../../../src/futures/sync/oneshot.rs.html#579">self</a>.<span class="ident">future</span>.<a class="ident" href="../../../src/futures/future/mod.rs.html#273">poll</a>() {
-            <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/futures/poll.rs.html#29">Async::NotReady</a>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/futures/poll.rs.html#29">Async::NotReady</a>),
-            <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/futures/poll.rs.html#26">Async::Ready</a>(<span class="ident">t</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/futures/sync/oneshot.rs.html#591">t</a>),
-            <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/futures/sync/oneshot.rs.html#592">e</a>),
+            <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/futures/poll.rs.html#29">Async::NotReady</a>) =&gt; <span class="kw">return</span> <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/futures/poll.rs.html#29">Async::NotReady</a>),
+            <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/futures/poll.rs.html#26">Async::Ready</a>(<span class="ident">t</span>)) =&gt; <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/futures/sync/oneshot.rs.html#591">t</a>),
+            <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/futures/sync/oneshot.rs.html#592">e</a>),
         };
         <a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<a class="self" href="../../../src/futures/sync/oneshot.rs.html#579">self</a>.<span class="ident">tx</span>.<span class="ident">inner</span>.<a class="ident" href="../../../src/futures/sync/oneshot.rs.html#118">send</a>(<a class="ident" href="../../../src/futures/sync/oneshot.rs.html#589">result</a>));
         <span class="prelude-val">Ok</span>(().<span class="ident">into</span>())
@@ -1208,7 +1208,7 @@
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">F</span>: <a class="ident" href="../../../src/futures/future/mod.rs.html#178-1016">Future</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <span class="ident">Execute</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
         <a class="ident" href="../../../src/futures/sync/oneshot.rs.html#600">f</a>.<span class="ident">debug_struct</span>(<span class="string">&quot;Execute&quot;</span>)
          .<span class="ident">field</span>(<span class="string">&quot;future&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/futures/sync/oneshot.rs.html#600">self</a>.<span class="ident">future</span>)
          .<span class="ident">finish</span>()

@@ -695,7 +695,7 @@
 <span class="comment">// the end of the buffer.</span>
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;table&quot;</span>), <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;radix&quot;</span>))]</span>
 <span class="macro">macro_rules!</span> <span class="ident">write_backwards</span> {
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">value</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">radix</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">buffer</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span>:<span class="ident">tt</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">cb</span>:<span class="ident">ident</span>) <span class="op">=</span><span class="op">&gt;</span> ({
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">value</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">radix</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">buffer</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span>:<span class="ident">tt</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">cb</span>:<span class="ident">ident</span>) =&gt; ({
         <span class="comment">// Create a temporary buffer, and copy into it.</span>
         <span class="comment">// Way faster than reversing a buffer in-place.</span>
         <span class="comment">// Need to ensure the buffer size is adequate for any radix, but</span>
@@ -703,7 +703,7 @@
         <span class="macro">debug_assert_radix!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">radix</span>);
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buffer</span>: [<span class="ident">u8</span>; <span class="ident">BUFFER_SIZE</span>] <span class="op">=</span> [<span class="string">b&#39;0&#39;</span>; <span class="ident">BUFFER_SIZE</span>];
         <span class="kw">let</span> <span class="ident">digits</span>;
-        <span class="kw">if</span> <span class="macro">cfg!</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;radix&quot;</span>)) <span class="op">|</span><span class="op">|</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">radix</span> <span class="op">=</span><span class="op">=</span> <span class="number">10</span> {
+        <span class="kw">if</span> <span class="macro">cfg!</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;radix&quot;</span>)) <span class="op">|</span><span class="op">|</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">radix</span> <span class="op">==</span> <span class="number">10</span> {
             <span class="ident">digits</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">buffer</span>[..<span class="macro-nonterminal">$</span><span class="macro-nonterminal">t::FORMATTED_SIZE_DECIMAL</span>];
         } <span class="kw">else</span> {
             <span class="ident">digits</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">buffer</span>[..<span class="macro-nonterminal">$</span><span class="macro-nonterminal">t::FORMATTED_SIZE</span>];
@@ -729,7 +729,7 @@
 {}
 
 <span class="macro">macro_rules!</span> <span class="ident">itoa_impl</span> {
-    ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span>:<span class="ident">ty</span>)<span class="kw-2">*</span>) <span class="op">=</span><span class="op">&gt;</span> ($(
+    ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span>:<span class="ident">ty</span>)<span class="kw-2">*</span>) =&gt; ($(
         <span class="kw">impl</span> <span class="ident">Itoa</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span> {}
     )<span class="kw-2">*</span>)
 }
@@ -743,7 +743,7 @@
 <span class="macro">perftools_inline!</span>{
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;table&quot;</span>, <span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;radix&quot;</span>)))]</span>
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">itoa_positive</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">value</span>: <span class="ident">T</span>, <span class="kw">_</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>, <span class="ident">buffer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>])
-    <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>
+    -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>
     <span class="kw">where</span> <span class="ident">T</span>: <a class="ident" href="../../../src/lexical_core/itoa/api.rs.html#46-47">Itoa</a>
 {
     <a class="ident" href="../../../src/lexical_core/itoa/api.rs.html#71">value</a>.<a class="ident" href="../../../src/lexical_core/itoa/decimal.rs.html#757">decimal</a>(<a class="ident" href="../../../src/lexical_core/itoa/api.rs.html#71">buffer</a>)
@@ -754,10 +754,10 @@
 <span class="macro">perftools_inline!</span>{
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;table&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;radix&quot;</span>))]</span>
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">itoa_positive</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">value</span>: <span class="ident">T</span>, <span class="ident">radix</span>: <span class="ident">u32</span>, <span class="ident">buffer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>])
-    <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span>
+    -&gt; <span class="ident">usize</span>
     <span class="kw">where</span> <span class="ident">T</span>: <span class="ident">Itoa</span>
 {
-    <span class="kw">if</span> <span class="ident">radix</span> <span class="op">=</span><span class="op">=</span> <span class="number">10</span> {
+    <span class="kw">if</span> <span class="ident">radix</span> <span class="op">==</span> <span class="number">10</span> {
         <span class="ident">value</span>.<span class="ident">decimal</span>(<span class="ident">buffer</span>)
     } <span class="kw">else</span> {
         <span class="macro">write_backwards!</span>(<span class="ident">value</span>, <span class="ident">radix</span>, <span class="ident">buffer</span>, <span class="ident">T</span>, <span class="ident">generic</span>)
@@ -769,7 +769,7 @@
 <span class="macro">perftools_inline!</span>{
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;table&quot;</span>))]</span>
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">itoa_positive</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">value</span>: <span class="ident">T</span>, <span class="ident">radix</span>: <span class="ident">u32</span>, <span class="ident">buffer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>])
-    <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span>
+    -&gt; <span class="ident">usize</span>
     <span class="kw">where</span> <span class="ident">T</span>: <span class="ident">Itoa</span>
 {
     <span class="macro">write_backwards!</span>(<span class="ident">value</span>, <span class="ident">radix</span>, <span class="ident">buffer</span>, <span class="ident">T</span>, <span class="ident">naive</span>)
@@ -780,7 +780,7 @@
 <span class="comment">// Callback for unsigned integer formatter.</span>
 <span class="macro">perftools_inline!</span>{
 <span class="kw">fn</span> <span class="ident">unsigned</span><span class="op">&lt;</span><span class="ident">Narrow</span>, <span class="ident">Wide</span><span class="op">&gt;</span>(<span class="ident">value</span>: <span class="ident">Narrow</span>, <span class="ident">radix</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>, <span class="ident">buffer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>])
-    <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>
+    -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>
     <span class="kw">where</span> <span class="ident">Narrow</span>: <a class="ident" href="../../../src/lexical_core/util/num.rs.html#610-623">UnsignedInteger</a>,
           <span class="ident">Wide</span>: <a class="ident" href="../../../src/lexical_core/itoa/api.rs.html#46-47">Itoa</a>
 {
@@ -789,7 +789,7 @@
 }}
 
 <span class="macro">macro_rules!</span> <span class="ident">unsigned_to_lexical</span> {
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">narrow</span>:<span class="ident">ty</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">wide</span>:<span class="ident">ty</span>) <span class="op">=</span><span class="op">&gt;</span> (
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">narrow</span>:<span class="ident">ty</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">wide</span>:<span class="ident">ty</span>) =&gt; (
         <span class="macro">to_lexical!</span>(<span class="ident">unsigned</span>::<span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">narrow</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">wide</span><span class="op">&gt;</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">narrow</span>);
     );
 }
@@ -809,7 +809,7 @@
 <span class="comment">// Callback for signed integer formatter.</span>
 <span class="macro">perftools_inline!</span>{
 <span class="kw">fn</span> <span class="ident">signed</span><span class="op">&lt;</span><span class="ident">Narrow</span>, <span class="ident">Wide</span>, <span class="ident">Unsigned</span><span class="op">&gt;</span>(<span class="ident">value</span>: <span class="ident">Narrow</span>, <span class="ident">radix</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>, <span class="ident">buffer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>])
-    <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>
+    -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>
     <span class="kw">where</span> <span class="ident">Narrow</span>: <a class="ident" href="../../../src/lexical_core/util/num.rs.html#578-584">SignedInteger</a>,
           <span class="ident">Wide</span>: <a class="ident" href="../../../src/lexical_core/util/num.rs.html#578-584">SignedInteger</a>,
           <span class="ident">Unsigned</span>: <a class="ident" href="../../../src/lexical_core/itoa/api.rs.html#46-47">Itoa</a>
@@ -826,7 +826,7 @@
 }}
 
 <span class="macro">macro_rules!</span> <span class="ident">signed_to_lexical</span> {
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">narrow</span>:<span class="ident">ty</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">wide</span>:<span class="ident">ty</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">unsigned</span>:<span class="ident">ty</span>) <span class="op">=</span><span class="op">&gt;</span> (
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">narrow</span>:<span class="ident">ty</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">wide</span>:<span class="ident">ty</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">unsigned</span>:<span class="ident">ty</span>) =&gt; (
         <span class="macro">to_lexical!</span>(<span class="ident">signed</span>::<span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">narrow</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">wide</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">unsigned</span><span class="op">&gt;</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">narrow</span>);
     );
 }
@@ -1122,64 +1122,64 @@
 
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;property_tests&quot;</span>)]</span>
     <span class="macro">quickcheck!</span> {
-        <span class="kw">fn</span> <span class="ident">u8_quickcheck</span>(<span class="ident">i</span>: <span class="ident">u8</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+        <span class="kw">fn</span> <span class="ident">u8_quickcheck</span>(<span class="ident">i</span>: <span class="ident">u8</span>) -&gt; <span class="ident">bool</span> {
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buffer</span> <span class="op">=</span> <span class="ident">new_buffer</span>();
-            <span class="ident">i</span> <span class="op">=</span><span class="op">=</span> <span class="ident">u8::from_lexical</span>(<span class="ident">i</span>.<span class="ident">to_lexical</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">buffer</span>)).<span class="ident">unwrap</span>()
+            <span class="ident">i</span> <span class="op">==</span> <span class="ident">u8::from_lexical</span>(<span class="ident">i</span>.<span class="ident">to_lexical</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">buffer</span>)).<span class="ident">unwrap</span>()
         }
 
-        <span class="kw">fn</span> <span class="ident">u16_quickcheck</span>(<span class="ident">i</span>: <span class="ident">u16</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+        <span class="kw">fn</span> <span class="ident">u16_quickcheck</span>(<span class="ident">i</span>: <span class="ident">u16</span>) -&gt; <span class="ident">bool</span> {
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buffer</span> <span class="op">=</span> <span class="ident">new_buffer</span>();
-            <span class="ident">i</span> <span class="op">=</span><span class="op">=</span> <span class="ident">u16::from_lexical</span>(<span class="ident">i</span>.<span class="ident">to_lexical</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">buffer</span>)).<span class="ident">unwrap</span>()
+            <span class="ident">i</span> <span class="op">==</span> <span class="ident">u16::from_lexical</span>(<span class="ident">i</span>.<span class="ident">to_lexical</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">buffer</span>)).<span class="ident">unwrap</span>()
         }
 
-        <span class="kw">fn</span> <span class="ident">u32_quickcheck</span>(<span class="ident">i</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+        <span class="kw">fn</span> <span class="ident">u32_quickcheck</span>(<span class="ident">i</span>: <span class="ident">u32</span>) -&gt; <span class="ident">bool</span> {
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buffer</span> <span class="op">=</span> <span class="ident">new_buffer</span>();
-            <span class="ident">i</span> <span class="op">=</span><span class="op">=</span> <span class="ident">u32::from_lexical</span>(<span class="ident">i</span>.<span class="ident">to_lexical</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">buffer</span>)).<span class="ident">unwrap</span>()
+            <span class="ident">i</span> <span class="op">==</span> <span class="ident">u32::from_lexical</span>(<span class="ident">i</span>.<span class="ident">to_lexical</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">buffer</span>)).<span class="ident">unwrap</span>()
         }
 
-        <span class="kw">fn</span> <span class="ident">u64_quickcheck</span>(<span class="ident">i</span>: <span class="ident">u64</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+        <span class="kw">fn</span> <span class="ident">u64_quickcheck</span>(<span class="ident">i</span>: <span class="ident">u64</span>) -&gt; <span class="ident">bool</span> {
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buffer</span> <span class="op">=</span> <span class="ident">new_buffer</span>();
-            <span class="ident">i</span> <span class="op">=</span><span class="op">=</span> <span class="ident">u64::from_lexical</span>(<span class="ident">i</span>.<span class="ident">to_lexical</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">buffer</span>)).<span class="ident">unwrap</span>()
+            <span class="ident">i</span> <span class="op">==</span> <span class="ident">u64::from_lexical</span>(<span class="ident">i</span>.<span class="ident">to_lexical</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">buffer</span>)).<span class="ident">unwrap</span>()
         }
 
-        <span class="kw">fn</span> <span class="ident">u128_quickcheck</span>(<span class="ident">i</span>: <span class="ident">u128</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+        <span class="kw">fn</span> <span class="ident">u128_quickcheck</span>(<span class="ident">i</span>: <span class="ident">u128</span>) -&gt; <span class="ident">bool</span> {
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buffer</span> <span class="op">=</span> <span class="ident">new_buffer</span>();
-            <span class="ident">i</span> <span class="op">=</span><span class="op">=</span> <span class="ident">u128::from_lexical</span>(<span class="ident">i</span>.<span class="ident">to_lexical</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">buffer</span>)).<span class="ident">unwrap</span>()
+            <span class="ident">i</span> <span class="op">==</span> <span class="ident">u128::from_lexical</span>(<span class="ident">i</span>.<span class="ident">to_lexical</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">buffer</span>)).<span class="ident">unwrap</span>()
         }
 
-        <span class="kw">fn</span> <span class="ident">usize_quickcheck</span>(<span class="ident">i</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+        <span class="kw">fn</span> <span class="ident">usize_quickcheck</span>(<span class="ident">i</span>: <span class="ident">usize</span>) -&gt; <span class="ident">bool</span> {
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buffer</span> <span class="op">=</span> <span class="ident">new_buffer</span>();
-            <span class="ident">i</span> <span class="op">=</span><span class="op">=</span> <span class="ident">usize::from_lexical</span>(<span class="ident">i</span>.<span class="ident">to_lexical</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">buffer</span>)).<span class="ident">unwrap</span>()
+            <span class="ident">i</span> <span class="op">==</span> <span class="ident">usize::from_lexical</span>(<span class="ident">i</span>.<span class="ident">to_lexical</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">buffer</span>)).<span class="ident">unwrap</span>()
         }
 
-        <span class="kw">fn</span> <span class="ident">i8_quickcheck</span>(<span class="ident">i</span>: <span class="ident">i8</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+        <span class="kw">fn</span> <span class="ident">i8_quickcheck</span>(<span class="ident">i</span>: <span class="ident">i8</span>) -&gt; <span class="ident">bool</span> {
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buffer</span> <span class="op">=</span> <span class="ident">new_buffer</span>();
-            <span class="ident">i</span> <span class="op">=</span><span class="op">=</span> <span class="ident">i8::from_lexical</span>(<span class="ident">i</span>.<span class="ident">to_lexical</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">buffer</span>)).<span class="ident">unwrap</span>()
+            <span class="ident">i</span> <span class="op">==</span> <span class="ident">i8::from_lexical</span>(<span class="ident">i</span>.<span class="ident">to_lexical</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">buffer</span>)).<span class="ident">unwrap</span>()
         }
 
-        <span class="kw">fn</span> <span class="ident">i16_quickcheck</span>(<span class="ident">i</span>: <span class="ident">i16</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+        <span class="kw">fn</span> <span class="ident">i16_quickcheck</span>(<span class="ident">i</span>: <span class="ident">i16</span>) -&gt; <span class="ident">bool</span> {
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buffer</span> <span class="op">=</span> <span class="ident">new_buffer</span>();
-            <span class="ident">i</span> <span class="op">=</span><span class="op">=</span> <span class="ident">i16::from_lexical</span>(<span class="ident">i</span>.<span class="ident">to_lexical</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">buffer</span>)).<span class="ident">unwrap</span>()
+            <span class="ident">i</span> <span class="op">==</span> <span class="ident">i16::from_lexical</span>(<span class="ident">i</span>.<span class="ident">to_lexical</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">buffer</span>)).<span class="ident">unwrap</span>()
         }
 
-        <span class="kw">fn</span> <span class="ident">i32_quickcheck</span>(<span class="ident">i</span>: <span class="ident">i32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+        <span class="kw">fn</span> <span class="ident">i32_quickcheck</span>(<span class="ident">i</span>: <span class="ident">i32</span>) -&gt; <span class="ident">bool</span> {
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buffer</span> <span class="op">=</span> <span class="ident">new_buffer</span>();
-            <span class="ident">i</span> <span class="op">=</span><span class="op">=</span> <span class="ident">i32::from_lexical</span>(<span class="ident">i</span>.<span class="ident">to_lexical</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">buffer</span>)).<span class="ident">unwrap</span>()
+            <span class="ident">i</span> <span class="op">==</span> <span class="ident">i32::from_lexical</span>(<span class="ident">i</span>.<span class="ident">to_lexical</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">buffer</span>)).<span class="ident">unwrap</span>()
         }
 
-        <span class="kw">fn</span> <span class="ident">i64_quickcheck</span>(<span class="ident">i</span>: <span class="ident">i64</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+        <span class="kw">fn</span> <span class="ident">i64_quickcheck</span>(<span class="ident">i</span>: <span class="ident">i64</span>) -&gt; <span class="ident">bool</span> {
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buffer</span> <span class="op">=</span> <span class="ident">new_buffer</span>();
-            <span class="ident">i</span> <span class="op">=</span><span class="op">=</span> <span class="ident">i64::from_lexical</span>(<span class="ident">i</span>.<span class="ident">to_lexical</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">buffer</span>)).<span class="ident">unwrap</span>()
+            <span class="ident">i</span> <span class="op">==</span> <span class="ident">i64::from_lexical</span>(<span class="ident">i</span>.<span class="ident">to_lexical</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">buffer</span>)).<span class="ident">unwrap</span>()
         }
 
-        <span class="kw">fn</span> <span class="ident">i128_quickcheck</span>(<span class="ident">i</span>: <span class="ident">i128</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+        <span class="kw">fn</span> <span class="ident">i128_quickcheck</span>(<span class="ident">i</span>: <span class="ident">i128</span>) -&gt; <span class="ident">bool</span> {
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buffer</span> <span class="op">=</span> <span class="ident">new_buffer</span>();
-            <span class="ident">i</span> <span class="op">=</span><span class="op">=</span> <span class="ident">i128::from_lexical</span>(<span class="ident">i</span>.<span class="ident">to_lexical</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">buffer</span>)).<span class="ident">unwrap</span>()
+            <span class="ident">i</span> <span class="op">==</span> <span class="ident">i128::from_lexical</span>(<span class="ident">i</span>.<span class="ident">to_lexical</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">buffer</span>)).<span class="ident">unwrap</span>()
         }
 
-        <span class="kw">fn</span> <span class="ident">isize_quickcheck</span>(<span class="ident">i</span>: <span class="ident">isize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+        <span class="kw">fn</span> <span class="ident">isize_quickcheck</span>(<span class="ident">i</span>: <span class="ident">isize</span>) -&gt; <span class="ident">bool</span> {
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buffer</span> <span class="op">=</span> <span class="ident">new_buffer</span>();
-            <span class="ident">i</span> <span class="op">=</span><span class="op">=</span> <span class="ident">isize::from_lexical</span>(<span class="ident">i</span>.<span class="ident">to_lexical</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">buffer</span>)).<span class="ident">unwrap</span>()
+            <span class="ident">i</span> <span class="op">==</span> <span class="ident">isize::from_lexical</span>(<span class="ident">i</span>.<span class="ident">to_lexical</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">buffer</span>)).<span class="ident">unwrap</span>()
         }
     }
 

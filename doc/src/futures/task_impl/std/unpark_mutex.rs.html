@@ -187,7 +187,7 @@
 <span class="kw">const</span> <span class="ident">COMPLETE</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> <span class="op">=</span> <span class="number">3</span>;      <span class="comment">// No transitions out</span>
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">D</span><span class="op">&gt;</span> <span class="ident">UnparkMutex</span><span class="op">&lt;</span><span class="ident">D</span><span class="op">&gt;</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">UnparkMutex</span><span class="op">&lt;</span><span class="ident">D</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="ident">UnparkMutex</span><span class="op">&lt;</span><span class="ident">D</span><span class="op">&gt;</span> {
         <a class="ident" href="../../../../src/futures/task_impl/std/unpark_mutex.rs.html#10-16">UnparkMutex</a> {
             <span class="ident">status</span>: <span class="ident">AtomicUsize::new</span>(<a class="ident" href="../../../../src/futures/task_impl/std/unpark_mutex.rs.html#32">WAITING</a>),
             <span class="ident">inner</span>: <span class="ident">UnsafeCell::new</span>(<span class="prelude-val">None</span>),
@@ -200,15 +200,15 @@
     <span class="doccomment">/// the caller can proceed to poll the future. An `Err` result indicates</span>
     <span class="doccomment">/// that polling is not necessary (because the task is finished or the</span>
     <span class="doccomment">/// polling has been delegated).</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">notify</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">D</span>, ()<span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">notify</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">D</span>, ()<span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">status</span> <span class="op">=</span> <a class="self" href="../../../../src/futures/task_impl/std/unpark_mutex.rs.html#59">self</a>.<span class="ident">status</span>.<span class="ident">load</span>(<span class="ident">SeqCst</span>);
         <span class="kw">loop</span> {
             <span class="kw">match</span> <a class="ident" href="../../../../src/futures/task_impl/std/unpark_mutex.rs.html#60">status</a> {
                 <span class="comment">// The task is idle, so try to run it immediately.</span>
-                <a class="ident" href="../../../../src/futures/task_impl/std/unpark_mutex.rs.html#32">WAITING</a> <span class="op">=</span><span class="op">&gt;</span> {
+                <a class="ident" href="../../../../src/futures/task_impl/std/unpark_mutex.rs.html#32">WAITING</a> =&gt; {
                     <span class="kw">match</span> <a class="self" href="../../../../src/futures/task_impl/std/unpark_mutex.rs.html#59">self</a>.<span class="ident">status</span>.<span class="ident">compare_exchange</span>(<a class="ident" href="../../../../src/futures/task_impl/std/unpark_mutex.rs.html#32">WAITING</a>, <a class="ident" href="../../../../src/futures/task_impl/std/unpark_mutex.rs.html#36">POLLING</a>,
                                                        <span class="ident">SeqCst</span>, <span class="ident">SeqCst</span>) {
-                        <span class="prelude-val">Ok</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                        <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; {
                             <span class="kw">let</span> <span class="ident">data</span> <span class="op">=</span> <span class="kw">unsafe</span> {
                                 <span class="comment">// SAFETY: we&#39;ve ensured mutual exclusion via</span>
                                 <span class="comment">// the status protocol; we are the only thread</span>
@@ -220,23 +220,23 @@
                             };
                             <span class="kw">return</span> <span class="prelude-val">Ok</span>(<a class="ident" href="../../../../src/futures/task_impl/std/unpark_mutex.rs.html#68">data</a>);
                         }
-                        <span class="prelude-val">Err</span>(<span class="ident">cur</span>) <span class="op">=</span><span class="op">&gt;</span> <a class="ident" href="../../../../src/futures/task_impl/std/unpark_mutex.rs.html#60">status</a> <span class="op">=</span> <a class="ident" href="../../../../src/futures/task_impl/std/unpark_mutex.rs.html#79">cur</a>,
+                        <span class="prelude-val">Err</span>(<span class="ident">cur</span>) =&gt; <a class="ident" href="../../../../src/futures/task_impl/std/unpark_mutex.rs.html#60">status</a> <span class="op">=</span> <a class="ident" href="../../../../src/futures/task_impl/std/unpark_mutex.rs.html#79">cur</a>,
                     }
                 }
 
                 <span class="comment">// The task is being polled, so we need to record that it should</span>
                 <span class="comment">// be *repolled* when complete.</span>
-                <a class="ident" href="../../../../src/futures/task_impl/std/unpark_mutex.rs.html#36">POLLING</a> <span class="op">=</span><span class="op">&gt;</span> {
+                <a class="ident" href="../../../../src/futures/task_impl/std/unpark_mutex.rs.html#36">POLLING</a> =&gt; {
                     <span class="kw">match</span> <a class="self" href="../../../../src/futures/task_impl/std/unpark_mutex.rs.html#59">self</a>.<span class="ident">status</span>.<span class="ident">compare_exchange</span>(<a class="ident" href="../../../../src/futures/task_impl/std/unpark_mutex.rs.html#36">POLLING</a>, <a class="ident" href="../../../../src/futures/task_impl/std/unpark_mutex.rs.html#40">REPOLL</a>,
                                                        <span class="ident">SeqCst</span>, <span class="ident">SeqCst</span>) {
-                        <span class="prelude-val">Ok</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Err</span>(()),
-                        <span class="prelude-val">Err</span>(<span class="ident">cur</span>) <span class="op">=</span><span class="op">&gt;</span> <a class="ident" href="../../../../src/futures/task_impl/std/unpark_mutex.rs.html#60">status</a> <span class="op">=</span> <a class="ident" href="../../../../src/futures/task_impl/std/unpark_mutex.rs.html#89">cur</a>,
+                        <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(()),
+                        <span class="prelude-val">Err</span>(<span class="ident">cur</span>) =&gt; <a class="ident" href="../../../../src/futures/task_impl/std/unpark_mutex.rs.html#60">status</a> <span class="op">=</span> <a class="ident" href="../../../../src/futures/task_impl/std/unpark_mutex.rs.html#89">cur</a>,
                     }
                 }
 
                 <span class="comment">// The task is already scheduled for polling, or is complete, so</span>
                 <span class="comment">// we&#39;ve got nothing to do.</span>
-                <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Err</span>(()),
+                <span class="kw">_</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(()),
             }
         }
     }
@@ -258,16 +258,16 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// Callable only from the `POLLING`/`REPOLL` states, i.e. between</span>
     <span class="doccomment">/// successful calls to `notify` and `wait`/`complete`.</span>
-    <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">wait</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">data</span>: <span class="ident">D</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">D</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">wait</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">data</span>: <span class="ident">D</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">D</span><span class="op">&gt;</span> {
         <span class="kw-2">*</span><a class="self" href="../../../../src/futures/task_impl/std/unpark_mutex.rs.html#117">self</a>.<span class="ident">inner</span>.<span class="ident">get</span>() <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../../src/futures/task_impl/std/unpark_mutex.rs.html#117">data</a>);
 
         <span class="kw">match</span> <a class="self" href="../../../../src/futures/task_impl/std/unpark_mutex.rs.html#117">self</a>.<span class="ident">status</span>.<span class="ident">compare_exchange</span>(<a class="ident" href="../../../../src/futures/task_impl/std/unpark_mutex.rs.html#36">POLLING</a>, <a class="ident" href="../../../../src/futures/task_impl/std/unpark_mutex.rs.html#32">WAITING</a>, <span class="ident">SeqCst</span>, <span class="ident">SeqCst</span>) {
             <span class="comment">// no unparks came in while we were running</span>
-            <span class="prelude-val">Ok</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(()),
+            <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Ok</span>(()),
 
             <span class="comment">// guaranteed to be in REPOLL state; just clobber the</span>
             <span class="comment">// state and run again.</span>
-            <span class="prelude-val">Err</span>(<span class="ident">status</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="prelude-val">Err</span>(<span class="ident">status</span>) =&gt; {
                 <span class="macro">assert_eq!</span>(<a class="ident" href="../../../../src/futures/task_impl/std/unpark_mutex.rs.html#126">status</a>, <a class="ident" href="../../../../src/futures/task_impl/std/unpark_mutex.rs.html#40">REPOLL</a>);
                 <a class="self" href="../../../../src/futures/task_impl/std/unpark_mutex.rs.html#117">self</a>.<span class="ident">status</span>.<span class="ident">store</span>(<a class="ident" href="../../../../src/futures/task_impl/std/unpark_mutex.rs.html#36">POLLING</a>, <span class="ident">SeqCst</span>);
                 <span class="prelude-val">Err</span>((<span class="kw-2">*</span><a class="self" href="../../../../src/futures/task_impl/std/unpark_mutex.rs.html#117">self</a>.<span class="ident">inner</span>.<span class="ident">get</span>()).<span class="ident">take</span>().<span class="ident">unwrap</span>())

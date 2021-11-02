@@ -5,7 +5,7 @@ constructor. Each mutex has a type parameter which represents the data that
 it is protecting. The data can only be accessed through the RAII guards
 returned from <code>lock</code> and <code>try_lock</code>, which guarantees that the data is only
 ever accessed when the mutex is locked.</p>
-<h1 id="fairness" class="section-header"><a href="#fairness">Fairness</a></h1>
+<h2 id="fairness" class="section-header"><a href="#fairness">Fairness</a></h2>
 <p>A typical unfair lock can often end up in a situation where a single thread
 quickly acquires and releases the same mutex in succession, which can starve
 other threads waiting to acquire the mutex. While this improves performance
@@ -20,7 +20,7 @@ unlock, which has a negligible performance impact compared to the length of
 the critical section.</p>
 <p>You can also force a fair unlock by calling <code>MutexGuard::unlock_fair</code> when
 unlocking a mutex instead of simply dropping the <code>MutexGuard</code>.</p>
-<h1 id="differences-from-the-standard-library-mutex" class="section-header"><a href="#differences-from-the-standard-library-mutex">Differences from the standard library <code>Mutex</code></a></h1>
+<h2 id="differences-from-the-standard-library-mutex" class="section-header"><a href="#differences-from-the-standard-library-mutex">Differences from the standard library <code>Mutex</code></a></h2>
 <ul>
 <li>No poisoning, the lock is released normally on panic.</li>
 <li>Only requires 1 byte of space, whereas the standard library boxes the
@@ -33,7 +33,7 @@ unlocking a mutex instead of simply dropping the <code>MutexGuard</code>.</p>
 <li>Supports eventual fairness so that the mutex is fair on average.</li>
 <li>Optionally allows making the mutex fair by calling <code>MutexGuard::unlock_fair</code>.</li>
 </ul>
-<h1 id="examples" class="section-header"><a href="#examples">Examples</a></h1>
+<h2 id="examples" class="section-header"><a href="#examples">Examples</a></h2>
 <div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use</span> <span class="ident">std::sync::Arc</span>;
 <span class="kw">use</span> <span class="ident">parking_lot::Mutex</span>;
 <span class="kw">use</span> <span class="ident">std::thread</span>;
@@ -57,7 +57,7 @@ unlocking a mutex instead of simply dropping the <code>MutexGuard</code>.</p>
         <span class="comment">// which can access the shared state when the lock is held.</span>
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">data</span> <span class="op">=</span> <span class="ident">data</span>.<span class="ident">lock</span>();
         <span class="kw-2">*</span><span class="ident">data</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
-        <span class="kw">if</span> <span class="kw-2">*</span><span class="ident">data</span> <span class="op">=</span><span class="op">=</span> <span class="ident">N</span> {
+        <span class="kw">if</span> <span class="kw-2">*</span><span class="ident">data</span> <span class="op">==</span> <span class="ident">N</span> {
             <span class="ident">tx</span>.<span class="ident">send</span>(()).<span class="ident">unwrap</span>();
         }
         <span class="comment">// the lock is unlocked here when `data` goes out of scope.</span>

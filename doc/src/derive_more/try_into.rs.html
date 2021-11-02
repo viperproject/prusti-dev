@@ -131,7 +131,7 @@
 
 <span class="doccomment">/// Provides the hook to expand `#[derive(TryInto)]` into an implementation of `TryInto`</span>
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::cognitive_complexity</span>)]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">expand</span>(<span class="ident">input</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../syn/derive/struct.DeriveInput.html">DeriveInput</a>, <span class="ident">trait_name</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../proc_macro2/struct.TokenStream.html">TokenStream</a><span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">expand</span>(<span class="ident">input</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../syn/derive/struct.DeriveInput.html">DeriveInput</a>, <span class="ident">trait_name</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../proc_macro2/struct.TokenStream.html">TokenStream</a><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">state</span> <span class="op">=</span> <span class="ident">State::with_attr_params</span>(
         <a class="ident" href="../../src/derive_more/try_into.rs.html#13">input</a>,
         <a class="ident" href="../../src/derive_more/try_into.rs.html#13">trait_name</a>,
@@ -184,13 +184,13 @@
             );
         }
 
-        <span class="kw">let</span> <span class="ident">vars</span> <span class="op">=</span> <span class="kw">if</span> <a class="ident" href="../../src/derive_more/try_into.rs.html#57">vars</a>.<span class="ident">len</span>() <span class="op">=</span><span class="op">=</span> <span class="number">1</span> {
+        <span class="kw">let</span> <span class="ident">vars</span> <span class="op">=</span> <span class="kw">if</span> <a class="ident" href="../../src/derive_more/try_into.rs.html#57">vars</a>.<span class="ident">len</span>() <span class="op">==</span> <span class="number">1</span> {
             <span class="macro">quote!</span>(#(#<span class="ident">vars</span>)<span class="kw-2">*</span>)
         } <span class="kw">else</span> {
             <span class="macro">quote!</span>((#(#<span class="ident">vars</span>),<span class="kw-2">*</span>))
         };
 
-        <span class="kw">let</span> <span class="ident">output_type</span> <span class="op">=</span> <span class="kw">if</span> <a class="ident" href="../../src/derive_more/try_into.rs.html#49">original_types</a>.<span class="ident">len</span>() <span class="op">=</span><span class="op">=</span> <span class="number">1</span> {
+        <span class="kw">let</span> <span class="ident">output_type</span> <span class="op">=</span> <span class="kw">if</span> <a class="ident" href="../../src/derive_more/try_into.rs.html#49">original_types</a>.<span class="ident">len</span>() <span class="op">==</span> <span class="number">1</span> {
             <span class="macro">format!</span>(<span class="string">&quot;{}&quot;</span>, <span class="macro">quote!</span>(#(#<span class="ident">original_types</span>)<span class="kw-2">*</span>))
         } <span class="kw">else</span> {
             <span class="kw">let</span> <span class="ident">types</span> <span class="op">=</span> <a class="ident" href="../../src/derive_more/try_into.rs.html#49">original_types</a>
@@ -228,10 +228,10 @@
 
                 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">unused_variables</span>)]</span>
                 <span class="attribute">#[<span class="ident">inline</span>]</span>
-                <span class="kw">fn</span> <span class="ident">try_from</span>(<span class="ident">value</span>: #<span class="ident">reference_with_lifetime</span> #<span class="ident">input_type</span>#<span class="ident">ty_generics</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">::core::result::Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
+                <span class="kw">fn</span> <span class="ident">try_from</span>(<span class="ident">value</span>: #<span class="ident">reference_with_lifetime</span> #<span class="ident">input_type</span>#<span class="ident">ty_generics</span>) -&gt; <span class="ident">::core::result::Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
                     <span class="kw">match</span> <span class="ident">value</span> {
-                        #(#<span class="ident">matchers</span>)<span class="op">|</span><span class="op">*</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">::core::result::Result::Ok</span>(#<span class="ident">vars</span>),
-                        <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">::core::result::Result::Err</span>(#<span class="ident">message</span>),
+                        #(#<span class="ident">matchers</span>)<span class="op">|</span><span class="op">*</span> =&gt; <span class="ident">::core::result::Result::Ok</span>(#<span class="ident">vars</span>),
+                        <span class="kw">_</span> =&gt; <span class="ident">::core::result::Result::Err</span>(#<span class="ident">message</span>),
                     }
                 }
             }

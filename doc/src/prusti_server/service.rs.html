@@ -211,13 +211,13 @@
 }
 
 <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for</span> <a class="ident" href="../../src/prusti_server/service.rs.html#24-27">ServerSideService</a> {
-    <span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="self">Self</span> {
         <span class="ident"><span class="self">Self</span>::new</span>()
     }
 }
 
 <span class="kw">impl</span> <a class="ident" href="../../src/prusti_server/service.rs.html#24-27">ServerSideService</a> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="self">Self</span> {
         <span class="kw">let</span> <span class="ident">max_concurrency</span> <span class="op">=</span> <span class="ident">config::server_max_concurrency</span>().<span class="ident">unwrap_or_else</span>(<span class="ident">num_cpus::get</span>);
 
         <span class="kw">let</span> <span class="ident">cache_size</span> <span class="op">=</span> <span class="ident">config::server_max_stored_verifiers</span>().<span class="ident">unwrap_or</span>(<a class="ident" href="../../src/prusti_server/service.rs.html#37">max_concurrency</a>);
@@ -231,7 +231,7 @@
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">spawn_off_thread</span>() <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/net/addr/enum.SocketAddr.html">SocketAddr</a> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">spawn_off_thread</span>() -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/net/addr/enum.SocketAddr.html">SocketAddr</a> {
         <span class="kw">let</span> (<span class="ident">sender</span>, <span class="ident">receiver</span>) <span class="op">=</span> <span class="ident">mpsc::channel</span>();
         <span class="ident">thread::spawn</span>(<span class="kw">move</span> <span class="op">|</span><span class="op">|</span> {
             <span class="ident">ServerSideService::new</span>().<a class="ident" href="../../src/prusti_server/service.rs.html#75-77">listen_on_ephemeral_port</a>(
@@ -244,7 +244,7 @@
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">listen_on_port</span>(<span class="self">self</span>, <span class="ident">port</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>) {
         <a class="self" href="../../src/prusti_server/service.rs.html#61">self</a>.<a class="ident" href="../../src/prusti_server/service.rs.html#75-77">listen_on_ephemeral_port</a>(<a class="ident" href="../../src/prusti_server/service.rs.html#61">port</a>, <span class="op">|</span><span class="ident">address</span><span class="op">|</span> {
-            <span class="kw">if</span> <a class="ident" href="../../src/prusti_server/service.rs.html#61">port</a> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
+            <span class="kw">if</span> <a class="ident" href="../../src/prusti_server/service.rs.html#61">port</a> <span class="op">==</span> <span class="number">0</span> {
                 <span class="kw">return</span>;
             }
             <span class="macro">assert_eq!</span>(
@@ -310,7 +310,7 @@
         <span class="ident">thread::park</span>();
     }
 
-    <span class="kw">fn</span> <span class="ident">verify</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">request</span>: <a class="ident" href="../../prusti_common/verification_service/struct.VerificationRequest.html">VerificationRequest</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="../../src/prusti_server/lib.rs.html#39">RemoteVerificationResult</a> {
+    <span class="kw">fn</span> <span class="ident">verify</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">request</span>: <a class="ident" href="../../prusti_common/verification_service/struct.VerificationRequest.html">VerificationRequest</a>) -&gt; <a class="ident" href="../../src/prusti_server/lib.rs.html#39">RemoteVerificationResult</a> {
         <span class="macro">info!</span>(<span class="string">&quot;Handling verification request for {}&quot;</span>, <a class="ident" href="../../src/prusti_server/service.rs.html#129">request</a>.<span class="ident">program</span>.<span class="ident">name</span>);
         <a class="self" href="../../src/prusti_server/service.rs.html#129">self</a>.<span class="ident">server</span>.<a class="ident" href="../../src/prusti_server/lib.rs.html#60">run_verifier</a>(<a class="ident" href="../../src/prusti_server/service.rs.html#129">request</a>)
     }
@@ -322,7 +322,7 @@
 }
 
 <span class="kw">impl</span> <a class="ident" href="../../src/prusti_server/service.rs.html#135-138">PrustiServerConnection</a> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">S</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">ToString</a><span class="op">&gt;</span>(<span class="ident">server_address</span>: <span class="ident">S</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <a class="ident" href="../../url/parser/enum.ParseError.html">UrlError</a><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">S</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">ToString</a><span class="op">&gt;</span>(<span class="ident">server_address</span>: <span class="ident">S</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <a class="ident" href="../../url/parser/enum.ParseError.html">UrlError</a><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">address</span> <span class="op">=</span> <a class="ident" href="../../src/prusti_server/service.rs.html#141">server_address</a>.<span class="ident">to_string</span>();
         <span class="kw">if</span> <span class="op">!</span><a class="ident" href="../../src/prusti_server/service.rs.html#142">address</a>.<span class="ident">starts_with</span>(<span class="string">&quot;http&quot;</span>) {
             <a class="ident" href="../../src/prusti_server/service.rs.html#142">address</a> <span class="op">=</span> <span class="macro">format!</span>(<span class="string">&quot;http://{}&quot;</span>, <a class="ident" href="../../src/prusti_server/service.rs.html#142">address</a>);
@@ -336,7 +336,7 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">verify_checked</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">request</span>: <a class="ident" href="../../prusti_common/verification_service/struct.VerificationRequest.html">VerificationRequest</a>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">reqwest::Result</span><span class="op">&lt;</span><a class="ident" href="../../src/prusti_server/lib.rs.html#39">RemoteVerificationResult</a><span class="op">&gt;</span> {
+    ) -&gt; <span class="ident">reqwest::Result</span><span class="op">&lt;</span><a class="ident" href="../../src/prusti_server/lib.rs.html#39">RemoteVerificationResult</a><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">use_json</span> <span class="op">=</span> <span class="ident">config::json_communication</span>();
         <span class="kw">let</span> <span class="ident">base</span> <span class="op">=</span> <a class="self" href="../../src/prusti_server/service.rs.html#153">self</a>.<span class="ident">client</span>.<span class="ident">post</span>(
             <a class="self" href="../../src/prusti_server/service.rs.html#153">self</a>.<span class="ident">server_url</span>
@@ -360,7 +360,7 @@
 
 <span class="kw">impl</span> <a class="ident" href="../../prusti_common/verification_service/trait.VerificationService.html">VerificationService</a> <span class="kw">for</span> <a class="ident" href="../../src/prusti_server/service.rs.html#135-138">PrustiServerConnection</a> {
     <span class="doccomment">/// panics if the verification request fails</span>
-    <span class="kw">fn</span> <span class="ident">verify</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">request</span>: <a class="ident" href="../../prusti_common/verification_service/struct.VerificationRequest.html">VerificationRequest</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="../../viper/verification_result/enum.VerificationResult.html">VerificationResult</a> {
+    <span class="kw">fn</span> <span class="ident">verify</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">request</span>: <a class="ident" href="../../prusti_common/verification_service/struct.VerificationRequest.html">VerificationRequest</a>) -&gt; <a class="ident" href="../../viper/verification_result/enum.VerificationResult.html">VerificationResult</a> {
         <a class="self" href="../../src/prusti_server/service.rs.html#179">self</a>.<a class="ident" href="../../src/prusti_server/service.rs.html#152-155">verify_checked</a>(<a class="ident" href="../../src/prusti_server/service.rs.html#179">request</a>)
             .<span class="ident">expect</span>(<span class="string">&quot;Verification request to server failed!&quot;</span>)
             .<span class="ident">expect</span>(<span class="string">&quot;Server panicked while processing request!&quot;</span>)

@@ -178,7 +178,7 @@
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">variants</span>: <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../../syn/data/struct.Variant.html">syn::Variant</a><span class="op">&gt;</span>,
 }
 
-<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">collect</span>(<span class="ident">items</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<a class="ident" href="../../../syn/item/enum.Item.html">syn::Item</a>], <span class="ident">macro_name</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../../src/vir_gen/deriver/common.rs.html#3-6">DeriveInfo</a><span class="op">&gt;</span> {
+<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">collect</span>(<span class="ident">items</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<a class="ident" href="../../../syn/item/enum.Item.html">syn::Item</a>], <span class="ident">macro_name</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../../src/vir_gen/deriver/common.rs.html#3-6">DeriveInfo</a><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">helpers_to_derive</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
     <span class="kw">for</span> <a class="ident" href="../../../src/vir_gen/deriver/common.rs.html#10">item</a> <span class="kw">in</span> <a class="ident" href="../../../src/vir_gen/deriver/common.rs.html#8">items</a> {
         <span class="kw">if</span> <span class="kw">let</span> <span class="ident">syn::Item::Enum</span>(<span class="ident">enum_item</span>) <span class="op">=</span> <a class="ident" href="../../../src/vir_gen/deriver/common.rs.html#10">item</a> {
@@ -201,10 +201,10 @@
 
 <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">extract_variant_type</span>(
     <span class="ident">variant</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../syn/data/struct.Variant.html">syn::Variant</a>,
-) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><a class="ident" href="../../../proc_macro2/struct.Ident.html">syn::Ident</a><span class="op">&gt;</span>, <a class="ident" href="../../../syn/error/struct.Error.html">syn::Error</a><span class="op">&gt;</span> {
+) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><a class="ident" href="../../../proc_macro2/struct.Ident.html">syn::Ident</a><span class="op">&gt;</span>, <a class="ident" href="../../../syn/error/struct.Error.html">syn::Error</a><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">path</span> <span class="op">=</span> <span class="kw">match</span> <span class="kw-2">&amp;</span><a class="ident" href="../../../src/vir_gen/deriver/common.rs.html#30">variant</a>.<span class="ident">fields</span> {
-        <span class="ident">syn::Fields::Unit</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
-        <span class="ident">syn::Fields::Unnamed</span>(<span class="ident">fields</span>) <span class="kw">if</span> <a class="ident" href="../../../src/vir_gen/deriver/common.rs.html#34">fields</a>.<span class="ident">unnamed</span>.<span class="ident">len</span>() <span class="op">=</span><span class="op">=</span> <span class="number">1</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="kw-2">&amp;</span><a class="ident" href="../../../src/vir_gen/deriver/common.rs.html#34">fields</a>.<span class="ident">unnamed</span>[<span class="number">0</span>].<span class="ident">ty</span> {
+        <span class="ident">syn::Fields::Unit</span> =&gt; <span class="prelude-val">None</span>,
+        <span class="ident">syn::Fields::Unnamed</span>(<span class="ident">fields</span>) <span class="kw">if</span> <a class="ident" href="../../../src/vir_gen/deriver/common.rs.html#34">fields</a>.<span class="ident">unnamed</span>.<span class="ident">len</span>() <span class="op">==</span> <span class="number">1</span> =&gt; <span class="kw">match</span> <span class="kw-2">&amp;</span><a class="ident" href="../../../src/vir_gen/deriver/common.rs.html#34">fields</a>.<span class="ident">unnamed</span>[<span class="number">0</span>].<span class="ident">ty</span> {
             <span class="ident">syn::Type::Path</span>(<a class="ident" href="../../../syn/ty/struct.TypePath.html">syn::TypePath</a> {
                 <span class="ident">qself</span>: <span class="prelude-val">None</span>,
                 <span class="ident">path</span>:
@@ -212,7 +212,7 @@
                         <span class="ident">leading_colon</span>: <span class="prelude-val">None</span>,
                         <span class="ident">segments</span>,
                     },
-            }) <span class="kw">if</span> <a class="ident" href="../../../src/vir_gen/deriver/common.rs.html#40">segments</a>.<span class="ident">len</span>() <span class="op">=</span><span class="op">=</span> <span class="number">1</span> <span class="op">=</span><span class="op">&gt;</span> {
+            }) <span class="kw">if</span> <a class="ident" href="../../../src/vir_gen/deriver/common.rs.html#40">segments</a>.<span class="ident">len</span>() <span class="op">==</span> <span class="number">1</span> =&gt; {
                 <span class="kw">if</span> <a class="ident" href="../../../src/vir_gen/deriver/common.rs.html#40">segments</a>[<span class="number">0</span>].<span class="ident">arguments</span> <span class="op">!</span><span class="op">=</span> <span class="ident">syn::PathArguments::None</span> {
                     <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">syn::Error::new</span>(
                         <a class="ident" href="../../../src/vir_gen/deriver/common.rs.html#30">variant</a>.<span class="ident">span</span>(),
@@ -221,14 +221,14 @@
                 }
                 <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/vir_gen/deriver/common.rs.html#40">segments</a>[<span class="number">0</span>].<span class="ident">ident</span>)
             }
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="kw">_</span> =&gt; {
                 <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">syn::Error::new</span>(
                     <a class="ident" href="../../../src/vir_gen/deriver/common.rs.html#30">variant</a>.<span class="ident">span</span>(),
                     <span class="string">&quot;unsupported field shape for deriving helpers&quot;</span>,
                 ));
             }
         },
-        <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="kw">_</span> =&gt; {
             <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">syn::Error::new</span>(
                 <a class="ident" href="../../../src/vir_gen/deriver/common.rs.html#30">variant</a>.<span class="ident">span</span>(),
                 <span class="string">&quot;unsupported variant shape for deriving helpers&quot;</span>,
@@ -241,10 +241,10 @@
 <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">find_variant_enum</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(
     <span class="ident">items</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<a class="ident" href="../../../syn/item/enum.Item.html">syn::Item</a>],
     <span class="ident">variant_type</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../proc_macro2/struct.Ident.html">syn::Ident</a>,
-) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="../../../syn/item/struct.ItemEnum.html">syn::ItemEnum</a><span class="op">&gt;</span> {
+) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="../../../syn/item/struct.ItemEnum.html">syn::ItemEnum</a><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">item</span> <span class="op">=</span> <a class="ident" href="../../../src/vir_gen/deriver/common.rs.html#69">items</a>.<span class="ident">iter</span>().<span class="ident">find</span>(<span class="op">|</span><span class="ident">item</span><span class="op">|</span> {
         <span class="kw">if</span> <span class="kw">let</span> <span class="ident">syn::Item::Enum</span>(<span class="ident">enum_item</span>) <span class="op">=</span> <a class="ident" href="../../../src/vir_gen/deriver/common.rs.html#72">item</a> {
-            <a class="ident" href="../../../src/vir_gen/deriver/common.rs.html#70">variant_type</a> <span class="op">=</span><span class="op">=</span> <span class="kw-2">&amp;</span><a class="ident" href="../../../src/vir_gen/deriver/common.rs.html#73">enum_item</a>.<span class="ident">ident</span>
+            <a class="ident" href="../../../src/vir_gen/deriver/common.rs.html#70">variant_type</a> <span class="op">==</span> <span class="kw-2">&amp;</span><a class="ident" href="../../../src/vir_gen/deriver/common.rs.html#73">enum_item</a>.<span class="ident">ident</span>
         } <span class="kw">else</span> {
             <span class="bool-val">false</span>
         }
@@ -259,12 +259,12 @@
 <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">find_variant_struct</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(
     <span class="ident">items</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<a class="ident" href="../../../syn/item/enum.Item.html">syn::Item</a>],
     <span class="ident">variant_type</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../proc_macro2/struct.Ident.html">syn::Ident</a>,
-) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="../../../syn/item/struct.ItemStruct.html">syn::ItemStruct</a>, <a class="ident" href="../../../syn/error/struct.Error.html">syn::Error</a><span class="op">&gt;</span> {
+) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="../../../syn/item/struct.ItemStruct.html">syn::ItemStruct</a>, <a class="ident" href="../../../syn/error/struct.Error.html">syn::Error</a><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">item</span> <span class="op">=</span> <a class="ident" href="../../../src/vir_gen/deriver/common.rs.html#87">items</a>
         .<span class="ident">iter</span>()
         .<span class="ident">find</span>(<span class="op">|</span><span class="ident">item</span><span class="op">|</span> {
             <span class="kw">if</span> <span class="kw">let</span> <span class="ident">syn::Item::Struct</span>(<span class="ident">struct_item</span>) <span class="op">=</span> <a class="ident" href="../../../src/vir_gen/deriver/common.rs.html#92">item</a> {
-                <a class="ident" href="../../../src/vir_gen/deriver/common.rs.html#88">variant_type</a> <span class="op">=</span><span class="op">=</span> <span class="kw-2">&amp;</span><a class="ident" href="../../../src/vir_gen/deriver/common.rs.html#93">struct_item</a>.<span class="ident">ident</span>
+                <a class="ident" href="../../../src/vir_gen/deriver/common.rs.html#88">variant_type</a> <span class="op">==</span> <span class="kw-2">&amp;</span><a class="ident" href="../../../src/vir_gen/deriver/common.rs.html#93">struct_item</a>.<span class="ident">ident</span>
             } <span class="kw">else</span> {
                 <span class="bool-val">false</span>
             }
@@ -280,7 +280,7 @@
     }
 }
 
-<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">type_to_indent</span>(<span class="ident">ty</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../syn/ty/enum.Type.html">syn::Type</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><a class="ident" href="../../../proc_macro2/struct.Ident.html">syn::Ident</a>, <a class="ident" href="../../../syn/error/struct.Error.html">syn::Error</a><span class="op">&gt;</span> {
+<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">type_to_indent</span>(<span class="ident">ty</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../syn/ty/enum.Type.html">syn::Type</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><a class="ident" href="../../../proc_macro2/struct.Ident.html">syn::Ident</a>, <a class="ident" href="../../../syn/error/struct.Error.html">syn::Error</a><span class="op">&gt;</span> {
     <span class="kw">if</span> <span class="kw">let</span> <span class="ident">syn::Type::Path</span>(<a class="ident" href="../../../syn/ty/struct.TypePath.html">syn::TypePath</a> {
         <span class="ident">qself</span>: <span class="prelude-val">None</span>,
         <span class="ident">path</span>: <a class="ident" href="../../../syn/path/struct.Path.html">syn::Path</a> {
@@ -289,7 +289,7 @@
         },
     }) <span class="op">=</span> <a class="ident" href="../../../src/vir_gen/deriver/common.rs.html#110">ty</a>
     {
-        <span class="kw">if</span> <a class="ident" href="../../../src/vir_gen/deriver/common.rs.html#115">segments</a>.<span class="ident">len</span>() <span class="op">=</span><span class="op">=</span> <span class="number">1</span> <span class="op">&amp;&amp;</span> <a class="ident" href="../../../src/vir_gen/deriver/common.rs.html#115">segments</a>[<span class="number">0</span>].<span class="ident">arguments</span> <span class="op">=</span><span class="op">=</span> <span class="ident">syn::PathArguments::None</span> {
+        <span class="kw">if</span> <a class="ident" href="../../../src/vir_gen/deriver/common.rs.html#115">segments</a>.<span class="ident">len</span>() <span class="op">==</span> <span class="number">1</span> <span class="op">&amp;&amp;</span> <a class="ident" href="../../../src/vir_gen/deriver/common.rs.html#115">segments</a>[<span class="number">0</span>].<span class="ident">arguments</span> <span class="op">==</span> <span class="ident">syn::PathArguments::None</span> {
             <span class="prelude-val">Ok</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/vir_gen/deriver/common.rs.html#115">segments</a>[<span class="number">0</span>].<span class="ident">ident</span>)
         } <span class="kw">else</span> {
             <span class="prelude-val">Err</span>(<span class="ident">syn::Error::new</span>(
@@ -305,7 +305,7 @@
     }
 }
 
-<span class="kw">fn</span> <span class="ident">get_type_arg</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="ident">ty</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="../../../syn/ty/enum.Type.html">syn::Type</a>, <span class="ident">main_type</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="../../../proc_macro2/struct.Ident.html">syn::Ident</a><span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">get_type_arg</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="ident">ty</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="../../../syn/ty/enum.Type.html">syn::Type</a>, <span class="ident">main_type</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="../../../proc_macro2/struct.Ident.html">syn::Ident</a><span class="op">&gt;</span> {
     <span class="kw">if</span> <span class="kw">let</span> <span class="ident">syn::Type::Path</span>(<a class="ident" href="../../../syn/ty/struct.TypePath.html">syn::TypePath</a> {
         <span class="ident">qself</span>: <span class="prelude-val">None</span>,
         <span class="ident">path</span>: <a class="ident" href="../../../syn/path/struct.Path.html">syn::Path</a> {
@@ -314,7 +314,7 @@
         },
     }) <span class="op">=</span> <a class="ident" href="../../../src/vir_gen/deriver/common.rs.html#135">ty</a>
     {
-        <span class="kw">if</span> <a class="ident" href="../../../src/vir_gen/deriver/common.rs.html#140">segments</a>.<span class="ident">len</span>() <span class="op">=</span><span class="op">=</span> <span class="number">1</span> <span class="op">&amp;&amp;</span> <a class="ident" href="../../../src/vir_gen/deriver/common.rs.html#140">segments</a>[<span class="number">0</span>].<span class="ident">ident</span> <span class="op">=</span><span class="op">=</span> <a class="ident" href="../../../src/vir_gen/deriver/common.rs.html#135">main_type</a> {
+        <span class="kw">if</span> <a class="ident" href="../../../src/vir_gen/deriver/common.rs.html#140">segments</a>.<span class="ident">len</span>() <span class="op">==</span> <span class="number">1</span> <span class="op">&amp;&amp;</span> <a class="ident" href="../../../src/vir_gen/deriver/common.rs.html#140">segments</a>[<span class="number">0</span>].<span class="ident">ident</span> <span class="op">==</span> <a class="ident" href="../../../src/vir_gen/deriver/common.rs.html#135">main_type</a> {
             <span class="kw">if</span> <span class="kw">let</span> <span class="ident">syn::PathArguments::AngleBracketed</span>(<a class="ident" href="../../../syn/path/struct.AngleBracketedGenericArguments.html">syn::AngleBracketedGenericArguments</a> {
                 <span class="ident">args</span>,
                 ..
@@ -337,11 +337,11 @@
     }
 }
 
-<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">get_option_type_arg</span>(<span class="ident">ty</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../syn/ty/enum.Type.html">syn::Type</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><a class="ident" href="../../../proc_macro2/struct.Ident.html">syn::Ident</a><span class="op">&gt;</span> {
+<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">get_option_type_arg</span>(<span class="ident">ty</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../syn/ty/enum.Type.html">syn::Type</a>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><a class="ident" href="../../../proc_macro2/struct.Ident.html">syn::Ident</a><span class="op">&gt;</span> {
     <a class="ident" href="../../../src/vir_gen/deriver/common.rs.html#135">get_type_arg</a>(<a class="ident" href="../../../src/vir_gen/deriver/common.rs.html#167">ty</a>, <span class="string">&quot;Option&quot;</span>)
 }
 
-<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">get_vec_type_arg</span>(<span class="ident">ty</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../syn/ty/enum.Type.html">syn::Type</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><a class="ident" href="../../../proc_macro2/struct.Ident.html">syn::Ident</a><span class="op">&gt;</span> {
+<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">get_vec_type_arg</span>(<span class="ident">ty</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../syn/ty/enum.Type.html">syn::Type</a>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><a class="ident" href="../../../proc_macro2/struct.Ident.html">syn::Ident</a><span class="op">&gt;</span> {
     <a class="ident" href="../../../src/vir_gen/deriver/common.rs.html#135">get_type_arg</a>(<a class="ident" href="../../../src/vir_gen/deriver/common.rs.html#171">ty</a>, <span class="string">&quot;Vec&quot;</span>)
 }
 </code></pre></div>

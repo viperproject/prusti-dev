@@ -1,1 +1,1 @@
-initSidebarItems({"enum":[["WaitStatus","Possible return values from `wait()` or `waitpid()`."]],"fn":[["wait",""],["waitpid",""]],"struct":[["WaitPidFlag",""]]});
+initSidebarItems({"enum":[["WaitStatus","Possible return values from `wait()` or `waitpid()`."]],"fn":[["wait","Wait for any child process to change status or a signal is received."],["waitpid","Wait for a process to change status"]],"struct":[["WaitPidFlag","Controls the behavior of [`waitpid`]."]]});

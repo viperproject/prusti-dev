@@ -152,7 +152,7 @@
 };
 
 <span class="doccomment">/// Provides the hook to expand `#[derive(From)]` into an implementation of `From`</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">expand</span>(<span class="ident">input</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../syn/derive/struct.DeriveInput.html">DeriveInput</a>, <span class="ident">trait_name</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../proc_macro2/struct.TokenStream.html">TokenStream</a><span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">expand</span>(<span class="ident">input</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../syn/derive/struct.DeriveInput.html">DeriveInput</a>, <span class="ident">trait_name</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../proc_macro2/struct.TokenStream.html">TokenStream</a><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">state</span> <span class="op">=</span> <span class="ident">State::with_attr_params</span>(
         <a class="ident" href="../../src/derive_more/from.rs.html#13">input</a>,
         <a class="ident" href="../../src/derive_more/from.rs.html#13">trait_name</a>,
@@ -165,14 +165,14 @@
             <span class="ident">field</span>: <span class="macro">vec!</span>[<span class="string">&quot;forward&quot;</span>],
         },
     )<span class="question-mark">?</span>;
-    <span class="kw">if</span> <a class="ident" href="../../src/derive_more/from.rs.html#14">state</a>.<span class="ident">derive_type</span> <span class="op">=</span><span class="op">=</span> <a class="ident" href="../../src/derive_more/utils.rs.html#258">DeriveType::Enum</a> {
+    <span class="kw">if</span> <a class="ident" href="../../src/derive_more/from.rs.html#14">state</a>.<span class="ident">derive_type</span> <span class="op">==</span> <a class="ident" href="../../src/derive_more/utils.rs.html#258">DeriveType::Enum</a> {
         <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/derive_more/from.rs.html#107">enum_from</a>(<a class="ident" href="../../src/derive_more/from.rs.html#13">input</a>, <a class="ident" href="../../src/derive_more/from.rs.html#14">state</a>))
     } <span class="kw">else</span> {
         <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/derive_more/from.rs.html#33">struct_from</a>(<a class="ident" href="../../src/derive_more/from.rs.html#13">input</a>, <span class="kw-2">&amp;</span><a class="ident" href="../../src/derive_more/from.rs.html#14">state</a>))
     }
 }
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">struct_from</span>(<span class="ident">input</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../syn/derive/struct.DeriveInput.html">DeriveInput</a>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/derive_more/utils.rs.html#261-278">State</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="../../proc_macro2/struct.TokenStream.html">TokenStream</a> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">struct_from</span>(<span class="ident">input</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../syn/derive/struct.DeriveInput.html">DeriveInput</a>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/derive_more/utils.rs.html#261-278">State</a>) -&gt; <a class="ident" href="../../proc_macro2/struct.TokenStream.html">TokenStream</a> {
     <span class="kw">let</span> <span class="ident">multi_field_data</span> <span class="op">=</span> <a class="ident" href="../../src/derive_more/from.rs.html#33">state</a>.<a class="ident" href="../../src/derive_more/utils.rs.html#642">enabled_fields_data</a>();
     <span class="kw">let</span> <a class="ident" href="../../src/derive_more/utils.rs.html#809-828">MultiFieldData</a> {
         <span class="ident">fields</span>,
@@ -192,7 +192,7 @@
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">from_types</span> <span class="op">=</span> <span class="ident">Vec::with_capacity</span>(<a class="ident" href="../../src/derive_more/from.rs.html#38">infos</a>.<span class="ident">len</span>());
         <span class="kw">for</span> (<span class="ident">i</span>, (<span class="ident">info</span>, <span class="ident">field</span>)) <span class="kw">in</span> <a class="ident" href="../../src/derive_more/from.rs.html#38">infos</a>.<span class="ident">iter</span>().<span class="ident">zip</span>(<a class="ident" href="../../src/derive_more/from.rs.html#36">fields</a>.<span class="ident">iter</span>()).<span class="ident">enumerate</span>() {
             <span class="kw">let</span> <span class="ident">field_type</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="ident" href="../../src/derive_more/from.rs.html#51">field</a>.<span class="ident">ty</span>;
-            <span class="kw">let</span> <span class="ident">variable</span> <span class="op">=</span> <span class="kw">if</span> <a class="ident" href="../../src/derive_more/from.rs.html#36">fields</a>.<span class="ident">len</span>() <span class="op">=</span><span class="op">=</span> <span class="number">1</span> {
+            <span class="kw">let</span> <span class="ident">variable</span> <span class="op">=</span> <span class="kw">if</span> <a class="ident" href="../../src/derive_more/from.rs.html#36">fields</a>.<span class="ident">len</span>() <span class="op">==</span> <span class="number">1</span> {
                 <span class="macro">quote!</span> { <span class="ident">original</span> }
             } <span class="kw">else</span> {
                 <span class="kw">let</span> <span class="ident">tuple_index</span> <span class="op">=</span> <span class="ident">Index::from</span>(<a class="ident" href="../../src/derive_more/from.rs.html#51">i</a>);
@@ -236,7 +236,7 @@
                 #<span class="ident">input_type</span>#<span class="ident">ty_generics</span> #<span class="ident">where_clause</span> {
 
                 <span class="attribute">#[<span class="ident">inline</span>]</span>
-                <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">original</span>: (#(#<span class="ident">from_types</span>),<span class="kw-2">*</span>)) <span class="op">-</span><span class="op">&gt;</span> #<span class="ident">input_type</span>#<span class="ident">ty_generics</span> {
+                <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">original</span>: (#(#<span class="ident">from_types</span>),<span class="kw-2">*</span>)) -&gt; #<span class="ident">input_type</span>#<span class="ident">ty_generics</span> {
                     #<span class="ident">body</span>
                 }
             }
@@ -246,7 +246,7 @@
     <span class="macro">quote!</span> { #( #<span class="ident">impls</span> )<span class="op">*</span> }
 }
 
-<span class="kw">fn</span> <span class="ident">enum_from</span>(<span class="ident">input</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../syn/derive/struct.DeriveInput.html">DeriveInput</a>, <span class="ident">state</span>: <a class="ident" href="../../src/derive_more/utils.rs.html#261-278">State</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="../../proc_macro2/struct.TokenStream.html">TokenStream</a> {
+<span class="kw">fn</span> <span class="ident">enum_from</span>(<span class="ident">input</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../syn/derive/struct.DeriveInput.html">DeriveInput</a>, <span class="ident">state</span>: <a class="ident" href="../../src/derive_more/utils.rs.html#261-278">State</a>) -&gt; <a class="ident" href="../../proc_macro2/struct.TokenStream.html">TokenStream</a> {
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">tokens</span> <span class="op">=</span> <span class="ident">TokenStream::new</span>();
 
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">variants_per_types</span> <span class="op">=</span> <span class="ident">HashMap::default</span>();

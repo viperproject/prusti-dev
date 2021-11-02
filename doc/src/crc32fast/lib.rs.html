@@ -241,7 +241,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// This will perform a CPU feature detection at runtime to select the most</span>
     <span class="doccomment">/// optimal implementation for the current processor architecture.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="self">Self</span> {
         <span class="ident"><span class="self">Self</span>::new_with_initial</span>(<a class="ident" href="../../src/crc32fast/lib.rs.html#59">DEFAULT_INIT_STATE</a>)
     }
 
@@ -249,13 +249,13 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// This works just like `Hasher::new`, except that it allows for an initial</span>
     <span class="doccomment">/// CRC32 state to be passed in.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_with_initial</span>(<span class="ident">init</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_with_initial</span>(<span class="ident">init</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <span class="self">Self</span> {
         <span class="ident"><span class="self">Self</span>::internal_new_specialized</span>(<a class="ident" href="../../src/crc32fast/lib.rs.html#74">init</a>).<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident"><span class="self">Self</span>::internal_new_baseline</span>(<a class="ident" href="../../src/crc32fast/lib.rs.html#74">init</a>))
     }
 
     <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
     <span class="comment">// Internal-only API. Don&#39;t use.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">internal_new_baseline</span>(<span class="ident">init</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">internal_new_baseline</span>(<span class="ident">init</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <span class="self">Self</span> {
         <a class="ident" href="../../src/crc32fast/lib.rs.html#54-57">Hasher</a> {
             <span class="ident">amount</span>: <span class="number">0</span>,
             <span class="ident">state</span>: <a class="ident" href="../../src/crc32fast/lib.rs.html#48">State::Baseline</a>(<span class="ident">baseline::State::new</span>(<a class="ident" href="../../src/crc32fast/lib.rs.html#80">init</a>)),
@@ -264,7 +264,7 @@
 
     <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
     <span class="comment">// Internal-only API. Don&#39;t use.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">internal_new_specialized</span>(<span class="ident">init</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">internal_new_specialized</span>(<span class="ident">init</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
         {
             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">state</span>) <span class="op">=</span> <span class="ident">specialized::State::new</span>(<a class="ident" href="../../src/crc32fast/lib.rs.html#89">init</a>) {
                 <span class="kw">return</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../src/crc32fast/lib.rs.html#54-57">Hasher</a> {
@@ -280,16 +280,16 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">update</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) {
         <a class="self" href="../../src/crc32fast/lib.rs.html#102">self</a>.<span class="ident">amount</span> <span class="op">+</span><span class="op">=</span> <a class="ident" href="../../src/crc32fast/lib.rs.html#102">buf</a>.<span class="ident">len</span>() <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>;
         <span class="kw">match</span> <a class="self" href="../../src/crc32fast/lib.rs.html#102">self</a>.<span class="ident">state</span> {
-            <a class="ident" href="../../src/crc32fast/lib.rs.html#48">State::Baseline</a>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">state</span>) <span class="op">=</span><span class="op">&gt;</span> <a class="ident" href="../../src/crc32fast/lib.rs.html#105">state</a>.<a class="ident" href="../../src/crc32fast/baseline.rs.html#13">update</a>(<a class="ident" href="../../src/crc32fast/lib.rs.html#102">buf</a>),
-            <a class="ident" href="../../src/crc32fast/lib.rs.html#49">State::Specialized</a>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">state</span>) <span class="op">=</span><span class="op">&gt;</span> <a class="ident" href="../../src/crc32fast/lib.rs.html#106">state</a>.<a class="ident" href="../../src/crc32fast/specialized/pclmulqdq.rs.html#40">update</a>(<a class="ident" href="../../src/crc32fast/lib.rs.html#102">buf</a>),
+            <a class="ident" href="../../src/crc32fast/lib.rs.html#48">State::Baseline</a>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">state</span>) =&gt; <a class="ident" href="../../src/crc32fast/lib.rs.html#105">state</a>.<a class="ident" href="../../src/crc32fast/baseline.rs.html#13">update</a>(<a class="ident" href="../../src/crc32fast/lib.rs.html#102">buf</a>),
+            <a class="ident" href="../../src/crc32fast/lib.rs.html#49">State::Specialized</a>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">state</span>) =&gt; <a class="ident" href="../../src/crc32fast/lib.rs.html#106">state</a>.<a class="ident" href="../../src/crc32fast/specialized/pclmulqdq.rs.html#40">update</a>(<a class="ident" href="../../src/crc32fast/lib.rs.html#102">buf</a>),
         }
     }
 
     <span class="doccomment">/// Finalize the hash state and return the computed CRC32 value.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">finalize</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">finalize</span>(<span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
         <span class="kw">match</span> <a class="self" href="../../src/crc32fast/lib.rs.html#111">self</a>.<span class="ident">state</span> {
-            <a class="ident" href="../../src/crc32fast/lib.rs.html#48">State::Baseline</a>(<span class="ident">state</span>) <span class="op">=</span><span class="op">&gt;</span> <a class="ident" href="../../src/crc32fast/lib.rs.html#113">state</a>.<a class="ident" href="../../src/crc32fast/baseline.rs.html#17">finalize</a>(),
-            <a class="ident" href="../../src/crc32fast/lib.rs.html#49">State::Specialized</a>(<span class="ident">state</span>) <span class="op">=</span><span class="op">&gt;</span> <a class="ident" href="../../src/crc32fast/lib.rs.html#114">state</a>.<a class="ident" href="../../src/crc32fast/specialized/pclmulqdq.rs.html#46">finalize</a>(),
+            <a class="ident" href="../../src/crc32fast/lib.rs.html#48">State::Baseline</a>(<span class="ident">state</span>) =&gt; <a class="ident" href="../../src/crc32fast/lib.rs.html#113">state</a>.<a class="ident" href="../../src/crc32fast/baseline.rs.html#17">finalize</a>(),
+            <a class="ident" href="../../src/crc32fast/lib.rs.html#49">State::Specialized</a>(<span class="ident">state</span>) =&gt; <a class="ident" href="../../src/crc32fast/lib.rs.html#114">state</a>.<a class="ident" href="../../src/crc32fast/specialized/pclmulqdq.rs.html#46">finalize</a>(),
         }
     }
 
@@ -297,8 +297,8 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">reset</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) {
         <a class="self" href="../../src/crc32fast/lib.rs.html#119">self</a>.<span class="ident">amount</span> <span class="op">=</span> <span class="number">0</span>;
         <span class="kw">match</span> <a class="self" href="../../src/crc32fast/lib.rs.html#119">self</a>.<span class="ident">state</span> {
-            <a class="ident" href="../../src/crc32fast/lib.rs.html#48">State::Baseline</a>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">state</span>) <span class="op">=</span><span class="op">&gt;</span> <a class="ident" href="../../src/crc32fast/lib.rs.html#122">state</a>.<a class="ident" href="../../src/crc32fast/baseline.rs.html#21">reset</a>(),
-            <a class="ident" href="../../src/crc32fast/lib.rs.html#49">State::Specialized</a>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">state</span>) <span class="op">=</span><span class="op">&gt;</span> <a class="ident" href="../../src/crc32fast/lib.rs.html#123">state</a>.<a class="ident" href="../../src/crc32fast/specialized/pclmulqdq.rs.html#50">reset</a>(),
+            <a class="ident" href="../../src/crc32fast/lib.rs.html#48">State::Baseline</a>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">state</span>) =&gt; <a class="ident" href="../../src/crc32fast/lib.rs.html#122">state</a>.<a class="ident" href="../../src/crc32fast/baseline.rs.html#21">reset</a>(),
+            <a class="ident" href="../../src/crc32fast/lib.rs.html#49">State::Specialized</a>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">state</span>) =&gt; <a class="ident" href="../../src/crc32fast/lib.rs.html#123">state</a>.<a class="ident" href="../../src/crc32fast/specialized/pclmulqdq.rs.html#50">reset</a>(),
         }
     }
 
@@ -307,20 +307,20 @@
         <a class="self" href="../../src/crc32fast/lib.rs.html#128">self</a>.<span class="ident">amount</span> <span class="op">+</span><span class="op">=</span> <a class="ident" href="../../src/crc32fast/lib.rs.html#128">other</a>.<span class="ident">amount</span>;
         <span class="kw">let</span> <span class="ident">other_crc</span> <span class="op">=</span> <a class="ident" href="../../src/crc32fast/lib.rs.html#128">other</a>.<span class="ident">clone</span>().<a class="ident" href="../../src/crc32fast/lib.rs.html#111">finalize</a>();
         <span class="kw">match</span> <a class="self" href="../../src/crc32fast/lib.rs.html#128">self</a>.<span class="ident">state</span> {
-            <a class="ident" href="../../src/crc32fast/lib.rs.html#48">State::Baseline</a>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">state</span>) <span class="op">=</span><span class="op">&gt;</span> <a class="ident" href="../../src/crc32fast/lib.rs.html#132">state</a>.<a class="ident" href="../../src/crc32fast/baseline.rs.html#25">combine</a>(<a class="ident" href="../../src/crc32fast/lib.rs.html#130">other_crc</a>, <a class="ident" href="../../src/crc32fast/lib.rs.html#128">other</a>.<span class="ident">amount</span>),
-            <a class="ident" href="../../src/crc32fast/lib.rs.html#49">State::Specialized</a>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">state</span>) <span class="op">=</span><span class="op">&gt;</span> <a class="ident" href="../../src/crc32fast/lib.rs.html#133">state</a>.<a class="ident" href="../../src/crc32fast/specialized/pclmulqdq.rs.html#54">combine</a>(<a class="ident" href="../../src/crc32fast/lib.rs.html#130">other_crc</a>, <a class="ident" href="../../src/crc32fast/lib.rs.html#128">other</a>.<span class="ident">amount</span>),
+            <a class="ident" href="../../src/crc32fast/lib.rs.html#48">State::Baseline</a>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">state</span>) =&gt; <a class="ident" href="../../src/crc32fast/lib.rs.html#132">state</a>.<a class="ident" href="../../src/crc32fast/baseline.rs.html#25">combine</a>(<a class="ident" href="../../src/crc32fast/lib.rs.html#130">other_crc</a>, <a class="ident" href="../../src/crc32fast/lib.rs.html#128">other</a>.<span class="ident">amount</span>),
+            <a class="ident" href="../../src/crc32fast/lib.rs.html#49">State::Specialized</a>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">state</span>) =&gt; <a class="ident" href="../../src/crc32fast/lib.rs.html#133">state</a>.<a class="ident" href="../../src/crc32fast/specialized/pclmulqdq.rs.html#54">combine</a>(<a class="ident" href="../../src/crc32fast/lib.rs.html#130">other_crc</a>, <a class="ident" href="../../src/crc32fast/lib.rs.html#128">other</a>.<span class="ident">amount</span>),
         }
     }
 }
 
 <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <a class="ident" href="../../src/crc32fast/lib.rs.html#54-57">Hasher</a> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
         <a class="ident" href="../../src/crc32fast/lib.rs.html#139">f</a>.<span class="ident">debug_struct</span>(<span class="string">&quot;crc32fast::Hasher&quot;</span>).<span class="ident">finish</span>()
     }
 }
 
 <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for</span> <a class="ident" href="../../src/crc32fast/lib.rs.html#54-57">Hasher</a> {
-    <span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="self">Self</span> {
         <span class="ident"><span class="self">Self</span>::new</span>()
     }
 }
@@ -330,7 +330,7 @@
         <a class="self" href="../../src/crc32fast/lib.rs.html#151">self</a>.<a class="ident" href="../../src/crc32fast/lib.rs.html#102">update</a>(<a class="ident" href="../../src/crc32fast/lib.rs.html#151">bytes</a>)
     }
 
-    <span class="kw">fn</span> <span class="ident">finish</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
+    <span class="kw">fn</span> <span class="ident">finish</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
         <span class="ident">u64::from</span>(<a class="self" href="../../src/crc32fast/lib.rs.html#155">self</a>.<span class="ident">clone</span>().<a class="ident" href="../../src/crc32fast/lib.rs.html#111">finalize</a>())
     }
 }
@@ -340,7 +340,7 @@
     <span class="kw">use</span> <span class="ident"><span class="kw">super</span>::Hasher</span>;
 
     <span class="macro">quickcheck!</span> {
-        <span class="kw">fn</span> <span class="ident">combine</span>(<span class="ident">bytes_1</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>, <span class="ident">bytes_2</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+        <span class="kw">fn</span> <span class="ident">combine</span>(<span class="ident">bytes_1</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>, <span class="ident">bytes_2</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>) -&gt; <span class="ident">bool</span> {
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">hash_a</span> <span class="op">=</span> <span class="ident">Hasher::new</span>();
             <span class="ident">hash_a</span>.<span class="ident">update</span>(<span class="kw-2">&amp;</span><span class="ident">bytes_1</span>);
             <span class="ident">hash_a</span>.<span class="ident">update</span>(<span class="kw-2">&amp;</span><span class="ident">bytes_2</span>);
@@ -350,7 +350,7 @@
             <span class="ident">hash_c</span>.<span class="ident">update</span>(<span class="kw-2">&amp;</span><span class="ident">bytes_1</span>);
             <span class="ident">hash_c</span>.<span class="ident">combine</span>(<span class="kw-2">&amp;</span><span class="ident">hash_b</span>);
 
-            <span class="ident">hash_a</span>.<span class="ident">finalize</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">hash_c</span>.<span class="ident">finalize</span>()
+            <span class="ident">hash_a</span>.<span class="ident">finalize</span>() <span class="op">==</span> <span class="ident">hash_c</span>.<span class="ident">finalize</span>()
         }
     }
 }

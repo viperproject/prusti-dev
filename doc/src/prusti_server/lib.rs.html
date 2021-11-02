@@ -145,7 +145,7 @@
 }
 
 <span class="kw">impl</span> <a class="ident" href="../../src/prusti_server/lib.rs.html#41-45">PrustiServer</a> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">cache_size</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="../../src/prusti_server/lib.rs.html#41-45">PrustiServer</a> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">cache_size</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a class="ident" href="../../src/prusti_server/lib.rs.html#41-45">PrustiServer</a> {
         <span class="kw">let</span> <span class="ident">stopwatch</span> <span class="op">=</span> <span class="ident">Stopwatch::start</span>(<span class="string">&quot;prusti-server&quot;</span>, <span class="string">&quot;JVM startup&quot;</span>);
         <span class="kw">let</span> <span class="ident">verifier_builder</span> <span class="op">=</span> <span class="ident">Arc::new</span>(<span class="ident">VerifierBuilder::new</span>());
         <a class="ident" href="../../src/prusti_server/lib.rs.html#49">stopwatch</a>.<span class="ident">finish</span>();
@@ -157,13 +157,13 @@
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">run_verifier</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">request</span>: <a class="ident" href="../../prusti_common/verification_service/struct.VerificationRequest.html">VerificationRequest</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="../../src/prusti_server/lib.rs.html#39">RemoteVerificationResult</a> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">run_verifier</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">request</span>: <a class="ident" href="../../prusti_common/verification_service/struct.VerificationRequest.html">VerificationRequest</a>) -&gt; <a class="ident" href="../../src/prusti_server/lib.rs.html#39">RemoteVerificationResult</a> {
         <span class="comment">// try to find and take out an existing threads from our cache</span>
         <span class="kw">let</span> <span class="ident">existing_thread</span> <span class="op">=</span> {
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">threads</span> <span class="op">=</span> <a class="self" href="../../src/prusti_server/lib.rs.html#60">self</a>.<span class="ident">threads</span>.<span class="ident">write</span>().<span class="ident">unwrap</span>();
             <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <a class="ident" href="../../src/prusti_server/lib.rs.html#63">threads</a>
                 .<span class="ident">iter</span>()
-                .<span class="ident">position</span>(<span class="op">|</span><span class="ident">thread</span><span class="op">|</span> <a class="ident" href="../../src/prusti_server/lib.rs.html#66">thread</a>.<span class="ident">backend_config</span> <span class="op">=</span><span class="op">=</span> <a class="ident" href="../../src/prusti_server/lib.rs.html#60">request</a>.<span class="ident">backend_config</span>);
+                .<span class="ident">position</span>(<span class="op">|</span><span class="ident">thread</span><span class="op">|</span> <a class="ident" href="../../src/prusti_server/lib.rs.html#66">thread</a>.<span class="ident">backend_config</span> <span class="op">==</span> <a class="ident" href="../../src/prusti_server/lib.rs.html#60">request</a>.<span class="ident">backend_config</span>);
             <a class="ident" href="../../src/prusti_server/lib.rs.html#64">index</a>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">index</span><span class="op">|</span> <a class="ident" href="../../src/prusti_server/lib.rs.html#63">threads</a>.<span class="ident">remove</span>(<a class="ident" href="../../src/prusti_server/lib.rs.html#67">index</a>).<span class="ident">unwrap</span>())
         };
 
@@ -177,7 +177,7 @@
 
         <span class="kw">let</span> <span class="ident">program_name</span> <span class="op">=</span> <a class="ident" href="../../src/prusti_server/lib.rs.html#60">request</a>.<span class="ident">program</span>.<span class="ident">name</span>.<span class="ident">clone</span>();
         <span class="kw">match</span> <a class="ident" href="../../src/prusti_server/lib.rs.html#71">thread</a>.<a class="ident" href="../../src/prusti_server/verifier_thread.rs.html#69">verify</a>(<a class="ident" href="../../src/prusti_server/lib.rs.html#60">request</a>.<span class="ident">program</span>).<span class="ident">wait</span>() {
-            <span class="prelude-val">Ok</span>(<span class="ident">result</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="prelude-val">Ok</span>(<span class="ident">result</span>) =&gt; {
                 <span class="comment">// put back the thread for later reuse</span>
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">threads</span> <span class="op">=</span> <a class="self" href="../../src/prusti_server/lib.rs.html#60">self</a>.<span class="ident">threads</span>.<span class="ident">write</span>().<span class="ident">unwrap</span>();
                 <span class="kw">if</span> <a class="ident" href="../../src/prusti_server/lib.rs.html#82">threads</a>.<span class="ident">len</span>() <span class="op">&gt;</span><span class="op">=</span> <a class="self" href="../../src/prusti_server/lib.rs.html#60">self</a>.<span class="ident">cache_size</span> {
@@ -187,7 +187,7 @@
                 <a class="ident" href="../../src/prusti_server/lib.rs.html#82">threads</a>.<span class="ident">push_front</span>(<a class="ident" href="../../src/prusti_server/lib.rs.html#71">thread</a>);
                 <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/prusti_server/lib.rs.html#80">result</a>)
             }
-            <span class="prelude-val">Err</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; {
                 <span class="comment">// canceled—the verifier thread panicked</span>
                 <span class="macro">error!</span>(
                     <span class="string">&quot;Panic while handling verification request for {}&quot;</span>,

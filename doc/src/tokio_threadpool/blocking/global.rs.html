@@ -246,7 +246,7 @@
 <span class="doccomment">/// backwards-compatibility layer. In general, user code should not override the</span>
 <span class="doccomment">/// blocking implementation. If you use this, make sure you know what you&#39;re</span>
 <span class="doccomment">/// doing.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_default</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="ident">blocking</span>: <a class="ident" href="../../../src/tokio_threadpool/blocking/mod.rs.html#26">BlockingImpl</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">DefaultGuard</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_default</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="ident">blocking</span>: <a class="ident" href="../../../src/tokio_threadpool/blocking/mod.rs.html#26">BlockingImpl</a>) -&gt; <span class="ident">DefaultGuard</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
     <a class="ident" href="../../../src/tokio_threadpool/blocking/global.rs.html#8-10">CURRENT</a>.<span class="ident">with</span>(<span class="op">|</span><span class="ident">cell</span><span class="op">|</span> {
         <span class="kw">let</span> <span class="ident">prior</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio_threadpool/blocking/global.rs.html#32">cell</a>.<span class="ident">replace</span>(<a class="ident" href="../../../src/tokio_threadpool/blocking/global.rs.html#31">blocking</a>);
         <a class="ident" href="../../../src/tokio_threadpool/blocking/global.rs.html#19-22">DefaultGuard</a> {
@@ -262,9 +262,9 @@
 <span class="doccomment">/// backwards-compatibility layer. In general, user code should not override the</span>
 <span class="doccomment">/// blocking implementation. If you use this, make sure you know what you&#39;re</span>
 <span class="doccomment">/// doing.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">with_default</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">R</span><span class="op">&gt;</span>(<span class="ident">blocking</span>: <a class="ident" href="../../../src/tokio_threadpool/blocking/mod.rs.html#26">BlockingImpl</a>, <span class="ident">enter</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../../tokio_executor/enter/struct.Enter.html">Enter</a>, <span class="ident">f</span>: <span class="ident">F</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">R</span>
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">with_default</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">R</span><span class="op">&gt;</span>(<span class="ident">blocking</span>: <a class="ident" href="../../../src/tokio_threadpool/blocking/mod.rs.html#26">BlockingImpl</a>, <span class="ident">enter</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../../tokio_executor/enter/struct.Enter.html">Enter</a>, <span class="ident">f</span>: <span class="ident">F</span>) -&gt; <span class="ident">R</span>
 <span class="kw">where</span>
-    <span class="ident">F</span>: <span class="ident">FnOnce</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../../tokio_executor/enter/struct.Enter.html">Enter</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">R</span>,
+    <span class="ident">F</span>: <span class="ident">FnOnce</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../../tokio_executor/enter/struct.Enter.html">Enter</a>) -&gt; <span class="ident">R</span>,
 {
     <span class="kw">let</span> <span class="ident">_guard</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio_threadpool/blocking/global.rs.html#31">set_default</a>(<a class="ident" href="../../../src/tokio_threadpool/blocking/global.rs.html#47">blocking</a>);
     <a class="ident" href="../../../src/tokio_threadpool/blocking/global.rs.html#47">f</a>(<a class="ident" href="../../../src/tokio_threadpool/blocking/global.rs.html#47">enter</a>)
@@ -381,9 +381,9 @@
 <span class="doccomment">///     pool.shutdown_on_idle().wait().unwrap();</span>
 <span class="doccomment">/// }</span>
 <span class="doccomment">/// ```</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">blocking</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">f</span>: <span class="ident">F</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">T</span>, <a class="ident" href="../../../src/tokio_threadpool/blocking/mod.rs.html#15-17">BlockingError</a><span class="op">&gt;</span>
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">blocking</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">f</span>: <span class="ident">F</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">T</span>, <a class="ident" href="../../../src/tokio_threadpool/blocking/mod.rs.html#15-17">BlockingError</a><span class="op">&gt;</span>
 <span class="kw">where</span>
-    <span class="ident">F</span>: <span class="ident">FnOnce</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">T</span>,
+    <span class="ident">F</span>: <span class="ident">FnOnce</span>() -&gt; <span class="ident">T</span>,
 {
     <a class="ident" href="../../../src/tokio_threadpool/blocking/global.rs.html#8-10">CURRENT</a>.<span class="ident">with</span>(<span class="op">|</span><span class="ident">cell</span><span class="op">|</span> {
         <span class="kw">let</span> <span class="ident">blocking</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio_threadpool/blocking/global.rs.html#170">cell</a>.<span class="ident">get</span>();
@@ -420,7 +420,7 @@
 <span class="comment">// === impl DefaultGuard ===</span>
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <span class="ident">DefaultGuard</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
         <a class="ident" href="../../../src/tokio_threadpool/blocking/global.rs.html#205">f</a>.<span class="ident">pad</span>(<span class="string">&quot;DefaultGuard { .. }&quot;</span>)
     }
 }

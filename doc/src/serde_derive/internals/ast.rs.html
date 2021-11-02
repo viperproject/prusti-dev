@@ -266,16 +266,16 @@
         <span class="ident">cx</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/serde_derive/internals/ctxt.rs.html#13-17">Ctxt</a>,
         <span class="ident">item</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="../../../syn/derive/struct.DeriveInput.html">syn::DeriveInput</a>,
         <span class="ident">derive</span>: <a class="ident" href="../../../src/serde_derive/internals/mod.rs.html#18-21">Derive</a>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Container</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Container</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">attrs</span> <span class="op">=</span> <span class="ident">attr::Container::from_ast</span>(<a class="ident" href="../../../src/serde_derive/internals/ast.rs.html#64">cx</a>, <a class="ident" href="../../../src/serde_derive/internals/ast.rs.html#65">item</a>);
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">data</span> <span class="op">=</span> <span class="kw">match</span> <span class="kw-2">&amp;</span><a class="ident" href="../../../src/serde_derive/internals/ast.rs.html#65">item</a>.<span class="ident">data</span> {
-            <span class="ident">syn::Data::Enum</span>(<span class="ident">data</span>) <span class="op">=</span><span class="op">&gt;</span> <a class="ident" href="../../../src/serde_derive/internals/ast.rs.html#28">Data::Enum</a>(<a class="ident" href="../../../src/serde_derive/internals/ast.rs.html#138-142">enum_from_ast</a>(<a class="ident" href="../../../src/serde_derive/internals/ast.rs.html#64">cx</a>, <span class="kw-2">&amp;</span><a class="ident" href="../../../src/serde_derive/internals/ast.rs.html#71">data</a>.<span class="ident">variants</span>, <a class="ident" href="../../../src/serde_derive/internals/ast.rs.html#68">attrs</a>.<a class="ident" href="../../../src/serde_derive/internals/attr.rs.html#642">default</a>())),
-            <span class="ident">syn::Data::Struct</span>(<span class="ident">data</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">syn::Data::Enum</span>(<span class="ident">data</span>) =&gt; <a class="ident" href="../../../src/serde_derive/internals/ast.rs.html#28">Data::Enum</a>(<a class="ident" href="../../../src/serde_derive/internals/ast.rs.html#138-142">enum_from_ast</a>(<a class="ident" href="../../../src/serde_derive/internals/ast.rs.html#64">cx</a>, <span class="kw-2">&amp;</span><a class="ident" href="../../../src/serde_derive/internals/ast.rs.html#71">data</a>.<span class="ident">variants</span>, <a class="ident" href="../../../src/serde_derive/internals/ast.rs.html#68">attrs</a>.<a class="ident" href="../../../src/serde_derive/internals/attr.rs.html#642">default</a>())),
+            <span class="ident">syn::Data::Struct</span>(<span class="ident">data</span>) =&gt; {
                 <span class="kw">let</span> (<span class="ident">style</span>, <span class="ident">fields</span>) <span class="op">=</span> <a class="ident" href="../../../src/serde_derive/internals/ast.rs.html#160-165">struct_from_ast</a>(<a class="ident" href="../../../src/serde_derive/internals/ast.rs.html#64">cx</a>, <span class="kw-2">&amp;</span><a class="ident" href="../../../src/serde_derive/internals/ast.rs.html#72">data</a>.<span class="ident">fields</span>, <span class="prelude-val">None</span>, <a class="ident" href="../../../src/serde_derive/internals/ast.rs.html#68">attrs</a>.<a class="ident" href="../../../src/serde_derive/internals/attr.rs.html#642">default</a>());
                 <a class="ident" href="../../../src/serde_derive/internals/ast.rs.html#29">Data::Struct</a>(<a class="ident" href="../../../src/serde_derive/internals/ast.rs.html#73">style</a>, <a class="ident" href="../../../src/serde_derive/internals/ast.rs.html#73">fields</a>)
             }
-            <span class="ident">syn::Data::Union</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">syn::Data::Union</span>(<span class="kw">_</span>) =&gt; {
                 <a class="ident" href="../../../src/serde_derive/internals/ast.rs.html#64">cx</a>.<a class="ident" href="../../../src/serde_derive/internals/ctxt.rs.html#32">error_spanned_by</a>(<a class="ident" href="../../../src/serde_derive/internals/ast.rs.html#65">item</a>, <span class="string">&quot;Serde does not support derive for unions&quot;</span>);
                 <span class="kw">return</span> <span class="prelude-val">None</span>;
             }
@@ -283,7 +283,7 @@
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">has_flatten</span> <span class="op">=</span> <span class="bool-val">false</span>;
         <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../../src/serde_derive/internals/ast.rs.html#70">data</a> {
-            <a class="ident" href="../../../src/serde_derive/internals/ast.rs.html#28">Data::Enum</a>(<span class="ident">variants</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <a class="ident" href="../../../src/serde_derive/internals/ast.rs.html#28">Data::Enum</a>(<span class="ident">variants</span>) =&gt; {
                 <span class="kw">for</span> <a class="ident" href="../../../src/serde_derive/internals/ast.rs.html#85">variant</a> <span class="kw">in</span> <a class="ident" href="../../../src/serde_derive/internals/ast.rs.html#84">variants</a> {
                     <a class="ident" href="../../../src/serde_derive/internals/ast.rs.html#85">variant</a>.<span class="ident">attrs</span>.<a class="ident" href="../../../src/serde_derive/internals/attr.rs.html#1064">rename_by_rules</a>(<a class="ident" href="../../../src/serde_derive/internals/ast.rs.html#68">attrs</a>.<a class="ident" href="../../../src/serde_derive/internals/attr.rs.html#630">rename_all_rules</a>());
                     <span class="kw">for</span> <a class="ident" href="../../../src/serde_derive/internals/ast.rs.html#87">field</a> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../../src/serde_derive/internals/ast.rs.html#85">variant</a>.<span class="ident">fields</span> {
@@ -296,7 +296,7 @@
                     }
                 }
             }
-            <a class="ident" href="../../../src/serde_derive/internals/ast.rs.html#29">Data::Struct</a>(<span class="kw">_</span>, <span class="ident">fields</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <a class="ident" href="../../../src/serde_derive/internals/ast.rs.html#29">Data::Struct</a>(<span class="kw">_</span>, <span class="ident">fields</span>) =&gt; {
                 <span class="kw">for</span> <a class="ident" href="../../../src/serde_derive/internals/ast.rs.html#98">field</a> <span class="kw">in</span> <a class="ident" href="../../../src/serde_derive/internals/ast.rs.html#97">fields</a> {
                     <span class="kw">if</span> <a class="ident" href="../../../src/serde_derive/internals/ast.rs.html#98">field</a>.<span class="ident">attrs</span>.<a class="ident" href="../../../src/serde_derive/internals/attr.rs.html#1485">flatten</a>() {
                         <a class="ident" href="../../../src/serde_derive/internals/ast.rs.html#82">has_flatten</a> <span class="op">=</span> <span class="bool-val">true</span>;
@@ -323,16 +323,16 @@
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">Data</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">all_fields</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Field</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">all_fields</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="self">self</span>) -&gt; <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Field</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <a class="self" href="../../../src/serde_derive/internals/ast.rs.html#124">self</a> {
-            <a class="ident" href="../../../src/serde_derive/internals/ast.rs.html#28">Data::Enum</a>(<span class="ident">variants</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <a class="ident" href="../../../src/serde_derive/internals/ast.rs.html#28">Data::Enum</a>(<span class="ident">variants</span>) =&gt; {
                 <span class="ident">Box::new</span>(<a class="ident" href="../../../src/serde_derive/internals/ast.rs.html#126">variants</a>.<span class="ident">iter</span>().<span class="ident">flat_map</span>(<span class="op">|</span><span class="ident">variant</span><span class="op">|</span> <a class="ident" href="../../../src/serde_derive/internals/ast.rs.html#127">variant</a>.<span class="ident">fields</span>.<span class="ident">iter</span>()))
             }
-            <a class="ident" href="../../../src/serde_derive/internals/ast.rs.html#29">Data::Struct</a>(<span class="kw">_</span>, <span class="ident">fields</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Box::new</span>(<a class="ident" href="../../../src/serde_derive/internals/ast.rs.html#129">fields</a>.<span class="ident">iter</span>()),
+            <a class="ident" href="../../../src/serde_derive/internals/ast.rs.html#29">Data::Struct</a>(<span class="kw">_</span>, <span class="ident">fields</span>) =&gt; <span class="ident">Box::new</span>(<a class="ident" href="../../../src/serde_derive/internals/ast.rs.html#129">fields</a>.<span class="ident">iter</span>()),
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">has_getter</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">has_getter</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
         <a class="self" href="../../../src/serde_derive/internals/ast.rs.html#133">self</a>.<a class="ident" href="../../../src/serde_derive/internals/ast.rs.html#124">all_fields</a>().<span class="ident">any</span>(<span class="op">|</span><span class="ident">f</span><span class="op">|</span> <a class="ident" href="../../../src/serde_derive/internals/ast.rs.html#134">f</a>.<span class="ident">attrs</span>.<a class="ident" href="../../../src/serde_derive/internals/attr.rs.html#1481">getter</a>().<span class="ident">is_some</span>())
     }
 }
@@ -341,7 +341,7 @@
     <span class="ident">cx</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/serde_derive/internals/ctxt.rs.html#13-17">Ctxt</a>,
     <span class="ident">variants</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Punctuated</span><span class="op">&lt;</span><a class="ident" href="../../../syn/data/struct.Variant.html">syn::Variant</a>, <span class="macro">Token!</span>[,]<span class="op">&gt;</span>,
     <span class="ident">container_default</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/serde_derive/internals/attr.rs.html#1124-1131">attr::Default</a>,
-) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Variant</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Variant</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span> {
     <a class="ident" href="../../../src/serde_derive/internals/ast.rs.html#140">variants</a>
         .<span class="ident">iter</span>()
         .<span class="ident">map</span>(<span class="op">|</span><span class="ident">variant</span><span class="op">|</span> {
@@ -364,21 +364,21 @@
     <span class="ident">fields</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="../../../syn/data/enum.Fields.html">syn::Fields</a>,
     <span class="ident">attrs</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><a class="ident" href="../../../src/serde_derive/internals/attr.rs.html#845-856">attr::Variant</a><span class="op">&gt;</span>,
     <span class="ident">container_default</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/serde_derive/internals/attr.rs.html#1124-1131">attr::Default</a>,
-) <span class="op">-</span><span class="op">&gt;</span> (<a class="ident" href="../../../src/serde_derive/internals/ast.rs.html#50-59">Style</a>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Field</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span>) {
+) -&gt; (<a class="ident" href="../../../src/serde_derive/internals/ast.rs.html#50-59">Style</a>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Field</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span>) {
     <span class="kw">match</span> <a class="ident" href="../../../src/serde_derive/internals/ast.rs.html#162">fields</a> {
-        <span class="ident">syn::Fields::Named</span>(<span class="ident">fields</span>) <span class="op">=</span><span class="op">&gt;</span> (
+        <span class="ident">syn::Fields::Named</span>(<span class="ident">fields</span>) =&gt; (
             <a class="ident" href="../../../src/serde_derive/internals/ast.rs.html#52">Style::Struct</a>,
             <a class="ident" href="../../../src/serde_derive/internals/ast.rs.html#183-188">fields_from_ast</a>(<a class="ident" href="../../../src/serde_derive/internals/ast.rs.html#161">cx</a>, <span class="kw-2">&amp;</span><a class="ident" href="../../../src/serde_derive/internals/ast.rs.html#167">fields</a>.<span class="ident">named</span>, <a class="ident" href="../../../src/serde_derive/internals/ast.rs.html#163">attrs</a>, <a class="ident" href="../../../src/serde_derive/internals/ast.rs.html#164">container_default</a>),
         ),
-        <span class="ident">syn::Fields::Unnamed</span>(<span class="ident">fields</span>) <span class="kw">if</span> <a class="ident" href="../../../src/serde_derive/internals/ast.rs.html#171">fields</a>.<span class="ident">unnamed</span>.<span class="ident">len</span>() <span class="op">=</span><span class="op">=</span> <span class="number">1</span> <span class="op">=</span><span class="op">&gt;</span> (
+        <span class="ident">syn::Fields::Unnamed</span>(<span class="ident">fields</span>) <span class="kw">if</span> <a class="ident" href="../../../src/serde_derive/internals/ast.rs.html#171">fields</a>.<span class="ident">unnamed</span>.<span class="ident">len</span>() <span class="op">==</span> <span class="number">1</span> =&gt; (
             <a class="ident" href="../../../src/serde_derive/internals/ast.rs.html#56">Style::Newtype</a>,
             <a class="ident" href="../../../src/serde_derive/internals/ast.rs.html#183-188">fields_from_ast</a>(<a class="ident" href="../../../src/serde_derive/internals/ast.rs.html#161">cx</a>, <span class="kw-2">&amp;</span><a class="ident" href="../../../src/serde_derive/internals/ast.rs.html#171">fields</a>.<span class="ident">unnamed</span>, <a class="ident" href="../../../src/serde_derive/internals/ast.rs.html#163">attrs</a>, <a class="ident" href="../../../src/serde_derive/internals/ast.rs.html#164">container_default</a>),
         ),
-        <span class="ident">syn::Fields::Unnamed</span>(<span class="ident">fields</span>) <span class="op">=</span><span class="op">&gt;</span> (
+        <span class="ident">syn::Fields::Unnamed</span>(<span class="ident">fields</span>) =&gt; (
             <a class="ident" href="../../../src/serde_derive/internals/ast.rs.html#54">Style::Tuple</a>,
             <a class="ident" href="../../../src/serde_derive/internals/ast.rs.html#183-188">fields_from_ast</a>(<a class="ident" href="../../../src/serde_derive/internals/ast.rs.html#161">cx</a>, <span class="kw-2">&amp;</span><a class="ident" href="../../../src/serde_derive/internals/ast.rs.html#175">fields</a>.<span class="ident">unnamed</span>, <a class="ident" href="../../../src/serde_derive/internals/ast.rs.html#163">attrs</a>, <a class="ident" href="../../../src/serde_derive/internals/ast.rs.html#164">container_default</a>),
         ),
-        <span class="ident">syn::Fields::Unit</span> <span class="op">=</span><span class="op">&gt;</span> (<a class="ident" href="../../../src/serde_derive/internals/ast.rs.html#58">Style::Unit</a>, <span class="ident">Vec::new</span>()),
+        <span class="ident">syn::Fields::Unit</span> =&gt; (<a class="ident" href="../../../src/serde_derive/internals/ast.rs.html#58">Style::Unit</a>, <span class="ident">Vec::new</span>()),
     }
 }
 
@@ -387,14 +387,14 @@
     <span class="ident">fields</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Punctuated</span><span class="op">&lt;</span><a class="ident" href="../../../syn/data/struct.Field.html">syn::Field</a>, <span class="macro">Token!</span>[,]<span class="op">&gt;</span>,
     <span class="ident">attrs</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><a class="ident" href="../../../src/serde_derive/internals/attr.rs.html#845-856">attr::Variant</a><span class="op">&gt;</span>,
     <span class="ident">container_default</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/serde_derive/internals/attr.rs.html#1124-1131">attr::Default</a>,
-) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Field</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Field</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span> {
     <a class="ident" href="../../../src/serde_derive/internals/ast.rs.html#185">fields</a>
         .<span class="ident">iter</span>()
         .<span class="ident">enumerate</span>()
         .<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">i</span>, <span class="ident">field</span>)<span class="op">|</span> <a class="ident" href="../../../src/serde_derive/internals/ast.rs.html#42-47">Field</a> {
             <span class="ident">member</span>: <span class="kw">match</span> <span class="kw-2">&amp;</span><a class="ident" href="../../../src/serde_derive/internals/ast.rs.html#192">field</a>.<span class="ident">ident</span> {
-                <span class="prelude-val">Some</span>(<span class="ident">ident</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">syn::Member::Named</span>(<a class="ident" href="../../../src/serde_derive/internals/ast.rs.html#194">ident</a>.<span class="ident">clone</span>()),
-                <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">syn::Member::Unnamed</span>(<a class="ident" href="../../../src/serde_derive/internals/ast.rs.html#192">i</a>.<span class="ident">into</span>()),
+                <span class="prelude-val">Some</span>(<span class="ident">ident</span>) =&gt; <span class="ident">syn::Member::Named</span>(<a class="ident" href="../../../src/serde_derive/internals/ast.rs.html#194">ident</a>.<span class="ident">clone</span>()),
+                <span class="prelude-val">None</span> =&gt; <span class="ident">syn::Member::Unnamed</span>(<a class="ident" href="../../../src/serde_derive/internals/ast.rs.html#192">i</a>.<span class="ident">into</span>()),
             },
             <span class="ident">attrs</span>: <span class="ident">attr::Field::from_ast</span>(<a class="ident" href="../../../src/serde_derive/internals/ast.rs.html#184">cx</a>, <a class="ident" href="../../../src/serde_derive/internals/ast.rs.html#192">i</a>, <a class="ident" href="../../../src/serde_derive/internals/ast.rs.html#192">field</a>, <a class="ident" href="../../../src/serde_derive/internals/ast.rs.html#186">attrs</a>, <a class="ident" href="../../../src/serde_derive/internals/ast.rs.html#187">container_default</a>),
             <span class="ident">ty</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/serde_derive/internals/ast.rs.html#192">field</a>.<span class="ident">ty</span>,

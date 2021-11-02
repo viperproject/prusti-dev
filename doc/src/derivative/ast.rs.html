@@ -205,18 +205,18 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_ast</span>(
         <span class="ident">item</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="../../syn/derive/struct.DeriveInput.html">syn::DeriveInput</a>,
         <span class="ident">errors</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../proc_macro2/struct.TokenStream.html">proc_macro2::TokenStream</a>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Input</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>, ()<span class="op">&gt;</span> {
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Input</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>, ()<span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">attrs</span> <span class="op">=</span> <span class="ident">attr::Input::from_ast</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/derivative/ast.rs.html#46">item</a>.<span class="ident">attrs</span>, <a class="ident" href="../../src/derivative/ast.rs.html#47">errors</a>)<span class="question-mark">?</span>;
 
         <span class="kw">let</span> <span class="ident">body</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../src/derivative/ast.rs.html#46">item</a>.<span class="ident">data</span> {
-            <span class="ident">syn::Data::Enum</span>(<a class="ident" href="../../syn/derive/struct.DataEnum.html">syn::DataEnum</a> { <span class="kw-2">ref</span> <span class="ident">variants</span>, .. }) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">syn::Data::Enum</span>(<a class="ident" href="../../syn/derive/struct.DataEnum.html">syn::DataEnum</a> { <span class="kw-2">ref</span> <span class="ident">variants</span>, .. }) =&gt; {
                 <a class="ident" href="../../src/derivative/ast.rs.html#17">Body::Enum</a>(<a class="ident" href="../../src/derivative/ast.rs.html#112-115">enum_from_ast</a>(<a class="ident" href="../../src/derivative/ast.rs.html#52">variants</a>, <a class="ident" href="../../src/derivative/ast.rs.html#47">errors</a>)<span class="question-mark">?</span>)
             }
-            <span class="ident">syn::Data::Struct</span>(<a class="ident" href="../../syn/derive/struct.DataStruct.html">syn::DataStruct</a> { <span class="kw-2">ref</span> <span class="ident">fields</span>, .. }) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">syn::Data::Struct</span>(<a class="ident" href="../../syn/derive/struct.DataStruct.html">syn::DataStruct</a> { <span class="kw-2">ref</span> <span class="ident">fields</span>, .. }) =&gt; {
                 <span class="kw">let</span> (<span class="ident">style</span>, <span class="ident">fields</span>) <span class="op">=</span> <a class="ident" href="../../src/derivative/ast.rs.html#130-133">struct_from_ast</a>(<a class="ident" href="../../src/derivative/ast.rs.html#55">fields</a>, <a class="ident" href="../../src/derivative/ast.rs.html#47">errors</a>)<span class="question-mark">?</span>;
                 <a class="ident" href="../../src/derivative/ast.rs.html#18">Body::Struct</a>(<a class="ident" href="../../src/derivative/ast.rs.html#56">style</a>, <a class="ident" href="../../src/derivative/ast.rs.html#56">fields</a>)
             }
-            <span class="ident">syn::Data::Union</span>(..) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">syn::Data::Union</span>(..) =&gt; {
                 <a class="ident" href="../../src/derivative/ast.rs.html#47">errors</a>.<span class="ident">extend</span>(
                     <span class="ident">syn::Error::new_spanned</span>(<a class="ident" href="../../src/derivative/ast.rs.html#46">item</a>, <span class="string">&quot;derivative does not support unions&quot;</span>)
                         .<span class="ident">to_compile_error</span>(),
@@ -235,36 +235,36 @@
     }
 
     <span class="doccomment">/// Checks whether this type is an enum with only unit variants.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_trivial_enum</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_trivial_enum</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
         <span class="kw">match</span> <span class="kw-2">&amp;</span><a class="self" href="../../src/derivative/ast.rs.html#78">self</a>.<span class="ident">body</span> {
-            <a class="ident" href="../../src/derivative/ast.rs.html#17">Body::Enum</a>(<span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> <a class="ident" href="../../src/derivative/ast.rs.html#80">e</a>.<span class="ident">iter</span>().<span class="ident">all</span>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> <a class="ident" href="../../src/derivative/ast.rs.html#80">v</a>.<a class="ident" href="../../src/derivative/ast.rs.html#107">is_unit</a>()),
-            <a class="ident" href="../../src/derivative/ast.rs.html#18">Body::Struct</a>(..) <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
+            <a class="ident" href="../../src/derivative/ast.rs.html#17">Body::Enum</a>(<span class="ident">e</span>) =&gt; <a class="ident" href="../../src/derivative/ast.rs.html#80">e</a>.<span class="ident">iter</span>().<span class="ident">all</span>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> <a class="ident" href="../../src/derivative/ast.rs.html#80">v</a>.<a class="ident" href="../../src/derivative/ast.rs.html#107">is_unit</a>()),
+            <a class="ident" href="../../src/derivative/ast.rs.html#18">Body::Struct</a>(..) =&gt; <span class="bool-val">false</span>,
         }
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">Body</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">all_fields</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><a class="ident" href="../../src/derivative/ast.rs.html#30-35">Field</a><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">all_fields</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><a class="ident" href="../../src/derivative/ast.rs.html#30-35">Field</a><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="kw-2">*</span><a class="self" href="../../src/derivative/ast.rs.html#87">self</a> {
-            <a class="ident" href="../../src/derivative/ast.rs.html#17">Body::Enum</a>(<span class="kw-2">ref</span> <span class="ident">variants</span>) <span class="op">=</span><span class="op">&gt;</span> <a class="ident" href="../../src/derivative/ast.rs.html#89">variants</a>
+            <a class="ident" href="../../src/derivative/ast.rs.html#17">Body::Enum</a>(<span class="kw-2">ref</span> <span class="ident">variants</span>) =&gt; <a class="ident" href="../../src/derivative/ast.rs.html#89">variants</a>
                 .<span class="ident">iter</span>()
                 .<span class="ident">flat_map</span>(<span class="op">|</span><span class="ident">variant</span><span class="op">|</span> <a class="ident" href="../../src/derivative/ast.rs.html#91">variant</a>.<span class="ident">fields</span>.<span class="ident">iter</span>())
                 .<span class="ident">collect</span>(),
-            <a class="ident" href="../../src/derivative/ast.rs.html#18">Body::Struct</a>(<span class="kw">_</span>, <span class="kw-2">ref</span> <span class="ident">fields</span>) <span class="op">=</span><span class="op">&gt;</span> <a class="ident" href="../../src/derivative/ast.rs.html#93">fields</a>.<span class="ident">iter</span>().<span class="ident">collect</span>(),
+            <a class="ident" href="../../src/derivative/ast.rs.html#18">Body::Struct</a>(<span class="kw">_</span>, <span class="kw-2">ref</span> <span class="ident">fields</span>) =&gt; <a class="ident" href="../../src/derivative/ast.rs.html#93">fields</a>.<span class="ident">iter</span>().<span class="ident">collect</span>(),
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_empty</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_empty</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
         <span class="kw">match</span> <span class="kw-2">*</span><a class="self" href="../../src/derivative/ast.rs.html#97">self</a> {
-            <a class="ident" href="../../src/derivative/ast.rs.html#17">Body::Enum</a>(<span class="kw-2">ref</span> <span class="ident">variants</span>) <span class="op">=</span><span class="op">&gt;</span> <a class="ident" href="../../src/derivative/ast.rs.html#99">variants</a>.<span class="ident">is_empty</span>(),
-            <a class="ident" href="../../src/derivative/ast.rs.html#18">Body::Struct</a>(<span class="kw">_</span>, <span class="kw-2">ref</span> <span class="ident">fields</span>) <span class="op">=</span><span class="op">&gt;</span> <a class="ident" href="../../src/derivative/ast.rs.html#100">fields</a>.<span class="ident">is_empty</span>(),
+            <a class="ident" href="../../src/derivative/ast.rs.html#17">Body::Enum</a>(<span class="kw-2">ref</span> <span class="ident">variants</span>) =&gt; <a class="ident" href="../../src/derivative/ast.rs.html#99">variants</a>.<span class="ident">is_empty</span>(),
+            <a class="ident" href="../../src/derivative/ast.rs.html#18">Body::Struct</a>(<span class="kw">_</span>, <span class="kw-2">ref</span> <span class="ident">fields</span>) =&gt; <a class="ident" href="../../src/derivative/ast.rs.html#100">fields</a>.<span class="ident">is_empty</span>(),
         }
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">Variant</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
     <span class="doccomment">/// Checks whether this variant is a unit variant.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_unit</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_unit</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
         <a class="self" href="../../src/derivative/ast.rs.html#107">self</a>.<span class="ident">fields</span>.<span class="ident">is_empty</span>()
     }
 }
@@ -272,7 +272,7 @@
 <span class="kw">fn</span> <span class="ident">enum_from_ast</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(
     <span class="ident">variants</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">syn::punctuated::Punctuated</span><span class="op">&lt;</span><a class="ident" href="../../syn/data/struct.Variant.html">syn::Variant</a>, <a class="ident" href="../../syn/token/struct.Comma.html">syn::token::Comma</a><span class="op">&gt;</span>,
     <span class="ident">errors</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../proc_macro2/struct.TokenStream.html">proc_macro2::TokenStream</a>,
-) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Variant</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span>, ()<span class="op">&gt;</span> {
+) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Variant</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span>, ()<span class="op">&gt;</span> {
     <a class="ident" href="../../src/derivative/ast.rs.html#113">variants</a>
         .<span class="ident">iter</span>()
         .<span class="ident">map</span>(<span class="op">|</span><span class="ident">variant</span><span class="op">|</span> {
@@ -290,22 +290,22 @@
 <span class="kw">fn</span> <span class="ident">struct_from_ast</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(
     <span class="ident">fields</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="../../syn/data/enum.Fields.html">syn::Fields</a>,
     <span class="ident">errors</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../proc_macro2/struct.TokenStream.html">proc_macro2::TokenStream</a>,
-) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<a class="ident" href="../../src/derivative/ast.rs.html#38-42">Style</a>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Field</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span>), ()<span class="op">&gt;</span> {
+) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<a class="ident" href="../../src/derivative/ast.rs.html#38-42">Style</a>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Field</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span>), ()<span class="op">&gt;</span> {
     <span class="kw">match</span> <span class="kw-2">*</span><a class="ident" href="../../src/derivative/ast.rs.html#131">fields</a> {
-        <span class="ident">syn::Fields::Named</span>(<span class="kw-2">ref</span> <span class="ident">fields</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">syn::Fields::Named</span>(<span class="kw-2">ref</span> <span class="ident">fields</span>) =&gt; {
             <span class="prelude-val">Ok</span>((<a class="ident" href="../../src/derivative/ast.rs.html#39">Style::Struct</a>, <a class="ident" href="../../src/derivative/ast.rs.html#145-148">fields_from_ast</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/derivative/ast.rs.html#135">fields</a>.<span class="ident">named</span>, <a class="ident" href="../../src/derivative/ast.rs.html#132">errors</a>)<span class="question-mark">?</span>))
         }
-        <span class="ident">syn::Fields::Unnamed</span>(<span class="kw-2">ref</span> <span class="ident">fields</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">syn::Fields::Unnamed</span>(<span class="kw-2">ref</span> <span class="ident">fields</span>) =&gt; {
             <span class="prelude-val">Ok</span>((<a class="ident" href="../../src/derivative/ast.rs.html#40">Style::Tuple</a>, <a class="ident" href="../../src/derivative/ast.rs.html#145-148">fields_from_ast</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/derivative/ast.rs.html#138">fields</a>.<span class="ident">unnamed</span>, <a class="ident" href="../../src/derivative/ast.rs.html#132">errors</a>)<span class="question-mark">?</span>))
         }
-        <span class="ident">syn::Fields::Unit</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>((<a class="ident" href="../../src/derivative/ast.rs.html#41">Style::Unit</a>, <span class="ident">Vec::new</span>())),
+        <span class="ident">syn::Fields::Unit</span> =&gt; <span class="prelude-val">Ok</span>((<a class="ident" href="../../src/derivative/ast.rs.html#41">Style::Unit</a>, <span class="ident">Vec::new</span>())),
     }
 }
 
 <span class="kw">fn</span> <span class="ident">fields_from_ast</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(
     <span class="ident">fields</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">syn::punctuated::Punctuated</span><span class="op">&lt;</span><a class="ident" href="../../syn/data/struct.Field.html">syn::Field</a>, <a class="ident" href="../../syn/token/struct.Comma.html">syn::token::Comma</a><span class="op">&gt;</span>,
     <span class="ident">errors</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../proc_macro2/struct.TokenStream.html">proc_macro2::TokenStream</a>,
-) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Field</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span>, ()<span class="op">&gt;</span> {
+) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Field</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span>, ()<span class="op">&gt;</span> {
     <a class="ident" href="../../src/derivative/ast.rs.html#146">fields</a>
         .<span class="ident">iter</span>()
         .<span class="ident">map</span>(<span class="op">|</span><span class="ident">field</span><span class="op">|</span> {

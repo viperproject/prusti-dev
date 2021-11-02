@@ -136,7 +136,7 @@
 <span class="kw">use</span> <span class="ident">futures::executor</span>::{<a class="self" href="../../futures/executor/index.html">self</a>, <a class="ident" href="../../futures/task_impl/trait.Notify.html">Notify</a>};
 <span class="kw">use</span> <a class="ident" href="../../tokio_executor/index.html">tokio_executor</a>;
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">timeout</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="ident">fut</span>: <span class="ident">F</span>, <span class="ident">timeout</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">F::Item</span>, <span class="ident">Waited</span><span class="op">&lt;</span><span class="ident">F::Error</span><span class="op">&gt;</span><span class="op">&gt;</span>
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">timeout</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="ident">fut</span>: <span class="ident">F</span>, <span class="ident">timeout</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">F::Item</span>, <span class="ident">Waited</span><span class="op">&lt;</span><span class="ident">F::Error</span><span class="op">&gt;</span><span class="op">&gt;</span>
 <span class="kw">where</span>
     <span class="ident">F</span>: <a class="ident" href="../../futures/future/trait.Future.html">Future</a>,
 {
@@ -146,7 +146,7 @@
     })
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">stream</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>(<span class="ident">stream</span>: <span class="ident">S</span>, <span class="ident">timeout</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">WaitStream</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">stream</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>(<span class="ident">stream</span>: <span class="ident">S</span>, <span class="ident">timeout</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a><span class="op">&gt;</span>) -&gt; <span class="ident">WaitStream</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>
 <span class="kw">where</span> <span class="ident">S</span>: <a class="ident" href="../../futures/stream/trait.Stream.html">Stream</a> {
     <a class="ident" href="../../src/reqwest/wait.rs.html#40-43">WaitStream</a> {
         <span class="ident">stream</span>: <span class="ident">executor::spawn</span>(<a class="ident" href="../../src/reqwest/wait.rs.html#20">stream</a>),
@@ -161,7 +161,7 @@
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Waited</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">err</span>: <span class="ident">E</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Waited</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">err</span>: <span class="ident">E</span>) -&gt; <span class="ident">Waited</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span> {
         <a class="ident" href="../../src/reqwest/wait.rs.html#31">Waited::Inner</a>(<a class="ident" href="../../src/reqwest/wait.rs.html#35">err</a>)
     }
 }
@@ -175,15 +175,15 @@
 <span class="kw">where</span> <span class="ident">S</span>: <a class="ident" href="../../futures/stream/trait.Stream.html">Stream</a> {
     <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">S::Item</span>, <span class="ident">Waited</span><span class="op">&lt;</span><span class="ident">S::Error</span><span class="op">&gt;</span><span class="op">&gt;</span>;
 
-    <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <a class="ident" href="../../src/reqwest/wait.rs.html#74-76">block_on</a>(<a class="self" href="../../src/reqwest/wait.rs.html#49">self</a>.<span class="ident">timeout</span>, <span class="op">|</span><span class="ident">notify</span><span class="op">|</span> {
             <a class="self" href="../../src/reqwest/wait.rs.html#49">self</a>.<span class="ident">stream</span>.<span class="ident">poll_stream_notify</span>(<a class="ident" href="../../src/reqwest/wait.rs.html#50">notify</a>, <span class="number">0</span>)
         });
 
         <span class="kw">match</span> <a class="ident" href="../../src/reqwest/wait.rs.html#50">res</a> {
-            <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="ident">val</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(<a class="ident" href="../../src/reqwest/wait.rs.html#55">val</a>)),
-            <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
-            <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(<a class="ident" href="../../src/reqwest/wait.rs.html#57">err</a>)),
+            <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="ident">val</span>)) =&gt; <span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(<a class="ident" href="../../src/reqwest/wait.rs.html#55">val</a>)),
+            <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>) =&gt; <span class="prelude-val">None</span>,
+            <span class="prelude-val">Err</span>(<span class="ident">err</span>) =&gt; <span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(<a class="ident" href="../../src/reqwest/wait.rs.html#57">err</a>)),
         }
     }
 }
@@ -200,9 +200,9 @@
 
 <span class="kw">static</span> <span class="ident">ENTER_WARNED</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicBool.html">AtomicBool</a> <span class="op">=</span> <span class="ident">AtomicBool::new</span>(<span class="bool-val">false</span>);
 
-<span class="kw">fn</span> <span class="ident">block_on</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">U</span>, <span class="ident">E</span><span class="op">&gt;</span>(<span class="ident">timeout</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a><span class="op">&gt;</span>, <span class="kw-2">mut</span> <span class="ident">poll</span>: <span class="ident">F</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">U</span>, <span class="ident">Waited</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span><span class="op">&gt;</span>
+<span class="kw">fn</span> <span class="ident">block_on</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">U</span>, <span class="ident">E</span><span class="op">&gt;</span>(<span class="ident">timeout</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a><span class="op">&gt;</span>, <span class="kw-2">mut</span> <span class="ident">poll</span>: <span class="ident">F</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">U</span>, <span class="ident">Waited</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span><span class="op">&gt;</span>
 <span class="kw">where</span>
-    <span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><span class="ident">Arc</span><span class="op">&lt;</span><a class="ident" href="../../src/reqwest/wait.rs.html#62-64">ThreadNotify</a><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">U</span>, <span class="ident">E</span><span class="op">&gt;</span>,
+    <span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><span class="ident">Arc</span><span class="op">&lt;</span><a class="ident" href="../../src/reqwest/wait.rs.html#62-64">ThreadNotify</a><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">U</span>, <span class="ident">E</span><span class="op">&gt;</span>,
 {
     <span class="comment">// Check we&#39;re not already inside an `Executor`,</span>
     <span class="comment">// but for now, only log a warning if so.</span>
@@ -238,8 +238,8 @@
 
     <span class="kw">loop</span> {
         <span class="kw">match</span> <a class="ident" href="../../src/reqwest/wait.rs.html#74">poll</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/reqwest/wait.rs.html#106">notify</a>)<span class="question-mark">?</span> {
-            <span class="ident">Async::Ready</span>(<span class="ident">val</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/reqwest/wait.rs.html#112">val</a>),
-            <span class="ident">Async::NotReady</span> <span class="op">=</span><span class="op">&gt;</span> {}
+            <span class="ident">Async::Ready</span>(<span class="ident">val</span>) =&gt; <span class="kw">return</span> <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/reqwest/wait.rs.html#112">val</a>),
+            <span class="ident">Async::NotReady</span> =&gt; {}
         }
 
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">deadline</span>) <span class="op">=</span> <a class="ident" href="../../src/reqwest/wait.rs.html#103">deadline</a> {

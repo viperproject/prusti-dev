@@ -4,7 +4,7 @@ inter-process or thread communication channel.</p>
 <p>This channel may be created before forking the process and then one end used
 in each process, e.g. the parent process has the sending end to send command
 to the child process.</p>
-<h1 id="events" class="section-header"><a href="#events">Events</a></h1>
+<h2 id="events" class="section-header"><a href="#events">Events</a></h2>
 <p>The <a href="struct.Sender.html" title="Sender"><code>Sender</code></a> can be registered with <a href="../../struct.Interest.html#associatedconstant.WRITABLE"><code>WRITABLE</code></a> interest to receive
 <a href="../../event/struct.Event.html#method.is_writable">writable events</a>, the <a href="struct.Receiver.html" title="Receiver"><code>Receiver</code></a> with <a href="../../struct.Interest.html#associatedconstant.READABLE"><code>READABLE</code></a> interest. Once data is
 written to the <code>Sender</code> the <code>Receiver</code> will receive an <a href="../../event/struct.Event.html#method.is_readable">readable event</a>.</p>
@@ -13,10 +13,10 @@ is dropped. To check if the <code>Sender</code> is dropped you’ll need to chec
 <a href="../../event/struct.Event.html#method.is_read_closed"><code>is_read_closed</code></a> on events for the <code>Receiver</code>, if it returns true the
 <code>Sender</code> is dropped. On the <code>Sender</code> end check <a href="../../event/struct.Event.html#method.is_write_closed"><code>is_write_closed</code></a>, if it
 returns true the <code>Receiver</code> was dropped. Also see the second example below.</p>
-<h1 id="deregistering" class="section-header"><a href="#deregistering">Deregistering</a></h1>
+<h2 id="deregistering" class="section-header"><a href="#deregistering">Deregistering</a></h2>
 <p>Both <code>Sender</code> and <code>Receiver</code> will deregister themselves when dropped,
 <strong>iff</strong> the file descriptors are not duplicated (via <a href="https://pubs.opengroup.org/onlinepubs/9699919799/functions/dup.html"><code>dup(2)</code></a>).</p>
-<h1 id="examples" class="section-header"><a href="#examples">Examples</a></h1>
+<h2 id="examples" class="section-header"><a href="#examples">Examples</a></h2>
 <p>Simple example that writes data into the sending end and read it from the
 receiving end.</p>
 
@@ -47,7 +47,7 @@ receiving end.</p>
 
     <span class="kw">for</span> <span class="ident">event</span> <span class="kw">in</span> <span class="ident">events</span>.<span class="ident">iter</span>() {
         <span class="kw">match</span> <span class="ident">event</span>.<span class="ident">token</span>() {
-            <span class="ident">PIPE_SEND</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">sender</span>.<span class="ident">write</span>(<span class="ident">MSG</span>)
+            <span class="ident">PIPE_SEND</span> =&gt; <span class="ident">sender</span>.<span class="ident">write</span>(<span class="ident">MSG</span>)
                 .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">n</span><span class="op">|</span> <span class="kw">if</span> <span class="ident">n</span> <span class="op">!</span><span class="op">=</span> <span class="ident">MSG</span>.<span class="ident">len</span>() {
                         <span class="comment">// We&#39;ll consider a short write an error in this</span>
                         <span class="comment">// example. NOTE: we can&#39;t use `write_all` with</span>
@@ -56,7 +56,7 @@ receiving end.</p>
                     } <span class="kw">else</span> {
                         <span class="prelude-val">Ok</span>(())
                     })<span class="question-mark">?</span>,
-            <span class="ident">PIPE_RECV</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">PIPE_RECV</span> =&gt; {
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> [<span class="number">0</span>; <span class="number">11</span>];
                 <span class="kw">let</span> <span class="ident">n</span> <span class="op">=</span> <span class="ident">receiver</span>.<span class="ident">read</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">buf</span>)<span class="question-mark">?</span>;
                 <span class="macro">println!</span>(<span class="string">&quot;received: {:?}&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">buf</span>[<span class="number">0</span>..<span class="ident">n</span>]);
@@ -64,7 +64,7 @@ receiving end.</p>
                 <span class="macro">assert_eq!</span>(<span class="kw-2">&amp;</span><span class="ident">buf</span>, <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">MSG</span>);
                 <span class="kw">return</span> <span class="prelude-val">Ok</span>(());
             },
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable!</span>(),
+            <span class="kw">_</span> =&gt; <span class="macro">unreachable!</span>(),
         }
     }
 }</code></pre></div>
@@ -86,12 +86,12 @@ receiving end.</p>
 
 <span class="kw">for</span> <span class="ident">event</span> <span class="kw">in</span> <span class="ident">events</span>.<span class="ident">iter</span>() {
     <span class="kw">match</span> <span class="ident">event</span>.<span class="ident">token</span>() {
-        <span class="ident">PIPE_RECV</span> <span class="kw">if</span> <span class="ident">event</span>.<span class="ident">is_read_closed</span>() <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">PIPE_RECV</span> <span class="kw">if</span> <span class="ident">event</span>.<span class="ident">is_read_closed</span>() =&gt; {
             <span class="comment">// Detected that the sender was dropped.</span>
             <span class="macro">println!</span>(<span class="string">&quot;Sender dropped!&quot;</span>);
             <span class="kw">return</span> <span class="prelude-val">Ok</span>(());
         },
-        <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable!</span>(),
+        <span class="kw">_</span> =&gt; <span class="macro">unreachable!</span>(),
     }
 }</code></pre></div>
 </div></details></section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="mio" data-search-index-js="../../../search-index.js" data-search-js="../../../search.js"></div>

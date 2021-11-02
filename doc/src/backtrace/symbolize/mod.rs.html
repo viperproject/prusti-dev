@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;backtrace-0.3.61&#x2F;src&#x2F;symbolize&#x2F;mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../backtrace/index.html'><div class='logo-container rust-logo'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;backtrace-0.3.63&#x2F;src&#x2F;symbolize&#x2F;mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../backtrace/index.html'><div class='logo-container rust-logo'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -482,6 +482,7 @@
 <span id="482">482</span>
 <span id="483">483</span>
 <span id="484">484</span>
+<span id="485">485</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">core</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/index.html">fmt</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/str/index.html">str</a>};
 
 <span class="macro">cfg_if::cfg_if!</span> {
@@ -550,7 +551,7 @@
 <span class="doccomment">/// Resolve a previously capture frame to a symbol, passing the symbol to the</span>
 <span class="doccomment">/// specified closure.</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// This functin performs the same function as `resolve` except that it takes a</span>
+<span class="doccomment">/// This function performs the same function as `resolve` except that it takes a</span>
 <span class="doccomment">/// `Frame` as an argument instead of an address. This can allow some platform</span>
 <span class="doccomment">/// implementations of backtracing to provide more accurate symbol information</span>
 <span class="doccomment">/// or information about inline frames for example. It&#39;s recommended to use this</span>
@@ -596,10 +597,10 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">ResolveWhat</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
     <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">dead_code</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">address_or_ip</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a> {
+    <span class="kw">fn</span> <span class="ident">address_or_ip</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">*</span><span class="kw-2">mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a> {
         <span class="kw">match</span> <a class="self" href="../../../src/backtrace/symbolize/mod.rs.html#115">self</a> {
-            <a class="ident" href="../../../src/backtrace/symbolize/mod.rs.html#109">ResolveWhat::Address</a>(<span class="ident">a</span>) <span class="op">=</span><span class="op">&gt;</span> <a class="ident" href="../../../src/backtrace/symbolize/mod.rs.html#141">adjust_ip</a>(<span class="kw-2">*</span><a class="ident" href="../../../src/backtrace/symbolize/mod.rs.html#117">a</a>),
-            <a class="ident" href="../../../src/backtrace/symbolize/mod.rs.html#110">ResolveWhat::Frame</a>(<span class="ident">f</span>) <span class="op">=</span><span class="op">&gt;</span> <a class="ident" href="../../../src/backtrace/symbolize/mod.rs.html#141">adjust_ip</a>(<a class="ident" href="../../../src/backtrace/symbolize/mod.rs.html#118">f</a>.<a class="ident" href="../../../src/backtrace/backtrace/mod.rs.html#89">ip</a>()),
+            <a class="ident" href="../../../src/backtrace/symbolize/mod.rs.html#109">ResolveWhat::Address</a>(<span class="ident">a</span>) =&gt; <a class="ident" href="../../../src/backtrace/symbolize/mod.rs.html#141">adjust_ip</a>(<span class="kw-2">*</span><a class="ident" href="../../../src/backtrace/symbolize/mod.rs.html#117">a</a>),
+            <a class="ident" href="../../../src/backtrace/symbolize/mod.rs.html#110">ResolveWhat::Frame</a>(<span class="ident">f</span>) =&gt; <a class="ident" href="../../../src/backtrace/symbolize/mod.rs.html#141">adjust_ip</a>(<a class="ident" href="../../../src/backtrace/symbolize/mod.rs.html#118">f</a>.<a class="ident" href="../../../src/backtrace/backtrace/mod.rs.html#89">ip</a>()),
         }
     }
 }
@@ -622,7 +623,7 @@
 <span class="comment">// For now though this is a pretty niche concern so we just internally always</span>
 <span class="comment">// subtract one. Consumers should keep working and getting pretty good results,</span>
 <span class="comment">// so we should be good enough.</span>
-<span class="kw">fn</span> <span class="ident">adjust_ip</span>(<span class="ident">a</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a> {
+<span class="kw">fn</span> <span class="ident">adjust_ip</span>(<span class="ident">a</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>) -&gt; <span class="kw-2">*</span><span class="kw-2">mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a> {
     <span class="kw">if</span> <a class="ident" href="../../../src/backtrace/symbolize/mod.rs.html#141">a</a>.<span class="ident">is_null</span>() {
         <a class="ident" href="../../../src/backtrace/symbolize/mod.rs.html#141">a</a>
     } <span class="kw">else</span> {
@@ -643,7 +644,7 @@
 <span class="kw">where</span>
     <span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/backtrace/symbolize/mod.rs.html#190-195">Symbol</a>),
 {
-    <a class="ident" href="../../../src/backtrace/symbolize/gimli.rs.html#335">imp::resolve</a>(<a class="ident" href="../../../src/backtrace/symbolize/mod.rs.html#109">ResolveWhat::Address</a>(<a class="ident" href="../../../src/backtrace/symbolize/mod.rs.html#158">addr</a>), <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../../src/backtrace/symbolize/mod.rs.html#158">cb</a>)
+    <a class="ident" href="../../../src/backtrace/symbolize/gimli.rs.html#336">imp::resolve</a>(<a class="ident" href="../../../src/backtrace/symbolize/mod.rs.html#109">ResolveWhat::Address</a>(<a class="ident" href="../../../src/backtrace/symbolize/mod.rs.html#158">addr</a>), <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../../src/backtrace/symbolize/mod.rs.html#158">cb</a>)
 }
 
 <span class="doccomment">/// Same as `resolve_frame`, only unsafe as it&#39;s unsynchronized.</span>
@@ -659,7 +660,7 @@
 <span class="kw">where</span>
     <span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/backtrace/symbolize/mod.rs.html#190-195">Symbol</a>),
 {
-    <a class="ident" href="../../../src/backtrace/symbolize/gimli.rs.html#335">imp::resolve</a>(<a class="ident" href="../../../src/backtrace/symbolize/mod.rs.html#110">ResolveWhat::Frame</a>(<a class="ident" href="../../../src/backtrace/symbolize/mod.rs.html#174">frame</a>), <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../../src/backtrace/symbolize/mod.rs.html#174">cb</a>)
+    <a class="ident" href="../../../src/backtrace/symbolize/gimli.rs.html#336">imp::resolve</a>(<a class="ident" href="../../../src/backtrace/symbolize/mod.rs.html#110">ResolveWhat::Frame</a>(<a class="ident" href="../../../src/backtrace/symbolize/mod.rs.html#174">frame</a>), <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../../src/backtrace/symbolize/mod.rs.html#174">cb</a>)
 }
 
 <span class="doccomment">/// A trait representing the resolution of a symbol in a file.</span>
@@ -688,35 +689,35 @@
     <span class="doccomment">/// * The raw `str` value of the symbol can be accessed (if it&#39;s valid</span>
     <span class="doccomment">///   utf-8).</span>
     <span class="doccomment">/// * The raw bytes for the symbol name can be accessed.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">name</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">SymbolName</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <a class="self" href="../../../src/backtrace/symbolize/mod.rs.html#207">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../src/backtrace/symbolize/gimli.rs.html#411">name</a>()
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">name</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">SymbolName</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+        <a class="self" href="../../../src/backtrace/symbolize/mod.rs.html#207">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../src/backtrace/symbolize/gimli.rs.html#412">name</a>()
     }
 
     <span class="doccomment">/// Returns the starting address of this function.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">addr</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">*</span><span class="kw-2">mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a><span class="op">&gt;</span> {
-        <a class="self" href="../../../src/backtrace/symbolize/mod.rs.html#212">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../src/backtrace/symbolize/gimli.rs.html#421">addr</a>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">p</span><span class="op">|</span> <a class="ident" href="../../../src/backtrace/symbolize/mod.rs.html#213">p</a> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw">_</span>)
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">addr</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">*</span><span class="kw-2">mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a><span class="op">&gt;</span> {
+        <a class="self" href="../../../src/backtrace/symbolize/mod.rs.html#212">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../src/backtrace/symbolize/gimli.rs.html#422">addr</a>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">p</span><span class="op">|</span> <a class="ident" href="../../../src/backtrace/symbolize/mod.rs.html#213">p</a> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw">_</span>)
     }
 
     <span class="doccomment">/// Returns the raw filename as a slice. This is mainly useful for `no_std`</span>
     <span class="doccomment">/// environments.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">filename_raw</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">BytesOrWideString</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <a class="self" href="../../../src/backtrace/symbolize/mod.rs.html#218">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../src/backtrace/symbolize/gimli.rs.html#428">filename_raw</a>()
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">filename_raw</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">BytesOrWideString</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+        <a class="self" href="../../../src/backtrace/symbolize/mod.rs.html#218">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../src/backtrace/symbolize/gimli.rs.html#429">filename_raw</a>()
     }
 
     <span class="doccomment">/// Returns the column number for where this symbol is currently executing.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Only gimli currently provides a value here and even then only if `filename`</span>
     <span class="doccomment">/// returns `Some`, and so it is then consequently subject to similar caveats.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">colno</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a><span class="op">&gt;</span> {
-        <a class="self" href="../../../src/backtrace/symbolize/mod.rs.html#226">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../src/backtrace/symbolize/gimli.rs.html#455">colno</a>()
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">colno</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a><span class="op">&gt;</span> {
+        <a class="self" href="../../../src/backtrace/symbolize/mod.rs.html#226">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../src/backtrace/symbolize/gimli.rs.html#456">colno</a>()
     }
 
     <span class="doccomment">/// Returns the line number for where this symbol is currently executing.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// This return value is typically `Some` if `filename` returns `Some`, and</span>
     <span class="doccomment">/// is consequently subject to similar caveats.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">lineno</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a><span class="op">&gt;</span> {
-        <a class="self" href="../../../src/backtrace/symbolize/mod.rs.html#234">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../src/backtrace/symbolize/gimli.rs.html#448">lineno</a>()
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">lineno</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a><span class="op">&gt;</span> {
+        <a class="self" href="../../../src/backtrace/symbolize/mod.rs.html#234">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../src/backtrace/symbolize/gimli.rs.html#449">lineno</a>()
     }
 
     <span class="doccomment">/// Returns the file name where this function was defined.</span>
@@ -732,13 +733,13 @@
     <span class="doccomment">/// enabled, and the `std` feature is enabled by default.</span>
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)]</span>
     <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">unreachable_code</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">filename</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a><span class="op">&gt;</span> {
-        <a class="self" href="../../../src/backtrace/symbolize/mod.rs.html#251">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../src/backtrace/symbolize/gimli.rs.html#438">filename</a>()
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">filename</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a><span class="op">&gt;</span> {
+        <a class="self" href="../../../src/backtrace/symbolize/mod.rs.html#251">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../src/backtrace/symbolize/gimli.rs.html#439">filename</a>()
     }
 }
 
 <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <a class="ident" href="../../../src/backtrace/symbolize/mod.rs.html#190-195">Symbol</a> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">d</span> <span class="op">=</span> <a class="ident" href="../../../src/backtrace/symbolize/mod.rs.html#257">f</a>.<span class="ident">debug_struct</span>(<span class="string">&quot;Symbol&quot;</span>);
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">name</span>) <span class="op">=</span> <a class="self" href="../../../src/backtrace/symbolize/mod.rs.html#257">self</a>.<a class="ident" href="../../../src/backtrace/symbolize/mod.rs.html#207">name</a>() {
             <a class="ident" href="../../../src/backtrace/symbolize/mod.rs.html#258">d</a>.<span class="ident">field</span>(<span class="string">&quot;name&quot;</span>, <span class="kw-2">&amp;</span><a class="ident" href="../../../src/backtrace/symbolize/mod.rs.html#259">name</a>);
@@ -768,11 +769,11 @@
         <span class="kw">struct</span> <span class="ident">OptionCppSymbol</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">::cpp_demangle::BorrowedSymbol</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span>);
 
         <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">OptionCppSymbol</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-            <span class="kw">fn</span> <span class="ident">parse</span>(<span class="ident">input</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">OptionCppSymbol</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
+            <span class="kw">fn</span> <span class="ident">parse</span>(<span class="ident">input</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<span class="ident">u8</span>]) -&gt; <span class="ident">OptionCppSymbol</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
                 <span class="ident">OptionCppSymbol</span>(<span class="ident">::cpp_demangle::BorrowedSymbol::new</span>(<span class="ident">input</span>).<span class="ident">ok</span>())
             }
 
-            <span class="kw">fn</span> <span class="ident">none</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">OptionCppSymbol</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
+            <span class="kw">fn</span> <span class="ident">none</span>() -&gt; <span class="ident">OptionCppSymbol</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
                 <span class="ident">OptionCppSymbol</span>(<span class="prelude-val">None</span>)
             }
         }
@@ -784,11 +785,11 @@
         <span class="kw">struct</span> <span class="ident">OptionCppSymbol</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="ident">PhantomData</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> ()<span class="op">&gt;</span>);
 
         <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">OptionCppSymbol</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-            <span class="kw">fn</span> <span class="ident">parse</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">OptionCppSymbol</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
+            <span class="kw">fn</span> <span class="ident">parse</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="ident">OptionCppSymbol</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
                 <a class="ident" href="../../../src/backtrace/symbolize/mod.rs.html#300">OptionCppSymbol</a>(<span class="ident">PhantomData</span>)
             }
 
-            <span class="kw">fn</span> <span class="ident">none</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">OptionCppSymbol</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
+            <span class="kw">fn</span> <span class="ident">none</span>() -&gt; <span class="ident">OptionCppSymbol</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
                 <a class="ident" href="../../../src/backtrace/symbolize/mod.rs.html#300">OptionCppSymbol</a>(<span class="ident">PhantomData</span>)
             }
         }
@@ -807,7 +808,7 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">SymbolName</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
     <span class="doccomment">/// Creates a new symbol name from the raw underlying bytes.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">bytes</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">SymbolName</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">bytes</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="ident">SymbolName</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">str_bytes</span> <span class="op">=</span> <span class="ident">str::from_utf8</span>(<a class="ident" href="../../../src/backtrace/symbolize/mod.rs.html#326">bytes</a>).<span class="ident">ok</span>();
         <span class="kw">let</span> <span class="ident">demangled</span> <span class="op">=</span> <a class="ident" href="../../../src/backtrace/symbolize/mod.rs.html#327">str_bytes</a>.<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">s</span><span class="op">|</span> <a class="ident" href="../../../rustc_demangle/fn.try_demangle.html">try_demangle</a>(<a class="ident" href="../../../src/backtrace/symbolize/mod.rs.html#328">s</a>).<span class="ident">ok</span>());
 
@@ -827,7 +828,7 @@
     <span class="doccomment">/// Returns the raw (mangled) symbol name as a `str` if the symbol is valid utf-8.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Use the `Display` implementation if you want the demangled version.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_str</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_str</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a><span class="op">&gt;</span> {
         <a class="self" href="../../../src/backtrace/symbolize/mod.rs.html#346">self</a>.<span class="ident">demangled</span>
             .<span class="ident">as_ref</span>()
             .<span class="ident">map</span>(<span class="op">|</span><span class="ident">s</span><span class="op">|</span> <a class="ident" href="../../../src/backtrace/symbolize/mod.rs.html#349">s</a>.<span class="ident">as_str</span>())
@@ -835,28 +836,28 @@
     }
 
     <span class="doccomment">/// Returns the raw symbol name as a list of bytes</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_bytes</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_bytes</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] {
         <a class="self" href="../../../src/backtrace/symbolize/mod.rs.html#354">self</a>.<span class="ident">bytes</span>
     }
 }
 
 <span class="kw">fn</span> <span class="ident">format_symbol_name</span>(
-    <span class="ident">fmt</span>: <span class="kw">fn</span>(<span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a>,
+    <span class="ident">fmt</span>: <span class="kw">fn</span>(<span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a>,
     <span class="kw-2">mut</span> <span class="ident">bytes</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
     <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
-) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
     <span class="kw">while</span> <a class="ident" href="../../../src/backtrace/symbolize/mod.rs.html#361">bytes</a>.<span class="ident">len</span>() <span class="op">&gt;</span> <span class="number">0</span> {
         <span class="kw">match</span> <span class="ident">str::from_utf8</span>(<a class="ident" href="../../../src/backtrace/symbolize/mod.rs.html#361">bytes</a>) {
-            <span class="prelude-val">Ok</span>(<span class="ident">name</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="prelude-val">Ok</span>(<span class="ident">name</span>) =&gt; {
                 <a class="ident" href="../../../src/backtrace/symbolize/mod.rs.html#360">fmt</a>(<a class="ident" href="../../../src/backtrace/symbolize/mod.rs.html#366">name</a>, <a class="ident" href="../../../src/backtrace/symbolize/mod.rs.html#362">f</a>)<span class="question-mark">?</span>;
                 <span class="kw">break</span>;
             }
-            <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="prelude-val">Err</span>(<span class="ident">err</span>) =&gt; {
                 <a class="ident" href="../../../src/backtrace/symbolize/mod.rs.html#360">fmt</a>(<span class="string">&quot;\u{FFFD}&quot;</span>, <a class="ident" href="../../../src/backtrace/symbolize/mod.rs.html#362">f</a>)<span class="question-mark">?</span>;
 
                 <span class="kw">match</span> <a class="ident" href="../../../src/backtrace/symbolize/mod.rs.html#370">err</a>.<span class="ident">error_len</span>() {
-                    <span class="prelude-val">Some</span>(<span class="ident">len</span>) <span class="op">=</span><span class="op">&gt;</span> <a class="ident" href="../../../src/backtrace/symbolize/mod.rs.html#361">bytes</a> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="ident" href="../../../src/backtrace/symbolize/mod.rs.html#361">bytes</a>[<a class="ident" href="../../../src/backtrace/symbolize/mod.rs.html#370">err</a>.<span class="ident">valid_up_to</span>() <span class="op">+</span> <a class="ident" href="../../../src/backtrace/symbolize/mod.rs.html#374">len</a>..],
-                    <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">break</span>,
+                    <span class="prelude-val">Some</span>(<span class="ident">len</span>) =&gt; <a class="ident" href="../../../src/backtrace/symbolize/mod.rs.html#361">bytes</a> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="ident" href="../../../src/backtrace/symbolize/mod.rs.html#361">bytes</a>[<a class="ident" href="../../../src/backtrace/symbolize/mod.rs.html#370">err</a>.<span class="ident">valid_up_to</span>() <span class="op">+</span> <a class="ident" href="../../../src/backtrace/symbolize/mod.rs.html#374">len</a>..],
+                    <span class="prelude-val">None</span> =&gt; <span class="kw">break</span>,
                 }
             }
         }
@@ -867,7 +868,7 @@
 <span class="macro">cfg_if::cfg_if!</span> {
     <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;cpp_demangle&quot;</span>)]</span> {
         <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">fmt::Display</span> <span class="kw">for</span> <span class="ident">SymbolName</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-            <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
+            <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
                 <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">s</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">demangled</span> {
                     <span class="ident">s</span>.<span class="ident">fmt</span>(<span class="ident">f</span>)
                 } <span class="kw">else</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">cpp</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">cpp_demangled</span>.<span class="number">0</span> {
@@ -879,7 +880,7 @@
         }
     } <span class="kw">else</span> {
         <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for</span> <span class="ident">SymbolName</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-            <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+            <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
                 <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">s</span>) <span class="op">=</span> <a class="self" href="../../../src/backtrace/symbolize/mod.rs.html#398">self</a>.<span class="ident">demangled</span> {
                     <a class="ident" href="../../../src/backtrace/symbolize/mod.rs.html#399">s</a>.<span class="ident">fmt</span>(<a class="ident" href="../../../src/backtrace/symbolize/mod.rs.html#398">f</a>)
                 } <span class="kw">else</span> {
@@ -893,7 +894,7 @@
 <span class="macro">cfg_if::cfg_if!</span> {
     <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;cpp_demangle&quot;</span>))]</span> {
         <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">fmt::Debug</span> <span class="kw">for</span> <span class="ident">SymbolName</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-            <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
+            <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
                 <span class="kw">use</span> <span class="ident">std::fmt::Write</span>;
 
                 <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">s</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">demangled</span> {
@@ -915,7 +916,7 @@
         }
     } <span class="kw">else</span> {
         <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <span class="ident">SymbolName</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-            <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+            <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
                 <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">s</span>) <span class="op">=</span> <a class="self" href="../../../src/backtrace/symbolize/mod.rs.html#434">self</a>.<span class="ident">demangled</span> {
                     <a class="ident" href="../../../src/backtrace/symbolize/mod.rs.html#435">s</a>.<span class="ident">fmt</span>(<a class="ident" href="../../../src/backtrace/symbolize/mod.rs.html#434">f</a>)
                 } <span class="kw">else</span> {
@@ -943,7 +944,7 @@
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">clear_symbol_cache</span>() {
     <span class="kw">let</span> <span class="ident">_guard</span> <span class="op">=</span> <a class="ident" href="../../../src/backtrace/lib.rs.html#176"><span class="kw">crate</span>::lock::lock</a>();
     <span class="kw">unsafe</span> {
-        <a class="ident" href="../../../src/backtrace/symbolize/gimli.rs.html#239">imp::clear_symbol_cache</a>();
+        <a class="ident" href="../../../src/backtrace/symbolize/gimli.rs.html#240">imp::clear_symbol_cache</a>();
     }
 }
 
@@ -958,9 +959,10 @@
         <span class="ident">any</span>(<span class="ident">unix</span>, <span class="ident">windows</span>),
         <span class="ident">not</span>(<span class="ident">target_vendor</span> <span class="op">=</span> <span class="string">&quot;uwp&quot;</span>),
         <span class="ident">not</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;emscripten&quot;</span>),
+        <span class="ident">any</span>(<span class="ident">not</span>(<span class="ident">backtrace_in_libstd</span>), <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;backtrace&quot;</span>),
     ))]</span> {
-        <span class="kw">mod</span> <a class="ident" href="../../../src/backtrace/symbolize/gimli.rs.html#1-461">gimli</a>;
-        <span class="kw">use</span> <a class="ident" href="../../../src/backtrace/symbolize/mod.rs.html#478">gimli</a> <span class="kw">as</span> <span class="ident">imp</span>;
+        <span class="kw">mod</span> <a class="ident" href="../../../src/backtrace/symbolize/gimli.rs.html#1-462">gimli</a>;
+        <span class="kw">use</span> <a class="ident" href="../../../src/backtrace/symbolize/mod.rs.html#479">gimli</a> <span class="kw">as</span> <span class="ident">imp</span>;
     } <span class="kw">else</span> {
         <span class="kw">mod</span> <span class="ident">noop</span>;
         <span class="kw">use</span> <span class="ident">noop</span> <span class="kw">as</span> <span class="ident">imp</span>;

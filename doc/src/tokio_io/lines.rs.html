@@ -81,7 +81,7 @@
 <span class="doccomment">/// This method takes an asynchronous I/O object, `a`, and returns a `Stream` of</span>
 <span class="doccomment">/// lines that the object contains. The returned stream will reach its end once</span>
 <span class="doccomment">/// `a` reaches EOF.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">lines</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span>(<span class="ident">a</span>: <span class="ident">A</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Lines</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span>
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">lines</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span>(<span class="ident">a</span>: <span class="ident">A</span>) -&gt; <span class="ident">Lines</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span>
 <span class="kw">where</span>
     <span class="ident">A</span>: <a class="ident" href="../../src/tokio_io/async_read.rs.html#35-155">AsyncRead</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.BufRead.html">BufRead</a>,
 {
@@ -96,7 +96,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// Note that this may lose data already read into internal buffers. It&#39;s</span>
     <span class="doccomment">/// recommended to only call this once the stream has reached its end.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_inner</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">A</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_inner</span>(<span class="self">self</span>) -&gt; <span class="ident">A</span> {
         <a class="self" href="../../src/tokio_io/lines.rs.html#37">self</a>.<span class="ident">io</span>
     }
 }
@@ -108,9 +108,9 @@
     <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>;
     <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a>;
 
-    <span class="kw">fn</span> <span class="ident">poll</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a><span class="op">&gt;</span>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">poll</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a><span class="op">&gt;</span>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">n</span> <span class="op">=</span> <span class="macro">try_nb!</span>(<a class="self" href="../../src/tokio_io/lines.rs.html#49">self</a>.<span class="ident">io</span>.<span class="ident">read_line</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="self" href="../../src/tokio_io/lines.rs.html#49">self</a>.<span class="ident">line</span>));
-        <span class="kw">if</span> <a class="ident" href="../../src/tokio_io/lines.rs.html#50">n</a> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> <span class="op">&amp;&amp;</span> <a class="self" href="../../src/tokio_io/lines.rs.html#49">self</a>.<span class="ident">line</span>.<span class="ident">len</span>() <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
+        <span class="kw">if</span> <a class="ident" href="../../src/tokio_io/lines.rs.html#50">n</a> <span class="op">==</span> <span class="number">0</span> <span class="op">&amp;&amp;</span> <a class="self" href="../../src/tokio_io/lines.rs.html#49">self</a>.<span class="ident">line</span>.<span class="ident">len</span>() <span class="op">==</span> <span class="number">0</span> {
             <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>.<span class="ident">into</span>());
         }
         <span class="kw">if</span> <a class="self" href="../../src/tokio_io/lines.rs.html#49">self</a>.<span class="ident">line</span>.<span class="ident">ends_with</span>(<span class="string">&quot;\n&quot;</span>) {

@@ -1411,7 +1411,7 @@
     <span class="doccomment">/// assert_eq!(Some(11), dfa.find(b&quot;foo12345bar&quot;));</span>
     <span class="doccomment">/// # Ok(()) }; example().unwrap()</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">pattern</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">SparseDFA</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>, <span class="ident">usize</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">pattern</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">SparseDFA</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>, <span class="ident">usize</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="ident">dense::Builder::new</span>()
             .<span class="ident">build</span>(<span class="ident">pattern</span>)
             .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">dense</span><span class="op">|</span> <span class="ident">dense</span>.<span class="ident">to_sparse</span>())
@@ -1436,13 +1436,13 @@
     <span class="doccomment">/// assert_eq!(None, dfa.find(b&quot;foo&quot;));</span>
     <span class="doccomment">/// # Ok(()) }; example().unwrap()</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">empty</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">SparseDFA</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>, <span class="ident">S</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">empty</span>() -&gt; <span class="ident">SparseDFA</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>, <span class="ident">S</span><span class="op">&gt;</span> {
         <span class="ident">dense::DenseDFA::empty</span>().<span class="ident">to_sparse</span>().<span class="ident">unwrap</span>()
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">from_dense_sized</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">AsRef</span><span class="op">&lt;</span>[<span class="ident">S</span>]<span class="op">&gt;</span>, <span class="ident">A</span>: <span class="ident">StateID</span><span class="op">&gt;</span>(
         <span class="ident">dfa</span>: <span class="kw-2">&amp;</span><span class="ident">dense::Repr</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">S</span><span class="op">&gt;</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">SparseDFA</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>, <span class="ident">A</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">SparseDFA</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>, <span class="ident">A</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="ident">Repr::from_dense_sized</span>(<span class="ident">dfa</span>).<span class="ident">map</span>(<span class="op">|</span><span class="ident">r</span><span class="op">|</span> <span class="ident">r</span>.<span class="ident">into_sparse_dfa</span>())
     }
 }
@@ -1451,15 +1451,15 @@
     <span class="doccomment">/// Cheaply return a borrowed version of this sparse DFA. Specifically, the</span>
     <span class="doccomment">/// DFA returned always uses `&amp;[u8]` for its transition table while keeping</span>
     <span class="doccomment">/// the same state identifier representation.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_ref</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">SparseDFA</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>], <span class="ident">S</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_ref</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="self">self</span>) -&gt; <span class="ident">SparseDFA</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>], <span class="ident">S</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="kw-2">*</span><a class="self" href="../../src/regex_automata/sparse.rs.html#198">self</a> {
-            <a class="ident" href="../../src/regex_automata/sparse.rs.html#111">SparseDFA::Standard</a>(<a class="ident" href="../../src/regex_automata/sparse.rs.html#510">Standard</a>(<span class="kw-2">ref</span> <span class="ident">r</span>)) <span class="op">=</span><span class="op">&gt;</span> {
+            <a class="ident" href="../../src/regex_automata/sparse.rs.html#111">SparseDFA::Standard</a>(<a class="ident" href="../../src/regex_automata/sparse.rs.html#510">Standard</a>(<span class="kw-2">ref</span> <span class="ident">r</span>)) =&gt; {
                 <a class="ident" href="../../src/regex_automata/sparse.rs.html#111">SparseDFA::Standard</a>(<a class="ident" href="../../src/regex_automata/sparse.rs.html#510">Standard</a>(<a class="ident" href="../../src/regex_automata/sparse.rs.html#200">r</a>.<a class="ident" href="../../src/regex_automata/sparse.rs.html#635">as_ref</a>()))
             }
-            <a class="ident" href="../../src/regex_automata/sparse.rs.html#123">SparseDFA::ByteClass</a>(<a class="ident" href="../../src/regex_automata/sparse.rs.html#571">ByteClass</a>(<span class="kw-2">ref</span> <span class="ident">r</span>)) <span class="op">=</span><span class="op">&gt;</span> {
+            <a class="ident" href="../../src/regex_automata/sparse.rs.html#123">SparseDFA::ByteClass</a>(<a class="ident" href="../../src/regex_automata/sparse.rs.html#571">ByteClass</a>(<span class="kw-2">ref</span> <span class="ident">r</span>)) =&gt; {
                 <a class="ident" href="../../src/regex_automata/sparse.rs.html#123">SparseDFA::ByteClass</a>(<a class="ident" href="../../src/regex_automata/sparse.rs.html#571">ByteClass</a>(<a class="ident" href="../../src/regex_automata/sparse.rs.html#203">r</a>.<a class="ident" href="../../src/regex_automata/sparse.rs.html#635">as_ref</a>()))
             }
-            <a class="ident" href="../../src/regex_automata/sparse.rs.html#130">SparseDFA::__Nonexhaustive</a> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable!</span>(),
+            <a class="ident" href="../../src/regex_automata/sparse.rs.html#130">SparseDFA::__Nonexhaustive</a> =&gt; <span class="macro">unreachable!</span>(),
         }
     }
 
@@ -1470,15 +1470,15 @@
     <span class="doccomment">/// Effectively, this returns a sparse DFA whose transition table lives</span>
     <span class="doccomment">/// on the heap.</span>
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_owned</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">SparseDFA</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>, <span class="ident">S</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_owned</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">SparseDFA</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>, <span class="ident">S</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-            <span class="ident">SparseDFA::Standard</span>(<span class="ident">Standard</span>(<span class="kw-2">ref</span> <span class="ident">r</span>)) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">SparseDFA::Standard</span>(<span class="ident">Standard</span>(<span class="kw-2">ref</span> <span class="ident">r</span>)) =&gt; {
                 <span class="ident">SparseDFA::Standard</span>(<span class="ident">Standard</span>(<span class="ident">r</span>.<span class="ident">to_owned</span>()))
             }
-            <span class="ident">SparseDFA::ByteClass</span>(<span class="ident">ByteClass</span>(<span class="kw-2">ref</span> <span class="ident">r</span>)) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">SparseDFA::ByteClass</span>(<span class="ident">ByteClass</span>(<span class="kw-2">ref</span> <span class="ident">r</span>)) =&gt; {
                 <span class="ident">SparseDFA::ByteClass</span>(<span class="ident">ByteClass</span>(<span class="ident">r</span>.<span class="ident">to_owned</span>()))
             }
-            <span class="ident">SparseDFA::__Nonexhaustive</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable!</span>(),
+            <span class="ident">SparseDFA::__Nonexhaustive</span> =&gt; <span class="macro">unreachable!</span>(),
         }
     }
 
@@ -1490,15 +1490,15 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// This does **not** include the stack size used up by this DFA. To</span>
     <span class="doccomment">/// compute that, used `std::mem::size_of::&lt;SparseDFA&gt;()`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">memory_usage</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">memory_usage</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a> {
         <a class="self" href="../../src/regex_automata/sparse.rs.html#237">self</a>.<a class="ident" href="../../src/regex_automata/sparse.rs.html#241">repr</a>().<a class="ident" href="../../src/regex_automata/sparse.rs.html#682">memory_usage</a>()
     }
 
-    <span class="kw">fn</span> <span class="ident">repr</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">Repr</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">S</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">repr</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">Repr</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">S</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="kw-2">*</span><a class="self" href="../../src/regex_automata/sparse.rs.html#241">self</a> {
-            <a class="ident" href="../../src/regex_automata/sparse.rs.html#111">SparseDFA::Standard</a>(<span class="kw-2">ref</span> <span class="ident">r</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><a class="ident" href="../../src/regex_automata/sparse.rs.html#243">r</a>.<span class="number">0</span>,
-            <a class="ident" href="../../src/regex_automata/sparse.rs.html#123">SparseDFA::ByteClass</a>(<span class="kw-2">ref</span> <span class="ident">r</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><a class="ident" href="../../src/regex_automata/sparse.rs.html#244">r</a>.<span class="number">0</span>,
-            <a class="ident" href="../../src/regex_automata/sparse.rs.html#130">SparseDFA::__Nonexhaustive</a> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable!</span>(),
+            <a class="ident" href="../../src/regex_automata/sparse.rs.html#111">SparseDFA::Standard</a>(<span class="kw-2">ref</span> <span class="ident">r</span>) =&gt; <span class="kw-2">&amp;</span><a class="ident" href="../../src/regex_automata/sparse.rs.html#243">r</a>.<span class="number">0</span>,
+            <a class="ident" href="../../src/regex_automata/sparse.rs.html#123">SparseDFA::ByteClass</a>(<span class="kw-2">ref</span> <span class="ident">r</span>) =&gt; <span class="kw-2">&amp;</span><a class="ident" href="../../src/regex_automata/sparse.rs.html#244">r</a>.<span class="number">0</span>,
+            <a class="ident" href="../../src/regex_automata/sparse.rs.html#130">SparseDFA::__Nonexhaustive</a> =&gt; <span class="macro">unreachable!</span>(),
         }
     }
 }
@@ -1513,7 +1513,7 @@
     <span class="doccomment">/// in this DFA, then this returns an error.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// This is a convenience routine for `to_sized::&lt;u8&gt;()`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_u8</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">SparseDFA</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>, <span class="ident">u8</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_u8</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">SparseDFA</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>, <span class="ident">u8</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">to_sized</span>()
     }
 
@@ -1523,7 +1523,7 @@
     <span class="doccomment">/// identifiers in this DFA, then this returns an error.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// This is a convenience routine for `to_sized::&lt;u16&gt;()`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_u16</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">SparseDFA</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>, <span class="ident">u16</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_u16</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">SparseDFA</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>, <span class="ident">u16</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">to_sized</span>()
     }
 
@@ -1534,7 +1534,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// This is a convenience routine for `to_sized::&lt;u32&gt;()`.</span>
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_pointer_width</span> <span class="op">=</span> <span class="string">&quot;32&quot;</span>, <span class="ident">target_pointer_width</span> <span class="op">=</span> <span class="string">&quot;64&quot;</span>))]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_u32</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">SparseDFA</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>, <span class="ident">u32</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_u32</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">SparseDFA</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>, <span class="ident">u32</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">to_sized</span>()
     }
 
@@ -1545,7 +1545,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// This is a convenience routine for `to_sized::&lt;u64&gt;()`.</span>
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_pointer_width</span> <span class="op">=</span> <span class="string">&quot;64&quot;</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_u64</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">SparseDFA</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>, <span class="ident">u64</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_u64</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">SparseDFA</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>, <span class="ident">u64</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">to_sized</span>()
     }
 
@@ -1559,7 +1559,7 @@
     <span class="doccomment">/// In general, picking the appropriate size upon initial construction of</span>
     <span class="doccomment">/// a sparse DFA is preferred, since it will do the conversion in one</span>
     <span class="doccomment">/// step instead of two.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_sized</span><span class="op">&lt;</span><span class="ident">A</span>: <span class="ident">StateID</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">SparseDFA</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>, <span class="ident">A</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_sized</span><span class="op">&lt;</span><span class="ident">A</span>: <span class="ident">StateID</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">SparseDFA</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>, <span class="ident">A</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">repr</span>().<span class="ident">to_sized</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">r</span><span class="op">|</span> <span class="ident">r</span>.<span class="ident">into_sparse_dfa</span>())
     }
 
@@ -1569,7 +1569,7 @@
     <span class="doccomment">/// than 1, 2, 4 or 8 bytes, then this returns an error. All</span>
     <span class="doccomment">/// implementations of `StateID` provided by this crate satisfy this</span>
     <span class="doccomment">/// requirement.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_bytes_little_endian</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_bytes_little_endian</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">repr</span>().<span class="ident">to_bytes</span>::<span class="op">&lt;</span><span class="ident">LittleEndian</span><span class="op">&gt;</span>()
     }
 
@@ -1579,7 +1579,7 @@
     <span class="doccomment">/// than 1, 2, 4 or 8 bytes, then this returns an error. All</span>
     <span class="doccomment">/// implementations of `StateID` provided by this crate satisfy this</span>
     <span class="doccomment">/// requirement.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_bytes_big_endian</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_bytes_big_endian</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">repr</span>().<span class="ident">to_bytes</span>::<span class="op">&lt;</span><span class="ident">BigEndian</span><span class="op">&gt;</span>()
     }
 
@@ -1593,7 +1593,7 @@
     <span class="doccomment">/// than 1, 2, 4 or 8 bytes, then this returns an error. All</span>
     <span class="doccomment">/// implementations of `StateID` provided by this crate satisfy this</span>
     <span class="doccomment">/// requirement.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_bytes_native_endian</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_bytes_native_endian</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">repr</span>().<span class="ident">to_bytes</span>::<span class="op">&lt;</span><span class="ident">NativeEndian</span><span class="op">&gt;</span>()
     }
 }
@@ -1663,7 +1663,7 @@
     <span class="doccomment">/// assert_eq!(Some(8), dfa.find(b&quot;foo12345&quot;));</span>
     <span class="doccomment">/// # Ok(()) }; example().unwrap()</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">from_bytes</span>(<span class="ident">buf</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">SparseDFA</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>], <span class="ident">S</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">from_bytes</span>(<span class="ident">buf</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>]) -&gt; <span class="ident">SparseDFA</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>], <span class="ident">S</span><span class="op">&gt;</span> {
         <span class="ident">Repr::from_bytes</span>(<a class="ident" href="../../src/regex_automata/sparse.rs.html#410">buf</a>).<a class="ident" href="../../src/regex_automata/sparse.rs.html#627">into_sparse_dfa</a>()
     }
 }
@@ -1672,41 +1672,41 @@
     <span class="kw">type</span> <span class="ident">ID</span> <span class="op">=</span> <span class="ident">S</span>;
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">start_state</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">S</span> {
+    <span class="kw">fn</span> <span class="ident">start_state</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">S</span> {
         <a class="self" href="../../src/regex_automata/sparse.rs.html#419">self</a>.<a class="ident" href="../../src/regex_automata/sparse.rs.html#241">repr</a>().<a class="ident" href="../../src/regex_automata/sparse.rs.html#686">start_state</a>()
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">is_match_state</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">id</span>: <span class="ident">S</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.bool.html">bool</a> {
+    <span class="kw">fn</span> <span class="ident">is_match_state</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">id</span>: <span class="ident">S</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.bool.html">bool</a> {
         <a class="self" href="../../src/regex_automata/sparse.rs.html#424">self</a>.<a class="ident" href="../../src/regex_automata/sparse.rs.html#241">repr</a>().<a class="ident" href="../../src/regex_automata/sparse.rs.html#690">is_match_state</a>(<a class="ident" href="../../src/regex_automata/sparse.rs.html#424">id</a>)
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">is_dead_state</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">id</span>: <span class="ident">S</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.bool.html">bool</a> {
+    <span class="kw">fn</span> <span class="ident">is_dead_state</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">id</span>: <span class="ident">S</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.bool.html">bool</a> {
         <a class="self" href="../../src/regex_automata/sparse.rs.html#429">self</a>.<a class="ident" href="../../src/regex_automata/sparse.rs.html#241">repr</a>().<a class="ident" href="../../src/regex_automata/sparse.rs.html#694">is_dead_state</a>(<a class="ident" href="../../src/regex_automata/sparse.rs.html#429">id</a>)
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">is_match_or_dead_state</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">id</span>: <span class="ident">S</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.bool.html">bool</a> {
+    <span class="kw">fn</span> <span class="ident">is_match_or_dead_state</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">id</span>: <span class="ident">S</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.bool.html">bool</a> {
         <a class="self" href="../../src/regex_automata/sparse.rs.html#434">self</a>.<a class="ident" href="../../src/regex_automata/sparse.rs.html#241">repr</a>().<a class="ident" href="../../src/regex_automata/sparse.rs.html#698">is_match_or_dead_state</a>(<a class="ident" href="../../src/regex_automata/sparse.rs.html#434">id</a>)
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">is_anchored</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.bool.html">bool</a> {
+    <span class="kw">fn</span> <span class="ident">is_anchored</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.bool.html">bool</a> {
         <a class="self" href="../../src/regex_automata/sparse.rs.html#439">self</a>.<a class="ident" href="../../src/regex_automata/sparse.rs.html#241">repr</a>().<a class="ident" href="../../src/regex_automata/sparse.rs.html#702">is_anchored</a>()
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">next_state</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">current</span>: <span class="ident">S</span>, <span class="ident">input</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">S</span> {
+    <span class="kw">fn</span> <span class="ident">next_state</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">current</span>: <span class="ident">S</span>, <span class="ident">input</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>) -&gt; <span class="ident">S</span> {
         <span class="kw">match</span> <span class="kw-2">*</span><a class="self" href="../../src/regex_automata/sparse.rs.html#444">self</a> {
-            <a class="ident" href="../../src/regex_automata/sparse.rs.html#111">SparseDFA::Standard</a>(<span class="kw-2">ref</span> <span class="ident">r</span>) <span class="op">=</span><span class="op">&gt;</span> <a class="ident" href="../../src/regex_automata/sparse.rs.html#446">r</a>.<a class="ident" href="../../src/regex_automata/dfa.rs.html#56">next_state</a>(<a class="ident" href="../../src/regex_automata/sparse.rs.html#444">current</a>, <a class="ident" href="../../src/regex_automata/sparse.rs.html#444">input</a>),
-            <a class="ident" href="../../src/regex_automata/sparse.rs.html#123">SparseDFA::ByteClass</a>(<span class="kw-2">ref</span> <span class="ident">r</span>) <span class="op">=</span><span class="op">&gt;</span> <a class="ident" href="../../src/regex_automata/sparse.rs.html#447">r</a>.<a class="ident" href="../../src/regex_automata/dfa.rs.html#56">next_state</a>(<a class="ident" href="../../src/regex_automata/sparse.rs.html#444">current</a>, <a class="ident" href="../../src/regex_automata/sparse.rs.html#444">input</a>),
-            <a class="ident" href="../../src/regex_automata/sparse.rs.html#130">SparseDFA::__Nonexhaustive</a> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable!</span>(),
+            <a class="ident" href="../../src/regex_automata/sparse.rs.html#111">SparseDFA::Standard</a>(<span class="kw-2">ref</span> <span class="ident">r</span>) =&gt; <a class="ident" href="../../src/regex_automata/sparse.rs.html#446">r</a>.<a class="ident" href="../../src/regex_automata/dfa.rs.html#56">next_state</a>(<a class="ident" href="../../src/regex_automata/sparse.rs.html#444">current</a>, <a class="ident" href="../../src/regex_automata/sparse.rs.html#444">input</a>),
+            <a class="ident" href="../../src/regex_automata/sparse.rs.html#123">SparseDFA::ByteClass</a>(<span class="kw-2">ref</span> <span class="ident">r</span>) =&gt; <a class="ident" href="../../src/regex_automata/sparse.rs.html#447">r</a>.<a class="ident" href="../../src/regex_automata/dfa.rs.html#56">next_state</a>(<a class="ident" href="../../src/regex_automata/sparse.rs.html#444">current</a>, <a class="ident" href="../../src/regex_automata/sparse.rs.html#444">input</a>),
+            <a class="ident" href="../../src/regex_automata/sparse.rs.html#130">SparseDFA::__Nonexhaustive</a> =&gt; <span class="macro">unreachable!</span>(),
         }
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">next_state_unchecked</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">current</span>: <span class="ident">S</span>, <span class="ident">input</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">S</span> {
+    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">next_state_unchecked</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">current</span>: <span class="ident">S</span>, <span class="ident">input</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>) -&gt; <span class="ident">S</span> {
         <a class="self" href="../../src/regex_automata/sparse.rs.html#453">self</a>.<a class="ident" href="../../src/regex_automata/dfa.rs.html#56">next_state</a>(<a class="ident" href="../../src/regex_automata/sparse.rs.html#453">current</a>, <a class="ident" href="../../src/regex_automata/sparse.rs.html#453">input</a>)
     }
 
@@ -1718,38 +1718,38 @@
     <span class="comment">// well do it.</span>
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">is_match_at</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">bytes</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>], <span class="ident">start</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.bool.html">bool</a> {
+    <span class="kw">fn</span> <span class="ident">is_match_at</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">bytes</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>], <span class="ident">start</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.bool.html">bool</a> {
         <span class="kw">match</span> <span class="kw-2">*</span><a class="self" href="../../src/regex_automata/sparse.rs.html#465">self</a> {
-            <a class="ident" href="../../src/regex_automata/sparse.rs.html#111">SparseDFA::Standard</a>(<span class="kw-2">ref</span> <span class="ident">r</span>) <span class="op">=</span><span class="op">&gt;</span> <a class="ident" href="../../src/regex_automata/sparse.rs.html#467">r</a>.<a class="ident" href="../../src/regex_automata/dfa.rs.html#210">is_match_at</a>(<a class="ident" href="../../src/regex_automata/sparse.rs.html#465">bytes</a>, <a class="ident" href="../../src/regex_automata/sparse.rs.html#465">start</a>),
-            <a class="ident" href="../../src/regex_automata/sparse.rs.html#123">SparseDFA::ByteClass</a>(<span class="kw-2">ref</span> <span class="ident">r</span>) <span class="op">=</span><span class="op">&gt;</span> <a class="ident" href="../../src/regex_automata/sparse.rs.html#468">r</a>.<a class="ident" href="../../src/regex_automata/dfa.rs.html#210">is_match_at</a>(<a class="ident" href="../../src/regex_automata/sparse.rs.html#465">bytes</a>, <a class="ident" href="../../src/regex_automata/sparse.rs.html#465">start</a>),
-            <a class="ident" href="../../src/regex_automata/sparse.rs.html#130">SparseDFA::__Nonexhaustive</a> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable!</span>(),
+            <a class="ident" href="../../src/regex_automata/sparse.rs.html#111">SparseDFA::Standard</a>(<span class="kw-2">ref</span> <span class="ident">r</span>) =&gt; <a class="ident" href="../../src/regex_automata/sparse.rs.html#467">r</a>.<a class="ident" href="../../src/regex_automata/dfa.rs.html#210">is_match_at</a>(<a class="ident" href="../../src/regex_automata/sparse.rs.html#465">bytes</a>, <a class="ident" href="../../src/regex_automata/sparse.rs.html#465">start</a>),
+            <a class="ident" href="../../src/regex_automata/sparse.rs.html#123">SparseDFA::ByteClass</a>(<span class="kw-2">ref</span> <span class="ident">r</span>) =&gt; <a class="ident" href="../../src/regex_automata/sparse.rs.html#468">r</a>.<a class="ident" href="../../src/regex_automata/dfa.rs.html#210">is_match_at</a>(<a class="ident" href="../../src/regex_automata/sparse.rs.html#465">bytes</a>, <a class="ident" href="../../src/regex_automata/sparse.rs.html#465">start</a>),
+            <a class="ident" href="../../src/regex_automata/sparse.rs.html#130">SparseDFA::__Nonexhaustive</a> =&gt; <span class="macro">unreachable!</span>(),
         }
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">shortest_match_at</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">bytes</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>], <span class="ident">start</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">shortest_match_at</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">bytes</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>], <span class="ident">start</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="kw-2">*</span><a class="self" href="../../src/regex_automata/sparse.rs.html#474">self</a> {
-            <a class="ident" href="../../src/regex_automata/sparse.rs.html#111">SparseDFA::Standard</a>(<span class="kw-2">ref</span> <span class="ident">r</span>) <span class="op">=</span><span class="op">&gt;</span> <a class="ident" href="../../src/regex_automata/sparse.rs.html#476">r</a>.<a class="ident" href="../../src/regex_automata/dfa.rs.html#235">shortest_match_at</a>(<a class="ident" href="../../src/regex_automata/sparse.rs.html#474">bytes</a>, <a class="ident" href="../../src/regex_automata/sparse.rs.html#474">start</a>),
-            <a class="ident" href="../../src/regex_automata/sparse.rs.html#123">SparseDFA::ByteClass</a>(<span class="kw-2">ref</span> <span class="ident">r</span>) <span class="op">=</span><span class="op">&gt;</span> <a class="ident" href="../../src/regex_automata/sparse.rs.html#477">r</a>.<a class="ident" href="../../src/regex_automata/dfa.rs.html#235">shortest_match_at</a>(<a class="ident" href="../../src/regex_automata/sparse.rs.html#474">bytes</a>, <a class="ident" href="../../src/regex_automata/sparse.rs.html#474">start</a>),
-            <a class="ident" href="../../src/regex_automata/sparse.rs.html#130">SparseDFA::__Nonexhaustive</a> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable!</span>(),
+            <a class="ident" href="../../src/regex_automata/sparse.rs.html#111">SparseDFA::Standard</a>(<span class="kw-2">ref</span> <span class="ident">r</span>) =&gt; <a class="ident" href="../../src/regex_automata/sparse.rs.html#476">r</a>.<a class="ident" href="../../src/regex_automata/dfa.rs.html#235">shortest_match_at</a>(<a class="ident" href="../../src/regex_automata/sparse.rs.html#474">bytes</a>, <a class="ident" href="../../src/regex_automata/sparse.rs.html#474">start</a>),
+            <a class="ident" href="../../src/regex_automata/sparse.rs.html#123">SparseDFA::ByteClass</a>(<span class="kw-2">ref</span> <span class="ident">r</span>) =&gt; <a class="ident" href="../../src/regex_automata/sparse.rs.html#477">r</a>.<a class="ident" href="../../src/regex_automata/dfa.rs.html#235">shortest_match_at</a>(<a class="ident" href="../../src/regex_automata/sparse.rs.html#474">bytes</a>, <a class="ident" href="../../src/regex_automata/sparse.rs.html#474">start</a>),
+            <a class="ident" href="../../src/regex_automata/sparse.rs.html#130">SparseDFA::__Nonexhaustive</a> =&gt; <span class="macro">unreachable!</span>(),
         }
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">find_at</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">bytes</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>], <span class="ident">start</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">find_at</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">bytes</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>], <span class="ident">start</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="kw-2">*</span><a class="self" href="../../src/regex_automata/sparse.rs.html#483">self</a> {
-            <a class="ident" href="../../src/regex_automata/sparse.rs.html#111">SparseDFA::Standard</a>(<span class="kw-2">ref</span> <span class="ident">r</span>) <span class="op">=</span><span class="op">&gt;</span> <a class="ident" href="../../src/regex_automata/sparse.rs.html#485">r</a>.<a class="ident" href="../../src/regex_automata/dfa.rs.html#264">find_at</a>(<a class="ident" href="../../src/regex_automata/sparse.rs.html#483">bytes</a>, <a class="ident" href="../../src/regex_automata/sparse.rs.html#483">start</a>),
-            <a class="ident" href="../../src/regex_automata/sparse.rs.html#123">SparseDFA::ByteClass</a>(<span class="kw-2">ref</span> <span class="ident">r</span>) <span class="op">=</span><span class="op">&gt;</span> <a class="ident" href="../../src/regex_automata/sparse.rs.html#486">r</a>.<a class="ident" href="../../src/regex_automata/dfa.rs.html#264">find_at</a>(<a class="ident" href="../../src/regex_automata/sparse.rs.html#483">bytes</a>, <a class="ident" href="../../src/regex_automata/sparse.rs.html#483">start</a>),
-            <a class="ident" href="../../src/regex_automata/sparse.rs.html#130">SparseDFA::__Nonexhaustive</a> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable!</span>(),
+            <a class="ident" href="../../src/regex_automata/sparse.rs.html#111">SparseDFA::Standard</a>(<span class="kw-2">ref</span> <span class="ident">r</span>) =&gt; <a class="ident" href="../../src/regex_automata/sparse.rs.html#485">r</a>.<a class="ident" href="../../src/regex_automata/dfa.rs.html#264">find_at</a>(<a class="ident" href="../../src/regex_automata/sparse.rs.html#483">bytes</a>, <a class="ident" href="../../src/regex_automata/sparse.rs.html#483">start</a>),
+            <a class="ident" href="../../src/regex_automata/sparse.rs.html#123">SparseDFA::ByteClass</a>(<span class="kw-2">ref</span> <span class="ident">r</span>) =&gt; <a class="ident" href="../../src/regex_automata/sparse.rs.html#486">r</a>.<a class="ident" href="../../src/regex_automata/dfa.rs.html#264">find_at</a>(<a class="ident" href="../../src/regex_automata/sparse.rs.html#483">bytes</a>, <a class="ident" href="../../src/regex_automata/sparse.rs.html#483">start</a>),
+            <a class="ident" href="../../src/regex_automata/sparse.rs.html#130">SparseDFA::__Nonexhaustive</a> =&gt; <span class="macro">unreachable!</span>(),
         }
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">rfind_at</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">bytes</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>], <span class="ident">start</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">rfind_at</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">bytes</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>], <span class="ident">start</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="kw-2">*</span><a class="self" href="../../src/regex_automata/sparse.rs.html#492">self</a> {
-            <a class="ident" href="../../src/regex_automata/sparse.rs.html#111">SparseDFA::Standard</a>(<span class="kw-2">ref</span> <span class="ident">r</span>) <span class="op">=</span><span class="op">&gt;</span> <a class="ident" href="../../src/regex_automata/sparse.rs.html#494">r</a>.<a class="ident" href="../../src/regex_automata/dfa.rs.html#296">rfind_at</a>(<a class="ident" href="../../src/regex_automata/sparse.rs.html#492">bytes</a>, <a class="ident" href="../../src/regex_automata/sparse.rs.html#492">start</a>),
-            <a class="ident" href="../../src/regex_automata/sparse.rs.html#123">SparseDFA::ByteClass</a>(<span class="kw-2">ref</span> <span class="ident">r</span>) <span class="op">=</span><span class="op">&gt;</span> <a class="ident" href="../../src/regex_automata/sparse.rs.html#495">r</a>.<a class="ident" href="../../src/regex_automata/dfa.rs.html#296">rfind_at</a>(<a class="ident" href="../../src/regex_automata/sparse.rs.html#492">bytes</a>, <a class="ident" href="../../src/regex_automata/sparse.rs.html#492">start</a>),
-            <a class="ident" href="../../src/regex_automata/sparse.rs.html#130">SparseDFA::__Nonexhaustive</a> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable!</span>(),
+            <a class="ident" href="../../src/regex_automata/sparse.rs.html#111">SparseDFA::Standard</a>(<span class="kw-2">ref</span> <span class="ident">r</span>) =&gt; <a class="ident" href="../../src/regex_automata/sparse.rs.html#494">r</a>.<a class="ident" href="../../src/regex_automata/dfa.rs.html#296">rfind_at</a>(<a class="ident" href="../../src/regex_automata/sparse.rs.html#492">bytes</a>, <a class="ident" href="../../src/regex_automata/sparse.rs.html#492">start</a>),
+            <a class="ident" href="../../src/regex_automata/sparse.rs.html#123">SparseDFA::ByteClass</a>(<span class="kw-2">ref</span> <span class="ident">r</span>) =&gt; <a class="ident" href="../../src/regex_automata/sparse.rs.html#495">r</a>.<a class="ident" href="../../src/regex_automata/dfa.rs.html#296">rfind_at</a>(<a class="ident" href="../../src/regex_automata/sparse.rs.html#492">bytes</a>, <a class="ident" href="../../src/regex_automata/sparse.rs.html#492">start</a>),
+            <a class="ident" href="../../src/regex_automata/sparse.rs.html#130">SparseDFA::__Nonexhaustive</a> =&gt; <span class="macro">unreachable!</span>(),
         }
     }
 }
@@ -1769,37 +1769,37 @@
     <span class="kw">type</span> <span class="ident">ID</span> <span class="op">=</span> <span class="ident">S</span>;
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">start_state</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">S</span> {
+    <span class="kw">fn</span> <span class="ident">start_state</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">S</span> {
         <a class="self" href="../../src/regex_automata/sparse.rs.html#516">self</a>.<span class="number">0</span>.<a class="ident" href="../../src/regex_automata/sparse.rs.html#686">start_state</a>()
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">is_match_state</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">id</span>: <span class="ident">S</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.bool.html">bool</a> {
+    <span class="kw">fn</span> <span class="ident">is_match_state</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">id</span>: <span class="ident">S</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.bool.html">bool</a> {
         <a class="self" href="../../src/regex_automata/sparse.rs.html#521">self</a>.<span class="number">0</span>.<a class="ident" href="../../src/regex_automata/sparse.rs.html#690">is_match_state</a>(<a class="ident" href="../../src/regex_automata/sparse.rs.html#521">id</a>)
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">is_dead_state</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">id</span>: <span class="ident">S</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.bool.html">bool</a> {
+    <span class="kw">fn</span> <span class="ident">is_dead_state</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">id</span>: <span class="ident">S</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.bool.html">bool</a> {
         <a class="self" href="../../src/regex_automata/sparse.rs.html#526">self</a>.<span class="number">0</span>.<a class="ident" href="../../src/regex_automata/sparse.rs.html#694">is_dead_state</a>(<a class="ident" href="../../src/regex_automata/sparse.rs.html#526">id</a>)
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">is_match_or_dead_state</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">id</span>: <span class="ident">S</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.bool.html">bool</a> {
+    <span class="kw">fn</span> <span class="ident">is_match_or_dead_state</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">id</span>: <span class="ident">S</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.bool.html">bool</a> {
         <a class="self" href="../../src/regex_automata/sparse.rs.html#531">self</a>.<span class="number">0</span>.<a class="ident" href="../../src/regex_automata/sparse.rs.html#698">is_match_or_dead_state</a>(<a class="ident" href="../../src/regex_automata/sparse.rs.html#531">id</a>)
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">is_anchored</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.bool.html">bool</a> {
+    <span class="kw">fn</span> <span class="ident">is_anchored</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.bool.html">bool</a> {
         <a class="self" href="../../src/regex_automata/sparse.rs.html#536">self</a>.<span class="number">0</span>.<a class="ident" href="../../src/regex_automata/sparse.rs.html#702">is_anchored</a>()
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">next_state</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">current</span>: <span class="ident">S</span>, <span class="ident">input</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">S</span> {
+    <span class="kw">fn</span> <span class="ident">next_state</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">current</span>: <span class="ident">S</span>, <span class="ident">input</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>) -&gt; <span class="ident">S</span> {
         <a class="self" href="../../src/regex_automata/sparse.rs.html#541">self</a>.<span class="number">0</span>.<a class="ident" href="../../src/regex_automata/sparse.rs.html#663">state</a>(<a class="ident" href="../../src/regex_automata/sparse.rs.html#541">current</a>).<a class="ident" href="../../src/regex_automata/sparse.rs.html#1099">next</a>(<a class="ident" href="../../src/regex_automata/sparse.rs.html#541">input</a>)
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">next_state_unchecked</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">current</span>: <span class="ident">S</span>, <span class="ident">input</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">S</span> {
+    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">next_state_unchecked</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">current</span>: <span class="ident">S</span>, <span class="ident">input</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>) -&gt; <span class="ident">S</span> {
         <a class="self" href="../../src/regex_automata/sparse.rs.html#546">self</a>.<a class="ident" href="../../src/regex_automata/dfa.rs.html#56">next_state</a>(<a class="ident" href="../../src/regex_automata/sparse.rs.html#546">current</a>, <a class="ident" href="../../src/regex_automata/sparse.rs.html#546">input</a>)
     }
 }
@@ -1830,38 +1830,38 @@
     <span class="kw">type</span> <span class="ident">ID</span> <span class="op">=</span> <span class="ident">S</span>;
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">start_state</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">S</span> {
+    <span class="kw">fn</span> <span class="ident">start_state</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">S</span> {
         <a class="self" href="../../src/regex_automata/sparse.rs.html#577">self</a>.<span class="number">0</span>.<a class="ident" href="../../src/regex_automata/sparse.rs.html#686">start_state</a>()
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">is_match_state</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">id</span>: <span class="ident">S</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.bool.html">bool</a> {
+    <span class="kw">fn</span> <span class="ident">is_match_state</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">id</span>: <span class="ident">S</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.bool.html">bool</a> {
         <a class="self" href="../../src/regex_automata/sparse.rs.html#582">self</a>.<span class="number">0</span>.<a class="ident" href="../../src/regex_automata/sparse.rs.html#690">is_match_state</a>(<a class="ident" href="../../src/regex_automata/sparse.rs.html#582">id</a>)
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">is_dead_state</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">id</span>: <span class="ident">S</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.bool.html">bool</a> {
+    <span class="kw">fn</span> <span class="ident">is_dead_state</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">id</span>: <span class="ident">S</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.bool.html">bool</a> {
         <a class="self" href="../../src/regex_automata/sparse.rs.html#587">self</a>.<span class="number">0</span>.<a class="ident" href="../../src/regex_automata/sparse.rs.html#694">is_dead_state</a>(<a class="ident" href="../../src/regex_automata/sparse.rs.html#587">id</a>)
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">is_match_or_dead_state</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">id</span>: <span class="ident">S</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.bool.html">bool</a> {
+    <span class="kw">fn</span> <span class="ident">is_match_or_dead_state</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">id</span>: <span class="ident">S</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.bool.html">bool</a> {
         <a class="self" href="../../src/regex_automata/sparse.rs.html#592">self</a>.<span class="number">0</span>.<a class="ident" href="../../src/regex_automata/sparse.rs.html#698">is_match_or_dead_state</a>(<a class="ident" href="../../src/regex_automata/sparse.rs.html#592">id</a>)
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">is_anchored</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.bool.html">bool</a> {
+    <span class="kw">fn</span> <span class="ident">is_anchored</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.bool.html">bool</a> {
         <a class="self" href="../../src/regex_automata/sparse.rs.html#597">self</a>.<span class="number">0</span>.<a class="ident" href="../../src/regex_automata/sparse.rs.html#702">is_anchored</a>()
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">next_state</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">current</span>: <span class="ident">S</span>, <span class="ident">input</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">S</span> {
+    <span class="kw">fn</span> <span class="ident">next_state</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">current</span>: <span class="ident">S</span>, <span class="ident">input</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>) -&gt; <span class="ident">S</span> {
         <span class="kw">let</span> <span class="ident">input</span> <span class="op">=</span> <a class="self" href="../../src/regex_automata/sparse.rs.html#602">self</a>.<span class="number">0</span>.<span class="ident">byte_classes</span>.<a class="ident" href="../../src/regex_automata/classes.rs.html#53">get</a>(<a class="ident" href="../../src/regex_automata/sparse.rs.html#602">input</a>);
         <a class="self" href="../../src/regex_automata/sparse.rs.html#602">self</a>.<span class="number">0</span>.<a class="ident" href="../../src/regex_automata/sparse.rs.html#663">state</a>(<a class="ident" href="../../src/regex_automata/sparse.rs.html#602">current</a>).<a class="ident" href="../../src/regex_automata/sparse.rs.html#1099">next</a>(<a class="ident" href="../../src/regex_automata/sparse.rs.html#603">input</a>)
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">next_state_unchecked</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">current</span>: <span class="ident">S</span>, <span class="ident">input</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">S</span> {
+    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">next_state_unchecked</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">current</span>: <span class="ident">S</span>, <span class="ident">input</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>) -&gt; <span class="ident">S</span> {
         <a class="self" href="../../src/regex_automata/sparse.rs.html#608">self</a>.<a class="ident" href="../../src/regex_automata/dfa.rs.html#56">next_state</a>(<a class="ident" href="../../src/regex_automata/sparse.rs.html#608">current</a>, <a class="ident" href="../../src/regex_automata/sparse.rs.html#608">input</a>)
     }
 }
@@ -1880,7 +1880,7 @@
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">AsRef</span><span class="op">&lt;</span>[<span class="ident">u8</span>]<span class="op">&gt;</span>, <span class="ident">S</span>: <a class="ident" href="../../src/regex_automata/state_id.rs.html#115-154">StateID</a><span class="op">&gt;</span> <span class="ident">Repr</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">S</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">into_sparse_dfa</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">SparseDFA</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">S</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">into_sparse_dfa</span>(<span class="self">self</span>) -&gt; <span class="ident">SparseDFA</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">S</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <a class="self" href="../../src/regex_automata/sparse.rs.html#627">self</a>.<span class="ident">byte_classes</span>.<a class="ident" href="../../src/regex_automata/classes.rs.html#76">is_singleton</a>() {
             <a class="ident" href="../../src/regex_automata/sparse.rs.html#111">SparseDFA::Standard</a>(<a class="ident" href="../../src/regex_automata/sparse.rs.html#510">Standard</a>(<a class="self" href="../../src/regex_automata/sparse.rs.html#627">self</a>))
         } <span class="kw">else</span> {
@@ -1888,7 +1888,7 @@
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">as_ref</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Repr</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>], <span class="ident">S</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">as_ref</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="self">self</span>) -&gt; <span class="ident">Repr</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>], <span class="ident">S</span><span class="op">&gt;</span> {
         <a class="ident" href="../../src/regex_automata/sparse.rs.html#617-624">Repr</a> {
             <span class="ident">anchored</span>: <a class="self" href="../../src/regex_automata/sparse.rs.html#635">self</a>.<span class="ident">anchored</span>,
             <span class="ident">start</span>: <a class="self" href="../../src/regex_automata/sparse.rs.html#635">self</a>.<span class="ident">start</span>,
@@ -1900,7 +1900,7 @@
     }
 
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">to_owned</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Repr</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>, <span class="ident">S</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">to_owned</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Repr</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>, <span class="ident">S</span><span class="op">&gt;</span> {
         <span class="ident">Repr</span> {
             <span class="ident">anchored</span>: <span class="self">self</span>.<span class="ident">anchored</span>,
             <span class="ident">start</span>: <span class="self">self</span>.<span class="ident">start</span>,
@@ -1916,7 +1916,7 @@
     <span class="doccomment">/// This is marked as inline because it doesn&#39;t seem to get inlined</span>
     <span class="doccomment">/// otherwise, which leads to a fairly significant performance loss (~25%).</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">state</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="self">self</span>, <span class="ident">id</span>: <span class="ident">S</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">State</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">S</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">state</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="self">self</span>, <span class="ident">id</span>: <span class="ident">S</span>) -&gt; <span class="ident">State</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">S</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">pos</span> <span class="op">=</span> <a class="ident" href="../../src/regex_automata/sparse.rs.html#663">id</a>.<a class="ident" href="../../src/regex_automata/state_id.rs.html#133">to_usize</a>();
         <span class="kw">let</span> <span class="ident">ntrans</span> <span class="op">=</span> <span class="ident">NativeEndian::read_u16</span>(<span class="kw-2">&amp;</span><a class="self" href="../../src/regex_automata/sparse.rs.html#663">self</a>.<a class="ident" href="../../src/regex_automata/sparse.rs.html#706">trans</a>()[<a class="ident" href="../../src/regex_automata/sparse.rs.html#664">pos</a>..]) <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>;
         <a class="ident" href="../../src/regex_automata/sparse.rs.html#664">pos</a> <span class="op">+</span><span class="op">=</span> <span class="number">2</span>;
@@ -1931,35 +1931,35 @@
     <span class="doccomment">/// The iterator returned yields tuples, where the first element is the</span>
     <span class="doccomment">/// state ID and the second element is the state itself.</span>
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">states</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">StateIter</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span>, <span class="ident">S</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">states</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="self">self</span>) -&gt; <span class="ident">StateIter</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span>, <span class="ident">S</span><span class="op">&gt;</span> {
         <span class="ident">StateIter</span> { <span class="ident">dfa</span>: <span class="self">self</span>, <span class="ident">id</span>: <span class="ident">dead_id</span>() }
     }
 
-    <span class="kw">fn</span> <span class="ident">memory_usage</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a> {
+    <span class="kw">fn</span> <span class="ident">memory_usage</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a> {
         <a class="self" href="../../src/regex_automata/sparse.rs.html#682">self</a>.<a class="ident" href="../../src/regex_automata/sparse.rs.html#706">trans</a>().<span class="ident">len</span>()
     }
 
-    <span class="kw">fn</span> <span class="ident">start_state</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">S</span> {
+    <span class="kw">fn</span> <span class="ident">start_state</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">S</span> {
         <a class="self" href="../../src/regex_automata/sparse.rs.html#686">self</a>.<span class="ident">start</span>
     }
 
-    <span class="kw">fn</span> <span class="ident">is_match_state</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">id</span>: <span class="ident">S</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.bool.html">bool</a> {
+    <span class="kw">fn</span> <span class="ident">is_match_state</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">id</span>: <span class="ident">S</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.bool.html">bool</a> {
         <a class="self" href="../../src/regex_automata/sparse.rs.html#690">self</a>.<a class="ident" href="../../src/regex_automata/sparse.rs.html#698">is_match_or_dead_state</a>(<a class="ident" href="../../src/regex_automata/sparse.rs.html#690">id</a>) <span class="op">&amp;&amp;</span> <span class="op">!</span><a class="self" href="../../src/regex_automata/sparse.rs.html#690">self</a>.<a class="ident" href="../../src/regex_automata/sparse.rs.html#694">is_dead_state</a>(<a class="ident" href="../../src/regex_automata/sparse.rs.html#690">id</a>)
     }
 
-    <span class="kw">fn</span> <span class="ident">is_dead_state</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">id</span>: <span class="ident">S</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.bool.html">bool</a> {
-        <a class="ident" href="../../src/regex_automata/sparse.rs.html#694">id</a> <span class="op">=</span><span class="op">=</span> <a class="ident" href="../../src/regex_automata/state_id.rs.html#89">dead_id</a>()
+    <span class="kw">fn</span> <span class="ident">is_dead_state</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">id</span>: <span class="ident">S</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.bool.html">bool</a> {
+        <a class="ident" href="../../src/regex_automata/sparse.rs.html#694">id</a> <span class="op">==</span> <a class="ident" href="../../src/regex_automata/state_id.rs.html#89">dead_id</a>()
     }
 
-    <span class="kw">fn</span> <span class="ident">is_match_or_dead_state</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">id</span>: <span class="ident">S</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.bool.html">bool</a> {
+    <span class="kw">fn</span> <span class="ident">is_match_or_dead_state</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">id</span>: <span class="ident">S</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.bool.html">bool</a> {
         <a class="ident" href="../../src/regex_automata/sparse.rs.html#698">id</a> <span class="op">&lt;</span><span class="op">=</span> <a class="self" href="../../src/regex_automata/sparse.rs.html#698">self</a>.<span class="ident">max_match</span>
     }
 
-    <span class="kw">fn</span> <span class="ident">is_anchored</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.bool.html">bool</a> {
+    <span class="kw">fn</span> <span class="ident">is_anchored</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.bool.html">bool</a> {
         <a class="self" href="../../src/regex_automata/sparse.rs.html#702">self</a>.<span class="ident">anchored</span>
     }
 
-    <span class="kw">fn</span> <span class="ident">trans</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>] {
+    <span class="kw">fn</span> <span class="ident">trans</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>] {
         <a class="self" href="../../src/regex_automata/sparse.rs.html#706">self</a>.<span class="ident">trans</span>.<span class="ident">as_ref</span>()
     }
 
@@ -1968,7 +1968,7 @@
     <span class="doccomment">/// identifiers. If `A` is insufficient to represent all state identifiers</span>
     <span class="doccomment">/// in this DFA, then this returns an error.</span>
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">to_sized</span><span class="op">&lt;</span><span class="ident">A</span>: <span class="ident">StateID</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Repr</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>, <span class="ident">A</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">to_sized</span><span class="op">&lt;</span><span class="ident">A</span>: <span class="ident">StateID</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Repr</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>, <span class="ident">A</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="comment">// To build the new DFA, we proceed much like the initial construction</span>
         <span class="comment">// of the sparse DFA. Namely, since the state ID size is changing,</span>
         <span class="comment">// we don&#39;t actually know all of our state IDs until we&#39;ve allocated</span>
@@ -2021,7 +2021,7 @@
     <span class="doccomment">/// Unlike dense DFAs, the result is not necessarily aligned since a</span>
     <span class="doccomment">/// sparse DFA&#39;s transition table is always read as a sequence of bytes.</span>
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">to_bytes</span><span class="op">&lt;</span><span class="ident">A</span>: <span class="ident">ByteOrder</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">to_bytes</span><span class="op">&lt;</span><span class="ident">A</span>: <span class="ident">ByteOrder</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">label</span> <span class="op">=</span> <span class="string">b&quot;rust-regex-automata-sparse-dfa\x00&quot;</span>;
         <span class="kw">let</span> <span class="ident">size</span> <span class="op">=</span>
             <span class="comment">// For human readable label.</span>
@@ -2111,11 +2111,11 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">S</span>: <a class="ident" href="../../src/regex_automata/state_id.rs.html#115-154">StateID</a><span class="op">&gt;</span> <span class="ident">Repr</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>], <span class="ident">S</span><span class="op">&gt;</span> {
     <span class="doccomment">/// The implementation for deserializing a sparse DFA from raw bytes.</span>
-    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">from_bytes</span>(<span class="kw-2">mut</span> <span class="ident">buf</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Repr</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>], <span class="ident">S</span><span class="op">&gt;</span> {
+    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">from_bytes</span>(<span class="kw-2">mut</span> <span class="ident">buf</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>]) -&gt; <span class="ident">Repr</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>], <span class="ident">S</span><span class="op">&gt;</span> {
         <span class="comment">// skip over label</span>
-        <span class="kw">match</span> <a class="ident" href="../../src/regex_automata/sparse.rs.html#858">buf</a>.<span class="ident">iter</span>().<span class="ident">position</span>(<span class="op">|</span><span class="kw-2">&amp;</span><span class="ident">b</span><span class="op">|</span> <a class="ident" href="../../src/regex_automata/sparse.rs.html#860">b</a> <span class="op">=</span><span class="op">=</span> <span class="string">b&#39;\x00&#39;</span>) {
-            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic!</span>(<span class="string">&quot;could not find label&quot;</span>),
-            <span class="prelude-val">Some</span>(<span class="ident">i</span>) <span class="op">=</span><span class="op">&gt;</span> <a class="ident" href="../../src/regex_automata/sparse.rs.html#858">buf</a> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="ident" href="../../src/regex_automata/sparse.rs.html#858">buf</a>[<a class="ident" href="../../src/regex_automata/sparse.rs.html#862">i</a> <span class="op">+</span> <span class="number">1</span>..],
+        <span class="kw">match</span> <a class="ident" href="../../src/regex_automata/sparse.rs.html#858">buf</a>.<span class="ident">iter</span>().<span class="ident">position</span>(<span class="op">|</span><span class="kw-2">&amp;</span><span class="ident">b</span><span class="op">|</span> <a class="ident" href="../../src/regex_automata/sparse.rs.html#860">b</a> <span class="op">==</span> <span class="string">b&#39;\x00&#39;</span>) {
+            <span class="prelude-val">None</span> =&gt; <span class="macro">panic!</span>(<span class="string">&quot;could not find label&quot;</span>),
+            <span class="prelude-val">Some</span>(<span class="ident">i</span>) =&gt; <a class="ident" href="../../src/regex_automata/sparse.rs.html#858">buf</a> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="ident" href="../../src/regex_automata/sparse.rs.html#858">buf</a>[<a class="ident" href="../../src/regex_automata/sparse.rs.html#862">i</a> <span class="op">+</span> <span class="number">1</span>..],
         }
 
         <span class="comment">// check that current endianness is same as endianness of DFA</span>
@@ -2188,7 +2188,7 @@
     <span class="doccomment">/// The implementation for constructing a sparse DFA from a dense DFA.</span>
     <span class="kw">fn</span> <span class="ident">from_dense_sized</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">AsRef</span><span class="op">&lt;</span>[<span class="ident">S</span>]<span class="op">&gt;</span>, <span class="ident">A</span>: <span class="ident">StateID</span><span class="op">&gt;</span>(
         <span class="ident">dfa</span>: <span class="kw-2">&amp;</span><span class="ident">dense::Repr</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">S</span><span class="op">&gt;</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Repr</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>, <span class="ident">A</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Repr</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>, <span class="ident">A</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="comment">// In order to build the transition table, we need to be able to write</span>
         <span class="comment">// state identifiers for each of the &quot;next&quot; transitions in each state.</span>
         <span class="comment">// Our state identifiers correspond to the byte offset in the</span>
@@ -2251,7 +2251,7 @@
     }
 
     <span class="doccomment">/// Return a convenient mutable representation of the given state.</span>
-    <span class="kw">fn</span> <span class="ident">state_mut</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">id</span>: <span class="ident">S</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">StateMut</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">S</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">state_mut</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">id</span>: <span class="ident">S</span>) -&gt; <span class="ident">StateMut</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">S</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">pos</span> <span class="op">=</span> <span class="ident">id</span>.<span class="ident">to_usize</span>();
         <span class="kw">let</span> <span class="ident">ntrans</span> <span class="op">=</span> <span class="ident">NativeEndian::read_u16</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">trans</span>[<span class="ident">pos</span>..]) <span class="kw">as</span> <span class="ident">usize</span>;
         <span class="ident">pos</span> <span class="op">+</span><span class="op">=</span> <span class="number">2</span>;
@@ -2265,18 +2265,18 @@
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)]</span>
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">AsRef</span><span class="op">&lt;</span>[<span class="ident">u8</span>]<span class="op">&gt;</span>, <span class="ident">S</span>: <span class="ident">StateID</span><span class="op">&gt;</span> <span class="ident">fmt::Debug</span> <span class="kw">for</span> <span class="ident">Repr</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">S</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span>) -&gt; <span class="ident">fmt::Result</span> {
         <span class="kw">fn</span> <span class="ident">state_status</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">AsRef</span><span class="op">&lt;</span>[<span class="ident">u8</span>]<span class="op">&gt;</span>, <span class="ident">S</span>: <span class="ident">StateID</span><span class="op">&gt;</span>(
             <span class="ident">dfa</span>: <span class="kw-2">&amp;</span><span class="ident">Repr</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">S</span><span class="op">&gt;</span>,
             <span class="ident">id</span>: <span class="ident">S</span>,
-        ) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> {
-            <span class="kw">if</span> <span class="ident">id</span> <span class="op">=</span><span class="op">=</span> <span class="ident">dead_id</span>() {
+        ) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> {
+            <span class="kw">if</span> <span class="ident">id</span> <span class="op">==</span> <span class="ident">dead_id</span>() {
                 <span class="kw">if</span> <span class="ident">dfa</span>.<span class="ident">is_match_state</span>(<span class="ident">id</span>) {
                     <span class="string">&quot;D*&quot;</span>
                 } <span class="kw">else</span> {
                     <span class="string">&quot;D &quot;</span>
                 }
-            } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">id</span> <span class="op">=</span><span class="op">=</span> <span class="ident">dfa</span>.<span class="ident">start_state</span>() {
+            } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">id</span> <span class="op">==</span> <span class="ident">dfa</span>.<span class="ident">start_state</span>() {
                 <span class="kw">if</span> <span class="ident">dfa</span>.<span class="ident">is_match_state</span>(<span class="ident">id</span>) {
                     <span class="string">&quot;&gt;*&quot;</span>
                 } <span class="kw">else</span> {
@@ -2316,7 +2316,7 @@
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span>: <span class="ident">AsRef</span><span class="op">&lt;</span>[<span class="ident">u8</span>]<span class="op">&gt;</span>, <span class="ident">S</span>: <span class="ident">StateID</span><span class="op">&gt;</span> <span class="ident">Iterator</span> <span class="kw">for</span> <span class="ident">StateIter</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span>, <span class="ident">S</span><span class="op">&gt;</span> {
     <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> (<span class="ident">S</span>, <span class="ident">State</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">S</span><span class="op">&gt;</span>);
 
-    <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="ident">S</span>, <span class="ident">State</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">S</span><span class="op">&gt;</span>)<span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="ident">S</span>, <span class="ident">State</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">S</span><span class="op">&gt;</span>)<span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">id</span>.<span class="ident">to_usize</span>() <span class="op">&gt;</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">dfa</span>.<span class="ident">trans</span>().<span class="ident">len</span>() {
             <span class="kw">return</span> <span class="prelude-val">None</span>;
         }
@@ -2352,7 +2352,7 @@
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">S</span>: <a class="ident" href="../../src/regex_automata/state_id.rs.html#115-154">StateID</a><span class="op">&gt;</span> <span class="ident">State</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">S</span><span class="op">&gt;</span> {
     <span class="doccomment">/// Searches for the next transition given an input byte. If no such</span>
     <span class="doccomment">/// transition could be found, then a dead state is returned.</span>
-    <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">input</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">S</span> {
+    <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">input</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>) -&gt; <span class="ident">S</span> {
         <span class="comment">// This straight linear search was observed to be much better than</span>
         <span class="comment">// binary search on ASCII haystacks, likely because a binary search</span>
         <span class="comment">// visits the ASCII case last but a linear search sees it first. A</span>
@@ -2374,35 +2374,35 @@
 
     <span class="doccomment">/// Returns the inclusive input byte range for the ith transition in this</span>
     <span class="doccomment">/// state.</span>
-    <span class="kw">fn</span> <span class="ident">range</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">i</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>) <span class="op">-</span><span class="op">&gt;</span> (<a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>) {
+    <span class="kw">fn</span> <span class="ident">range</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">i</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>) -&gt; (<a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>) {
         (<a class="self" href="../../src/regex_automata/sparse.rs.html#1121">self</a>.<span class="ident">input_ranges</span>[<a class="ident" href="../../src/regex_automata/sparse.rs.html#1121">i</a> <span class="op">*</span> <span class="number">2</span>], <a class="self" href="../../src/regex_automata/sparse.rs.html#1121">self</a>.<span class="ident">input_ranges</span>[<a class="ident" href="../../src/regex_automata/sparse.rs.html#1121">i</a> <span class="op">*</span> <span class="number">2</span> <span class="op">+</span> <span class="number">1</span>])
     }
 
     <span class="doccomment">/// Returns the next state for the ith transition in this state.</span>
-    <span class="kw">fn</span> <span class="ident">next_at</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">i</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">S</span> {
+    <span class="kw">fn</span> <span class="ident">next_at</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">i</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>) -&gt; <span class="ident">S</span> {
         <span class="ident">S::read_bytes</span>(<span class="kw-2">&amp;</span><a class="self" href="../../src/regex_automata/sparse.rs.html#1126">self</a>.<span class="ident">next</span>[<a class="ident" href="../../src/regex_automata/sparse.rs.html#1126">i</a> <span class="op">*</span> <span class="ident">size_of</span>::<span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>()..])
     }
 
     <span class="doccomment">/// Return the total number of bytes that this state consumes in its</span>
     <span class="doccomment">/// encoded form.</span>
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">bytes</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
+    <span class="kw">fn</span> <span class="ident">bytes</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">usize</span> {
         <span class="number">2</span> <span class="op">+</span> (<span class="self">self</span>.<span class="ident">ntrans</span> <span class="op">*</span> <span class="number">2</span>) <span class="op">+</span> (<span class="self">self</span>.<span class="ident">ntrans</span> <span class="op">*</span> <span class="ident">size_of</span>::<span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>())
     }
 }
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)]</span>
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">S</span>: <span class="ident">StateID</span><span class="op">&gt;</span> <span class="ident">fmt::Debug</span> <span class="kw">for</span> <span class="ident">State</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">S</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span>) -&gt; <span class="ident">fmt::Result</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">transitions</span> <span class="op">=</span> <span class="macro">vec!</span>[];
         <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="number">0</span>..<span class="self">self</span>.<span class="ident">ntrans</span> {
             <span class="kw">let</span> <span class="ident">next</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">next_at</span>(<span class="ident">i</span>);
-            <span class="kw">if</span> <span class="ident">next</span> <span class="op">=</span><span class="op">=</span> <span class="ident">dead_id</span>() {
+            <span class="kw">if</span> <span class="ident">next</span> <span class="op">==</span> <span class="ident">dead_id</span>() {
                 <span class="kw">continue</span>;
             }
 
             <span class="kw">let</span> (<span class="ident">start</span>, <span class="ident">end</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">range</span>(<span class="ident">i</span>);
-            <span class="kw">if</span> <span class="ident">start</span> <span class="op">=</span><span class="op">=</span> <span class="ident">end</span> {
+            <span class="kw">if</span> <span class="ident">start</span> <span class="op">==</span> <span class="ident">end</span> {
                 <span class="ident">transitions</span>.<span class="ident">push</span>(<span class="macro">format!</span>(
                     <span class="string">&quot;{} =&gt; {}&quot;</span>,
                     <span class="ident">escape</span>(<span class="ident">start</span>),
@@ -2453,7 +2453,7 @@
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)]</span>
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">S</span>: <span class="ident">StateID</span><span class="op">&gt;</span> <span class="ident">fmt::Debug</span> <span class="kw">for</span> <span class="ident">StateMut</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">S</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span>) -&gt; <span class="ident">fmt::Result</span> {
         <span class="kw">let</span> <span class="ident">state</span> <span class="op">=</span> <span class="ident">State</span> {
             <span class="ident">_state_id_repr</span>: <span class="self">self</span>.<span class="ident">_state_id_repr</span>,
             <span class="ident">ntrans</span>: <span class="self">self</span>.<span class="ident">ntrans</span>,
@@ -2466,7 +2466,7 @@
 
 <span class="doccomment">/// Return the given byte as its escaped string form.</span>
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)]</span>
-<span class="kw">fn</span> <span class="ident">escape</span>(<span class="ident">b</span>: <span class="ident">u8</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">String</span> {
+<span class="kw">fn</span> <span class="ident">escape</span>(<span class="ident">b</span>: <span class="ident">u8</span>) -&gt; <span class="ident">String</span> {
     <span class="kw">use</span> <span class="ident">std::ascii</span>;
 
     <span class="ident">String::from_utf8</span>(<span class="ident">ascii::escape_default</span>(<span class="ident">b</span>).<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>()).<span class="ident">unwrap</span>()
@@ -2492,8 +2492,8 @@
 <span class="doccomment">/// representation of `(u8, u8)` has been nailed down).</span>
 <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">dead_code</span>)]</span>
-<span class="kw">fn</span> <span class="ident">binary_search_ranges</span>(<span class="ident">ranges</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>], <span class="ident">needle</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a><span class="op">&gt;</span> {
-    <span class="macro">debug_assert!</span>(<a class="ident" href="../../src/regex_automata/sparse.rs.html#1239">ranges</a>.<span class="ident">len</span>() <span class="op">%</span> <span class="number">2</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span>, <span class="string">&quot;ranges must have even length&quot;</span>);
+<span class="kw">fn</span> <span class="ident">binary_search_ranges</span>(<span class="ident">ranges</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>], <span class="ident">needle</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a><span class="op">&gt;</span> {
+    <span class="macro">debug_assert!</span>(<a class="ident" href="../../src/regex_automata/sparse.rs.html#1239">ranges</a>.<span class="ident">len</span>() <span class="op">%</span> <span class="number">2</span> <span class="op">==</span> <span class="number">0</span>, <span class="string">&quot;ranges must have even length&quot;</span>);
     <span class="macro">debug_assert!</span>(<a class="ident" href="../../src/regex_automata/sparse.rs.html#1239">ranges</a>.<span class="ident">len</span>() <span class="op">&lt;</span><span class="op">=</span> <span class="number">512</span>, <span class="string">&quot;ranges should be short&quot;</span>);
 
     <span class="kw">let</span> (<span class="kw-2">mut</span> <span class="ident">left</span>, <span class="kw-2">mut</span> <span class="ident">right</span>) <span class="op">=</span> (<span class="number">0</span>, <a class="ident" href="../../src/regex_automata/sparse.rs.html#1239">ranges</a>.<span class="ident">len</span>() <span class="op">/</span> <span class="number">2</span>);

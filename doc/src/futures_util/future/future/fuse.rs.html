@@ -108,7 +108,7 @@
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Fut</span><span class="op">&gt;</span> <span class="ident">Fuse</span><span class="op">&lt;</span><span class="ident">Fut</span><span class="op">&gt;</span> {
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">f</span>: <span class="ident">Fut</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">f</span>: <span class="ident">Fut</span>) -&gt; <span class="self">Self</span> {
         <span class="self">Self</span> { <span class="ident">inner</span>: <span class="prelude-val">Some</span>(<a class="ident" href="../../../../src/futures_util/future/future/fuse.rs.html#18">f</a>) }
     }
 }
@@ -159,13 +159,13 @@
     <span class="doccomment">/// }</span>
     <span class="doccomment">/// # });</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">terminated</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">terminated</span>() -&gt; <span class="self">Self</span> {
         <span class="self">Self</span> { <span class="ident">inner</span>: <span class="prelude-val">None</span> }
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Fut</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a><span class="op">&gt;</span> <a class="ident" href="../../../../futures_util/future/trait.FusedFuture.html">FusedFuture</a> <span class="kw">for</span> <span class="ident">Fuse</span><span class="op">&lt;</span><span class="ident">Fut</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">is_terminated</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    <span class="kw">fn</span> <span class="ident">is_terminated</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
         <a class="self" href="../../../../src/futures_util/future/future/fuse.rs.html#75">self</a>.<span class="ident">inner</span>.<span class="ident">is_none</span>()
     }
 }
@@ -173,14 +173,14 @@
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Fut</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a> <span class="kw">for</span> <span class="ident">Fuse</span><span class="op">&lt;</span><span class="ident">Fut</span><span class="op">&gt;</span> {
     <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident">Fut::Output</span>;
 
-    <span class="kw">fn</span> <span class="ident">poll</span>(<span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">Fut::Output</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">poll</span>(<span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">Fut::Output</span><span class="op">&gt;</span> {
         <span class="ident">Poll::Ready</span>(<span class="kw">match</span> <a class="self" href="../../../../src/futures_util/future/future/fuse.rs.html#83">self</a>.<span class="ident">as_mut</span>().<a class="ident" href="../../../../src/futures_util/future/future/fuse.rs.html#7-15">project</a>().<span class="ident">inner</span>.<span class="ident">as_pin_mut</span>() {
-            <span class="prelude-val">Some</span>(<span class="ident">fut</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="prelude-val">Some</span>(<span class="ident">fut</span>) =&gt; {
                 <span class="kw">let</span> <span class="ident">output</span> <span class="op">=</span> <span class="macro">ready!</span>(<a class="ident" href="../../../../src/futures_util/future/future/fuse.rs.html#85">fut</a>.<span class="ident">poll</span>(<a class="ident" href="../../../../src/futures_util/future/future/fuse.rs.html#83">cx</a>));
                 <a class="self" href="../../../../src/futures_util/future/future/fuse.rs.html#83">self</a>.<a class="ident" href="../../../../src/futures_util/future/future/fuse.rs.html#7-15">project</a>().<span class="ident">inner</span>.<span class="ident">set</span>(<span class="prelude-val">None</span>);
                 <a class="ident" href="../../../../src/futures_util/future/future/fuse.rs.html#86">output</a>
             }
-            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="ident">Poll::Pending</span>,
+            <span class="prelude-val">None</span> =&gt; <span class="kw">return</span> <span class="ident">Poll::Pending</span>,
         })
     }
 }

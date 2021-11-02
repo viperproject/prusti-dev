@@ -94,7 +94,7 @@
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">Limit</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">stream</span>: <span class="ident">T</span>, <span class="ident">amount</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Limit</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">stream</span>: <span class="ident">T</span>, <span class="ident">amount</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) -&gt; <span class="ident">Limit</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
         <a class="ident" href="../../../src/tokio_buf/util/limit.rs.html#8-11">Limit</a> {
             <a class="ident" href="../../../src/tokio_buf/util/limit.rs.html#21">stream</a>,
             <span class="ident">remaining</span>: <a class="ident" href="../../../src/tokio_buf/util/limit.rs.html#21">amount</a>,
@@ -109,7 +109,7 @@
     <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="ident">T::Item</span>;
     <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <span class="ident">LimitError</span><span class="op">&lt;</span><span class="ident">T::Error</span><span class="op">&gt;</span>;
 
-    <span class="kw">fn</span> <span class="ident">poll_buf</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">poll_buf</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
         <span class="kw">use</span> <span class="ident">futures::Async::Ready</span>;
 
         <span class="kw">if</span> <a class="self" href="../../../src/tokio_buf/util/limit.rs.html#36">self</a>.<span class="ident">stream</span>.<a class="ident" href="../../../src/tokio_buf/lib.rs.html#96">size_hint</a>().<a class="ident" href="../../../src/tokio_buf/size_hint.rs.html#24">lower</a>() <span class="op">&gt;</span> <a class="self" href="../../../src/tokio_buf/util/limit.rs.html#36">self</a>.<span class="ident">remaining</span> {
@@ -122,7 +122,7 @@
             .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">err</span><span class="op">|</span> <a class="ident" href="../../../src/tokio_buf/util/limit.rs.html#15-18">LimitError</a> { <span class="ident">inner</span>: <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/tokio_buf/util/limit.rs.html#46">err</a>) });
 
         <span class="kw">match</span> <a class="ident" href="../../../src/tokio_buf/util/limit.rs.html#43">res</a> {
-            <span class="prelude-val">Ok</span>(<span class="ident">Ready</span>(<span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">buf</span>))) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="prelude-val">Ok</span>(<span class="ident">Ready</span>(<span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">buf</span>))) =&gt; {
                 <span class="kw">if</span> <a class="ident" href="../../../src/tokio_buf/util/limit.rs.html#49">buf</a>.<span class="ident">remaining</span>() <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> <span class="op">&gt;</span> <a class="self" href="../../../src/tokio_buf/util/limit.rs.html#36">self</a>.<span class="ident">remaining</span> {
                     <a class="self" href="../../../src/tokio_buf/util/limit.rs.html#36">self</a>.<span class="ident">remaining</span> <span class="op">=</span> <span class="number">0</span>;
                     <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/tokio_buf/util/limit.rs.html#15-18">LimitError</a> { <span class="ident">inner</span>: <span class="prelude-val">None</span> });
@@ -130,7 +130,7 @@
 
                 <a class="self" href="../../../src/tokio_buf/util/limit.rs.html#36">self</a>.<span class="ident">remaining</span> <span class="op">-</span><span class="op">=</span> <a class="ident" href="../../../src/tokio_buf/util/limit.rs.html#49">buf</a>.<span class="ident">remaining</span>() <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>;
             }
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {}
+            <span class="kw">_</span> =&gt; {}
         }
 
         <a class="ident" href="../../../src/tokio_buf/util/limit.rs.html#43">res</a>
@@ -141,12 +141,12 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">LimitError</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
     <span class="doccomment">/// Returns `true` if the error was caused by polling the stream.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_stream_err</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_stream_err</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
         <a class="self" href="../../../src/tokio_buf/util/limit.rs.html#68">self</a>.<span class="ident">inner</span>.<span class="ident">is_some</span>()
     }
 
     <span class="doccomment">/// Returns `true` if the stream reached its limit.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_limit_err</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_limit_err</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
         <a class="self" href="../../../src/tokio_buf/util/limit.rs.html#73">self</a>.<span class="ident">inner</span>.<span class="ident">is_none</span>()
     }
 }

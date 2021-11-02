@@ -24,7 +24,7 @@
 it with others, mutate it, and return back some value as a reply. The
 power of <code>Filter</code>s come from being able to isolate small subsets, and then
 chain and reuse them in various parts of your app.</p>
-<h1 id="extracting-tuples" class="section-header"><a href="#extracting-tuples">Extracting Tuples</a></h1>
+<h2 id="extracting-tuples" class="section-header"><a href="#extracting-tuples">Extracting Tuples</a></h2>
 <p>You may notice that several of these filters extract some tuple, often
 times a tuple of just 1 item! Why?</p>
 <p>If a filter extracts a <code>(String,)</code>, that simply means that it
@@ -42,14 +42,14 @@ filters, so that <code>map</code> and <code>and_then</code> receive them as sepa
 filter will simply discard the <code>()</code>. If a <code>Filter</code> extracts one or
 more items, combining will mean it extracts the values of itself
 combined with the other.</p>
-<h1 id="example" class="section-header"><a href="#example">Example</a></h1>
+<h5 id="example" class="section-header"><a href="#example">Example</a></h5>
 <div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use</span> <span class="ident">warp::Filter</span>;
 
 <span class="comment">// Match `/hello/:name`...</span>
 <span class="ident">warp::path</span>(<span class="string">&quot;hello&quot;</span>)
     .<span class="ident">and</span>(<span class="ident">warp::path::param</span>::<span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>());</code></pre></div>
 </div></details><details class="rustdoc-toggle" open><summary><div id="method.or" class="method has-srclink"><div class="rightside"><a class="srclink" href="../src/warp/filter/mod.rs.html#138-148" title="goto source code">[src]</a></div><h4 class="code-header">fn <a href="#method.or" class="fnname">or</a>&lt;F&gt;(self, other: F) -&gt; Or&lt;Self, F&gt; <span class="where fmt-newline">where<br>&nbsp;&nbsp;&nbsp;&nbsp;Self: <a class="trait" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a>,<br>&nbsp;&nbsp;&nbsp;&nbsp;F: <a class="trait" href="trait.Filter.html" title="trait warp::Filter">Filter</a>,<br>&nbsp;&nbsp;&nbsp;&nbsp;F::Error: CombineRejection&lt;Self::Error&gt;,&nbsp;</span></h4></div></summary><div class="docblock"><p>Composes a new <code>Filter</code> of either this or the other filter.</p>
-<h1 id="example-1" class="section-header"><a href="#example-1">Example</a></h1>
+<h5 id="example-1" class="section-header"><a href="#example-1">Example</a></h5>
 <div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use</span> <span class="ident">std::net::SocketAddr</span>;
 <span class="kw">use</span> <span class="ident">warp::Filter</span>;
 
@@ -57,14 +57,14 @@ combined with the other.</p>
 <span class="ident">warp::path::param</span>::<span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>()
     .<span class="ident">or</span>(<span class="ident">warp::path::param</span>::<span class="op">&lt;</span><span class="ident">SocketAddr</span><span class="op">&gt;</span>());</code></pre></div>
 </div></details><details class="rustdoc-toggle" open><summary><div id="method.map" class="method has-srclink"><div class="rightside"><a class="srclink" href="../src/warp/filter/mod.rs.html#191-200" title="goto source code">[src]</a></div><h4 class="code-header">fn <a href="#method.map" class="fnname">map</a>&lt;F&gt;(self, fun: F) -&gt; Map&lt;Self, F&gt; <span class="where fmt-newline">where<br>&nbsp;&nbsp;&nbsp;&nbsp;Self: <a class="trait" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a>,<br>&nbsp;&nbsp;&nbsp;&nbsp;F: Func&lt;Self::Extract&gt; + <a class="trait" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html" title="trait core::clone::Clone">Clone</a>,&nbsp;</span></h4></div></summary><div class="docblock"><p>Composes this <code>Filter</code> with a function receiving the extracted value.</p>
-<h1 id="example-2" class="section-header"><a href="#example-2">Example</a></h1>
+<h5 id="example-2" class="section-header"><a href="#example-2">Example</a></h5>
 <div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use</span> <span class="ident">warp::Filter</span>;
 
 <span class="comment">// Map `/:id`</span>
 <span class="ident">warp::path::param</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">id</span>: <span class="ident">u64</span><span class="op">|</span> {
   <span class="macro">format!</span>(<span class="string">&quot;Hello #{}&quot;</span>, <span class="ident">id</span>)
 });</code></pre></div>
-<h1 id="func" class="section-header"><a href="#func"><code>Func</code></a></h1>
+<h5 id="func" class="section-header"><a href="#func"><code>Func</code></a></h5>
 <p>The generic <code>Func</code> trait is implemented for any function that receives
 the same arguments as this <code>Filter</code> extracts. In practice, this
 shouldn’t ever bother you, and simply makes things feel more natural.</p>
@@ -90,7 +90,7 @@ LLVM.</p>
 <p>The function should return some <code>IntoFuture</code> type.</p>
 <p>The <code>Error</code> type of the return <code>Future</code> needs be a <code>Rejection</code>, which
 means most futures will need to have their error mapped into one.</p>
-<h1 id="example-3" class="section-header"><a href="#example-3">Example</a></h1>
+<h5 id="example-3" class="section-header"><a href="#example-3">Example</a></h5>
 <div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use</span> <span class="ident">warp::Filter</span>;
 
 <span class="comment">// Validate after `/:id`</span>
@@ -114,7 +114,7 @@ are the same type, this combinator can be used to grab the
 inner value, regardless of which side of <code>Either</code> it was. This
 is useful for values that could be extracted from multiple parts
 of a request, and the exact place isn’t important.</p>
-<h1 id="example-4" class="section-header"><a href="#example-4">Example</a></h1>
+<h5 id="example-4" class="section-header"><a href="#example-4">Example</a></h5>
 <div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use</span> <span class="ident">std::net::SocketAddr</span>;
 <span class="kw">use</span> <span class="ident">warp::Filter</span>;
 
@@ -128,7 +128,7 @@ of a request, and the exact place isn’t important.</p>
 </div></details><details class="rustdoc-toggle" open><summary><div id="method.untuple_one" class="method has-srclink"><div class="rightside"><a class="srclink" href="../src/warp/filter/mod.rs.html#339-345" title="goto source code">[src]</a></div><h4 class="code-header">fn <a href="#method.untuple_one" class="fnname">untuple_one</a>&lt;T&gt;(self) -&gt; UntupleOne&lt;Self&gt; <span class="where fmt-newline">where<br>&nbsp;&nbsp;&nbsp;&nbsp;Self: <a class="trait" href="trait.Filter.html" title="trait warp::Filter">Filter</a>&lt;Extract = <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.tuple.html">(</a>T<a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.tuple.html">,)</a>&gt; + <a class="trait" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a>,<br>&nbsp;&nbsp;&nbsp;&nbsp;T: Tuple,&nbsp;</span></h4></div></summary><div class="docblock"><p>Convenience method to remove one layer of tupling.</p>
 <p>This is useful for when things like <code>map</code> don’t return a new value,
 but just <code>()</code>, since warp will wrap it up into a <code>((),)</code>.</p>
-<h1 id="example-5" class="section-header"><a href="#example-5">Example</a></h1>
+<h5 id="example-5" class="section-header"><a href="#example-5">Example</a></h5>
 <div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use</span> <span class="ident">warp::Filter</span>;
 
 <span class="kw">let</span> <span class="ident">route</span> <span class="op">=</span> <span class="ident">warp::path::param</span>()
@@ -156,7 +156,7 @@ but just <code>()</code>, since warp will wrap it up into a <code>((),)</code>.<
 </div></details><details class="rustdoc-toggle" open><summary><div id="method.with" class="method has-srclink"><div class="rightside"><a class="srclink" href="../src/warp/filter/mod.rs.html#363-369" title="goto source code">[src]</a></div><h4 class="code-header">fn <a href="#method.with" class="fnname">with</a>&lt;W&gt;(self, wrapper: W) -&gt; W::Wrapped <span class="where fmt-newline">where<br>&nbsp;&nbsp;&nbsp;&nbsp;Self: <a class="trait" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a>,<br>&nbsp;&nbsp;&nbsp;&nbsp;W: Wrap&lt;Self&gt;,&nbsp;</span></h4></div></summary><div class="docblock"><p>Wraps the current filter with some wrapper.</p>
 <p>The wrapper may do some preparation work before starting this filter,
 and may do post-processing after the filter completes.</p>
-<h1 id="example-6" class="section-header"><a href="#example-6">Example</a></h1>
+<h5 id="example-6" class="section-header"><a href="#example-6">Example</a></h5>
 <div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use</span> <span class="ident">warp::Filter</span>;
 
 <span class="kw">let</span> <span class="ident">route</span> <span class="op">=</span> <span class="ident">warp::any</span>()
@@ -165,21 +165,21 @@ and may do post-processing after the filter completes.</p>
 <span class="comment">// Wrap the route with a log wrapper.</span>
 <span class="kw">let</span> <span class="ident">route</span> <span class="op">=</span> <span class="ident">route</span>.<span class="ident">with</span>(<span class="ident">warp::log</span>(<span class="string">&quot;example&quot;</span>));</code></pre></div>
 </div></details><details class="rustdoc-toggle" open><summary><div id="method.boxed" class="method has-srclink"><div class="rightside"><a class="srclink" href="../src/warp/filter/mod.rs.html#395-402" title="goto source code">[src]</a></div><h4 class="code-header">fn <a href="#method.boxed" class="fnname">boxed</a>(self) -&gt; <a class="struct" href="filters/struct.BoxedFilter.html" title="struct warp::filters::BoxedFilter">BoxedFilter</a>&lt;Self::Extract&gt; <span class="where fmt-newline">where<br>&nbsp;&nbsp;&nbsp;&nbsp;Self: <a class="trait" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a> + <a class="trait" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html" title="trait core::marker::Send">Send</a> + <a class="trait" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html" title="trait core::marker::Sync">Sync</a> + 'static,<br>&nbsp;&nbsp;&nbsp;&nbsp;Self::Extract: <a class="trait" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html" title="trait core::marker::Send">Send</a>,<br>&nbsp;&nbsp;&nbsp;&nbsp;Self::Error: <a class="trait" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html" title="trait core::convert::Into">Into</a>&lt;<a class="struct" href="reject/struct.Rejection.html" title="struct warp::reject::Rejection">Rejection</a>&gt;,&nbsp;</span></h4></div></summary><div class="docblock"><p>Boxes this filter into a trait object, making it easier to name the type.</p>
-<h1 id="example-7" class="section-header"><a href="#example-7">Example</a></h1>
+<h5 id="example-7" class="section-header"><a href="#example-7">Example</a></h5>
 <div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use</span> <span class="ident">warp::Filter</span>;
 
-<span class="kw">fn</span> <span class="ident">impl_reply</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">warp::filters::BoxedFilter</span><span class="op">&lt;</span>(<span class="kw">impl</span> <span class="ident">warp::Reply</span>,)<span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">impl_reply</span>() -&gt; <span class="ident">warp::filters::BoxedFilter</span><span class="op">&lt;</span>(<span class="kw">impl</span> <span class="ident">warp::Reply</span>,)<span class="op">&gt;</span> {
     <span class="ident">warp::any</span>()
         .<span class="ident">map</span>(<span class="ident">warp::reply</span>)
         .<span class="ident">boxed</span>()
 }
 
-<span class="kw">fn</span> <span class="ident">named_i32</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">warp::filters::BoxedFilter</span><span class="op">&lt;</span>(<span class="ident">i32</span>,)<span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">named_i32</span>() -&gt; <span class="ident">warp::filters::BoxedFilter</span><span class="op">&lt;</span>(<span class="ident">i32</span>,)<span class="op">&gt;</span> {
     <span class="ident">warp::path::param</span>::<span class="op">&lt;</span><span class="ident">i32</span><span class="op">&gt;</span>()
         .<span class="ident">boxed</span>()
 }
 
-<span class="kw">fn</span> <span class="ident">named_and</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">warp::filters::BoxedFilter</span><span class="op">&lt;</span>(<span class="ident">i32</span>, <span class="ident">String</span>)<span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">named_and</span>() -&gt; <span class="ident">warp::filters::BoxedFilter</span><span class="op">&lt;</span>(<span class="ident">i32</span>, <span class="ident">String</span>)<span class="op">&gt;</span> {
     <span class="ident">warp::path::param</span>::<span class="op">&lt;</span><span class="ident">i32</span><span class="op">&gt;</span>()
         .<span class="ident">and</span>(<span class="ident">warp::header</span>::<span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>(<span class="string">&quot;host&quot;</span>))
         .<span class="ident">boxed</span>()

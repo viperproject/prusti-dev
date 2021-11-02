@@ -109,10 +109,10 @@
 <span class="doccomment">/// returning early.</span>
 <span class="attribute">#[<span class="ident">macro_export</span>]</span>
 <span class="macro">macro_rules!</span> <span class="ident">try_ready</span> {
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">e</span>:<span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> (<span class="kw">match</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">e</span> {
-        <span class="prelude-val">Ok</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::Async::Ready</span>(<span class="ident">t</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">t</span>,
-        <span class="prelude-val">Ok</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::Async::NotReady</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::Async::NotReady</span>),
-        <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">From::from</span>(<span class="ident">e</span>)),
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">e</span>:<span class="ident">expr</span>) =&gt; (<span class="kw">match</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">e</span> {
+        <span class="prelude-val">Ok</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::Async::Ready</span>(<span class="ident">t</span>)) =&gt; <span class="ident">t</span>,
+        <span class="prelude-val">Ok</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::Async::NotReady</span>) =&gt; <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::Async::NotReady</span>),
+        <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">From::from</span>(<span class="ident">e</span>)),
     })
 }
 
@@ -136,31 +136,31 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">Async</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
     <span class="doccomment">/// Change the success value of this `Async` with the closure provided</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">map</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">U</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">f</span>: <span class="ident">F</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Async</span><span class="op">&lt;</span><span class="ident">U</span><span class="op">&gt;</span>
-        <span class="kw">where</span> <span class="ident">F</span>: <span class="ident">FnOnce</span>(<span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">U</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">map</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">U</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">f</span>: <span class="ident">F</span>) -&gt; <span class="ident">Async</span><span class="op">&lt;</span><span class="ident">U</span><span class="op">&gt;</span>
+        <span class="kw">where</span> <span class="ident">F</span>: <span class="ident">FnOnce</span>(<span class="ident">T</span>) -&gt; <span class="ident">U</span>
     {
         <span class="kw">match</span> <a class="self" href="../../src/futures/poll.rs.html#34">self</a> {
-            <a class="ident" href="../../src/futures/poll.rs.html#26">Async::Ready</a>(<span class="ident">t</span>) <span class="op">=</span><span class="op">&gt;</span> <a class="ident" href="../../src/futures/poll.rs.html#26">Async::Ready</a>(<a class="ident" href="../../src/futures/poll.rs.html#34">f</a>(<a class="ident" href="../../src/futures/poll.rs.html#38">t</a>)),
-            <a class="ident" href="../../src/futures/poll.rs.html#29">Async::NotReady</a> <span class="op">=</span><span class="op">&gt;</span> <a class="ident" href="../../src/futures/poll.rs.html#29">Async::NotReady</a>,
+            <a class="ident" href="../../src/futures/poll.rs.html#26">Async::Ready</a>(<span class="ident">t</span>) =&gt; <a class="ident" href="../../src/futures/poll.rs.html#26">Async::Ready</a>(<a class="ident" href="../../src/futures/poll.rs.html#34">f</a>(<a class="ident" href="../../src/futures/poll.rs.html#38">t</a>)),
+            <a class="ident" href="../../src/futures/poll.rs.html#29">Async::NotReady</a> =&gt; <a class="ident" href="../../src/futures/poll.rs.html#29">Async::NotReady</a>,
         }
     }
 
     <span class="doccomment">/// Returns whether this is `Async::Ready`</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_ready</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_ready</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
         <span class="kw">match</span> <span class="kw-2">*</span><a class="self" href="../../src/futures/poll.rs.html#44">self</a> {
-            <a class="ident" href="../../src/futures/poll.rs.html#26">Async::Ready</a>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">true</span>,
-            <a class="ident" href="../../src/futures/poll.rs.html#29">Async::NotReady</a> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
+            <a class="ident" href="../../src/futures/poll.rs.html#26">Async::Ready</a>(<span class="kw">_</span>) =&gt; <span class="bool-val">true</span>,
+            <a class="ident" href="../../src/futures/poll.rs.html#29">Async::NotReady</a> =&gt; <span class="bool-val">false</span>,
         }
     }
 
     <span class="doccomment">/// Returns whether this is `Async::NotReady`</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_not_ready</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_not_ready</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
         <span class="op">!</span><a class="self" href="../../src/futures/poll.rs.html#52">self</a>.<a class="ident" href="../../src/futures/poll.rs.html#44">is_ready</a>()
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Async</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">t</span>: <span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Async</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">t</span>: <span class="ident">T</span>) -&gt; <span class="ident">Async</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
         <a class="ident" href="../../src/futures/poll.rs.html#26">Async::Ready</a>(<a class="ident" href="../../src/futures/poll.rs.html#58">t</a>)
     }
 }
@@ -181,25 +181,25 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">AsyncSink</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
     <span class="doccomment">/// Change the NotReady value of this `AsyncSink` with the closure provided</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">map</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">U</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">f</span>: <span class="ident">F</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">AsyncSink</span><span class="op">&lt;</span><span class="ident">U</span><span class="op">&gt;</span>
-        <span class="kw">where</span> <span class="ident">F</span>: <span class="ident">FnOnce</span>(<span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">U</span>,
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">map</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">U</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">f</span>: <span class="ident">F</span>) -&gt; <span class="ident">AsyncSink</span><span class="op">&lt;</span><span class="ident">U</span><span class="op">&gt;</span>
+        <span class="kw">where</span> <span class="ident">F</span>: <span class="ident">FnOnce</span>(<span class="ident">T</span>) -&gt; <span class="ident">U</span>,
     {
         <span class="kw">match</span> <a class="self" href="../../src/futures/poll.rs.html#79">self</a> {
-            <a class="ident" href="../../src/futures/poll.rs.html#69">AsyncSink::Ready</a> <span class="op">=</span><span class="op">&gt;</span> <a class="ident" href="../../src/futures/poll.rs.html#69">AsyncSink::Ready</a>,
-            <a class="ident" href="../../src/futures/poll.rs.html#74">AsyncSink::NotReady</a>(<span class="ident">t</span>) <span class="op">=</span><span class="op">&gt;</span> <a class="ident" href="../../src/futures/poll.rs.html#74">AsyncSink::NotReady</a>(<a class="ident" href="../../src/futures/poll.rs.html#79">f</a>(<a class="ident" href="../../src/futures/poll.rs.html#84">t</a>)),
+            <a class="ident" href="../../src/futures/poll.rs.html#69">AsyncSink::Ready</a> =&gt; <a class="ident" href="../../src/futures/poll.rs.html#69">AsyncSink::Ready</a>,
+            <a class="ident" href="../../src/futures/poll.rs.html#74">AsyncSink::NotReady</a>(<span class="ident">t</span>) =&gt; <a class="ident" href="../../src/futures/poll.rs.html#74">AsyncSink::NotReady</a>(<a class="ident" href="../../src/futures/poll.rs.html#79">f</a>(<a class="ident" href="../../src/futures/poll.rs.html#84">t</a>)),
         }
     }
 
     <span class="doccomment">/// Returns whether this is `AsyncSink::Ready`</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_ready</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_ready</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
         <span class="kw">match</span> <span class="kw-2">*</span><a class="self" href="../../src/futures/poll.rs.html#89">self</a> {
-            <a class="ident" href="../../src/futures/poll.rs.html#69">AsyncSink::Ready</a> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">true</span>,
-            <a class="ident" href="../../src/futures/poll.rs.html#74">AsyncSink::NotReady</a>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
+            <a class="ident" href="../../src/futures/poll.rs.html#69">AsyncSink::Ready</a> =&gt; <span class="bool-val">true</span>,
+            <a class="ident" href="../../src/futures/poll.rs.html#74">AsyncSink::NotReady</a>(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
         }
     }
 
     <span class="doccomment">/// Returns whether this is `AsyncSink::NotReady`</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_not_ready</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_not_ready</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
         <span class="op">!</span><a class="self" href="../../src/futures/poll.rs.html#97">self</a>.<a class="ident" href="../../src/futures/poll.rs.html#89">is_ready</a>()
     }
 }

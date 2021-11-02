@@ -116,7 +116,7 @@
 }
 
 <span class="kw">impl</span> <a class="ident" href="../../src/rustwide/inside_docker.rs.html#9-11">CurrentContainer</a> {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">detect</span>(<span class="ident">workspace</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/rustwide/workspace.rs.html#193-195">Workspace</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>, <a class="ident" href="../../failure/error/struct.Error.html">Error</a><span class="op">&gt;</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">detect</span>(<span class="ident">workspace</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/rustwide/workspace.rs.html#193-195">Workspace</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>, <a class="ident" href="../../failure/error/struct.Error.html">Error</a><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">id</span>) <span class="op">=</span> <a class="ident" href="../../src/rustwide/inside_docker.rs.html#47">probe_container_id</a>(<a class="ident" href="../../src/rustwide/inside_docker.rs.html#14">workspace</a>)<span class="question-mark">?</span> {
             <span class="macro">info!</span>(<span class="string">&quot;inspecting the current container&quot;</span>);
             <span class="kw">let</span> <span class="ident">inspect</span> <span class="op">=</span> <span class="ident">Command::new</span>(<a class="ident" href="../../src/rustwide/inside_docker.rs.html#14">workspace</a>, <span class="string">&quot;docker&quot;</span>)
@@ -137,7 +137,7 @@
         }
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">mounts</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span>[<a class="ident" href="../../src/rustwide/inside_docker.rs.html#92-95">Mount</a>] {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">mounts</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<a class="ident" href="../../src/rustwide/inside_docker.rs.html#92-95">Mount</a>] {
         <span class="kw-2">&amp;</span><a class="self" href="../../src/rustwide/inside_docker.rs.html#35">self</a>.<span class="ident">metadata</span>.<span class="ident">mounts</span>
     }
 }
@@ -149,7 +149,7 @@
 <span class="doccomment">/// This function uses a simpler but slower method to get the ID: a file with a random string is</span>
 <span class="doccomment">/// created in the temp directory, the list of all the containers is fetched from Docker and then</span>
 <span class="doccomment">/// `cat` is executed inside each of them to check whether they have the same random string.</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">probe_container_id</span>(<span class="ident">workspace</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/rustwide/workspace.rs.html#193-195">Workspace</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a><span class="op">&gt;</span>, <a class="ident" href="../../failure/error/struct.Error.html">Error</a><span class="op">&gt;</span> {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">probe_container_id</span>(<span class="ident">workspace</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/rustwide/workspace.rs.html#193-195">Workspace</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a><span class="op">&gt;</span>, <a class="ident" href="../../failure/error/struct.Error.html">Error</a><span class="op">&gt;</span> {
     <span class="macro">info!</span>(<span class="string">&quot;detecting the ID of the container where rustwide is running&quot;</span>);
 
     <span class="comment">// Create the probe on the current file system</span>
@@ -175,7 +175,7 @@
             .<a class="ident" href="../../src/rustwide/cmd/mod.rs.html#340">log_command</a>(<span class="bool-val">false</span>)
             .<a class="ident" href="../../src/rustwide/cmd/mod.rs.html#358">run_capture</a>();
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="kw-2">&amp;</span>[<span class="kw-2">ref</span> <span class="ident">probed</span>]) <span class="op">=</span> <a class="ident" href="../../src/rustwide/inside_docker.rs.html#67">res</a>.<span class="ident">as_ref</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">out</span><span class="op">|</span> <a class="ident" href="../../src/rustwide/inside_docker.rs.html#72">out</a>.<a class="ident" href="../../src/rustwide/cmd/mod.rs.html#528">stdout_lines</a>()) {
-            <span class="kw">if</span> <span class="kw-2">*</span><a class="ident" href="../../src/rustwide/inside_docker.rs.html#72">probed</a> <span class="op">=</span><span class="op">=</span> <a class="ident" href="../../src/rustwide/inside_docker.rs.html#55">probe_content</a> {
+            <span class="kw">if</span> <span class="kw-2">*</span><a class="ident" href="../../src/rustwide/inside_docker.rs.html#72">probed</a> <span class="op">==</span> <a class="ident" href="../../src/rustwide/inside_docker.rs.html#55">probe_content</a> {
                 <span class="macro">info!</span>(<span class="string">&quot;probe successful, this is container ID {}&quot;</span>, <a class="ident" href="../../src/rustwide/inside_docker.rs.html#64">id</a>);
                 <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<a class="ident" href="../../src/rustwide/inside_docker.rs.html#64">id</a>.<span class="ident">clone</span>()));
             }
@@ -200,11 +200,11 @@
 }
 
 <span class="kw">impl</span> <a class="ident" href="../../src/rustwide/inside_docker.rs.html#92-95">Mount</a> {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">source</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">source</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> {
         <span class="kw-2">&amp;</span><a class="self" href="../../src/rustwide/inside_docker.rs.html#98">self</a>.<span class="ident">source</span>
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">destination</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">destination</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> {
         <span class="kw-2">&amp;</span><a class="self" href="../../src/rustwide/inside_docker.rs.html#102">self</a>.<span class="ident">destination</span>
     }
 }

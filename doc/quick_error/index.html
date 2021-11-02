@@ -14,7 +14,7 @@
 implemented (but you may do that yourself if you like). The documentation
 comments <code>/// something</code> (as well as other meta attrbiutes) on variants
 are allowed.</p>
-<h1 id="allowed-syntax" class="section-header"><a href="#allowed-syntax">Allowed Syntax</a></h1>
+<h2 id="allowed-syntax" class="section-header"><a href="#allowed-syntax">Allowed Syntax</a></h2>
 <p>You may add arbitrary parameters to any struct variant:</p>
 
 <div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="macro">quick_error!</span> {
@@ -90,10 +90,10 @@ for example:</p>
     <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
     <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">SomeError</span> {
         <span class="ident">Io</span>(<span class="ident">err</span>: <span class="ident">std::io::Error</span>) {
-            <span class="ident">display</span>(<span class="ident">x</span>) <span class="op">-</span><span class="op">&gt;</span> (<span class="string">&quot;I/O: {}&quot;</span>, <span class="ident">err</span>)
+            <span class="ident">display</span>(<span class="ident">x</span>) -&gt; (<span class="string">&quot;I/O: {}&quot;</span>, <span class="ident">err</span>)
         }
         <span class="ident">Utf8</span>(<span class="ident">err</span>: <span class="ident">std::str::Utf8Error</span>) {
-            <span class="ident">display</span>(<span class="ident">self_</span>) <span class="op">-</span><span class="op">&gt;</span> (<span class="string">&quot;UTF-8 error. Valid up to {}&quot;</span>, <span class="ident">err</span>.<span class="ident">valid_up_to</span>())
+            <span class="ident">display</span>(<span class="ident">self_</span>) -&gt; (<span class="string">&quot;UTF-8 error. Valid up to {}&quot;</span>, <span class="ident">err</span>.<span class="ident">valid_up_to</span>())
         }
     }
 }</code></pre></div>
@@ -129,17 +129,17 @@ value conversions:</p>
     <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
     <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">SomeError</span> {
         <span class="ident">FailedOperation</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>, <span class="ident">errno</span>: <span class="ident">i32</span>) {
-            <span class="ident">from</span>(<span class="ident">errno</span>: <span class="ident">i32</span>) <span class="op">-</span><span class="op">&gt;</span> (<span class="string">&quot;os error&quot;</span>, <span class="ident">errno</span>)
-            <span class="ident">from</span>(<span class="ident">e</span>: <span class="ident">std::io::Error</span>) <span class="op">-</span><span class="op">&gt;</span> (<span class="string">&quot;io error&quot;</span>, <span class="ident">e</span>.<span class="ident">raw_os_error</span>().<span class="ident">unwrap</span>())
+            <span class="ident">from</span>(<span class="ident">errno</span>: <span class="ident">i32</span>) -&gt; (<span class="string">&quot;os error&quot;</span>, <span class="ident">errno</span>)
+            <span class="ident">from</span>(<span class="ident">e</span>: <span class="ident">std::io::Error</span>) -&gt; (<span class="string">&quot;io error&quot;</span>, <span class="ident">e</span>.<span class="ident">raw_os_error</span>().<span class="ident">unwrap</span>())
         }
         <span class="doccomment">/// Converts from both kinds of utf8 errors</span>
         <span class="ident">Utf8</span>(<span class="ident">err</span>: <span class="ident">std::str::Utf8Error</span>) {
             <span class="ident">from</span>()
-            <span class="ident">from</span>(<span class="ident">err</span>: <span class="ident">std::string::FromUtf8Error</span>) <span class="op">-</span><span class="op">&gt;</span> (<span class="ident">err</span>.<span class="ident">utf8_error</span>())
+            <span class="ident">from</span>(<span class="ident">err</span>: <span class="ident">std::string::FromUtf8Error</span>) -&gt; (<span class="ident">err</span>.<span class="ident">utf8_error</span>())
         }
     }
 }</code></pre></div>
-<h1 id="context" class="section-header"><a href="#context">Context</a></h1>
+<h2 id="context" class="section-header"><a href="#context">Context</a></h2>
 <p>Since quick-error 1.1 we also have a <code>context</code> declaration, which is
 similar to (the longest form of) <code>from</code>, but allows adding some context to
 the error. We need a longer example to demonstrate this:</p>
@@ -151,12 +151,12 @@ the error. We need a longer example to demonstrate this:</p>
     <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Error</span> {
         <span class="ident">File</span>(<span class="ident">filename</span>: <span class="ident">PathBuf</span>, <span class="ident">err</span>: <span class="ident">io::Error</span>) {
             <span class="ident">context</span>(<span class="ident">path</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Path</span>, <span class="ident">err</span>: <span class="ident">io::Error</span>)
-                <span class="op">-</span><span class="op">&gt;</span> (<span class="ident">path</span>.<span class="ident">to_path_buf</span>(), <span class="ident">err</span>)
+                -&gt; (<span class="ident">path</span>.<span class="ident">to_path_buf</span>(), <span class="ident">err</span>)
         }
     }
 }
 
-<span class="kw">fn</span> <span class="ident">openfile</span>(<span class="ident">path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Error</span><span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">openfile</span>(<span class="ident">path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Error</span><span class="op">&gt;</span> {
     <span class="macro">try!</span>(<span class="ident">File::open</span>(<span class="ident">path</span>).<span class="ident">context</span>(<span class="ident">path</span>));
 
     <span class="comment">// If we didn&#39;t have context, the line above would be written as;</span>
@@ -181,7 +181,7 @@ clauses can be combined and put in arbitrary order. Only <code>from</code> and
 <code>context</code> can be used multiple times in single variant of enumeration.
 Docstrings are also okay.  Empty braces can be omitted as of quick_error
 0.1.3.</p>
-<h1 id="private-enums" class="section-header"><a href="#private-enums">Private Enums</a></h1>
+<h2 id="private-enums" class="section-header"><a href="#private-enums">Private Enums</a></h2>
 <p>Since quick-error 1.2.0 we  have a way to make a private enum that is
 wrapped by public structure:</p>
 
@@ -209,11 +209,11 @@ error constructors for the inner type, but we consider adding some in
 future versions.</p>
 <p>It’s possible to declare internal enum as public too.</p>
 </div></details><h2 id="macros" class="section-header"><a href="#macros">Macros</a></h2>
-<div class="item-table"><div class="item-left module-item"><a class="macro" href="macro.quick_error.html" title="quick_error::quick_error macro">quick_error</a></div><div class="item-right docblock-short"><p>Main macro that does all the work</p>
-</div></div><h2 id="structs" class="section-header"><a href="#structs">Structs</a></h2>
-<div class="item-table"><div class="item-left module-item"><a class="struct" href="struct.Context.html" title="quick_error::Context struct">Context</a></div><div class="item-right docblock-short"><p>Generic context type</p>
-</div></div><h2 id="traits" class="section-header"><a href="#traits">Traits</a></h2>
-<div class="item-table"><div class="item-left module-item"><a class="trait" href="trait.ResultExt.html" title="quick_error::ResultExt trait">ResultExt</a></div><div class="item-right docblock-short"><p>Result extension trait adding a <code>context</code> method</p>
-</div></div></section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../" data-current-crate="quick_error" data-search-index-js="../search-index.js" data-search-js="../search.js"></div>
+<div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="macro" href="macro.quick_error.html" title="quick_error::quick_error macro">quick_error</a></div><div class="item-right docblock-short"><p>Main macro that does all the work</p>
+</div></div></div><h2 id="structs" class="section-header"><a href="#structs">Structs</a></h2>
+<div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.Context.html" title="quick_error::Context struct">Context</a></div><div class="item-right docblock-short"><p>Generic context type</p>
+</div></div></div><h2 id="traits" class="section-header"><a href="#traits">Traits</a></h2>
+<div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="trait" href="trait.ResultExt.html" title="quick_error::ResultExt trait">ResultExt</a></div><div class="item-right docblock-short"><p>Result extension trait adding a <code>context</code> method</p>
+</div></div></div></section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../" data-current-crate="quick_error" data-search-index-js="../search-index.js" data-search-js="../search.js"></div>
     <script src="../main.js"></script>
 </body></html>

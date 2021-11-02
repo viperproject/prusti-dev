@@ -17,32 +17,32 @@ the absolute last resort.</p>
 Any attempt to use the resulting value for integer operations will abort const-evaluation.</p>
 <p>The <a href="../../nomicon/transmutes.html">nomicon</a> has additional
 documentation.</p>
-<h1 id="examples" class="section-header"><a href="#examples">Examples</a></h1>
+<h2 id="examples" class="section-header"><a href="#examples">Examples</a></h2>
 <p>There are a few things that <code>transmute</code> is really useful for.</p>
 <p>Turning a pointer into a function pointer. This is <em>not</em> portable to
 machines where function pointers and data pointers have different sizes.</p>
 
-<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">fn</span> <span class="ident">foo</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">i32</span> {
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">fn</span> <span class="ident">foo</span>() -&gt; <span class="ident">i32</span> {
     <span class="number">0</span>
 }
 <span class="kw">let</span> <span class="ident">pointer</span> <span class="op">=</span> <span class="ident">foo</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> ();
 <span class="kw">let</span> <span class="ident">function</span> <span class="op">=</span> <span class="kw">unsafe</span> {
-    <span class="ident">std::mem::transmute</span>::<span class="op">&lt;</span><span class="kw-2">*</span><span class="kw">const</span> (), <span class="kw">fn</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">i32</span><span class="op">&gt;</span>(<span class="ident">pointer</span>)
+    <span class="ident">std::mem::transmute</span>::<span class="op">&lt;</span><span class="kw-2">*</span><span class="kw">const</span> (), <span class="kw">fn</span>() -&gt; <span class="ident">i32</span><span class="op">&gt;</span>(<span class="ident">pointer</span>)
 };
 <span class="macro">assert_eq!</span>(<span class="ident">function</span>(), <span class="number">0</span>);</code></pre></div>
 <p>Extending a lifetime, or shortening an invariant lifetime. This is
 advanced, very unsafe Rust!</p>
 
 <div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">struct</span> <span class="ident">R</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">i32</span>);
-<span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">extend_lifetime</span><span class="op">&lt;</span><span class="lifetime">&#39;b</span><span class="op">&gt;</span>(<span class="ident">r</span>: <span class="ident">R</span><span class="op">&lt;</span><span class="lifetime">&#39;b</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">R</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span><span class="op">&gt;</span> {
+<span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">extend_lifetime</span><span class="op">&lt;</span><span class="lifetime">&#39;b</span><span class="op">&gt;</span>(<span class="ident">r</span>: <span class="ident">R</span><span class="op">&lt;</span><span class="lifetime">&#39;b</span><span class="op">&gt;</span>) -&gt; <span class="ident">R</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span><span class="op">&gt;</span> {
     <span class="ident">std::mem::transmute</span>::<span class="op">&lt;</span><span class="ident">R</span><span class="op">&lt;</span><span class="lifetime">&#39;b</span><span class="op">&gt;</span>, <span class="ident">R</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">r</span>)
 }
 
 <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">shorten_invariant_lifetime</span><span class="op">&lt;</span><span class="lifetime">&#39;b</span>, <span class="lifetime">&#39;c</span><span class="op">&gt;</span>(<span class="ident">r</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="kw-2">mut</span> <span class="ident">R</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span><span class="op">&gt;</span>)
-                                             <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="kw-2">mut</span> <span class="ident">R</span><span class="op">&lt;</span><span class="lifetime">&#39;c</span><span class="op">&gt;</span> {
+                                             -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="kw-2">mut</span> <span class="ident">R</span><span class="op">&lt;</span><span class="lifetime">&#39;c</span><span class="op">&gt;</span> {
     <span class="ident">std::mem::transmute</span>::<span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="kw-2">mut</span> <span class="ident">R</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span><span class="op">&gt;</span>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="kw-2">mut</span> <span class="ident">R</span><span class="op">&lt;</span><span class="lifetime">&#39;c</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">r</span>)
 }</code></pre></div>
-<h1 id="alternatives" class="section-header"><a href="#alternatives">Alternatives</a></h1>
+<h2 id="alternatives" class="section-header"><a href="#alternatives">Alternatives</a></h2>
 <p>Don’t despair: many uses of <code>transmute</code> can be achieved through other means.
 Below are common applications of <code>transmute</code> which can be replaced with safer
 constructs.</p>
@@ -151,7 +151,7 @@ be possible at all without violating the container invariants.</p>
 <span class="comment">// There are multiple ways to do this, and there are multiple problems</span>
 <span class="comment">// with the following (transmute) way.</span>
 <span class="kw">fn</span> <span class="ident">split_at_mut_transmute</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">slice</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">T</span>], <span class="ident">mid</span>: <span class="ident">usize</span>)
-                             <span class="op">-</span><span class="op">&gt;</span> (<span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">T</span>], <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">T</span>]) {
+                             -&gt; (<span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">T</span>], <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">T</span>]) {
     <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">slice</span>.<span class="ident">len</span>();
     <span class="macro">assert!</span>(<span class="ident">mid</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">len</span>);
     <span class="kw">unsafe</span> {
@@ -166,7 +166,7 @@ be possible at all without violating the container invariants.</p>
 <span class="comment">// This gets rid of the type safety problems; `&amp;mut *` will *only* give</span>
 <span class="comment">// you an `&amp;mut T` from an `&amp;mut T` or `*mut T`.</span>
 <span class="kw">fn</span> <span class="ident">split_at_mut_casts</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">slice</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">T</span>], <span class="ident">mid</span>: <span class="ident">usize</span>)
-                         <span class="op">-</span><span class="op">&gt;</span> (<span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">T</span>], <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">T</span>]) {
+                         -&gt; (<span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">T</span>], <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">T</span>]) {
     <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">slice</span>.<span class="ident">len</span>();
     <span class="macro">assert!</span>(<span class="ident">mid</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">len</span>);
     <span class="kw">unsafe</span> {
@@ -180,7 +180,7 @@ be possible at all without violating the container invariants.</p>
 <span class="comment">// This is how the standard library does it. This is the best method, if</span>
 <span class="comment">// you need to do something like this</span>
 <span class="kw">fn</span> <span class="ident">split_at_stdlib</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">slice</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">T</span>], <span class="ident">mid</span>: <span class="ident">usize</span>)
-                      <span class="op">-</span><span class="op">&gt;</span> (<span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">T</span>], <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">T</span>]) {
+                      -&gt; (<span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">T</span>], <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">T</span>]) {
     <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">slice</span>.<span class="ident">len</span>();
     <span class="macro">assert!</span>(<span class="ident">mid</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">len</span>);
     <span class="kw">unsafe</span> {

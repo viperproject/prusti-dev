@@ -231,7 +231,7 @@
 <span class="kw">unsafe</span> <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="kw">for</span> <span class="ident">Queue</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> { }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">Node</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">v</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">Node</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">v</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) -&gt; <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">Node</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
         <span class="ident">Box::into_raw</span>(<span class="ident">Box::new</span>(<a class="ident" href="../../../../src/futures/sync/mpsc/queue.rs.html#65-68">Node</a> {
             <span class="ident">next</span>: <span class="ident">AtomicPtr::new</span>(<span class="ident">ptr::null_mut</span>()),
             <span class="ident">value</span>: <a class="ident" href="../../../../src/futures/sync/mpsc/queue.rs.html#83">v</a>,
@@ -242,7 +242,7 @@
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">Queue</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
     <span class="doccomment">/// Creates a new queue that is safe to share among multiple producers and</span>
     <span class="doccomment">/// one consumer.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Queue</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="ident">Queue</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">stub</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">Node::new</span>(<span class="prelude-val">None</span>) };
         <a class="ident" href="../../../../src/futures/sync/mpsc/queue.rs.html#74-77">Queue</a> {
             <span class="ident">head</span>: <span class="ident">AtomicPtr::new</span>(<a class="ident" href="../../../../src/futures/sync/mpsc/queue.rs.html#95">stub</a>),
@@ -271,7 +271,7 @@
     <span class="doccomment">/// it does not currently have access to it at this time.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// This function is unsafe because only one thread can call it at a time.</span>
-    <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">pop</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">PopResult</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">pop</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">PopResult</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">tail</span> <span class="op">=</span> <span class="kw-2">*</span><a class="self" href="../../../../src/futures/sync/mpsc/queue.rs.html#123">self</a>.<span class="ident">tail</span>.<span class="ident">get</span>();
         <span class="kw">let</span> <span class="ident">next</span> <span class="op">=</span> (<span class="kw-2">*</span><a class="ident" href="../../../../src/futures/sync/mpsc/queue.rs.html#124">tail</a>).<span class="ident">next</span>.<span class="ident">load</span>(<span class="ident">Ordering::Acquire</span>);
 
@@ -284,7 +284,7 @@
             <span class="kw">return</span> <a class="ident" href="../../../../src/futures/sync/mpsc/queue.rs.html#54">Data</a>(<a class="ident" href="../../../../src/futures/sync/mpsc/queue.rs.html#131">ret</a>);
         }
 
-        <span class="kw">if</span> <a class="self" href="../../../../src/futures/sync/mpsc/queue.rs.html#123">self</a>.<span class="ident">head</span>.<span class="ident">load</span>(<span class="ident">Ordering::Acquire</span>) <span class="op">=</span><span class="op">=</span> <a class="ident" href="../../../../src/futures/sync/mpsc/queue.rs.html#124">tail</a> {<a class="ident" href="../../../../src/futures/sync/mpsc/queue.rs.html#56">Empty</a>} <span class="kw">else</span> {<a class="ident" href="../../../../src/futures/sync/mpsc/queue.rs.html#61">Inconsistent</a>}
+        <span class="kw">if</span> <a class="self" href="../../../../src/futures/sync/mpsc/queue.rs.html#123">self</a>.<span class="ident">head</span>.<span class="ident">load</span>(<span class="ident">Ordering::Acquire</span>) <span class="op">==</span> <a class="ident" href="../../../../src/futures/sync/mpsc/queue.rs.html#124">tail</a> {<a class="ident" href="../../../../src/futures/sync/mpsc/queue.rs.html#56">Empty</a>} <span class="kw">else</span> {<a class="ident" href="../../../../src/futures/sync/mpsc/queue.rs.html#61">Inconsistent</a>}
     }
 }
 

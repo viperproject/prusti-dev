@@ -49,7 +49,7 @@
     <span class="ident">peeked</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/proc_macro/enum.TokenTree.html">TokenTree</a><span class="op">&gt;</span>,
 }
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">tokens</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/proc_macro/struct.TokenStream.html">TokenStream</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="../../src/proc_macro_hack/iter.rs.html#5-8">IterImpl</a> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">tokens</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/proc_macro/struct.TokenStream.html">TokenStream</a>) -&gt; <a class="ident" href="../../src/proc_macro_hack/iter.rs.html#5-8">IterImpl</a> {
     <a class="ident" href="../../src/proc_macro_hack/iter.rs.html#5-8">IterImpl</a> {
         <span class="ident">stack</span>: <span class="macro">vec!</span>[<a class="ident" href="../../src/proc_macro_hack/iter.rs.html#10">tokens</a>.<span class="ident">into_iter</span>()],
         <span class="ident">peeked</span>: <span class="prelude-val">None</span>,
@@ -57,7 +57,7 @@
 }
 
 <span class="kw">impl</span> <a class="ident" href="../../src/proc_macro_hack/iter.rs.html#5-8">IterImpl</a> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">peek</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/proc_macro/enum.TokenTree.html">TokenTree</a><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">peek</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/proc_macro/enum.TokenTree.html">TokenTree</a><span class="op">&gt;</span> {
         <a class="self" href="../../src/proc_macro_hack/iter.rs.html#18">self</a>.<span class="ident">peeked</span> <span class="op">=</span> <a class="self" href="../../src/proc_macro_hack/iter.rs.html#18">self</a>.<span class="ident">next</span>();
         <a class="self" href="../../src/proc_macro_hack/iter.rs.html#18">self</a>.<span class="ident">peeked</span>.<span class="ident">as_ref</span>()
     }
@@ -66,18 +66,18 @@
 <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for</span> <a class="ident" href="../../src/proc_macro_hack/iter.rs.html#5-8">IterImpl</a> {
     <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <a class="ident" href="https://doc.rust-lang.org/nightly/proc_macro/enum.TokenTree.html">TokenTree</a>;
 
-    <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">tt</span>) <span class="op">=</span> <a class="self" href="../../src/proc_macro_hack/iter.rs.html#27">self</a>.<span class="ident">peeked</span>.<span class="ident">take</span>() {
             <span class="kw">return</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../src/proc_macro_hack/iter.rs.html#28">tt</a>);
         }
         <span class="kw">loop</span> {
             <span class="kw">let</span> <span class="ident">top</span> <span class="op">=</span> <a class="self" href="../../src/proc_macro_hack/iter.rs.html#27">self</a>.<span class="ident">stack</span>.<span class="ident">last_mut</span>()<span class="question-mark">?</span>;
             <span class="kw">match</span> <a class="ident" href="../../src/proc_macro_hack/iter.rs.html#32">top</a>.<span class="ident">next</span>() {
-                <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<a class="self" href="../../src/proc_macro_hack/iter.rs.html#27">self</a>.<span class="ident">stack</span>.<span class="ident">pop</span>()),
-                <span class="prelude-val">Some</span>(<span class="ident">TokenTree::Group</span>(<span class="kw-2">ref</span> <span class="ident">group</span>)) <span class="kw">if</span> <a class="ident" href="../../src/proc_macro_hack/iter.rs.html#35">group</a>.<span class="ident">delimiter</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">Delimiter::None</span> <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="prelude-val">None</span> =&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<a class="self" href="../../src/proc_macro_hack/iter.rs.html#27">self</a>.<span class="ident">stack</span>.<span class="ident">pop</span>()),
+                <span class="prelude-val">Some</span>(<span class="ident">TokenTree::Group</span>(<span class="kw-2">ref</span> <span class="ident">group</span>)) <span class="kw">if</span> <a class="ident" href="../../src/proc_macro_hack/iter.rs.html#35">group</a>.<span class="ident">delimiter</span>() <span class="op">==</span> <span class="ident">Delimiter::None</span> =&gt; {
                     <a class="self" href="../../src/proc_macro_hack/iter.rs.html#27">self</a>.<span class="ident">stack</span>.<span class="ident">push</span>(<a class="ident" href="../../src/proc_macro_hack/iter.rs.html#35">group</a>.<span class="ident">stream</span>().<span class="ident">into_iter</span>());
                 }
-                <span class="prelude-val">Some</span>(<span class="ident">tt</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../src/proc_macro_hack/iter.rs.html#38">tt</a>),
+                <span class="prelude-val">Some</span>(<span class="ident">tt</span>) =&gt; <span class="kw">return</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../src/proc_macro_hack/iter.rs.html#38">tt</a>),
             }
         }
     }

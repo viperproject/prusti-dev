@@ -377,7 +377,7 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// If slice only contains ASCII bytes, then the length of the slice is</span>
 <span class="doccomment">/// returned.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">first_non_ascii_byte</span>(<span class="ident">slice</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">first_non_ascii_byte</span>(<span class="ident">slice</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;x86_64&quot;</span>))]</span>
     {
         <span class="ident">first_non_ascii_byte_fallback</span>(<span class="ident">slice</span>)
@@ -390,7 +390,7 @@
 }
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">test</span>, <span class="ident">not</span>(<span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;x86_64&quot;</span>)))]</span>
-<span class="kw">fn</span> <span class="ident">first_non_ascii_byte_fallback</span>(<span class="ident">slice</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
+<span class="kw">fn</span> <span class="ident">first_non_ascii_byte_fallback</span>(<span class="ident">slice</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) -&gt; <span class="ident">usize</span> {
     <span class="kw">let</span> <span class="ident">align</span> <span class="op">=</span> <span class="ident">USIZE_BYTES</span> <span class="op">-</span> <span class="number">1</span>;
     <span class="kw">let</span> <span class="ident">start_ptr</span> <span class="op">=</span> <span class="ident">slice</span>.<span class="ident">as_ptr</span>();
     <span class="kw">let</span> <span class="ident">end_ptr</span> <span class="op">=</span> <span class="ident">slice</span>[<span class="ident">slice</span>.<span class="ident">len</span>()..].<span class="ident">as_ptr</span>();
@@ -427,7 +427,7 @@
                     <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">findpos</span>(
                         <span class="ident">start_ptr</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">u8</span>,
                         <span class="ident">ptr</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">u8</span>,
-                    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
+                    ) -&gt; <span class="ident">usize</span> {
                         <span class="kw">let</span> <span class="ident">a</span> <span class="op">=</span> <span class="kw-2">*</span>(<span class="ident">ptr</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">usize</span>);
                         <span class="kw">let</span> <span class="ident">b</span> <span class="op">=</span> <span class="kw-2">*</span>(<span class="ident">ptr_add</span>(<span class="ident">ptr</span>, <span class="ident">USIZE_BYTES</span>) <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">usize</span>);
 
@@ -452,7 +452,7 @@
 }
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;x86_64&quot;</span>)]</span>
-<span class="kw">fn</span> <span class="ident">first_non_ascii_byte_sse2</span>(<span class="ident">slice</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
+<span class="kw">fn</span> <span class="ident">first_non_ascii_byte_sse2</span>(<span class="ident">slice</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
     <span class="kw">use</span> <span class="ident">core::arch::x86_64</span>::<span class="kw-2">*</span>;
 
     <span class="kw">const</span> <span class="ident">VECTOR_SIZE</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> <span class="op">=</span> <span class="ident">mem::size_of</span>::<span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/core_arch/x86/struct.__m128i.html">__m128i</a><span class="op">&gt;</span>();
@@ -537,7 +537,7 @@
     <span class="ident">start_ptr</span>: <span class="kw-2">*</span><span class="kw">const</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>,
     <span class="ident">end_ptr</span>: <span class="kw-2">*</span><span class="kw">const</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>,
     <span class="kw-2">mut</span> <span class="ident">ptr</span>: <span class="kw-2">*</span><span class="kw">const</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>,
-) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
+) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
     <span class="macro">debug_assert!</span>(<a class="ident" href="../../src/bstr/ascii.rs.html#201">start_ptr</a> <span class="op">&lt;</span><span class="op">=</span> <a class="ident" href="../../src/bstr/ascii.rs.html#203">ptr</a>);
     <span class="macro">debug_assert!</span>(<a class="ident" href="../../src/bstr/ascii.rs.html#203">ptr</a> <span class="op">&lt;</span><span class="op">=</span> <a class="ident" href="../../src/bstr/ascii.rs.html#202">end_ptr</a>);
 
@@ -558,7 +558,7 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// The position returned is always in the inclusive range [0, 7].</span>
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">test</span>, <span class="ident">not</span>(<span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;x86_64&quot;</span>)))]</span>
-<span class="kw">fn</span> <span class="ident">first_non_ascii_byte_mask</span>(<span class="ident">mask</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
+<span class="kw">fn</span> <span class="ident">first_non_ascii_byte_mask</span>(<span class="ident">mask</span>: <span class="ident">usize</span>) -&gt; <span class="ident">usize</span> {
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_endian</span> <span class="op">=</span> <span class="string">&quot;little&quot;</span>)]</span>
     {
         <span class="ident">mask</span>.<span class="ident">trailing_zeros</span>() <span class="kw">as</span> <span class="ident">usize</span> <span class="op">/</span> <span class="number">8</span>
@@ -570,19 +570,19 @@
 }
 
 <span class="doccomment">/// Increment the given pointer by the given amount.</span>
-<span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">ptr_add</span>(<span class="ident">ptr</span>: <span class="kw-2">*</span><span class="kw">const</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, <span class="ident">amt</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw">const</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a> {
+<span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">ptr_add</span>(<span class="ident">ptr</span>: <span class="kw-2">*</span><span class="kw">const</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, <span class="ident">amt</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="kw-2">*</span><span class="kw">const</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a> {
     <span class="macro">debug_assert!</span>(<a class="ident" href="../../src/bstr/ascii.rs.html#237">amt</a> <span class="op">&lt;</span> <span class="ident">::core::isize::MAX</span> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
     <a class="ident" href="../../src/bstr/ascii.rs.html#237">ptr</a>.<span class="ident">offset</span>(<a class="ident" href="../../src/bstr/ascii.rs.html#237">amt</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.isize.html">isize</a>)
 }
 
 <span class="doccomment">/// Decrement the given pointer by the given amount.</span>
-<span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">ptr_sub</span>(<span class="ident">ptr</span>: <span class="kw-2">*</span><span class="kw">const</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, <span class="ident">amt</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw">const</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a> {
+<span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">ptr_sub</span>(<span class="ident">ptr</span>: <span class="kw-2">*</span><span class="kw">const</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, <span class="ident">amt</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="kw-2">*</span><span class="kw">const</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a> {
     <span class="macro">debug_assert!</span>(<a class="ident" href="../../src/bstr/ascii.rs.html#243">amt</a> <span class="op">&lt;</span> <span class="ident">::core::isize::MAX</span> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
     <a class="ident" href="../../src/bstr/ascii.rs.html#243">ptr</a>.<span class="ident">offset</span>((<a class="ident" href="../../src/bstr/ascii.rs.html#243">amt</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.isize.html">isize</a>).<span class="ident">wrapping_neg</span>())
 }
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">test</span>, <span class="ident">not</span>(<span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;x86_64&quot;</span>)))]</span>
-<span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">read_unaligned_usize</span>(<span class="ident">ptr</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">u8</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
+<span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">read_unaligned_usize</span>(<span class="ident">ptr</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">u8</span>) -&gt; <span class="ident">usize</span> {
     <span class="kw">use</span> <span class="ident">core::ptr</span>;
 
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">n</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">0</span>;
@@ -592,7 +592,7 @@
 
 <span class="doccomment">/// Subtract `b` from `a` and return the difference. `a` should be greater than</span>
 <span class="doccomment">/// or equal to `b`.</span>
-<span class="kw">fn</span> <span class="ident">sub</span>(<span class="ident">a</span>: <span class="kw-2">*</span><span class="kw">const</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, <span class="ident">b</span>: <span class="kw-2">*</span><span class="kw">const</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
+<span class="kw">fn</span> <span class="ident">sub</span>(<span class="ident">a</span>: <span class="kw-2">*</span><span class="kw">const</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, <span class="ident">b</span>: <span class="kw-2">*</span><span class="kw">const</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
     <span class="macro">debug_assert!</span>(<a class="ident" href="../../src/bstr/ascii.rs.html#259">a</a> <span class="op">&gt;</span><span class="op">=</span> <a class="ident" href="../../src/bstr/ascii.rs.html#259">b</a>);
     (<a class="ident" href="../../src/bstr/ascii.rs.html#259">a</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) <span class="op">-</span> (<a class="ident" href="../../src/bstr/ascii.rs.html#259">b</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>)
 }

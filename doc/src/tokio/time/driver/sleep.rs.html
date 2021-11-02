@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;tokio-1.12.0&#x2F;src&#x2F;time&#x2F;driver&#x2F;sleep.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>sleep.rs - source</title><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../../../storage.js"></script><script src="../../../../crates.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../../tokio/index.html'><div class='logo-container rust-logo'><img src='../../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;tokio-1.13.0&#x2F;src&#x2F;time&#x2F;driver&#x2F;sleep.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>sleep.rs - source</title><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../../../storage.js"></script><script src="../../../../crates.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../../tokio/index.html'><div class='logo-container rust-logo'><img src='../../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -281,13 +281,141 @@
 <span id="281">281</span>
 <span id="282">282</span>
 <span id="283">283</span>
+<span id="284">284</span>
+<span id="285">285</span>
+<span id="286">286</span>
+<span id="287">287</span>
+<span id="288">288</span>
+<span id="289">289</span>
+<span id="290">290</span>
+<span id="291">291</span>
+<span id="292">292</span>
+<span id="293">293</span>
+<span id="294">294</span>
+<span id="295">295</span>
+<span id="296">296</span>
+<span id="297">297</span>
+<span id="298">298</span>
+<span id="299">299</span>
+<span id="300">300</span>
+<span id="301">301</span>
+<span id="302">302</span>
+<span id="303">303</span>
+<span id="304">304</span>
+<span id="305">305</span>
+<span id="306">306</span>
+<span id="307">307</span>
+<span id="308">308</span>
+<span id="309">309</span>
+<span id="310">310</span>
+<span id="311">311</span>
+<span id="312">312</span>
+<span id="313">313</span>
+<span id="314">314</span>
+<span id="315">315</span>
+<span id="316">316</span>
+<span id="317">317</span>
+<span id="318">318</span>
+<span id="319">319</span>
+<span id="320">320</span>
+<span id="321">321</span>
+<span id="322">322</span>
+<span id="323">323</span>
+<span id="324">324</span>
+<span id="325">325</span>
+<span id="326">326</span>
+<span id="327">327</span>
+<span id="328">328</span>
+<span id="329">329</span>
+<span id="330">330</span>
+<span id="331">331</span>
+<span id="332">332</span>
+<span id="333">333</span>
+<span id="334">334</span>
+<span id="335">335</span>
+<span id="336">336</span>
+<span id="337">337</span>
+<span id="338">338</span>
+<span id="339">339</span>
+<span id="340">340</span>
+<span id="341">341</span>
+<span id="342">342</span>
+<span id="343">343</span>
+<span id="344">344</span>
+<span id="345">345</span>
+<span id="346">346</span>
+<span id="347">347</span>
+<span id="348">348</span>
+<span id="349">349</span>
+<span id="350">350</span>
+<span id="351">351</span>
+<span id="352">352</span>
+<span id="353">353</span>
+<span id="354">354</span>
+<span id="355">355</span>
+<span id="356">356</span>
+<span id="357">357</span>
+<span id="358">358</span>
+<span id="359">359</span>
+<span id="360">360</span>
+<span id="361">361</span>
+<span id="362">362</span>
+<span id="363">363</span>
+<span id="364">364</span>
+<span id="365">365</span>
+<span id="366">366</span>
+<span id="367">367</span>
+<span id="368">368</span>
+<span id="369">369</span>
+<span id="370">370</span>
+<span id="371">371</span>
+<span id="372">372</span>
+<span id="373">373</span>
+<span id="374">374</span>
+<span id="375">375</span>
+<span id="376">376</span>
+<span id="377">377</span>
+<span id="378">378</span>
+<span id="379">379</span>
+<span id="380">380</span>
+<span id="381">381</span>
+<span id="382">382</span>
+<span id="383">383</span>
+<span id="384">384</span>
+<span id="385">385</span>
+<span id="386">386</span>
+<span id="387">387</span>
+<span id="388">388</span>
+<span id="389">389</span>
+<span id="390">390</span>
+<span id="391">391</span>
+<span id="392">392</span>
+<span id="393">393</span>
+<span id="394">394</span>
+<span id="395">395</span>
+<span id="396">396</span>
+<span id="397">397</span>
+<span id="398">398</span>
+<span id="399">399</span>
+<span id="400">400</span>
+<span id="401">401</span>
+<span id="402">402</span>
+<span id="403">403</span>
+<span id="404">404</span>
+<span id="405">405</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::time::driver</span>::{<a class="ident" href="../../../../src/tokio/time/driver/handle.rs.html#7-10">Handle</a>, <a class="ident" href="../../../../src/tokio/time/driver/entry.rs.html#284-300">TimerEntry</a>};
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::time</span>::{<a class="ident" href="../../../../src/tokio/time/error.rs.html#27">error::Error</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a>, <a class="ident" href="../../../../src/tokio/time/instant.rs.html#34-36">Instant</a>};
+<span class="kw">use</span> <a class="ident" href="../../../../src/tokio/util/mod.rs.html#62"><span class="kw">crate</span>::util::trace</a>;
 
 <span class="kw">use</span> <span class="ident">pin_project_lite::pin_project</span>;
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">std::future::Future</a>;
+<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/panic/location/struct.Location.html">std::panic::Location</a>;
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">std::pin::Pin</a>;
 <span class="kw">use</span> <span class="ident">std::task</span>::{<a class="self" href="https://doc.rust-lang.org/nightly/std/task/index.html">self</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>};
+
+<span class="macro">cfg_trace!</span> {
+    <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::time::driver::ClockTime</span>;
+}
 
 <span class="doccomment">/// Waits until `deadline` is reached.</span>
 <span class="doccomment">///</span>
@@ -322,8 +450,9 @@
 <span class="doccomment">/// [`interval`]: crate::time::interval()</span>
 <span class="comment">// Alias for old name in 0.x</span>
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">alias</span> <span class="op">=</span> <span class="string">&quot;delay_until&quot;</span>))]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">sleep_until</span>(<span class="ident">deadline</span>: <a class="ident" href="../../../../src/tokio/time/instant.rs.html#34-36">Instant</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="../../../../src/tokio/time/driver/sleep.rs.html#92-191">Sleep</a> {
-    <span class="ident">Sleep::new_timeout</span>(<a class="ident" href="../../../../src/tokio/time/driver/sleep.rs.html#42">deadline</a>)
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">tokio_track_caller</span>, <span class="ident">track_caller</span>)]</span>
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">sleep_until</span>(<span class="ident">deadline</span>: <a class="ident" href="../../../../src/tokio/time/instant.rs.html#34-36">Instant</a>) -&gt; <a class="ident" href="../../../../src/tokio/time/driver/sleep.rs.html#102-201">Sleep</a> {
+    <span class="kw">return</span> <span class="ident">Sleep::new_timeout</span>(<a class="ident" href="../../../../src/tokio/time/driver/sleep.rs.html#49">deadline</a>, <a class="ident" href="../../../../src/tokio/util/trace.rs.html#34">trace::caller_location</a>());
 }
 
 <span class="doccomment">/// Waits until `duration` has elapsed.</span>
@@ -365,10 +494,13 @@
 <span class="comment">// Alias for old name in 0.x</span>
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">alias</span> <span class="op">=</span> <span class="string">&quot;delay_for&quot;</span>))]</span>
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">alias</span> <span class="op">=</span> <span class="string">&quot;wait&quot;</span>))]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">sleep</span>(<span class="ident">duration</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="../../../../src/tokio/time/driver/sleep.rs.html#92-191">Sleep</a> {
-    <span class="kw">match</span> <span class="ident">Instant::now</span>().<a class="ident" href="../../../../src/tokio/time/instant.rs.html#149">checked_add</a>(<a class="ident" href="../../../../src/tokio/time/driver/sleep.rs.html#85">duration</a>) {
-        <span class="prelude-val">Some</span>(<span class="ident">deadline</span>) <span class="op">=</span><span class="op">&gt;</span> <a class="ident" href="../../../../src/tokio/time/driver/sleep.rs.html#42">sleep_until</a>(<a class="ident" href="../../../../src/tokio/time/driver/sleep.rs.html#87">deadline</a>),
-        <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <a class="ident" href="../../../../src/tokio/time/driver/sleep.rs.html#42">sleep_until</a>(<span class="ident">Instant::far_future</span>()),
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">tokio_track_caller</span>, <span class="ident">track_caller</span>)]</span>
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">sleep</span>(<span class="ident">duration</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a>) -&gt; <a class="ident" href="../../../../src/tokio/time/driver/sleep.rs.html#102-201">Sleep</a> {
+    <span class="kw">let</span> <span class="ident">location</span> <span class="op">=</span> <a class="ident" href="../../../../src/tokio/util/trace.rs.html#34">trace::caller_location</a>();
+
+    <span class="kw">match</span> <span class="ident">Instant::now</span>().<a class="ident" href="../../../../src/tokio/time/instant.rs.html#149">checked_add</a>(<a class="ident" href="../../../../src/tokio/time/driver/sleep.rs.html#93">duration</a>) {
+        <span class="prelude-val">Some</span>(<span class="ident">deadline</span>) =&gt; <span class="ident">Sleep::new_timeout</span>(<a class="ident" href="../../../../src/tokio/time/driver/sleep.rs.html#97">deadline</a>, <a class="ident" href="../../../../src/tokio/time/driver/sleep.rs.html#94">location</a>),
+        <span class="prelude-val">None</span> =&gt; <span class="ident">Sleep::new_timeout</span>(<span class="ident">Instant::far_future</span>(), <a class="ident" href="../../../../src/tokio/time/driver/sleep.rs.html#94">location</a>),
     }
 }
 
@@ -465,7 +597,7 @@
     <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
     <span class="attribute">#[<span class="ident">must_use</span> <span class="op">=</span> <span class="string">&quot;futures do nothing unless you `.await` or poll them&quot;</span>]</span>
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Sleep</span> {
-        <span class="ident">deadline</span>: <a class="ident" href="../../../../src/tokio/time/instant.rs.html#34-36">Instant</a>,
+        <span class="ident">inner</span>: <a class="ident" href="../../../../src/tokio/time/driver/sleep.rs.html#215-217">Inner</a>,
 
         <span class="comment">// The link between the `Sleep` instance and the timer that drives it.</span>
         <span class="attribute">#[<span class="ident">pin</span>]</span>
@@ -473,28 +605,94 @@
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../../src/tokio/time/driver/sleep.rs.html#92-191">Sleep</a> {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new_timeout</span>(<span class="ident">deadline</span>: <a class="ident" href="../../../../src/tokio/time/instant.rs.html#34-36">Instant</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="../../../../src/tokio/time/driver/sleep.rs.html#92-191">Sleep</a> {
-        <span class="kw">let</span> <span class="ident">handle</span> <span class="op">=</span> <span class="ident">Handle::current</span>();
-        <span class="kw">let</span> <span class="ident">entry</span> <span class="op">=</span> <span class="ident">TimerEntry::new</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../src/tokio/time/driver/sleep.rs.html#195">handle</a>, <a class="ident" href="../../../../src/tokio/time/driver/sleep.rs.html#194">deadline</a>);
+<span class="macro">cfg_trace!</span> {
+    <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
+    <span class="kw">struct</span> <span class="ident">Inner</span> {
+        <span class="ident">deadline</span>: <span class="ident">Instant</span>,
+        <span class="ident">resource_span</span>: <span class="ident">tracing::Span</span>,
+        <span class="ident">async_op_span</span>: <span class="ident">tracing::Span</span>,
+        <span class="ident">time_source</span>: <span class="ident">ClockTime</span>,
+    }
+}
 
-        <a class="ident" href="../../../../src/tokio/time/driver/sleep.rs.html#92-191">Sleep</a> { <a class="ident" href="../../../../src/tokio/time/driver/sleep.rs.html#194">deadline</a>, <a class="ident" href="../../../../src/tokio/time/driver/sleep.rs.html#196">entry</a> }
+<span class="macro">cfg_not_trace!</span> {
+    <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
+    <span class="kw">struct</span> <span class="ident">Inner</span> {
+        <span class="ident">deadline</span>: <a class="ident" href="../../../../src/tokio/time/instant.rs.html#34-36">Instant</a>,
+    }
+}
+
+<span class="kw">impl</span> <a class="ident" href="../../../../src/tokio/time/driver/sleep.rs.html#102-201">Sleep</a> {
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">not</span>(<span class="ident">all</span>(<span class="ident">tokio_unstable</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tracing&quot;</span>)), <span class="ident">allow</span>(<span class="ident">unused_variables</span>))]</span>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new_timeout</span>(
+        <span class="ident">deadline</span>: <a class="ident" href="../../../../src/tokio/time/instant.rs.html#34-36">Instant</a>,
+        <span class="ident">location</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">Location</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+    ) -&gt; <a class="ident" href="../../../../src/tokio/time/driver/sleep.rs.html#102-201">Sleep</a> {
+        <span class="kw">let</span> <span class="ident">handle</span> <span class="op">=</span> <span class="ident">Handle::current</span>();
+        <span class="kw">let</span> <span class="ident">entry</span> <span class="op">=</span> <span class="ident">TimerEntry::new</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../src/tokio/time/driver/sleep.rs.html#226">handle</a>, <a class="ident" href="../../../../src/tokio/time/driver/sleep.rs.html#223">deadline</a>);
+
+        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">tokio_unstable</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tracing&quot;</span>))]</span>
+        <span class="kw">let</span> <span class="ident">inner</span> <span class="op">=</span> {
+            <span class="kw">let</span> <span class="ident">time_source</span> <span class="op">=</span> <span class="ident">handle</span>.<span class="ident">time_source</span>().<span class="ident">clone</span>();
+            <span class="kw">let</span> <span class="ident">deadline_tick</span> <span class="op">=</span> <span class="ident">time_source</span>.<span class="ident">deadline_to_tick</span>(<span class="ident">deadline</span>);
+            <span class="kw">let</span> <span class="ident">duration</span> <span class="op">=</span> <span class="ident">deadline_tick</span>.<span class="ident">checked_sub</span>(<span class="ident">time_source</span>.<span class="ident">now</span>()).<span class="ident">unwrap_or</span>(<span class="number">0</span>);
+
+            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">tokio_track_caller</span>)]</span>
+            <span class="kw">let</span> <span class="ident">location</span> <span class="op">=</span> <span class="ident">location</span>.<span class="ident">expect</span>(<span class="string">&quot;should have location if tracking caller&quot;</span>);
+
+            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">tokio_track_caller</span>)]</span>
+            <span class="kw">let</span> <span class="ident">resource_span</span> <span class="op">=</span> <span class="macro">tracing::trace_span!</span>(
+                <span class="string">&quot;runtime.resource&quot;</span>,
+                <span class="ident">concrete_type</span> <span class="op">=</span> <span class="string">&quot;Sleep&quot;</span>,
+                <span class="ident">kind</span> <span class="op">=</span> <span class="string">&quot;timer&quot;</span>,
+                <span class="ident">loc</span>.<span class="ident">file</span> <span class="op">=</span> <span class="ident">location</span>.<span class="ident">file</span>(),
+                <span class="ident">loc</span>.<span class="ident">line</span> <span class="op">=</span> <span class="ident">location</span>.<span class="ident">line</span>(),
+                <span class="ident">loc</span>.<span class="ident">col</span> <span class="op">=</span> <span class="ident">location</span>.<span class="ident">column</span>(),
+            );
+
+            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">tokio_track_caller</span>))]</span>
+            <span class="kw">let</span> <span class="ident">resource_span</span> <span class="op">=</span>
+                <span class="macro">tracing::trace_span!</span>(<span class="string">&quot;runtime.resource&quot;</span>, <span class="ident">concrete_type</span> <span class="op">=</span> <span class="string">&quot;Sleep&quot;</span>, <span class="ident">kind</span> <span class="op">=</span> <span class="string">&quot;timer&quot;</span>);
+
+            <span class="kw">let</span> <span class="ident">async_op_span</span> <span class="op">=</span>
+                <span class="macro">tracing::trace_span!</span>(<span class="string">&quot;runtime.resource.async_op&quot;</span>, <span class="ident">source</span> <span class="op">=</span> <span class="string">&quot;Sleep::new_timeout&quot;</span>);
+
+            <span class="macro">tracing::trace!</span>(
+                <span class="ident">target</span>: <span class="string">&quot;runtime::resource::state_update&quot;</span>,
+                <span class="ident">parent</span>: <span class="ident">resource_span</span>.<span class="ident">id</span>(),
+                <span class="ident">duration</span> <span class="op">=</span> <span class="ident">duration</span>,
+                <span class="ident">duration</span>.<span class="ident">unit</span> <span class="op">=</span> <span class="string">&quot;ms&quot;</span>,
+                <span class="ident">duration</span>.<span class="ident">op</span> <span class="op">=</span> <span class="string">&quot;override&quot;</span>,
+            );
+
+            <span class="ident">Inner</span> {
+                <span class="ident">deadline</span>,
+                <span class="ident">resource_span</span>,
+                <span class="ident">async_op_span</span>,
+                <span class="ident">time_source</span>,
+            }
+        };
+
+        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">all</span>(<span class="ident">tokio_unstable</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tracing&quot;</span>)))]</span>
+        <span class="kw">let</span> <span class="ident">inner</span> <span class="op">=</span> <a class="ident" href="../../../../src/tokio/time/driver/sleep.rs.html#215-217">Inner</a> { <a class="ident" href="../../../../src/tokio/time/driver/sleep.rs.html#223">deadline</a> };
+
+        <a class="ident" href="../../../../src/tokio/time/driver/sleep.rs.html#102-201">Sleep</a> { <a class="ident" href="../../../../src/tokio/time/driver/sleep.rs.html#272">inner</a>, <a class="ident" href="../../../../src/tokio/time/driver/sleep.rs.html#227">entry</a> }
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">far_future</span>() <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="../../../../src/tokio/time/driver/sleep.rs.html#92-191">Sleep</a> {
-        <span class="ident"><span class="self">Self</span>::new_timeout</span>(<span class="ident">Instant::far_future</span>())
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">far_future</span>(<span class="ident">location</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">Location</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span><span class="op">&gt;</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="../../../../src/tokio/time/driver/sleep.rs.html#102-201">Sleep</a> {
+        <span class="ident"><span class="self">Self</span>::new_timeout</span>(<span class="ident">Instant::far_future</span>(), <a class="ident" href="../../../../src/tokio/time/driver/sleep.rs.html#277">location</a>)
     }
 
     <span class="doccomment">/// Returns the instant at which the future will complete.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">deadline</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="../../../../src/tokio/time/instant.rs.html#34-36">Instant</a> {
-        <a class="self" href="../../../../src/tokio/time/driver/sleep.rs.html#206">self</a>.<span class="ident">deadline</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">deadline</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="../../../../src/tokio/time/instant.rs.html#34-36">Instant</a> {
+        <a class="self" href="../../../../src/tokio/time/driver/sleep.rs.html#282">self</a>.<span class="ident">inner</span>.<span class="ident">deadline</span>
     }
 
     <span class="doccomment">/// Returns `true` if `Sleep` has elapsed.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// A `Sleep` instance is elapsed when the requested duration has elapsed.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_elapsed</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../../src/tokio/time/driver/sleep.rs.html#213">self</a>.<span class="ident">entry</span>.<a class="ident" href="../../../../src/tokio/time/driver/entry.rs.html#497">is_elapsed</a>()
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_elapsed</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a class="self" href="../../../../src/tokio/time/driver/sleep.rs.html#289">self</a>.<span class="ident">entry</span>.<a class="ident" href="../../../../src/tokio/time/driver/entry.rs.html#497">is_elapsed</a>()
     }
 
     <span class="doccomment">/// Resets the `Sleep` instance to a new deadline.</span>
@@ -527,40 +725,86 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [`Pin::as_mut`]: fn@std::pin::Pin::as_mut</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">reset</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">deadline</span>: <a class="ident" href="../../../../src/tokio/time/instant.rs.html#34-36">Instant</a>) {
-        <span class="kw">let</span> <span class="ident">me</span> <span class="op">=</span> <a class="self" href="../../../../src/tokio/time/driver/sleep.rs.html#246">self</a>.<a class="ident" href="../../../../src/tokio/time/driver/sleep.rs.html#92-191">project</a>();
-        <a class="ident" href="../../../../src/tokio/time/driver/sleep.rs.html#247">me</a>.<span class="ident">entry</span>.<a class="ident" href="../../../../src/tokio/time/driver/entry.rs.html#528">reset</a>(<a class="ident" href="../../../../src/tokio/time/driver/sleep.rs.html#246">deadline</a>);
-        <span class="kw-2">*</span><a class="ident" href="../../../../src/tokio/time/driver/sleep.rs.html#247">me</a>.<span class="ident">deadline</span> <span class="op">=</span> <a class="ident" href="../../../../src/tokio/time/driver/sleep.rs.html#246">deadline</a>;
+        <a class="self" href="../../../../src/tokio/time/driver/sleep.rs.html#322">self</a>.<a class="ident" href="../../../../src/tokio/time/driver/sleep.rs.html#326">reset_inner</a>(<a class="ident" href="../../../../src/tokio/time/driver/sleep.rs.html#322">deadline</a>)
     }
 
-    <span class="kw">fn</span> <span class="ident">poll_elapsed</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">task::Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../../../src/tokio/time/error.rs.html#27">Error</a><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">me</span> <span class="op">=</span> <a class="self" href="../../../../src/tokio/time/driver/sleep.rs.html#252">self</a>.<a class="ident" href="../../../../src/tokio/time/driver/sleep.rs.html#92-191">project</a>();
+    <span class="kw">fn</span> <span class="ident">reset_inner</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">deadline</span>: <a class="ident" href="../../../../src/tokio/time/instant.rs.html#34-36">Instant</a>) {
+        <span class="kw">let</span> <span class="ident">me</span> <span class="op">=</span> <a class="self" href="../../../../src/tokio/time/driver/sleep.rs.html#326">self</a>.<a class="ident" href="../../../../src/tokio/time/driver/sleep.rs.html#102-201">project</a>();
+        <a class="ident" href="../../../../src/tokio/time/driver/sleep.rs.html#327">me</a>.<span class="ident">entry</span>.<a class="ident" href="../../../../src/tokio/time/driver/entry.rs.html#528">reset</a>(<a class="ident" href="../../../../src/tokio/time/driver/sleep.rs.html#326">deadline</a>);
+        (<span class="kw-2">*</span><a class="ident" href="../../../../src/tokio/time/driver/sleep.rs.html#327">me</a>.<span class="ident">inner</span>).<span class="ident">deadline</span> <span class="op">=</span> <a class="ident" href="../../../../src/tokio/time/driver/sleep.rs.html#326">deadline</a>;
 
-        <span class="comment">// Keep track of task budget</span>
-        <span class="kw">let</span> <span class="ident">coop</span> <span class="op">=</span> <span class="macro">ready!</span>(<a class="ident" href="../../../../src/tokio/coop.rs.html#173"><span class="kw">crate</span>::coop::poll_proceed</a>(<a class="ident" href="../../../../src/tokio/time/driver/sleep.rs.html#252">cx</a>));
+        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">tokio_unstable</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tracing&quot;</span>))]</span>
+        {
+            <span class="ident">me</span>.<span class="ident">inner</span>.<span class="ident">async_op_span</span> <span class="op">=</span>
+                <span class="macro">tracing::trace_span!</span>(<span class="string">&quot;runtime.resource.async_op&quot;</span>, <span class="ident">source</span> <span class="op">=</span> <span class="string">&quot;Sleep::reset&quot;</span>);
 
-        <a class="ident" href="../../../../src/tokio/time/driver/sleep.rs.html#253">me</a>.<span class="ident">entry</span>.<a class="ident" href="../../../../src/tokio/time/driver/entry.rs.html#542-545">poll_elapsed</a>(<a class="ident" href="../../../../src/tokio/time/driver/sleep.rs.html#252">cx</a>).<span class="ident">map</span>(<span class="kw">move</span> <span class="op">|</span><span class="ident">r</span><span class="op">|</span> {
-            <a class="ident" href="../../../../src/tokio/time/driver/sleep.rs.html#256">coop</a>.<a class="ident" href="../../../../src/tokio/coop.rs.html#142">made_progress</a>();
-            <a class="ident" href="../../../../src/tokio/time/driver/sleep.rs.html#258">r</a>
-        })
+            <span class="macro">tracing::trace!</span>(
+                <span class="ident">target</span>: <span class="string">&quot;runtime::resource::state_update&quot;</span>,
+                <span class="ident">parent</span>: <span class="ident">me</span>.<span class="ident">inner</span>.<span class="ident">resource_span</span>.<span class="ident">id</span>(),
+                <span class="ident">duration</span> <span class="op">=</span> {
+                    <span class="kw">let</span> <span class="ident">now</span> <span class="op">=</span> <span class="ident">me</span>.<span class="ident">inner</span>.<span class="ident">time_source</span>.<span class="ident">now</span>();
+                    <span class="kw">let</span> <span class="ident">deadline_tick</span> <span class="op">=</span> <span class="ident">me</span>.<span class="ident">inner</span>.<span class="ident">time_source</span>.<span class="ident">deadline_to_tick</span>(<span class="ident">deadline</span>);
+                    <span class="ident">deadline_tick</span>.<span class="ident">checked_sub</span>(<span class="ident">now</span>).<span class="ident">unwrap_or</span>(<span class="number">0</span>)
+                },
+                <span class="ident">duration</span>.<span class="ident">unit</span> <span class="op">=</span> <span class="string">&quot;ms&quot;</span>,
+                <span class="ident">duration</span>.<span class="ident">op</span> <span class="op">=</span> <span class="string">&quot;override&quot;</span>,
+            );
+        }
+    }
+
+    <span class="macro">cfg_not_trace!</span> {
+        <span class="kw">fn</span> <span class="ident">poll_elapsed</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">task::Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../../../src/tokio/time/error.rs.html#27">Error</a><span class="op">&gt;</span><span class="op">&gt;</span> {
+            <span class="kw">let</span> <span class="ident">me</span> <span class="op">=</span> <a class="self" href="../../../../src/tokio/time/driver/sleep.rs.html#351">self</a>.<a class="ident" href="../../../../src/tokio/time/driver/sleep.rs.html#102-201">project</a>();
+
+            <span class="comment">// Keep track of task budget</span>
+            <span class="kw">let</span> <span class="ident">coop</span> <span class="op">=</span> <span class="macro">ready!</span>(<a class="ident" href="../../../../src/tokio/coop.rs.html#173"><span class="kw">crate</span>::coop::poll_proceed</a>(<a class="ident" href="../../../../src/tokio/time/driver/sleep.rs.html#351">cx</a>));
+
+            <a class="ident" href="../../../../src/tokio/time/driver/sleep.rs.html#352">me</a>.<span class="ident">entry</span>.<a class="ident" href="../../../../src/tokio/time/driver/entry.rs.html#542-545">poll_elapsed</a>(<a class="ident" href="../../../../src/tokio/time/driver/sleep.rs.html#351">cx</a>).<span class="ident">map</span>(<span class="kw">move</span> <span class="op">|</span><span class="ident">r</span><span class="op">|</span> {
+                <a class="ident" href="../../../../src/tokio/time/driver/sleep.rs.html#355">coop</a>.<a class="ident" href="../../../../src/tokio/coop.rs.html#142">made_progress</a>();
+                <a class="ident" href="../../../../src/tokio/time/driver/sleep.rs.html#357">r</a>
+            })
+        }
+    }
+
+    <span class="macro">cfg_trace!</span> {
+        <span class="kw">fn</span> <span class="ident">poll_elapsed</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">task::Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Error</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+            <span class="kw">let</span> <span class="ident">me</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">project</span>();
+            <span class="comment">// Keep track of task budget</span>
+            <span class="kw">let</span> <span class="ident">coop</span> <span class="op">=</span> <span class="macro">ready!</span>(<span class="macro">trace_poll_op!</span>(
+                <span class="string">&quot;poll_elapsed&quot;</span>,
+                <span class="ident"><span class="kw">crate</span>::coop::poll_proceed</span>(<span class="ident">cx</span>),
+                <span class="ident">me</span>.<span class="ident">inner</span>.<span class="ident">resource_span</span>.<span class="ident">id</span>(),
+            ));
+
+            <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span>  <span class="ident">me</span>.<span class="ident">entry</span>.<span class="ident">poll_elapsed</span>(<span class="ident">cx</span>).<span class="ident">map</span>(<span class="kw">move</span> <span class="op">|</span><span class="ident">r</span><span class="op">|</span> {
+                <span class="ident">coop</span>.<span class="ident">made_progress</span>();
+                <span class="ident">r</span>
+            });
+
+            <span class="macro">trace_poll_op!</span>(<span class="string">&quot;poll_elapsed&quot;</span>, <span class="ident">result</span>, <span class="ident">me</span>.<span class="ident">inner</span>.<span class="ident">resource_span</span>.<span class="ident">id</span>())
+        }
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a> <span class="kw">for</span> <a class="ident" href="../../../../src/tokio/time/driver/sleep.rs.html#92-191">Sleep</a> {
+<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a> <span class="kw">for</span> <a class="ident" href="../../../../src/tokio/time/driver/sleep.rs.html#102-201">Sleep</a> {
     <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> ();
 
-    <span class="kw">fn</span> <span class="ident">poll</span>(<span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">task::Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Output</span><span class="op">&gt;</span> {
-        <span class="comment">// `poll_elapsed` can return an error in two cases:</span>
-        <span class="comment">//</span>
-        <span class="comment">// - AtCapacity: this is a pathological case where far too many</span>
-        <span class="comment">//   sleep instances have been scheduled.</span>
-        <span class="comment">// - Shutdown: No timer has been setup, which is a mis-use error.</span>
-        <span class="comment">//</span>
-        <span class="comment">// Both cases are extremely rare, and pretty accurately fit into</span>
-        <span class="comment">// &quot;logic errors&quot;, so we just panic in this case. A user couldn&#39;t</span>
-        <span class="comment">// really do much better if we passed the error onwards.</span>
-        <span class="kw">match</span> <span class="macro">ready!</span>(<a class="self" href="../../../../src/tokio/time/driver/sleep.rs.html#268">self</a>.<span class="ident">as_mut</span>().<a class="ident" href="../../../../src/tokio/time/driver/sleep.rs.html#252">poll_elapsed</a>(<a class="ident" href="../../../../src/tokio/time/driver/sleep.rs.html#268">cx</a>)) {
-            <span class="prelude-val">Ok</span>(()) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Poll::Ready</span>(()),
-            <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic!</span>(<span class="string">&quot;timer error: {}&quot;</span>, <a class="ident" href="../../../../src/tokio/time/driver/sleep.rs.html#280">e</a>),
+    <span class="comment">// `poll_elapsed` can return an error in two cases:</span>
+    <span class="comment">//</span>
+    <span class="comment">// - AtCapacity: this is a pathological case where far too many</span>
+    <span class="comment">//   sleep instances have been scheduled.</span>
+    <span class="comment">// - Shutdown: No timer has been setup, which is a mis-use error.</span>
+    <span class="comment">//</span>
+    <span class="comment">// Both cases are extremely rare, and pretty accurately fit into</span>
+    <span class="comment">// &quot;logic errors&quot;, so we just panic in this case. A user couldn&#39;t</span>
+    <span class="comment">// really do much better if we passed the error onwards.</span>
+    <span class="kw">fn</span> <span class="ident">poll</span>(<span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">task::Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Output</span><span class="op">&gt;</span> {
+        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">tokio_unstable</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tracing&quot;</span>))]</span>
+        <span class="kw">let</span> <span class="ident">_span</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">async_op_span</span>.<span class="ident">clone</span>().<span class="ident">entered</span>();
+
+        <span class="kw">match</span> <span class="macro">ready!</span>(<a class="self" href="../../../../src/tokio/time/driver/sleep.rs.html#396">self</a>.<span class="ident">as_mut</span>().<a class="ident" href="../../../../src/tokio/time/driver/sleep.rs.html#351">poll_elapsed</a>(<a class="ident" href="../../../../src/tokio/time/driver/sleep.rs.html#396">cx</a>)) {
+            <span class="prelude-val">Ok</span>(()) =&gt; <span class="ident">Poll::Ready</span>(()),
+            <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; <span class="macro">panic!</span>(<span class="string">&quot;timer error: {}&quot;</span>, <a class="ident" href="../../../../src/tokio/time/driver/sleep.rs.html#402">e</a>),
         }
     }
 }

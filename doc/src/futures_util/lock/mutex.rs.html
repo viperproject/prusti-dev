@@ -430,7 +430,7 @@
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <span class="ident">Mutex</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
         <span class="kw">let</span> <span class="ident">state</span> <span class="op">=</span> <a class="self" href="../../../src/futures_util/lock/mutex.rs.html#27">self</a>.<span class="ident">state</span>.<span class="ident">load</span>(<span class="ident">Ordering::SeqCst</span>);
         <a class="ident" href="../../../src/futures_util/lock/mutex.rs.html#27">f</a>.<span class="ident">debug_struct</span>(<span class="string">&quot;Mutex&quot;</span>)
             .<span class="ident">field</span>(<span class="string">&quot;is_locked&quot;</span>, <span class="kw-2">&amp;</span>((<a class="ident" href="../../../src/futures_util/lock/mutex.rs.html#28">state</a> <span class="op">&amp;</span> <a class="ident" href="../../../src/futures_util/lock/mutex.rs.html#69">IS_LOCKED</a>) <span class="op">!</span><span class="op">=</span> <span class="number">0</span>))
@@ -440,13 +440,13 @@
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Mutex</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">t</span>: <span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">t</span>: <span class="ident">T</span>) -&gt; <span class="self">Self</span> {
         <span class="ident"><span class="self">Self</span>::new</span>(<a class="ident" href="../../../src/futures_util/lock/mutex.rs.html#37">t</a>)
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for</span> <span class="ident">Mutex</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="self">Self</span> {
         <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">Default::default</span>())
     }
 }
@@ -459,15 +459,15 @@
 <span class="kw">impl</span> <a class="ident" href="../../../src/futures_util/lock/mutex.rs.html#48-51">Waiter</a> {
     <span class="kw">fn</span> <span class="ident">register</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">waker</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a>) {
         <span class="kw">match</span> <a class="self" href="../../../src/futures_util/lock/mutex.rs.html#54">self</a> {
-            <span class="ident"><span class="self">Self</span>::Waiting</span>(<span class="ident">w</span>) <span class="kw">if</span> <a class="ident" href="../../../src/futures_util/lock/mutex.rs.html#54">waker</a>.<span class="ident">will_wake</span>(<a class="ident" href="../../../src/futures_util/lock/mutex.rs.html#56">w</a>) <span class="op">=</span><span class="op">&gt;</span> {}
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">*</span><a class="self" href="../../../src/futures_util/lock/mutex.rs.html#54">self</a> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::Waiting</span>(<a class="ident" href="../../../src/futures_util/lock/mutex.rs.html#54">waker</a>.<span class="ident">clone</span>()),
+            <span class="ident"><span class="self">Self</span>::Waiting</span>(<span class="ident">w</span>) <span class="kw">if</span> <a class="ident" href="../../../src/futures_util/lock/mutex.rs.html#54">waker</a>.<span class="ident">will_wake</span>(<a class="ident" href="../../../src/futures_util/lock/mutex.rs.html#56">w</a>) =&gt; {}
+            <span class="kw">_</span> =&gt; <span class="kw-2">*</span><a class="self" href="../../../src/futures_util/lock/mutex.rs.html#54">self</a> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::Waiting</span>(<a class="ident" href="../../../src/futures_util/lock/mutex.rs.html#54">waker</a>.<span class="ident">clone</span>()),
         }
     }
 
     <span class="kw">fn</span> <span class="ident">wake</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) {
         <span class="kw">match</span> <span class="ident">mem::replace</span>(<a class="self" href="../../../src/futures_util/lock/mutex.rs.html#61">self</a>, <span class="ident"><span class="self">Self</span>::Woken</span>) {
-            <span class="ident"><span class="self">Self</span>::Waiting</span>(<span class="ident">waker</span>) <span class="op">=</span><span class="op">&gt;</span> <a class="ident" href="../../../src/futures_util/lock/mutex.rs.html#63">waker</a>.<span class="ident">wake</span>(),
-            <span class="ident"><span class="self">Self</span>::Woken</span> <span class="op">=</span><span class="op">&gt;</span> {}
+            <span class="ident"><span class="self">Self</span>::Waiting</span>(<span class="ident">waker</span>) =&gt; <a class="ident" href="../../../src/futures_util/lock/mutex.rs.html#63">waker</a>.<span class="ident">wake</span>(),
+            <span class="ident"><span class="self">Self</span>::Woken</span> =&gt; {}
         }
     }
 }
@@ -477,7 +477,7 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">Mutex</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
     <span class="doccomment">/// Creates a new futures-aware mutex.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">t</span>: <span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">t</span>: <span class="ident">T</span>) -&gt; <span class="self">Self</span> {
         <span class="self">Self</span> {
             <span class="ident">state</span>: <span class="ident">AtomicUsize::new</span>(<span class="number">0</span>),
             <span class="ident">waiters</span>: <span class="ident">StdMutex::new</span>(<span class="ident">Slab::new</span>()),
@@ -495,7 +495,7 @@
     <span class="doccomment">/// let mutex = Mutex::new(0);</span>
     <span class="doccomment">/// assert_eq!(mutex.into_inner(), 0);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_inner</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">T</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_inner</span>(<span class="self">self</span>) -&gt; <span class="ident">T</span> {
         <a class="self" href="../../../src/futures_util/lock/mutex.rs.html#92">self</a>.<span class="ident">value</span>.<span class="ident">into_inner</span>()
     }
 }
@@ -504,9 +504,9 @@
     <span class="doccomment">/// Attempt to acquire the lock immediately.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// If the lock is currently held, this will return `None`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">try_lock</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">MutexGuard</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">try_lock</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">MutexGuard</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">old_state</span> <span class="op">=</span> <a class="self" href="../../../src/futures_util/lock/mutex.rs.html#101">self</a>.<span class="ident">state</span>.<span class="ident">fetch_or</span>(<a class="ident" href="../../../src/futures_util/lock/mutex.rs.html#69">IS_LOCKED</a>, <span class="ident">Ordering::Acquire</span>);
-        <span class="kw">if</span> (<a class="ident" href="../../../src/futures_util/lock/mutex.rs.html#102">old_state</a> <span class="op">&amp;</span> <a class="ident" href="../../../src/futures_util/lock/mutex.rs.html#69">IS_LOCKED</a>) <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
+        <span class="kw">if</span> (<a class="ident" href="../../../src/futures_util/lock/mutex.rs.html#102">old_state</a> <span class="op">&amp;</span> <a class="ident" href="../../../src/futures_util/lock/mutex.rs.html#69">IS_LOCKED</a>) <span class="op">==</span> <span class="number">0</span> {
             <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/futures_util/lock/mutex.rs.html#255-257">MutexGuard</a> { <span class="ident">mutex</span>: <a class="self" href="../../../src/futures_util/lock/mutex.rs.html#101">self</a> })
         } <span class="kw">else</span> {
             <span class="prelude-val">None</span>
@@ -517,7 +517,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// This method returns a future that will resolve once the lock has been</span>
     <span class="doccomment">/// successfully acquired.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">lock</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">MutexLockFuture</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">T</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">lock</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">MutexLockFuture</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">T</span><span class="op">&gt;</span> {
         <a class="ident" href="../../../src/futures_util/lock/mutex.rs.html#179-183">MutexLockFuture</a> { <span class="ident">mutex</span>: <span class="prelude-val">Some</span>(<a class="self" href="../../../src/futures_util/lock/mutex.rs.html#114">self</a>), <span class="ident">wait_key</span>: <a class="ident" href="../../../src/futures_util/lock/mutex.rs.html#176">WAIT_KEY_NONE</a> }
     }
 
@@ -537,7 +537,7 @@
     <span class="doccomment">/// assert_eq!(*mutex.lock().await, 10);</span>
     <span class="doccomment">/// # });</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">T</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">T</span> {
         <span class="comment">// We know statically that there are no other references to `self`, so</span>
         <span class="comment">// there&#39;s no need to lock the inner mutex.</span>
         <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">*</span><a class="self" href="../../../src/futures_util/lock/mutex.rs.html#134">self</a>.<span class="ident">value</span>.<span class="ident">get</span>() }
@@ -547,8 +547,8 @@
         <span class="kw">if</span> <a class="ident" href="../../../src/futures_util/lock/mutex.rs.html#140">wait_key</a> <span class="op">!</span><span class="op">=</span> <a class="ident" href="../../../src/futures_util/lock/mutex.rs.html#176">WAIT_KEY_NONE</a> {
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">waiters</span> <span class="op">=</span> <a class="self" href="../../../src/futures_util/lock/mutex.rs.html#140">self</a>.<span class="ident">waiters</span>.<span class="ident">lock</span>().<span class="ident">unwrap</span>();
             <span class="kw">match</span> <a class="ident" href="../../../src/futures_util/lock/mutex.rs.html#142">waiters</a>.<span class="ident">remove</span>(<a class="ident" href="../../../src/futures_util/lock/mutex.rs.html#140">wait_key</a>) {
-                <a class="ident" href="../../../src/futures_util/lock/mutex.rs.html#49">Waiter::Waiting</a>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {}
-                <a class="ident" href="../../../src/futures_util/lock/mutex.rs.html#50">Waiter::Woken</a> <span class="op">=</span><span class="op">&gt;</span> {
+                <a class="ident" href="../../../src/futures_util/lock/mutex.rs.html#49">Waiter::Waiting</a>(<span class="kw">_</span>) =&gt; {}
+                <a class="ident" href="../../../src/futures_util/lock/mutex.rs.html#50">Waiter::Woken</a> =&gt; {
                     <span class="comment">// We were awoken, but then dropped before we could</span>
                     <span class="comment">// wake up to acquire the lock. Wake up another</span>
                     <span class="comment">// waiter.</span>
@@ -589,20 +589,20 @@
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <span class="ident">MutexLockFuture</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
         <a class="ident" href="../../../src/futures_util/lock/mutex.rs.html#186">f</a>.<span class="ident">debug_struct</span>(<span class="string">&quot;MutexLockFuture&quot;</span>)
             .<span class="ident">field</span>(<span class="string">&quot;was_acquired&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/futures_util/lock/mutex.rs.html#186">self</a>.<span class="ident">mutex</span>.<span class="ident">is_none</span>())
             .<span class="ident">field</span>(<span class="string">&quot;mutex&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/futures_util/lock/mutex.rs.html#186">self</a>.<span class="ident">mutex</span>)
             .<span class="ident">field</span>(
                 <span class="string">&quot;wait_key&quot;</span>,
-                <span class="kw-2">&amp;</span>(<span class="kw">if</span> <a class="self" href="../../../src/futures_util/lock/mutex.rs.html#186">self</a>.<span class="ident">wait_key</span> <span class="op">=</span><span class="op">=</span> <a class="ident" href="../../../src/futures_util/lock/mutex.rs.html#176">WAIT_KEY_NONE</a> { <span class="prelude-val">None</span> } <span class="kw">else</span> { <span class="prelude-val">Some</span>(<a class="self" href="../../../src/futures_util/lock/mutex.rs.html#186">self</a>.<span class="ident">wait_key</span>) }),
+                <span class="kw-2">&amp;</span>(<span class="kw">if</span> <a class="self" href="../../../src/futures_util/lock/mutex.rs.html#186">self</a>.<span class="ident">wait_key</span> <span class="op">==</span> <a class="ident" href="../../../src/futures_util/lock/mutex.rs.html#176">WAIT_KEY_NONE</a> { <span class="prelude-val">None</span> } <span class="kw">else</span> { <span class="prelude-val">Some</span>(<a class="self" href="../../../src/futures_util/lock/mutex.rs.html#186">self</a>.<span class="ident">wait_key</span>) }),
             )
             .<span class="ident">finish</span>()
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a><span class="op">&gt;</span> <a class="ident" href="../../../futures_util/future/trait.FusedFuture.html">FusedFuture</a> <span class="kw">for</span> <span class="ident">MutexLockFuture</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">is_terminated</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    <span class="kw">fn</span> <span class="ident">is_terminated</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
         <a class="self" href="../../../src/futures_util/lock/mutex.rs.html#199">self</a>.<span class="ident">mutex</span>.<span class="ident">is_none</span>()
     }
 }
@@ -610,7 +610,7 @@
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span>: <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a> <span class="kw">for</span> <span class="ident">MutexLockFuture</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span> {
     <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident">MutexGuard</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span>;
 
-    <span class="kw">fn</span> <span class="ident">poll</span>(<span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Output</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">poll</span>(<span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Output</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">mutex</span> <span class="op">=</span> <a class="self" href="../../../src/futures_util/lock/mutex.rs.html#207">self</a>.<span class="ident">mutex</span>.<span class="ident">expect</span>(<span class="string">&quot;polled MutexLockFuture after completion&quot;</span>);
 
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">lock</span>) <span class="op">=</span> <a class="ident" href="../../../src/futures_util/lock/mutex.rs.html#208">mutex</a>.<a class="ident" href="../../../src/futures_util/lock/mutex.rs.html#101">try_lock</a>() {
@@ -621,9 +621,9 @@
 
         {
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">waiters</span> <span class="op">=</span> <a class="ident" href="../../../src/futures_util/lock/mutex.rs.html#208">mutex</a>.<span class="ident">waiters</span>.<span class="ident">lock</span>().<span class="ident">unwrap</span>();
-            <span class="kw">if</span> <a class="self" href="../../../src/futures_util/lock/mutex.rs.html#207">self</a>.<span class="ident">wait_key</span> <span class="op">=</span><span class="op">=</span> <a class="ident" href="../../../src/futures_util/lock/mutex.rs.html#176">WAIT_KEY_NONE</a> {
+            <span class="kw">if</span> <a class="self" href="../../../src/futures_util/lock/mutex.rs.html#207">self</a>.<span class="ident">wait_key</span> <span class="op">==</span> <a class="ident" href="../../../src/futures_util/lock/mutex.rs.html#176">WAIT_KEY_NONE</a> {
                 <a class="self" href="../../../src/futures_util/lock/mutex.rs.html#207">self</a>.<span class="ident">wait_key</span> <span class="op">=</span> <a class="ident" href="../../../src/futures_util/lock/mutex.rs.html#217">waiters</a>.<span class="ident">insert</span>(<a class="ident" href="../../../src/futures_util/lock/mutex.rs.html#49">Waiter::Waiting</a>(<a class="ident" href="../../../src/futures_util/lock/mutex.rs.html#207">cx</a>.<span class="ident">waker</span>().<span class="ident">clone</span>()));
-                <span class="kw">if</span> <a class="ident" href="../../../src/futures_util/lock/mutex.rs.html#217">waiters</a>.<span class="ident">len</span>() <span class="op">=</span><span class="op">=</span> <span class="number">1</span> {
+                <span class="kw">if</span> <a class="ident" href="../../../src/futures_util/lock/mutex.rs.html#217">waiters</a>.<span class="ident">len</span>() <span class="op">==</span> <span class="number">1</span> {
                     <a class="ident" href="../../../src/futures_util/lock/mutex.rs.html#208">mutex</a>.<span class="ident">state</span>.<span class="ident">fetch_or</span>(<a class="ident" href="../../../src/futures_util/lock/mutex.rs.html#70">HAS_WAITERS</a>, <span class="ident">Ordering::Relaxed</span>); <span class="comment">// released by mutex unlock</span>
                 }
             } <span class="kw">else</span> {
@@ -679,9 +679,9 @@
     <span class="doccomment">/// # });</span>
     <span class="doccomment">/// ```</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">map</span><span class="op">&lt;</span><span class="ident">U</span>: <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>, <span class="ident">F</span><span class="op">&gt;</span>(<span class="ident">this</span>: <span class="self">Self</span>, <span class="ident">f</span>: <span class="ident">F</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">MappedMutexGuard</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span>, <span class="ident">U</span><span class="op">&gt;</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">map</span><span class="op">&lt;</span><span class="ident">U</span>: <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>, <span class="ident">F</span><span class="op">&gt;</span>(<span class="ident">this</span>: <span class="self">Self</span>, <span class="ident">f</span>: <span class="ident">F</span>) -&gt; <span class="ident">MappedMutexGuard</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span>, <span class="ident">U</span><span class="op">&gt;</span>
     <span class="kw">where</span>
-        <span class="ident">F</span>: <span class="ident">FnOnce</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">U</span>,
+        <span class="ident">F</span>: <span class="ident">FnOnce</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">T</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">U</span>,
     {
         <span class="kw">let</span> <span class="ident">mutex</span> <span class="op">=</span> <a class="ident" href="../../../src/futures_util/lock/mutex.rs.html#276">this</a>.<span class="ident">mutex</span>;
         <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <a class="ident" href="../../../src/futures_util/lock/mutex.rs.html#276">f</a>(<span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">*</span><a class="ident" href="../../../src/futures_util/lock/mutex.rs.html#276">this</a>.<span class="ident">mutex</span>.<span class="ident">value</span>.<span class="ident">get</span>() });
@@ -693,7 +693,7 @@
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <span class="ident">MutexGuard</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
         <a class="ident" href="../../../src/futures_util/lock/mutex.rs.html#290">f</a>.<span class="ident">debug_struct</span>(<span class="string">&quot;MutexGuard&quot;</span>).<span class="ident">field</span>(<span class="string">&quot;value&quot;</span>, <span class="op">&amp;&amp;</span><span class="kw-2">*</span><span class="kw-2">*</span><a class="self" href="../../../src/futures_util/lock/mutex.rs.html#290">self</a>).<span class="ident">field</span>(<span class="string">&quot;mutex&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/futures_util/lock/mutex.rs.html#290">self</a>.<span class="ident">mutex</span>).<span class="ident">finish</span>()
     }
 }
@@ -706,13 +706,13 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.Deref.html">Deref</a> <span class="kw">for</span> <span class="ident">MutexGuard</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">T</span><span class="op">&gt;</span> {
     <span class="kw">type</span> <span class="ident">Target</span> <span class="op">=</span> <span class="ident">T</span>;
-    <span class="kw">fn</span> <span class="ident">deref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">T</span> {
+    <span class="kw">fn</span> <span class="ident">deref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">T</span> {
         <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">*</span><a class="self" href="../../../src/futures_util/lock/mutex.rs.html#303">self</a>.<span class="ident">mutex</span>.<span class="ident">value</span>.<span class="ident">get</span>() }
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.DerefMut.html">DerefMut</a> <span class="kw">for</span> <span class="ident">MutexGuard</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">deref_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">T</span> {
+    <span class="kw">fn</span> <span class="ident">deref_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">T</span> {
         <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">*</span><a class="self" href="../../../src/futures_util/lock/mutex.rs.html#309">self</a>.<span class="ident">mutex</span>.<span class="ident">value</span>.<span class="ident">get</span>() }
     }
 }
@@ -743,9 +743,9 @@
     <span class="doccomment">/// # });</span>
     <span class="doccomment">/// ```</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">map</span><span class="op">&lt;</span><span class="ident">V</span>: <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>, <span class="ident">F</span><span class="op">&gt;</span>(<span class="ident">this</span>: <span class="self">Self</span>, <span class="ident">f</span>: <span class="ident">F</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">MappedMutexGuard</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span>, <span class="ident">V</span><span class="op">&gt;</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">map</span><span class="op">&lt;</span><span class="ident">V</span>: <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>, <span class="ident">F</span><span class="op">&gt;</span>(<span class="ident">this</span>: <span class="self">Self</span>, <span class="ident">f</span>: <span class="ident">F</span>) -&gt; <span class="ident">MappedMutexGuard</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span>, <span class="ident">V</span><span class="op">&gt;</span>
     <span class="kw">where</span>
-        <span class="ident">F</span>: <span class="ident">FnOnce</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">U</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">V</span>,
+        <span class="ident">F</span>: <span class="ident">FnOnce</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">U</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">V</span>,
     {
         <span class="kw">let</span> <span class="ident">mutex</span> <span class="op">=</span> <a class="ident" href="../../../src/futures_util/lock/mutex.rs.html#340">this</a>.<span class="ident">mutex</span>;
         <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <a class="ident" href="../../../src/futures_util/lock/mutex.rs.html#340">f</a>(<span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">*</span><a class="ident" href="../../../src/futures_util/lock/mutex.rs.html#340">this</a>.<span class="ident">value</span> });
@@ -757,7 +757,7 @@
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>, <span class="ident">U</span>: <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <span class="ident">MappedMutexGuard</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">T</span>, <span class="ident">U</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
         <a class="ident" href="../../../src/futures_util/lock/mutex.rs.html#354">f</a>.<span class="ident">debug_struct</span>(<span class="string">&quot;MappedMutexGuard&quot;</span>)
             .<span class="ident">field</span>(<span class="string">&quot;value&quot;</span>, <span class="op">&amp;&amp;</span><span class="kw-2">*</span><span class="kw-2">*</span><a class="self" href="../../../src/futures_util/lock/mutex.rs.html#354">self</a>)
             .<span class="ident">field</span>(<span class="string">&quot;mutex&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/futures_util/lock/mutex.rs.html#354">self</a>.<span class="ident">mutex</span>)
@@ -773,13 +773,13 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>, <span class="ident">U</span>: <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.Deref.html">Deref</a> <span class="kw">for</span> <span class="ident">MappedMutexGuard</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">T</span>, <span class="ident">U</span><span class="op">&gt;</span> {
     <span class="kw">type</span> <span class="ident">Target</span> <span class="op">=</span> <span class="ident">U</span>;
-    <span class="kw">fn</span> <span class="ident">deref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">U</span> {
+    <span class="kw">fn</span> <span class="ident">deref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">U</span> {
         <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">*</span><a class="self" href="../../../src/futures_util/lock/mutex.rs.html#370">self</a>.<span class="ident">value</span> }
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>, <span class="ident">U</span>: <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.DerefMut.html">DerefMut</a> <span class="kw">for</span> <span class="ident">MappedMutexGuard</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">T</span>, <span class="ident">U</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">deref_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">U</span> {
+    <span class="kw">fn</span> <span class="ident">deref_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">U</span> {
         <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">*</span><a class="self" href="../../../src/futures_util/lock/mutex.rs.html#376">self</a>.<span class="ident">value</span> }
     }
 }

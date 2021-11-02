@@ -289,7 +289,7 @@
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;json&quot;</span>)]</span>
 <span class="kw">use</span> <span class="ident">serde::de::DeserializeOwned</span>;
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">parse_response_head</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>(<span class="ident">reader</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">BufReader</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<a class="ident" href="../../../attohttpc/struct.StatusCode.html">StatusCode</a>, <a class="ident" href="../../../attohttpc/header/struct.HeaderMap.html">HeaderMap</a>)<span class="op">&gt;</span>
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">parse_response_head</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>(<span class="ident">reader</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">BufReader</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<a class="ident" href="../../../attohttpc/struct.StatusCode.html">StatusCode</a>, <a class="ident" href="../../../attohttpc/header/struct.HeaderMap.html">HeaderMap</a>)<span class="op">&gt;</span>
 <span class="kw">where</span>
     <span class="ident">R</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a>,
 {
@@ -301,7 +301,7 @@
     <span class="comment">// status line</span>
     <span class="kw">let</span> <span class="ident">status</span>: <a class="ident" href="../../../attohttpc/struct.StatusCode.html">StatusCode</a> <span class="op">=</span> {
         <a class="ident" href="../../../src/attohttpc/parsing/buffers.rs.html#3-5">buffers::read_line</a>(<a class="ident" href="../../../src/attohttpc/parsing/response.rs.html#21">reader</a>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../../src/attohttpc/parsing/response.rs.html#27">line</a>, <a class="ident" href="../../../src/attohttpc/parsing/response.rs.html#25">MAX_LINE_LEN</a>)<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">parts</span> <span class="op">=</span> <a class="ident" href="../../../src/attohttpc/parsing/response.rs.html#27">line</a>.<span class="ident">split</span>(<span class="op">|</span><span class="kw-2">&amp;</span><span class="ident">b</span><span class="op">|</span> <a class="ident" href="../../../src/attohttpc/parsing/response.rs.html#33">b</a> <span class="op">=</span><span class="op">=</span> <span class="string">b&#39; &#39;</span>).<span class="ident">filter</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="op">!</span><a class="ident" href="../../../src/attohttpc/parsing/response.rs.html#33">x</a>.<span class="ident">is_empty</span>());
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">parts</span> <span class="op">=</span> <a class="ident" href="../../../src/attohttpc/parsing/response.rs.html#27">line</a>.<span class="ident">split</span>(<span class="op">|</span><span class="kw-2">&amp;</span><span class="ident">b</span><span class="op">|</span> <a class="ident" href="../../../src/attohttpc/parsing/response.rs.html#33">b</a> <span class="op">==</span> <span class="string">b&#39; &#39;</span>).<span class="ident">filter</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="op">!</span><a class="ident" href="../../../src/attohttpc/parsing/response.rs.html#33">x</a>.<span class="ident">is_empty</span>());
 
         <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <a class="ident" href="../../../src/attohttpc/parsing/response.rs.html#33">parts</a>.<span class="ident">next</span>().<span class="ident">ok_or</span>(<a class="ident" href="../../../src/attohttpc/error.rs.html#15">InvalidResponseKind::StatusLine</a>)<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">code</span> <span class="op">=</span> <a class="ident" href="../../../src/attohttpc/parsing/response.rs.html#33">parts</a>.<span class="ident">next</span>().<span class="ident">ok_or</span>(<a class="ident" href="../../../src/attohttpc/error.rs.html#15">InvalidResponseKind::StatusLine</a>)<span class="question-mark">?</span>;
@@ -320,7 +320,7 @@
 
         <span class="kw">let</span> <span class="ident">col</span> <span class="op">=</span> <a class="ident" href="../../../src/attohttpc/parsing/response.rs.html#27">line</a>
             .<span class="ident">iter</span>()
-            .<span class="ident">position</span>(<span class="op">|</span><span class="kw-2">&amp;</span><span class="ident">c</span><span class="op">|</span> <a class="ident" href="../../../src/attohttpc/parsing/response.rs.html#52">c</a> <span class="op">=</span><span class="op">=</span> <span class="string">b&#39;:&#39;</span>)
+            .<span class="ident">position</span>(<span class="op">|</span><span class="kw-2">&amp;</span><span class="ident">c</span><span class="op">|</span> <a class="ident" href="../../../src/attohttpc/parsing/response.rs.html#52">c</a> <span class="op">==</span> <span class="string">b&#39;:&#39;</span>)
             .<span class="ident">ok_or</span>(<a class="ident" href="../../../src/attohttpc/error.rs.html#19">InvalidResponseKind::Header</a>)<span class="question-mark">?</span>;
 
         <a class="ident" href="../../../src/attohttpc/parsing/buffers.rs.html#70">buffers::replace_byte</a>(<span class="string">b&#39;\n&#39;</span>, <span class="string">b&#39; &#39;</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../../src/attohttpc/parsing/response.rs.html#27">line</a>[<a class="ident" href="../../../src/attohttpc/parsing/response.rs.html#50">col</a> <span class="op">+</span> <span class="number">1</span>..]);
@@ -329,8 +329,8 @@
         <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <a class="ident" href="../../../src/attohttpc/parsing/buffers.rs.html#58">trim_byte</a>(<span class="string">b&#39; &#39;</span>, <span class="kw-2">&amp;</span><a class="ident" href="../../../src/attohttpc/parsing/response.rs.html#27">line</a>[<a class="ident" href="../../../src/attohttpc/parsing/response.rs.html#50">col</a> <span class="op">+</span> <span class="number">1</span>..]);
 
         <span class="kw">let</span> <span class="ident">header</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">HeaderName::from_bytes</span>(<a class="ident" href="../../../src/attohttpc/parsing/response.rs.html#57">header</a>) {
-            <span class="prelude-val">Ok</span>(<span class="ident">val</span>) <span class="op">=</span><span class="op">&gt;</span> <a class="ident" href="../../../src/attohttpc/parsing/response.rs.html#61">val</a>,
-            <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="prelude-val">Ok</span>(<span class="ident">val</span>) =&gt; <a class="ident" href="../../../src/attohttpc/parsing/response.rs.html#61">val</a>,
+            <span class="prelude-val">Err</span>(<span class="ident">err</span>) =&gt; {
                 <span class="macro">warn!</span>(<span class="string">&quot;Dropped invalid response header: {}&quot;</span>, <a class="ident" href="../../../src/attohttpc/parsing/response.rs.html#62">err</a>);
                 <span class="kw">continue</span>;
             }
@@ -342,7 +342,7 @@
     <span class="prelude-val">Ok</span>((<a class="ident" href="../../../src/attohttpc/parsing/response.rs.html#31">status</a>, <a class="ident" href="../../../src/attohttpc/parsing/response.rs.html#28">headers</a>))
 }
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">parse_response</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span>(<span class="ident">reader</span>: <a class="ident" href="../../../src/attohttpc/streams.rs.html#26-40">BaseStream</a>, <span class="ident">request</span>: <span class="kw-2">&amp;</span><span class="ident">PreparedRequest</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../../src/attohttpc/parsing/response.rs.html#93-97">Response</a><span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">parse_response</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span>(<span class="ident">reader</span>: <a class="ident" href="../../../src/attohttpc/streams.rs.html#26-40">BaseStream</a>, <span class="ident">request</span>: <span class="kw-2">&amp;</span><span class="ident">PreparedRequest</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../../src/attohttpc/parsing/response.rs.html#93-97">Response</a><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">reader</span> <span class="op">=</span> <span class="ident">BufReader::new</span>(<a class="ident" href="../../../src/attohttpc/parsing/response.rs.html#74">reader</a>);
     <span class="kw">let</span> (<span class="ident">status</span>, <span class="kw-2">mut</span> <span class="ident">headers</span>) <span class="op">=</span> <a class="ident" href="../../../src/attohttpc/parsing/response.rs.html#21-23">parse_response_head</a>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../../src/attohttpc/parsing/response.rs.html#75">reader</a>)<span class="question-mark">?</span>;
     <span class="kw">let</span> <span class="ident">body_reader</span> <span class="op">=</span> <span class="ident">BodyReader::new</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/attohttpc/parsing/response.rs.html#76">headers</a>, <a class="ident" href="../../../src/attohttpc/parsing/response.rs.html#75">reader</a>)<span class="question-mark">?</span>;
@@ -370,24 +370,24 @@
 <span class="kw">impl</span> <a class="ident" href="../../../src/attohttpc/parsing/response.rs.html#93-97">Response</a> {
     <span class="doccomment">/// Get the status code of this `Response`.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">status</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="../../../attohttpc/struct.StatusCode.html">StatusCode</a> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">status</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="../../../attohttpc/struct.StatusCode.html">StatusCode</a> {
         <a class="self" href="../../../src/attohttpc/parsing/response.rs.html#102">self</a>.<span class="ident">status</span>
     }
 
     <span class="doccomment">/// Get the headers of this `Response`.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">headers</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><a class="ident" href="../../../attohttpc/header/struct.HeaderMap.html">HeaderMap</a> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">headers</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a class="ident" href="../../../attohttpc/header/struct.HeaderMap.html">HeaderMap</a> {
         <span class="kw-2">&amp;</span><a class="self" href="../../../src/attohttpc/parsing/response.rs.html#108">self</a>.<span class="ident">headers</span>
     }
 
     <span class="doccomment">/// Checks if the status code of this `Response` was a success code.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_success</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_success</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
         <a class="self" href="../../../src/attohttpc/parsing/response.rs.html#114">self</a>.<span class="ident">status</span>.<span class="ident">is_success</span>()
     }
 
     <span class="doccomment">/// Returns error variant if the status code was not a success code.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">error_for_status</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">error_for_status</span>(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <a class="self" href="../../../src/attohttpc/parsing/response.rs.html#119">self</a>.<a class="ident" href="../../../src/attohttpc/parsing/response.rs.html#114">is_success</a>() {
             <span class="prelude-val">Ok</span>(<a class="self" href="../../../src/attohttpc/parsing/response.rs.html#119">self</a>)
         } <span class="kw">else</span> {
@@ -399,13 +399,13 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// This method is useful to read the status code or headers after consuming the response.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">split</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> (<a class="ident" href="../../../attohttpc/struct.StatusCode.html">StatusCode</a>, <a class="ident" href="../../../attohttpc/header/struct.HeaderMap.html">HeaderMap</a>, <a class="ident" href="../../../src/attohttpc/parsing/response_reader.rs.html#51-55">ResponseReader</a>) {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">split</span>(<span class="self">self</span>) -&gt; (<a class="ident" href="../../../attohttpc/struct.StatusCode.html">StatusCode</a>, <a class="ident" href="../../../attohttpc/header/struct.HeaderMap.html">HeaderMap</a>, <a class="ident" href="../../../src/attohttpc/parsing/response_reader.rs.html#51-55">ResponseReader</a>) {
         (<a class="self" href="../../../src/attohttpc/parsing/response.rs.html#131">self</a>.<span class="ident">status</span>, <a class="self" href="../../../src/attohttpc/parsing/response.rs.html#131">self</a>.<span class="ident">headers</span>, <a class="self" href="../../../src/attohttpc/parsing/response.rs.html#131">self</a>.<span class="ident">reader</span>)
     }
 
     <span class="doccomment">/// Write the response to any object that implements `Write`.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">write_to</span><span class="op">&lt;</span><span class="ident">W</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">writer</span>: <span class="ident">W</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a><span class="op">&gt;</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">write_to</span><span class="op">&lt;</span><span class="ident">W</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">writer</span>: <span class="ident">W</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">W</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>,
     {
@@ -414,7 +414,7 @@
 
     <span class="doccomment">/// Read the response to a `Vec` of bytes.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">bytes</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><span class="op">&gt;</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">bytes</span>(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><span class="op">&gt;</span><span class="op">&gt;</span> {
         <a class="self" href="../../../src/attohttpc/parsing/response.rs.html#146">self</a>.<span class="ident">reader</span>.<a class="ident" href="../../../src/attohttpc/parsing/response_reader.rs.html#85">bytes</a>()
     }
 
@@ -431,7 +431,7 @@
     <span class="doccomment">/// Note that both conversions are lossy, i.e. they will not raise errors when</span>
     <span class="doccomment">/// invalid data is encountered but output replacement characters instead.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">text</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">text</span>(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a><span class="op">&gt;</span> {
         <a class="self" href="../../../src/attohttpc/parsing/response.rs.html#163">self</a>.<span class="ident">reader</span>.<a class="ident" href="../../../src/attohttpc/parsing/response_reader.rs.html#104">text</a>()
     }
 
@@ -442,7 +442,7 @@
     <span class="doccomment">/// This method only exists when the `charsets` feature is enabled.</span>
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;charsets&quot;</span>)]</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">text_with</span>(<span class="self">self</span>, <span class="ident">charset</span>: <span class="ident">Charset</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">text_with</span>(<span class="self">self</span>, <span class="ident">charset</span>: <span class="ident">Charset</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">reader</span>.<span class="ident">text_with</span>(<span class="ident">charset</span>)
     }
 
@@ -454,7 +454,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// This method only exists when the `charsets` feature is enabled.</span>
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;charsets&quot;</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">text_reader</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TextReader</span><span class="op">&lt;</span><span class="ident">BufReader</span><span class="op">&lt;</span><span class="ident">ResponseReader</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">text_reader</span>(<span class="self">self</span>) -&gt; <span class="ident">TextReader</span><span class="op">&lt;</span><span class="ident">BufReader</span><span class="op">&lt;</span><span class="ident">ResponseReader</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">reader</span>.<span class="ident">text_reader</span>()
     }
 
@@ -465,7 +465,7 @@
     <span class="doccomment">/// This method only exists when the `charsets` feature is enabled.</span>
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;charsets&quot;</span>)]</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">text_reader_with</span>(<span class="self">self</span>, <span class="ident">charset</span>: <span class="ident">Charset</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TextReader</span><span class="op">&lt;</span><span class="ident">BufReader</span><span class="op">&lt;</span><span class="ident">ResponseReader</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">text_reader_with</span>(<span class="self">self</span>, <span class="ident">charset</span>: <span class="ident">Charset</span>) -&gt; <span class="ident">TextReader</span><span class="op">&lt;</span><span class="ident">BufReader</span><span class="op">&lt;</span><span class="ident">ResponseReader</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">reader</span>.<span class="ident">text_reader_with</span>(<span class="ident">charset</span>)
     }
 
@@ -476,7 +476,7 @@
     <span class="doccomment">/// Note that is lossy, i.e. it will not raise errors when</span>
     <span class="doccomment">/// invalid data is encountered but output replacement characters instead.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">text_utf8</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">text_utf8</span>(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a><span class="op">&gt;</span> {
         <a class="self" href="../../../src/attohttpc/parsing/response.rs.html#208">self</a>.<span class="ident">reader</span>.<a class="ident" href="../../../src/attohttpc/parsing/response_reader.rs.html#168">text_utf8</a>()
     }
 
@@ -491,7 +491,7 @@
     <span class="doccomment">/// `json_utf8`.</span>
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;json&quot;</span>)]</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">json</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">json</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">T</span>: <span class="ident">DeserializeOwned</span>,
     {
@@ -505,7 +505,7 @@
     <span class="doccomment">/// This method only exists when the `json` feature is enabled.</span>
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;json&quot;</span>)]</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">json_utf8</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">json_utf8</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">T</span>: <span class="ident">DeserializeOwned</span>,
     {
@@ -514,7 +514,7 @@
 }
 
 <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a> <span class="kw">for</span> <a class="ident" href="../../../src/attohttpc/parsing/response.rs.html#93-97">Response</a> {
-    <span class="kw">fn</span> <span class="ident">read</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">read</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span> {
         <a class="self" href="../../../src/attohttpc/parsing/response.rs.html#246">self</a>.<span class="ident">reader</span>.<span class="ident">read</span>(<a class="ident" href="../../../src/attohttpc/parsing/response.rs.html#246">buf</a>)
     }
 }

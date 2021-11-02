@@ -591,7 +591,7 @@
 <span class="comment">// ===== impl PollEvented =====</span>
 
 <span class="macro">macro_rules!</span> <span class="ident">poll_ready</span> {
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">me</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">mask</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">cache</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">take</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">poll</span>:<span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> {{
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">me</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">mask</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">cache</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">take</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">poll</span>:<span class="ident">expr</span>) =&gt; {{
         <span class="macro-nonterminal">$</span><span class="macro-nonterminal">me</span>.<span class="ident">register</span>()<span class="question-mark">?</span>;
 
         <span class="comment">// Load cached &amp; encoded readiness.</span>
@@ -636,7 +636,7 @@
     <span class="ident">E</span>: <a class="ident" href="../../mio/event_imp/trait.Evented.html">Evented</a>,
 {
     <span class="doccomment">/// Creates a new `PollEvented` associated with the default reactor.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">io</span>: <span class="ident">E</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">PollEvented</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">io</span>: <span class="ident">E</span>) -&gt; <span class="ident">PollEvented</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span> {
         <a class="ident" href="../../src/tokio_reactor/poll_evented.rs.html#88-91">PollEvented</a> {
             <span class="ident">io</span>: <span class="prelude-val">Some</span>(<a class="ident" href="../../src/tokio_reactor/poll_evented.rs.html#151">io</a>),
             <span class="ident">inner</span>: <a class="ident" href="../../src/tokio_reactor/poll_evented.rs.html#93-101">Inner</a> {
@@ -648,7 +648,7 @@
     }
 
     <span class="doccomment">/// Creates a new `PollEvented` associated with the specified reactor.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_with_handle</span>(<span class="ident">io</span>: <span class="ident">E</span>, <span class="ident">handle</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/tokio_reactor/lib.rs.html#119-121">Handle</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io::Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_with_handle</span>(<span class="ident">io</span>: <span class="ident">E</span>, <span class="ident">handle</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/tokio_reactor/lib.rs.html#119-121">Handle</a>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">ret</span> <span class="op">=</span> <span class="ident">PollEvented::new</span>(<a class="ident" href="../../src/tokio_reactor/poll_evented.rs.html#163">io</a>);
 
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">handle</span>) <span class="op">=</span> <a class="ident" href="../../src/tokio_reactor/poll_evented.rs.html#163">handle</a>.<a class="ident" href="../../src/tokio_reactor/lib.rs.html#501">as_priv</a>() {
@@ -662,13 +662,13 @@
 
     <span class="doccomment">/// Returns a shared reference to the underlying I/O object this readiness</span>
     <span class="doccomment">/// stream is wrapping.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_ref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">E</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_ref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">E</span> {
         <a class="self" href="../../src/tokio_reactor/poll_evented.rs.html#177">self</a>.<span class="ident">io</span>.<span class="ident">as_ref</span>().<span class="ident">unwrap</span>()
     }
 
     <span class="doccomment">/// Returns a mutable reference to the underlying I/O object this readiness</span>
     <span class="doccomment">/// stream is wrapping.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">E</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">E</span> {
         <a class="self" href="../../src/tokio_reactor/poll_evented.rs.html#183">self</a>.<span class="ident">io</span>.<span class="ident">as_mut</span>().<span class="ident">unwrap</span>()
     }
 
@@ -680,7 +680,7 @@
     <span class="doccomment">/// Note that deregistering does not guarantee that the I/O resource can be</span>
     <span class="doccomment">/// registered with a different reactor. Some I/O resource types can only be</span>
     <span class="doccomment">/// associated with a single reactor instance for their lifetime.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_inner</span>(<span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io::Result</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_inner</span>(<span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">io</span> <span class="op">=</span> <a class="self" href="../../src/tokio_reactor/poll_evented.rs.html#195">self</a>.<span class="ident">io</span>.<span class="ident">take</span>().<span class="ident">unwrap</span>();
         <a class="self" href="../../src/tokio_reactor/poll_evented.rs.html#195">self</a>.<span class="ident">inner</span>.<span class="ident">registration</span>.<a class="ident" href="../../src/tokio_reactor/registration.rs.html#143-145">deregister</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/tokio_reactor/poll_evented.rs.html#196">io</a>)<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/tokio_reactor/poll_evented.rs.html#196">io</a>)
@@ -707,7 +707,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// * `ready` includes writable.</span>
     <span class="doccomment">/// * called from outside of a task context.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">poll_read_ready</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">mask</span>: <a class="ident" href="../../mio/event_imp/struct.Ready.html">mio::Ready</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><a class="ident" href="../../mio/event_imp/struct.Ready.html">mio::Ready</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">poll_read_ready</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">mask</span>: <a class="ident" href="../../mio/event_imp/struct.Ready.html">mio::Ready</a>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><a class="ident" href="../../mio/event_imp/struct.Ready.html">mio::Ready</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a><span class="op">&gt;</span> {
         <span class="macro">assert!</span>(<span class="op">!</span><a class="ident" href="../../src/tokio_reactor/poll_evented.rs.html#222">mask</a>.<span class="ident">is_writable</span>(), <span class="string">&quot;cannot poll for write readiness&quot;</span>);
         <span class="macro">poll_ready!</span>(
             <a class="self" href="../../src/tokio_reactor/poll_evented.rs.html#222">self</a>,
@@ -733,7 +733,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// * `ready` includes writable or HUP</span>
     <span class="doccomment">/// * called from outside of a task context.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">clear_read_ready</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">ready</span>: <a class="ident" href="../../mio/event_imp/struct.Ready.html">mio::Ready</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">clear_read_ready</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">ready</span>: <a class="ident" href="../../mio/event_imp/struct.Ready.html">mio::Ready</a>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="comment">// Cannot clear write readiness</span>
         <span class="macro">assert!</span>(<span class="op">!</span><a class="ident" href="../../src/tokio_reactor/poll_evented.rs.html#248">ready</a>.<span class="ident">is_writable</span>(), <span class="string">&quot;cannot clear write readiness&quot;</span>);
         <span class="macro">assert!</span>(<span class="op">!</span><a class="ident" href="../../src/tokio_reactor/lib.rs.html#774">::platform::is_hup</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/tokio_reactor/poll_evented.rs.html#248">ready</a>), <span class="string">&quot;cannot clear HUP readiness&quot;</span>);
@@ -769,7 +769,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// * `ready` contains bits besides `writable` and `hup`.</span>
     <span class="doccomment">/// * called from outside of a task context.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">poll_write_ready</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><a class="ident" href="../../mio/event_imp/struct.Ready.html">mio::Ready</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">poll_write_ready</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><a class="ident" href="../../mio/event_imp/struct.Ready.html">mio::Ready</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a><span class="op">&gt;</span> {
         <span class="macro">poll_ready!</span>(
             <a class="self" href="../../src/tokio_reactor/poll_evented.rs.html#284">self</a>,
             <span class="ident">mio::Ready::writable</span>(),
@@ -791,7 +791,7 @@
     <span class="doccomment">/// # Panics</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// This function will panic if called from outside of a task context.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">clear_write_ready</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">clear_write_ready</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">ready</span> <span class="op">=</span> <span class="ident">mio::Ready::writable</span>();
 
         <a class="self" href="../../src/tokio_reactor/poll_evented.rs.html#306">self</a>.<span class="ident">inner</span>
@@ -807,7 +807,7 @@
     }
 
     <span class="doccomment">/// Ensure that the I/O resource is registered with the reactor.</span>
-    <span class="kw">fn</span> <span class="ident">register</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">register</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <a class="self" href="../../src/tokio_reactor/poll_evented.rs.html#322">self</a>.<span class="ident">inner</span>
             .<span class="ident">registration</span>
             .<a class="ident" href="../../src/tokio_reactor/registration.rs.html#120-122">register</a>(<a class="self" href="../../src/tokio_reactor/poll_evented.rs.html#322">self</a>.<span class="ident">io</span>.<span class="ident">as_ref</span>().<span class="ident">unwrap</span>())<span class="question-mark">?</span>;
@@ -821,7 +821,7 @@
 <span class="kw">where</span>
     <span class="ident">E</span>: <a class="ident" href="../../mio/event_imp/trait.Evented.html">Evented</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a>,
 {
-    <span class="kw">fn</span> <span class="ident">read</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">read</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Async::NotReady</span> <span class="op">=</span> <a class="self" href="../../src/tokio_reactor/poll_evented.rs.html#336">self</a>.<a class="ident" href="../../src/tokio_reactor/poll_evented.rs.html#222">poll_read_ready</a>(<span class="ident">mio::Ready::readable</span>())<span class="question-mark">?</span> {
             <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">io::ErrorKind::WouldBlock</span>.<span class="ident">into</span>());
         }
@@ -840,7 +840,7 @@
 <span class="kw">where</span>
     <span class="ident">E</span>: <a class="ident" href="../../mio/event_imp/trait.Evented.html">Evented</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>,
 {
-    <span class="kw">fn</span> <span class="ident">write</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">write</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Async::NotReady</span> <span class="op">=</span> <a class="self" href="../../src/tokio_reactor/poll_evented.rs.html#355">self</a>.<a class="ident" href="../../src/tokio_reactor/poll_evented.rs.html#284">poll_write_ready</a>()<span class="question-mark">?</span> {
             <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">io::ErrorKind::WouldBlock</span>.<span class="ident">into</span>());
         }
@@ -854,7 +854,7 @@
         <span class="kw">return</span> <a class="ident" href="../../src/tokio_reactor/poll_evented.rs.html#360">r</a>;
     }
 
-    <span class="kw">fn</span> <span class="ident">flush</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">flush</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Async::NotReady</span> <span class="op">=</span> <a class="self" href="../../src/tokio_reactor/poll_evented.rs.html#369">self</a>.<a class="ident" href="../../src/tokio_reactor/poll_evented.rs.html#284">poll_write_ready</a>()<span class="question-mark">?</span> {
             <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">io::ErrorKind::WouldBlock</span>.<span class="ident">into</span>());
         }
@@ -875,7 +875,7 @@
 <span class="kw">where</span>
     <span class="ident">E</span>: <a class="ident" href="../../mio/event_imp/trait.Evented.html">Evented</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>,
 {
-    <span class="kw">fn</span> <span class="ident">shutdown</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span>(), <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">shutdown</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span>(), <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a><span class="op">&gt;</span> {
         <span class="prelude-val">Ok</span>(().<span class="ident">into</span>())
     }
 }
@@ -887,7 +887,7 @@
     <span class="ident">E</span>: <a class="ident" href="../../mio/event_imp/trait.Evented.html">Evented</a>,
     <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">E</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a>,
 {
-    <span class="kw">fn</span> <span class="ident">read</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">read</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Async::NotReady</span> <span class="op">=</span> <a class="self" href="../../src/tokio_reactor/poll_evented.rs.html#402">self</a>.<a class="ident" href="../../src/tokio_reactor/poll_evented.rs.html#222">poll_read_ready</a>(<span class="ident">mio::Ready::readable</span>())<span class="question-mark">?</span> {
             <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">io::ErrorKind::WouldBlock</span>.<span class="ident">into</span>());
         }
@@ -907,7 +907,7 @@
     <span class="ident">E</span>: <a class="ident" href="../../mio/event_imp/trait.Evented.html">Evented</a>,
     <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">E</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>,
 {
-    <span class="kw">fn</span> <span class="ident">write</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">write</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Async::NotReady</span> <span class="op">=</span> <a class="self" href="../../src/tokio_reactor/poll_evented.rs.html#422">self</a>.<a class="ident" href="../../src/tokio_reactor/poll_evented.rs.html#284">poll_write_ready</a>()<span class="question-mark">?</span> {
             <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">io::ErrorKind::WouldBlock</span>.<span class="ident">into</span>());
         }
@@ -921,7 +921,7 @@
         <span class="kw">return</span> <a class="ident" href="../../src/tokio_reactor/poll_evented.rs.html#427">r</a>;
     }
 
-    <span class="kw">fn</span> <span class="ident">flush</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">flush</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Async::NotReady</span> <span class="op">=</span> <a class="self" href="../../src/tokio_reactor/poll_evented.rs.html#436">self</a>.<a class="ident" href="../../src/tokio_reactor/poll_evented.rs.html#284">poll_write_ready</a>()<span class="question-mark">?</span> {
             <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">io::ErrorKind::WouldBlock</span>.<span class="ident">into</span>());
         }
@@ -948,20 +948,20 @@
     <span class="ident">E</span>: <a class="ident" href="../../mio/event_imp/trait.Evented.html">Evented</a>,
     <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">E</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>,
 {
-    <span class="kw">fn</span> <span class="ident">shutdown</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span>(), <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">shutdown</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span>(), <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a><span class="op">&gt;</span> {
         <span class="prelude-val">Ok</span>(().<span class="ident">into</span>())
     }
 }
 
-<span class="kw">fn</span> <span class="ident">is_wouldblock</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">r</span>: <span class="kw-2">&amp;</span><span class="ident">io::Result</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+<span class="kw">fn</span> <span class="ident">is_wouldblock</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">r</span>: <span class="kw-2">&amp;</span><span class="ident">io::Result</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
     <span class="kw">match</span> <span class="kw-2">*</span><a class="ident" href="../../src/tokio_reactor/poll_evented.rs.html#468">r</a> {
-        <span class="prelude-val">Ok</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
-        <span class="prelude-val">Err</span>(<span class="kw-2">ref</span> <span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> <a class="ident" href="../../src/tokio_reactor/poll_evented.rs.html#471">e</a>.<span class="ident">kind</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">io::ErrorKind::WouldBlock</span>,
+        <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
+        <span class="prelude-val">Err</span>(<span class="kw-2">ref</span> <span class="ident">e</span>) =&gt; <a class="ident" href="../../src/tokio_reactor/poll_evented.rs.html#471">e</a>.<span class="ident">kind</span>() <span class="op">==</span> <span class="ident">io::ErrorKind::WouldBlock</span>,
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">E</span>: <a class="ident" href="../../mio/event_imp/trait.Evented.html">Evented</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <span class="ident">PollEvented</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
         <a class="ident" href="../../src/tokio_reactor/poll_evented.rs.html#476">f</a>.<span class="ident">debug_struct</span>(<span class="string">&quot;PollEvented&quot;</span>).<span class="ident">field</span>(<span class="string">&quot;io&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../src/tokio_reactor/poll_evented.rs.html#476">self</a>.<span class="ident">io</span>).<span class="ident">finish</span>()
     }
 }

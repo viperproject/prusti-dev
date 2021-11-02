@@ -74,7 +74,7 @@
 <span class="kw">mod</span> <a class="ident" href="../../../src/vir_gen/parser/ast.rs.html#1-93">ast</a>;
 
 <span class="doccomment">/// Expand the ast by reading in all modules.</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">expand</span>(<span class="ident">item</span>: <a class="ident" href="../../../syn/item/struct.ItemMod.html">syn::ItemMod</a>, <span class="ident">path</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/path/struct.PathBuf.html">PathBuf</a>) <span class="op">-</span><span class="op">&gt;</span> (<a class="ident" href="../../../syn/item/struct.ItemMod.html">syn::ItemMod</a>, <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../../syn/error/struct.Error.html">syn::Error</a><span class="op">&gt;</span>) {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">expand</span>(<span class="ident">item</span>: <a class="ident" href="../../../syn/item/struct.ItemMod.html">syn::ItemMod</a>, <span class="ident">path</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/path/struct.PathBuf.html">PathBuf</a>) -&gt; (<a class="ident" href="../../../syn/item/struct.ItemMod.html">syn::ItemMod</a>, <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../../syn/error/struct.Error.html">syn::Error</a><span class="op">&gt;</span>) {
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">expander</span> <span class="op">=</span> <a class="ident" href="../../../src/vir_gen/parser/mod.rs.html#16-19">Expander</a> {
         <span class="ident">current_path</span>: <a class="ident" href="../../../src/vir_gen/parser/mod.rs.html#7">path</a>,
         <span class="ident">errors</span>: <span class="ident">Vec::new</span>(),
@@ -89,10 +89,10 @@
 }
 
 <span class="kw">impl</span> <a class="ident" href="../../../syn/gen/fold/trait.Fold.html">Fold</a> <span class="kw">for</span> <a class="ident" href="../../../src/vir_gen/parser/mod.rs.html#16-19">Expander</a> {
-    <span class="kw">fn</span> <span class="ident">fold_item_mod</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="kw-2">mut</span> <span class="ident">item</span>: <a class="ident" href="../../../syn/item/struct.ItemMod.html">syn::ItemMod</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="../../../syn/item/struct.ItemMod.html">syn::ItemMod</a> {
+    <span class="kw">fn</span> <span class="ident">fold_item_mod</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="kw-2">mut</span> <span class="ident">item</span>: <a class="ident" href="../../../syn/item/struct.ItemMod.html">syn::ItemMod</a>) -&gt; <a class="ident" href="../../../syn/item/struct.ItemMod.html">syn::ItemMod</a> {
         <span class="kw">if</span> <a class="ident" href="../../../src/vir_gen/parser/mod.rs.html#22">item</a>.<span class="ident">content</span>.<span class="ident">is_none</span>() {
             <span class="kw">match</span> <a class="ident" href="../../../src/vir_gen/parser/mod.rs.html#47">load_file</a>(<a class="self" href="../../../src/vir_gen/parser/mod.rs.html#22">self</a>.<span class="ident">current_path</span>.<span class="ident">clone</span>(), <span class="kw-2">&amp;</span><a class="ident" href="../../../src/vir_gen/parser/mod.rs.html#22">item</a>.<span class="ident">ident</span>) {
-                <span class="prelude-val">Ok</span>((<span class="ident">new_path</span>, <span class="ident">file</span>)) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="prelude-val">Ok</span>((<span class="ident">new_path</span>, <span class="ident">file</span>)) =&gt; {
                     <a class="ident" href="../../../src/vir_gen/parser/mod.rs.html#22">item</a>.<span class="ident">attrs</span>.<span class="ident">extend</span>(<a class="ident" href="../../../src/vir_gen/parser/mod.rs.html#25">file</a>.<span class="ident">attrs</span>.<span class="ident">into_iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="kw-2">mut</span> <span class="ident">attr</span><span class="op">|</span> {
                         <a class="ident" href="../../../src/vir_gen/parser/mod.rs.html#26">attr</a>.<span class="ident">style</span> <span class="op">=</span> <span class="ident">syn::AttrStyle::Outer</span>;
                         <a class="ident" href="../../../src/vir_gen/parser/mod.rs.html#26">attr</a>
@@ -103,7 +103,7 @@
                     <a class="self" href="../../../src/vir_gen/parser/mod.rs.html#22">self</a>.<span class="ident">current_path</span> <span class="op">=</span> <a class="ident" href="../../../src/vir_gen/parser/mod.rs.html#31">old_path</a>;
                     <a class="ident" href="../../../src/vir_gen/parser/mod.rs.html#32">new_item</a>
                 }
-                <span class="prelude-val">Err</span>(<span class="ident">error</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="prelude-val">Err</span>(<span class="ident">error</span>) =&gt; {
                     <a class="self" href="../../../src/vir_gen/parser/mod.rs.html#22">self</a>.<span class="ident">errors</span>.<span class="ident">push</span>(<a class="ident" href="../../../src/vir_gen/parser/mod.rs.html#36">error</a>);
                     <a class="ident" href="../../../src/vir_gen/parser/mod.rs.html#22">item</a>
                 }
@@ -114,7 +114,7 @@
     }
 }
 
-<span class="kw">fn</span> <span class="ident">load_file</span>(<span class="kw-2">mut</span> <span class="ident">current_path</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/path/struct.PathBuf.html">PathBuf</a>, <span class="ident">ident</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../proc_macro2/struct.Ident.html">syn::Ident</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">syn::Result</span><span class="op">&lt;</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/path/struct.PathBuf.html">PathBuf</a>, <a class="ident" href="../../../syn/file/struct.File.html">syn::File</a>)<span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">load_file</span>(<span class="kw-2">mut</span> <span class="ident">current_path</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/path/struct.PathBuf.html">PathBuf</a>, <span class="ident">ident</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../proc_macro2/struct.Ident.html">syn::Ident</a>) -&gt; <span class="ident">syn::Result</span><span class="op">&lt;</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/path/struct.PathBuf.html">PathBuf</a>, <a class="ident" href="../../../syn/file/struct.File.html">syn::File</a>)<span class="op">&gt;</span> {
     <a class="ident" href="../../../src/vir_gen/parser/mod.rs.html#47">current_path</a>.<span class="ident">pop</span>();
     <a class="ident" href="../../../src/vir_gen/parser/mod.rs.html#47">current_path</a>.<span class="ident">push</span>(<span class="macro">format!</span>(<span class="string">&quot;{}.rs&quot;</span>, <a class="ident" href="../../../src/vir_gen/parser/mod.rs.html#47">ident</a>));
     <span class="kw">if</span> <span class="op">!</span><a class="ident" href="../../../src/vir_gen/parser/mod.rs.html#47">current_path</a>.<span class="ident">exists</span>() {

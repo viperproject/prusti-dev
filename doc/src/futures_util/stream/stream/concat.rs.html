@@ -83,7 +83,7 @@
     <span class="ident">St</span>: <a class="ident" href="../../../../futures_util/stream/trait.Stream.html">Stream</a>,
     <span class="ident">St::Item</span>: <span class="ident">Extend</span><span class="op">&lt;</span><span class="op">&lt;</span><span class="ident">St::Item</span> <span class="kw">as</span> <span class="ident">IntoIterator</span><span class="op">&gt;</span><span class="ident">::Item</span><span class="op">&gt;</span> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">IntoIterator</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a>,
 {
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">stream</span>: <span class="ident">St</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">stream</span>: <span class="ident">St</span>) -&gt; <span class="self">Self</span> {
         <span class="self">Self</span> { <a class="ident" href="../../../../src/futures_util/stream/stream/concat.rs.html#24">stream</a>, <span class="ident">accum</span>: <span class="prelude-val">None</span> }
     }
 }
@@ -95,13 +95,13 @@
 {
     <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident">St::Item</span>;
 
-    <span class="kw">fn</span> <span class="ident">poll</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Output</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">poll</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Output</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">this</span> <span class="op">=</span> <a class="self" href="../../../../src/futures_util/stream/stream/concat.rs.html#36">self</a>.<a class="ident" href="../../../../src/futures_util/stream/stream/concat.rs.html#8-17">project</a>();
 
         <span class="kw">loop</span> {
             <span class="kw">match</span> <span class="macro">ready!</span>(<a class="ident" href="../../../../src/futures_util/stream/stream/concat.rs.html#37">this</a>.<span class="ident">stream</span>.<span class="ident">as_mut</span>().<span class="ident">poll_next</span>(<a class="ident" href="../../../../src/futures_util/stream/stream/concat.rs.html#36">cx</a>)) {
-                <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="ident">Poll::Ready</span>(<a class="ident" href="../../../../src/futures_util/stream/stream/concat.rs.html#37">this</a>.<span class="ident">accum</span>.<span class="ident">take</span>().<span class="ident">unwrap_or_default</span>()),
-                <span class="prelude-val">Some</span>(<span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="prelude-val">None</span> =&gt; <span class="kw">return</span> <span class="ident">Poll::Ready</span>(<a class="ident" href="../../../../src/futures_util/stream/stream/concat.rs.html#37">this</a>.<span class="ident">accum</span>.<span class="ident">take</span>().<span class="ident">unwrap_or_default</span>()),
+                <span class="prelude-val">Some</span>(<span class="ident">e</span>) =&gt; {
                     <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">a</span>) <span class="op">=</span> <a class="ident" href="../../../../src/futures_util/stream/stream/concat.rs.html#37">this</a>.<span class="ident">accum</span> {
                         <a class="ident" href="../../../../src/futures_util/stream/stream/concat.rs.html#43">a</a>.<span class="ident">extend</span>(<a class="ident" href="../../../../src/futures_util/stream/stream/concat.rs.html#42">e</a>)
                     } <span class="kw">else</span> {
@@ -118,7 +118,7 @@
     <span class="ident">St</span>: <a class="ident" href="../../../../futures_util/stream/trait.FusedStream.html">FusedStream</a>,
     <span class="ident">St::Item</span>: <span class="ident">Extend</span><span class="op">&lt;</span><span class="op">&lt;</span><span class="ident">St::Item</span> <span class="kw">as</span> <span class="ident">IntoIterator</span><span class="op">&gt;</span><span class="ident">::Item</span><span class="op">&gt;</span> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">IntoIterator</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a>,
 {
-    <span class="kw">fn</span> <span class="ident">is_terminated</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    <span class="kw">fn</span> <span class="ident">is_terminated</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
         <a class="self" href="../../../../src/futures_util/stream/stream/concat.rs.html#59">self</a>.<span class="ident">accum</span>.<span class="ident">is_none</span>() <span class="op">&amp;&amp;</span> <a class="self" href="../../../../src/futures_util/stream/stream/concat.rs.html#59">self</a>.<span class="ident">stream</span>.<span class="ident">is_terminated</span>()
     }
 }

@@ -131,7 +131,7 @@
 <span class="kw">where</span>
     <span class="ident">St</span>: <a class="ident" href="../../../../futures_util/stream/trait.Stream.html">Stream</a>,
 {
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">stream</span>: <span class="ident">St</span>, <span class="ident">capacity</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">stream</span>: <span class="ident">St</span>, <span class="ident">capacity</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="self">Self</span> {
         <span class="macro">assert!</span>(<a class="ident" href="../../../../src/futures_util/stream/stream/chunks.rs.html#28">capacity</a> <span class="op">&gt;</span> <span class="number">0</span>);
 
         <span class="self">Self</span> {
@@ -141,7 +141,7 @@
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">take</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">St::Item</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">take</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span><span class="op">&gt;</span>) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">St::Item</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">cap</span> <span class="op">=</span> <a class="self" href="../../../../src/futures_util/stream/stream/chunks.rs.html#38">self</a>.<span class="ident">cap</span>;
         <span class="ident">mem::replace</span>(<a class="self" href="../../../../src/futures_util/stream/stream/chunks.rs.html#38">self</a>.<a class="ident" href="../../../../src/futures_util/stream/stream/chunks.rs.html#12-22">project</a>().<span class="ident">items</span>, <span class="ident">Vec::with_capacity</span>(<a class="ident" href="../../../../src/futures_util/stream/stream/chunks.rs.html#39">cap</a>))
     }
@@ -152,14 +152,14 @@
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">St</span>: <a class="ident" href="../../../../futures_util/stream/trait.Stream.html">Stream</a><span class="op">&gt;</span> <a class="ident" href="../../../../futures_util/stream/trait.Stream.html">Stream</a> <span class="kw">for</span> <span class="ident">Chunks</span><span class="op">&lt;</span><span class="ident">St</span><span class="op">&gt;</span> {
     <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">St::Item</span><span class="op">&gt;</span>;
 
-    <span class="kw">fn</span> <span class="ident">poll_next</span>(<span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">poll_next</span>(<span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">this</span> <span class="op">=</span> <a class="self" href="../../../../src/futures_util/stream/stream/chunks.rs.html#49">self</a>.<span class="ident">as_mut</span>().<a class="ident" href="../../../../src/futures_util/stream/stream/chunks.rs.html#12-22">project</a>();
         <span class="kw">loop</span> {
             <span class="kw">match</span> <span class="macro">ready!</span>(<a class="ident" href="../../../../src/futures_util/stream/stream/chunks.rs.html#50">this</a>.<span class="ident">stream</span>.<span class="ident">as_mut</span>().<span class="ident">poll_next</span>(<a class="ident" href="../../../../src/futures_util/stream/stream/chunks.rs.html#49">cx</a>)) {
                 <span class="comment">// Push the item into the buffer and check whether it is full.</span>
                 <span class="comment">// If so, replace our buffer with a new and empty one and return</span>
                 <span class="comment">// the full one.</span>
-                <span class="prelude-val">Some</span>(<span class="ident">item</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="prelude-val">Some</span>(<span class="ident">item</span>) =&gt; {
                     <a class="ident" href="../../../../src/futures_util/stream/stream/chunks.rs.html#50">this</a>.<span class="ident">items</span>.<span class="ident">push</span>(<a class="ident" href="../../../../src/futures_util/stream/stream/chunks.rs.html#56">item</a>);
                     <span class="kw">if</span> <a class="ident" href="../../../../src/futures_util/stream/stream/chunks.rs.html#50">this</a>.<span class="ident">items</span>.<span class="ident">len</span>() <span class="op">&gt;</span><span class="op">=</span> <span class="kw-2">*</span><a class="ident" href="../../../../src/futures_util/stream/stream/chunks.rs.html#50">this</a>.<span class="ident">cap</span> {
                         <span class="kw">return</span> <span class="ident">Poll::Ready</span>(<span class="prelude-val">Some</span>(<a class="self" href="../../../../src/futures_util/stream/stream/chunks.rs.html#49">self</a>.<a class="ident" href="../../../../src/futures_util/stream/stream/chunks.rs.html#38">take</a>()));
@@ -168,7 +168,7 @@
 
                 <span class="comment">// Since the underlying stream ran out of values, return what we</span>
                 <span class="comment">// have buffered, if we have anything.</span>
-                <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="prelude-val">None</span> =&gt; {
                     <span class="kw">let</span> <span class="ident">last</span> <span class="op">=</span> <span class="kw">if</span> <a class="ident" href="../../../../src/futures_util/stream/stream/chunks.rs.html#50">this</a>.<span class="ident">items</span>.<span class="ident">is_empty</span>() {
                         <span class="prelude-val">None</span>
                     } <span class="kw">else</span> {
@@ -182,20 +182,20 @@
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">size_hint</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> (<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span>) {
+    <span class="kw">fn</span> <span class="ident">size_hint</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span>) {
         <span class="kw">let</span> <span class="ident">chunk_len</span> <span class="op">=</span> <span class="kw">if</span> <a class="self" href="../../../../src/futures_util/stream/stream/chunks.rs.html#79">self</a>.<span class="ident">items</span>.<span class="ident">is_empty</span>() { <span class="number">0</span> } <span class="kw">else</span> { <span class="number">1</span> };
         <span class="kw">let</span> (<span class="ident">lower</span>, <span class="ident">upper</span>) <span class="op">=</span> <a class="self" href="../../../../src/futures_util/stream/stream/chunks.rs.html#79">self</a>.<span class="ident">stream</span>.<span class="ident">size_hint</span>();
         <span class="kw">let</span> <span class="ident">lower</span> <span class="op">=</span> <a class="ident" href="../../../../src/futures_util/stream/stream/chunks.rs.html#81">lower</a>.<span class="ident">saturating_add</span>(<a class="ident" href="../../../../src/futures_util/stream/stream/chunks.rs.html#80">chunk_len</a>);
         <span class="kw">let</span> <span class="ident">upper</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../../../src/futures_util/stream/stream/chunks.rs.html#81">upper</a> {
-            <span class="prelude-val">Some</span>(<span class="ident">x</span>) <span class="op">=</span><span class="op">&gt;</span> <a class="ident" href="../../../../src/futures_util/stream/stream/chunks.rs.html#84">x</a>.<span class="ident">checked_add</span>(<a class="ident" href="../../../../src/futures_util/stream/stream/chunks.rs.html#80">chunk_len</a>),
-            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
+            <span class="prelude-val">Some</span>(<span class="ident">x</span>) =&gt; <a class="ident" href="../../../../src/futures_util/stream/stream/chunks.rs.html#84">x</a>.<span class="ident">checked_add</span>(<a class="ident" href="../../../../src/futures_util/stream/stream/chunks.rs.html#80">chunk_len</a>),
+            <span class="prelude-val">None</span> =&gt; <span class="prelude-val">None</span>,
         };
         (<a class="ident" href="../../../../src/futures_util/stream/stream/chunks.rs.html#82">lower</a>, <a class="ident" href="../../../../src/futures_util/stream/stream/chunks.rs.html#83">upper</a>)
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">St</span>: <a class="ident" href="../../../../futures_util/stream/trait.FusedStream.html">FusedStream</a><span class="op">&gt;</span> <a class="ident" href="../../../../futures_util/stream/trait.FusedStream.html">FusedStream</a> <span class="kw">for</span> <span class="ident">Chunks</span><span class="op">&lt;</span><span class="ident">St</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">is_terminated</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    <span class="kw">fn</span> <span class="ident">is_terminated</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
         <a class="self" href="../../../../src/futures_util/stream/stream/chunks.rs.html#92">self</a>.<span class="ident">stream</span>.<span class="ident">is_terminated</span>() <span class="op">&amp;&amp;</span> <a class="self" href="../../../../src/futures_util/stream/stream/chunks.rs.html#92">self</a>.<span class="ident">items</span>.<span class="ident">is_empty</span>()
     }
 }

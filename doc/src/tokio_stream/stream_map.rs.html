@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;tokio-stream-0.1.7&#x2F;src&#x2F;stream_map.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>stream_map.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../tokio_stream/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;tokio-stream-0.1.8&#x2F;src&#x2F;stream_map.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>stream_map.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../tokio_stream/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -662,6 +662,23 @@
 <span id="662">662</span>
 <span id="663">663</span>
 <span id="664">664</span>
+<span id="665">665</span>
+<span id="666">666</span>
+<span id="667">667</span>
+<span id="668">668</span>
+<span id="669">669</span>
+<span id="670">670</span>
+<span id="671">671</span>
+<span id="672">672</span>
+<span id="673">673</span>
+<span id="674">674</span>
+<span id="675">675</span>
+<span id="676">676</span>
+<span id="677">677</span>
+<span id="678">678</span>
+<span id="679">679</span>
+<span id="680">680</span>
+<span id="681">681</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <a class="ident" href="../../futures_core/stream/trait.Stream.html"><span class="kw">crate</span>::Stream</a>;
 
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/borrow/trait.Borrow.html">std::borrow::Borrow</a>;
@@ -860,7 +877,7 @@
     <span class="doccomment">///     println!(&quot;({}, {:?})&quot;, key, stream);</span>
     <span class="doccomment">/// }</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">iter</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw">impl</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="kw-2">&amp;</span>(<span class="ident">K</span>, <span class="ident">V</span>)<span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">iter</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="kw-2">&amp;</span>(<span class="ident">K</span>, <span class="ident">V</span>)<span class="op">&gt;</span> {
         <a class="self" href="../../src/tokio_stream/stream_map.rs.html#199">self</a>.<span class="ident">entries</span>.<span class="ident">iter</span>()
     }
 
@@ -883,7 +900,7 @@
     <span class="doccomment">///     println!(&quot;({}, {:?})&quot;, key, stream);</span>
     <span class="doccomment">/// }</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">iter_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw">impl</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> (<span class="ident">K</span>, <span class="ident">V</span>)<span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">iter_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="kw">impl</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> (<span class="ident">K</span>, <span class="ident">V</span>)<span class="op">&gt;</span> {
         <a class="self" href="../../src/tokio_stream/stream_map.rs.html#222">self</a>.<span class="ident">entries</span>.<span class="ident">iter_mut</span>()
     }
 
@@ -899,7 +916,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// let map: StreamMap&lt;&amp;str, Pending&lt;()&gt;&gt; = StreamMap::new();</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">StreamMap</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="ident">StreamMap</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span> {
         <a class="ident" href="../../src/tokio_stream/stream_map.rs.html#174-177">StreamMap</a> { <span class="ident">entries</span>: <span class="macro">vec!</span>[] }
     }
 
@@ -915,7 +932,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// let map: StreamMap&lt;&amp;str, Pending&lt;()&gt;&gt; = StreamMap::with_capacity(10);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">with_capacity</span>(<span class="ident">capacity</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">StreamMap</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">with_capacity</span>(<span class="ident">capacity</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="ident">StreamMap</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span> {
         <a class="ident" href="../../src/tokio_stream/stream_map.rs.html#174-177">StreamMap</a> {
             <span class="ident">entries</span>: <span class="ident">Vec::with_capacity</span>(<a class="ident" href="../../src/tokio_stream/stream_map.rs.html#254">capacity</a>),
         }
@@ -940,7 +957,7 @@
     <span class="doccomment">///     println!(&quot;{}&quot;, key);</span>
     <span class="doccomment">/// }</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">keys</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw">impl</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">K</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">keys</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">K</span><span class="op">&gt;</span> {
         <a class="self" href="../../src/tokio_stream/stream_map.rs.html#279">self</a>.<a class="ident" href="../../src/tokio_stream/stream_map.rs.html#199">iter</a>().<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">k</span>, <span class="kw">_</span>)<span class="op">|</span> <a class="ident" href="../../src/tokio_stream/stream_map.rs.html#280">k</a>)
     }
 
@@ -963,7 +980,7 @@
     <span class="doccomment">///     println!(&quot;{:?}&quot;, stream);</span>
     <span class="doccomment">/// }</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">values</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw">impl</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">V</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">values</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">V</span><span class="op">&gt;</span> {
         <a class="self" href="../../src/tokio_stream/stream_map.rs.html#302">self</a>.<a class="ident" href="../../src/tokio_stream/stream_map.rs.html#199">iter</a>().<span class="ident">map</span>(<span class="op">|</span>(<span class="kw">_</span>, <span class="ident">v</span>)<span class="op">|</span> <a class="ident" href="../../src/tokio_stream/stream_map.rs.html#303">v</a>)
     }
 
@@ -986,7 +1003,7 @@
     <span class="doccomment">///     println!(&quot;{:?}&quot;, stream);</span>
     <span class="doccomment">/// }</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">values_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw">impl</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">V</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">values_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="kw">impl</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">V</span><span class="op">&gt;</span> {
         <a class="self" href="../../src/tokio_stream/stream_map.rs.html#325">self</a>.<a class="ident" href="../../src/tokio_stream/stream_map.rs.html#222">iter_mut</a>().<span class="ident">map</span>(<span class="op">|</span>(<span class="kw">_</span>, <span class="ident">v</span>)<span class="op">|</span> <a class="ident" href="../../src/tokio_stream/stream_map.rs.html#326">v</a>)
     }
 
@@ -1003,7 +1020,7 @@
     <span class="doccomment">/// let map: StreamMap&lt;i32, Pending&lt;()&gt;&gt; = StreamMap::with_capacity(100);</span>
     <span class="doccomment">/// assert!(map.capacity() &gt;= 100);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">capacity</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">capacity</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
         <a class="self" href="../../src/tokio_stream/stream_map.rs.html#342">self</a>.<span class="ident">entries</span>.<span class="ident">capacity</span>()
     }
 
@@ -1019,7 +1036,7 @@
     <span class="doccomment">/// a.insert(1, pending::&lt;i32&gt;());</span>
     <span class="doccomment">/// assert_eq!(a.len(), 1);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">len</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">len</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
         <a class="self" href="../../src/tokio_stream/stream_map.rs.html#358">self</a>.<span class="ident">entries</span>.<span class="ident">len</span>()
     }
 
@@ -1035,7 +1052,7 @@
     <span class="doccomment">/// a.insert(1, pending::&lt;i32&gt;());</span>
     <span class="doccomment">/// assert!(!a.is_empty());</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_empty</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_empty</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
         <a class="self" href="../../src/tokio_stream/stream_map.rs.html#374">self</a>.<span class="ident">entries</span>.<span class="ident">is_empty</span>()
     }
 
@@ -1076,7 +1093,7 @@
     <span class="doccomment">/// map.insert(37, pending());</span>
     <span class="doccomment">/// assert!(map.insert(37, pending()).is_some());</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">insert</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">k</span>: <span class="ident">K</span>, <span class="ident">stream</span>: <span class="ident">V</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">insert</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">k</span>: <span class="ident">K</span>, <span class="ident">stream</span>: <span class="ident">V</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">K</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/hash/trait.Hash.html">Hash</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/cmp/trait.Eq.html">Eq</a>,
     {
@@ -1101,13 +1118,13 @@
     <span class="doccomment">/// assert!(map.remove(&amp;1).is_some());</span>
     <span class="doccomment">/// assert!(map.remove(&amp;1).is_none());</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">remove</span><span class="op">&lt;</span><span class="ident">Q</span>: <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">k</span>: <span class="kw-2">&amp;</span><span class="ident">Q</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">remove</span><span class="op">&lt;</span><span class="ident">Q</span>: <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">k</span>: <span class="kw-2">&amp;</span><span class="ident">Q</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">K</span>: <span class="ident">Borrow</span><span class="op">&lt;</span><span class="ident">Q</span><span class="op">&gt;</span>,
         <span class="ident">Q</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/hash/trait.Hash.html">Hash</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/cmp/trait.Eq.html">Eq</a>,
     {
         <span class="kw">for</span> <a class="ident" href="../../src/tokio_stream/stream_map.rs.html#445">i</a> <span class="kw">in</span> <span class="number">0</span>..<a class="self" href="../../src/tokio_stream/stream_map.rs.html#440">self</a>.<span class="ident">entries</span>.<span class="ident">len</span>() {
-            <span class="kw">if</span> <a class="self" href="../../src/tokio_stream/stream_map.rs.html#440">self</a>.<span class="ident">entries</span>[<a class="ident" href="../../src/tokio_stream/stream_map.rs.html#445">i</a>].<span class="number">0</span>.<span class="ident">borrow</span>() <span class="op">=</span><span class="op">=</span> <a class="ident" href="../../src/tokio_stream/stream_map.rs.html#440">k</a> {
+            <span class="kw">if</span> <a class="self" href="../../src/tokio_stream/stream_map.rs.html#440">self</a>.<span class="ident">entries</span>[<a class="ident" href="../../src/tokio_stream/stream_map.rs.html#445">i</a>].<span class="number">0</span>.<span class="ident">borrow</span>() <span class="op">==</span> <a class="ident" href="../../src/tokio_stream/stream_map.rs.html#440">k</a> {
                 <span class="kw">return</span> <span class="prelude-val">Some</span>(<a class="self" href="../../src/tokio_stream/stream_map.rs.html#440">self</a>.<span class="ident">entries</span>.<span class="ident">swap_remove</span>(<a class="ident" href="../../src/tokio_stream/stream_map.rs.html#445">i</a>).<span class="number">1</span>);
             }
         }
@@ -1130,13 +1147,13 @@
     <span class="doccomment">/// assert_eq!(map.contains_key(&amp;1), true);</span>
     <span class="doccomment">/// assert_eq!(map.contains_key(&amp;2), false);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">contains_key</span><span class="op">&lt;</span><span class="ident">Q</span>: <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">k</span>: <span class="kw-2">&amp;</span><span class="ident">Q</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">contains_key</span><span class="op">&lt;</span><span class="ident">Q</span>: <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">k</span>: <span class="kw-2">&amp;</span><span class="ident">Q</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>
     <span class="kw">where</span>
         <span class="ident">K</span>: <span class="ident">Borrow</span><span class="op">&lt;</span><span class="ident">Q</span><span class="op">&gt;</span>,
         <span class="ident">Q</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/hash/trait.Hash.html">Hash</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/cmp/trait.Eq.html">Eq</a>,
     {
         <span class="kw">for</span> <a class="ident" href="../../src/tokio_stream/stream_map.rs.html#474">i</a> <span class="kw">in</span> <span class="number">0</span>..<a class="self" href="../../src/tokio_stream/stream_map.rs.html#469">self</a>.<span class="ident">entries</span>.<span class="ident">len</span>() {
-            <span class="kw">if</span> <a class="self" href="../../src/tokio_stream/stream_map.rs.html#469">self</a>.<span class="ident">entries</span>[<a class="ident" href="../../src/tokio_stream/stream_map.rs.html#474">i</a>].<span class="number">0</span>.<span class="ident">borrow</span>() <span class="op">=</span><span class="op">=</span> <a class="ident" href="../../src/tokio_stream/stream_map.rs.html#469">k</a> {
+            <span class="kw">if</span> <a class="self" href="../../src/tokio_stream/stream_map.rs.html#469">self</a>.<span class="ident">entries</span>[<a class="ident" href="../../src/tokio_stream/stream_map.rs.html#474">i</a>].<span class="number">0</span>.<span class="ident">borrow</span>() <span class="op">==</span> <a class="ident" href="../../src/tokio_stream/stream_map.rs.html#469">k</a> {
                 <span class="kw">return</span> <span class="bool-val">true</span>;
             }
         }
@@ -1151,24 +1168,24 @@
     <span class="ident">V</span>: <a class="ident" href="../../futures_core/stream/trait.Stream.html">Stream</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
 {
     <span class="doccomment">/// Polls the next value, includes the vec entry index</span>
-    <span class="kw">fn</span> <span class="ident">poll_next_entry</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="ident">V::Item</span>)<span class="op">&gt;</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">poll_next_entry</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="ident">V::Item</span>)<span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>::<span class="kw-2">*</span>;
 
-        <span class="kw">let</span> <span class="ident">start</span> <span class="op">=</span> <a class="ident" href="../../src/tokio_stream/stream_map.rs.html#657"><span class="self">self</span>::rand::thread_rng_n</a>(<a class="self" href="../../src/tokio_stream/stream_map.rs.html#490">self</a>.<span class="ident">entries</span>.<span class="ident">len</span>() <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
+        <span class="kw">let</span> <span class="ident">start</span> <span class="op">=</span> <a class="ident" href="../../src/tokio_stream/stream_map.rs.html#674"><span class="self">self</span>::rand::thread_rng_n</a>(<a class="self" href="../../src/tokio_stream/stream_map.rs.html#490">self</a>.<span class="ident">entries</span>.<span class="ident">len</span>() <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">idx</span> <span class="op">=</span> <a class="ident" href="../../src/tokio_stream/stream_map.rs.html#493">start</a>;
 
         <span class="kw">for</span> <span class="kw">_</span> <span class="kw">in</span> <span class="number">0</span>..<a class="self" href="../../src/tokio_stream/stream_map.rs.html#490">self</a>.<span class="ident">entries</span>.<span class="ident">len</span>() {
             <span class="kw">let</span> (<span class="kw">_</span>, <span class="ident">stream</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="self" href="../../src/tokio_stream/stream_map.rs.html#490">self</a>.<span class="ident">entries</span>[<a class="ident" href="../../src/tokio_stream/stream_map.rs.html#494">idx</a>];
 
             <span class="kw">match</span> <span class="ident">Pin::new</span>(<a class="ident" href="../../src/tokio_stream/stream_map.rs.html#497">stream</a>).<span class="ident">poll_next</span>(<a class="ident" href="../../src/tokio_stream/stream_map.rs.html#490">cx</a>) {
-                <span class="ident">Ready</span>(<span class="prelude-val">Some</span>(<span class="ident">val</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="ident">Ready</span>(<span class="prelude-val">Some</span>((<a class="ident" href="../../src/tokio_stream/stream_map.rs.html#494">idx</a>, <a class="ident" href="../../src/tokio_stream/stream_map.rs.html#500">val</a>))),
-                <span class="ident">Ready</span>(<span class="prelude-val">None</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">Ready</span>(<span class="prelude-val">Some</span>(<span class="ident">val</span>)) =&gt; <span class="kw">return</span> <span class="ident">Ready</span>(<span class="prelude-val">Some</span>((<a class="ident" href="../../src/tokio_stream/stream_map.rs.html#494">idx</a>, <a class="ident" href="../../src/tokio_stream/stream_map.rs.html#500">val</a>))),
+                <span class="ident">Ready</span>(<span class="prelude-val">None</span>) =&gt; {
                     <span class="comment">// Remove the entry</span>
                     <a class="self" href="../../src/tokio_stream/stream_map.rs.html#490">self</a>.<span class="ident">entries</span>.<span class="ident">swap_remove</span>(<a class="ident" href="../../src/tokio_stream/stream_map.rs.html#494">idx</a>);
 
                     <span class="comment">// Check if this was the last entry, if so the cursor needs</span>
                     <span class="comment">// to wrap</span>
-                    <span class="kw">if</span> <a class="ident" href="../../src/tokio_stream/stream_map.rs.html#494">idx</a> <span class="op">=</span><span class="op">=</span> <a class="self" href="../../src/tokio_stream/stream_map.rs.html#490">self</a>.<span class="ident">entries</span>.<span class="ident">len</span>() {
+                    <span class="kw">if</span> <a class="ident" href="../../src/tokio_stream/stream_map.rs.html#494">idx</a> <span class="op">==</span> <a class="self" href="../../src/tokio_stream/stream_map.rs.html#490">self</a>.<span class="ident">entries</span>.<span class="ident">len</span>() {
                         <a class="ident" href="../../src/tokio_stream/stream_map.rs.html#494">idx</a> <span class="op">=</span> <span class="number">0</span>;
                     } <span class="kw">else</span> <span class="kw">if</span> <a class="ident" href="../../src/tokio_stream/stream_map.rs.html#494">idx</a> <span class="op">&lt;</span> <a class="ident" href="../../src/tokio_stream/stream_map.rs.html#493">start</a> <span class="op">&amp;&amp;</span> <a class="ident" href="../../src/tokio_stream/stream_map.rs.html#493">start</a> <span class="op">&lt;</span><span class="op">=</span> <a class="self" href="../../src/tokio_stream/stream_map.rs.html#490">self</a>.<span class="ident">entries</span>.<span class="ident">len</span>() {
                         <span class="comment">// The stream being swapped into the current index has</span>
@@ -1176,7 +1193,7 @@
                         <a class="ident" href="../../src/tokio_stream/stream_map.rs.html#494">idx</a> <span class="op">=</span> <a class="ident" href="../../src/tokio_stream/stream_map.rs.html#494">idx</a>.<span class="ident">wrapping_add</span>(<span class="number">1</span>) <span class="op">%</span> <a class="self" href="../../src/tokio_stream/stream_map.rs.html#490">self</a>.<span class="ident">entries</span>.<span class="ident">len</span>();
                     }
                 }
-                <span class="ident">Pending</span> <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">Pending</span> =&gt; {
                     <a class="ident" href="../../src/tokio_stream/stream_map.rs.html#494">idx</a> <span class="op">=</span> <a class="ident" href="../../src/tokio_stream/stream_map.rs.html#494">idx</a>.<span class="ident">wrapping_add</span>(<span class="number">1</span>) <span class="op">%</span> <a class="self" href="../../src/tokio_stream/stream_map.rs.html#490">self</a>.<span class="ident">entries</span>.<span class="ident">len</span>();
                 }
             }
@@ -1192,7 +1209,7 @@
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for</span> <span class="ident">StreamMap</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="self">Self</span> {
         <span class="ident"><span class="self">Self</span>::new</span>()
     }
 }
@@ -1204,7 +1221,7 @@
 {
     <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> (<span class="ident">K</span>, <span class="ident">V::Item</span>);
 
-    <span class="kw">fn</span> <span class="ident">poll_next</span>(<span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">poll_next</span>(<span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="ident">idx</span>, <span class="ident">val</span>)) <span class="op">=</span> <span class="macro">ready!</span>(<a class="self" href="../../src/tokio_stream/stream_map.rs.html#543">self</a>.<a class="ident" href="../../src/tokio_stream/stream_map.rs.html#490">poll_next_entry</a>(<a class="ident" href="../../src/tokio_stream/stream_map.rs.html#543">cx</a>)) {
             <span class="kw">let</span> <span class="ident">key</span> <span class="op">=</span> <a class="self" href="../../src/tokio_stream/stream_map.rs.html#543">self</a>.<span class="ident">entries</span>[<a class="ident" href="../../src/tokio_stream/stream_map.rs.html#544">idx</a>].<span class="number">0</span>.<span class="ident">clone</span>();
             <span class="ident">Poll::Ready</span>(<span class="prelude-val">Some</span>((<a class="ident" href="../../src/tokio_stream/stream_map.rs.html#545">key</a>, <a class="ident" href="../../src/tokio_stream/stream_map.rs.html#544">val</a>)))
@@ -1213,7 +1230,7 @@
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">size_hint</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> (<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span>) {
+    <span class="kw">fn</span> <span class="ident">size_hint</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span>) {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">ret</span> <span class="op">=</span> (<span class="number">0</span>, <span class="prelude-val">Some</span>(<span class="number">0</span>));
 
         <span class="kw">for</span> (<span class="kw">_</span>, <span class="ident">stream</span>) <span class="kw">in</span> <span class="kw-2">&amp;</span><a class="self" href="../../src/tokio_stream/stream_map.rs.html#552">self</a>.<span class="ident">entries</span> {
@@ -1222,13 +1239,30 @@
             <a class="ident" href="../../src/tokio_stream/stream_map.rs.html#553">ret</a>.<span class="number">0</span> <span class="op">+</span><span class="op">=</span> <a class="ident" href="../../src/tokio_stream/stream_map.rs.html#556">hint</a>.<span class="number">0</span>;
 
             <span class="kw">match</span> (<a class="ident" href="../../src/tokio_stream/stream_map.rs.html#553">ret</a>.<span class="number">1</span>, <a class="ident" href="../../src/tokio_stream/stream_map.rs.html#556">hint</a>.<span class="number">1</span>) {
-                (<span class="prelude-val">Some</span>(<span class="ident">a</span>), <span class="prelude-val">Some</span>(<span class="ident">b</span>)) <span class="op">=</span><span class="op">&gt;</span> <a class="ident" href="../../src/tokio_stream/stream_map.rs.html#553">ret</a>.<span class="number">1</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../src/tokio_stream/stream_map.rs.html#561">a</a> <span class="op">+</span> <a class="ident" href="../../src/tokio_stream/stream_map.rs.html#561">b</a>),
-                (<span class="prelude-val">Some</span>(<span class="kw">_</span>), <span class="prelude-val">None</span>) <span class="op">=</span><span class="op">&gt;</span> <a class="ident" href="../../src/tokio_stream/stream_map.rs.html#553">ret</a>.<span class="number">1</span> <span class="op">=</span> <span class="prelude-val">None</span>,
-                <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {}
+                (<span class="prelude-val">Some</span>(<span class="ident">a</span>), <span class="prelude-val">Some</span>(<span class="ident">b</span>)) =&gt; <a class="ident" href="../../src/tokio_stream/stream_map.rs.html#553">ret</a>.<span class="number">1</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../src/tokio_stream/stream_map.rs.html#561">a</a> <span class="op">+</span> <a class="ident" href="../../src/tokio_stream/stream_map.rs.html#561">b</a>),
+                (<span class="prelude-val">Some</span>(<span class="kw">_</span>), <span class="prelude-val">None</span>) =&gt; <a class="ident" href="../../src/tokio_stream/stream_map.rs.html#553">ret</a>.<span class="number">1</span> <span class="op">=</span> <span class="prelude-val">None</span>,
+                <span class="kw">_</span> =&gt; {}
             }
         }
 
         <a class="ident" href="../../src/tokio_stream/stream_map.rs.html#553">ret</a>
+    }
+}
+
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span> <span class="ident">std::iter::FromIterator</span><span class="op">&lt;</span>(<span class="ident">K</span>, <span class="ident">V</span>)<span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">StreamMap</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span>
+<span class="kw">where</span>
+    <span class="ident">K</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/hash/trait.Hash.html">Hash</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/cmp/trait.Eq.html">Eq</a>,
+{
+    <span class="kw">fn</span> <span class="ident">from_iter</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">IntoIterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> (<span class="ident">K</span>, <span class="ident">V</span>)<span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">iter</span>: <span class="ident">T</span>) -&gt; <span class="self">Self</span> {
+        <span class="kw">let</span> <span class="ident">iterator</span> <span class="op">=</span> <a class="ident" href="../../src/tokio_stream/stream_map.rs.html#575">iter</a>.<span class="ident">into_iter</span>();
+        <span class="kw">let</span> (<span class="ident">lower_bound</span>, <span class="kw">_</span>) <span class="op">=</span> <a class="ident" href="../../src/tokio_stream/stream_map.rs.html#576">iterator</a>.<span class="ident">size_hint</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">stream_map</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::with_capacity</span>(<a class="ident" href="../../src/tokio_stream/stream_map.rs.html#577">lower_bound</a>);
+
+        <span class="kw">for</span> (<span class="ident">key</span>, <span class="ident">value</span>) <span class="kw">in</span> <a class="ident" href="../../src/tokio_stream/stream_map.rs.html#576">iterator</a> {
+            <a class="ident" href="../../src/tokio_stream/stream_map.rs.html#578">stream_map</a>.<a class="ident" href="../../src/tokio_stream/stream_map.rs.html#415-417">insert</a>(<a class="ident" href="../../src/tokio_stream/stream_map.rs.html#580">key</a>, <a class="ident" href="../../src/tokio_stream/stream_map.rs.html#580">value</a>);
+        }
+
+        <a class="ident" href="../../src/tokio_stream/stream_map.rs.html#578">stream_map</a>
     }
 }
 
@@ -1245,22 +1279,22 @@
 
             <span class="kw">static</span> <span class="ident">COUNTER</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicU32.html">AtomicU32</a> <span class="op">=</span> <span class="ident">AtomicU32::new</span>(<span class="number">1</span>);
 
-            <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">seed</span>() <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
+            <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">seed</span>() -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
                 <span class="kw">let</span> <span class="ident">rand_state</span> <span class="op">=</span> <span class="ident">RandomState::new</span>();
 
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">hasher</span> <span class="op">=</span> <a class="ident" href="../../src/tokio_stream/stream_map.rs.html#585">rand_state</a>.<span class="ident">build_hasher</span>();
+                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">hasher</span> <span class="op">=</span> <a class="ident" href="../../src/tokio_stream/stream_map.rs.html#602">rand_state</a>.<span class="ident">build_hasher</span>();
 
                 <span class="comment">// Hash some unique-ish data to generate some new state</span>
-                <a class="ident" href="../../src/tokio_stream/stream_map.rs.html#582">COUNTER</a>.<span class="ident">fetch_add</span>(<span class="number">1</span>, <span class="ident">Relaxed</span>).<span class="ident">hash</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../src/tokio_stream/stream_map.rs.html#587">hasher</a>);
+                <a class="ident" href="../../src/tokio_stream/stream_map.rs.html#599">COUNTER</a>.<span class="ident">fetch_add</span>(<span class="number">1</span>, <span class="ident">Relaxed</span>).<span class="ident">hash</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../src/tokio_stream/stream_map.rs.html#604">hasher</a>);
 
                 <span class="comment">// Get the seed</span>
-                <a class="ident" href="../../src/tokio_stream/stream_map.rs.html#587">hasher</a>.<span class="ident">finish</span>()
+                <a class="ident" href="../../src/tokio_stream/stream_map.rs.html#604">hasher</a>.<span class="ident">finish</span>()
             }
         }
 
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">loom</span>)]</span>
         <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod</span> <span class="ident">rand</span> {
-            <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">seed</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u64</span> {
+            <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">seed</span>() -&gt; <span class="ident">u64</span> {
                 <span class="number">1</span>
             }
         }
@@ -1279,51 +1313,51 @@
         <span class="ident">two</span>: <span class="ident">Cell</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a><span class="op">&gt;</span>,
     }
 
-    <span class="kw">impl</span> <a class="ident" href="../../src/tokio_stream/stream_map.rs.html#613-616">FastRand</a> {
+    <span class="kw">impl</span> <a class="ident" href="../../src/tokio_stream/stream_map.rs.html#630-633">FastRand</a> {
         <span class="doccomment">/// Initialize a new, thread-local, fast random number generator.</span>
-        <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">seed</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="../../src/tokio_stream/stream_map.rs.html#613-616">FastRand</a> {
-            <span class="kw">let</span> <span class="ident">one</span> <span class="op">=</span> (<a class="ident" href="../../src/tokio_stream/stream_map.rs.html#620">seed</a> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">32</span>) <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>;
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">two</span> <span class="op">=</span> <a class="ident" href="../../src/tokio_stream/stream_map.rs.html#620">seed</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>;
+        <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">seed</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) -&gt; <a class="ident" href="../../src/tokio_stream/stream_map.rs.html#630-633">FastRand</a> {
+            <span class="kw">let</span> <span class="ident">one</span> <span class="op">=</span> (<a class="ident" href="../../src/tokio_stream/stream_map.rs.html#637">seed</a> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">32</span>) <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>;
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">two</span> <span class="op">=</span> <a class="ident" href="../../src/tokio_stream/stream_map.rs.html#637">seed</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>;
 
-            <span class="kw">if</span> <a class="ident" href="../../src/tokio_stream/stream_map.rs.html#622">two</a> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
+            <span class="kw">if</span> <a class="ident" href="../../src/tokio_stream/stream_map.rs.html#639">two</a> <span class="op">==</span> <span class="number">0</span> {
                 <span class="comment">// This value cannot be zero</span>
-                <a class="ident" href="../../src/tokio_stream/stream_map.rs.html#622">two</a> <span class="op">=</span> <span class="number">1</span>;
+                <a class="ident" href="../../src/tokio_stream/stream_map.rs.html#639">two</a> <span class="op">=</span> <span class="number">1</span>;
             }
 
-            <a class="ident" href="../../src/tokio_stream/stream_map.rs.html#613-616">FastRand</a> {
-                <span class="ident">one</span>: <span class="ident">Cell::new</span>(<a class="ident" href="../../src/tokio_stream/stream_map.rs.html#621">one</a>),
-                <span class="ident">two</span>: <span class="ident">Cell::new</span>(<a class="ident" href="../../src/tokio_stream/stream_map.rs.html#622">two</a>),
+            <a class="ident" href="../../src/tokio_stream/stream_map.rs.html#630-633">FastRand</a> {
+                <span class="ident">one</span>: <span class="ident">Cell::new</span>(<a class="ident" href="../../src/tokio_stream/stream_map.rs.html#638">one</a>),
+                <span class="ident">two</span>: <span class="ident">Cell::new</span>(<a class="ident" href="../../src/tokio_stream/stream_map.rs.html#639">two</a>),
             }
         }
 
-        <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">fastrand_n</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">n</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
+        <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">fastrand_n</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">n</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
             <span class="comment">// This is similar to fastrand() % n, but faster.</span>
             <span class="comment">// See https://lemire.me/blog/2016/06/27/a-fast-alternative-to-the-modulo-reduction/</span>
-            <span class="kw">let</span> <span class="ident">mul</span> <span class="op">=</span> (<a class="self" href="../../src/tokio_stream/stream_map.rs.html#635">self</a>.<a class="ident" href="../../src/tokio_stream/stream_map.rs.html#642">fastrand</a>() <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>).<span class="ident">wrapping_mul</span>(<a class="ident" href="../../src/tokio_stream/stream_map.rs.html#635">n</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>);
-            (<a class="ident" href="../../src/tokio_stream/stream_map.rs.html#638">mul</a> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">32</span>) <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>
+            <span class="kw">let</span> <span class="ident">mul</span> <span class="op">=</span> (<a class="self" href="../../src/tokio_stream/stream_map.rs.html#652">self</a>.<a class="ident" href="../../src/tokio_stream/stream_map.rs.html#659">fastrand</a>() <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>).<span class="ident">wrapping_mul</span>(<a class="ident" href="../../src/tokio_stream/stream_map.rs.html#652">n</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>);
+            (<a class="ident" href="../../src/tokio_stream/stream_map.rs.html#655">mul</a> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">32</span>) <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>
         }
 
-        <span class="kw">fn</span> <span class="ident">fastrand</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">s1</span> <span class="op">=</span> <a class="self" href="../../src/tokio_stream/stream_map.rs.html#642">self</a>.<span class="ident">one</span>.<span class="ident">get</span>();
-            <span class="kw">let</span> <span class="ident">s0</span> <span class="op">=</span> <a class="self" href="../../src/tokio_stream/stream_map.rs.html#642">self</a>.<span class="ident">two</span>.<span class="ident">get</span>();
+        <span class="kw">fn</span> <span class="ident">fastrand</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">s1</span> <span class="op">=</span> <a class="self" href="../../src/tokio_stream/stream_map.rs.html#659">self</a>.<span class="ident">one</span>.<span class="ident">get</span>();
+            <span class="kw">let</span> <span class="ident">s0</span> <span class="op">=</span> <a class="self" href="../../src/tokio_stream/stream_map.rs.html#659">self</a>.<span class="ident">two</span>.<span class="ident">get</span>();
 
-            <a class="ident" href="../../src/tokio_stream/stream_map.rs.html#643">s1</a> <span class="op">^</span><span class="op">=</span> <a class="ident" href="../../src/tokio_stream/stream_map.rs.html#643">s1</a> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">17</span>;
-            <a class="ident" href="../../src/tokio_stream/stream_map.rs.html#643">s1</a> <span class="op">=</span> <a class="ident" href="../../src/tokio_stream/stream_map.rs.html#643">s1</a> <span class="op">^</span> <a class="ident" href="../../src/tokio_stream/stream_map.rs.html#644">s0</a> <span class="op">^</span> <a class="ident" href="../../src/tokio_stream/stream_map.rs.html#643">s1</a> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">7</span> <span class="op">^</span> <a class="ident" href="../../src/tokio_stream/stream_map.rs.html#644">s0</a> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">16</span>;
+            <a class="ident" href="../../src/tokio_stream/stream_map.rs.html#660">s1</a> <span class="op">^</span><span class="op">=</span> <a class="ident" href="../../src/tokio_stream/stream_map.rs.html#660">s1</a> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">17</span>;
+            <a class="ident" href="../../src/tokio_stream/stream_map.rs.html#660">s1</a> <span class="op">=</span> <a class="ident" href="../../src/tokio_stream/stream_map.rs.html#660">s1</a> <span class="op">^</span> <a class="ident" href="../../src/tokio_stream/stream_map.rs.html#661">s0</a> <span class="op">^</span> <a class="ident" href="../../src/tokio_stream/stream_map.rs.html#660">s1</a> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">7</span> <span class="op">^</span> <a class="ident" href="../../src/tokio_stream/stream_map.rs.html#661">s0</a> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">16</span>;
 
-            <a class="self" href="../../src/tokio_stream/stream_map.rs.html#642">self</a>.<span class="ident">one</span>.<span class="ident">set</span>(<a class="ident" href="../../src/tokio_stream/stream_map.rs.html#644">s0</a>);
-            <a class="self" href="../../src/tokio_stream/stream_map.rs.html#642">self</a>.<span class="ident">two</span>.<span class="ident">set</span>(<a class="ident" href="../../src/tokio_stream/stream_map.rs.html#643">s1</a>);
+            <a class="self" href="../../src/tokio_stream/stream_map.rs.html#659">self</a>.<span class="ident">one</span>.<span class="ident">set</span>(<a class="ident" href="../../src/tokio_stream/stream_map.rs.html#661">s0</a>);
+            <a class="self" href="../../src/tokio_stream/stream_map.rs.html#659">self</a>.<span class="ident">two</span>.<span class="ident">set</span>(<a class="ident" href="../../src/tokio_stream/stream_map.rs.html#660">s1</a>);
 
-            <a class="ident" href="../../src/tokio_stream/stream_map.rs.html#644">s0</a>.<span class="ident">wrapping_add</span>(<a class="ident" href="../../src/tokio_stream/stream_map.rs.html#643">s1</a>)
+            <a class="ident" href="../../src/tokio_stream/stream_map.rs.html#661">s0</a>.<span class="ident">wrapping_add</span>(<a class="ident" href="../../src/tokio_stream/stream_map.rs.html#660">s1</a>)
         }
     }
 
     <span class="comment">// Used by `StreamMap`</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">thread_rng_n</span>(<span class="ident">n</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">thread_rng_n</span>(<span class="ident">n</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
         <span class="macro">thread_local!</span> {
-            <span class="kw">static</span> <span class="ident">THREAD_RNG</span>: <a class="ident" href="../../src/tokio_stream/stream_map.rs.html#613-616">FastRand</a> <span class="op">=</span> <span class="ident">FastRand::new</span>(<a class="ident" href="../../src/tokio_stream/stream_map.rs.html#584">loom::rand::seed</a>());
+            <span class="kw">static</span> <span class="ident">THREAD_RNG</span>: <a class="ident" href="../../src/tokio_stream/stream_map.rs.html#630-633">FastRand</a> <span class="op">=</span> <span class="ident">FastRand::new</span>(<a class="ident" href="../../src/tokio_stream/stream_map.rs.html#601">loom::rand::seed</a>());
         }
 
-        <a class="ident" href="../../src/tokio_stream/stream_map.rs.html#658-660">THREAD_RNG</a>.<span class="ident">with</span>(<span class="op">|</span><span class="ident">rng</span><span class="op">|</span> <a class="ident" href="../../src/tokio_stream/stream_map.rs.html#662">rng</a>.<a class="ident" href="../../src/tokio_stream/stream_map.rs.html#635">fastrand_n</a>(<a class="ident" href="../../src/tokio_stream/stream_map.rs.html#657">n</a>))
+        <a class="ident" href="../../src/tokio_stream/stream_map.rs.html#675-677">THREAD_RNG</a>.<span class="ident">with</span>(<span class="op">|</span><span class="ident">rng</span><span class="op">|</span> <a class="ident" href="../../src/tokio_stream/stream_map.rs.html#679">rng</a>.<a class="ident" href="../../src/tokio_stream/stream_map.rs.html#652">fastrand_n</a>(<a class="ident" href="../../src/tokio_stream/stream_map.rs.html#674">n</a>))
     }
 }
 </code></pre></div>

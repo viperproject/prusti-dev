@@ -78,7 +78,7 @@
     <span class="ident">flag</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
 }
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">S1</span>, <span class="ident">S2</span><span class="op">&gt;</span>(<span class="ident">stream1</span>: <span class="ident">S1</span>, <span class="ident">stream2</span>: <span class="ident">S2</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Select</span><span class="op">&lt;</span><span class="ident">S1</span>, <span class="ident">S2</span><span class="op">&gt;</span>
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">S1</span>, <span class="ident">S2</span><span class="op">&gt;</span>(<span class="ident">stream1</span>: <span class="ident">S1</span>, <span class="ident">stream2</span>: <span class="ident">S2</span>) -&gt; <span class="ident">Select</span><span class="op">&lt;</span><span class="ident">S1</span>, <span class="ident">S2</span><span class="op">&gt;</span>
     <span class="kw">where</span> <span class="ident">S1</span>: <a class="ident" href="../../../src/futures/stream/mod.rs.html#184-1113">Stream</a>,
           <span class="ident">S2</span>: <span class="ident">Stream</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">S1::Item</span>, <span class="ident">Error</span> <span class="op">=</span> <span class="ident">S1::Error</span><span class="op">&gt;</span>
 {
@@ -96,7 +96,7 @@
     <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="ident">S1::Item</span>;
     <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <span class="ident">S1::Error</span>;
 
-    <span class="kw">fn</span> <span class="ident">poll</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">S1::Item</span><span class="op">&gt;</span>, <span class="ident">S1::Error</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">poll</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">S1::Item</span><span class="op">&gt;</span>, <span class="ident">S1::Error</span><span class="op">&gt;</span> {
         <span class="kw">let</span> (<span class="ident">a</span>, <span class="ident">b</span>) <span class="op">=</span> <span class="kw">if</span> <a class="self" href="../../../src/futures/stream/select.rs.html#35">self</a>.<span class="ident">flag</span> {
             (<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="self" href="../../../src/futures/stream/select.rs.html#35">self</a>.<span class="ident">stream2</span> <span class="kw">as</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Stream</span><span class="op">&lt;</span><span class="ident">Item</span><span class="op">=</span><span class="kw">_</span>, <span class="ident">Error</span><span class="op">=</span><span class="kw">_</span><span class="op">&gt;</span>,
              <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="self" href="../../../src/futures/stream/select.rs.html#35">self</a>.<span class="ident">stream1</span> <span class="kw">as</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Stream</span><span class="op">&lt;</span><span class="ident">Item</span><span class="op">=</span><span class="kw">_</span>, <span class="ident">Error</span><span class="op">=</span><span class="kw">_</span><span class="op">&gt;</span>)
@@ -107,13 +107,13 @@
         <a class="self" href="../../../src/futures/stream/select.rs.html#35">self</a>.<span class="ident">flag</span> <span class="op">=</span> <span class="op">!</span><a class="self" href="../../../src/futures/stream/select.rs.html#35">self</a>.<span class="ident">flag</span>;
 
         <span class="kw">let</span> <span class="ident">a_done</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../../src/futures/stream/select.rs.html#36">a</a>.<a class="ident" href="../../../src/futures/stream/mod.rs.html#216">poll</a>()<span class="question-mark">?</span> {
-            <a class="ident" href="../../../src/futures/poll.rs.html#26">Async::Ready</a>(<span class="prelude-val">Some</span>(<span class="ident">item</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<a class="ident" href="../../../src/futures/stream/select.rs.html#46">item</a>).<span class="ident">into</span>()),
-            <a class="ident" href="../../../src/futures/poll.rs.html#26">Async::Ready</a>(<span class="prelude-val">None</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">true</span>,
-            <a class="ident" href="../../../src/futures/poll.rs.html#29">Async::NotReady</a> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
+            <a class="ident" href="../../../src/futures/poll.rs.html#26">Async::Ready</a>(<span class="prelude-val">Some</span>(<span class="ident">item</span>)) =&gt; <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<a class="ident" href="../../../src/futures/stream/select.rs.html#46">item</a>).<span class="ident">into</span>()),
+            <a class="ident" href="../../../src/futures/poll.rs.html#26">Async::Ready</a>(<span class="prelude-val">None</span>) =&gt; <span class="bool-val">true</span>,
+            <a class="ident" href="../../../src/futures/poll.rs.html#29">Async::NotReady</a> =&gt; <span class="bool-val">false</span>,
         };
 
         <span class="kw">match</span> <a class="ident" href="../../../src/futures/stream/select.rs.html#36">b</a>.<a class="ident" href="../../../src/futures/stream/mod.rs.html#216">poll</a>()<span class="question-mark">?</span> {
-            <a class="ident" href="../../../src/futures/poll.rs.html#26">Async::Ready</a>(<span class="prelude-val">Some</span>(<span class="ident">item</span>)) <span class="op">=</span><span class="op">&gt;</span> {
+            <a class="ident" href="../../../src/futures/poll.rs.html#26">Async::Ready</a>(<span class="prelude-val">Some</span>(<span class="ident">item</span>)) =&gt; {
                 <span class="comment">// If the other stream isn&#39;t finished yet, give them a chance to</span>
                 <span class="comment">// go first next time as we pulled something off `b`.</span>
                 <span class="kw">if</span> <span class="op">!</span><a class="ident" href="../../../src/futures/stream/select.rs.html#45">a_done</a> {
@@ -121,8 +121,8 @@
                 }
                 <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<a class="ident" href="../../../src/futures/stream/select.rs.html#52">item</a>).<span class="ident">into</span>())
             }
-            <a class="ident" href="../../../src/futures/poll.rs.html#26">Async::Ready</a>(<span class="prelude-val">None</span>) <span class="kw">if</span> <a class="ident" href="../../../src/futures/stream/select.rs.html#45">a_done</a> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>.<span class="ident">into</span>()),
-            <a class="ident" href="../../../src/futures/poll.rs.html#26">Async::Ready</a>(<span class="prelude-val">None</span>) <span class="op">|</span> <a class="ident" href="../../../src/futures/poll.rs.html#29">Async::NotReady</a> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/futures/poll.rs.html#29">Async::NotReady</a>),
+            <a class="ident" href="../../../src/futures/poll.rs.html#26">Async::Ready</a>(<span class="prelude-val">None</span>) <span class="kw">if</span> <a class="ident" href="../../../src/futures/stream/select.rs.html#45">a_done</a> =&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>.<span class="ident">into</span>()),
+            <a class="ident" href="../../../src/futures/poll.rs.html#26">Async::Ready</a>(<span class="prelude-val">None</span>) <span class="op">|</span> <a class="ident" href="../../../src/futures/poll.rs.html#29">Async::NotReady</a> =&gt; <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/futures/poll.rs.html#29">Async::NotReady</a>),
         }
     }
 }

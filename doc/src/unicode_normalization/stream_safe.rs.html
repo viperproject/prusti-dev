@@ -188,7 +188,7 @@
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span> <span class="ident">StreamSafe</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span> {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">iter</span>: <span class="ident">I</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">iter</span>: <span class="ident">I</span>) -&gt; <span class="self">Self</span> {
         <span class="self">Self</span> {
             <a class="ident" href="../../src/unicode_normalization/stream_safe.rs.html#21">iter</a>,
             <span class="ident">nonstarter_count</span>: <span class="number">0</span>,
@@ -201,10 +201,10 @@
     <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>;
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">next_ch</span> <span class="op">=</span> <span class="kw">match</span> <a class="self" href="../../src/unicode_normalization/stream_safe.rs.html#34">self</a>.<span class="ident">buffer</span>.<span class="ident">take</span>().<span class="ident">or_else</span>(<span class="op">|</span><span class="op">|</span> <a class="self" href="../../src/unicode_normalization/stream_safe.rs.html#34">self</a>.<span class="ident">iter</span>.<span class="ident">next</span>()) {
-            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">None</span>,
-            <span class="prelude-val">Some</span>(<span class="ident">c</span>) <span class="op">=</span><span class="op">&gt;</span> <a class="ident" href="../../src/unicode_normalization/stream_safe.rs.html#37">c</a>,
+            <span class="prelude-val">None</span> =&gt; <span class="kw">return</span> <span class="prelude-val">None</span>,
+            <span class="prelude-val">Some</span>(<span class="ident">c</span>) =&gt; <a class="ident" href="../../src/unicode_normalization/stream_safe.rs.html#37">c</a>,
         };
         <span class="kw">let</span> <span class="ident">d</span> <span class="op">=</span> <a class="ident" href="../../src/unicode_normalization/stream_safe.rs.html#70">classify_nonstarters</a>(<a class="ident" href="../../src/unicode_normalization/stream_safe.rs.html#35">next_ch</a>);
         <span class="kw">if</span> <a class="self" href="../../src/unicode_normalization/stream_safe.rs.html#34">self</a>.<span class="ident">nonstarter_count</span> <span class="op">+</span> <a class="ident" href="../../src/unicode_normalization/stream_safe.rs.html#39">d</a>.<span class="ident">leading_nonstarters</span> <span class="op">&gt;</span> <a class="ident" href="../../src/unicode_normalization/stream_safe.rs.html#8">MAX_NONSTARTERS</a> {
@@ -218,7 +218,7 @@
 
         <span class="comment">// Is the character all nonstarters in NFKD? If so, increment our counter of contiguous</span>
         <span class="comment">// nonstarters in NKFD.</span>
-        <span class="kw">if</span> <a class="ident" href="../../src/unicode_normalization/stream_safe.rs.html#39">d</a>.<span class="ident">leading_nonstarters</span> <span class="op">=</span><span class="op">=</span> <a class="ident" href="../../src/unicode_normalization/stream_safe.rs.html#39">d</a>.<span class="ident">decomposition_len</span> {
+        <span class="kw">if</span> <a class="ident" href="../../src/unicode_normalization/stream_safe.rs.html#39">d</a>.<span class="ident">leading_nonstarters</span> <span class="op">==</span> <a class="ident" href="../../src/unicode_normalization/stream_safe.rs.html#39">d</a>.<span class="ident">decomposition_len</span> {
             <a class="self" href="../../src/unicode_normalization/stream_safe.rs.html#34">self</a>.<span class="ident">nonstarter_count</span> <span class="op">+</span><span class="op">=</span> <a class="ident" href="../../src/unicode_normalization/stream_safe.rs.html#39">d</a>.<span class="ident">decomposition_len</span>;
         }
         <span class="comment">// Otherwise, reset the counter to the decomposition&#39;s number of trailing nonstarters.</span>
@@ -237,7 +237,7 @@
 }
 
 <span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">classify_nonstarters</span>(<span class="ident">c</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="../../src/unicode_normalization/stream_safe.rs.html#63-67">Decomposition</a> {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">classify_nonstarters</span>(<span class="ident">c</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>) -&gt; <a class="ident" href="../../src/unicode_normalization/stream_safe.rs.html#63-67">Decomposition</a> {
     <span class="comment">// As usual, fast path for ASCII (which is always a starter)</span>
     <span class="kw">if</span> <a class="ident" href="../../src/unicode_normalization/stream_safe.rs.html#70">c</a> <span class="op">&lt;</span><span class="op">=</span> <span class="string">&#39;\x7f&#39;</span> {
         <span class="kw">return</span> <a class="ident" href="../../src/unicode_normalization/stream_safe.rs.html#63-67">Decomposition</a> {
@@ -256,12 +256,12 @@
     }
     <span class="kw">let</span> <span class="ident">decomp</span> <span class="op">=</span> <a class="ident" href="../../src/unicode_normalization/lookups.rs.html#56">compatibility_fully_decomposed</a>(<a class="ident" href="../../src/unicode_normalization/stream_safe.rs.html#70">c</a>).<span class="ident">or_else</span>(<span class="op">|</span><span class="op">|</span> <a class="ident" href="../../src/unicode_normalization/lookups.rs.html#45">canonical_fully_decomposed</a>(<a class="ident" href="../../src/unicode_normalization/stream_safe.rs.html#70">c</a>));
     <span class="kw">match</span> <a class="ident" href="../../src/unicode_normalization/stream_safe.rs.html#87">decomp</a> {
-        <span class="prelude-val">Some</span>(<span class="ident">decomp</span>) <span class="op">=</span><span class="op">&gt;</span> <a class="ident" href="../../src/unicode_normalization/stream_safe.rs.html#63-67">Decomposition</a> {
+        <span class="prelude-val">Some</span>(<span class="ident">decomp</span>) =&gt; <a class="ident" href="../../src/unicode_normalization/stream_safe.rs.html#63-67">Decomposition</a> {
             <span class="ident">leading_nonstarters</span>: <a class="ident" href="../../src/unicode_normalization/tables.rs.html#23820">stream_safe_leading_nonstarters</a>(<a class="ident" href="../../src/unicode_normalization/stream_safe.rs.html#70">c</a>),
             <span class="ident">trailing_nonstarters</span>: <a class="ident" href="../../src/unicode_normalization/lookups.rs.html#90">stream_safe_trailing_nonstarters</a>(<a class="ident" href="../../src/unicode_normalization/stream_safe.rs.html#70">c</a>),
             <span class="ident">decomposition_len</span>: <a class="ident" href="../../src/unicode_normalization/stream_safe.rs.html#89">decomp</a>.<span class="ident">len</span>(),
         },
-        <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="prelude-val">None</span> =&gt; {
             <span class="kw">let</span> <span class="ident">is_nonstarter</span> <span class="op">=</span> <a class="ident" href="../../src/unicode_normalization/lookups.rs.html#19">canonical_combining_class</a>(<a class="ident" href="../../src/unicode_normalization/stream_safe.rs.html#70">c</a>) <span class="op">!</span><span class="op">=</span> <span class="number">0</span>;
             <span class="kw">let</span> <span class="ident">nonstarter</span> <span class="op">=</span> <span class="kw">if</span> <a class="ident" href="../../src/unicode_normalization/stream_safe.rs.html#95">is_nonstarter</a> { <span class="number">1</span> } <span class="kw">else</span> { <span class="number">0</span> };
             <a class="ident" href="../../src/unicode_normalization/stream_safe.rs.html#63-67">Decomposition</a> {
@@ -284,7 +284,7 @@
 
     <span class="kw">use</span> <span class="ident">core::char</span>;
 
-    <span class="kw">fn</span> <span class="ident">stream_safe</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">String</span> {
+    <span class="kw">fn</span> <span class="ident">stream_safe</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="ident">String</span> {
         <span class="ident">StreamSafe::new</span>(<span class="ident">s</span>.<span class="ident">chars</span>()).<span class="ident">collect</span>()
     }
 
@@ -314,8 +314,8 @@
         <span class="comment">// Highest character in the `compat_fully_decomp` table is 2FA1D</span>
         <span class="kw">for</span> <span class="ident">ch</span> <span class="kw">in</span> <span class="number">0</span>..<span class="number">0x2FA1E</span> {
             <span class="kw">let</span> <span class="ident">ch</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">char::from_u32</span>(<span class="ident">ch</span>) {
-                <span class="prelude-val">Some</span>(<span class="ident">c</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">c</span>,
-                <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">continue</span>,
+                <span class="prelude-val">Some</span>(<span class="ident">c</span>) =&gt; <span class="ident">c</span>,
+                <span class="prelude-val">None</span> =&gt; <span class="kw">continue</span>,
             };
             <span class="kw">let</span> <span class="ident">c</span> <span class="op">=</span> <span class="ident">classify_nonstarters</span>(<span class="ident">ch</span>);
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">s</span> <span class="op">=</span> <span class="ident">Vec::new</span>();

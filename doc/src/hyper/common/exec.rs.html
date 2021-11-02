@@ -157,11 +157,11 @@
 <span class="kw">use</span> <a class="ident" href="../../../src/hyper/service/service.rs.html#12-40">service::Service</a>;
 
 <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">H2Exec</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">B</span>: <a class="ident" href="../../../src/hyper/body/payload.rs.html#13-71">Payload</a><span class="op">&gt;</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> {
-    <span class="kw">fn</span> <span class="ident">execute_h2stream</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">fut</span>: <span class="ident">H2Stream</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">B</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span>;
+    <span class="kw">fn</span> <span class="ident">execute_h2stream</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">fut</span>: <span class="ident">H2Stream</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">B</span><span class="op">&gt;</span>) -&gt; <span class="ident">::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span>;
 }
 
 <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">NewSvcExec</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">N</span>, <span class="ident">S</span>: <a class="ident" href="../../../src/hyper/service/service.rs.html#12-40">Service</a>, <span class="ident">E</span>, <span class="ident">W</span>: <span class="ident">Watcher</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">S</span>, <span class="ident">E</span><span class="op">&gt;</span><span class="op">&gt;</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> {
-    <span class="kw">fn</span> <span class="ident">execute_new_svc</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">fut</span>: <span class="ident">NewSvcTask</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">N</span>, <span class="ident">S</span>, <span class="ident">E</span>, <span class="ident">W</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span>;
+    <span class="kw">fn</span> <span class="ident">execute_new_svc</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">fut</span>: <span class="ident">NewSvcTask</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">N</span>, <span class="ident">S</span>, <span class="ident">E</span>, <span class="ident">W</span><span class="op">&gt;</span>) -&gt; <span class="ident">::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span>;
 }
 
 <span class="comment">// Either the user provides an executor for background tasks, or we use</span>
@@ -175,12 +175,12 @@
 <span class="comment">// ===== impl Exec =====</span>
 
 <span class="kw">impl</span> <a class="ident" href="../../../src/hyper/common/exec.rs.html#22-25">Exec</a> {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">execute</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">fut</span>: <span class="ident">F</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">execute</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">fut</span>: <span class="ident">F</span>) -&gt; <span class="ident">::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">F</span>: <span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Item</span><span class="op">=</span>(), <span class="ident">Error</span><span class="op">=</span>()<span class="op">&gt;</span> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
     {
         <span class="kw">match</span> <span class="kw-2">*</span><a class="self" href="../../../src/hyper/common/exec.rs.html#30">self</a> {
-            <a class="ident" href="../../../src/hyper/common/exec.rs.html#23">Exec::Default</a> <span class="op">=</span><span class="op">&gt;</span> {
+            <a class="ident" href="../../../src/hyper/common/exec.rs.html#23">Exec::Default</a> =&gt; {
                 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;runtime&quot;</span>)]</span>
                 {
                     <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/error/trait.Error.html">std::error::Error</a> <span class="kw">as</span> <span class="ident">StdError</span>;
@@ -189,19 +189,19 @@
                     <span class="kw">struct</span> <span class="ident">TokioSpawnError</span>;
 
                     <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <a class="ident" href="../../../src/hyper/common/exec.rs.html#41">TokioSpawnError</a> {
-                        <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+                        <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
                             <span class="ident">fmt::Debug::fmt</span>(<span class="string">&quot;tokio::spawn failed (is a tokio runtime running this future?)&quot;</span>, <a class="ident" href="../../../src/hyper/common/exec.rs.html#44">f</a>)
                         }
                     }
 
                     <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for</span> <a class="ident" href="../../../src/hyper/common/exec.rs.html#41">TokioSpawnError</a> {
-                        <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+                        <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
                             <span class="ident">fmt::Display::fmt</span>(<span class="string">&quot;tokio::spawn failed (is a tokio runtime running this future?)&quot;</span>, <a class="ident" href="../../../src/hyper/common/exec.rs.html#50">f</a>)
                         }
                     }
 
                     <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/error/trait.Error.html">StdError</a> <span class="kw">for</span> <a class="ident" href="../../../src/hyper/common/exec.rs.html#41">TokioSpawnError</a> {
-                        <span class="kw">fn</span> <span class="ident">description</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> {
+                        <span class="kw">fn</span> <span class="ident">description</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> {
                             <span class="string">&quot;tokio::spawn failed&quot;</span>
                         }
                     }
@@ -219,7 +219,7 @@
                     <span class="macro">panic!</span>(<span class="string">&quot;executor must be set&quot;</span>)
                 }
             },
-            <a class="ident" href="../../../src/hyper/common/exec.rs.html#24">Exec::Executor</a>(<span class="kw-2">ref</span> <span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <a class="ident" href="../../../src/hyper/common/exec.rs.html#24">Exec::Executor</a>(<span class="kw-2">ref</span> <span class="ident">e</span>) =&gt; {
                 <a class="ident" href="../../../src/hyper/common/exec.rs.html#74">e</a>.<span class="ident">execute</span>(<span class="ident">Box::new</span>(<a class="ident" href="../../../src/hyper/common/exec.rs.html#30">fut</a>))
                     .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">err</span><span class="op">|</span> {
                         <span class="macro">warn!</span>(<span class="string">&quot;executor error: {:?}&quot;</span>, <a class="ident" href="../../../src/hyper/common/exec.rs.html#76">err</a>.<span class="ident">kind</span>());
@@ -231,7 +231,7 @@
 }
 
 <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <a class="ident" href="../../../src/hyper/common/exec.rs.html#22-25">Exec</a> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
         <a class="ident" href="../../../src/hyper/common/exec.rs.html#86">f</a>.<span class="ident">debug_struct</span>(<span class="string">&quot;Exec&quot;</span>)
             .<span class="ident">finish</span>()
     }
@@ -243,7 +243,7 @@
     <span class="ident">H2Stream</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">B</span><span class="op">&gt;</span>: <span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Item</span><span class="op">=</span>(), <span class="ident">Error</span><span class="op">=</span>()<span class="op">&gt;</span> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
     <span class="ident">B</span>: <a class="ident" href="../../../src/hyper/body/payload.rs.html#13-71">Payload</a>,
 {
-    <span class="kw">fn</span> <span class="ident">execute_h2stream</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">fut</span>: <span class="ident">H2Stream</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">B</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">execute_h2stream</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">fut</span>: <span class="ident">H2Stream</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">B</span><span class="op">&gt;</span>) -&gt; <span class="ident">::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <a class="self" href="../../../src/hyper/common/exec.rs.html#98">self</a>.<a class="ident" href="../../../src/hyper/common/exec.rs.html#30-32">execute</a>(<a class="ident" href="../../../src/hyper/common/exec.rs.html#98">fut</a>)
     }
 }
@@ -254,7 +254,7 @@
     <span class="ident">S</span>: <a class="ident" href="../../../src/hyper/service/service.rs.html#12-40">Service</a>,
     <span class="ident">W</span>: <span class="ident">Watcher</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">S</span>, <span class="ident">E</span><span class="op">&gt;</span>,
 {
-    <span class="kw">fn</span> <span class="ident">execute_new_svc</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">fut</span>: <span class="ident">NewSvcTask</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">N</span>, <span class="ident">S</span>, <span class="ident">E</span>, <span class="ident">W</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">execute_new_svc</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">fut</span>: <span class="ident">NewSvcTask</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">N</span>, <span class="ident">S</span>, <span class="ident">E</span>, <span class="ident">W</span><span class="op">&gt;</span>) -&gt; <span class="ident">::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <a class="self" href="../../../src/hyper/common/exec.rs.html#109">self</a>.<a class="ident" href="../../../src/hyper/common/exec.rs.html#30-32">execute</a>(<a class="ident" href="../../../src/hyper/common/exec.rs.html#109">fut</a>)
     }
 }
@@ -267,7 +267,7 @@
     <span class="ident">H2Stream</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">B</span><span class="op">&gt;</span>: <span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Item</span><span class="op">=</span>(), <span class="ident">Error</span><span class="op">=</span>()<span class="op">&gt;</span>,
     <span class="ident">B</span>: <a class="ident" href="../../../src/hyper/body/payload.rs.html#13-71">Payload</a>,
 {
-    <span class="kw">fn</span> <span class="ident">execute_h2stream</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">fut</span>: <span class="ident">H2Stream</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">B</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">execute_h2stream</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">fut</span>: <span class="ident">H2Stream</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">B</span><span class="op">&gt;</span>) -&gt; <span class="ident">::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <a class="self" href="../../../src/hyper/common/exec.rs.html#122">self</a>.<span class="ident">execute</span>(<a class="ident" href="../../../src/hyper/common/exec.rs.html#122">fut</a>)
             .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">err</span><span class="op">|</span> {
                 <span class="macro">warn!</span>(<span class="string">&quot;executor error: {:?}&quot;</span>, <a class="ident" href="../../../src/hyper/common/exec.rs.html#124">err</a>.<span class="ident">kind</span>());
@@ -283,7 +283,7 @@
     <span class="ident">S</span>: <a class="ident" href="../../../src/hyper/service/service.rs.html#12-40">Service</a>,
     <span class="ident">W</span>: <span class="ident">Watcher</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">S</span>, <span class="ident">E</span><span class="op">&gt;</span>,
 {
-    <span class="kw">fn</span> <span class="ident">execute_new_svc</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">fut</span>: <span class="ident">NewSvcTask</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">N</span>, <span class="ident">S</span>, <span class="ident">E</span>, <span class="ident">W</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">execute_new_svc</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">fut</span>: <span class="ident">NewSvcTask</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">N</span>, <span class="ident">S</span>, <span class="ident">E</span>, <span class="ident">W</span><span class="op">&gt;</span>) -&gt; <span class="ident">::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <a class="self" href="../../../src/hyper/common/exec.rs.html#138">self</a>.<span class="ident">execute</span>(<a class="ident" href="../../../src/hyper/common/exec.rs.html#138">fut</a>)
             .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">err</span><span class="op">|</span> {
                 <span class="macro">warn!</span>(<span class="string">&quot;executor error: {:?}&quot;</span>, <a class="ident" href="../../../src/hyper/common/exec.rs.html#140">err</a>.<span class="ident">kind</span>());

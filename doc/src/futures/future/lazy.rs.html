@@ -125,8 +125,8 @@
 <span class="doccomment">/// });</span>
 <span class="doccomment">/// drop(b); // closure is never run</span>
 <span class="doccomment">/// ```</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">lazy</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">R</span><span class="op">&gt;</span>(<span class="ident">f</span>: <span class="ident">F</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Lazy</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">R</span><span class="op">&gt;</span>
-    <span class="kw">where</span> <span class="ident">F</span>: <span class="ident">FnOnce</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">R</span>,
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">lazy</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">R</span><span class="op">&gt;</span>(<span class="ident">f</span>: <span class="ident">F</span>) -&gt; <span class="ident">Lazy</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">R</span><span class="op">&gt;</span>
+    <span class="kw">where</span> <span class="ident">F</span>: <span class="ident">FnOnce</span>() -&gt; <span class="ident">R</span>,
           <span class="ident">R</span>: <a class="ident" href="../../../src/futures/future/mod.rs.html#1039-1050">IntoFuture</a>
 {
     <a class="ident" href="../../../src/futures/future/lazy.rs.html#14-16">Lazy</a> {
@@ -135,34 +135,34 @@
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">R</span><span class="op">&gt;</span> <span class="ident">Lazy</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">R</span><span class="op">&gt;</span>
-    <span class="kw">where</span> <span class="ident">F</span>: <span class="ident">FnOnce</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">R</span>,
+    <span class="kw">where</span> <span class="ident">F</span>: <span class="ident">FnOnce</span>() -&gt; <span class="ident">R</span>,
           <span class="ident">R</span>: <a class="ident" href="../../../src/futures/future/mod.rs.html#1039-1050">IntoFuture</a>,
 {
-    <span class="kw">fn</span> <span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">R::Future</span> {
+    <span class="kw">fn</span> <span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">R::Future</span> {
         <span class="kw">match</span> <a class="self" href="../../../src/futures/future/lazy.rs.html#57">self</a>.<span class="ident">inner</span> {
-            <a class="ident" href="../../../src/futures/future/lazy.rs.html#20">_Lazy::First</a>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {}
-            <a class="ident" href="../../../src/futures/future/lazy.rs.html#21">_Lazy::Second</a>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">f</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <a class="ident" href="../../../src/futures/future/lazy.rs.html#60">f</a>,
-            <a class="ident" href="../../../src/futures/future/lazy.rs.html#22">_Lazy::Moved</a> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic!</span>(), <span class="comment">// can only happen if `f()` panics</span>
+            <a class="ident" href="../../../src/futures/future/lazy.rs.html#20">_Lazy::First</a>(<span class="kw">_</span>) =&gt; {}
+            <a class="ident" href="../../../src/futures/future/lazy.rs.html#21">_Lazy::Second</a>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">f</span>) =&gt; <span class="kw">return</span> <a class="ident" href="../../../src/futures/future/lazy.rs.html#60">f</a>,
+            <a class="ident" href="../../../src/futures/future/lazy.rs.html#22">_Lazy::Moved</a> =&gt; <span class="macro">panic!</span>(), <span class="comment">// can only happen if `f()` panics</span>
         }
         <span class="kw">match</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/fn.replace.html">mem::replace</a>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="self" href="../../../src/futures/future/lazy.rs.html#57">self</a>.<span class="ident">inner</span>, <a class="ident" href="../../../src/futures/future/lazy.rs.html#22">_Lazy::Moved</a>) {
-            <a class="ident" href="../../../src/futures/future/lazy.rs.html#20">_Lazy::First</a>(<span class="ident">f</span>) <span class="op">=</span><span class="op">&gt;</span> <a class="self" href="../../../src/futures/future/lazy.rs.html#57">self</a>.<span class="ident">inner</span> <span class="op">=</span> <a class="ident" href="../../../src/futures/future/lazy.rs.html#21">_Lazy::Second</a>(<a class="ident" href="../../../src/futures/future/lazy.rs.html#64">f</a>().<a class="ident" href="../../../src/futures/future/mod.rs.html#1049">into_future</a>()),
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic!</span>(), <span class="comment">// we already found First</span>
+            <a class="ident" href="../../../src/futures/future/lazy.rs.html#20">_Lazy::First</a>(<span class="ident">f</span>) =&gt; <a class="self" href="../../../src/futures/future/lazy.rs.html#57">self</a>.<span class="ident">inner</span> <span class="op">=</span> <a class="ident" href="../../../src/futures/future/lazy.rs.html#21">_Lazy::Second</a>(<a class="ident" href="../../../src/futures/future/lazy.rs.html#64">f</a>().<a class="ident" href="../../../src/futures/future/mod.rs.html#1049">into_future</a>()),
+            <span class="kw">_</span> =&gt; <span class="macro">panic!</span>(), <span class="comment">// we already found First</span>
         }
         <span class="kw">match</span> <a class="self" href="../../../src/futures/future/lazy.rs.html#57">self</a>.<span class="ident">inner</span> {
-            <a class="ident" href="../../../src/futures/future/lazy.rs.html#21">_Lazy::Second</a>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">f</span>) <span class="op">=</span><span class="op">&gt;</span> <a class="ident" href="../../../src/futures/future/lazy.rs.html#68">f</a>,
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic!</span>(), <span class="comment">// we just stored Second</span>
+            <a class="ident" href="../../../src/futures/future/lazy.rs.html#21">_Lazy::Second</a>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">f</span>) =&gt; <a class="ident" href="../../../src/futures/future/lazy.rs.html#68">f</a>,
+            <span class="kw">_</span> =&gt; <span class="macro">panic!</span>(), <span class="comment">// we just stored Second</span>
         }
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">R</span><span class="op">&gt;</span> <a class="ident" href="../../../src/futures/future/mod.rs.html#178-1016">Future</a> <span class="kw">for</span> <span class="ident">Lazy</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">R</span><span class="op">&gt;</span>
-    <span class="kw">where</span> <span class="ident">F</span>: <span class="ident">FnOnce</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">R</span>,
+    <span class="kw">where</span> <span class="ident">F</span>: <span class="ident">FnOnce</span>() -&gt; <span class="ident">R</span>,
           <span class="ident">R</span>: <a class="ident" href="../../../src/futures/future/mod.rs.html#1039-1050">IntoFuture</a>,
 {
     <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="ident">R::Item</span>;
     <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <span class="ident">R::Error</span>;
 
-    <span class="kw">fn</span> <span class="ident">poll</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">R::Item</span>, <span class="ident">R::Error</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">poll</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">R::Item</span>, <span class="ident">R::Error</span><span class="op">&gt;</span> {
         <a class="self" href="../../../src/futures/future/lazy.rs.html#81">self</a>.<a class="ident" href="../../../src/futures/future/lazy.rs.html#57">get</a>().<a class="ident" href="../../../src/futures/future/mod.rs.html#273">poll</a>()
     }
 }

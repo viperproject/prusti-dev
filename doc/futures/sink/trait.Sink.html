@@ -59,7 +59,7 @@ asynchronous I/O, the process of actually writing out the data to an
 underlying object takes place asynchronously. <strong>You <em>must</em> use
 <code>poll_complete</code> in order to drive completion of a send</strong>. In particular,
 <code>start_send</code> does not begin the flushing process</p>
-<h1 id="return-value" class="section-header"><a href="#return-value">Return value</a></h1>
+<h5 id="return-value" class="section-header"><a href="#return-value">Return value</a></h5>
 <p>This method returns <code>AsyncSink::Ready</code> if the sink was able to start
 sending <code>item</code>. In that case, you <em>must</em> ensure that you call
 <code>poll_complete</code> to process the sent item to completion. Note, however,
@@ -71,11 +71,11 @@ complete processing any outstanding requests (equivalent to
 <code>poll_complete</code>) before yielding this result. The current task will be
 automatically scheduled for notification when the sink may be ready to
 receive new values.</p>
-<h1 id="errors" class="section-header"><a href="#errors">Errors</a></h1>
+<h5 id="errors" class="section-header"><a href="#errors">Errors</a></h5>
 <p>If the sink encounters an error other than being temporarily full, it
 uses the <code>Err</code> variant to signal that error. In most cases, such errors
 mean that the sink will permanently be unable to receive items.</p>
-<h1 id="panics" class="section-header"><a href="#panics">Panics</a></h1>
+<h5 id="panics" class="section-header"><a href="#panics">Panics</a></h5>
 <p>This method may panic in a few situations, depending on the specific
 sink:</p>
 <ul>
@@ -91,7 +91,7 @@ to be used to ensure that values do indeed make their way to the
 receiver.</p>
 <p>This function will attempt to process any pending requests on behalf of
 the sink and drive it to completion.</p>
-<h1 id="return-value-1" class="section-header"><a href="#return-value-1">Return value</a></h1>
+<h5 id="return-value-1" class="section-header"><a href="#return-value-1">Return value</a></h5>
 <p>Returns <code>Ok(Async::Ready(()))</code> when no buffered items remain. If this
 value is returned then it is guaranteed that all previous values sent
 via <code>start_send</code> will be guaranteed to be available to a listening
@@ -99,19 +99,19 @@ receiver.</p>
 <p>Returns <code>Ok(Async::NotReady)</code> if there is more work left to do, in which
 case the current task is scheduled to wake up when more progress may be
 possible.</p>
-<h1 id="errors-1" class="section-header"><a href="#errors-1">Errors</a></h1>
+<h5 id="errors-1" class="section-header"><a href="#errors-1">Errors</a></h5>
 <p>Returns <code>Err</code> if the sink encounters an error while processing one of
 its pending requests. Due to the buffered nature of requests, it is not
 generally possible to correlate the error with a particular request. As
 with <code>start_send</code>, these errors are generally “fatal” for continued use
 of the sink.</p>
-<h1 id="panics-1" class="section-header"><a href="#panics-1">Panics</a></h1>
+<h5 id="panics-1" class="section-header"><a href="#panics-1">Panics</a></h5>
 <p>This method may panic in a few situations, depending on the specific sink:</p>
 <ul>
 <li>It is called outside of the context of a task.</li>
 <li>A previous call to <code>start_send</code> or <code>poll_complete</code> yielded an error.</li>
 </ul>
-<h1 id="compatibility-nodes" class="section-header"><a href="#compatibility-nodes">Compatibility nodes</a></h1>
+<h5 id="compatibility-nodes" class="section-header"><a href="#compatibility-nodes">Compatibility nodes</a></h5>
 <p>The name of this method may be slightly misleading as the original
 intention was to have this method be more general than just flushing
 requests. Over time though it was decided to trim back the ambitions of
@@ -136,7 +136,7 @@ sink has buffered data, then it’ll be flushed out during a <code>close</code>
 operation. It is not necessary to have <code>poll_complete</code> return <code>Ready</code>
 before a <code>close</code> is called. Once a <code>close</code> is called, though,
 <code>poll_complete</code> cannot be called.</p>
-<h1 id="return-value-2" class="section-header"><a href="#return-value-2">Return value</a></h1>
+<h5 id="return-value-2" class="section-header"><a href="#return-value-2">Return value</a></h5>
 <p>This function, like <code>poll_complete</code>, returns a <code>Poll</code>. The value is
 <code>Ready</code> once the close operation has completed. At that point it should
 be safe to drop the sink and deallocate associated resources.</p>
@@ -145,7 +145,7 @@ work needs to be done to close it. The work has been scheduled and the
 current task will receive a notification when it’s next ready to call
 this method again.</p>
 <p>Finally, this function may also return an error.</p>
-<h1 id="errors-2" class="section-header"><a href="#errors-2">Errors</a></h1>
+<h5 id="errors-2" class="section-header"><a href="#errors-2">Errors</a></h5>
 <p>This function will return an <code>Err</code> if any operation along the way during
 the close operation fails. An error typically is fatal for a sink and is
 unable to be recovered from, but in specific situations this may not
@@ -155,13 +155,13 @@ always be true.</p>
 <em>initiate</em> a close, and continuing to send values after that (or attempt
 to flush) may result in strange behavior, panics, errors, etc. Once this
 method is called, it must be the only method called on this <code>Sink</code>.</p>
-<h1 id="panics-2" class="section-header"><a href="#panics-2">Panics</a></h1>
+<h5 id="panics-2" class="section-header"><a href="#panics-2">Panics</a></h5>
 <p>This method may panic or cause panics if:</p>
 <ul>
 <li>It is called outside the context of a future’s task</li>
 <li>It is called and then <code>start_send</code> or <code>poll_complete</code> is called</li>
 </ul>
-<h1 id="compatibility-notes" class="section-header"><a href="#compatibility-notes">Compatibility notes</a></h1>
+<h5 id="compatibility-notes" class="section-header"><a href="#compatibility-notes">Compatibility notes</a></h5>
 <p>Note that this function is currently by default a provided function,
 defaulted to calling <code>poll_complete</code> above. This function was added
 in the 0.1 series of the crate as a backwards-compatible addition. It
@@ -191,7 +191,7 @@ is passed to the underlying sink. A new value will not be accepted until
 the stream has been drained</p>
 <p>Note that this function consumes the given sink, returning a wrapped
 version, much like <code>Iterator::flat_map</code>.</p>
-<h1 id="examples" class="section-header"><a href="#examples">Examples</a></h1>
+<h5 id="examples" class="section-header"><a href="#examples">Examples</a></h5>
 <hr />
 <p>Using this function with an iterator through use of the <code>stream::iter_ok()</code>
 function</p>

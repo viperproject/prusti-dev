@@ -1423,13 +1423,13 @@
 }
 
 <span class="macro">macro_rules!</span> <span class="ident">write_graph</span> {
-    ( <span class="macro-nonterminal">$</span><span class="macro-nonterminal">self</span>:<span class="ident">ident</span>, $( <span class="macro-nonterminal">$</span><span class="macro-nonterminal">x</span>:<span class="ident">expr</span> ),<span class="op">*</span> ) <span class="op">=</span><span class="op">&gt;</span> {
+    ( <span class="macro-nonterminal">$</span><span class="macro-nonterminal">self</span>:<span class="ident">ident</span>, $( <span class="macro-nonterminal">$</span><span class="macro-nonterminal">x</span>:<span class="ident">expr</span> ),<span class="op">*</span> ) =&gt; {
         <span class="macro">writeln!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">self</span>.<span class="ident">graph</span>.<span class="ident">borrow_mut</span>(), $( <span class="macro-nonterminal">$</span><span class="macro-nonterminal">x</span> ),<span class="kw-2">*</span>)<span class="question-mark">?</span>;
     }
 }
 
 <span class="macro">macro_rules!</span> <span class="ident">to_html</span> {
-    ( <span class="macro-nonterminal">$</span><span class="macro-nonterminal">o</span>:<span class="ident">expr</span> ) <span class="op">=</span><span class="op">&gt;</span> {{
+    ( <span class="macro-nonterminal">$</span><span class="macro-nonterminal">o</span>:<span class="ident">expr</span> ) =&gt; {{
         <span class="macro">format!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">o</span>)
             .<span class="ident">replace</span>(<span class="string">&quot;{&quot;</span>, <span class="string">&quot;\\{&quot;</span>)
             .<span class="ident">replace</span>(<span class="string">&quot;}&quot;</span>, <span class="string">&quot;\\}&quot;</span>)
@@ -1441,7 +1441,7 @@
 }
 
 <span class="macro">macro_rules!</span> <span class="ident">to_html_display</span> {
-    ( <span class="macro-nonterminal">$</span><span class="macro-nonterminal">o</span>:<span class="ident">expr</span> ) <span class="op">=</span><span class="op">&gt;</span> {{
+    ( <span class="macro-nonterminal">$</span><span class="macro-nonterminal">o</span>:<span class="ident">expr</span> ) =&gt; {{
         <span class="macro">format!</span>(<span class="string">&quot;{}&quot;</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">o</span>)
             .<span class="ident">replace</span>(<span class="string">&quot;{&quot;</span>, <span class="string">&quot;\\{&quot;</span>)
             .<span class="ident">replace</span>(<span class="string">&quot;}&quot;</span>, <span class="string">&quot;\\}&quot;</span>)
@@ -1453,10 +1453,10 @@
 }
 
 <span class="macro">macro_rules!</span> <span class="ident">write_edge</span> {
-    ( <span class="macro-nonterminal">$</span><span class="macro-nonterminal">self</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">source</span>:<span class="ident">ident</span>, <span class="ident">str</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">target</span>:<span class="ident">ident</span> ) <span class="op">=</span><span class="op">&gt;</span> {{
+    ( <span class="macro-nonterminal">$</span><span class="macro-nonterminal">self</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">source</span>:<span class="ident">ident</span>, <span class="ident">str</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">target</span>:<span class="ident">ident</span> ) =&gt; {{
         <span class="macro">write_graph!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">self</span>, <span class="string">&quot;\&quot;{:?}\&quot; -&gt; \&quot;{}\&quot;\n&quot;</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">source</span>, <span class="macro">stringify!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">target</span>));
     }};
-    ( <span class="macro-nonterminal">$</span><span class="macro-nonterminal">self</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">source</span>:<span class="ident">ident</span>, <span class="ident">unwind</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">target</span>:<span class="ident">ident</span> ) <span class="op">=</span><span class="op">&gt;</span> {{
+    ( <span class="macro-nonterminal">$</span><span class="macro-nonterminal">self</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">source</span>:<span class="ident">ident</span>, <span class="ident">unwind</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">target</span>:<span class="ident">ident</span> ) =&gt; {{
         <span class="macro">write_graph!</span>(
             <span class="macro-nonterminal">$</span><span class="macro-nonterminal">self</span>,
             <span class="string">&quot;\&quot;{:?}\&quot; -&gt; \&quot;{:?}\&quot; [color=red]\n&quot;</span>,
@@ -1464,7 +1464,7 @@
             <span class="macro-nonterminal">$</span><span class="macro-nonterminal">target</span>
         );
     }};
-    ( <span class="macro-nonterminal">$</span><span class="macro-nonterminal">self</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">source</span>:<span class="ident">ident</span>, <span class="ident">imaginary</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">target</span>:<span class="ident">ident</span> ) <span class="op">=</span><span class="op">&gt;</span> {{
+    ( <span class="macro-nonterminal">$</span><span class="macro-nonterminal">self</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">source</span>:<span class="ident">ident</span>, <span class="ident">imaginary</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">target</span>:<span class="ident">ident</span> ) =&gt; {{
         <span class="macro">write_graph!</span>(
             <span class="macro-nonterminal">$</span><span class="macro-nonterminal">self</span>,
             <span class="string">&quot;\&quot;{:?}\&quot; -&gt; \&quot;{:?}\&quot; [style=\&quot;dashed\&quot;]\n&quot;</span>,
@@ -1472,13 +1472,13 @@
             <span class="macro-nonterminal">$</span><span class="macro-nonterminal">target</span>
         );
     }};
-    ( <span class="macro-nonterminal">$</span><span class="macro-nonterminal">self</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">source</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">target</span>:<span class="ident">ident</span> ) <span class="op">=</span><span class="op">&gt;</span> {{
+    ( <span class="macro-nonterminal">$</span><span class="macro-nonterminal">self</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">source</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">target</span>:<span class="ident">ident</span> ) =&gt; {{
         <span class="macro">write_graph!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">self</span>, <span class="string">&quot;\&quot;{:?}\&quot; -&gt; \&quot;{:?}\&quot;\n&quot;</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">source</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">target</span>);
     }};
 }
 
 <span class="macro">macro_rules!</span> <span class="ident">to_sorted_string</span> {
-    ( <span class="macro-nonterminal">$</span><span class="macro-nonterminal">o</span>:<span class="ident">expr</span> ) <span class="op">=</span><span class="op">&gt;</span> {{
+    ( <span class="macro-nonterminal">$</span><span class="macro-nonterminal">o</span>:<span class="ident">expr</span> ) =&gt; {{
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">vector</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">o</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="macro">to_html!</span>(<span class="ident">x</span>)).<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span><span class="op">&gt;</span>();
         <span class="ident">vector</span>.<span class="ident">sort</span>();
         <span class="ident">vector</span>.<span class="ident">join</span>(<span class="string">&quot;, &quot;</span>)
@@ -1486,7 +1486,7 @@
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> <span class="ident">MirInfoPrinter</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">print_info</span>(<span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">print_info</span>(<span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a><span class="op">&gt;</span> {
         <span class="comment">//self.dump_to_file(&quot;/tmp/requires&quot;,</span>
         <span class="comment">//&amp;self.polonius_info.borrowck_out_facts.origin_contains_loan_at);</span>
         <span class="comment">//self.dump_to_file(&quot;/tmp/zrequires&quot;,</span>
@@ -1518,7 +1518,7 @@
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">fn</span> <span class="ident">print_temp_variables</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">print_temp_variables</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a><span class="op">&gt;</span> {
         <span class="kw">if</span> <a class="self" href="../../../src/prusti_interface/environment/dump_borrowck_info.rs.html#213">self</a>.<a class="ident" href="../../../src/prusti_interface/environment/dump_borrowck_info.rs.html#1015">show_temp_variables</a>() {
             <span class="macro">write_graph!</span>(<span class="self">self</span>, <span class="string">&quot;Variables [ style=filled shape = \&quot;record\&quot;&quot;</span>);
             <span class="macro">write_graph!</span>(<span class="self">self</span>, <span class="string">&quot;label =&lt;&lt;table&gt;&quot;</span>);
@@ -1563,7 +1563,7 @@
     }
 
     <span class="doccomment">/// Print the origin_contains_loan_at relation as a tree of loans.</span>
-    <span class="kw">fn</span> <span class="ident">print_restricts</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">print_restricts</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="op">!</span><a class="self" href="../../../src/prusti_interface/environment/dump_borrowck_info.rs.html#258">self</a>.<a class="ident" href="../../../src/prusti_interface/environment/dump_borrowck_info.rs.html#1025">show_restricts</a>() {
             <span class="kw">return</span> <span class="prelude-val">Ok</span>(());
         }
@@ -1606,7 +1606,7 @@
                 .<span class="ident">additional_facts</span>
                 .<span class="ident">reborrows</span>
                 .<span class="ident">iter</span>()
-                .<span class="ident">position</span>(<span class="op">|</span><span class="kw-2">&amp;</span>(<span class="kw">_</span>, <span class="ident">l</span>)<span class="op">|</span> <a class="ident" href="../../../src/prusti_interface/environment/dump_borrowck_info.rs.html#295">loan</a> <span class="op">=</span><span class="op">=</span> <a class="ident" href="../../../src/prusti_interface/environment/dump_borrowck_info.rs.html#301">l</a>);
+                .<span class="ident">position</span>(<span class="op">|</span><span class="kw-2">&amp;</span>(<span class="kw">_</span>, <span class="ident">l</span>)<span class="op">|</span> <a class="ident" href="../../../src/prusti_interface/environment/dump_borrowck_info.rs.html#295">loan</a> <span class="op">==</span> <a class="ident" href="../../../src/prusti_interface/environment/dump_borrowck_info.rs.html#301">l</a>);
             <span class="kw">if</span> <a class="ident" href="../../../src/prusti_interface/environment/dump_borrowck_info.rs.html#296">position</a>.<span class="ident">is_some</span>() {
                 <span class="macro">write_graph!</span>(<span class="self">self</span>, <span class="string">&quot;_{:?} [shape=box color=green]&quot;</span>, <a class="ident" href="../../../src/prusti_interface/environment/dump_borrowck_info.rs.html#295">loan</a>);
             } <span class="kw">else</span> {
@@ -1649,7 +1649,7 @@
     }
 
     <span class="doccomment">/// Print the subset relation at the beginning of the given location.</span>
-    <span class="kw">fn</span> <span class="ident">print_subsets</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">location</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Location.html">mir::Location</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">print_subsets</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">location</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Location.html">mir::Location</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">bb</span> <span class="op">=</span> <a class="ident" href="../../../src/prusti_interface/environment/dump_borrowck_info.rs.html#344">location</a>.<span class="ident">block</span>;
         <span class="kw">let</span> <span class="ident">stmt</span> <span class="op">=</span> <a class="ident" href="../../../src/prusti_interface/environment/dump_borrowck_info.rs.html#344">location</a>.<span class="ident">statement_index</span>;
         <span class="kw">let</span> <span class="ident">start_point</span> <span class="op">=</span> <a class="self" href="../../../src/prusti_interface/environment/dump_borrowck_info.rs.html#344">self</a>.<a class="ident" href="../../../src/prusti_interface/environment/dump_borrowck_info.rs.html#919-923">get_point</a>(<a class="ident" href="../../../src/prusti_interface/environment/dump_borrowck_info.rs.html#344">location</a>, <a class="ident" href="../../../src/prusti_interface/environment/borrowck/facts.rs.html#49">facts::PointType::Start</a>);
@@ -1701,7 +1701,7 @@
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">fn</span> <span class="ident">print_borrow_regions</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">print_borrow_regions</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="op">!</span><a class="self" href="../../../src/prusti_interface/environment/dump_borrowck_info.rs.html#396">self</a>.<a class="ident" href="../../../src/prusti_interface/environment/dump_borrowck_info.rs.html#1020">show_borrow_regions</a>() {
             <span class="kw">return</span> <span class="prelude-val">Ok</span>(());
         }
@@ -1750,7 +1750,7 @@
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">fn</span> <span class="ident">visit_basic_block</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">bb</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">mir::BasicBlock</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">visit_basic_block</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">bb</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">mir::BasicBlock</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a><span class="op">&gt;</span> {
         <span class="macro">write_graph!</span>(<span class="self">self</span>, <span class="string">&quot;\&quot;{:?}\&quot; [ shape = \&quot;record\&quot;&quot;</span>, <a class="ident" href="../../../src/prusti_interface/environment/dump_borrowck_info.rs.html#445">bb</a>);
         <span class="kw">if</span> <a class="self" href="../../../src/prusti_interface/environment/dump_borrowck_info.rs.html#445">self</a>.<span class="ident">loops</span>.<span class="ident">loop_heads</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/prusti_interface/environment/dump_borrowck_info.rs.html#445">bb</a>) {
             <span class="macro">write_graph!</span>(<span class="self">self</span>, <span class="string">&quot;color=green&quot;</span>);
@@ -1763,7 +1763,7 @@
         <span class="macro">write_graph!</span>(<span class="self">self</span>, <span class="string">&quot;&lt;/th&gt;&quot;</span>);
 
         <span class="comment">// Is this the entry point of a procedure?</span>
-        <span class="kw">if</span> <a class="ident" href="../../../src/prusti_interface/environment/dump_borrowck_info.rs.html#445">bb</a> <span class="op">=</span><span class="op">=</span> <span class="ident">mir::BasicBlock::new</span>(<span class="number">0</span>) {
+        <span class="kw">if</span> <a class="ident" href="../../../src/prusti_interface/environment/dump_borrowck_info.rs.html#445">bb</a> <span class="op">==</span> <span class="ident">mir::BasicBlock::new</span>(<span class="number">0</span>) {
             <a class="self" href="../../../src/prusti_interface/environment/dump_borrowck_info.rs.html#445">self</a>.<a class="ident" href="../../../src/prusti_interface/environment/dump_borrowck_info.rs.html#1247-1251">write_magic_wands</a>(
                 <span class="bool-val">false</span>,
                 <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Location.html">mir::Location</a> {
@@ -2046,7 +2046,7 @@
                         <span class="macro">write_graph!</span>(<span class="self">self</span>, <span class="string">&quot;subgraph cluster_{:?}_{:?} {{&quot;</span>, <a class="ident" href="../../../src/prusti_interface/environment/dump_borrowck_info.rs.html#445">bb</a>, <a class="ident" href="../../../src/prusti_interface/environment/dump_borrowck_info.rs.html#730">loan</a>);
                         <span class="kw">let</span> <span class="ident">loan_issued_at</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="self" href="../../../src/prusti_interface/environment/dump_borrowck_info.rs.html#445">self</a>.<span class="ident">polonius_info</span>.<span class="ident">borrowck_in_facts</span>.<span class="ident">loan_issued_at</span>;
                         <span class="kw">for</span> (<span class="ident">region</span>, <span class="ident">l</span>, <span class="ident">point</span>) <span class="kw">in</span> <a class="ident" href="../../../src/prusti_interface/environment/dump_borrowck_info.rs.html#739">loan_issued_at</a>.<span class="ident">iter</span>() {
-                            <span class="kw">if</span> <a class="ident" href="../../../src/prusti_interface/environment/dump_borrowck_info.rs.html#730">loan</a> <span class="op">=</span><span class="op">=</span> <a class="ident" href="../../../src/prusti_interface/environment/dump_borrowck_info.rs.html#740">l</a> {
+                            <span class="kw">if</span> <a class="ident" href="../../../src/prusti_interface/environment/dump_borrowck_info.rs.html#730">loan</a> <span class="op">==</span> <a class="ident" href="../../../src/prusti_interface/environment/dump_borrowck_info.rs.html#740">l</a> {
                                 <span class="comment">// Write the original loan&#39;s region.</span>
                                 <span class="macro">write_graph!</span>(
                                     <span class="self">self</span>,
@@ -2065,7 +2065,7 @@
                                     <span class="kw">for</span> (<span class="ident">source_region</span>, <span class="ident">regions</span>) <span class="kw">in</span> <a class="ident" href="../../../src/prusti_interface/environment/dump_borrowck_info.rs.html#756">subset</a>.<span class="ident">iter</span>() {
                                         <a class="ident" href="../../../src/prusti_interface/environment/dump_borrowck_info.rs.html#733">used_regions</a>.<span class="ident">insert</span>(<a class="ident" href="../../../src/prusti_interface/environment/dump_borrowck_info.rs.html#757">source_region</a>);
                                         <span class="kw">for</span> <a class="ident" href="../../../src/prusti_interface/environment/dump_borrowck_info.rs.html#759">target_region</a> <span class="kw">in</span> <a class="ident" href="../../../src/prusti_interface/environment/dump_borrowck_info.rs.html#757">regions</a>.<span class="ident">iter</span>() {
-                                            <span class="kw">if</span> <a class="ident" href="../../../src/prusti_interface/environment/dump_borrowck_info.rs.html#757">source_region</a> <span class="op">=</span><span class="op">=</span> <a class="ident" href="../../../src/prusti_interface/environment/dump_borrowck_info.rs.html#759">target_region</a> {
+                                            <span class="kw">if</span> <a class="ident" href="../../../src/prusti_interface/environment/dump_borrowck_info.rs.html#757">source_region</a> <span class="op">==</span> <a class="ident" href="../../../src/prusti_interface/environment/dump_borrowck_info.rs.html#759">target_region</a> {
                                                 <span class="kw">continue</span>;
                                             }
                                             <a class="ident" href="../../../src/prusti_interface/environment/dump_borrowck_info.rs.html#733">used_regions</a>.<span class="ident">insert</span>(<a class="ident" href="../../../src/prusti_interface/environment/dump_borrowck_info.rs.html#759">target_region</a>);
@@ -2143,7 +2143,7 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">location</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Location.html">mir::Location</a>,
         <span class="ident">statement</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Statement.html">mir::Statement</a>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a><span class="op">&gt;</span> {
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a><span class="op">&gt;</span> {
         <span class="macro">write_graph!</span>(<span class="self">self</span>, <span class="string">&quot;&lt;tr&gt;&quot;</span>);
         <span class="kw">if</span> <a class="self" href="../../../src/prusti_interface/environment/dump_borrowck_info.rs.html#835">self</a>.<a class="ident" href="../../../src/prusti_interface/environment/dump_borrowck_info.rs.html#1010">show_statement_indices</a>() {
             <span class="macro">write_graph!</span>(<span class="self">self</span>, <span class="string">&quot;&lt;td&gt;{}&lt;/td&gt;&quot;</span>, <a class="ident" href="../../../src/prusti_interface/environment/dump_borrowck_info.rs.html#836">location</a>.<span class="ident">statement_index</span>);
@@ -2173,7 +2173,7 @@
             .<span class="ident">borrowck_in_facts</span>
             .<span class="ident">loan_issued_at</span>
             .<span class="ident">iter</span>()
-            .<span class="ident">filter</span>(<span class="op">|</span>(<span class="kw">_</span>, <span class="kw">_</span>, <span class="ident">point</span>)<span class="op">|</span> <span class="kw-2">*</span><a class="ident" href="../../../src/prusti_interface/environment/dump_borrowck_info.rs.html#868">point</a> <span class="op">=</span><span class="op">=</span> <a class="ident" href="../../../src/prusti_interface/environment/dump_borrowck_info.rs.html#845">start_point</a>)
+            .<span class="ident">filter</span>(<span class="op">|</span>(<span class="kw">_</span>, <span class="kw">_</span>, <span class="ident">point</span>)<span class="op">|</span> <span class="kw-2">*</span><a class="ident" href="../../../src/prusti_interface/environment/dump_borrowck_info.rs.html#868">point</a> <span class="op">==</span> <a class="ident" href="../../../src/prusti_interface/environment/dump_borrowck_info.rs.html#845">start_point</a>)
             .<span class="ident">cloned</span>()
             .<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">region</span>, <span class="ident">loan</span>, <span class="kw">_</span>)<span class="op">|</span> (<a class="ident" href="../../../src/prusti_interface/environment/dump_borrowck_info.rs.html#870">region</a>, <a class="ident" href="../../../src/prusti_interface/environment/dump_borrowck_info.rs.html#870">loan</a>))
             .<span class="ident">collect</span>();
@@ -2183,7 +2183,7 @@
             .<span class="ident">borrowck_in_facts</span>
             .<span class="ident">loan_issued_at</span>
             .<span class="ident">iter</span>()
-            .<span class="ident">filter</span>(<span class="op">|</span>(<span class="kw">_</span>, <span class="kw">_</span>, <span class="ident">point</span>)<span class="op">|</span> <span class="kw-2">*</span><a class="ident" href="../../../src/prusti_interface/environment/dump_borrowck_info.rs.html#878">point</a> <span class="op">=</span><span class="op">=</span> <a class="ident" href="../../../src/prusti_interface/environment/dump_borrowck_info.rs.html#846">mid_point</a>)
+            .<span class="ident">filter</span>(<span class="op">|</span>(<span class="kw">_</span>, <span class="kw">_</span>, <span class="ident">point</span>)<span class="op">|</span> <span class="kw-2">*</span><a class="ident" href="../../../src/prusti_interface/environment/dump_borrowck_info.rs.html#878">point</a> <span class="op">==</span> <a class="ident" href="../../../src/prusti_interface/environment/dump_borrowck_info.rs.html#846">mid_point</a>)
             .<span class="ident">cloned</span>()
             .<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">region</span>, <span class="ident">loan</span>, <span class="kw">_</span>)<span class="op">|</span> (<a class="ident" href="../../../src/prusti_interface/environment/dump_borrowck_info.rs.html#880">region</a>, <a class="ident" href="../../../src/prusti_interface/environment/dump_borrowck_info.rs.html#880">loan</a>))
             .<span class="ident">collect</span>();
@@ -2228,7 +2228,7 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">location</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Location.html">mir::Location</a>,
         <span class="ident">point_type</span>: <a class="ident" href="../../../src/prusti_interface/environment/borrowck/facts.rs.html#48-51">facts::PointType</a>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="../../../src/prusti_interface/environment/borrowck/facts.rs.html#17">facts::PointIndex</a> {
+    ) -&gt; <a class="ident" href="../../../src/prusti_interface/environment/borrowck/facts.rs.html#17">facts::PointIndex</a> {
         <span class="kw">let</span> <span class="ident">point</span> <span class="op">=</span> <a class="ident" href="../../../src/prusti_interface/environment/borrowck/facts.rs.html#73-76">facts::Point</a> {
             <a class="ident" href="../../../src/prusti_interface/environment/dump_borrowck_info.rs.html#921">location</a>,
             <span class="ident">typ</span>: <a class="ident" href="../../../src/prusti_interface/environment/dump_borrowck_info.rs.html#922">point_type</a>,
@@ -2240,33 +2240,33 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">bb</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">mir::BasicBlock</a>,
         <span class="ident">terminator</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/terminator/struct.Terminator.html">mir::Terminator</a>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a><span class="op">&gt;</span> {
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a><span class="op">&gt;</span> {
         <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/terminator/enum.TerminatorKind.html">rustc_middle::mir::TerminatorKind</a>;
         <span class="kw">match</span> <a class="ident" href="../../../src/prusti_interface/environment/dump_borrowck_info.rs.html#934">terminator</a>.<span class="ident">kind</span> {
-            <span class="ident">TerminatorKind::Goto</span> { <span class="ident">target</span> } <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">TerminatorKind::Goto</span> { <span class="ident">target</span> } =&gt; {
                 <span class="macro">write_edge!</span>(<span class="self">self</span>, <span class="ident">bb</span>, <span class="ident">target</span>);
             }
-            <span class="ident">TerminatorKind::SwitchInt</span> { <span class="kw-2">ref</span> <span class="ident">targets</span>, .. } <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">TerminatorKind::SwitchInt</span> { <span class="kw-2">ref</span> <span class="ident">targets</span>, .. } =&gt; {
                 <span class="kw">for</span> <a class="ident" href="../../../src/prusti_interface/environment/dump_borrowck_info.rs.html#942">target</a> <span class="kw">in</span> <a class="ident" href="../../../src/prusti_interface/environment/dump_borrowck_info.rs.html#941">targets</a>.<span class="ident">all_targets</span>() {
                     <span class="macro">write_edge!</span>(<span class="self">self</span>, <span class="ident">bb</span>, <span class="ident">target</span>);
                 }
             }
-            <span class="ident">TerminatorKind::Resume</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">TerminatorKind::Resume</span> =&gt; {
                 <span class="macro">write_edge!</span>(<span class="self">self</span>, <span class="ident">bb</span>, <span class="ident">str</span> <span class="ident">resume</span>);
             }
-            <span class="ident">TerminatorKind::Abort</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">TerminatorKind::Abort</span> =&gt; {
                 <span class="macro">write_edge!</span>(<span class="self">self</span>, <span class="ident">bb</span>, <span class="ident">str</span> <span class="ident">abort</span>);
             }
-            <span class="ident">TerminatorKind::Return</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">TerminatorKind::Return</span> =&gt; {
                 <span class="macro">write_edge!</span>(<span class="self">self</span>, <span class="ident">bb</span>, <span class="ident">str</span> <span class="kw">return</span>);
             }
-            <span class="ident">TerminatorKind::Unreachable</span> <span class="op">=</span><span class="op">&gt;</span> {}
+            <span class="ident">TerminatorKind::Unreachable</span> =&gt; {}
             <span class="ident">TerminatorKind::DropAndReplace</span> {
                 <span class="kw-2">ref</span> <span class="ident">target</span>, <span class="ident">unwind</span>, ..
             }
             <span class="op">|</span> <span class="ident">TerminatorKind::Drop</span> {
                 <span class="kw-2">ref</span> <span class="ident">target</span>, <span class="ident">unwind</span>, ..
-            } <span class="op">=</span><span class="op">&gt;</span> {
+            } =&gt; {
                 <span class="macro">write_edge!</span>(<span class="self">self</span>, <span class="ident">bb</span>, <span class="ident">target</span>);
                 <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">target</span>) <span class="op">=</span> <a class="ident" href="../../../src/prusti_interface/environment/dump_borrowck_info.rs.html#957">unwind</a> {
                     <span class="macro">write_edge!</span>(<span class="self">self</span>, <span class="ident">bb</span>, <span class="ident">unwind</span> <span class="ident">target</span>);
@@ -2276,7 +2276,7 @@
                 <span class="kw-2">ref</span> <span class="ident">destination</span>,
                 <span class="ident">cleanup</span>,
                 ..
-            } <span class="op">=</span><span class="op">&gt;</span> {
+            } =&gt; {
                 <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="ident">target</span>)) <span class="op">=</span> <span class="kw-2">*</span><a class="ident" href="../../../src/prusti_interface/environment/dump_borrowck_info.rs.html#968">destination</a> {
                     <span class="macro">write_edge!</span>(<span class="self">self</span>, <span class="ident">bb</span>, <span class="ident">target</span>);
                 }
@@ -2286,51 +2286,51 @@
             }
             <span class="ident">TerminatorKind::Assert</span> {
                 <span class="ident">target</span>, <span class="ident">cleanup</span>, ..
-            } <span class="op">=</span><span class="op">&gt;</span> {
+            } =&gt; {
                 <span class="macro">write_edge!</span>(<span class="self">self</span>, <span class="ident">bb</span>, <span class="ident">target</span>);
                 <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">target</span>) <span class="op">=</span> <a class="ident" href="../../../src/prusti_interface/environment/dump_borrowck_info.rs.html#980">cleanup</a> {
                     <span class="macro">write_edge!</span>(<span class="self">self</span>, <span class="ident">bb</span>, <span class="ident">unwind</span> <span class="ident">target</span>);
                 }
             }
-            <span class="ident">TerminatorKind::Yield</span> { .. } <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unimplemented!</span>(),
-            <span class="ident">TerminatorKind::GeneratorDrop</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unimplemented!</span>(),
+            <span class="ident">TerminatorKind::Yield</span> { .. } =&gt; <span class="macro">unimplemented!</span>(),
+            <span class="ident">TerminatorKind::GeneratorDrop</span> =&gt; <span class="macro">unimplemented!</span>(),
             <span class="ident">TerminatorKind::FalseEdge</span> {
                 <span class="kw-2">ref</span> <span class="ident">real_target</span>,
                 <span class="kw-2">ref</span> <span class="ident">imaginary_target</span>,
-            } <span class="op">=</span><span class="op">&gt;</span> {
+            } =&gt; {
                 <span class="macro">write_edge!</span>(<span class="self">self</span>, <span class="ident">bb</span>, <span class="ident">real_target</span>);
                 <span class="macro">write_edge!</span>(<span class="self">self</span>, <span class="ident">bb</span>, <span class="ident">imaginary_target</span>);
             }
             <span class="ident">TerminatorKind::FalseUnwind</span> {
                 <span class="ident">real_target</span>,
                 <span class="ident">unwind</span>,
-            } <span class="op">=</span><span class="op">&gt;</span> {
+            } =&gt; {
                 <span class="macro">write_edge!</span>(<span class="self">self</span>, <span class="ident">bb</span>, <span class="ident">real_target</span>);
                 <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">target</span>) <span class="op">=</span> <a class="ident" href="../../../src/prusti_interface/environment/dump_borrowck_info.rs.html#998">unwind</a> {
                     <span class="macro">write_edge!</span>(<span class="self">self</span>, <span class="ident">bb</span>, <span class="ident">imaginary</span> <span class="ident">target</span>);
                 }
             }
-            <span class="ident">TerminatorKind::InlineAsm</span> { .. } <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unimplemented!</span>(),
+            <span class="ident">TerminatorKind::InlineAsm</span> { .. } =&gt; <span class="macro">unimplemented!</span>(),
         };
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">fn</span> <span class="ident">show_statement_indices</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    <span class="kw">fn</span> <span class="ident">show_statement_indices</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
         <span class="macro">unimplemented!</span>(<span class="string">&quot;Should use SETTINGS.&quot;</span>);
         <span class="comment">// get_config_option(&quot;PRUSTI_DUMP_SHOW_STATEMENT_INDICES&quot;, true)</span>
     }
 
-    <span class="kw">fn</span> <span class="ident">show_temp_variables</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    <span class="kw">fn</span> <span class="ident">show_temp_variables</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
         <span class="macro">unimplemented!</span>(<span class="string">&quot;Should use SETTINGS.&quot;</span>);
         <span class="comment">// get_config_option(&quot;PRUSTI_DUMP_SHOW_TEMP_VARIABLES&quot;, true)</span>
     }
 
-    <span class="kw">fn</span> <span class="ident">show_borrow_regions</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    <span class="kw">fn</span> <span class="ident">show_borrow_regions</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
         <span class="macro">unimplemented!</span>(<span class="string">&quot;Should use SETTINGS.&quot;</span>);
         <span class="comment">// get_config_option(&quot;PRUSTI_DUMP_SHOW_BORROW_REGIONS&quot;, false)</span>
     }
 
-    <span class="kw">fn</span> <span class="ident">show_restricts</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    <span class="kw">fn</span> <span class="ident">show_restricts</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
         <span class="macro">unimplemented!</span>(<span class="string">&quot;Should use SETTINGS.&quot;</span>);
         <span class="comment">// get_config_option(&quot;PRUSTI_DUMP_SHOW_RESTRICTS&quot;, false)</span>
     }
@@ -2338,12 +2338,12 @@
 
 <span class="doccomment">/// Definitely initialized analysis.</span>
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> <span class="ident">MirInfoPrinter</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">get_definitely_initialized_before_block</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">bb</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">mir::BasicBlock</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> {
+    <span class="kw">fn</span> <span class="ident">get_definitely_initialized_before_block</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">bb</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">mir::BasicBlock</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> {
         <span class="kw">let</span> <span class="ident">place_set</span> <span class="op">=</span> <a class="self" href="../../../src/prusti_interface/environment/dump_borrowck_info.rs.html#1033">self</a>.<span class="ident">initialization</span>.<a class="ident" href="../../../src/prusti_interface/environment/mir_analyses/initialization.rs.html#51">get_before_block</a>(<a class="ident" href="../../../src/prusti_interface/environment/dump_borrowck_info.rs.html#1033">bb</a>);
         <span class="macro">to_sorted_string!</span>(<a class="ident" href="../../../src/prusti_interface/environment/dump_borrowck_info.rs.html#1034">place_set</a>)
     }
 
-    <span class="kw">fn</span> <span class="ident">get_definitely_initialized_after_statement</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">location</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Location.html">mir::Location</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> {
+    <span class="kw">fn</span> <span class="ident">get_definitely_initialized_after_statement</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">location</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Location.html">mir::Location</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> {
         <span class="kw">let</span> <span class="ident">place_set</span> <span class="op">=</span> <a class="self" href="../../../src/prusti_interface/environment/dump_borrowck_info.rs.html#1038">self</a>.<span class="ident">initialization</span>.<a class="ident" href="../../../src/prusti_interface/environment/mir_analyses/initialization.rs.html#59">get_after_statement</a>(<a class="ident" href="../../../src/prusti_interface/environment/dump_borrowck_info.rs.html#1038">location</a>);
         <span class="macro">to_sorted_string!</span>(<a class="ident" href="../../../src/prusti_interface/environment/dump_borrowck_info.rs.html#1039">place_set</a>)
     }
@@ -2352,7 +2352,7 @@
 <span class="doccomment">/// Maybe blocking analysis.</span>
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> <span class="ident">MirInfoPrinter</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> {
     <span class="doccomment">/// Print the subset relation at a given program point.</span>
-    <span class="kw">fn</span> <span class="ident">print_subset_at_start</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">location</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Location.html">mir::Location</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">print_subset_at_start</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">location</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Location.html">mir::Location</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">point</span> <span class="op">=</span> <a class="self" href="../../../src/prusti_interface/environment/dump_borrowck_info.rs.html#1047">self</a>.<a class="ident" href="../../../src/prusti_interface/environment/dump_borrowck_info.rs.html#919-923">get_point</a>(<a class="ident" href="../../../src/prusti_interface/environment/dump_borrowck_info.rs.html#1047">location</a>, <a class="ident" href="../../../src/prusti_interface/environment/borrowck/facts.rs.html#49">facts::PointType::Start</a>);
         <span class="kw">let</span> <span class="ident">subset_map</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="self" href="../../../src/prusti_interface/environment/dump_borrowck_info.rs.html#1047">self</a>.<span class="ident">polonius_info</span>.<span class="ident">borrowck_out_facts</span>.<span class="ident">subset</span>;
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">subset</span>) <span class="op">=</span> <a class="ident" href="../../../src/prusti_interface/environment/dump_borrowck_info.rs.html#1049">subset_map</a>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/prusti_interface/environment/dump_borrowck_info.rs.html#1048">point</a>).<span class="ident">as_ref</span>() {
@@ -2399,7 +2399,7 @@
 
     <span class="doccomment">/// Print variables that are maybe blocked by the given variable at</span>
     <span class="doccomment">/// the start of the given location.</span>
-    <span class="kw">fn</span> <span class="ident">print_blocked</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">blocker</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Local.html">mir::Local</a>, <span class="ident">location</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Location.html">mir::Location</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">print_blocked</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">blocker</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Local.html">mir::Local</a>, <span class="ident">location</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Location.html">mir::Location</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">bb</span> <span class="op">=</span> <a class="ident" href="../../../src/prusti_interface/environment/dump_borrowck_info.rs.html#1094">location</a>.<span class="ident">block</span>;
         <span class="kw">let</span> <span class="ident">start_point</span> <span class="op">=</span> <a class="self" href="../../../src/prusti_interface/environment/dump_borrowck_info.rs.html#1094">self</a>.<a class="ident" href="../../../src/prusti_interface/environment/dump_borrowck_info.rs.html#919-923">get_point</a>(<a class="ident" href="../../../src/prusti_interface/environment/dump_borrowck_info.rs.html#1094">location</a>, <a class="ident" href="../../../src/prusti_interface/environment/borrowck/facts.rs.html#49">facts::PointType::Start</a>);
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">region</span>) <span class="op">=</span> <a class="self" href="../../../src/prusti_interface/environment/dump_borrowck_info.rs.html#1094">self</a>.<span class="ident">polonius_info</span>.<span class="ident">place_regions</span>.<a class="ident" href="../../../src/prusti_interface/environment/borrowck/regions.rs.html#48">for_local</a>(<a class="ident" href="../../../src/prusti_interface/environment/dump_borrowck_info.rs.html#1094">blocker</a>) {
@@ -2418,7 +2418,7 @@
             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">subset</span>) <span class="op">=</span> <a class="ident" href="../../../src/prusti_interface/environment/dump_borrowck_info.rs.html#1109">subset_map</a>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/prusti_interface/environment/dump_borrowck_info.rs.html#1096">start_point</a>).<span class="ident">as_ref</span>() {
                 <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">blocked_regions</span>) <span class="op">=</span> <a class="ident" href="../../../src/prusti_interface/environment/dump_borrowck_info.rs.html#1110">subset</a>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/prusti_interface/environment/dump_borrowck_info.rs.html#1097">region</a>) {
                     <span class="kw">for</span> <a class="ident" href="../../../src/prusti_interface/environment/dump_borrowck_info.rs.html#1112">blocked_region</a> <span class="kw">in</span> <a class="ident" href="../../../src/prusti_interface/environment/dump_borrowck_info.rs.html#1111">blocked_regions</a>.<span class="ident">iter</span>() {
-                        <span class="kw">if</span> <span class="kw-2">*</span><a class="ident" href="../../../src/prusti_interface/environment/dump_borrowck_info.rs.html#1112">blocked_region</a> <span class="op">=</span><span class="op">=</span> <a class="ident" href="../../../src/prusti_interface/environment/dump_borrowck_info.rs.html#1097">region</a> {
+                        <span class="kw">if</span> <span class="kw-2">*</span><a class="ident" href="../../../src/prusti_interface/environment/dump_borrowck_info.rs.html#1112">blocked_region</a> <span class="op">==</span> <a class="ident" href="../../../src/prusti_interface/environment/dump_borrowck_info.rs.html#1097">region</a> {
                             <span class="kw">continue</span>;
                         }
                         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">blocked</span>) <span class="op">=</span> <a class="self" href="../../../src/prusti_interface/environment/dump_borrowck_info.rs.html#1094">self</a>.<span class="ident">polonius_info</span>.<a class="ident" href="../../../src/prusti_interface/environment/polonius_info.rs.html#1299">find_variable</a>(<span class="kw-2">*</span><a class="ident" href="../../../src/prusti_interface/environment/dump_borrowck_info.rs.html#1112">blocked_region</a>) {
@@ -2478,7 +2478,7 @@
 <span class="doccomment">/// Loan end analysis.</span>
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> <span class="ident">MirInfoPrinter</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> {
     <span class="doccomment">/// Print the HTML cell with loans at given location.</span>
-    <span class="kw">fn</span> <span class="ident">write_mid_point_blas</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">location</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Location.html">mir::Location</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">write_mid_point_blas</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">location</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Location.html">mir::Location</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">mid_point</span> <span class="op">=</span> <a class="self" href="../../../src/prusti_interface/environment/dump_borrowck_info.rs.html#1173">self</a>.<a class="ident" href="../../../src/prusti_interface/environment/dump_borrowck_info.rs.html#919-923">get_point</a>(<a class="ident" href="../../../src/prusti_interface/environment/dump_borrowck_info.rs.html#1173">location</a>, <a class="ident" href="../../../src/prusti_interface/environment/borrowck/facts.rs.html#50">facts::PointType::Mid</a>);
         <span class="kw">let</span> <span class="ident">borrow_live_at_map</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="self" href="../../../src/prusti_interface/environment/dump_borrowck_info.rs.html#1173">self</a>.<span class="ident">polonius_info</span>.<span class="ident">borrowck_out_facts</span>.<span class="ident">loan_live_at</span>;
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">blas</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">blas</span>) <span class="op">=</span> <a class="ident" href="../../../src/prusti_interface/environment/dump_borrowck_info.rs.html#1175">borrow_live_at_map</a>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/prusti_interface/environment/dump_borrowck_info.rs.html#1174">mid_point</a>).<span class="ident">as_ref</span>() {
@@ -2556,7 +2556,7 @@
         <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
         <span class="ident">package</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
         <span class="ident">location</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Location.html">mir::Location</a>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a><span class="op">&gt;</span> {
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a><span class="op">&gt;</span> {
         <span class="comment">// TODO: Refactor out this code that computes magic wands.</span>
         <span class="kw">let</span> <span class="ident">blocker</span> <span class="op">=</span> <span class="ident">mir::RETURN_PLACE</span>;
         <span class="comment">//TODO: Check if it really is always start and not the mid point.</span>
@@ -2570,7 +2570,7 @@
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">blocked_variables</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
                 <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">blocked_regions</span>) <span class="op">=</span> <a class="ident" href="../../../src/prusti_interface/environment/dump_borrowck_info.rs.html#1261">subset</a>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/prusti_interface/environment/dump_borrowck_info.rs.html#1257">region</a>) {
                     <span class="kw">for</span> <a class="ident" href="../../../src/prusti_interface/environment/dump_borrowck_info.rs.html#1264">blocked_region</a> <span class="kw">in</span> <a class="ident" href="../../../src/prusti_interface/environment/dump_borrowck_info.rs.html#1263">blocked_regions</a>.<span class="ident">iter</span>() {
-                        <span class="kw">if</span> <span class="kw-2">*</span><a class="ident" href="../../../src/prusti_interface/environment/dump_borrowck_info.rs.html#1264">blocked_region</a> <span class="op">=</span><span class="op">=</span> <a class="ident" href="../../../src/prusti_interface/environment/dump_borrowck_info.rs.html#1257">region</a> {
+                        <span class="kw">if</span> <span class="kw-2">*</span><a class="ident" href="../../../src/prusti_interface/environment/dump_borrowck_info.rs.html#1264">blocked_region</a> <span class="op">==</span> <a class="ident" href="../../../src/prusti_interface/environment/dump_borrowck_info.rs.html#1257">region</a> {
                             <span class="kw">continue</span>;
                         }
                         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">local</span>) <span class="op">=</span> <a class="self" href="../../../src/prusti_interface/environment/dump_borrowck_info.rs.html#1248">self</a>.<span class="ident">polonius_info</span>.<a class="ident" href="../../../src/prusti_interface/environment/polonius_info.rs.html#1299">find_variable</a>(<span class="kw-2">*</span><a class="ident" href="../../../src/prusti_interface/environment/dump_borrowck_info.rs.html#1264">blocked_region</a>) {

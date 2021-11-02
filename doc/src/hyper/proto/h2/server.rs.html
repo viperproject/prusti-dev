@@ -364,7 +364,7 @@
     <span class="ident">B</span>: <a class="ident" href="../../../../src/hyper/body/payload.rs.html#13-71">Payload</a>,
     <span class="ident">E</span>: <span class="ident">H2Exec</span><span class="op">&lt;</span><span class="ident">S::Future</span>, <span class="ident">B</span><span class="op">&gt;</span>,
 {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">io</span>: <span class="ident">T</span>, <span class="ident">service</span>: <span class="ident">S</span>, <span class="ident">builder</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../h2/server/struct.Builder.html">Builder</a>, <span class="ident">exec</span>: <span class="ident">E</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Server</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">S</span>, <span class="ident">B</span>, <span class="ident">E</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">io</span>: <span class="ident">T</span>, <span class="ident">service</span>: <span class="ident">S</span>, <span class="ident">builder</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../h2/server/struct.Builder.html">Builder</a>, <span class="ident">exec</span>: <span class="ident">E</span>) -&gt; <span class="ident">Server</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">S</span>, <span class="ident">B</span>, <span class="ident">E</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">handshake</span> <span class="op">=</span> <a class="ident" href="../../../../src/hyper/proto/h2/server.rs.html#55">builder</a>.<span class="ident">handshake</span>(<a class="ident" href="../../../../src/hyper/proto/h2/server.rs.html#55">io</a>);
         <a class="ident" href="../../../../src/hyper/proto/h2/server.rs.html#19-27">Server</a> {
             <a class="ident" href="../../../../src/hyper/proto/h2/server.rs.html#55">exec</a>,
@@ -376,16 +376,16 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">graceful_shutdown</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) {
         <span class="macro">trace!</span>(<span class="string">&quot;graceful_shutdown&quot;</span>);
         <span class="kw">match</span> <a class="self" href="../../../../src/hyper/proto/h2/server.rs.html#64">self</a>.<span class="ident">state</span> {
-            <a class="ident" href="../../../../src/hyper/proto/h2/server.rs.html#33">State::Handshaking</a>(..) <span class="op">=</span><span class="op">&gt;</span> {
+            <a class="ident" href="../../../../src/hyper/proto/h2/server.rs.html#33">State::Handshaking</a>(..) =&gt; {
                 <span class="comment">// fall-through, to replace state with Closed</span>
             },
-            <a class="ident" href="../../../../src/hyper/proto/h2/server.rs.html#34">State::Serving</a>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">srv</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <a class="ident" href="../../../../src/hyper/proto/h2/server.rs.html#34">State::Serving</a>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">srv</span>) =&gt; {
                 <span class="kw">if</span> <a class="ident" href="../../../../src/hyper/proto/h2/server.rs.html#70">srv</a>.<span class="ident">closing</span>.<span class="ident">is_none</span>() {
                     <a class="ident" href="../../../../src/hyper/proto/h2/server.rs.html#70">srv</a>.<span class="ident">conn</span>.<span class="ident">graceful_shutdown</span>();
                 }
                 <span class="kw">return</span>;
             },
-            <a class="ident" href="../../../../src/hyper/proto/h2/server.rs.html#35">State::Closed</a> <span class="op">=</span><span class="op">&gt;</span> {
+            <a class="ident" href="../../../../src/hyper/proto/h2/server.rs.html#35">State::Closed</a> =&gt; {
                 <span class="kw">return</span>;
             }
         }
@@ -404,21 +404,21 @@
     <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <a class="ident" href="../../../../src/hyper/proto/mod.rs.html#39-44">Dispatched</a>;
     <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <a class="ident" href="../../../../src/hyper/error.rs.html#16-18">::Error</a>;
 
-    <span class="kw">fn</span> <span class="ident">poll</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">poll</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
         <span class="kw">loop</span> {
             <span class="kw">let</span> <span class="ident">next</span> <span class="op">=</span> <span class="kw">match</span> <a class="self" href="../../../../src/hyper/proto/h2/server.rs.html#95">self</a>.<span class="ident">state</span> {
-                <a class="ident" href="../../../../src/hyper/proto/h2/server.rs.html#33">State::Handshaking</a>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">h</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <a class="ident" href="../../../../src/hyper/proto/h2/server.rs.html#33">State::Handshaking</a>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">h</span>) =&gt; {
                     <span class="kw">let</span> <span class="ident">conn</span> <span class="op">=</span> <span class="macro">try_ready!</span>(<a class="ident" href="../../../../src/hyper/proto/h2/server.rs.html#98">h</a>.<span class="ident">poll</span>().<span class="ident">map_err</span>(<span class="ident">::Error::new_h2</span>));
                     <a class="ident" href="../../../../src/hyper/proto/h2/server.rs.html#34">State::Serving</a>(<a class="ident" href="../../../../src/hyper/proto/h2/server.rs.html#38-44">Serving</a> {
                         <a class="ident" href="../../../../src/hyper/proto/h2/server.rs.html#99">conn</a>,
                         <span class="ident">closing</span>: <span class="prelude-val">None</span>,
                     })
                 },
-                <a class="ident" href="../../../../src/hyper/proto/h2/server.rs.html#34">State::Serving</a>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">srv</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <a class="ident" href="../../../../src/hyper/proto/h2/server.rs.html#34">State::Serving</a>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">srv</span>) =&gt; {
                     <span class="macro">try_ready!</span>(<a class="ident" href="../../../../src/hyper/proto/h2/server.rs.html#105">srv</a>.<a class="ident" href="../../../../src/hyper/proto/h2/server.rs.html#125-132">poll_server</a>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="self" href="../../../../src/hyper/proto/h2/server.rs.html#95">self</a>.<span class="ident">service</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../../src/hyper/proto/h2/server.rs.html#95">self</a>.<span class="ident">exec</span>));
                     <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Async::Ready</span>(<a class="ident" href="../../../../src/hyper/proto/mod.rs.html#41">Dispatched::Shutdown</a>));
                 }
-                <a class="ident" href="../../../../src/hyper/proto/h2/server.rs.html#35">State::Closed</a> <span class="op">=</span><span class="op">&gt;</span> {
+                <a class="ident" href="../../../../src/hyper/proto/h2/server.rs.html#35">State::Closed</a> =&gt; {
                     <span class="comment">// graceful_shutdown was called before handshaking finished,</span>
                     <span class="comment">// nothing to do here...</span>
                     <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Async::Ready</span>(<a class="ident" href="../../../../src/hyper/proto/mod.rs.html#41">Dispatched::Shutdown</a>));
@@ -434,7 +434,7 @@
     <span class="ident">T</span>: <a class="ident" href="../../../../tokio_io/async_read/trait.AsyncRead.html">AsyncRead</a> <span class="op">+</span> <a class="ident" href="../../../../tokio_io/async_write/trait.AsyncWrite.html">AsyncWrite</a>,
     <span class="ident">B</span>: <a class="ident" href="../../../../src/hyper/body/payload.rs.html#13-71">Payload</a>,
 {
-    <span class="kw">fn</span> <span class="ident">poll_server</span><span class="op">&lt;</span><span class="ident">S</span>, <span class="ident">E</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">service</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">S</span>, <span class="ident">exec</span>: <span class="kw-2">&amp;</span><span class="ident">E</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span>(), <a class="ident" href="../../../../src/hyper/error.rs.html#16-18">::Error</a><span class="op">&gt;</span>
+    <span class="kw">fn</span> <span class="ident">poll_server</span><span class="op">&lt;</span><span class="ident">S</span>, <span class="ident">E</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">service</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">S</span>, <span class="ident">exec</span>: <span class="kw-2">&amp;</span><span class="ident">E</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span>(), <a class="ident" href="../../../../src/hyper/error.rs.html#16-18">::Error</a><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">S</span>: <span class="ident">Service</span><span class="op">&lt;</span>
             <span class="ident">ReqBody</span><span class="op">=</span><a class="ident" href="../../../../src/hyper/body/body.rs.html#25-30">Body</a>,
@@ -447,19 +447,19 @@
             <span class="kw">loop</span> {
                 <span class="comment">// At first, polls the readiness of supplied service.</span>
                 <span class="kw">match</span> <a class="ident" href="../../../../src/hyper/proto/h2/server.rs.html#125">service</a>.<a class="ident" href="../../../../src/hyper/service/service.rs.html#34">poll_ready</a>() {
-                    <span class="prelude-val">Ok</span>(<span class="ident">Async::Ready</span>(())) <span class="op">=</span><span class="op">&gt;</span> (),
-                    <span class="prelude-val">Ok</span>(<span class="ident">Async::NotReady</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="prelude-val">Ok</span>(<span class="ident">Async::Ready</span>(())) =&gt; (),
+                    <span class="prelude-val">Ok</span>(<span class="ident">Async::NotReady</span>) =&gt; {
                         <span class="comment">// use `poll_close` instead of `poll`, in order to avoid accepting a request.</span>
                         <span class="macro">try_ready!</span>(<a class="self" href="../../../../src/hyper/proto/h2/server.rs.html#125">self</a>.<span class="ident">conn</span>.<span class="ident">poll_close</span>().<span class="ident">map_err</span>(<span class="ident">::Error::new_h2</span>));
                         <span class="macro">trace!</span>(<span class="string">&quot;incoming connection complete&quot;</span>);
                         <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Async::Ready</span>(()));
                     }
-                    <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="prelude-val">Err</span>(<span class="ident">err</span>) =&gt; {
                         <span class="kw">let</span> <span class="ident">err</span> <span class="op">=</span> <span class="ident">::Error::new_user_service</span>(<a class="ident" href="../../../../src/hyper/proto/h2/server.rs.html#145">err</a>);
                         <span class="macro">debug!</span>(<span class="string">&quot;service closed: {}&quot;</span>, <a class="ident" href="../../../../src/hyper/proto/h2/server.rs.html#146">err</a>);
 
                         <span class="kw">let</span> <span class="ident">reason</span> <span class="op">=</span> <a class="ident" href="../../../../src/hyper/proto/h2/server.rs.html#146">err</a>.<a class="ident" href="../../../../src/hyper/error.rs.html#194">h2_reason</a>();
-                        <span class="kw">if</span> <a class="ident" href="../../../../src/hyper/proto/h2/server.rs.html#149">reason</a> <span class="op">=</span><span class="op">=</span> <span class="ident">Reason::NO_ERROR</span> {
+                        <span class="kw">if</span> <a class="ident" href="../../../../src/hyper/proto/h2/server.rs.html#149">reason</a> <span class="op">==</span> <span class="ident">Reason::NO_ERROR</span> {
                             <span class="comment">// NO_ERROR is only used for graceful shutdowns...</span>
                             <span class="macro">trace!</span>(<span class="string">&quot;interpretting NO_ERROR user error as graceful_shutdown&quot;</span>);
                             <a class="self" href="../../../../src/hyper/proto/h2/server.rs.html#125">self</a>.<span class="ident">conn</span>.<span class="ident">graceful_shutdown</span>();
@@ -520,20 +520,20 @@
     <span class="ident">F::Error</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">dyn</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/error/trait.Error.html">StdError</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a><span class="op">&gt;</span><span class="op">&gt;</span>,
     <span class="ident">B</span>: <a class="ident" href="../../../../src/hyper/body/payload.rs.html#13-71">Payload</a>,
 {
-    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">fut</span>: <span class="ident">F</span>, <span class="ident">respond</span>: <span class="ident">SendResponse</span><span class="op">&lt;</span><span class="ident">SendBuf</span><span class="op">&lt;</span><span class="ident">B::Data</span><span class="op">&gt;</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">H2Stream</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">B</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">fut</span>: <span class="ident">F</span>, <span class="ident">respond</span>: <span class="ident">SendResponse</span><span class="op">&lt;</span><span class="ident">SendBuf</span><span class="op">&lt;</span><span class="ident">B::Data</span><span class="op">&gt;</span><span class="op">&gt;</span>) -&gt; <span class="ident">H2Stream</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">B</span><span class="op">&gt;</span> {
         <a class="ident" href="../../../../src/hyper/proto/h2/server.rs.html#189-195">H2Stream</a> {
             <span class="ident">reply</span>: <a class="ident" href="../../../../src/hyper/proto/h2/server.rs.html#211">respond</a>,
             <span class="ident">state</span>: <a class="ident" href="../../../../src/hyper/proto/h2/server.rs.html#201">H2StreamState::Service</a>(<a class="ident" href="../../../../src/hyper/proto/h2/server.rs.html#211">fut</a>),
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">poll2</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span>(), <a class="ident" href="../../../../src/hyper/error.rs.html#16-18">::Error</a><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">poll2</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span>(), <a class="ident" href="../../../../src/hyper/error.rs.html#16-18">::Error</a><span class="op">&gt;</span> {
         <span class="kw">loop</span> {
             <span class="kw">let</span> <span class="ident">next</span> <span class="op">=</span> <span class="kw">match</span> <a class="self" href="../../../../src/hyper/proto/h2/server.rs.html#218">self</a>.<span class="ident">state</span> {
-                <a class="ident" href="../../../../src/hyper/proto/h2/server.rs.html#201">H2StreamState::Service</a>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">h</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <a class="ident" href="../../../../src/hyper/proto/h2/server.rs.html#201">H2StreamState::Service</a>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">h</span>) =&gt; {
                     <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../../../src/hyper/proto/h2/server.rs.html#221">h</a>.<span class="ident">poll</span>() {
-                        <span class="prelude-val">Ok</span>(<span class="ident">Async::Ready</span>(<span class="ident">r</span>)) <span class="op">=</span><span class="op">&gt;</span> <a class="ident" href="../../../../src/hyper/proto/h2/server.rs.html#223">r</a>,
-                        <span class="prelude-val">Ok</span>(<span class="ident">Async::NotReady</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                        <span class="prelude-val">Ok</span>(<span class="ident">Async::Ready</span>(<span class="ident">r</span>)) =&gt; <a class="ident" href="../../../../src/hyper/proto/h2/server.rs.html#223">r</a>,
+                        <span class="prelude-val">Ok</span>(<span class="ident">Async::NotReady</span>) =&gt; {
                             <span class="comment">// Body is not yet ready, so we want to check if the client has sent a</span>
                             <span class="comment">// RST_STREAM frame which would cancel the current request.</span>
                             <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Async::Ready</span>(<span class="ident">reason</span>) <span class="op">=</span>
@@ -544,7 +544,7 @@
                             }
                             <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Async::NotReady</span>);
                         }
-                        <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                        <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; {
                             <span class="kw">let</span> <span class="ident">err</span> <span class="op">=</span> <span class="ident">::Error::new_user_service</span>(<a class="ident" href="../../../../src/hyper/proto/h2/server.rs.html#235">e</a>);
                             <span class="macro">warn!</span>(<span class="string">&quot;http2 service errored: {}&quot;</span>, <a class="ident" href="../../../../src/hyper/proto/h2/server.rs.html#236">err</a>);
                             <a class="self" href="../../../../src/hyper/proto/h2/server.rs.html#218">self</a>.<span class="ident">reply</span>.<span class="ident">send_reset</span>(<a class="ident" href="../../../../src/hyper/proto/h2/server.rs.html#236">err</a>.<a class="ident" href="../../../../src/hyper/error.rs.html#194">h2_reason</a>());
@@ -564,10 +564,10 @@
                         .<span class="ident">or_insert_with</span>(<a class="ident" href="../../../../src/hyper/proto/h1/date.rs.html#23">::proto::h1::date::update_and_header_value</a>);
 
                     <span class="macro">macro_rules!</span> <span class="ident">reply</span> {
-                        (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">eos</span>:<span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> ({
+                        (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">eos</span>:<span class="ident">expr</span>) =&gt; ({
                             <span class="kw">match</span> <span class="self">self</span>.<span class="ident">reply</span>.<span class="ident">send_response</span>(<span class="ident">res</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">eos</span>) {
-                                <span class="prelude-val">Ok</span>(<span class="ident">tx</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">tx</span>,
-                                <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                                <span class="prelude-val">Ok</span>(<span class="ident">tx</span>) =&gt; <span class="ident">tx</span>,
+                                <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; {
                                     <span class="macro">debug!</span>(<span class="string">&quot;send response error: {}&quot;</span>, <span class="ident">e</span>);
                                     <span class="self">self</span>.<span class="ident">reply</span>.<span class="ident">send_reset</span>(<span class="ident">Reason::INTERNAL_ERROR</span>);
                                     <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">::Error::new_h2</span>(<span class="ident">e</span>));
@@ -598,7 +598,7 @@
                         <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Async::Ready</span>(()));
                     }
                 },
-                <a class="ident" href="../../../../src/hyper/proto/h2/server.rs.html#202">H2StreamState::Body</a>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">pipe</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <a class="ident" href="../../../../src/hyper/proto/h2/server.rs.html#202">H2StreamState::Body</a>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">pipe</span>) =&gt; {
                     <span class="kw">return</span> <a class="ident" href="../../../../src/hyper/proto/h2/server.rs.html#289">pipe</a>.<span class="ident">poll</span>();
                 }
             };
@@ -616,7 +616,7 @@
     <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> ();
     <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> ();
 
-    <span class="kw">fn</span> <span class="ident">poll</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">poll</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
         <a class="self" href="../../../../src/hyper/proto/h2/server.rs.html#307">self</a>.<a class="ident" href="../../../../src/hyper/proto/h2/server.rs.html#218">poll2</a>()
             .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="macro">debug!</span>(<span class="string">&quot;stream error: {}&quot;</span>, <a class="ident" href="../../../../src/hyper/proto/h2/server.rs.html#309">e</a>))
     }

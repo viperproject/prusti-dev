@@ -295,7 +295,7 @@
 <span class="kw">where</span>
     <span class="ident">S</span>: <a class="ident" href="../../../../src/hyper/body/payload.rs.html#13-71">Payload</a>,
 {
-    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">stream</span>: <span class="ident">S</span>, <span class="ident">tx</span>: <span class="ident">SendStream</span><span class="op">&lt;</span><span class="ident">SendBuf</span><span class="op">&lt;</span><span class="ident">S::Data</span><span class="op">&gt;</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">PipeToSendStream</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">stream</span>: <span class="ident">S</span>, <span class="ident">tx</span>: <span class="ident">SendStream</span><span class="op">&lt;</span><span class="ident">SendBuf</span><span class="op">&lt;</span><span class="ident">S::Data</span><span class="op">&gt;</span><span class="op">&gt;</span>) -&gt; <span class="ident">PipeToSendStream</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> {
         <a class="ident" href="../../../../src/hyper/proto/h2/mod.rs.html#73-80">PipeToSendStream</a> {
             <span class="ident">body_tx</span>: <a class="ident" href="../../../../src/hyper/proto/h2/mod.rs.html#86">tx</a>,
             <span class="ident">data_done</span>: <span class="bool-val">false</span>,
@@ -303,14 +303,14 @@
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">on_user_err</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">err</span>: <span class="ident">S::Error</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="../../../../src/hyper/error.rs.html#16-18">::Error</a> {
+    <span class="kw">fn</span> <span class="ident">on_user_err</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">err</span>: <span class="ident">S::Error</span>) -&gt; <a class="ident" href="../../../../src/hyper/error.rs.html#16-18">::Error</a> {
         <span class="kw">let</span> <span class="ident">err</span> <span class="op">=</span> <span class="ident">::Error::new_user_body</span>(<a class="ident" href="../../../../src/hyper/proto/h2/mod.rs.html#94">err</a>);
         <span class="macro">debug!</span>(<span class="string">&quot;send body user stream error: {}&quot;</span>, <a class="ident" href="../../../../src/hyper/proto/h2/mod.rs.html#95">err</a>);
         <a class="self" href="../../../../src/hyper/proto/h2/mod.rs.html#94">self</a>.<span class="ident">body_tx</span>.<span class="ident">send_reset</span>(<a class="ident" href="../../../../src/hyper/proto/h2/mod.rs.html#95">err</a>.<a class="ident" href="../../../../src/hyper/error.rs.html#194">h2_reason</a>());
         <a class="ident" href="../../../../src/hyper/proto/h2/mod.rs.html#95">err</a>
     }
 
-    <span class="kw">fn</span> <span class="ident">send_eos_frame</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">send_eos_frame</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="ident">::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="macro">trace!</span>(<span class="string">&quot;send body eos&quot;</span>);
         <a class="self" href="../../../../src/hyper/proto/h2/mod.rs.html#101">self</a>.<span class="ident">body_tx</span>
             .<span class="ident">send_data</span>(<a class="ident" href="../../../../src/hyper/proto/h2/mod.rs.html#195">SendBuf</a>(<span class="prelude-val">None</span>), <span class="bool-val">true</span>)
@@ -325,7 +325,7 @@
     <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> ();
     <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <a class="ident" href="../../../../src/hyper/error.rs.html#16-18">::Error</a>;
 
-    <span class="kw">fn</span> <span class="ident">poll</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">poll</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
         <span class="kw">loop</span> {
             <span class="kw">if</span> <span class="op">!</span><a class="self" href="../../../../src/hyper/proto/h2/mod.rs.html#116">self</a>.<span class="ident">data_done</span> {
                 <span class="comment">// we don&#39;t have the next chunk of data yet, so just reserve 1 byte to make</span>
@@ -333,12 +333,12 @@
                 <span class="comment">// for the actual body chunk.</span>
                 <a class="self" href="../../../../src/hyper/proto/h2/mod.rs.html#116">self</a>.<span class="ident">body_tx</span>.<span class="ident">reserve_capacity</span>(<span class="number">1</span>);
 
-                <span class="kw">if</span> <a class="self" href="../../../../src/hyper/proto/h2/mod.rs.html#116">self</a>.<span class="ident">body_tx</span>.<span class="ident">capacity</span>() <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
+                <span class="kw">if</span> <a class="self" href="../../../../src/hyper/proto/h2/mod.rs.html#116">self</a>.<span class="ident">body_tx</span>.<span class="ident">capacity</span>() <span class="op">==</span> <span class="number">0</span> {
                     <span class="kw">loop</span> {
                         <span class="kw">match</span> <span class="macro">try_ready!</span>(<a class="self" href="../../../../src/hyper/proto/h2/mod.rs.html#116">self</a>.<span class="ident">body_tx</span>.<span class="ident">poll_capacity</span>().<span class="ident">map_err</span>(<span class="ident">::Error::new_body_write</span>)) {
-                            <span class="prelude-val">Some</span>(<span class="number">0</span>) <span class="op">=</span><span class="op">&gt;</span> {}
-                            <span class="prelude-val">Some</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">break</span>,
-                            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">::Error::new_canceled</span>()),
+                            <span class="prelude-val">Some</span>(<span class="number">0</span>) =&gt; {}
+                            <span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; <span class="kw">break</span>,
+                            <span class="prelude-val">None</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">::Error::new_canceled</span>()),
                         }
                     }
                 } <span class="kw">else</span> {
@@ -351,7 +351,7 @@
                 }
 
                 <span class="kw">match</span> <span class="macro">try_ready!</span>(<a class="self" href="../../../../src/hyper/proto/h2/mod.rs.html#116">self</a>.<span class="ident">stream</span>.<a class="ident" href="../../../../src/hyper/body/payload.rs.html#24">poll_data</a>().<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <a class="self" href="../../../../src/hyper/proto/h2/mod.rs.html#116">self</a>.<a class="ident" href="../../../../src/hyper/proto/h2/mod.rs.html#94">on_user_err</a>(<a class="ident" href="../../../../src/hyper/proto/h2/mod.rs.html#141">e</a>))) {
-                    <span class="prelude-val">Some</span>(<span class="ident">chunk</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="prelude-val">Some</span>(<span class="ident">chunk</span>) =&gt; {
                         <span class="kw">let</span> <span class="ident">is_eos</span> <span class="op">=</span> <a class="self" href="../../../../src/hyper/proto/h2/mod.rs.html#116">self</a>.<span class="ident">stream</span>.<a class="ident" href="../../../../src/hyper/body/payload.rs.html#46">is_end_stream</a>();
                         <span class="macro">trace!</span>(
                             <span class="string">&quot;send body chunk: {} bytes, eos={}&quot;</span>,
@@ -368,7 +368,7 @@
                             <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Async::Ready</span>(()));
                         }
                     }
-                    <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="prelude-val">None</span> =&gt; {
                         <a class="self" href="../../../../src/hyper/proto/h2/mod.rs.html#116">self</a>.<span class="ident">body_tx</span>.<span class="ident">reserve_capacity</span>(<span class="number">0</span>);
                         <span class="kw">let</span> <span class="ident">is_eos</span> <span class="op">=</span> <a class="self" href="../../../../src/hyper/proto/h2/mod.rs.html#116">self</a>.<span class="ident">stream</span>.<a class="ident" href="../../../../src/hyper/body/payload.rs.html#46">is_end_stream</a>();
                         <span class="kw">if</span> <a class="ident" href="../../../../src/hyper/proto/h2/mod.rs.html#161">is_eos</a> {
@@ -388,13 +388,13 @@
                 }
 
                 <span class="kw">match</span> <span class="macro">try_ready!</span>(<a class="self" href="../../../../src/hyper/proto/h2/mod.rs.html#116">self</a>.<span class="ident">stream</span>.<a class="ident" href="../../../../src/hyper/body/payload.rs.html#31">poll_trailers</a>().<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <a class="self" href="../../../../src/hyper/proto/h2/mod.rs.html#116">self</a>.<a class="ident" href="../../../../src/hyper/proto/h2/mod.rs.html#94">on_user_err</a>(<a class="ident" href="../../../../src/hyper/proto/h2/mod.rs.html#178">e</a>))) {
-                    <span class="prelude-val">Some</span>(<span class="ident">trailers</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="prelude-val">Some</span>(<span class="ident">trailers</span>) =&gt; {
                         <a class="self" href="../../../../src/hyper/proto/h2/mod.rs.html#116">self</a>.<span class="ident">body_tx</span>
                             .<span class="ident">send_trailers</span>(<a class="ident" href="../../../../src/hyper/proto/h2/mod.rs.html#179">trailers</a>)
                             .<span class="ident">map_err</span>(<span class="ident">::Error::new_body_write</span>)<span class="question-mark">?</span>;
                         <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Async::Ready</span>(()));
                     }
-                    <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="prelude-val">None</span> =&gt; {
                         <span class="comment">// There were no trailers, so send an empty DATA frame...</span>
                         <span class="kw">return</span> <a class="self" href="../../../../src/hyper/proto/h2/mod.rs.html#116">self</a>.<a class="ident" href="../../../../src/hyper/proto/h2/mod.rs.html#101">send_eos_frame</a>().<span class="ident">map</span>(<span class="ident">Async::Ready</span>);
                     }
@@ -408,12 +408,12 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">B</span>: <a class="ident" href="../../../../bytes/buf/buf/trait.Buf.html">Buf</a><span class="op">&gt;</span> <a class="ident" href="../../../../bytes/buf/buf/trait.Buf.html">Buf</a> <span class="kw">for</span> <span class="ident">SendBuf</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">remaining</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
+    <span class="kw">fn</span> <span class="ident">remaining</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
         <a class="self" href="../../../../src/hyper/proto/h2/mod.rs.html#199">self</a>.<span class="number">0</span>.<span class="ident">as_ref</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">b</span><span class="op">|</span> <a class="ident" href="../../../../src/hyper/proto/h2/mod.rs.html#200">b</a>.<span class="ident">remaining</span>()).<span class="ident">unwrap_or</span>(<span class="number">0</span>)
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">bytes</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] {
+    <span class="kw">fn</span> <span class="ident">bytes</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] {
         <a class="self" href="../../../../src/hyper/proto/h2/mod.rs.html#204">self</a>.<span class="number">0</span>.<span class="ident">as_ref</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">b</span><span class="op">|</span> <a class="ident" href="../../../../src/hyper/proto/h2/mod.rs.html#205">b</a>.<span class="ident">bytes</span>()).<span class="ident">unwrap_or</span>(<span class="kw-2">&amp;</span>[])
     }
 

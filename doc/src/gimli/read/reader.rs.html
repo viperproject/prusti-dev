@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;gimli-0.25.0&#x2F;src&#x2F;read&#x2F;reader.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>reader.rs - source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../gimli/index.html'><div class='logo-container rust-logo'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;gimli-0.26.1&#x2F;src&#x2F;read&#x2F;reader.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>reader.rs - source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../gimli/index.html'><div class='logo-container rust-logo'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -476,7 +476,32 @@
 <span id="476">476</span>
 <span id="477">477</span>
 <span id="478">478</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/borrow/enum.Cow.html">alloc::borrow::Cow</a>;
+<span id="479">479</span>
+<span id="480">480</span>
+<span id="481">481</span>
+<span id="482">482</span>
+<span id="483">483</span>
+<span id="484">484</span>
+<span id="485">485</span>
+<span id="486">486</span>
+<span id="487">487</span>
+<span id="488">488</span>
+<span id="489">489</span>
+<span id="490">490</span>
+<span id="491">491</span>
+<span id="492">492</span>
+<span id="493">493</span>
+<span id="494">494</span>
+<span id="495">495</span>
+<span id="496">496</span>
+<span id="497">497</span>
+<span id="498">498</span>
+<span id="499">499</span>
+<span id="500">500</span>
+<span id="501">501</span>
+<span id="502">502</span>
+</pre><pre class="rust"><code><span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;read&quot;</span>)]</span>
+<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/borrow/enum.Cow.html">alloc::borrow::Cow</a>;
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.TryInto.html">core::convert::TryInto</a>;
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">core::fmt::Debug</a>;
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/hash/trait.Hash.html">core::hash::Hash</a>;
@@ -484,8 +509,8 @@
 
 <span class="kw">use</span> <a class="ident" href="../../../src/gimli/common.rs.html#3-8"><span class="kw">crate</span>::common::Format</a>;
 <span class="kw">use</span> <a class="ident" href="../../../src/gimli/endianity.rs.html#7-172"><span class="kw">crate</span>::endianity::Endianity</a>;
-<span class="kw">use</span> <a class="ident" href="../../../src/gimli/lib.rs.html#63"><span class="kw">crate</span>::leb128</a>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::read</span>::{<a class="ident" href="../../../src/gimli/read/mod.rs.html#240-395">Error</a>, <span class="prelude-ty">Result</span>};
+<span class="kw">use</span> <a class="ident" href="../../../src/gimli/lib.rs.html#64"><span class="kw">crate</span>::leb128</a>;
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::read</span>::{<a class="ident" href="../../../src/gimli/read/mod.rs.html#271-434">Error</a>, <span class="prelude-ty">Result</span>};
 
 <span class="doccomment">/// An identifier for an offset within a section reader.</span>
 <span class="doccomment">///</span>
@@ -502,166 +527,172 @@
     <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">Debug</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/cmp/trait.Eq.html">Eq</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html">Ord</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/hash/trait.Hash.html">Hash</a> <span class="op">+</span> <span class="ident">Add</span><span class="op">&lt;</span><span class="ident">Output</span> <span class="op">=</span> <span class="self">Self</span><span class="op">&gt;</span> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/arith/trait.AddAssign.html">AddAssign</a> <span class="op">+</span> <span class="ident">Sub</span><span class="op">&lt;</span><span class="ident">Output</span> <span class="op">=</span> <span class="self">Self</span><span class="op">&gt;</span>
 {
     <span class="doccomment">/// Convert a u8 to an offset.</span>
-    <span class="kw">fn</span> <span class="ident">from_u8</span>(<span class="ident">offset</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
+    <span class="kw">fn</span> <span class="ident">from_u8</span>(<span class="ident">offset</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>) -&gt; <span class="self">Self</span>;
 
     <span class="doccomment">/// Convert a u16 to an offset.</span>
-    <span class="kw">fn</span> <span class="ident">from_u16</span>(<span class="ident">offset</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u16.html">u16</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
+    <span class="kw">fn</span> <span class="ident">from_u16</span>(<span class="ident">offset</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u16.html">u16</a>) -&gt; <span class="self">Self</span>;
 
     <span class="doccomment">/// Convert an i16 to an offset.</span>
-    <span class="kw">fn</span> <span class="ident">from_i16</span>(<span class="ident">offset</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.i16.html">i16</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
+    <span class="kw">fn</span> <span class="ident">from_i16</span>(<span class="ident">offset</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.i16.html">i16</a>) -&gt; <span class="self">Self</span>;
 
     <span class="doccomment">/// Convert a u32 to an offset.</span>
-    <span class="kw">fn</span> <span class="ident">from_u32</span>(<span class="ident">offset</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
+    <span class="kw">fn</span> <span class="ident">from_u32</span>(<span class="ident">offset</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a>) -&gt; <span class="self">Self</span>;
 
     <span class="doccomment">/// Convert a u64 to an offset.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Returns `Error::UnsupportedOffset` if the value is too large.</span>
-    <span class="kw">fn</span> <span class="ident">from_u64</span>(<span class="ident">offset</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>;
+    <span class="kw">fn</span> <span class="ident">from_u64</span>(<span class="ident">offset</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>;
 
     <span class="doccomment">/// Convert an offset to a u64.</span>
-    <span class="kw">fn</span> <span class="ident">into_u64</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>;
+    <span class="kw">fn</span> <span class="ident">into_u64</span>(<span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>;
 
     <span class="doccomment">/// Wrapping (modular) addition. Computes `self + other`.</span>
-    <span class="kw">fn</span> <span class="ident">wrapping_add</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="self">Self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
+    <span class="kw">fn</span> <span class="ident">wrapping_add</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="self">Self</span>) -&gt; <span class="self">Self</span>;
 
     <span class="doccomment">/// Checked subtraction. Computes `self - other`.</span>
-    <span class="kw">fn</span> <span class="ident">checked_sub</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="self">Self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>;
+    <span class="kw">fn</span> <span class="ident">checked_sub</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="self">Self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>;
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../src/gimli/read/reader.rs.html#23-51">ReaderOffset</a> <span class="kw">for</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a> {
+<span class="kw">impl</span> <a class="ident" href="../../../src/gimli/read/reader.rs.html#24-52">ReaderOffset</a> <span class="kw">for</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from_u8</span>(<span class="ident">offset</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="ident">u64::from</span>(<a class="ident" href="../../../src/gimli/read/reader.rs.html#55">offset</a>)
+    <span class="kw">fn</span> <span class="ident">from_u8</span>(<span class="ident">offset</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>) -&gt; <span class="self">Self</span> {
+        <span class="ident">u64::from</span>(<a class="ident" href="../../../src/gimli/read/reader.rs.html#56">offset</a>)
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from_u16</span>(<span class="ident">offset</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u16.html">u16</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="ident">u64::from</span>(<a class="ident" href="../../../src/gimli/read/reader.rs.html#60">offset</a>)
+    <span class="kw">fn</span> <span class="ident">from_u16</span>(<span class="ident">offset</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u16.html">u16</a>) -&gt; <span class="self">Self</span> {
+        <span class="ident">u64::from</span>(<a class="ident" href="../../../src/gimli/read/reader.rs.html#61">offset</a>)
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from_i16</span>(<span class="ident">offset</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.i16.html">i16</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <a class="ident" href="../../../src/gimli/read/reader.rs.html#65">offset</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>
+    <span class="kw">fn</span> <span class="ident">from_i16</span>(<span class="ident">offset</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.i16.html">i16</a>) -&gt; <span class="self">Self</span> {
+        <a class="ident" href="../../../src/gimli/read/reader.rs.html#66">offset</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from_u32</span>(<span class="ident">offset</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="ident">u64::from</span>(<a class="ident" href="../../../src/gimli/read/reader.rs.html#70">offset</a>)
+    <span class="kw">fn</span> <span class="ident">from_u32</span>(<span class="ident">offset</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a>) -&gt; <span class="self">Self</span> {
+        <span class="ident">u64::from</span>(<a class="ident" href="../../../src/gimli/read/reader.rs.html#71">offset</a>)
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from_u64</span>(<span class="ident">offset</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/gimli/read/reader.rs.html#75">offset</a>)
+    <span class="kw">fn</span> <span class="ident">from_u64</span>(<span class="ident">offset</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
+        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/gimli/read/reader.rs.html#76">offset</a>)
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">into_u64</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a> {
-        <a class="self" href="../../../src/gimli/read/reader.rs.html#80">self</a>
+    <span class="kw">fn</span> <span class="ident">into_u64</span>(<span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a> {
+        <a class="self" href="../../../src/gimli/read/reader.rs.html#81">self</a>
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">wrapping_add</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="self">Self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <a class="self" href="../../../src/gimli/read/reader.rs.html#85">self</a>.<span class="ident">wrapping_add</span>(<a class="ident" href="../../../src/gimli/read/reader.rs.html#85">other</a>)
+    <span class="kw">fn</span> <span class="ident">wrapping_add</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="self">Self</span>) -&gt; <span class="self">Self</span> {
+        <a class="self" href="../../../src/gimli/read/reader.rs.html#86">self</a>.<span class="ident">wrapping_add</span>(<a class="ident" href="../../../src/gimli/read/reader.rs.html#86">other</a>)
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">checked_sub</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="self">Self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        <a class="self" href="../../../src/gimli/read/reader.rs.html#90">self</a>.<span class="ident">checked_sub</span>(<a class="ident" href="../../../src/gimli/read/reader.rs.html#90">other</a>)
+    <span class="kw">fn</span> <span class="ident">checked_sub</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="self">Self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
+        <a class="self" href="../../../src/gimli/read/reader.rs.html#91">self</a>.<span class="ident">checked_sub</span>(<a class="ident" href="../../../src/gimli/read/reader.rs.html#91">other</a>)
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../src/gimli/read/reader.rs.html#23-51">ReaderOffset</a> <span class="kw">for</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a> {
+<span class="kw">impl</span> <a class="ident" href="../../../src/gimli/read/reader.rs.html#24-52">ReaderOffset</a> <span class="kw">for</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from_u8</span>(<span class="ident">offset</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="ident">u32::from</span>(<a class="ident" href="../../../src/gimli/read/reader.rs.html#97">offset</a>)
+    <span class="kw">fn</span> <span class="ident">from_u8</span>(<span class="ident">offset</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>) -&gt; <span class="self">Self</span> {
+        <span class="ident">u32::from</span>(<a class="ident" href="../../../src/gimli/read/reader.rs.html#98">offset</a>)
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from_u16</span>(<span class="ident">offset</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u16.html">u16</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="ident">u32::from</span>(<a class="ident" href="../../../src/gimli/read/reader.rs.html#102">offset</a>)
+    <span class="kw">fn</span> <span class="ident">from_u16</span>(<span class="ident">offset</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u16.html">u16</a>) -&gt; <span class="self">Self</span> {
+        <span class="ident">u32::from</span>(<a class="ident" href="../../../src/gimli/read/reader.rs.html#103">offset</a>)
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from_i16</span>(<span class="ident">offset</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.i16.html">i16</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <a class="ident" href="../../../src/gimli/read/reader.rs.html#107">offset</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a>
+    <span class="kw">fn</span> <span class="ident">from_i16</span>(<span class="ident">offset</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.i16.html">i16</a>) -&gt; <span class="self">Self</span> {
+        <a class="ident" href="../../../src/gimli/read/reader.rs.html#108">offset</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a>
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from_u32</span>(<span class="ident">offset</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <a class="ident" href="../../../src/gimli/read/reader.rs.html#112">offset</a>
+    <span class="kw">fn</span> <span class="ident">from_u32</span>(<span class="ident">offset</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a>) -&gt; <span class="self">Self</span> {
+        <a class="ident" href="../../../src/gimli/read/reader.rs.html#113">offset</a>
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from_u64</span>(<span class="ident">offset64</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">offset</span> <span class="op">=</span> <a class="ident" href="../../../src/gimli/read/reader.rs.html#117">offset64</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a>;
-        <span class="kw">if</span> <span class="ident">u64::from</span>(<a class="ident" href="../../../src/gimli/read/reader.rs.html#118">offset</a>) <span class="op">=</span><span class="op">=</span> <a class="ident" href="../../../src/gimli/read/reader.rs.html#117">offset64</a> {
-            <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/gimli/read/reader.rs.html#118">offset</a>)
+    <span class="kw">fn</span> <span class="ident">from_u64</span>(<span class="ident">offset64</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="ident">offset</span> <span class="op">=</span> <a class="ident" href="../../../src/gimli/read/reader.rs.html#118">offset64</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a>;
+        <span class="kw">if</span> <span class="ident">u64::from</span>(<a class="ident" href="../../../src/gimli/read/reader.rs.html#119">offset</a>) <span class="op">==</span> <a class="ident" href="../../../src/gimli/read/reader.rs.html#118">offset64</a> {
+            <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/gimli/read/reader.rs.html#119">offset</a>)
         } <span class="kw">else</span> {
-            <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/gimli/read/mod.rs.html#358">Error::UnsupportedOffset</a>)
+            <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/gimli/read/mod.rs.html#389">Error::UnsupportedOffset</a>)
         }
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">into_u64</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a> {
-        <span class="ident">u64::from</span>(<a class="self" href="../../../src/gimli/read/reader.rs.html#127">self</a>)
+    <span class="kw">fn</span> <span class="ident">into_u64</span>(<span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a> {
+        <span class="ident">u64::from</span>(<a class="self" href="../../../src/gimli/read/reader.rs.html#128">self</a>)
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">wrapping_add</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="self">Self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <a class="self" href="../../../src/gimli/read/reader.rs.html#132">self</a>.<span class="ident">wrapping_add</span>(<a class="ident" href="../../../src/gimli/read/reader.rs.html#132">other</a>)
+    <span class="kw">fn</span> <span class="ident">wrapping_add</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="self">Self</span>) -&gt; <span class="self">Self</span> {
+        <a class="self" href="../../../src/gimli/read/reader.rs.html#133">self</a>.<span class="ident">wrapping_add</span>(<a class="ident" href="../../../src/gimli/read/reader.rs.html#133">other</a>)
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">checked_sub</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="self">Self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        <a class="self" href="../../../src/gimli/read/reader.rs.html#137">self</a>.<span class="ident">checked_sub</span>(<a class="ident" href="../../../src/gimli/read/reader.rs.html#137">other</a>)
+    <span class="kw">fn</span> <span class="ident">checked_sub</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="self">Self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
+        <a class="self" href="../../../src/gimli/read/reader.rs.html#138">self</a>.<span class="ident">checked_sub</span>(<a class="ident" href="../../../src/gimli/read/reader.rs.html#138">other</a>)
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../src/gimli/read/reader.rs.html#23-51">ReaderOffset</a> <span class="kw">for</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a> {
+<span class="kw">impl</span> <a class="ident" href="../../../src/gimli/read/reader.rs.html#24-52">ReaderOffset</a> <span class="kw">for</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from_u8</span>(<span class="ident">offset</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <a class="ident" href="../../../src/gimli/read/reader.rs.html#144">offset</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>
+    <span class="kw">fn</span> <span class="ident">from_u8</span>(<span class="ident">offset</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>) -&gt; <span class="self">Self</span> {
+        <a class="ident" href="../../../src/gimli/read/reader.rs.html#145">offset</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from_u16</span>(<span class="ident">offset</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u16.html">u16</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <a class="ident" href="../../../src/gimli/read/reader.rs.html#149">offset</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>
+    <span class="kw">fn</span> <span class="ident">from_u16</span>(<span class="ident">offset</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u16.html">u16</a>) -&gt; <span class="self">Self</span> {
+        <a class="ident" href="../../../src/gimli/read/reader.rs.html#150">offset</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from_i16</span>(<span class="ident">offset</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.i16.html">i16</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <a class="ident" href="../../../src/gimli/read/reader.rs.html#154">offset</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>
+    <span class="kw">fn</span> <span class="ident">from_i16</span>(<span class="ident">offset</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.i16.html">i16</a>) -&gt; <span class="self">Self</span> {
+        <a class="ident" href="../../../src/gimli/read/reader.rs.html#155">offset</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from_u32</span>(<span class="ident">offset</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <a class="ident" href="../../../src/gimli/read/reader.rs.html#159">offset</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>
+    <span class="kw">fn</span> <span class="ident">from_u32</span>(<span class="ident">offset</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a>) -&gt; <span class="self">Self</span> {
+        <a class="ident" href="../../../src/gimli/read/reader.rs.html#160">offset</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from_u64</span>(<span class="ident">offset64</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">offset</span> <span class="op">=</span> <a class="ident" href="../../../src/gimli/read/reader.rs.html#164">offset64</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>;
-        <span class="kw">if</span> <a class="ident" href="../../../src/gimli/read/reader.rs.html#165">offset</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a> <span class="op">=</span><span class="op">=</span> <a class="ident" href="../../../src/gimli/read/reader.rs.html#164">offset64</a> {
-            <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/gimli/read/reader.rs.html#165">offset</a>)
+    <span class="kw">fn</span> <span class="ident">from_u64</span>(<span class="ident">offset64</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="ident">offset</span> <span class="op">=</span> <a class="ident" href="../../../src/gimli/read/reader.rs.html#165">offset64</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>;
+        <span class="kw">if</span> <a class="ident" href="../../../src/gimli/read/reader.rs.html#166">offset</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a> <span class="op">==</span> <a class="ident" href="../../../src/gimli/read/reader.rs.html#165">offset64</a> {
+            <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/gimli/read/reader.rs.html#166">offset</a>)
         } <span class="kw">else</span> {
-            <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/gimli/read/mod.rs.html#358">Error::UnsupportedOffset</a>)
+            <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/gimli/read/mod.rs.html#389">Error::UnsupportedOffset</a>)
         }
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">into_u64</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a> {
-        <a class="self" href="../../../src/gimli/read/reader.rs.html#174">self</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>
+    <span class="kw">fn</span> <span class="ident">into_u64</span>(<span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a> {
+        <a class="self" href="../../../src/gimli/read/reader.rs.html#175">self</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">wrapping_add</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="self">Self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <a class="self" href="../../../src/gimli/read/reader.rs.html#179">self</a>.<span class="ident">wrapping_add</span>(<a class="ident" href="../../../src/gimli/read/reader.rs.html#179">other</a>)
+    <span class="kw">fn</span> <span class="ident">wrapping_add</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="self">Self</span>) -&gt; <span class="self">Self</span> {
+        <a class="self" href="../../../src/gimli/read/reader.rs.html#180">self</a>.<span class="ident">wrapping_add</span>(<a class="ident" href="../../../src/gimli/read/reader.rs.html#180">other</a>)
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">checked_sub</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="self">Self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        <a class="self" href="../../../src/gimli/read/reader.rs.html#184">self</a>.<span class="ident">checked_sub</span>(<a class="ident" href="../../../src/gimli/read/reader.rs.html#184">other</a>)
+    <span class="kw">fn</span> <span class="ident">checked_sub</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="self">Self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
+        <a class="self" href="../../../src/gimli/read/reader.rs.html#185">self</a>.<span class="ident">checked_sub</span>(<a class="ident" href="../../../src/gimli/read/reader.rs.html#185">other</a>)
     }
+}
+
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;read&quot;</span>))]</span>
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod</span> <span class="ident">seal_if_no_alloc</span> {
+    <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
+    <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Sealed</span>;
 }
 
 <span class="doccomment">/// A trait for reading the data from a DWARF section.</span>
@@ -688,46 +719,55 @@
     <span class="kw">type</span> <span class="ident">Endian</span>: <a class="ident" href="../../../src/gimli/endianity.rs.html#7-172">Endianity</a>;
 
     <span class="doccomment">/// The type used for offsets and lengths.</span>
-    <span class="kw">type</span> <span class="ident">Offset</span>: <a class="ident" href="../../../src/gimli/read/reader.rs.html#23-51">ReaderOffset</a>;
+    <span class="kw">type</span> <span class="ident">Offset</span>: <a class="ident" href="../../../src/gimli/read/reader.rs.html#24-52">ReaderOffset</a>;
 
     <span class="doccomment">/// Return the endianity of bytes that are read.</span>
-    <span class="kw">fn</span> <span class="ident">endian</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::Endian</span>;
+    <span class="kw">fn</span> <span class="ident">endian</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident"><span class="self">Self</span>::Endian</span>;
 
     <span class="doccomment">/// Return the number of bytes remaining.</span>
-    <span class="kw">fn</span> <span class="ident">len</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::Offset</span>;
+    <span class="kw">fn</span> <span class="ident">len</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident"><span class="self">Self</span>::Offset</span>;
 
     <span class="doccomment">/// Set the number of bytes remaining to zero.</span>
     <span class="kw">fn</span> <span class="ident">empty</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>);
 
     <span class="doccomment">/// Set the number of bytes remaining to the specified length.</span>
-    <span class="kw">fn</span> <span class="ident">truncate</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">len</span>: <span class="ident"><span class="self">Self</span>::Offset</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span>;
+    <span class="kw">fn</span> <span class="ident">truncate</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">len</span>: <span class="ident"><span class="self">Self</span>::Offset</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span>;
 
     <span class="doccomment">/// Return the offset of this reader&#39;s data relative to the start of</span>
     <span class="doccomment">/// the given base reader&#39;s data.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// May panic if this reader&#39;s data is not contained within the given</span>
     <span class="doccomment">/// base reader&#39;s data.</span>
-    <span class="kw">fn</span> <span class="ident">offset_from</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">base</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::Offset</span>;
+    <span class="kw">fn</span> <span class="ident">offset_from</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">base</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="ident"><span class="self">Self</span>::Offset</span>;
 
     <span class="doccomment">/// Return an identifier for the current reader offset.</span>
-    <span class="kw">fn</span> <span class="ident">offset_id</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="../../../src/gimli/read/reader.rs.html#18">ReaderOffsetId</a>;
+    <span class="kw">fn</span> <span class="ident">offset_id</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="../../../src/gimli/read/reader.rs.html#19">ReaderOffsetId</a>;
 
     <span class="doccomment">/// Return the offset corresponding to the given `id` if</span>
     <span class="doccomment">/// it is associated with this reader.</span>
-    <span class="kw">fn</span> <span class="ident">lookup_offset_id</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">id</span>: <a class="ident" href="../../../src/gimli/read/reader.rs.html#18">ReaderOffsetId</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Offset</span><span class="op">&gt;</span>;
+    <span class="kw">fn</span> <span class="ident">lookup_offset_id</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">id</span>: <a class="ident" href="../../../src/gimli/read/reader.rs.html#19">ReaderOffsetId</a>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Offset</span><span class="op">&gt;</span>;
 
     <span class="doccomment">/// Find the index of the first occurence of the given byte.</span>
     <span class="doccomment">/// The offset of the reader is not changed.</span>
-    <span class="kw">fn</span> <span class="ident">find</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">byte</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Offset</span><span class="op">&gt;</span>;
+    <span class="kw">fn</span> <span class="ident">find</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">byte</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Offset</span><span class="op">&gt;</span>;
 
     <span class="doccomment">/// Discard the specified number of bytes.</span>
-    <span class="kw">fn</span> <span class="ident">skip</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">len</span>: <span class="ident"><span class="self">Self</span>::Offset</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span>;
+    <span class="kw">fn</span> <span class="ident">skip</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">len</span>: <span class="ident"><span class="self">Self</span>::Offset</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span>;
 
     <span class="doccomment">/// Split a reader in two.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// A new reader is returned that can be used to read the next</span>
     <span class="doccomment">/// `len` bytes, and `self` is advanced so that it reads the remainder.</span>
-    <span class="kw">fn</span> <span class="ident">split</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">len</span>: <span class="ident"><span class="self">Self</span>::Offset</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>;
+    <span class="kw">fn</span> <span class="ident">split</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">len</span>: <span class="ident"><span class="self">Self</span>::Offset</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>;
+
+    <span class="doccomment">/// This trait cannot be implemented if &quot;read&quot; feature is not enabled.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// `Reader` trait has a few methods that depend on `alloc` crate.</span>
+    <span class="doccomment">/// Disallowing `Reader` trait implementation prevents a crate that only depends on</span>
+    <span class="doccomment">/// &quot;read-core&quot; from being broken if another crate depending on `gimli` enables</span>
+    <span class="doccomment">/// &quot;read&quot; feature.</span>
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;read&quot;</span>))]</span>
+    <span class="kw">fn</span> <span class="ident">cannot_implement</span>() -&gt; <span class="ident">seal_if_no_alloc::Sealed</span>;
 
     <span class="doccomment">/// Return all remaining data as a clone-on-write slice.</span>
     <span class="doccomment">///</span>
@@ -735,7 +775,8 @@
     <span class="doccomment">/// always return an owned vector.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Does not advance the reader.</span>
-    <span class="kw">fn</span> <span class="ident">to_slice</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Cow</span><span class="op">&lt;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>]<span class="op">&gt;</span><span class="op">&gt;</span>;
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;read&quot;</span>)]</span>
+    <span class="kw">fn</span> <span class="ident">to_slice</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Cow</span><span class="op">&lt;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>]<span class="op">&gt;</span><span class="op">&gt;</span>;
 
     <span class="doccomment">/// Convert all remaining data to a clone-on-write string.</span>
     <span class="doccomment">///</span>
@@ -745,7 +786,8 @@
     <span class="doccomment">/// Does not advance the reader.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Returns an error if the data contains invalid characters.</span>
-    <span class="kw">fn</span> <span class="ident">to_string</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Cow</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.str.html">str</a><span class="op">&gt;</span><span class="op">&gt;</span>;
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;read&quot;</span>)]</span>
+    <span class="kw">fn</span> <span class="ident">to_string</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Cow</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.str.html">str</a><span class="op">&gt;</span><span class="op">&gt;</span>;
 
     <span class="doccomment">/// Convert all remaining data to a clone-on-write string, including invalid characters.</span>
     <span class="doccomment">///</span>
@@ -753,96 +795,97 @@
     <span class="doccomment">/// always return an owned string.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Does not advance the reader.</span>
-    <span class="kw">fn</span> <span class="ident">to_string_lossy</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Cow</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.str.html">str</a><span class="op">&gt;</span><span class="op">&gt;</span>;
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;read&quot;</span>)]</span>
+    <span class="kw">fn</span> <span class="ident">to_string_lossy</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Cow</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.str.html">str</a><span class="op">&gt;</span><span class="op">&gt;</span>;
 
     <span class="doccomment">/// Read exactly `buf.len()` bytes into `buf`.</span>
-    <span class="kw">fn</span> <span class="ident">read_slice</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>]) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span>;
+    <span class="kw">fn</span> <span class="ident">read_slice</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span>;
 
     <span class="doccomment">/// Read a u8 array.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">read_u8_array</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span>
+    <span class="kw">fn</span> <span class="ident">read_u8_array</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">A</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="op">+</span> <span class="ident">AsMut</span><span class="op">&lt;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>]<span class="op">&gt;</span>,
     {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">val</span> <span class="op">=</span> <span class="ident">Default::default</span>();
-        <a class="self" href="../../../src/gimli/read/reader.rs.html#285">self</a>.<a class="ident" href="../../../src/gimli/read/reader.rs.html#281">read_slice</a>(<span class="op">&lt;</span><span class="ident">A</span> <span class="kw">as</span> <span class="ident">AsMut</span><span class="op">&lt;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>]<span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::as_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../../src/gimli/read/reader.rs.html#289">val</a>))<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/gimli/read/reader.rs.html#289">val</a>)
+        <a class="self" href="../../../src/gimli/read/reader.rs.html#304">self</a>.<a class="ident" href="../../../src/gimli/read/reader.rs.html#300">read_slice</a>(<span class="op">&lt;</span><span class="ident">A</span> <span class="kw">as</span> <span class="ident">AsMut</span><span class="op">&lt;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>]<span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::as_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../../src/gimli/read/reader.rs.html#308">val</a>))<span class="question-mark">?</span>;
+        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/gimli/read/reader.rs.html#308">val</a>)
     }
 
     <span class="doccomment">/// Return true if the number of bytes remaining is zero.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">is_empty</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../src/gimli/read/reader.rs.html#296">self</a>.<a class="ident" href="../../../src/gimli/read/reader.rs.html#219">len</a>() <span class="op">=</span><span class="op">=</span> <span class="ident"><span class="self">Self</span>::Offset::from_u8</span>(<span class="number">0</span>)
+    <span class="kw">fn</span> <span class="ident">is_empty</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.bool.html">bool</a> {
+        <a class="self" href="../../../src/gimli/read/reader.rs.html#315">self</a>.<a class="ident" href="../../../src/gimli/read/reader.rs.html#226">len</a>() <span class="op">==</span> <span class="ident"><span class="self">Self</span>::Offset::from_u8</span>(<span class="number">0</span>)
     }
 
     <span class="doccomment">/// Read a u8.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">read_u8</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">a</span>: [<a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>; <span class="number">1</span>] <span class="op">=</span> <a class="self" href="../../../src/gimli/read/reader.rs.html#302">self</a>.<a class="ident" href="../../../src/gimli/read/reader.rs.html#285-287">read_u8_array</a>()<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/gimli/read/reader.rs.html#303">a</a>[<span class="number">0</span>])
+    <span class="kw">fn</span> <span class="ident">read_u8</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="ident">a</span>: [<a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>; <span class="number">1</span>] <span class="op">=</span> <a class="self" href="../../../src/gimli/read/reader.rs.html#321">self</a>.<a class="ident" href="../../../src/gimli/read/reader.rs.html#304-306">read_u8_array</a>()<span class="question-mark">?</span>;
+        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/gimli/read/reader.rs.html#322">a</a>[<span class="number">0</span>])
     }
 
     <span class="doccomment">/// Read an i8.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">read_i8</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.i8.html">i8</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">a</span>: [<a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>; <span class="number">1</span>] <span class="op">=</span> <a class="self" href="../../../src/gimli/read/reader.rs.html#309">self</a>.<a class="ident" href="../../../src/gimli/read/reader.rs.html#285-287">read_u8_array</a>()<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/gimli/read/reader.rs.html#310">a</a>[<span class="number">0</span>] <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.i8.html">i8</a>)
+    <span class="kw">fn</span> <span class="ident">read_i8</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.i8.html">i8</a><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="ident">a</span>: [<a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>; <span class="number">1</span>] <span class="op">=</span> <a class="self" href="../../../src/gimli/read/reader.rs.html#328">self</a>.<a class="ident" href="../../../src/gimli/read/reader.rs.html#304-306">read_u8_array</a>()<span class="question-mark">?</span>;
+        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/gimli/read/reader.rs.html#329">a</a>[<span class="number">0</span>] <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.i8.html">i8</a>)
     }
 
     <span class="doccomment">/// Read a u16.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">read_u16</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u16.html">u16</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">a</span>: [<a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>; <span class="number">2</span>] <span class="op">=</span> <a class="self" href="../../../src/gimli/read/reader.rs.html#316">self</a>.<a class="ident" href="../../../src/gimli/read/reader.rs.html#285-287">read_u8_array</a>()<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<a class="self" href="../../../src/gimli/read/reader.rs.html#316">self</a>.<a class="ident" href="../../../src/gimli/read/reader.rs.html#216">endian</a>().<a class="ident" href="../../../src/gimli/endianity.rs.html#23">read_u16</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/gimli/read/reader.rs.html#317">a</a>))
+    <span class="kw">fn</span> <span class="ident">read_u16</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u16.html">u16</a><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="ident">a</span>: [<a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>; <span class="number">2</span>] <span class="op">=</span> <a class="self" href="../../../src/gimli/read/reader.rs.html#335">self</a>.<a class="ident" href="../../../src/gimli/read/reader.rs.html#304-306">read_u8_array</a>()<span class="question-mark">?</span>;
+        <span class="prelude-val">Ok</span>(<a class="self" href="../../../src/gimli/read/reader.rs.html#335">self</a>.<a class="ident" href="../../../src/gimli/read/reader.rs.html#223">endian</a>().<a class="ident" href="../../../src/gimli/endianity.rs.html#23">read_u16</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/gimli/read/reader.rs.html#336">a</a>))
     }
 
     <span class="doccomment">/// Read an i16.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">read_i16</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.i16.html">i16</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">a</span>: [<a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>; <span class="number">2</span>] <span class="op">=</span> <a class="self" href="../../../src/gimli/read/reader.rs.html#323">self</a>.<a class="ident" href="../../../src/gimli/read/reader.rs.html#285-287">read_u8_array</a>()<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<a class="self" href="../../../src/gimli/read/reader.rs.html#323">self</a>.<a class="ident" href="../../../src/gimli/read/reader.rs.html#216">endian</a>().<a class="ident" href="../../../src/gimli/endianity.rs.html#84">read_i16</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/gimli/read/reader.rs.html#324">a</a>))
+    <span class="kw">fn</span> <span class="ident">read_i16</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.i16.html">i16</a><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="ident">a</span>: [<a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>; <span class="number">2</span>] <span class="op">=</span> <a class="self" href="../../../src/gimli/read/reader.rs.html#342">self</a>.<a class="ident" href="../../../src/gimli/read/reader.rs.html#304-306">read_u8_array</a>()<span class="question-mark">?</span>;
+        <span class="prelude-val">Ok</span>(<a class="self" href="../../../src/gimli/read/reader.rs.html#342">self</a>.<a class="ident" href="../../../src/gimli/read/reader.rs.html#223">endian</a>().<a class="ident" href="../../../src/gimli/endianity.rs.html#84">read_i16</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/gimli/read/reader.rs.html#343">a</a>))
     }
 
     <span class="doccomment">/// Read a u32.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">read_u32</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">a</span>: [<a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>; <span class="number">4</span>] <span class="op">=</span> <a class="self" href="../../../src/gimli/read/reader.rs.html#330">self</a>.<a class="ident" href="../../../src/gimli/read/reader.rs.html#285-287">read_u8_array</a>()<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<a class="self" href="../../../src/gimli/read/reader.rs.html#330">self</a>.<a class="ident" href="../../../src/gimli/read/reader.rs.html#216">endian</a>().<a class="ident" href="../../../src/gimli/endianity.rs.html#38">read_u32</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/gimli/read/reader.rs.html#331">a</a>))
+    <span class="kw">fn</span> <span class="ident">read_u32</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="ident">a</span>: [<a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>; <span class="number">4</span>] <span class="op">=</span> <a class="self" href="../../../src/gimli/read/reader.rs.html#349">self</a>.<a class="ident" href="../../../src/gimli/read/reader.rs.html#304-306">read_u8_array</a>()<span class="question-mark">?</span>;
+        <span class="prelude-val">Ok</span>(<a class="self" href="../../../src/gimli/read/reader.rs.html#349">self</a>.<a class="ident" href="../../../src/gimli/read/reader.rs.html#223">endian</a>().<a class="ident" href="../../../src/gimli/endianity.rs.html#38">read_u32</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/gimli/read/reader.rs.html#350">a</a>))
     }
 
     <span class="doccomment">/// Read an i32.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">read_i32</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.i32.html">i32</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">a</span>: [<a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>; <span class="number">4</span>] <span class="op">=</span> <a class="self" href="../../../src/gimli/read/reader.rs.html#337">self</a>.<a class="ident" href="../../../src/gimli/read/reader.rs.html#285-287">read_u8_array</a>()<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<a class="self" href="../../../src/gimli/read/reader.rs.html#337">self</a>.<a class="ident" href="../../../src/gimli/read/reader.rs.html#216">endian</a>().<a class="ident" href="../../../src/gimli/endianity.rs.html#94">read_i32</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/gimli/read/reader.rs.html#338">a</a>))
+    <span class="kw">fn</span> <span class="ident">read_i32</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.i32.html">i32</a><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="ident">a</span>: [<a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>; <span class="number">4</span>] <span class="op">=</span> <a class="self" href="../../../src/gimli/read/reader.rs.html#356">self</a>.<a class="ident" href="../../../src/gimli/read/reader.rs.html#304-306">read_u8_array</a>()<span class="question-mark">?</span>;
+        <span class="prelude-val">Ok</span>(<a class="self" href="../../../src/gimli/read/reader.rs.html#356">self</a>.<a class="ident" href="../../../src/gimli/read/reader.rs.html#223">endian</a>().<a class="ident" href="../../../src/gimli/endianity.rs.html#94">read_i32</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/gimli/read/reader.rs.html#357">a</a>))
     }
 
     <span class="doccomment">/// Read a u64.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">read_u64</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">a</span>: [<a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>; <span class="number">8</span>] <span class="op">=</span> <a class="self" href="../../../src/gimli/read/reader.rs.html#344">self</a>.<a class="ident" href="../../../src/gimli/read/reader.rs.html#285-287">read_u8_array</a>()<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<a class="self" href="../../../src/gimli/read/reader.rs.html#344">self</a>.<a class="ident" href="../../../src/gimli/read/reader.rs.html#216">endian</a>().<a class="ident" href="../../../src/gimli/endianity.rs.html#53">read_u64</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/gimli/read/reader.rs.html#345">a</a>))
+    <span class="kw">fn</span> <span class="ident">read_u64</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="ident">a</span>: [<a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>; <span class="number">8</span>] <span class="op">=</span> <a class="self" href="../../../src/gimli/read/reader.rs.html#363">self</a>.<a class="ident" href="../../../src/gimli/read/reader.rs.html#304-306">read_u8_array</a>()<span class="question-mark">?</span>;
+        <span class="prelude-val">Ok</span>(<a class="self" href="../../../src/gimli/read/reader.rs.html#363">self</a>.<a class="ident" href="../../../src/gimli/read/reader.rs.html#223">endian</a>().<a class="ident" href="../../../src/gimli/endianity.rs.html#53">read_u64</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/gimli/read/reader.rs.html#364">a</a>))
     }
 
     <span class="doccomment">/// Read an i64.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">read_i64</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.i64.html">i64</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">a</span>: [<a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>; <span class="number">8</span>] <span class="op">=</span> <a class="self" href="../../../src/gimli/read/reader.rs.html#351">self</a>.<a class="ident" href="../../../src/gimli/read/reader.rs.html#285-287">read_u8_array</a>()<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<a class="self" href="../../../src/gimli/read/reader.rs.html#351">self</a>.<a class="ident" href="../../../src/gimli/read/reader.rs.html#216">endian</a>().<a class="ident" href="../../../src/gimli/endianity.rs.html#104">read_i64</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/gimli/read/reader.rs.html#352">a</a>))
+    <span class="kw">fn</span> <span class="ident">read_i64</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.i64.html">i64</a><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="ident">a</span>: [<a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>; <span class="number">8</span>] <span class="op">=</span> <a class="self" href="../../../src/gimli/read/reader.rs.html#370">self</a>.<a class="ident" href="../../../src/gimli/read/reader.rs.html#304-306">read_u8_array</a>()<span class="question-mark">?</span>;
+        <span class="prelude-val">Ok</span>(<a class="self" href="../../../src/gimli/read/reader.rs.html#370">self</a>.<a class="ident" href="../../../src/gimli/read/reader.rs.html#223">endian</a>().<a class="ident" href="../../../src/gimli/endianity.rs.html#104">read_i64</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/gimli/read/reader.rs.html#371">a</a>))
     }
 
     <span class="doccomment">/// Read a f32.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">read_f32</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.f32.html">f32</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">a</span>: [<a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>; <span class="number">4</span>] <span class="op">=</span> <a class="self" href="../../../src/gimli/read/reader.rs.html#358">self</a>.<a class="ident" href="../../../src/gimli/read/reader.rs.html#285-287">read_u8_array</a>()<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<a class="self" href="../../../src/gimli/read/reader.rs.html#358">self</a>.<a class="ident" href="../../../src/gimli/read/reader.rs.html#216">endian</a>().<a class="ident" href="../../../src/gimli/endianity.rs.html#114">read_f32</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/gimli/read/reader.rs.html#359">a</a>))
+    <span class="kw">fn</span> <span class="ident">read_f32</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.f32.html">f32</a><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="ident">a</span>: [<a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>; <span class="number">4</span>] <span class="op">=</span> <a class="self" href="../../../src/gimli/read/reader.rs.html#377">self</a>.<a class="ident" href="../../../src/gimli/read/reader.rs.html#304-306">read_u8_array</a>()<span class="question-mark">?</span>;
+        <span class="prelude-val">Ok</span>(<a class="self" href="../../../src/gimli/read/reader.rs.html#377">self</a>.<a class="ident" href="../../../src/gimli/read/reader.rs.html#223">endian</a>().<a class="ident" href="../../../src/gimli/endianity.rs.html#114">read_f32</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/gimli/read/reader.rs.html#378">a</a>))
     }
 
     <span class="doccomment">/// Read a f64.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">read_f64</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.f64.html">f64</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">a</span>: [<a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>; <span class="number">8</span>] <span class="op">=</span> <a class="self" href="../../../src/gimli/read/reader.rs.html#365">self</a>.<a class="ident" href="../../../src/gimli/read/reader.rs.html#285-287">read_u8_array</a>()<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<a class="self" href="../../../src/gimli/read/reader.rs.html#365">self</a>.<a class="ident" href="../../../src/gimli/read/reader.rs.html#216">endian</a>().<a class="ident" href="../../../src/gimli/endianity.rs.html#124">read_f64</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/gimli/read/reader.rs.html#366">a</a>))
+    <span class="kw">fn</span> <span class="ident">read_f64</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.f64.html">f64</a><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="ident">a</span>: [<a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>; <span class="number">8</span>] <span class="op">=</span> <a class="self" href="../../../src/gimli/read/reader.rs.html#384">self</a>.<a class="ident" href="../../../src/gimli/read/reader.rs.html#304-306">read_u8_array</a>()<span class="question-mark">?</span>;
+        <span class="prelude-val">Ok</span>(<a class="self" href="../../../src/gimli/read/reader.rs.html#384">self</a>.<a class="ident" href="../../../src/gimli/read/reader.rs.html#223">endian</a>().<a class="ident" href="../../../src/gimli/endianity.rs.html#124">read_f64</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/gimli/read/reader.rs.html#385">a</a>))
     }
 
     <span class="doccomment">/// Read an unsigned n-bytes integer u64.</span>
@@ -851,69 +894,74 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// Panics when nbytes &lt; 1 or nbytes &gt; 8</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">read_uint</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">n</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">read_uint</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">n</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> [<span class="number">0</span>; <span class="number">8</span>];
-        <a class="self" href="../../../src/gimli/read/reader.rs.html#376">self</a>.<a class="ident" href="../../../src/gimli/read/reader.rs.html#281">read_slice</a>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../../src/gimli/read/reader.rs.html#377">buf</a>[..<a class="ident" href="../../../src/gimli/read/reader.rs.html#376">n</a>])<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<a class="self" href="../../../src/gimli/read/reader.rs.html#376">self</a>.<a class="ident" href="../../../src/gimli/read/reader.rs.html#216">endian</a>().<a class="ident" href="../../../src/gimli/endianity.rs.html#68">read_uint</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/gimli/read/reader.rs.html#377">buf</a>[..<a class="ident" href="../../../src/gimli/read/reader.rs.html#376">n</a>]))
+        <a class="self" href="../../../src/gimli/read/reader.rs.html#395">self</a>.<a class="ident" href="../../../src/gimli/read/reader.rs.html#300">read_slice</a>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../../src/gimli/read/reader.rs.html#396">buf</a>[..<a class="ident" href="../../../src/gimli/read/reader.rs.html#395">n</a>])<span class="question-mark">?</span>;
+        <span class="prelude-val">Ok</span>(<a class="self" href="../../../src/gimli/read/reader.rs.html#395">self</a>.<a class="ident" href="../../../src/gimli/read/reader.rs.html#223">endian</a>().<a class="ident" href="../../../src/gimli/endianity.rs.html#68">read_uint</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/gimli/read/reader.rs.html#396">buf</a>[..<a class="ident" href="../../../src/gimli/read/reader.rs.html#395">n</a>]))
     }
 
     <span class="doccomment">/// Read a null-terminated slice, and return it (excluding the null).</span>
-    <span class="kw">fn</span> <span class="ident">read_null_terminated_slice</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">idx</span> <span class="op">=</span> <a class="self" href="../../../src/gimli/read/reader.rs.html#383">self</a>.<a class="ident" href="../../../src/gimli/read/reader.rs.html#243">find</a>(<span class="number">0</span>)<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">val</span> <span class="op">=</span> <a class="self" href="../../../src/gimli/read/reader.rs.html#383">self</a>.<a class="ident" href="../../../src/gimli/read/reader.rs.html#252">split</a>(<a class="ident" href="../../../src/gimli/read/reader.rs.html#384">idx</a>)<span class="question-mark">?</span>;
-        <a class="self" href="../../../src/gimli/read/reader.rs.html#383">self</a>.<a class="ident" href="../../../src/gimli/read/reader.rs.html#246">skip</a>(<span class="ident"><span class="self">Self</span>::Offset::from_u8</span>(<span class="number">1</span>))<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/gimli/read/reader.rs.html#385">val</a>)
+    <span class="kw">fn</span> <span class="ident">read_null_terminated_slice</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="ident">idx</span> <span class="op">=</span> <a class="self" href="../../../src/gimli/read/reader.rs.html#402">self</a>.<a class="ident" href="../../../src/gimli/read/reader.rs.html#250">find</a>(<span class="number">0</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">val</span> <span class="op">=</span> <a class="self" href="../../../src/gimli/read/reader.rs.html#402">self</a>.<a class="ident" href="../../../src/gimli/read/reader.rs.html#259">split</a>(<a class="ident" href="../../../src/gimli/read/reader.rs.html#403">idx</a>)<span class="question-mark">?</span>;
+        <a class="self" href="../../../src/gimli/read/reader.rs.html#402">self</a>.<a class="ident" href="../../../src/gimli/read/reader.rs.html#253">skip</a>(<span class="ident"><span class="self">Self</span>::Offset::from_u8</span>(<span class="number">1</span>))<span class="question-mark">?</span>;
+        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/gimli/read/reader.rs.html#404">val</a>)
+    }
+
+    <span class="doccomment">/// Skip a LEB128 encoded integer.</span>
+    <span class="kw">fn</span> <span class="ident">skip_leb128</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/gimli/leb128.rs.html#71">leb128::read::skip</a>(<a class="self" href="../../../src/gimli/read/reader.rs.html#410">self</a>)
     }
 
     <span class="doccomment">/// Read an unsigned LEB128 encoded integer.</span>
-    <span class="kw">fn</span> <span class="ident">read_uleb128</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a><span class="op">&gt;</span> {
-        <a class="ident" href="../../../src/gimli/leb128.rs.html#72">leb128::read::unsigned</a>(<a class="self" href="../../../src/gimli/read/reader.rs.html#391">self</a>)
+    <span class="kw">fn</span> <span class="ident">read_uleb128</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/gimli/leb128.rs.html#82">leb128::read::unsigned</a>(<a class="self" href="../../../src/gimli/read/reader.rs.html#415">self</a>)
     }
 
     <span class="doccomment">/// Read an unsigned LEB128 encoded u32.</span>
-    <span class="kw">fn</span> <span class="ident">read_uleb128_u32</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a><span class="op">&gt;</span> {
-        <a class="ident" href="../../../src/gimli/leb128.rs.html#72">leb128::read::unsigned</a>(<a class="self" href="../../../src/gimli/read/reader.rs.html#396">self</a>)<span class="question-mark">?</span>
+    <span class="kw">fn</span> <span class="ident">read_uleb128_u32</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/gimli/leb128.rs.html#82">leb128::read::unsigned</a>(<a class="self" href="../../../src/gimli/read/reader.rs.html#420">self</a>)<span class="question-mark">?</span>
             .<span class="ident">try_into</span>()
-            .<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <a class="ident" href="../../../src/gimli/read/mod.rs.html#255">Error::BadUnsignedLeb128</a>)
+            .<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <a class="ident" href="../../../src/gimli/read/mod.rs.html#286">Error::BadUnsignedLeb128</a>)
     }
 
     <span class="doccomment">/// Read an unsigned LEB128 encoded u16.</span>
-    <span class="kw">fn</span> <span class="ident">read_uleb128_u16</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u16.html">u16</a><span class="op">&gt;</span> {
-        <a class="ident" href="../../../src/gimli/leb128.rs.html#95">leb128::read::u16</a>(<a class="self" href="../../../src/gimli/read/reader.rs.html#403">self</a>)
+    <span class="kw">fn</span> <span class="ident">read_uleb128_u16</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u16.html">u16</a><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/gimli/leb128.rs.html#105">leb128::read::u16</a>(<a class="self" href="../../../src/gimli/read/reader.rs.html#427">self</a>)
     }
 
     <span class="doccomment">/// Read a signed LEB128 encoded integer.</span>
-    <span class="kw">fn</span> <span class="ident">read_sleb128</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.i64.html">i64</a><span class="op">&gt;</span> {
-        <a class="ident" href="../../../src/gimli/leb128.rs.html#118">leb128::read::signed</a>(<a class="self" href="../../../src/gimli/read/reader.rs.html#408">self</a>)
+    <span class="kw">fn</span> <span class="ident">read_sleb128</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.i64.html">i64</a><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/gimli/leb128.rs.html#128">leb128::read::signed</a>(<a class="self" href="../../../src/gimli/read/reader.rs.html#432">self</a>)
     }
 
     <span class="doccomment">/// Read an initial length field.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// This field is encoded as either a 32-bit length or</span>
     <span class="doccomment">/// a 64-bit length, and the returned `Format` indicates which.</span>
-    <span class="kw">fn</span> <span class="ident">read_initial_length</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="ident"><span class="self">Self</span>::Offset</span>, <a class="ident" href="../../../src/gimli/common.rs.html#3-8">Format</a>)<span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">read_initial_length</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="ident"><span class="self">Self</span>::Offset</span>, <a class="ident" href="../../../src/gimli/common.rs.html#3-8">Format</a>)<span class="op">&gt;</span> {
         <span class="kw">const</span> <span class="ident">MAX_DWARF_32_UNIT_LENGTH</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a> <span class="op">=</span> <span class="number">0xffff_fff0</span>;
         <span class="kw">const</span> <span class="ident">DWARF_64_INITIAL_UNIT_LENGTH</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a> <span class="op">=</span> <span class="number">0xffff_ffff</span>;
 
-        <span class="kw">let</span> <span class="ident">val</span> <span class="op">=</span> <a class="self" href="../../../src/gimli/read/reader.rs.html#416">self</a>.<a class="ident" href="../../../src/gimli/read/reader.rs.html#330">read_u32</a>()<span class="question-mark">?</span>;
-        <span class="kw">if</span> <a class="ident" href="../../../src/gimli/read/reader.rs.html#420">val</a> <span class="op">&lt;</span> <a class="ident" href="../../../src/gimli/read/reader.rs.html#417">MAX_DWARF_32_UNIT_LENGTH</a> {
-            <span class="prelude-val">Ok</span>((<span class="ident"><span class="self">Self</span>::Offset::from_u32</span>(<a class="ident" href="../../../src/gimli/read/reader.rs.html#420">val</a>), <a class="ident" href="../../../src/gimli/common.rs.html#7">Format::Dwarf32</a>))
-        } <span class="kw">else</span> <span class="kw">if</span> <a class="ident" href="../../../src/gimli/read/reader.rs.html#420">val</a> <span class="op">=</span><span class="op">=</span> <a class="ident" href="../../../src/gimli/read/reader.rs.html#418">DWARF_64_INITIAL_UNIT_LENGTH</a> {
-            <span class="kw">let</span> <span class="ident">val</span> <span class="op">=</span> <a class="self" href="../../../src/gimli/read/reader.rs.html#416">self</a>.<a class="ident" href="../../../src/gimli/read/reader.rs.html#344">read_u64</a>().<span class="ident">and_then</span>(<span class="ident"><span class="self">Self</span>::Offset::from_u64</span>)<span class="question-mark">?</span>;
-            <span class="prelude-val">Ok</span>((<a class="ident" href="../../../src/gimli/read/reader.rs.html#424">val</a>, <a class="ident" href="../../../src/gimli/common.rs.html#5">Format::Dwarf64</a>))
+        <span class="kw">let</span> <span class="ident">val</span> <span class="op">=</span> <a class="self" href="../../../src/gimli/read/reader.rs.html#440">self</a>.<a class="ident" href="../../../src/gimli/read/reader.rs.html#349">read_u32</a>()<span class="question-mark">?</span>;
+        <span class="kw">if</span> <a class="ident" href="../../../src/gimli/read/reader.rs.html#444">val</a> <span class="op">&lt;</span> <a class="ident" href="../../../src/gimli/read/reader.rs.html#441">MAX_DWARF_32_UNIT_LENGTH</a> {
+            <span class="prelude-val">Ok</span>((<span class="ident"><span class="self">Self</span>::Offset::from_u32</span>(<a class="ident" href="../../../src/gimli/read/reader.rs.html#444">val</a>), <a class="ident" href="../../../src/gimli/common.rs.html#7">Format::Dwarf32</a>))
+        } <span class="kw">else</span> <span class="kw">if</span> <a class="ident" href="../../../src/gimli/read/reader.rs.html#444">val</a> <span class="op">==</span> <a class="ident" href="../../../src/gimli/read/reader.rs.html#442">DWARF_64_INITIAL_UNIT_LENGTH</a> {
+            <span class="kw">let</span> <span class="ident">val</span> <span class="op">=</span> <a class="self" href="../../../src/gimli/read/reader.rs.html#440">self</a>.<a class="ident" href="../../../src/gimli/read/reader.rs.html#363">read_u64</a>().<span class="ident">and_then</span>(<span class="ident"><span class="self">Self</span>::Offset::from_u64</span>)<span class="question-mark">?</span>;
+            <span class="prelude-val">Ok</span>((<a class="ident" href="../../../src/gimli/read/reader.rs.html#448">val</a>, <a class="ident" href="../../../src/gimli/common.rs.html#5">Format::Dwarf64</a>))
         } <span class="kw">else</span> {
-            <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/gimli/read/mod.rs.html#278">Error::UnknownReservedLength</a>)
+            <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/gimli/read/mod.rs.html#309">Error::UnknownReservedLength</a>)
         }
     }
 
     <span class="doccomment">/// Read an address-sized integer, and return it as a `u64`.</span>
-    <span class="kw">fn</span> <span class="ident">read_address</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">address_size</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a><span class="op">&gt;</span> {
-        <span class="kw">match</span> <a class="ident" href="../../../src/gimli/read/reader.rs.html#432">address_size</a> {
-            <span class="number">1</span> <span class="op">=</span><span class="op">&gt;</span> <a class="self" href="../../../src/gimli/read/reader.rs.html#432">self</a>.<a class="ident" href="../../../src/gimli/read/reader.rs.html#302">read_u8</a>().<span class="ident">map</span>(<span class="ident">u64::from</span>),
-            <span class="number">2</span> <span class="op">=</span><span class="op">&gt;</span> <a class="self" href="../../../src/gimli/read/reader.rs.html#432">self</a>.<a class="ident" href="../../../src/gimli/read/reader.rs.html#316">read_u16</a>().<span class="ident">map</span>(<span class="ident">u64::from</span>),
-            <span class="number">4</span> <span class="op">=</span><span class="op">&gt;</span> <a class="self" href="../../../src/gimli/read/reader.rs.html#432">self</a>.<a class="ident" href="../../../src/gimli/read/reader.rs.html#330">read_u32</a>().<span class="ident">map</span>(<span class="ident">u64::from</span>),
-            <span class="number">8</span> <span class="op">=</span><span class="op">&gt;</span> <a class="self" href="../../../src/gimli/read/reader.rs.html#432">self</a>.<a class="ident" href="../../../src/gimli/read/reader.rs.html#344">read_u64</a>(),
-            <span class="ident">otherwise</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/gimli/read/mod.rs.html#292">Error::UnsupportedAddressSize</a>(<a class="ident" href="../../../src/gimli/read/reader.rs.html#438">otherwise</a>)),
+    <span class="kw">fn</span> <span class="ident">read_address</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">address_size</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a><span class="op">&gt;</span> {
+        <span class="kw">match</span> <a class="ident" href="../../../src/gimli/read/reader.rs.html#456">address_size</a> {
+            <span class="number">1</span> =&gt; <a class="self" href="../../../src/gimli/read/reader.rs.html#456">self</a>.<a class="ident" href="../../../src/gimli/read/reader.rs.html#321">read_u8</a>().<span class="ident">map</span>(<span class="ident">u64::from</span>),
+            <span class="number">2</span> =&gt; <a class="self" href="../../../src/gimli/read/reader.rs.html#456">self</a>.<a class="ident" href="../../../src/gimli/read/reader.rs.html#335">read_u16</a>().<span class="ident">map</span>(<span class="ident">u64::from</span>),
+            <span class="number">4</span> =&gt; <a class="self" href="../../../src/gimli/read/reader.rs.html#456">self</a>.<a class="ident" href="../../../src/gimli/read/reader.rs.html#349">read_u32</a>().<span class="ident">map</span>(<span class="ident">u64::from</span>),
+            <span class="number">8</span> =&gt; <a class="self" href="../../../src/gimli/read/reader.rs.html#456">self</a>.<a class="ident" href="../../../src/gimli/read/reader.rs.html#363">read_u64</a>(),
+            <span class="ident">otherwise</span> =&gt; <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/gimli/read/mod.rs.html#323">Error::UnsupportedAddressSize</a>(<a class="ident" href="../../../src/gimli/read/reader.rs.html#462">otherwise</a>)),
         }
     }
 
@@ -921,35 +969,35 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// These are always used to encode section offsets or lengths,</span>
     <span class="doccomment">/// and so have a type of `Self::Offset`.</span>
-    <span class="kw">fn</span> <span class="ident">read_word</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">format</span>: <a class="ident" href="../../../src/gimli/common.rs.html#3-8">Format</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Offset</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> <a class="ident" href="../../../src/gimli/read/reader.rs.html#446">format</a> {
-            <a class="ident" href="../../../src/gimli/common.rs.html#7">Format::Dwarf32</a> <span class="op">=</span><span class="op">&gt;</span> <a class="self" href="../../../src/gimli/read/reader.rs.html#446">self</a>.<a class="ident" href="../../../src/gimli/read/reader.rs.html#330">read_u32</a>().<span class="ident">map</span>(<span class="ident"><span class="self">Self</span>::Offset::from_u32</span>),
-            <a class="ident" href="../../../src/gimli/common.rs.html#5">Format::Dwarf64</a> <span class="op">=</span><span class="op">&gt;</span> <a class="self" href="../../../src/gimli/read/reader.rs.html#446">self</a>.<a class="ident" href="../../../src/gimli/read/reader.rs.html#344">read_u64</a>().<span class="ident">and_then</span>(<span class="ident"><span class="self">Self</span>::Offset::from_u64</span>),
+    <span class="kw">fn</span> <span class="ident">read_word</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">format</span>: <a class="ident" href="../../../src/gimli/common.rs.html#3-8">Format</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Offset</span><span class="op">&gt;</span> {
+        <span class="kw">match</span> <a class="ident" href="../../../src/gimli/read/reader.rs.html#470">format</a> {
+            <a class="ident" href="../../../src/gimli/common.rs.html#7">Format::Dwarf32</a> =&gt; <a class="self" href="../../../src/gimli/read/reader.rs.html#470">self</a>.<a class="ident" href="../../../src/gimli/read/reader.rs.html#349">read_u32</a>().<span class="ident">map</span>(<span class="ident"><span class="self">Self</span>::Offset::from_u32</span>),
+            <a class="ident" href="../../../src/gimli/common.rs.html#5">Format::Dwarf64</a> =&gt; <a class="self" href="../../../src/gimli/read/reader.rs.html#470">self</a>.<a class="ident" href="../../../src/gimli/read/reader.rs.html#363">read_u64</a>().<span class="ident">and_then</span>(<span class="ident"><span class="self">Self</span>::Offset::from_u64</span>),
         }
     }
 
     <span class="doccomment">/// Parse a word-sized section length according to the DWARF format.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">read_length</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">format</span>: <a class="ident" href="../../../src/gimli/common.rs.html#3-8">Format</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Offset</span><span class="op">&gt;</span> {
-        <a class="self" href="../../../src/gimli/read/reader.rs.html#455">self</a>.<a class="ident" href="../../../src/gimli/read/reader.rs.html#446">read_word</a>(<a class="ident" href="../../../src/gimli/read/reader.rs.html#455">format</a>)
+    <span class="kw">fn</span> <span class="ident">read_length</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">format</span>: <a class="ident" href="../../../src/gimli/common.rs.html#3-8">Format</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Offset</span><span class="op">&gt;</span> {
+        <a class="self" href="../../../src/gimli/read/reader.rs.html#479">self</a>.<a class="ident" href="../../../src/gimli/read/reader.rs.html#470">read_word</a>(<a class="ident" href="../../../src/gimli/read/reader.rs.html#479">format</a>)
     }
 
     <span class="doccomment">/// Parse a word-sized section offset according to the DWARF format.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">read_offset</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">format</span>: <a class="ident" href="../../../src/gimli/common.rs.html#3-8">Format</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Offset</span><span class="op">&gt;</span> {
-        <a class="self" href="../../../src/gimli/read/reader.rs.html#461">self</a>.<a class="ident" href="../../../src/gimli/read/reader.rs.html#446">read_word</a>(<a class="ident" href="../../../src/gimli/read/reader.rs.html#461">format</a>)
+    <span class="kw">fn</span> <span class="ident">read_offset</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">format</span>: <a class="ident" href="../../../src/gimli/common.rs.html#3-8">Format</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Offset</span><span class="op">&gt;</span> {
+        <a class="self" href="../../../src/gimli/read/reader.rs.html#485">self</a>.<a class="ident" href="../../../src/gimli/read/reader.rs.html#470">read_word</a>(<a class="ident" href="../../../src/gimli/read/reader.rs.html#485">format</a>)
     }
 
     <span class="doccomment">/// Parse a section offset of the given size.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// This is used for `DW_FORM_ref_addr` values in DWARF version 2.</span>
-    <span class="kw">fn</span> <span class="ident">read_sized_offset</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">size</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Offset</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> <a class="ident" href="../../../src/gimli/read/reader.rs.html#468">size</a> {
-            <span class="number">1</span> <span class="op">=</span><span class="op">&gt;</span> <a class="self" href="../../../src/gimli/read/reader.rs.html#468">self</a>.<a class="ident" href="../../../src/gimli/read/reader.rs.html#302">read_u8</a>().<span class="ident">map</span>(<span class="ident">u64::from</span>),
-            <span class="number">2</span> <span class="op">=</span><span class="op">&gt;</span> <a class="self" href="../../../src/gimli/read/reader.rs.html#468">self</a>.<a class="ident" href="../../../src/gimli/read/reader.rs.html#316">read_u16</a>().<span class="ident">map</span>(<span class="ident">u64::from</span>),
-            <span class="number">4</span> <span class="op">=</span><span class="op">&gt;</span> <a class="self" href="../../../src/gimli/read/reader.rs.html#468">self</a>.<a class="ident" href="../../../src/gimli/read/reader.rs.html#330">read_u32</a>().<span class="ident">map</span>(<span class="ident">u64::from</span>),
-            <span class="number">8</span> <span class="op">=</span><span class="op">&gt;</span> <a class="self" href="../../../src/gimli/read/reader.rs.html#468">self</a>.<a class="ident" href="../../../src/gimli/read/reader.rs.html#344">read_u64</a>(),
-            <span class="ident">otherwise</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/gimli/read/mod.rs.html#294">Error::UnsupportedOffsetSize</a>(<a class="ident" href="../../../src/gimli/read/reader.rs.html#474">otherwise</a>)),
+    <span class="kw">fn</span> <span class="ident">read_sized_offset</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">size</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Offset</span><span class="op">&gt;</span> {
+        <span class="kw">match</span> <a class="ident" href="../../../src/gimli/read/reader.rs.html#492">size</a> {
+            <span class="number">1</span> =&gt; <a class="self" href="../../../src/gimli/read/reader.rs.html#492">self</a>.<a class="ident" href="../../../src/gimli/read/reader.rs.html#321">read_u8</a>().<span class="ident">map</span>(<span class="ident">u64::from</span>),
+            <span class="number">2</span> =&gt; <a class="self" href="../../../src/gimli/read/reader.rs.html#492">self</a>.<a class="ident" href="../../../src/gimli/read/reader.rs.html#335">read_u16</a>().<span class="ident">map</span>(<span class="ident">u64::from</span>),
+            <span class="number">4</span> =&gt; <a class="self" href="../../../src/gimli/read/reader.rs.html#492">self</a>.<a class="ident" href="../../../src/gimli/read/reader.rs.html#349">read_u32</a>().<span class="ident">map</span>(<span class="ident">u64::from</span>),
+            <span class="number">8</span> =&gt; <a class="self" href="../../../src/gimli/read/reader.rs.html#492">self</a>.<a class="ident" href="../../../src/gimli/read/reader.rs.html#363">read_u64</a>(),
+            <span class="ident">otherwise</span> =&gt; <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/gimli/read/mod.rs.html#325">Error::UnsupportedOffsetSize</a>(<a class="ident" href="../../../src/gimli/read/reader.rs.html#498">otherwise</a>)),
         }
         .<span class="ident">and_then</span>(<span class="ident"><span class="self">Self</span>::Offset::from_u64</span>)
     }

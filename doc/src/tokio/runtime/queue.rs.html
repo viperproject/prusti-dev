@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;tokio-1.12.0&#x2F;src&#x2F;runtime&#x2F;queue.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>queue.rs - source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../tokio/index.html'><div class='logo-container rust-logo'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;tokio-1.13.0&#x2F;src&#x2F;runtime&#x2F;queue.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>queue.rs - source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../tokio/index.html'><div class='logo-container rust-logo'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -546,7 +546,7 @@
 <span class="comment">// do it is to repeat `UnsafeCell::new(MaybeUninit::uninit())` 256 times, as</span>
 <span class="comment">// the contents are not Copy. The trick with defining a const doesn&#39;t work for</span>
 <span class="comment">// generic types.</span>
-<span class="kw">fn</span> <span class="ident">make_fixed_size</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">buffer</span>: <span class="ident">Box</span><span class="op">&lt;</span>[<span class="ident">T</span>]<span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Box</span><span class="op">&lt;</span>[<span class="ident">T</span>; <a class="ident" href="../../../src/tokio/runtime/queue.rs.html#46">LOCAL_QUEUE_CAPACITY</a>]<span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">make_fixed_size</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">buffer</span>: <span class="ident">Box</span><span class="op">&lt;</span>[<span class="ident">T</span>]<span class="op">&gt;</span>) -&gt; <span class="ident">Box</span><span class="op">&lt;</span>[<span class="ident">T</span>; <a class="ident" href="../../../src/tokio/runtime/queue.rs.html#46">LOCAL_QUEUE_CAPACITY</a>]<span class="op">&gt;</span> {
     <span class="macro">assert_eq!</span>(<a class="ident" href="../../../src/tokio/runtime/queue.rs.html#60">buffer</a>.<span class="ident">len</span>(), <a class="ident" href="../../../src/tokio/runtime/queue.rs.html#46">LOCAL_QUEUE_CAPACITY</a>);
 
     <span class="comment">// safety: We check that the length is correct.</span>
@@ -554,7 +554,7 @@
 }
 
 <span class="doccomment">/// Create a new local run-queue</span>
-<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">local</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="lifetime">&#39;static</span><span class="op">&gt;</span>() <span class="op">-</span><span class="op">&gt;</span> (<span class="ident">Steal</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <span class="ident">Local</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) {
+<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">local</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="lifetime">&#39;static</span><span class="op">&gt;</span>() -&gt; (<span class="ident">Steal</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <span class="ident">Local</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) {
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buffer</span> <span class="op">=</span> <span class="ident">Vec::with_capacity</span>(<a class="ident" href="../../../src/tokio/runtime/queue.rs.html#46">LOCAL_QUEUE_CAPACITY</a>);
 
     <span class="kw">for</span> <span class="kw">_</span> <span class="kw">in</span> <span class="number">0</span>..<a class="ident" href="../../../src/tokio/runtime/queue.rs.html#46">LOCAL_QUEUE_CAPACITY</a> {
@@ -578,7 +578,7 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">Local</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
     <span class="doccomment">/// Returns true if the queue has entries that can be stealed.</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">is_stealable</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">is_stealable</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
         <span class="op">!</span><a class="self" href="../../../src/tokio/runtime/queue.rs.html#92">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../src/tokio/runtime/queue.rs.html#464">is_empty</a>()
     }
 
@@ -586,7 +586,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// Separate to is_stealable so that refactors of is_stealable to &quot;protect&quot;</span>
     <span class="doccomment">/// some tasks from stealing won&#39;t affect this</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">has_tasks</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">has_tasks</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
         <span class="op">!</span><a class="self" href="../../../src/tokio/runtime/queue.rs.html#100">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../src/tokio/runtime/queue.rs.html#464">is_empty</a>()
     }
 
@@ -611,9 +611,9 @@
                 <span class="comment">// Push the current task and half of the queue into the</span>
                 <span class="comment">// inject queue.</span>
                 <span class="kw">match</span> <a class="self" href="../../../src/tokio/runtime/queue.rs.html#105">self</a>.<a class="ident" href="../../../src/tokio/runtime/queue.rs.html#160-166">push_overflow</a>(<a class="ident" href="../../../src/tokio/runtime/queue.rs.html#105">task</a>, <a class="ident" href="../../../src/tokio/runtime/queue.rs.html#108">real</a>, <a class="ident" href="../../../src/tokio/runtime/queue.rs.html#111">tail</a>, <a class="ident" href="../../../src/tokio/runtime/queue.rs.html#105">inject</a>) {
-                    <span class="prelude-val">Ok</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span>,
+                    <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; <span class="kw">return</span>,
                     <span class="comment">// Lost the race, try again</span>
-                    <span class="prelude-val">Err</span>(<span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="prelude-val">Err</span>(<span class="ident">v</span>) =&gt; {
                         <a class="ident" href="../../../src/tokio/runtime/queue.rs.html#105">task</a> <span class="op">=</span> <a class="ident" href="../../../src/tokio/runtime/queue.rs.html#127">v</a>;
                     }
                 }
@@ -652,7 +652,7 @@
         <span class="ident">head</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>,
         <span class="ident">tail</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>,
         <span class="ident">inject</span>: <span class="kw-2">&amp;</span><span class="ident">Inject</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">task::Notified</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">task::Notified</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="doccomment">/// How many elements are we taking from the local queue.</span>
         <span class="doccomment">///</span>
         <span class="doccomment">/// This is one less than the number of tasks pushed to the inject</span>
@@ -709,8 +709,8 @@
             <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="ident">task::Notified</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>;
 
             <span class="attribute">#[<span class="ident">inline</span>]</span>
-            <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">task::Notified</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-                <span class="kw">if</span> <a class="self" href="../../../src/tokio/runtime/queue.rs.html#223">self</a>.<span class="ident">i</span> <span class="op">=</span><span class="op">=</span> <span class="ident">u32::from</span>(<a class="ident" href="../../../src/tokio/runtime/queue.rs.html#171">NUM_TASKS_TAKEN</a>) {
+            <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">task::Notified</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+                <span class="kw">if</span> <a class="self" href="../../../src/tokio/runtime/queue.rs.html#223">self</a>.<span class="ident">i</span> <span class="op">==</span> <span class="ident">u32::from</span>(<a class="ident" href="../../../src/tokio/runtime/queue.rs.html#171">NUM_TASKS_TAKEN</a>) {
                     <span class="prelude-val">None</span>
                 } <span class="kw">else</span> {
                     <span class="kw">let</span> <span class="ident">i_idx</span> <span class="op">=</span> <a class="self" href="../../../src/tokio/runtime/queue.rs.html#223">self</a>.<span class="ident">i</span>.<span class="ident">wrapping_add</span>(<a class="self" href="../../../src/tokio/runtime/queue.rs.html#223">self</a>.<span class="ident">head</span>) <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> <span class="op">&amp;</span> <a class="ident" href="../../../src/tokio/runtime/queue.rs.html#54">MASK</a>;
@@ -739,7 +739,7 @@
     }
 
     <span class="doccomment">/// Pops a task from the local queue.</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">pop</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">task::Notified</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">pop</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">task::Notified</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">head</span> <span class="op">=</span> <a class="self" href="../../../src/tokio/runtime/queue.rs.html#253">self</a>.<span class="ident">inner</span>.<span class="ident">head</span>.<span class="ident">load</span>(<span class="ident">Acquire</span>);
 
         <span class="kw">let</span> <span class="ident">idx</span> <span class="op">=</span> <span class="kw">loop</span> {
@@ -748,7 +748,7 @@
             <span class="comment">// safety: this is the **only** thread that updates this cell.</span>
             <span class="kw">let</span> <span class="ident">tail</span> <span class="op">=</span> <span class="kw">unsafe</span> { <a class="self" href="../../../src/tokio/runtime/queue.rs.html#253">self</a>.<span class="ident">inner</span>.<span class="ident">tail</span>.<a class="ident" href="../../../src/tokio/loom/std/atomic_u16.rs.html#25">unsync_load</a>() };
 
-            <span class="kw">if</span> <a class="ident" href="../../../src/tokio/runtime/queue.rs.html#257">real</a> <span class="op">=</span><span class="op">=</span> <a class="ident" href="../../../src/tokio/runtime/queue.rs.html#260">tail</a> {
+            <span class="kw">if</span> <a class="ident" href="../../../src/tokio/runtime/queue.rs.html#257">real</a> <span class="op">==</span> <a class="ident" href="../../../src/tokio/runtime/queue.rs.html#260">tail</a> {
                 <span class="comment">// queue is empty</span>
                 <span class="kw">return</span> <span class="prelude-val">None</span>;
             }
@@ -757,7 +757,7 @@
 
             <span class="comment">// If `steal == real` there are no concurrent stealers. Both `steal`</span>
             <span class="comment">// and `real` are updated.</span>
-            <span class="kw">let</span> <span class="ident">next</span> <span class="op">=</span> <span class="kw">if</span> <a class="ident" href="../../../src/tokio/runtime/queue.rs.html#257">steal</a> <span class="op">=</span><span class="op">=</span> <a class="ident" href="../../../src/tokio/runtime/queue.rs.html#257">real</a> {
+            <span class="kw">let</span> <span class="ident">next</span> <span class="op">=</span> <span class="kw">if</span> <a class="ident" href="../../../src/tokio/runtime/queue.rs.html#257">steal</a> <span class="op">==</span> <a class="ident" href="../../../src/tokio/runtime/queue.rs.html#257">real</a> {
                 <a class="ident" href="../../../src/tokio/runtime/queue.rs.html#482">pack</a>(<a class="ident" href="../../../src/tokio/runtime/queue.rs.html#267">next_real</a>, <a class="ident" href="../../../src/tokio/runtime/queue.rs.html#267">next_real</a>)
             } <span class="kw">else</span> {
                 <span class="macro">assert_ne!</span>(<a class="ident" href="../../../src/tokio/runtime/queue.rs.html#257">steal</a>, <a class="ident" href="../../../src/tokio/runtime/queue.rs.html#267">next_real</a>);
@@ -771,8 +771,8 @@
                 .<span class="ident">compare_exchange</span>(<a class="ident" href="../../../src/tokio/runtime/queue.rs.html#254">head</a>, <a class="ident" href="../../../src/tokio/runtime/queue.rs.html#271">next</a>, <span class="ident">AcqRel</span>, <span class="ident">Acquire</span>);
 
             <span class="kw">match</span> <a class="ident" href="../../../src/tokio/runtime/queue.rs.html#279">res</a> {
-                <span class="prelude-val">Ok</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">break</span> <a class="ident" href="../../../src/tokio/runtime/queue.rs.html#257">real</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> <span class="op">&amp;</span> <a class="ident" href="../../../src/tokio/runtime/queue.rs.html#54">MASK</a>,
-                <span class="prelude-val">Err</span>(<span class="ident">actual</span>) <span class="op">=</span><span class="op">&gt;</span> <a class="ident" href="../../../src/tokio/runtime/queue.rs.html#254">head</a> <span class="op">=</span> <a class="ident" href="../../../src/tokio/runtime/queue.rs.html#286">actual</a>,
+                <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; <span class="kw">break</span> <a class="ident" href="../../../src/tokio/runtime/queue.rs.html#257">real</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> <span class="op">&amp;</span> <a class="ident" href="../../../src/tokio/runtime/queue.rs.html#54">MASK</a>,
+                <span class="prelude-val">Err</span>(<span class="ident">actual</span>) =&gt; <a class="ident" href="../../../src/tokio/runtime/queue.rs.html#254">head</a> <span class="op">=</span> <a class="ident" href="../../../src/tokio/runtime/queue.rs.html#286">actual</a>,
             }
         };
 
@@ -781,7 +781,7 @@
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">Steal</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">is_empty</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">is_empty</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
         <a class="self" href="../../../src/tokio/runtime/queue.rs.html#295">self</a>.<span class="number">0</span>.<a class="ident" href="../../../src/tokio/runtime/queue.rs.html#464">is_empty</a>()
     }
 
@@ -790,7 +790,7 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">dst</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Local</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
         <span class="ident">stats</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../../src/tokio/runtime/stats/mock.rs.html#11">WorkerStatsBatcher</a>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">task::Notified</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">task::Notified</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="comment">// Safety: the caller is the only thread that mutates `dst.tail` and</span>
         <span class="comment">// holds a mutable reference.</span>
         <span class="kw">let</span> <span class="ident">dst_tail</span> <span class="op">=</span> <span class="kw">unsafe</span> { <a class="ident" href="../../../src/tokio/runtime/queue.rs.html#302">dst</a>.<span class="ident">inner</span>.<span class="ident">tail</span>.<a class="ident" href="../../../src/tokio/loom/std/atomic_u16.rs.html#25">unsync_load</a>() };
@@ -811,7 +811,7 @@
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">n</span> <span class="op">=</span> <a class="self" href="../../../src/tokio/runtime/queue.rs.html#301">self</a>.<a class="ident" href="../../../src/tokio/runtime/queue.rs.html#353">steal_into2</a>(<a class="ident" href="../../../src/tokio/runtime/queue.rs.html#302">dst</a>, <a class="ident" href="../../../src/tokio/runtime/queue.rs.html#307">dst_tail</a>);
         <a class="ident" href="../../../src/tokio/runtime/queue.rs.html#303">stats</a>.<a class="ident" href="../../../src/tokio/runtime/stats/mock.rs.html#24">incr_steal_count</a>(<a class="ident" href="../../../src/tokio/runtime/queue.rs.html#322">n</a>);
 
-        <span class="kw">if</span> <a class="ident" href="../../../src/tokio/runtime/queue.rs.html#322">n</a> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
+        <span class="kw">if</span> <a class="ident" href="../../../src/tokio/runtime/queue.rs.html#322">n</a> <span class="op">==</span> <span class="number">0</span> {
             <span class="comment">// No tasks were stolen</span>
             <span class="kw">return</span> <span class="prelude-val">None</span>;
         }
@@ -826,7 +826,7 @@
         <span class="comment">// exposed to stealers, so no other thread can access it.</span>
         <span class="kw">let</span> <span class="ident">ret</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/runtime/queue.rs.html#302">dst</a>.<span class="ident">inner</span>.<span class="ident">buffer</span>[<a class="ident" href="../../../src/tokio/runtime/queue.rs.html#334">ret_idx</a>].<a class="ident" href="../../../src/tokio/loom/std/unsafe_cell.rs.html#9">with</a>(<span class="op">|</span><span class="ident">ptr</span><span class="op">|</span> <span class="kw">unsafe</span> { <span class="ident">ptr::read</span>((<span class="kw-2">*</span><a class="ident" href="../../../src/tokio/runtime/queue.rs.html#338">ptr</a>).<span class="ident">as_ptr</span>()) });
 
-        <span class="kw">if</span> <a class="ident" href="../../../src/tokio/runtime/queue.rs.html#322">n</a> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
+        <span class="kw">if</span> <a class="ident" href="../../../src/tokio/runtime/queue.rs.html#322">n</a> <span class="op">==</span> <span class="number">0</span> {
             <span class="comment">// The `dst` queue is empty, but a single task was stolen</span>
             <span class="kw">return</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/tokio/runtime/queue.rs.html#338">ret</a>);
         }
@@ -839,7 +839,7 @@
 
     <span class="comment">// Steal tasks from `self`, placing them into `dst`. Returns the number of</span>
     <span class="comment">// tasks that were stolen.</span>
-    <span class="kw">fn</span> <span class="ident">steal_into2</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">dst</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Local</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <span class="ident">dst_tail</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a> {
+    <span class="kw">fn</span> <span class="ident">steal_into2</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">dst</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Local</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <span class="ident">dst_tail</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">prev_packed</span> <span class="op">=</span> <a class="self" href="../../../src/tokio/runtime/queue.rs.html#353">self</a>.<span class="number">0</span>.<span class="ident">head</span>.<span class="ident">load</span>(<span class="ident">Acquire</span>);
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">next_packed</span>;
 
@@ -857,7 +857,7 @@
             <span class="kw">let</span> <span class="ident">n</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/runtime/queue.rs.html#359">src_tail</a>.<span class="ident">wrapping_sub</span>(<a class="ident" href="../../../src/tokio/runtime/queue.rs.html#358">src_head_real</a>);
             <span class="kw">let</span> <span class="ident">n</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/runtime/queue.rs.html#368">n</a> <span class="op">-</span> <a class="ident" href="../../../src/tokio/runtime/queue.rs.html#368">n</a> <span class="op">/</span> <span class="number">2</span>;
 
-            <span class="kw">if</span> <a class="ident" href="../../../src/tokio/runtime/queue.rs.html#369">n</a> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
+            <span class="kw">if</span> <a class="ident" href="../../../src/tokio/runtime/queue.rs.html#369">n</a> <span class="op">==</span> <span class="number">0</span> {
                 <span class="comment">// No tasks available to steal</span>
                 <span class="kw">return</span> <span class="number">0</span>;
             }
@@ -876,8 +876,8 @@
                 .<span class="ident">compare_exchange</span>(<a class="ident" href="../../../src/tokio/runtime/queue.rs.html#354">prev_packed</a>, <a class="ident" href="../../../src/tokio/runtime/queue.rs.html#355">next_packed</a>, <span class="ident">AcqRel</span>, <span class="ident">Acquire</span>);
 
             <span class="kw">match</span> <a class="ident" href="../../../src/tokio/runtime/queue.rs.html#384">res</a> {
-                <span class="prelude-val">Ok</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">break</span> <a class="ident" href="../../../src/tokio/runtime/queue.rs.html#369">n</a>,
-                <span class="prelude-val">Err</span>(<span class="ident">actual</span>) <span class="op">=</span><span class="op">&gt;</span> <a class="ident" href="../../../src/tokio/runtime/queue.rs.html#354">prev_packed</a> <span class="op">=</span> <a class="ident" href="../../../src/tokio/runtime/queue.rs.html#391">actual</a>,
+                <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; <span class="kw">break</span> <a class="ident" href="../../../src/tokio/runtime/queue.rs.html#369">n</a>,
+                <span class="prelude-val">Err</span>(<span class="ident">actual</span>) =&gt; <a class="ident" href="../../../src/tokio/runtime/queue.rs.html#354">prev_packed</a> <span class="op">=</span> <a class="ident" href="../../../src/tokio/runtime/queue.rs.html#391">actual</a>,
             }
         };
 
@@ -922,8 +922,8 @@
                 .<span class="ident">compare_exchange</span>(<a class="ident" href="../../../src/tokio/runtime/queue.rs.html#422">prev_packed</a>, <a class="ident" href="../../../src/tokio/runtime/queue.rs.html#355">next_packed</a>, <span class="ident">AcqRel</span>, <span class="ident">Acquire</span>);
 
             <span class="kw">match</span> <a class="ident" href="../../../src/tokio/runtime/queue.rs.html#430">res</a> {
-                <span class="prelude-val">Ok</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <a class="ident" href="../../../src/tokio/runtime/queue.rs.html#357">n</a>,
-                <span class="prelude-val">Err</span>(<span class="ident">actual</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; <span class="kw">return</span> <a class="ident" href="../../../src/tokio/runtime/queue.rs.html#357">n</a>,
+                <span class="prelude-val">Err</span>(<span class="ident">actual</span>) =&gt; {
                     <span class="kw">let</span> (<span class="ident">actual_steal</span>, <span class="ident">actual_real</span>) <span class="op">=</span> <a class="ident" href="../../../src/tokio/runtime/queue.rs.html#474">unpack</a>(<a class="ident" href="../../../src/tokio/runtime/queue.rs.html#437">actual</a>);
 
                     <span class="macro">assert_ne!</span>(<a class="ident" href="../../../src/tokio/runtime/queue.rs.html#438">actual_steal</a>, <a class="ident" href="../../../src/tokio/runtime/queue.rs.html#438">actual_real</a>);
@@ -936,7 +936,7 @@
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> <span class="kw">for</span> <span class="ident">Steal</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Steal</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Steal</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
         <a class="ident" href="../../../src/tokio/runtime/queue.rs.html#19">Steal</a>(<a class="self" href="../../../src/tokio/runtime/queue.rs.html#450">self</a>.<span class="number">0</span>.<span class="ident">clone</span>())
     }
 }
@@ -950,17 +950,17 @@
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">Inner</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">is_empty</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    <span class="kw">fn</span> <span class="ident">is_empty</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
         <span class="kw">let</span> (<span class="kw">_</span>, <span class="ident">head</span>) <span class="op">=</span> <a class="ident" href="../../../src/tokio/runtime/queue.rs.html#474">unpack</a>(<a class="self" href="../../../src/tokio/runtime/queue.rs.html#464">self</a>.<span class="ident">head</span>.<span class="ident">load</span>(<span class="ident">Acquire</span>));
         <span class="kw">let</span> <span class="ident">tail</span> <span class="op">=</span> <a class="self" href="../../../src/tokio/runtime/queue.rs.html#464">self</a>.<span class="ident">tail</span>.<span class="ident">load</span>(<span class="ident">Acquire</span>);
 
-        <a class="ident" href="../../../src/tokio/runtime/queue.rs.html#465">head</a> <span class="op">=</span><span class="op">=</span> <a class="ident" href="../../../src/tokio/runtime/queue.rs.html#466">tail</a>
+        <a class="ident" href="../../../src/tokio/runtime/queue.rs.html#465">head</a> <span class="op">==</span> <a class="ident" href="../../../src/tokio/runtime/queue.rs.html#466">tail</a>
     }
 }
 
 <span class="doccomment">/// Split the head value into the real head and the index a stealer is working</span>
 <span class="doccomment">/// on.</span>
-<span class="kw">fn</span> <span class="ident">unpack</span>(<span class="ident">n</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) <span class="op">-</span><span class="op">&gt;</span> (<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>) {
+<span class="kw">fn</span> <span class="ident">unpack</span>(<span class="ident">n</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; (<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>) {
     <span class="kw">let</span> <span class="ident">real</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/runtime/queue.rs.html#474">n</a> <span class="op">&amp;</span> <span class="ident">u16::MAX</span> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>;
     <span class="kw">let</span> <span class="ident">steal</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/runtime/queue.rs.html#474">n</a> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">16</span>;
 
@@ -968,7 +968,7 @@
 }
 
 <span class="doccomment">/// Join the two head values</span>
-<span class="kw">fn</span> <span class="ident">pack</span>(<span class="ident">steal</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>, <span class="ident">real</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
+<span class="kw">fn</span> <span class="ident">pack</span>(<span class="ident">steal</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>, <span class="ident">real</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
     (<a class="ident" href="../../../src/tokio/runtime/queue.rs.html#482">real</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) <span class="op">|</span> ((<a class="ident" href="../../../src/tokio/runtime/queue.rs.html#482">steal</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">16</span>)
 }
 

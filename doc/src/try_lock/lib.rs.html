@@ -339,7 +339,7 @@
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">TryLock</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
     <span class="doccomment">/// Create a `TryLock` around the value.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">val</span>: <span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TryLock</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">val</span>: <span class="ident">T</span>) -&gt; <span class="ident">TryLock</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
         <a class="ident" href="../../src/try_lock/lib.rs.html#63-66">TryLock</a> {
             <span class="ident">is_locked</span>: <span class="ident">AtomicBool::new</span>(<span class="bool-val">false</span>),
             <span class="ident">value</span>: <span class="ident">UnsafeCell::new</span>(<a class="ident" href="../../src/try_lock/lib.rs.html#71">val</a>),
@@ -360,7 +360,7 @@
     <span class="doccomment">/// [`try_lock_explicit`](TryLock::try_lock_explicit) or</span>
     <span class="doccomment">/// [`try_lock_explicit_unchecked`](TryLock::try_lock_explicit_unchecked).</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">try_lock</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Locked</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">try_lock</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Locked</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="kw">unsafe</span> {
             <a class="self" href="../../src/try_lock/lib.rs.html#92">self</a>.<a class="ident" href="../../src/try_lock/lib.rs.html#165">try_lock_explicit_unchecked</a>(<span class="ident">Ordering::Acquire</span>, <span class="ident">Ordering::Release</span>)
         }
@@ -378,7 +378,7 @@
         <span class="ident">note</span> <span class="op">=</span> <span class="string">&quot;This method is actually unsafe because it unsafely allows \
         the use of weaker memory ordering. Please use try_lock_explicit instead&quot;</span>
     )]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">try_lock_order</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">lock_order</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/sync/atomic/enum.Ordering.html">Ordering</a>, <span class="ident">unlock_order</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/sync/atomic/enum.Ordering.html">Ordering</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Locked</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">try_lock_order</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">lock_order</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/sync/atomic/enum.Ordering.html">Ordering</a>, <span class="ident">unlock_order</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/sync/atomic/enum.Ordering.html">Ordering</a>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Locked</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="kw">unsafe</span> {
             <a class="self" href="../../src/try_lock/lib.rs.html#110">self</a>.<a class="ident" href="../../src/try_lock/lib.rs.html#165">try_lock_explicit_unchecked</a>(<a class="ident" href="../../src/try_lock/lib.rs.html#110">lock_order</a>, <a class="ident" href="../../src/try_lock/lib.rs.html#110">unlock_order</a>)
         }
@@ -397,18 +397,18 @@
     <span class="doccomment">/// This method panics if `lock_order` is not any of `Acquire`, `AcqRel`,</span>
     <span class="doccomment">/// and `SeqCst`, or `unlock_order` is not any of `Release` and `SeqCst`.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">try_lock_explicit</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">lock_order</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/sync/atomic/enum.Ordering.html">Ordering</a>, <span class="ident">unlock_order</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/sync/atomic/enum.Ordering.html">Ordering</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Locked</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">try_lock_explicit</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">lock_order</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/sync/atomic/enum.Ordering.html">Ordering</a>, <span class="ident">unlock_order</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/sync/atomic/enum.Ordering.html">Ordering</a>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Locked</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <a class="ident" href="../../src/try_lock/lib.rs.html#129">lock_order</a> {
             <span class="ident">Ordering::Acquire</span> <span class="op">|</span>
             <span class="ident">Ordering::AcqRel</span> <span class="op">|</span>
-            <span class="ident">Ordering::SeqCst</span> <span class="op">=</span><span class="op">&gt;</span> {}
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic!</span>(<span class="string">&quot;lock ordering must be `Acquire`, `AcqRel`, or `SeqCst`&quot;</span>),
+            <span class="ident">Ordering::SeqCst</span> =&gt; {}
+            <span class="kw">_</span> =&gt; <span class="macro">panic!</span>(<span class="string">&quot;lock ordering must be `Acquire`, `AcqRel`, or `SeqCst`&quot;</span>),
         }
 
         <span class="kw">match</span> <a class="ident" href="../../src/try_lock/lib.rs.html#129">unlock_order</a> {
             <span class="ident">Ordering::Release</span> <span class="op">|</span>
-            <span class="ident">Ordering::SeqCst</span> <span class="op">=</span><span class="op">&gt;</span> {}
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic!</span>(<span class="string">&quot;unlock ordering must be `Release` or `SeqCst`&quot;</span>),
+            <span class="ident">Ordering::SeqCst</span> =&gt; {}
+            <span class="kw">_</span> =&gt; <span class="macro">panic!</span>(<span class="string">&quot;unlock ordering must be `Release` or `SeqCst`&quot;</span>),
         }
 
         <span class="kw">unsafe</span> {
@@ -433,7 +433,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [`try_lock_explicit`]: Self::try_lock_explicit</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">try_lock_explicit_unchecked</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">lock_order</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/sync/atomic/enum.Ordering.html">Ordering</a>, <span class="ident">unlock_order</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/sync/atomic/enum.Ordering.html">Ordering</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Locked</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">try_lock_explicit_unchecked</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">lock_order</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/sync/atomic/enum.Ordering.html">Ordering</a>, <span class="ident">unlock_order</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/sync/atomic/enum.Ordering.html">Ordering</a>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Locked</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="op">!</span><a class="self" href="../../src/try_lock/lib.rs.html#165">self</a>.<span class="ident">is_locked</span>.<span class="ident">swap</span>(<span class="bool-val">true</span>, <a class="ident" href="../../src/try_lock/lib.rs.html#165">lock_order</a>) {
             <span class="prelude-val">Some</span>(<a class="ident" href="../../src/try_lock/lib.rs.html#224-227">Locked</a> {
                 <span class="ident">lock</span>: <a class="self" href="../../src/try_lock/lib.rs.html#165">self</a>,
@@ -446,7 +446,7 @@
 
     <span class="doccomment">/// Take the value back out of the lock when this is the sole owner.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_inner</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">T</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_inner</span>(<span class="self">self</span>) -&gt; <span class="ident">T</span> {
         <span class="macro">debug_assert!</span>(<span class="op">!</span><a class="self" href="../../src/try_lock/lib.rs.html#178">self</a>.<span class="ident">is_locked</span>.<span class="ident">load</span>(<span class="ident">Ordering::Relaxed</span>), <span class="string">&quot;TryLock was mem::forgotten&quot;</span>);
         <span class="comment">// Since the compiler can statically determine this is the only owner,</span>
         <span class="comment">// it&#39;s safe to take the value out. In fact, in newer versions of Rust,</span>
@@ -464,13 +464,13 @@
 <span class="kw">unsafe</span> <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="kw">for</span> <span class="ident">TryLock</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {}
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <span class="ident">TryLock</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
 
         <span class="comment">// Used if the TryLock cannot acquire the lock.</span>
         <span class="kw">struct</span> <span class="ident">LockedPlaceholder</span>;
 
         <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <a class="ident" href="../../src/try_lock/lib.rs.html#199">LockedPlaceholder</a> {
-            <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+            <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
                 <a class="ident" href="../../src/try_lock/lib.rs.html#202">f</a>.<span class="ident">write_str</span>(<span class="string">&quot;&lt;locked&gt;&quot;</span>)
             }
         }
@@ -500,14 +500,14 @@
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.Deref.html">Deref</a> <span class="kw">for</span> <span class="ident">Locked</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span> {
     <span class="kw">type</span> <span class="ident">Target</span> <span class="op">=</span> <span class="ident">T</span>;
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">deref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">T</span> {
+    <span class="kw">fn</span> <span class="ident">deref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">T</span> {
         <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">*</span><a class="self" href="../../src/try_lock/lib.rs.html#232">self</a>.<span class="ident">lock</span>.<span class="ident">value</span>.<span class="ident">get</span>() }
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.DerefMut.html">DerefMut</a> <span class="kw">for</span> <span class="ident">Locked</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">deref_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">T</span> {
+    <span class="kw">fn</span> <span class="ident">deref_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">T</span> {
         <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">*</span><a class="self" href="../../src/try_lock/lib.rs.html#239">self</a>.<span class="ident">lock</span>.<span class="ident">value</span>.<span class="ident">get</span>() }
     }
 }
@@ -520,7 +520,7 @@
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <span class="ident">Locked</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
         <span class="ident">fmt::Debug::fmt</span>(<span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="kw-2">*</span><a class="self" href="../../src/try_lock/lib.rs.html#252">self</a>, <a class="ident" href="../../src/try_lock/lib.rs.html#252">f</a>)
     }
 }

@@ -114,17 +114,17 @@
 
 <span class="attribute">#[<span class="ident">macro_export</span>]</span>
 <span class="macro">macro_rules!</span> <span class="ident">jobject_wrapper</span> {
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>:<span class="ident">ident</span>) <span class="op">=</span><span class="op">&gt;</span> {
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>:<span class="ident">ident</span>) =&gt; {
         <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Copy</span>, <span class="ident">Clone</span>)]</span>
         <span class="kw">pub</span> <span class="kw">struct</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
             <span class="ident">obj</span>: <span class="ident">JObject</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
         }
 
         <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-            <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">obj</span>: <span class="ident">JObject</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+            <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">obj</span>: <span class="ident">JObject</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
                 <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span> { <span class="ident">obj</span> }
             }
-            <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">to_jobject</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JObject</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
+            <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">to_jobject</span>(<span class="self">self</span>) -&gt; <span class="ident">JObject</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
                 <span class="self">self</span>.<span class="ident">obj</span>
             }
         }
@@ -133,35 +133,35 @@
 
 <span class="attribute">#[<span class="ident">macro_export</span>]</span>
 <span class="macro">macro_rules!</span> <span class="ident">map_to_jobject</span> {
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">item</span>:<span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> {
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">item</span>:<span class="ident">expr</span>) =&gt; {
         <span class="macro-nonterminal">$</span><span class="macro-nonterminal">item</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="ident">x</span>.<span class="ident">to_jobject</span>())
     };
 }
 
 <span class="attribute">#[<span class="ident">macro_export</span>]</span>
 <span class="macro">macro_rules!</span> <span class="ident">map_to_jobjects</span> {
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">items</span>:<span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> {
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">items</span>:<span class="ident">expr</span>) =&gt; {
         <span class="macro">map_to_jobject!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">items</span>.<span class="ident">iter</span>()).<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">JObject</span><span class="op">&gt;</span><span class="op">&gt;</span>()
     };
 }
 
 <span class="attribute">#[<span class="ident">macro_export</span>]</span>
 <span class="macro">macro_rules!</span> <span class="ident">map_to_jobject_pair</span> {
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">item</span>:<span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> {
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">item</span>:<span class="ident">expr</span>) =&gt; {
         <span class="macro-nonterminal">$</span><span class="macro-nonterminal">item</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> (<span class="ident">x</span>.<span class="number">0</span>.<span class="ident">to_jobject</span>(), <span class="ident">x</span>.<span class="number">1</span>.<span class="ident">to_jobject</span>()))
     };
 }
 
 <span class="attribute">#[<span class="ident">macro_export</span>]</span>
 <span class="macro">macro_rules!</span> <span class="ident">map_to_jobject_pairs</span> {
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">items</span>:<span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> {
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">items</span>:<span class="ident">expr</span>) =&gt; {
         <span class="macro">map_to_jobject_pair!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">items</span>.<span class="ident">iter</span>()).<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span>(<span class="ident">JObject</span>, <span class="ident">JObject</span>)<span class="op">&gt;</span><span class="op">&gt;</span>()
     };
 }
 
 <span class="attribute">#[<span class="ident">macro_export</span>]</span>
 <span class="macro">macro_rules!</span> <span class="ident">build_ast_node_with_pos</span> {
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">self</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">wrapper</span>:<span class="ident">ident</span>, $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">java_class</span>:<span class="ident">ident</span>)::<span class="op">+</span>, $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">args</span>:<span class="ident">expr</span>),<span class="op">+</span>) <span class="op">=</span><span class="op">&gt;</span> {
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">self</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">wrapper</span>:<span class="ident">ident</span>, $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">java_class</span>:<span class="ident">ident</span>)::<span class="op">+</span>, $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">args</span>:<span class="ident">expr</span>),<span class="op">+</span>) =&gt; {
          {
             <span class="kw">let</span> <span class="ident">obj</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">self</span>.<span class="ident">jni</span>.<span class="ident">unwrap_result</span>(
                 <span class="macro-nonterminal">$</span><span class="macro-nonterminal">self</span>.<span class="ident">env</span>.<span class="ident">with_local_frame</span>(<span class="number">16</span>, <span class="kw">move</span> <span class="op">|</span><span class="op">|</span> {
@@ -179,7 +179,7 @@
 
 <span class="attribute">#[<span class="ident">macro_export</span>]</span>
 <span class="macro">macro_rules!</span> <span class="ident">build_ast_node</span> {
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">self</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">wrapper</span>:<span class="ident">ident</span>, $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">java_class</span>:<span class="ident">ident</span>)::<span class="op">+</span>) <span class="op">=</span><span class="op">&gt;</span> {
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">self</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">wrapper</span>:<span class="ident">ident</span>, $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">java_class</span>:<span class="ident">ident</span>)::<span class="op">+</span>) =&gt; {
          <span class="macro">build_ast_node_with_pos!</span>(
             <span class="macro-nonterminal">$</span><span class="macro-nonterminal">self</span>,
             <span class="macro-nonterminal">$</span><span class="macro-nonterminal">wrapper</span>,
@@ -187,7 +187,7 @@
             <span class="macro-nonterminal">$</span><span class="macro-nonterminal">self</span>.<span class="ident">no_position</span>().<span class="ident">to_jobject</span>()
          )
     };
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">self</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">wrapper</span>:<span class="ident">ident</span>, $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">java_class</span>:<span class="ident">ident</span>)::<span class="op">+</span>, $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">args</span>:<span class="ident">expr</span>),<span class="op">+</span>) <span class="op">=</span><span class="op">&gt;</span> {
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">self</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">wrapper</span>:<span class="ident">ident</span>, $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">java_class</span>:<span class="ident">ident</span>)::<span class="op">+</span>, $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">args</span>:<span class="ident">expr</span>),<span class="op">+</span>) =&gt; {
          <span class="macro">build_ast_node_with_pos!</span>(
             <span class="macro-nonterminal">$</span><span class="macro-nonterminal">self</span>,
             <span class="macro-nonterminal">$</span><span class="macro-nonterminal">wrapper</span>,
@@ -200,7 +200,7 @@
 
 <span class="attribute">#[<span class="ident">macro_export</span>]</span>
 <span class="macro">macro_rules!</span> <span class="ident">get_ast_object</span> {
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">self</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">wrapper</span>:<span class="ident">ident</span>, $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">java_class</span>:<span class="ident">ident</span>)::<span class="op">+</span>) <span class="op">=</span><span class="op">&gt;</span> {
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">self</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">wrapper</span>:<span class="ident">ident</span>, $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">java_class</span>:<span class="ident">ident</span>)::<span class="op">+</span>) =&gt; {
         {
             <span class="kw">let</span> <span class="ident">obj</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">self</span>.<span class="ident">jni</span>.<span class="ident">unwrap_result</span>($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">java_class</span>)::<span class="op">+</span><span class="ident">::with</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">self</span>.<span class="ident">env</span>).<span class="ident">singleton</span>());
             <span class="macro-nonterminal">$</span><span class="macro-nonterminal">wrapper::new</span>(<span class="ident">obj</span>)
@@ -210,9 +210,9 @@
 
 <span class="attribute">#[<span class="ident">macro_export</span>]</span>
 <span class="macro">macro_rules!</span> <span class="ident">generate_conversion_from_to</span> {
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">from</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">to</span>:<span class="ident">ident</span>) <span class="op">=</span><span class="op">&gt;</span> {
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">from</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">to</span>:<span class="ident">ident</span>) =&gt; {
         <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">from</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">to</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-            <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">other</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">from</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+            <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">other</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">from</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
                 <span class="macro-nonterminal">$</span><span class="macro-nonterminal">to::new</span>(<span class="ident">other</span>.<span class="ident">to_jobject</span>())
             }
         }

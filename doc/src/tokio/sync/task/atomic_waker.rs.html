@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;tokio-1.12.0&#x2F;src&#x2F;sync&#x2F;task&#x2F;atomic_waker.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>atomic_waker.rs - source</title><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../../../storage.js"></script><script src="../../../../crates.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../../tokio/index.html'><div class='logo-container rust-logo'><img src='../../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;tokio-1.13.0&#x2F;src&#x2F;sync&#x2F;task&#x2F;atomic_waker.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>atomic_waker.rs - source</title><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../../../storage.js"></script><script src="../../../../crates.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../../tokio/index.html'><div class='logo-container rust-logo'><img src='../../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -446,7 +446,7 @@
 <span class="comment">//    Thread A still holds the `wake` lock, the call to `register` will result</span>
 <span class="comment">//    in the task waking itself and get scheduled again.</span>
 
-<span class="doccomment">/// Idle state</span>
+<span class="doccomment">/// Idle state.</span>
 <span class="kw">const</span> <span class="ident">WAITING</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> <span class="op">=</span> <span class="number">0</span>;
 
 <span class="doccomment">/// A new waker value is being registered with the `AtomicWaker` cell.</span>
@@ -457,7 +457,7 @@
 
 <span class="kw">impl</span> <a class="ident" href="../../../../src/tokio/sync/task/atomic_waker.rs.html#25-28">AtomicWaker</a> {
     <span class="doccomment">/// Create an `AtomicWaker`</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="../../../../src/tokio/sync/task/atomic_waker.rs.html#25-28">AtomicWaker</a> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <a class="ident" href="../../../../src/tokio/sync/task/atomic_waker.rs.html#25-28">AtomicWaker</a> {
         <a class="ident" href="../../../../src/tokio/sync/task/atomic_waker.rs.html#25-28">AtomicWaker</a> {
             <span class="ident">state</span>: <span class="ident">AtomicUsize::new</span>(<a class="ident" href="../../../../src/tokio/sync/task/atomic_waker.rs.html#127">WAITING</a>),
             <span class="ident">waker</span>: <span class="ident">UnsafeCell::new</span>(<span class="prelude-val">None</span>),
@@ -499,7 +499,7 @@
             .<span class="ident">compare_exchange</span>(<a class="ident" href="../../../../src/tokio/sync/task/atomic_waker.rs.html#127">WAITING</a>, <a class="ident" href="../../../../src/tokio/sync/task/atomic_waker.rs.html#130">REGISTERING</a>, <span class="ident">Acquire</span>, <span class="ident">Acquire</span>)
             .<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <a class="ident" href="../../../../src/tokio/sync/task/atomic_waker.rs.html#177">x</a>)
         {
-            <a class="ident" href="../../../../src/tokio/sync/task/atomic_waker.rs.html#127">WAITING</a> <span class="op">=</span><span class="op">&gt;</span> {
+            <a class="ident" href="../../../../src/tokio/sync/task/atomic_waker.rs.html#127">WAITING</a> =&gt; {
                 <span class="kw">unsafe</span> {
                     <span class="comment">// Locked acquired, update the waker cell</span>
                     <a class="self" href="../../../../src/tokio/sync/task/atomic_waker.rs.html#170">self</a>.<span class="ident">waker</span>.<a class="ident" href="../../../../src/tokio/loom/std/unsafe_cell.rs.html#13">with_mut</a>(<span class="op">|</span><span class="ident">t</span><span class="op">|</span> <span class="kw-2">*</span><a class="ident" href="../../../../src/tokio/sync/task/atomic_waker.rs.html#182">t</a> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../../src/tokio/sync/task/atomic_waker.rs.html#170">waker</a>.<a class="ident" href="../../../../src/tokio/sync/task/atomic_waker.rs.html#302">into_waker</a>()));
@@ -516,8 +516,8 @@
                         .<span class="ident">compare_exchange</span>(<a class="ident" href="../../../../src/tokio/sync/task/atomic_waker.rs.html#130">REGISTERING</a>, <a class="ident" href="../../../../src/tokio/sync/task/atomic_waker.rs.html#127">WAITING</a>, <span class="ident">AcqRel</span>, <span class="ident">Acquire</span>);
 
                     <span class="kw">match</span> <a class="ident" href="../../../../src/tokio/sync/task/atomic_waker.rs.html#191">res</a> {
-                        <span class="prelude-val">Ok</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {}
-                        <span class="prelude-val">Err</span>(<span class="ident">actual</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                        <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; {}
+                        <span class="prelude-val">Err</span>(<span class="ident">actual</span>) =&gt; {
                             <span class="comment">// This branch can only be reached if a</span>
                             <span class="comment">// concurrent thread called `wake`. In this</span>
                             <span class="comment">// case, `actual` **must** be `REGISTERING |</span>
@@ -539,7 +539,7 @@
                     }
                 }
             }
-            <a class="ident" href="../../../../src/tokio/sync/task/atomic_waker.rs.html#133">WAKING</a> <span class="op">=</span><span class="op">&gt;</span> {
+            <a class="ident" href="../../../../src/tokio/sync/task/atomic_waker.rs.html#133">WAKING</a> =&gt; {
                 <span class="comment">// Currently in the process of waking the task, i.e.,</span>
                 <span class="comment">// `wake` is currently being called on the old waker.</span>
                 <span class="comment">// So, we call wake on the new waker.</span>
@@ -550,7 +550,7 @@
                 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">deprecated</span>)]</span>
                 <a class="ident" href="https://doc.rust-lang.org/nightly/core/sync/atomic/fn.spin_loop_hint.html">atomic::spin_loop_hint</a>();
             }
-            <span class="ident">state</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">state</span> =&gt; {
                 <span class="comment">// In this case, a concurrent thread is holding the</span>
                 <span class="comment">// &quot;registering&quot; lock. This probably indicates a bug in the</span>
                 <span class="comment">// caller&#39;s code as racing to call `register` doesn&#39;t make much</span>
@@ -558,7 +558,7 @@
                 <span class="comment">//</span>
                 <span class="comment">// We just want to maintain memory safety. It is ok to drop the</span>
                 <span class="comment">// call to `register`.</span>
-                <span class="macro">debug_assert!</span>(<a class="ident" href="../../../../src/tokio/sync/task/atomic_waker.rs.html#230">state</a> <span class="op">=</span><span class="op">=</span> <a class="ident" href="../../../../src/tokio/sync/task/atomic_waker.rs.html#130">REGISTERING</a> <span class="op">|</span><span class="op">|</span> <a class="ident" href="../../../../src/tokio/sync/task/atomic_waker.rs.html#230">state</a> <span class="op">=</span><span class="op">=</span> <a class="ident" href="../../../../src/tokio/sync/task/atomic_waker.rs.html#130">REGISTERING</a> <span class="op">|</span> <a class="ident" href="../../../../src/tokio/sync/task/atomic_waker.rs.html#133">WAKING</a>);
+                <span class="macro">debug_assert!</span>(<a class="ident" href="../../../../src/tokio/sync/task/atomic_waker.rs.html#230">state</a> <span class="op">==</span> <a class="ident" href="../../../../src/tokio/sync/task/atomic_waker.rs.html#130">REGISTERING</a> <span class="op">|</span><span class="op">|</span> <a class="ident" href="../../../../src/tokio/sync/task/atomic_waker.rs.html#230">state</a> <span class="op">==</span> <a class="ident" href="../../../../src/tokio/sync/task/atomic_waker.rs.html#130">REGISTERING</a> <span class="op">|</span> <a class="ident" href="../../../../src/tokio/sync/task/atomic_waker.rs.html#133">WAKING</a>);
             }
         }
     }
@@ -574,12 +574,12 @@
 
     <span class="doccomment">/// Attempts to take the `Waker` value out of the `AtomicWaker` with the</span>
     <span class="doccomment">/// intention that the caller will wake the task later.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">take_waker</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a><span class="op">&gt;</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">take_waker</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a><span class="op">&gt;</span> {
         <span class="comment">// AcqRel ordering is used in order to acquire the value of the `waker`</span>
         <span class="comment">// cell as well as to establish a `release` ordering with whatever</span>
         <span class="comment">// memory the `AtomicWaker` is associated with.</span>
         <span class="kw">match</span> <a class="self" href="../../../../src/tokio/sync/task/atomic_waker.rs.html#254">self</a>.<span class="ident">state</span>.<span class="ident">fetch_or</span>(<a class="ident" href="../../../../src/tokio/sync/task/atomic_waker.rs.html#133">WAKING</a>, <span class="ident">AcqRel</span>) {
-            <a class="ident" href="../../../../src/tokio/sync/task/atomic_waker.rs.html#127">WAITING</a> <span class="op">=</span><span class="op">&gt;</span> {
+            <a class="ident" href="../../../../src/tokio/sync/task/atomic_waker.rs.html#127">WAITING</a> =&gt; {
                 <span class="comment">// The waking lock has been acquired.</span>
                 <span class="kw">let</span> <span class="ident">waker</span> <span class="op">=</span> <span class="kw">unsafe</span> { <a class="self" href="../../../../src/tokio/sync/task/atomic_waker.rs.html#254">self</a>.<span class="ident">waker</span>.<a class="ident" href="../../../../src/tokio/loom/std/unsafe_cell.rs.html#13">with_mut</a>(<span class="op">|</span><span class="ident">t</span><span class="op">|</span> (<span class="kw-2">*</span><a class="ident" href="../../../../src/tokio/sync/task/atomic_waker.rs.html#261">t</a>).<span class="ident">take</span>()) };
 
@@ -588,7 +588,7 @@
 
                 <a class="ident" href="../../../../src/tokio/sync/task/atomic_waker.rs.html#261">waker</a>
             }
-            <span class="ident">state</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">state</span> =&gt; {
                 <span class="comment">// There is a concurrent thread currently updating the</span>
                 <span class="comment">// associated waker.</span>
                 <span class="comment">//</span>
@@ -597,7 +597,7 @@
                 <span class="comment">// not.</span>
                 <span class="comment">//</span>
                 <span class="macro">debug_assert!</span>(
-                    <a class="ident" href="../../../../src/tokio/sync/task/atomic_waker.rs.html#268">state</a> <span class="op">=</span><span class="op">=</span> <a class="ident" href="../../../../src/tokio/sync/task/atomic_waker.rs.html#130">REGISTERING</a> <span class="op">|</span><span class="op">|</span> <a class="ident" href="../../../../src/tokio/sync/task/atomic_waker.rs.html#268">state</a> <span class="op">=</span><span class="op">=</span> <a class="ident" href="../../../../src/tokio/sync/task/atomic_waker.rs.html#130">REGISTERING</a> <span class="op">|</span> <a class="ident" href="../../../../src/tokio/sync/task/atomic_waker.rs.html#133">WAKING</a> <span class="op">|</span><span class="op">|</span> <a class="ident" href="../../../../src/tokio/sync/task/atomic_waker.rs.html#268">state</a> <span class="op">=</span><span class="op">=</span> <a class="ident" href="../../../../src/tokio/sync/task/atomic_waker.rs.html#133">WAKING</a>
+                    <a class="ident" href="../../../../src/tokio/sync/task/atomic_waker.rs.html#268">state</a> <span class="op">==</span> <a class="ident" href="../../../../src/tokio/sync/task/atomic_waker.rs.html#130">REGISTERING</a> <span class="op">|</span><span class="op">|</span> <a class="ident" href="../../../../src/tokio/sync/task/atomic_waker.rs.html#268">state</a> <span class="op">==</span> <a class="ident" href="../../../../src/tokio/sync/task/atomic_waker.rs.html#130">REGISTERING</a> <span class="op">|</span> <a class="ident" href="../../../../src/tokio/sync/task/atomic_waker.rs.html#133">WAKING</a> <span class="op">|</span><span class="op">|</span> <a class="ident" href="../../../../src/tokio/sync/task/atomic_waker.rs.html#268">state</a> <span class="op">==</span> <a class="ident" href="../../../../src/tokio/sync/task/atomic_waker.rs.html#133">WAKING</a>
                 );
                 <span class="prelude-val">None</span>
             }
@@ -606,13 +606,13 @@
 }
 
 <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for</span> <a class="ident" href="../../../../src/tokio/sync/task/atomic_waker.rs.html#25-28">AtomicWaker</a> {
-    <span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="self">Self</span> {
         <span class="ident">AtomicWaker::new</span>()
     }
 }
 
 <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <a class="ident" href="../../../../src/tokio/sync/task/atomic_waker.rs.html#25-28">AtomicWaker</a> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">fmt</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">fmt</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
         <span class="macro">write!</span>(<a class="ident" href="../../../../src/tokio/sync/task/atomic_waker.rs.html#292">fmt</a>, <span class="string">&quot;AtomicWaker&quot;</span>)
     }
 }
@@ -622,7 +622,7 @@
 
 <span class="kw">trait</span> <span class="ident">WakerRef</span> {
     <span class="kw">fn</span> <span class="ident">wake</span>(<span class="self">self</span>);
-    <span class="kw">fn</span> <span class="ident">into_waker</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a>;
+    <span class="kw">fn</span> <span class="ident">into_waker</span>(<span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a>;
 }
 
 <span class="kw">impl</span> <a class="ident" href="../../../../src/tokio/sync/task/atomic_waker.rs.html#300-303">WakerRef</a> <span class="kw">for</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a> {
@@ -630,7 +630,7 @@
         <a class="self" href="../../../../src/tokio/sync/task/atomic_waker.rs.html#306">self</a>.<span class="ident">wake</span>()
     }
 
-    <span class="kw">fn</span> <span class="ident">into_waker</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a> {
+    <span class="kw">fn</span> <span class="ident">into_waker</span>(<span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a> {
         <a class="self" href="../../../../src/tokio/sync/task/atomic_waker.rs.html#310">self</a>
     }
 }
@@ -640,7 +640,7 @@
         <a class="self" href="../../../../src/tokio/sync/task/atomic_waker.rs.html#316">self</a>.<span class="ident">wake_by_ref</span>()
     }
 
-    <span class="kw">fn</span> <span class="ident">into_waker</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a> {
+    <span class="kw">fn</span> <span class="ident">into_waker</span>(<span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a> {
         <a class="self" href="../../../../src/tokio/sync/task/atomic_waker.rs.html#320">self</a>.<span class="ident">clone</span>()
     }
 }

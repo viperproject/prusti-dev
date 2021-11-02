@@ -8,19 +8,19 @@
 functions directly. Instead, the equivalent functions on <code>Registry</code> should
 be used.</p>
 <p>See <a href="../struct.Registry.html"><code>Registry</code></a> for more details.</p>
-<h1 id="implementing-eventsource" class="section-header"><a href="#implementing-eventsource">Implementing <code>event::Source</code></a></h1>
+<h2 id="implementing-eventsource" class="section-header"><a href="#implementing-eventsource">Implementing <code>event::Source</code></a></h2>
 <p>Event sources are always backed by system handles, such as sockets or other
 system handles. These <code>event::Source</code>s will be monitored by the system
 selector. An implementation of <code>Source</code> will almost always delegates to a
 lower level handle. Examples of this are <a href="../net/struct.TcpStream.html"><code>TcpStream</code></a>s, or the <em>unix only</em>
 <a href="../unix/struct.SourceFd.html"><code>SourceFd</code></a>.</p>
-<h1 id="dropping-eventsources" class="section-header"><a href="#dropping-eventsources">Dropping <code>event::Source</code>s</a></h1>
+<h2 id="dropping-eventsources" class="section-header"><a href="#dropping-eventsources">Dropping <code>event::Source</code>s</a></h2>
 <p>All <code>event::Source</code>s, unless otherwise specified, need to be <a href="../struct.Registry.html#method.deregister">deregistered</a>
 before being dropped for them to not leak resources. This goes against the
 normal drop behaviour of types in Rust which cleanup after themselves, e.g.
 a <code>File</code> will close itself. However since deregistering needs access to
 <a href="../struct.Registry.html"><code>Registry</code></a> this cannot be done while being dropped.</p>
-<h1 id="examples" class="section-header"><a href="#examples">Examples</a></h1>
+<h2 id="examples" class="section-header"><a href="#examples">Examples</a></h2>
 <p>Implementing <code>Source</code> on a struct containing a socket:</p>
 
 <div class='information'><div class='tooltip ignore'>ⓘ</div></div><div class="example-wrap"><pre class="rust rust-example-rendered ignore"><code><span class="kw">use</span> <span class="ident">mio</span>::{<span class="ident">Interest</span>, <span class="ident">Registry</span>, <span class="ident">Token</span>};
@@ -35,20 +35,20 @@ a <code>File</code> will close itself. However since deregistering needs access 
 
 <span class="kw">impl</span> <span class="ident">Source</span> <span class="kw">for</span> <span class="ident">MySource</span> {
     <span class="kw">fn</span> <span class="ident">register</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">registry</span>: <span class="kw-2">&amp;</span><span class="ident">Registry</span>, <span class="ident">token</span>: <span class="ident">Token</span>, <span class="ident">interests</span>: <span class="ident">Interest</span>)
-        <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span>
+        -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span>
     {
         <span class="comment">// Delegate the `register` call to `socket`</span>
         <span class="self">self</span>.<span class="ident">socket</span>.<span class="ident">register</span>(<span class="ident">registry</span>, <span class="ident">token</span>, <span class="ident">interests</span>)
     }
 
     <span class="kw">fn</span> <span class="ident">reregister</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">registry</span>: <span class="kw-2">&amp;</span><span class="ident">Registry</span>, <span class="ident">token</span>: <span class="ident">Token</span>, <span class="ident">interests</span>: <span class="ident">Interest</span>)
-        <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span>
+        -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span>
     {
         <span class="comment">// Delegate the `reregister` call to `socket`</span>
         <span class="self">self</span>.<span class="ident">socket</span>.<span class="ident">reregister</span>(<span class="ident">registry</span>, <span class="ident">token</span>, <span class="ident">interests</span>)
     }
 
-    <span class="kw">fn</span> <span class="ident">deregister</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">registry</span>: <span class="kw-2">&amp;</span><span class="ident">Registry</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">deregister</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">registry</span>: <span class="kw-2">&amp;</span><span class="ident">Registry</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="comment">// Delegate the `deregister` call to `socket`</span>
         <span class="self">self</span>.<span class="ident">socket</span>.<span class="ident">deregister</span>(<span class="ident">registry</span>)
     }

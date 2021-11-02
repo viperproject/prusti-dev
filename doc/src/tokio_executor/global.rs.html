@@ -329,21 +329,21 @@
     <span class="doccomment">/// This is also true for sending the handle across threads, so calling</span>
     <span class="doccomment">/// `DefaultExecutor::current()` on thread A and then sending the result to</span>
     <span class="doccomment">/// thread B will _not_ reference the default executor that was set on thread A.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">current</span>() <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="../../src/tokio_executor/global.rs.html#18-20">DefaultExecutor</a> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">current</span>() -&gt; <a class="ident" href="../../src/tokio_executor/global.rs.html#18-20">DefaultExecutor</a> {
         <a class="ident" href="../../src/tokio_executor/global.rs.html#18-20">DefaultExecutor</a> { <span class="ident">_dummy</span>: () }
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">with_current</span><span class="op">&lt;</span><span class="ident">F</span>: <span class="ident">FnOnce</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">dyn</span> <span class="ident">Executor</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">R</span>, <span class="ident">R</span><span class="op">&gt;</span>(<span class="ident">f</span>: <span class="ident">F</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">with_current</span><span class="op">&lt;</span><span class="ident">F</span>: <span class="ident">FnOnce</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">dyn</span> <span class="ident">Executor</span>) -&gt; <span class="ident">R</span>, <span class="ident">R</span><span class="op">&gt;</span>(<span class="ident">f</span>: <span class="ident">F</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
         <a class="ident" href="../../src/tokio_executor/global.rs.html#72-75">EXECUTOR</a>.<span class="ident">with</span>(
             <span class="op">|</span><span class="ident">current_executor</span><span class="op">|</span> <span class="kw">match</span> <a class="ident" href="../../src/tokio_executor/global.rs.html#49">current_executor</a>.<span class="ident">replace</span>(<a class="ident" href="../../src/tokio_executor/global.rs.html#69">State::Active</a>) {
-                <a class="ident" href="../../src/tokio_executor/global.rs.html#67">State::Ready</a>(<span class="ident">executor_ptr</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <a class="ident" href="../../src/tokio_executor/global.rs.html#67">State::Ready</a>(<span class="ident">executor_ptr</span>) =&gt; {
                     <span class="kw">let</span> <span class="ident">executor</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">*</span><a class="ident" href="../../src/tokio_executor/global.rs.html#50">executor_ptr</a> };
                     <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <a class="ident" href="../../src/tokio_executor/global.rs.html#47">f</a>(<a class="ident" href="../../src/tokio_executor/global.rs.html#51">executor</a>);
                     <a class="ident" href="../../src/tokio_executor/global.rs.html#49">current_executor</a>.<span class="ident">set</span>(<a class="ident" href="../../src/tokio_executor/global.rs.html#67">State::Ready</a>(<a class="ident" href="../../src/tokio_executor/global.rs.html#50">executor_ptr</a>));
                     <span class="prelude-val">Some</span>(<a class="ident" href="../../src/tokio_executor/global.rs.html#52">result</a>)
                 }
-                <a class="ident" href="../../src/tokio_executor/global.rs.html#65">State::Empty</a> <span class="op">|</span> <a class="ident" href="../../src/tokio_executor/global.rs.html#69">State::Active</a> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
+                <a class="ident" href="../../src/tokio_executor/global.rs.html#65">State::Empty</a> <span class="op">|</span> <a class="ident" href="../../src/tokio_executor/global.rs.html#69">State::Active</a> =&gt; <span class="prelude-val">None</span>,
             },
         )
     }
@@ -370,12 +370,12 @@
     <span class="kw">fn</span> <span class="ident">spawn</span>(
         <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
         <span class="ident">future</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">dyn</span> <span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> (), <span class="ident">Error</span> <span class="op">=</span> ()<span class="op">&gt;</span> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a><span class="op">&gt;</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../src/tokio_executor/error.rs.html#14-16">SpawnError</a><span class="op">&gt;</span> {
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../src/tokio_executor/error.rs.html#14-16">SpawnError</a><span class="op">&gt;</span> {
         <span class="ident">DefaultExecutor::with_current</span>(<span class="op">|</span><span class="ident">executor</span><span class="op">|</span> <a class="ident" href="../../src/tokio_executor/global.rs.html#84">executor</a>.<a class="ident" href="../../src/tokio_executor/executor.rs.html#95-98">spawn</a>(<a class="ident" href="../../src/tokio_executor/global.rs.html#82">future</a>))
             .<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="prelude-val">Err</span>(<span class="ident">SpawnError::shutdown</span>()))
     }
 
-    <span class="kw">fn</span> <span class="ident">status</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../src/tokio_executor/error.rs.html#14-16">SpawnError</a><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">status</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../src/tokio_executor/error.rs.html#14-16">SpawnError</a><span class="op">&gt;</span> {
         <span class="ident">DefaultExecutor::with_current</span>(<span class="op">|</span><span class="ident">executor</span><span class="op">|</span> <a class="ident" href="../../src/tokio_executor/global.rs.html#89">executor</a>.<a class="ident" href="../../src/tokio_executor/executor.rs.html#135">status</a>())
             .<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="prelude-val">Err</span>(<span class="ident">SpawnError::shutdown</span>()))
     }
@@ -385,11 +385,11 @@
 <span class="kw">where</span>
     <span class="ident">T</span>: <span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> (), <span class="ident">Error</span> <span class="op">=</span> ()<span class="op">&gt;</span> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
 {
-    <span class="kw">fn</span> <span class="ident">spawn</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">future</span>: <span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../src/tokio_executor/error.rs.html#14-16">SpawnError</a><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">spawn</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">future</span>: <span class="ident">T</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../src/tokio_executor/error.rs.html#14-16">SpawnError</a><span class="op">&gt;</span> {
         <a class="ident" href="../../src/tokio_executor/executor.rs.html#95-98"><span class="kw">super</span>::Executor::spawn</a>(<a class="self" href="../../src/tokio_executor/global.rs.html#98">self</a>, <span class="ident">Box::new</span>(<a class="ident" href="../../src/tokio_executor/global.rs.html#98">future</a>))
     }
 
-    <span class="kw">fn</span> <span class="ident">status</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../src/tokio_executor/error.rs.html#14-16">SpawnError</a><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">status</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../src/tokio_executor/error.rs.html#14-16">SpawnError</a><span class="op">&gt;</span> {
         <a class="ident" href="../../src/tokio_executor/executor.rs.html#135"><span class="kw">super</span>::Executor::status</a>(<a class="self" href="../../src/tokio_executor/global.rs.html#102">self</a>)
     }
 }
@@ -398,7 +398,7 @@
 <span class="kw">where</span>
     <span class="ident">T</span>: <span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> (), <span class="ident">Error</span> <span class="op">=</span> ()<span class="op">&gt;</span> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
 {
-    <span class="kw">fn</span> <span class="ident">execute</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">future</span>: <span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">future::ExecuteError</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">execute</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">future</span>: <span class="ident">T</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">future::ExecuteError</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span> <a class="ident" href="../../src/tokio_executor/executor.rs.html#135"><span class="kw">super</span>::Executor::status</a>(<a class="self" href="../../src/tokio_executor/global.rs.html#111">self</a>) {
             <span class="kw">let</span> <span class="ident">kind</span> <span class="op">=</span> <span class="kw">if</span> <a class="ident" href="../../src/tokio_executor/global.rs.html#112">e</a>.<a class="ident" href="../../src/tokio_executor/error.rs.html#35">is_at_capacity</a>() {
                 <span class="ident">future::ExecuteErrorKind::NoCapacity</span>
@@ -467,22 +467,22 @@
 <span class="doccomment">/// # Panics</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// This function panics if there already is a default executor set.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">with_default</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">F</span>, <span class="ident">R</span><span class="op">&gt;</span>(<span class="ident">executor</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">T</span>, <span class="ident">enter</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../src/tokio_executor/enter.rs.html#13-16">Enter</a>, <span class="ident">f</span>: <span class="ident">F</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">R</span>
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">with_default</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">F</span>, <span class="ident">R</span><span class="op">&gt;</span>(<span class="ident">executor</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">T</span>, <span class="ident">enter</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../src/tokio_executor/enter.rs.html#13-16">Enter</a>, <span class="ident">f</span>: <span class="ident">F</span>) -&gt; <span class="ident">R</span>
 <span class="kw">where</span>
     <span class="ident">T</span>: <a class="ident" href="../../src/tokio_executor/executor.rs.html#67-138">Executor</a>,
-    <span class="ident">F</span>: <span class="ident">FnOnce</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../src/tokio_executor/enter.rs.html#13-16">Enter</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">R</span>,
+    <span class="ident">F</span>: <span class="ident">FnOnce</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../src/tokio_executor/enter.rs.html#13-16">Enter</a>) -&gt; <span class="ident">R</span>,
 {
-    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">hide_lt</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="ident">p</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> (<span class="ident">dyn</span> <a class="ident" href="../../src/tokio_executor/executor.rs.html#67-138">Executor</a> <span class="op">+</span> <span class="lifetime">&#39;a</span>)) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> (<span class="ident">dyn</span> <a class="ident" href="../../src/tokio_executor/executor.rs.html#67-138">Executor</a> <span class="op">+</span> <span class="lifetime">&#39;static</span>) {
+    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">hide_lt</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="ident">p</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> (<span class="ident">dyn</span> <a class="ident" href="../../src/tokio_executor/executor.rs.html#67-138">Executor</a> <span class="op">+</span> <span class="lifetime">&#39;a</span>)) -&gt; <span class="kw-2">*</span><span class="kw-2">mut</span> (<span class="ident">dyn</span> <a class="ident" href="../../src/tokio_executor/executor.rs.html#67-138">Executor</a> <span class="op">+</span> <span class="lifetime">&#39;static</span>) {
         <span class="kw">use</span> <span class="ident">std::mem</span>;
         <span class="ident">mem::transmute</span>(<a class="ident" href="../../src/tokio_executor/global.rs.html#185">p</a>)
     }
 
     <a class="ident" href="../../src/tokio_executor/global.rs.html#72-75">EXECUTOR</a>.<span class="ident">with</span>(<span class="op">|</span><span class="ident">cell</span><span class="op">|</span> {
         <span class="kw">match</span> <a class="ident" href="../../src/tokio_executor/global.rs.html#190">cell</a>.<span class="ident">get</span>() {
-            <a class="ident" href="../../src/tokio_executor/global.rs.html#67">State::Ready</a>(<span class="kw">_</span>) <span class="op">|</span> <a class="ident" href="../../src/tokio_executor/global.rs.html#69">State::Active</a> <span class="op">=</span><span class="op">&gt;</span> {
+            <a class="ident" href="../../src/tokio_executor/global.rs.html#67">State::Ready</a>(<span class="kw">_</span>) <span class="op">|</span> <a class="ident" href="../../src/tokio_executor/global.rs.html#69">State::Active</a> =&gt; {
                 <span class="macro">panic!</span>(<span class="string">&quot;default executor already set for execution context&quot;</span>)
             }
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {}
+            <span class="kw">_</span> =&gt; {}
         }
 
         <span class="comment">// Ensure that the executor is removed from the thread-local context</span>
@@ -518,16 +518,16 @@
 <span class="doccomment">/// # Panics</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// This function panics if there already is a default executor set.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_default</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">executor</span>: <span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="../../src/tokio_executor/global.rs.html#25-27">DefaultGuard</a>
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_default</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">executor</span>: <span class="ident">T</span>) -&gt; <a class="ident" href="../../src/tokio_executor/global.rs.html#25-27">DefaultGuard</a>
 <span class="kw">where</span>
     <span class="ident">T</span>: <a class="ident" href="../../src/tokio_executor/executor.rs.html#67-138">Executor</a> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
 {
     <a class="ident" href="../../src/tokio_executor/global.rs.html#72-75">EXECUTOR</a>.<span class="ident">with</span>(<span class="op">|</span><span class="ident">cell</span><span class="op">|</span> {
         <span class="kw">match</span> <a class="ident" href="../../src/tokio_executor/global.rs.html#235">cell</a>.<span class="ident">get</span>() {
-            <a class="ident" href="../../src/tokio_executor/global.rs.html#67">State::Ready</a>(<span class="kw">_</span>) <span class="op">|</span> <a class="ident" href="../../src/tokio_executor/global.rs.html#69">State::Active</a> <span class="op">=</span><span class="op">&gt;</span> {
+            <a class="ident" href="../../src/tokio_executor/global.rs.html#67">State::Ready</a>(<span class="kw">_</span>) <span class="op">|</span> <a class="ident" href="../../src/tokio_executor/global.rs.html#69">State::Active</a> =&gt; {
                 <span class="macro">panic!</span>(<span class="string">&quot;default executor already set for execution context&quot;</span>)
             }
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {}
+            <span class="kw">_</span> =&gt; {}
         }
 
         <span class="comment">// Ensure that the executor will outlive the call to set_default, even</span>

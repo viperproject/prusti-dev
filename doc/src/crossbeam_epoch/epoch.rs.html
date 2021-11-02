@@ -136,7 +136,7 @@
 <span class="kw">impl</span> <a class="ident" href="../../src/crossbeam_epoch/epoch.rs.html#17-20">Epoch</a> {
     <span class="doccomment">/// Returns the starting epoch in unpinned state.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">starting</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">starting</span>() -&gt; <span class="self">Self</span> {
         <span class="ident"><span class="self">Self</span>::default</span>()
     }
 
@@ -144,7 +144,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// Internally, epochs are represented as numbers in the range `(isize::MIN / 2) .. (isize::MAX</span>
     <span class="doccomment">/// / 2)`, so the returned distance will be in the same interval.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">wrapping_sub</span>(<span class="self">self</span>, <span class="ident">rhs</span>: <span class="self">Self</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.isize.html">isize</a> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">wrapping_sub</span>(<span class="self">self</span>, <span class="ident">rhs</span>: <span class="self">Self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.isize.html">isize</a> {
         <span class="comment">// The result is the same with `(self.data &amp; !1).wrapping_sub(rhs.data &amp; !1) as isize &gt;&gt; 1`,</span>
         <span class="comment">// because the possible difference of LSB in `(self.data &amp; !1).wrapping_sub(rhs.data &amp; !1)`</span>
         <span class="comment">// will be ignored in the shift operation.</span>
@@ -153,13 +153,13 @@
 
     <span class="doccomment">/// Returns `true` if the epoch is marked as pinned.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_pinned</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        (<a class="self" href="../../src/crossbeam_epoch/epoch.rs.html#42">self</a>.<span class="ident">data</span> <span class="op">&amp;</span> <span class="number">1</span>) <span class="op">=</span><span class="op">=</span> <span class="number">1</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_pinned</span>(<span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        (<a class="self" href="../../src/crossbeam_epoch/epoch.rs.html#42">self</a>.<span class="ident">data</span> <span class="op">&amp;</span> <span class="number">1</span>) <span class="op">==</span> <span class="number">1</span>
     }
 
     <span class="doccomment">/// Returns the same epoch, but marked as pinned.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">pinned</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="../../src/crossbeam_epoch/epoch.rs.html#17-20">Epoch</a> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">pinned</span>(<span class="self">self</span>) -&gt; <a class="ident" href="../../src/crossbeam_epoch/epoch.rs.html#17-20">Epoch</a> {
         <a class="ident" href="../../src/crossbeam_epoch/epoch.rs.html#17-20">Epoch</a> {
             <span class="ident">data</span>: <a class="self" href="../../src/crossbeam_epoch/epoch.rs.html#48">self</a>.<span class="ident">data</span> <span class="op">|</span> <span class="number">1</span>,
         }
@@ -167,7 +167,7 @@
 
     <span class="doccomment">/// Returns the same epoch, but marked as unpinned.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">unpinned</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="../../src/crossbeam_epoch/epoch.rs.html#17-20">Epoch</a> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">unpinned</span>(<span class="self">self</span>) -&gt; <a class="ident" href="../../src/crossbeam_epoch/epoch.rs.html#17-20">Epoch</a> {
         <a class="ident" href="../../src/crossbeam_epoch/epoch.rs.html#17-20">Epoch</a> {
             <span class="ident">data</span>: <a class="self" href="../../src/crossbeam_epoch/epoch.rs.html#56">self</a>.<span class="ident">data</span> <span class="op">&amp;</span> <span class="op">!</span><span class="number">1</span>,
         }
@@ -177,7 +177,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// The returned epoch will be marked as pinned only if the previous one was as well.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">successor</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="../../src/crossbeam_epoch/epoch.rs.html#17-20">Epoch</a> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">successor</span>(<span class="self">self</span>) -&gt; <a class="ident" href="../../src/crossbeam_epoch/epoch.rs.html#17-20">Epoch</a> {
         <a class="ident" href="../../src/crossbeam_epoch/epoch.rs.html#17-20">Epoch</a> {
             <span class="ident">data</span>: <a class="self" href="../../src/crossbeam_epoch/epoch.rs.html#66">self</a>.<span class="ident">data</span>.<span class="ident">wrapping_add</span>(<span class="number">2</span>),
         }
@@ -195,14 +195,14 @@
 <span class="kw">impl</span> <a class="ident" href="../../src/crossbeam_epoch/epoch.rs.html#75-79">AtomicEpoch</a> {
     <span class="doccomment">/// Creates a new atomic epoch.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">epoch</span>: <a class="ident" href="../../src/crossbeam_epoch/epoch.rs.html#17-20">Epoch</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">epoch</span>: <a class="ident" href="../../src/crossbeam_epoch/epoch.rs.html#17-20">Epoch</a>) -&gt; <span class="self">Self</span> {
         <span class="kw">let</span> <span class="ident">data</span> <span class="op">=</span> <span class="ident">AtomicUsize::new</span>(<a class="ident" href="../../src/crossbeam_epoch/epoch.rs.html#84">epoch</a>.<span class="ident">data</span>);
         <a class="ident" href="../../src/crossbeam_epoch/epoch.rs.html#75-79">AtomicEpoch</a> { <a class="ident" href="../../src/crossbeam_epoch/epoch.rs.html#85">data</a> }
     }
 
     <span class="doccomment">/// Loads a value from the atomic epoch.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">load</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">ord</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/sync/atomic/enum.Ordering.html">Ordering</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="../../src/crossbeam_epoch/epoch.rs.html#17-20">Epoch</a> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">load</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">ord</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/sync/atomic/enum.Ordering.html">Ordering</a>) -&gt; <a class="ident" href="../../src/crossbeam_epoch/epoch.rs.html#17-20">Epoch</a> {
         <a class="ident" href="../../src/crossbeam_epoch/epoch.rs.html#17-20">Epoch</a> {
             <span class="ident">data</span>: <a class="self" href="../../src/crossbeam_epoch/epoch.rs.html#91">self</a>.<span class="ident">data</span>.<span class="ident">load</span>(<a class="ident" href="../../src/crossbeam_epoch/epoch.rs.html#91">ord</a>),
         }
@@ -221,7 +221,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// The `Ordering` argument describes the memory ordering of this operation.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">compare_and_swap</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">current</span>: <a class="ident" href="../../src/crossbeam_epoch/epoch.rs.html#17-20">Epoch</a>, <span class="ident">new</span>: <a class="ident" href="../../src/crossbeam_epoch/epoch.rs.html#17-20">Epoch</a>, <span class="ident">ord</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/sync/atomic/enum.Ordering.html">Ordering</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="../../src/crossbeam_epoch/epoch.rs.html#17-20">Epoch</a> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">compare_and_swap</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">current</span>: <a class="ident" href="../../src/crossbeam_epoch/epoch.rs.html#17-20">Epoch</a>, <span class="ident">new</span>: <a class="ident" href="../../src/crossbeam_epoch/epoch.rs.html#17-20">Epoch</a>, <span class="ident">ord</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/sync/atomic/enum.Ordering.html">Ordering</a>) -&gt; <a class="ident" href="../../src/crossbeam_epoch/epoch.rs.html#17-20">Epoch</a> {
         <span class="kw">let</span> <span class="ident">data</span> <span class="op">=</span> <a class="self" href="../../src/crossbeam_epoch/epoch.rs.html#110">self</a>.<span class="ident">data</span>.<span class="ident">compare_and_swap</span>(<a class="ident" href="../../src/crossbeam_epoch/epoch.rs.html#110">current</a>.<span class="ident">data</span>, <a class="ident" href="../../src/crossbeam_epoch/epoch.rs.html#110">new</a>.<span class="ident">data</span>, <a class="ident" href="../../src/crossbeam_epoch/epoch.rs.html#110">ord</a>);
         <a class="ident" href="../../src/crossbeam_epoch/epoch.rs.html#17-20">Epoch</a> { <a class="ident" href="../../src/crossbeam_epoch/epoch.rs.html#111">data</a> }
     }

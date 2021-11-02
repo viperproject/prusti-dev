@@ -21,7 +21,7 @@ method such as <code>dealloc</code> or by being
 passed to a reallocation method that returns a non-null pointer.</p>
 </li>
 </ul>
-<h1 id="example" class="section-header"><a href="#example">Example</a></h1>
+<h2 id="example" class="section-header"><a href="#example">Example</a></h2>
 <div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use</span> <span class="ident">std::alloc</span>::{<span class="ident">GlobalAlloc</span>, <span class="ident">Layout</span>};
 <span class="kw">use</span> <span class="ident">std::cell::UnsafeCell</span>;
 <span class="kw">use</span> <span class="ident">std::ptr::null_mut</span>;
@@ -47,7 +47,7 @@ passed to a reallocation method that returns a non-null pointer.</p>
 <span class="kw">unsafe</span> <span class="kw">impl</span> <span class="ident">Sync</span> <span class="kw">for</span> <span class="ident">SimpleAllocator</span> {}
 
 <span class="kw">unsafe</span> <span class="kw">impl</span> <span class="ident">GlobalAlloc</span> <span class="kw">for</span> <span class="ident">SimpleAllocator</span> {
-    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">alloc</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">layout</span>: <span class="ident">Layout</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">u8</span> {
+    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">alloc</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">layout</span>: <span class="ident">Layout</span>) -&gt; <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">u8</span> {
         <span class="kw">let</span> <span class="ident">size</span> <span class="op">=</span> <span class="ident">layout</span>.<span class="ident">size</span>();
         <span class="kw">let</span> <span class="ident">align</span> <span class="op">=</span> <span class="ident">layout</span>.<span class="ident">align</span>();
 
@@ -85,7 +85,7 @@ passed to a reallocation method that returns a non-null pointer.</p>
     <span class="kw">let</span> <span class="ident">currently</span> <span class="op">=</span> <span class="ident">ALLOCATOR</span>.<span class="ident">remaining</span>.<span class="ident">load</span>(<span class="ident">Acquire</span>);
     <span class="macro">println!</span>(<span class="string">&quot;allocated so far: {}&quot;</span>, <span class="ident">ARENA_SIZE</span> <span class="op">-</span> <span class="ident">currently</span>);
 }</code></pre></div>
-<h1 id="safety" class="section-header"><a href="#safety">Safety</a></h1>
+<h2 id="safety" class="section-header"><a href="#safety">Safety</a></h2>
 <p>The <code>GlobalAlloc</code> trait is an <code>unsafe</code> trait for a number of reasons, and
 implementors must ensure that they adhere to these contracts:</p>
 <ul>
@@ -122,14 +122,14 @@ having side effects.</p>
 </div></details><h2 id="required-methods" class="small-section-header">Required methods<a href="#required-methods" class="anchor"></a></h2><div class="methods"><details class="rustdoc-toggle" open><summary><div id="tymethod.alloc" class="method has-srclink"><div class="rightside"><a class="srclink" href="https://doc.rust-lang.org/nightly/src/core/alloc/global.rs.html#157" title="goto source code">[src]</a></div><h4 class="code-header">unsafe fn <a href="#tymethod.alloc" class="fnname">alloc</a>(&amp;self, layout: <a class="struct" href="struct.Layout.html" title="struct nom::lib::std::alloc::Layout">Layout</a>) -&gt; <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.pointer.html">*mut </a><a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a></h4></div></summary><div class="docblock"><p>Allocate memory as described by the given <code>layout</code>.</p>
 <p>Returns a pointer to newly-allocated memory,
 or null to indicate allocation failure.</p>
-<h1 id="safety-1" class="section-header"><a href="#safety-1">Safety</a></h1>
+<h5 id="safety-1" class="section-header"><a href="#safety-1">Safety</a></h5>
 <p>This function is unsafe because undefined behavior can result
 if the caller does not ensure that <code>layout</code> has non-zero size.</p>
 <p>(Extension subtraits might provide more specific bounds on
 behavior, e.g., guarantee a sentinel address or a null pointer
 in response to a zero-size allocation request.)</p>
 <p>The allocated block of memory may or may not be initialized.</p>
-<h1 id="errors" class="section-header"><a href="#errors">Errors</a></h1>
+<h5 id="errors" class="section-header"><a href="#errors">Errors</a></h5>
 <p>Returning a null pointer indicates that either memory is exhausted
 or <code>layout</code> does not meet this allocator’s size or alignment constraints.</p>
 <p>Implementations are encouraged to return null on memory
@@ -141,7 +141,7 @@ library that aborts on memory exhaustion.)</p>
 allocation error are encouraged to call the <a href="../../alloc/alloc/fn.handle_alloc_error.html"><code>handle_alloc_error</code></a> function,
 rather than directly invoking <code>panic!</code> or similar.</p>
 </div></details><details class="rustdoc-toggle" open><summary><div id="tymethod.dealloc" class="method has-srclink"><div class="rightside"><a class="srclink" href="https://doc.rust-lang.org/nightly/src/core/alloc/global.rs.html#172" title="goto source code">[src]</a></div><h4 class="code-header">unsafe fn <a href="#tymethod.dealloc" class="fnname">dealloc</a>(&amp;self, ptr: <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.pointer.html">*mut </a><a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, layout: <a class="struct" href="struct.Layout.html" title="struct nom::lib::std::alloc::Layout">Layout</a>)</h4></div></summary><div class="docblock"><p>Deallocate the block of memory at the given <code>ptr</code> pointer with the given <code>layout</code>.</p>
-<h1 id="safety-2" class="section-header"><a href="#safety-2">Safety</a></h1>
+<h5 id="safety-2" class="section-header"><a href="#safety-2">Safety</a></h5>
 <p>This function is unsafe because undefined behavior can result
 if the caller does not ensure all of the following:</p>
 <ul>
@@ -156,10 +156,10 @@ to allocate that block of memory.</p>
 </ul>
 </div></details></div><h2 id="provided-methods" class="small-section-header">Provided methods<a href="#provided-methods" class="anchor"></a></h2><div class="methods"><details class="rustdoc-toggle" open><summary><div id="method.alloc_zeroed" class="method has-srclink"><div class="rightside"><a class="srclink" href="https://doc.rust-lang.org/nightly/src/core/alloc/global.rs.html#194" title="goto source code">[src]</a></div><h4 class="code-header">unsafe fn <a href="#method.alloc_zeroed" class="fnname">alloc_zeroed</a>(&amp;self, layout: <a class="struct" href="struct.Layout.html" title="struct nom::lib::std::alloc::Layout">Layout</a>) -&gt; <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.pointer.html">*mut </a><a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a></h4></div></summary><div class="docblock"><p>Behaves like <code>alloc</code>, but also ensures that the contents
 are set to zero before being returned.</p>
-<h1 id="safety-3" class="section-header"><a href="#safety-3">Safety</a></h1>
+<h5 id="safety-3" class="section-header"><a href="#safety-3">Safety</a></h5>
 <p>This function is unsafe for the same reasons that <code>alloc</code> is.
 However the allocated block of memory is guaranteed to be initialized.</p>
-<h1 id="errors-1" class="section-header"><a href="#errors-1">Errors</a></h1>
+<h5 id="errors-1" class="section-header"><a href="#errors-1">Errors</a></h5>
 <p>Returning a null pointer indicates that either memory is exhausted
 or <code>layout</code> does not meet allocator’s size or alignment constraints,
 just as in <code>alloc</code>.</p>
@@ -181,7 +181,7 @@ guaranteed to have the same values as the original block.</p>
 <p>If this method returns null, then ownership of the memory
 block has not been transferred to this allocator, and the
 contents of the memory block are unaltered.</p>
-<h1 id="safety-4" class="section-header"><a href="#safety-4">Safety</a></h1>
+<h5 id="safety-4" class="section-header"><a href="#safety-4">Safety</a></h5>
 <p>This function is unsafe because undefined behavior can result
 if the caller does not ensure all of the following:</p>
 <ul>
@@ -203,7 +203,7 @@ must not overflow (i.e., the rounded value must be less than <code>usize::MAX</c
 <p>(Extension subtraits might provide more specific bounds on
 behavior, e.g., guarantee a sentinel address or a null pointer
 in response to a zero-size allocation request.)</p>
-<h1 id="errors-2" class="section-header"><a href="#errors-2">Errors</a></h1>
+<h5 id="errors-2" class="section-header"><a href="#errors-2">Errors</a></h5>
 <p>Returns null if the new layout does not meet the size
 and alignment constraints of the allocator, or if reallocation
 otherwise fails.</p>

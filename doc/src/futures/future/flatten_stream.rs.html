@@ -117,14 +117,14 @@
     <span class="kw">where</span> <span class="ident">F</span>: <a class="ident" href="../../../src/futures/future/mod.rs.html#178-1016">Future</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a>,
           <span class="op">&lt;</span><span class="ident">F</span> <span class="kw">as</span> <span class="ident">Future</span><span class="op">&gt;</span><span class="ident">::Item</span>: <span class="ident">Stream</span><span class="op">&lt;</span><span class="ident">Error</span><span class="op">=</span><span class="ident">F::Error</span><span class="op">&gt;</span> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a>,
 {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">fmt</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">fmt</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
         <a class="ident" href="../../../src/futures/future/flatten_stream.rs.html#21">fmt</a>.<span class="ident">debug_struct</span>(<span class="string">&quot;FlattenStream&quot;</span>)
             .<span class="ident">field</span>(<span class="string">&quot;state&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/futures/future/flatten_stream.rs.html#21">self</a>.<span class="ident">state</span>)
             .<span class="ident">finish</span>()
     }
 }
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="ident">f</span>: <span class="ident">F</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">FlattenStream</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="ident">f</span>: <span class="ident">F</span>) -&gt; <span class="ident">FlattenStream</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>
     <span class="kw">where</span> <span class="ident">F</span>: <a class="ident" href="../../../src/futures/future/mod.rs.html#178-1016">Future</a>,
           <span class="op">&lt;</span><span class="ident">F</span> <span class="kw">as</span> <span class="ident">Future</span><span class="op">&gt;</span><span class="ident">::Item</span>: <span class="ident">Stream</span><span class="op">&lt;</span><span class="ident">Error</span><span class="op">=</span><span class="ident">F::Error</span><span class="op">&gt;</span>,
 {
@@ -155,35 +155,35 @@
     <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">F::Item</span> <span class="kw">as</span> <span class="ident">Stream</span><span class="op">&gt;</span><span class="ident">::Item</span>;
     <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">F::Item</span> <span class="kw">as</span> <span class="ident">Stream</span><span class="op">&gt;</span><span class="ident">::Error</span>;
 
-    <span class="kw">fn</span> <span class="ident">poll</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">poll</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
         <span class="kw">loop</span> {
             <span class="kw">let</span> (<span class="ident">next_state</span>, <span class="ident">ret_opt</span>) <span class="op">=</span> <span class="kw">match</span> <a class="self" href="../../../src/futures/future/flatten_stream.rs.html#59">self</a>.<span class="ident">state</span> {
-                <a class="ident" href="../../../src/futures/future/flatten_stream.rs.html#43">State::Future</a>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">f</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <a class="ident" href="../../../src/futures/future/flatten_stream.rs.html#43">State::Future</a>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">f</span>) =&gt; {
                     <span class="kw">match</span> <a class="ident" href="../../../src/futures/future/flatten_stream.rs.html#62">f</a>.<a class="ident" href="../../../src/futures/future/mod.rs.html#273">poll</a>() {
-                        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/futures/poll.rs.html#29">Async::NotReady</a>) <span class="op">=</span><span class="op">&gt;</span> {
+                        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/futures/poll.rs.html#29">Async::NotReady</a>) =&gt; {
                             <span class="comment">// State is not changed, early return.</span>
                             <span class="kw">return</span> <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/futures/poll.rs.html#29">Async::NotReady</a>)
                         },
-                        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/futures/poll.rs.html#26">Async::Ready</a>(<span class="ident">stream</span>)) <span class="op">=</span><span class="op">&gt;</span> {
+                        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/futures/poll.rs.html#26">Async::Ready</a>(<span class="ident">stream</span>)) =&gt; {
                             <span class="comment">// Future resolved to stream.</span>
                             <span class="comment">// We do not return, but poll that</span>
                             <span class="comment">// stream in the next loop iteration.</span>
                             (<a class="ident" href="../../../src/futures/future/flatten_stream.rs.html#45">State::Stream</a>(<a class="ident" href="../../../src/futures/future/flatten_stream.rs.html#68">stream</a>), <span class="prelude-val">None</span>)
                         }
-                        <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                        <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; {
                             (<a class="ident" href="../../../src/futures/future/flatten_stream.rs.html#47">State::Eof</a>, <span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(<a class="ident" href="../../../src/futures/future/flatten_stream.rs.html#74">e</a>)))
                         }
                     }
                 }
-                <a class="ident" href="../../../src/futures/future/flatten_stream.rs.html#45">State::Stream</a>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">s</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <a class="ident" href="../../../src/futures/future/flatten_stream.rs.html#45">State::Stream</a>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">s</span>) =&gt; {
                     <span class="comment">// Just forward call to the stream,</span>
                     <span class="comment">// do not track its state.</span>
                     <span class="kw">return</span> <a class="ident" href="../../../src/futures/future/flatten_stream.rs.html#79">s</a>.<a class="ident" href="../../../src/futures/stream/mod.rs.html#216">poll</a>();
                 }
-                <a class="ident" href="../../../src/futures/future/flatten_stream.rs.html#47">State::Eof</a> <span class="op">=</span><span class="op">&gt;</span> {
+                <a class="ident" href="../../../src/futures/future/flatten_stream.rs.html#47">State::Eof</a> =&gt; {
                     (<a class="ident" href="../../../src/futures/future/flatten_stream.rs.html#49">State::Done</a>, <span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/futures/poll.rs.html#26">Async::Ready</a>(<span class="prelude-val">None</span>))))
                 }
-                <a class="ident" href="../../../src/futures/future/flatten_stream.rs.html#49">State::Done</a> <span class="op">=</span><span class="op">&gt;</span> {
+                <a class="ident" href="../../../src/futures/future/flatten_stream.rs.html#49">State::Done</a> =&gt; {
                     <span class="macro">panic!</span>(<span class="string">&quot;poll called after eof&quot;</span>);
                 }
             };

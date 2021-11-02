@@ -475,7 +475,7 @@
 
 <span class="kw">impl</span> <a class="ident" href="../../../src/tokio_sync/task/atomic_task.rs.html#29-32">AtomicTask</a> {
     <span class="doccomment">/// Create an `AtomicTask` initialized with the given `Task`</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="../../../src/tokio_sync/task/atomic_task.rs.html#29-32">AtomicTask</a> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <a class="ident" href="../../../src/tokio_sync/task/atomic_task.rs.html#29-32">AtomicTask</a> {
         <a class="ident" href="../../../src/tokio_sync/task/atomic_task.rs.html#29-32">AtomicTask</a> {
             <span class="ident">state</span>: <span class="ident">AtomicUsize::new</span>(<a class="ident" href="../../../src/tokio_sync/task/atomic_task.rs.html#131">WAITING</a>),
             <span class="ident">task</span>: <span class="ident">CausalCell::new</span>(<span class="prelude-val">None</span>),
@@ -514,7 +514,7 @@
     {
         <span class="macro">debug!</span>(<span class="string">&quot; + register_task&quot;</span>);
         <span class="kw">match</span> <a class="self" href="../../../src/tokio_sync/task/atomic_task.rs.html#174">self</a>.<span class="ident">state</span>.<span class="ident">compare_and_swap</span>(<a class="ident" href="../../../src/tokio_sync/task/atomic_task.rs.html#131">WAITING</a>, <a class="ident" href="../../../src/tokio_sync/task/atomic_task.rs.html#134">REGISTERING</a>, <span class="ident">Acquire</span>) {
-            <a class="ident" href="../../../src/tokio_sync/task/atomic_task.rs.html#131">WAITING</a> <span class="op">=</span><span class="op">&gt;</span> {
+            <a class="ident" href="../../../src/tokio_sync/task/atomic_task.rs.html#131">WAITING</a> =&gt; {
                 <span class="kw">unsafe</span> {
                     <span class="comment">// Locked acquired, update the waker cell</span>
                     <a class="self" href="../../../src/tokio_sync/task/atomic_task.rs.html#174">self</a>.<span class="ident">task</span>.<a class="ident" href="../../../src/tokio_sync/loom.rs.html#26-28">with_mut</a>(<span class="op">|</span><span class="ident">t</span><span class="op">|</span> <a class="ident" href="../../../src/tokio_sync/task/atomic_task.rs.html#174">reg</a>.<a class="ident" href="../../../src/tokio_sync/task/atomic_task.rs.html#302">register</a>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">*</span><a class="ident" href="../../../src/tokio_sync/task/atomic_task.rs.html#183">t</a>));
@@ -531,8 +531,8 @@
                         .<span class="ident">compare_exchange</span>(<a class="ident" href="../../../src/tokio_sync/task/atomic_task.rs.html#134">REGISTERING</a>, <a class="ident" href="../../../src/tokio_sync/task/atomic_task.rs.html#131">WAITING</a>, <span class="ident">AcqRel</span>, <span class="ident">Acquire</span>);
 
                     <span class="kw">match</span> <a class="ident" href="../../../src/tokio_sync/task/atomic_task.rs.html#192">res</a> {
-                        <span class="prelude-val">Ok</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {}
-                        <span class="prelude-val">Err</span>(<span class="ident">actual</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                        <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; {}
+                        <span class="prelude-val">Err</span>(<span class="ident">actual</span>) =&gt; {
                             <span class="comment">// This branch can only be reached if a</span>
                             <span class="comment">// concurrent thread called `notify`. In this</span>
                             <span class="comment">// case, `actual` **must** be `REGISTERING |</span>
@@ -554,13 +554,13 @@
                     }
                 }
             }
-            <a class="ident" href="../../../src/tokio_sync/task/atomic_task.rs.html#137">NOTIFYING</a> <span class="op">=</span><span class="op">&gt;</span> {
+            <a class="ident" href="../../../src/tokio_sync/task/atomic_task.rs.html#137">NOTIFYING</a> =&gt; {
                 <span class="comment">// Currently in the process of notifying the task, i.e.,</span>
                 <span class="comment">// `notify` is currently being called on the old task handle.</span>
                 <span class="comment">// So, we call notify on the new task handle</span>
                 <a class="ident" href="../../../src/tokio_sync/task/atomic_task.rs.html#174">reg</a>.<a class="ident" href="../../../src/tokio_sync/task/atomic_task.rs.html#303">notify</a>();
             }
-            <span class="ident">state</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">state</span> =&gt; {
                 <span class="comment">// In this case, a concurrent thread is holding the</span>
                 <span class="comment">// &quot;registering&quot; lock. This probably indicates a bug in the</span>
                 <span class="comment">// caller&#39;s code as racing to call `register` doesn&#39;t make much</span>
@@ -568,7 +568,7 @@
                 <span class="comment">//</span>
                 <span class="comment">// We just want to maintain memory safety. It is ok to drop the</span>
                 <span class="comment">// call to `register`.</span>
-                <span class="macro">debug_assert!</span>(<a class="ident" href="../../../src/tokio_sync/task/atomic_task.rs.html#226">state</a> <span class="op">=</span><span class="op">=</span> <a class="ident" href="../../../src/tokio_sync/task/atomic_task.rs.html#134">REGISTERING</a> <span class="op">|</span><span class="op">|</span> <a class="ident" href="../../../src/tokio_sync/task/atomic_task.rs.html#226">state</a> <span class="op">=</span><span class="op">=</span> <a class="ident" href="../../../src/tokio_sync/task/atomic_task.rs.html#134">REGISTERING</a> <span class="op">|</span> <a class="ident" href="../../../src/tokio_sync/task/atomic_task.rs.html#137">NOTIFYING</a>);
+                <span class="macro">debug_assert!</span>(<a class="ident" href="../../../src/tokio_sync/task/atomic_task.rs.html#226">state</a> <span class="op">==</span> <a class="ident" href="../../../src/tokio_sync/task/atomic_task.rs.html#134">REGISTERING</a> <span class="op">|</span><span class="op">|</span> <a class="ident" href="../../../src/tokio_sync/task/atomic_task.rs.html#226">state</a> <span class="op">==</span> <a class="ident" href="../../../src/tokio_sync/task/atomic_task.rs.html#134">REGISTERING</a> <span class="op">|</span> <a class="ident" href="../../../src/tokio_sync/task/atomic_task.rs.html#137">NOTIFYING</a>);
             }
         }
     }
@@ -585,13 +585,13 @@
 
     <span class="doccomment">/// Attempts to take the `Task` value out of the `AtomicTask` with the</span>
     <span class="doccomment">/// intention that the caller will notify the task later.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">take_task</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../futures/task_impl/struct.Task.html">Task</a><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">take_task</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../futures/task_impl/struct.Task.html">Task</a><span class="op">&gt;</span> {
         <span class="macro">debug!</span>(<span class="string">&quot; + take_task&quot;</span>);
         <span class="comment">// AcqRel ordering is used in order to acquire the value of the `task`</span>
         <span class="comment">// cell as well as to establish a `release` ordering with whatever</span>
         <span class="comment">// memory the `AtomicTask` is associated with.</span>
         <span class="kw">match</span> <a class="self" href="../../../src/tokio_sync/task/atomic_task.rs.html#251">self</a>.<span class="ident">state</span>.<span class="ident">fetch_or</span>(<a class="ident" href="../../../src/tokio_sync/task/atomic_task.rs.html#137">NOTIFYING</a>, <span class="ident">AcqRel</span>) {
-            <a class="ident" href="../../../src/tokio_sync/task/atomic_task.rs.html#131">WAITING</a> <span class="op">=</span><span class="op">&gt;</span> {
+            <a class="ident" href="../../../src/tokio_sync/task/atomic_task.rs.html#131">WAITING</a> =&gt; {
                 <span class="macro">debug!</span>(<span class="string">&quot; + WAITING&quot;</span>);
                 <span class="comment">// The notifying lock has been acquired.</span>
                 <span class="kw">let</span> <span class="ident">task</span> <span class="op">=</span> <span class="kw">unsafe</span> { <a class="self" href="../../../src/tokio_sync/task/atomic_task.rs.html#251">self</a>.<span class="ident">task</span>.<a class="ident" href="../../../src/tokio_sync/loom.rs.html#26-28">with_mut</a>(<span class="op">|</span><span class="ident">t</span><span class="op">|</span> (<span class="kw-2">*</span><a class="ident" href="../../../src/tokio_sync/task/atomic_task.rs.html#260">t</a>).<span class="ident">take</span>()) };
@@ -602,7 +602,7 @@
 
                 <a class="ident" href="../../../src/tokio_sync/task/atomic_task.rs.html#260">task</a>
             }
-            <span class="ident">state</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">state</span> =&gt; {
                 <span class="macro">debug!</span>(<span class="string">&quot; + state = {:?}&quot;</span>, <a class="ident" href="../../../src/tokio_sync/task/atomic_task.rs.html#268">state</a>);
                 <span class="comment">// There is a concurrent thread currently updating the</span>
                 <span class="comment">// associated task.</span>
@@ -612,7 +612,7 @@
                 <span class="comment">// not.</span>
                 <span class="comment">//</span>
                 <span class="macro">debug_assert!</span>(
-                    <a class="ident" href="../../../src/tokio_sync/task/atomic_task.rs.html#268">state</a> <span class="op">=</span><span class="op">=</span> <a class="ident" href="../../../src/tokio_sync/task/atomic_task.rs.html#134">REGISTERING</a> <span class="op">|</span><span class="op">|</span> <a class="ident" href="../../../src/tokio_sync/task/atomic_task.rs.html#268">state</a> <span class="op">=</span><span class="op">=</span> <a class="ident" href="../../../src/tokio_sync/task/atomic_task.rs.html#134">REGISTERING</a> <span class="op">|</span> <a class="ident" href="../../../src/tokio_sync/task/atomic_task.rs.html#137">NOTIFYING</a> <span class="op">|</span><span class="op">|</span> <a class="ident" href="../../../src/tokio_sync/task/atomic_task.rs.html#268">state</a> <span class="op">=</span><span class="op">=</span> <a class="ident" href="../../../src/tokio_sync/task/atomic_task.rs.html#137">NOTIFYING</a>
+                    <a class="ident" href="../../../src/tokio_sync/task/atomic_task.rs.html#268">state</a> <span class="op">==</span> <a class="ident" href="../../../src/tokio_sync/task/atomic_task.rs.html#134">REGISTERING</a> <span class="op">|</span><span class="op">|</span> <a class="ident" href="../../../src/tokio_sync/task/atomic_task.rs.html#268">state</a> <span class="op">==</span> <a class="ident" href="../../../src/tokio_sync/task/atomic_task.rs.html#134">REGISTERING</a> <span class="op">|</span> <a class="ident" href="../../../src/tokio_sync/task/atomic_task.rs.html#137">NOTIFYING</a> <span class="op">|</span><span class="op">|</span> <a class="ident" href="../../../src/tokio_sync/task/atomic_task.rs.html#268">state</a> <span class="op">==</span> <a class="ident" href="../../../src/tokio_sync/task/atomic_task.rs.html#137">NOTIFYING</a>
                 );
                 <span class="prelude-val">None</span>
             }
@@ -621,13 +621,13 @@
 }
 
 <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for</span> <a class="ident" href="../../../src/tokio_sync/task/atomic_task.rs.html#29-32">AtomicTask</a> {
-    <span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="self">Self</span> {
         <span class="ident">AtomicTask::new</span>()
     }
 }
 
 <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <a class="ident" href="../../../src/tokio_sync/task/atomic_task.rs.html#29-32">AtomicTask</a> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">fmt</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">fmt</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
         <span class="macro">write!</span>(<a class="ident" href="../../../src/tokio_sync/task/atomic_task.rs.html#293">fmt</a>, <span class="string">&quot;AtomicTask&quot;</span>)
     }
 }

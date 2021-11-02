@@ -382,7 +382,7 @@
 }
 
 <span class="kw">impl</span> <a class="ident" href="../../../src/tokio_threadpool/worker/entry.rs.html#21-52">WorkerEntry</a> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">park</span>: <a class="ident" href="../../../src/tokio_threadpool/park/boxed.rs.html#6">BoxPark</a>, <span class="ident">unpark</span>: <a class="ident" href="../../../src/tokio_threadpool/park/boxed.rs.html#7">BoxUnpark</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">park</span>: <a class="ident" href="../../../src/tokio_threadpool/park/boxed.rs.html#6">BoxPark</a>, <span class="ident">unpark</span>: <a class="ident" href="../../../src/tokio_threadpool/park/boxed.rs.html#7">BoxUnpark</a>) -&gt; <span class="self">Self</span> {
         <span class="kw">let</span> <span class="ident">w</span> <span class="op">=</span> <span class="ident">Worker::new_fifo</span>();
         <span class="kw">let</span> <span class="ident">s</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio_threadpool/worker/entry.rs.html#56">w</a>.<span class="ident">stealer</span>();
 
@@ -408,7 +408,7 @@
     <span class="doccomment">/// # Ordering</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// The specified ordering is established on the entry&#39;s state variable.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">fetch_unset_pushed</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">ordering</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/sync/atomic/enum.Ordering.html">Ordering</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="../../../src/tokio_threadpool/worker/state.rs.html#5">State</a> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">fetch_unset_pushed</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">ordering</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/sync/atomic/enum.Ordering.html">Ordering</a>) -&gt; <a class="ident" href="../../../src/tokio_threadpool/worker/state.rs.html#5">State</a> {
         <a class="self" href="../../../src/tokio_threadpool/worker/entry.rs.html#81">self</a>.<span class="ident">state</span>.<span class="ident">fetch_and</span>(<span class="op">!</span><a class="ident" href="../../../src/tokio_threadpool/worker/state.rs.html#9">PUSHED_MASK</a>, <a class="ident" href="../../../src/tokio_threadpool/worker/entry.rs.html#81">ordering</a>).<span class="ident">into</span>()
     }
 
@@ -425,7 +425,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// The `state` must have been obtained with an `Acquire` ordering.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">notify</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw-2">mut</span> <span class="ident">state</span>: <a class="ident" href="../../../src/tokio_threadpool/worker/state.rs.html#5">State</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">notify</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw-2">mut</span> <span class="ident">state</span>: <a class="ident" href="../../../src/tokio_threadpool/worker/state.rs.html#5">State</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
         <span class="kw">use</span> <a class="ident" href="../../../src/tokio_threadpool/worker/state.rs.html#17-34">worker::Lifecycle</a>::<span class="kw-2">*</span>;
 
         <span class="kw">loop</span> {
@@ -437,7 +437,7 @@
                 .<span class="ident">compare_and_swap</span>(<a class="ident" href="../../../src/tokio_threadpool/worker/entry.rs.html#98">state</a>.<span class="ident">into</span>(), <a class="ident" href="../../../src/tokio_threadpool/worker/entry.rs.html#102">next</a>.<span class="ident">into</span>(), <span class="ident">AcqRel</span>)
                 .<span class="ident">into</span>();
 
-            <span class="kw">if</span> <a class="ident" href="../../../src/tokio_threadpool/worker/entry.rs.html#98">state</a> <span class="op">=</span><span class="op">=</span> <a class="ident" href="../../../src/tokio_threadpool/worker/entry.rs.html#105">actual</a> {
+            <span class="kw">if</span> <a class="ident" href="../../../src/tokio_threadpool/worker/entry.rs.html#98">state</a> <span class="op">==</span> <a class="ident" href="../../../src/tokio_threadpool/worker/entry.rs.html#105">actual</a> {
                 <span class="kw">break</span>;
             }
 
@@ -445,14 +445,14 @@
         }
 
         <span class="kw">match</span> <a class="ident" href="../../../src/tokio_threadpool/worker/entry.rs.html#98">state</a>.<a class="ident" href="../../../src/tokio_threadpool/worker/state.rs.html#55">lifecycle</a>() {
-            <a class="ident" href="../../../src/tokio_threadpool/worker/state.rs.html#25">Sleeping</a> <span class="op">=</span><span class="op">&gt;</span> {
+            <a class="ident" href="../../../src/tokio_threadpool/worker/state.rs.html#25">Sleeping</a> =&gt; {
                 <span class="comment">// The worker is currently sleeping, the condition variable must</span>
                 <span class="comment">// be signaled</span>
                 <a class="self" href="../../../src/tokio_threadpool/worker/entry.rs.html#98">self</a>.<a class="ident" href="../../../src/tokio_threadpool/worker/entry.rs.html#233">unpark</a>();
                 <span class="bool-val">true</span>
             }
-            <a class="ident" href="../../../src/tokio_threadpool/worker/state.rs.html#19">Shutdown</a> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
-            <a class="ident" href="../../../src/tokio_threadpool/worker/state.rs.html#22">Running</a> <span class="op">|</span> <a class="ident" href="../../../src/tokio_threadpool/worker/state.rs.html#28">Notified</a> <span class="op">|</span> <a class="ident" href="../../../src/tokio_threadpool/worker/state.rs.html#33">Signaled</a> <span class="op">=</span><span class="op">&gt;</span> {
+            <a class="ident" href="../../../src/tokio_threadpool/worker/state.rs.html#19">Shutdown</a> =&gt; <span class="bool-val">false</span>,
+            <a class="ident" href="../../../src/tokio_threadpool/worker/state.rs.html#22">Running</a> <span class="op">|</span> <a class="ident" href="../../../src/tokio_threadpool/worker/state.rs.html#28">Notified</a> <span class="op">|</span> <a class="ident" href="../../../src/tokio_threadpool/worker/state.rs.html#33">Signaled</a> =&gt; {
                 <span class="comment">// In these states, the worker is active and will eventually see</span>
                 <span class="comment">// the task that was just submitted.</span>
                 <span class="bool-val">true</span>
@@ -478,11 +478,11 @@
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">next</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio_threadpool/worker/entry.rs.html#143">state</a>;
 
             <span class="kw">match</span> <a class="ident" href="../../../src/tokio_threadpool/worker/entry.rs.html#143">state</a>.<a class="ident" href="../../../src/tokio_threadpool/worker/state.rs.html#55">lifecycle</a>() {
-                <a class="ident" href="../../../src/tokio_threadpool/worker/state.rs.html#19">Shutdown</a> <span class="op">=</span><span class="op">&gt;</span> {
+                <a class="ident" href="../../../src/tokio_threadpool/worker/state.rs.html#19">Shutdown</a> =&gt; {
                     <span class="kw">return</span>;
                 }
-                <a class="ident" href="../../../src/tokio_threadpool/worker/state.rs.html#22">Running</a> <span class="op">|</span> <a class="ident" href="../../../src/tokio_threadpool/worker/state.rs.html#25">Sleeping</a> <span class="op">=</span><span class="op">&gt;</span> {}
-                <a class="ident" href="../../../src/tokio_threadpool/worker/state.rs.html#28">Notified</a> <span class="op">|</span> <a class="ident" href="../../../src/tokio_threadpool/worker/state.rs.html#33">Signaled</a> <span class="op">=</span><span class="op">&gt;</span> {
+                <a class="ident" href="../../../src/tokio_threadpool/worker/state.rs.html#22">Running</a> <span class="op">|</span> <a class="ident" href="../../../src/tokio_threadpool/worker/state.rs.html#25">Sleeping</a> =&gt; {}
+                <a class="ident" href="../../../src/tokio_threadpool/worker/state.rs.html#28">Notified</a> <span class="op">|</span> <a class="ident" href="../../../src/tokio_threadpool/worker/state.rs.html#33">Signaled</a> =&gt; {
                     <span class="comment">// These two states imply that the worker is active, thus it</span>
                     <span class="comment">// will eventually see the shutdown signal, so we don&#39;t need</span>
                     <span class="comment">// to do anything.</span>
@@ -505,7 +505,7 @@
                 .<span class="ident">compare_and_swap</span>(<a class="ident" href="../../../src/tokio_threadpool/worker/entry.rs.html#143">state</a>.<span class="ident">into</span>(), <a class="ident" href="../../../src/tokio_threadpool/worker/entry.rs.html#148">next</a>.<span class="ident">into</span>(), <span class="ident">AcqRel</span>)
                 .<span class="ident">into</span>();
 
-            <span class="kw">if</span> <a class="ident" href="../../../src/tokio_threadpool/worker/entry.rs.html#173">actual</a> <span class="op">=</span><span class="op">=</span> <a class="ident" href="../../../src/tokio_threadpool/worker/entry.rs.html#143">state</a> {
+            <span class="kw">if</span> <a class="ident" href="../../../src/tokio_threadpool/worker/entry.rs.html#173">actual</a> <span class="op">==</span> <a class="ident" href="../../../src/tokio_threadpool/worker/entry.rs.html#143">state</a> {
                 <span class="kw">break</span>;
             }
 
@@ -521,7 +521,7 @@
     <span class="doccomment">/// This **must** only be called by the thread that owns the worker entry.</span>
     <span class="doccomment">/// This function is not `Sync`.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">pop_task</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Arc</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio_threadpool/task/mod.rs.html#25-54">Task</a><span class="op">&gt;</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">pop_task</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Arc</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio_threadpool/task/mod.rs.html#25-54">Task</a><span class="op">&gt;</span><span class="op">&gt;</span> {
         <a class="self" href="../../../src/tokio_threadpool/worker/entry.rs.html#194">self</a>.<span class="ident">worker</span>.<span class="ident">pop</span>()
     }
 
@@ -533,7 +533,7 @@
     <span class="doccomment">/// At the same time, this method steals some additional tasks and moves</span>
     <span class="doccomment">/// them into `dest` in order to balance the work distribution among</span>
     <span class="doccomment">/// workers.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">steal_tasks</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">dest</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Steal</span><span class="op">&lt;</span><span class="ident">Arc</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio_threadpool/task/mod.rs.html#25-54">Task</a><span class="op">&gt;</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">steal_tasks</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">dest</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="ident">Steal</span><span class="op">&lt;</span><span class="ident">Arc</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio_threadpool/task/mod.rs.html#25-54">Task</a><span class="op">&gt;</span><span class="op">&gt;</span> {
         <a class="self" href="../../../src/tokio_threadpool/worker/entry.rs.html#206">self</a>.<span class="ident">stealer</span>.<span class="ident">steal_batch_and_pop</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/tokio_threadpool/worker/entry.rs.html#206">dest</a>.<span class="ident">worker</span>)
     }
 
@@ -634,7 +634,7 @@
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">next_sleeper</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">next_sleeper</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
         <span class="kw">unsafe</span> { <span class="kw-2">*</span><a class="self" href="../../../src/tokio_threadpool/worker/entry.rs.html#307">self</a>.<span class="ident">next_sleeper</span>.<span class="ident">get</span>() }
     }
 
@@ -647,7 +647,7 @@
 }
 
 <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <a class="ident" href="../../../src/tokio_threadpool/worker/entry.rs.html#21-52">WorkerEntry</a> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">fmt</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">fmt</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
         <a class="ident" href="../../../src/tokio_threadpool/worker/entry.rs.html#320">fmt</a>.<span class="ident">debug_struct</span>(<span class="string">&quot;WorkerEntry&quot;</span>)
             .<span class="ident">field</span>(<span class="string">&quot;state&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/tokio_threadpool/worker/entry.rs.html#320">self</a>.<span class="ident">state</span>.<span class="ident">load</span>(<span class="ident">Relaxed</span>))
             .<span class="ident">field</span>(<span class="string">&quot;next_sleeper&quot;</span>, <span class="kw-2">&amp;</span><span class="string">&quot;UnsafeCell&lt;usize&gt;&quot;</span>)

@@ -203,7 +203,7 @@
 <span class="kw">use</span> <a class="ident" href="../../src/derivative/lib.rs.html#30">utils</a>;
 
 <span class="doccomment">/// Derive `Copy` for `input`.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">derive_copy</span>(<span class="ident">input</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/derivative/ast.rs.html#7-13">ast::Input</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="../../proc_macro2/struct.TokenStream.html">proc_macro2::TokenStream</a> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">derive_copy</span>(<span class="ident">input</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/derivative/ast.rs.html#7-13">ast::Input</a>) -&gt; <a class="ident" href="../../proc_macro2/struct.TokenStream.html">proc_macro2::TokenStream</a> {
     <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="ident" href="../../src/derivative/clone.rs.html#10">input</a>.<span class="ident">ident</span>;
 
     <span class="kw">let</span> <span class="ident">copy_trait_path</span> <span class="op">=</span> <a class="ident" href="../../src/derivative/clone.rs.html#190">copy_trait_path</a>();
@@ -223,7 +223,7 @@
 }
 
 <span class="doccomment">/// Derive `Clone` for `input`.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">derive_clone</span>(<span class="ident">input</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/derivative/ast.rs.html#7-13">ast::Input</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="../../proc_macro2/struct.TokenStream.html">proc_macro2::TokenStream</a> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">derive_clone</span>(<span class="ident">input</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/derivative/ast.rs.html#7-13">ast::Input</a>) -&gt; <a class="ident" href="../../proc_macro2/struct.TokenStream.html">proc_macro2::TokenStream</a> {
     <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="ident" href="../../src/derivative/clone.rs.html#30">input</a>.<span class="ident">ident</span>;
 
     <span class="kw">let</span> <span class="ident">clone_trait_path</span> <span class="op">=</span> <a class="ident" href="../../src/derivative/clone.rs.html#181">clone_trait_path</a>();
@@ -237,11 +237,11 @@
     <span class="kw">let</span> (<span class="ident">impl_generics</span>, <span class="ident">ty_generics</span>, <span class="ident">where_clause</span>) <span class="op">=</span> <a class="ident" href="../../src/derivative/clone.rs.html#34">generics</a>.<span class="ident">split_for_impl</span>();
 
     <span class="kw">let</span> <span class="ident">is_copy</span> <span class="op">=</span> <a class="ident" href="../../src/derivative/clone.rs.html#30">input</a>.<span class="ident">attrs</span>.<span class="ident">copy</span>.<span class="ident">is_some</span>();
-    <span class="kw">if</span> <a class="ident" href="../../src/derivative/clone.rs.html#43">is_copy</a> <span class="op">&amp;&amp;</span> <a class="ident" href="../../src/derivative/clone.rs.html#30">input</a>.<span class="ident">generics</span>.<span class="ident">type_params</span>().<span class="ident">count</span>() <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
+    <span class="kw">if</span> <a class="ident" href="../../src/derivative/clone.rs.html#43">is_copy</a> <span class="op">&amp;&amp;</span> <a class="ident" href="../../src/derivative/clone.rs.html#30">input</a>.<span class="ident">generics</span>.<span class="ident">type_params</span>().<span class="ident">count</span>() <span class="op">==</span> <span class="number">0</span> {
         <span class="macro">quote!</span> {
             <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">unused_qualifications</span>)]</span>
             <span class="kw">impl</span> #<span class="ident">impl_generics</span> #<span class="ident">clone_trait_path</span> <span class="kw">for</span> #<span class="ident">name</span> #<span class="ident">ty_generics</span> #<span class="ident">where_clause</span> {
-                <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+                <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self</span> {
                     <span class="kw-2">*</span><span class="self">self</span>
                 }
             }
@@ -270,19 +270,19 @@
                 });
 
                 <span class="kw">match</span> <a class="ident" href="../../src/derivative/clone.rs.html#57">style</a> {
-                    <a class="ident" href="../../src/derivative/ast.rs.html#39">ast::Style::Struct</a> <span class="op">=</span><span class="op">&gt;</span> {
+                    <a class="ident" href="../../src/derivative/ast.rs.html#39">ast::Style::Struct</a> =&gt; {
                         <span class="macro">quote!</span> {
                             #<span class="ident">arm_path</span> {
                                 #(#<span class="ident">field_clones</span>),<span class="op">*</span>
                             }
                         }
                     }
-                    <a class="ident" href="../../src/derivative/ast.rs.html#40">ast::Style::Tuple</a> <span class="op">=</span><span class="op">&gt;</span> {
+                    <a class="ident" href="../../src/derivative/ast.rs.html#40">ast::Style::Tuple</a> =&gt; {
                         <span class="macro">quote!</span> {
                             #<span class="ident">arm_path</span> (#(#<span class="ident">field_clones</span>),<span class="kw-2">*</span>)
                         }
                     }
-                    <a class="ident" href="../../src/derivative/ast.rs.html#41">ast::Style::Unit</a> <span class="op">=</span><span class="op">&gt;</span> {
+                    <a class="ident" href="../../src/derivative/ast.rs.html#41">ast::Style::Unit</a> =&gt; {
                         <span class="macro">quote!</span> {
                             #<span class="ident">arm_path</span>
                         }
@@ -301,7 +301,7 @@
                             <a class="ident" href="../../src/derivative/clone.rs.html#30">input</a>,
                             <span class="string">&quot;__other&quot;</span>,
                             <span class="op">|</span><span class="ident">inner_arm_path</span>, <span class="kw">_</span>, <span class="kw">_</span>, <span class="kw">_</span>, <span class="kw">_</span>, <span class="ident">inner_bis</span><span class="op">|</span> {
-                                <span class="kw">if</span> <a class="ident" href="../../src/derivative/clone.rs.html#103">outer_arm_path</a> <span class="op">=</span><span class="op">=</span> <a class="ident" href="../../src/derivative/clone.rs.html#107">inner_arm_path</a> {
+                                <span class="kw">if</span> <a class="ident" href="../../src/derivative/clone.rs.html#103">outer_arm_path</a> <span class="op">==</span> <a class="ident" href="../../src/derivative/clone.rs.html#107">inner_arm_path</a> {
                                     <span class="kw">let</span> <span class="ident">field_clones</span> <span class="op">=</span> <a class="ident" href="../../src/derivative/clone.rs.html#103">outer_bis</a>.<span class="ident">iter</span>().<span class="ident">zip</span>(<a class="ident" href="../../src/derivative/clone.rs.html#107">inner_bis</a>).<span class="ident">map</span>(
                                         <span class="op">|</span>(<span class="ident">outer_bi</span>, <span class="ident">inner_bi</span>)<span class="op">|</span> {
                                             <span class="kw">let</span> <span class="ident">outer</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="ident" href="../../src/derivative/clone.rs.html#110">outer_bi</a>.<span class="ident">expr</span>;
@@ -357,7 +357,7 @@
         <span class="macro">quote!</span> {
             <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">unused_qualifications</span>)]</span>
             <span class="kw">impl</span> #<span class="ident">impl_generics</span> #<span class="ident">clone_trait_path</span> <span class="kw">for</span> #<span class="ident">name</span> #<span class="ident">ty_generics</span> #<span class="ident">where_clause</span> {
-                <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+                <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self</span> {
                     <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
                         #<span class="ident">body</span>
                     }
@@ -369,12 +369,12 @@
     }
 }
 
-<span class="kw">fn</span> <span class="ident">needs_clone_bound</span>(<span class="ident">attrs</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/derivative/attr.rs.html#31-50">attr::Field</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+<span class="kw">fn</span> <span class="ident">needs_clone_bound</span>(<span class="ident">attrs</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/derivative/attr.rs.html#31-50">attr::Field</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
     <a class="ident" href="../../src/derivative/clone.rs.html#176">attrs</a>.<a class="ident" href="../../src/derivative/attr.rs.html#567">clone_bound</a>().<span class="ident">is_none</span>()
 }
 
 <span class="doccomment">/// Return the path of the `Clone` trait, that is `::std::clone::Clone`.</span>
-<span class="kw">fn</span> <span class="ident">clone_trait_path</span>() <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="../../syn/path/struct.Path.html">syn::Path</a> {
+<span class="kw">fn</span> <span class="ident">clone_trait_path</span>() -&gt; <a class="ident" href="../../syn/path/struct.Path.html">syn::Path</a> {
     <span class="kw">if</span> <span class="macro">cfg!</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;use_core&quot;</span>) {
         <span class="macro">parse_quote!</span>(<span class="ident">::core::clone::Clone</span>)
     } <span class="kw">else</span> {
@@ -383,7 +383,7 @@
 }
 
 <span class="doccomment">/// Return the path of the `Copy` trait, that is `::std::marker::Copy`.</span>
-<span class="kw">fn</span> <span class="ident">copy_trait_path</span>() <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="../../syn/path/struct.Path.html">syn::Path</a> {
+<span class="kw">fn</span> <span class="ident">copy_trait_path</span>() -&gt; <a class="ident" href="../../syn/path/struct.Path.html">syn::Path</a> {
     <span class="kw">if</span> <span class="macro">cfg!</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;use_core&quot;</span>) {
         <span class="macro">parse_quote!</span>(<span class="ident">::core::marker::Copy</span>)
     } <span class="kw">else</span> {

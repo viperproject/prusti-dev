@@ -141,13 +141,13 @@
     <span class="ident">input</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>],
     <span class="ident">output</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>],
     <span class="ident">flush</span>: <a class="ident" href="../../../src/miniz_oxide/lib.rs.html#49-67">MZFlush</a>,
-) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="../../../src/miniz_oxide/lib.rs.html#137-144">StreamResult</a> {
+) -&gt; <a class="ident" href="../../../src/miniz_oxide/lib.rs.html#137-144">StreamResult</a> {
     <span class="kw">if</span> <a class="ident" href="../../../src/miniz_oxide/deflate/stream.rs.html#23">output</a>.<span class="ident">is_empty</span>() {
         <span class="kw">return</span> <span class="ident">StreamResult::error</span>(<a class="ident" href="../../../src/miniz_oxide/lib.rs.html#101">MZError::Buf</a>);
     }
 
-    <span class="kw">if</span> <a class="ident" href="../../../src/miniz_oxide/deflate/stream.rs.html#21">compressor</a>.<a class="ident" href="../../../src/miniz_oxide/deflate/core.rs.html#424">prev_return_status</a>() <span class="op">=</span><span class="op">=</span> <a class="ident" href="../../../src/miniz_oxide/deflate/core.rs.html#255">TDEFLStatus::Done</a> {
-        <span class="kw">return</span> <span class="kw">if</span> <a class="ident" href="../../../src/miniz_oxide/deflate/stream.rs.html#24">flush</a> <span class="op">=</span><span class="op">=</span> <a class="ident" href="../../../src/miniz_oxide/lib.rs.html#64">MZFlush::Finish</a> {
+    <span class="kw">if</span> <a class="ident" href="../../../src/miniz_oxide/deflate/stream.rs.html#21">compressor</a>.<a class="ident" href="../../../src/miniz_oxide/deflate/core.rs.html#424">prev_return_status</a>() <span class="op">==</span> <a class="ident" href="../../../src/miniz_oxide/deflate/core.rs.html#255">TDEFLStatus::Done</a> {
+        <span class="kw">return</span> <span class="kw">if</span> <a class="ident" href="../../../src/miniz_oxide/deflate/stream.rs.html#24">flush</a> <span class="op">==</span> <a class="ident" href="../../../src/miniz_oxide/lib.rs.html#64">MZFlush::Finish</a> {
             <a class="ident" href="../../../src/miniz_oxide/lib.rs.html#137-144">StreamResult</a> {
                 <span class="ident">bytes_written</span>: <span class="number">0</span>,
                 <span class="ident">bytes_consumed</span>: <span class="number">0</span>,
@@ -181,11 +181,11 @@
 
         <span class="comment">// Check if we are done, or compression failed.</span>
         <span class="kw">match</span> <a class="ident" href="../../../src/miniz_oxide/deflate/stream.rs.html#51">defl_status</a> {
-            <a class="ident" href="../../../src/miniz_oxide/deflate/core.rs.html#252">TDEFLStatus::BadParam</a> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">break</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/miniz_oxide/lib.rs.html#103">MZError::Param</a>),
+            <a class="ident" href="../../../src/miniz_oxide/deflate/core.rs.html#252">TDEFLStatus::BadParam</a> =&gt; <span class="kw">break</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/miniz_oxide/lib.rs.html#103">MZError::Param</a>),
             <span class="comment">// Don&#39;t think this can happen as we&#39;re not using a custom callback.</span>
-            <a class="ident" href="../../../src/miniz_oxide/deflate/core.rs.html#253">TDEFLStatus::PutBufFailed</a> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">break</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/miniz_oxide/lib.rs.html#98">MZError::Stream</a>),
-            <a class="ident" href="../../../src/miniz_oxide/deflate/core.rs.html#255">TDEFLStatus::Done</a> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">break</span> <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/miniz_oxide/lib.rs.html#89">MZStatus::StreamEnd</a>),
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> (),
+            <a class="ident" href="../../../src/miniz_oxide/deflate/core.rs.html#253">TDEFLStatus::PutBufFailed</a> =&gt; <span class="kw">break</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/miniz_oxide/lib.rs.html#98">MZError::Stream</a>),
+            <a class="ident" href="../../../src/miniz_oxide/deflate/core.rs.html#255">TDEFLStatus::Done</a> =&gt; <span class="kw">break</span> <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/miniz_oxide/lib.rs.html#89">MZStatus::StreamEnd</a>),
+            <span class="kw">_</span> =&gt; (),
         };
 
         <span class="comment">// All the output space was used, so wait for more.</span>

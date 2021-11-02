@@ -1014,9 +1014,9 @@
 <span class="doccomment">/// # Panics</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// This function panics if there already is a default reactor set.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">with_default</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">R</span><span class="op">&gt;</span>(<span class="ident">handle</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/tokio_reactor/lib.rs.html#119-121">Handle</a>, <span class="ident">enter</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../tokio_executor/enter/struct.Enter.html">Enter</a>, <span class="ident">f</span>: <span class="ident">F</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">R</span>
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">with_default</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">R</span><span class="op">&gt;</span>(<span class="ident">handle</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/tokio_reactor/lib.rs.html#119-121">Handle</a>, <span class="ident">enter</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../tokio_executor/enter/struct.Enter.html">Enter</a>, <span class="ident">f</span>: <span class="ident">F</span>) -&gt; <span class="ident">R</span>
 <span class="kw">where</span>
-    <span class="ident">F</span>: <span class="ident">FnOnce</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../tokio_executor/enter/struct.Enter.html">Enter</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">R</span>,
+    <span class="ident">F</span>: <span class="ident">FnOnce</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../tokio_executor/enter/struct.Enter.html">Enter</a>) -&gt; <span class="ident">R</span>,
 {
     <span class="comment">// This ensures the value for the current reactor gets reset even if there</span>
     <span class="comment">// is a panic.</span>
@@ -1030,7 +1030,7 @@
 <span class="doccomment">/// # Panics</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// This function panics if there already is a default reactor set.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_default</span>(<span class="ident">handle</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/tokio_reactor/lib.rs.html#119-121">Handle</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="../../src/tokio_reactor/lib.rs.html#149-151">DefaultGuard</a> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_default</span>(<span class="ident">handle</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/tokio_reactor/lib.rs.html#119-121">Handle</a>) -&gt; <a class="ident" href="../../src/tokio_reactor/lib.rs.html#149-151">DefaultGuard</a> {
     <a class="ident" href="../../src/tokio_reactor/lib.rs.html#189-192">CURRENT_REACTOR</a>.<span class="ident">with</span>(<span class="op">|</span><span class="ident">current</span><span class="op">|</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">current</span> <span class="op">=</span> <a class="ident" href="../../src/tokio_reactor/lib.rs.html#230">current</a>.<span class="ident">borrow_mut</span>();
 
@@ -1041,8 +1041,8 @@
         );
 
         <span class="kw">let</span> <span class="ident">handle</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../src/tokio_reactor/lib.rs.html#229">handle</a>.<a class="ident" href="../../src/tokio_reactor/lib.rs.html#501">as_priv</a>() {
-            <span class="prelude-val">Some</span>(<span class="ident">handle</span>) <span class="op">=</span><span class="op">&gt;</span> <a class="ident" href="../../src/tokio_reactor/lib.rs.html#240">handle</a>,
-            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="prelude-val">Some</span>(<span class="ident">handle</span>) =&gt; <a class="ident" href="../../src/tokio_reactor/lib.rs.html#240">handle</a>,
+            <span class="prelude-val">None</span> =&gt; {
                 <span class="macro">panic!</span>(<span class="string">&quot;`handle` does not reference a reactor&quot;</span>);
             }
         };
@@ -1055,7 +1055,7 @@
 <span class="kw">impl</span> <a class="ident" href="../../src/tokio_reactor/lib.rs.html#100-108">Reactor</a> {
     <span class="doccomment">/// Creates a new event loop, returning any error that happened during the</span>
     <span class="doccomment">/// creation.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="../../src/tokio_reactor/lib.rs.html#100-108">Reactor</a><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="../../src/tokio_reactor/lib.rs.html#100-108">Reactor</a><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">io</span> <span class="op">=</span> <span class="ident">mio::Poll::new</span>()<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">wakeup_pair</span> <span class="op">=</span> <span class="ident">mio::Registration::new2</span>();
 
@@ -1084,7 +1084,7 @@
     <span class="doccomment">/// Handles are cloneable and clones always refer to the same event loop.</span>
     <span class="doccomment">/// This handle is typically passed into functions that create I/O objects</span>
     <span class="doccomment">/// to bind them to this event loop.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">handle</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="../../src/tokio_reactor/lib.rs.html#119-121">Handle</a> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">handle</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="../../src/tokio_reactor/lib.rs.html#119-121">Handle</a> {
         <a class="ident" href="../../src/tokio_reactor/lib.rs.html#119-121">Handle</a> {
             <span class="ident">inner</span>: <span class="prelude-val">Some</span>(<a class="ident" href="../../src/tokio_reactor/lib.rs.html#125-127">HandlePriv</a> {
                 <span class="ident">inner</span>: <span class="ident">Arc::downgrade</span>(<span class="kw-2">&amp;</span><a class="self" href="../../src/tokio_reactor/lib.rs.html#283">self</a>.<span class="ident">inner</span>),
@@ -1115,7 +1115,7 @@
     <span class="doccomment">/// Additionally if the global reactor thread has already been initialized</span>
     <span class="doccomment">/// then this function will also return an error. (aka if `Handle::default`</span>
     <span class="doccomment">/// has been called previously in this program).</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_fallback</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../src/tokio_reactor/lib.rs.html#140">SetFallbackError</a><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_fallback</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../src/tokio_reactor/lib.rs.html#140">SetFallbackError</a><span class="op">&gt;</span> {
         <a class="ident" href="../../src/tokio_reactor/lib.rs.html#537">set_fallback</a>(<a class="self" href="../../src/tokio_reactor/lib.rs.html#314">self</a>.<a class="ident" href="../../src/tokio_reactor/lib.rs.html#283">handle</a>().<a class="ident" href="../../src/tokio_reactor/lib.rs.html#505">into_priv</a>().<span class="ident">unwrap</span>())
     }
 
@@ -1145,7 +1145,7 @@
     <span class="doccomment">/// arise and typically mean that things have gone horribly wrong at that</span>
     <span class="doccomment">/// point. Currently this is primarily only known to happen for internal</span>
     <span class="doccomment">/// bugs to `tokio` itself.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">turn</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">max_wait</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="../../src/tokio_reactor/lib.rs.html#134-136">Turn</a><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">turn</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">max_wait</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a><span class="op">&gt;</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="../../src/tokio_reactor/lib.rs.html#134-136">Turn</a><span class="op">&gt;</span> {
         <a class="self" href="../../src/tokio_reactor/lib.rs.html#344">self</a>.<a class="ident" href="../../src/tokio_reactor/lib.rs.html#367">poll</a>(<a class="ident" href="../../src/tokio_reactor/lib.rs.html#344">max_wait</a>)<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/tokio_reactor/lib.rs.html#134-136">Turn</a> { <span class="ident">_priv</span>: () })
     }
@@ -1154,7 +1154,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// Idle is defined as all tasks that have been spawned have completed,</span>
     <span class="doccomment">/// either successfully or with an error.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_idle</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_idle</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
         <a class="self" href="../../src/tokio_reactor/lib.rs.html#353">self</a>.<span class="ident">inner</span>.<span class="ident">io_dispatch</span>.<a class="ident" href="../../src/tokio_reactor/sharded_rwlock.rs.html#68">read</a>().<span class="ident">is_empty</span>()
     }
 
@@ -1164,16 +1164,16 @@
     <span class="doccomment">/// reactor to this new thread. It then runs the reactor, driving all</span>
     <span class="doccomment">/// associated I/O resources, until the `Background` handle is dropped or</span>
     <span class="doccomment">/// explicitly shutdown.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">background</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="../../src/tokio_reactor/background.rs.html#17-20">Background</a><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">background</span>(<span class="self">self</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="../../src/tokio_reactor/background.rs.html#17-20">Background</a><span class="op">&gt;</span> {
         <span class="ident">Background::new</span>(<a class="self" href="../../src/tokio_reactor/lib.rs.html#363">self</a>)
     }
 
-    <span class="kw">fn</span> <span class="ident">poll</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">max_wait</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">poll</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">max_wait</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a><span class="op">&gt;</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="comment">// Block waiting for an event to happen, peeling out how many events</span>
         <span class="comment">// happened.</span>
         <span class="kw">match</span> <a class="self" href="../../src/tokio_reactor/lib.rs.html#367">self</a>.<span class="ident">inner</span>.<span class="ident">io</span>.<span class="ident">poll</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="self" href="../../src/tokio_reactor/lib.rs.html#367">self</a>.<span class="ident">events</span>, <a class="ident" href="../../src/tokio_reactor/lib.rs.html#367">max_wait</a>) {
-            <span class="prelude-val">Ok</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {}
-            <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../src/tokio_reactor/lib.rs.html#372">e</a>),
+            <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; {}
+            <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../src/tokio_reactor/lib.rs.html#372">e</a>),
         }
 
         <span class="kw">let</span> <span class="ident">start</span> <span class="op">=</span> <span class="kw">if</span> <span class="macro">log_enabled!</span>(<span class="ident">Level::Debug</span>) {
@@ -1189,7 +1189,7 @@
             <span class="kw">let</span> <span class="ident">token</span> <span class="op">=</span> <a class="ident" href="../../src/tokio_reactor/lib.rs.html#383">event</a>.<span class="ident">token</span>();
             <span class="macro">trace!</span>(<span class="string">&quot;event {:?} {:?}&quot;</span>, <a class="ident" href="../../src/tokio_reactor/lib.rs.html#383">event</a>.<span class="ident">readiness</span>(), <a class="ident" href="../../src/tokio_reactor/lib.rs.html#383">event</a>.<span class="ident">token</span>());
 
-            <span class="kw">if</span> <a class="ident" href="../../src/tokio_reactor/lib.rs.html#385">token</a> <span class="op">=</span><span class="op">=</span> <a class="ident" href="../../src/tokio_reactor/lib.rs.html#198">TOKEN_WAKEUP</a> {
+            <span class="kw">if</span> <a class="ident" href="../../src/tokio_reactor/lib.rs.html#385">token</a> <span class="op">==</span> <a class="ident" href="../../src/tokio_reactor/lib.rs.html#198">TOKEN_WAKEUP</a> {
                 <a class="self" href="../../src/tokio_reactor/lib.rs.html#367">self</a>.<span class="ident">inner</span>
                     .<span class="ident">wakeup</span>
                     .<span class="ident">set_readiness</span>(<span class="ident">mio::Ready::empty</span>())
@@ -1225,8 +1225,8 @@
             <span class="kw">let</span> <span class="ident">io_dispatch</span> <span class="op">=</span> <a class="self" href="../../src/tokio_reactor/lib.rs.html#411">self</a>.<span class="ident">inner</span>.<span class="ident">io_dispatch</span>.<a class="ident" href="../../src/tokio_reactor/sharded_rwlock.rs.html#68">read</a>();
 
             <span class="kw">let</span> <span class="ident">io</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../src/tokio_reactor/lib.rs.html#421">io_dispatch</a>.<span class="ident">get</span>(<a class="ident" href="../../src/tokio_reactor/lib.rs.html#413">token</a>) {
-                <span class="prelude-val">Some</span>(<span class="ident">io</span>) <span class="op">=</span><span class="op">&gt;</span> <a class="ident" href="../../src/tokio_reactor/lib.rs.html#424">io</a>,
-                <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span>,
+                <span class="prelude-val">Some</span>(<span class="ident">io</span>) =&gt; <a class="ident" href="../../src/tokio_reactor/lib.rs.html#424">io</a>,
+                <span class="prelude-val">None</span> =&gt; <span class="kw">return</span>,
             };
 
             <span class="kw">if</span> <a class="ident" href="../../src/tokio_reactor/lib.rs.html#412">aba_guard</a> <span class="op">!</span><span class="op">=</span> <a class="ident" href="../../src/tokio_reactor/lib.rs.html#423">io</a>.<span class="ident">aba_guard</span> {
@@ -1256,7 +1256,7 @@
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">unix</span>, <span class="ident">not</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;fuchsia&quot;</span>)))]</span>
 <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">AsRawFd</a> <span class="kw">for</span> <a class="ident" href="../../src/tokio_reactor/lib.rs.html#100-108">Reactor</a> {
-    <span class="kw">fn</span> <span class="ident">as_raw_fd</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a> {
+    <span class="kw">fn</span> <span class="ident">as_raw_fd</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a> {
         <a class="self" href="../../src/tokio_reactor/lib.rs.html#455">self</a>.<span class="ident">inner</span>.<span class="ident">io</span>.<span class="ident">as_raw_fd</span>()
     }
 }
@@ -1265,23 +1265,23 @@
     <span class="kw">type</span> <span class="ident">Unpark</span> <span class="op">=</span> <a class="ident" href="../../src/tokio_reactor/lib.rs.html#119-121">Handle</a>;
     <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a>;
 
-    <span class="kw">fn</span> <span class="ident">unpark</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::Unpark</span> {
+    <span class="kw">fn</span> <span class="ident">unpark</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident"><span class="self">Self</span>::Unpark</span> {
         <a class="self" href="../../src/tokio_reactor/lib.rs.html#464">self</a>.<a class="ident" href="../../src/tokio_reactor/lib.rs.html#283">handle</a>()
     }
 
-    <span class="kw">fn</span> <span class="ident">park</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">park</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <a class="self" href="../../src/tokio_reactor/lib.rs.html#468">self</a>.<a class="ident" href="../../src/tokio_reactor/lib.rs.html#344">turn</a>(<span class="prelude-val">None</span>)<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">fn</span> <span class="ident">park_timeout</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">duration</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">park_timeout</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">duration</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <a class="self" href="../../src/tokio_reactor/lib.rs.html#473">self</a>.<a class="ident" href="../../src/tokio_reactor/lib.rs.html#344">turn</a>(<span class="prelude-val">Some</span>(<a class="ident" href="../../src/tokio_reactor/lib.rs.html#473">duration</a>))<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(())
     }
 }
 
 <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <a class="ident" href="../../src/tokio_reactor/lib.rs.html#100-108">Reactor</a> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
         <span class="macro">write!</span>(<a class="ident" href="../../src/tokio_reactor/lib.rs.html#480">f</a>, <span class="string">&quot;Reactor&quot;</span>)
     }
 }
@@ -1291,7 +1291,7 @@
 <span class="kw">impl</span> <a class="ident" href="../../src/tokio_reactor/lib.rs.html#119-121">Handle</a> {
     <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
     <span class="attribute">#[<span class="ident">deprecated</span>(<span class="ident">note</span> <span class="op">=</span> <span class="string">&quot;semantics were sometimes surprising, use Handle::default()&quot;</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">current</span>() <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="../../src/tokio_reactor/lib.rs.html#119-121">Handle</a> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">current</span>() -&gt; <a class="ident" href="../../src/tokio_reactor/lib.rs.html#119-121">Handle</a> {
         <span class="comment">// TODO: Should this panic on error?</span>
         <span class="ident">HandlePriv::try_current</span>()
             .<span class="ident">map</span>(<span class="op">|</span><span class="ident">handle</span><span class="op">|</span> <a class="ident" href="../../src/tokio_reactor/lib.rs.html#119-121">Handle</a> {
@@ -1302,11 +1302,11 @@
             })
     }
 
-    <span class="kw">fn</span> <span class="ident">as_priv</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><a class="ident" href="../../src/tokio_reactor/lib.rs.html#125-127">HandlePriv</a><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">as_priv</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><a class="ident" href="../../src/tokio_reactor/lib.rs.html#125-127">HandlePriv</a><span class="op">&gt;</span> {
         <a class="self" href="../../src/tokio_reactor/lib.rs.html#501">self</a>.<span class="ident">inner</span>.<span class="ident">as_ref</span>()
     }
 
-    <span class="kw">fn</span> <span class="ident">into_priv</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../src/tokio_reactor/lib.rs.html#125-127">HandlePriv</a><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">into_priv</span>(<span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../src/tokio_reactor/lib.rs.html#125-127">HandlePriv</a><span class="op">&gt;</span> {
         <a class="self" href="../../src/tokio_reactor/lib.rs.html#505">self</a>.<span class="ident">inner</span>
     }
 
@@ -1327,23 +1327,23 @@
 
 <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for</span> <a class="ident" href="../../src/tokio_reactor/lib.rs.html#119-121">Handle</a> {
     <span class="doccomment">/// Returns a &quot;default&quot; handle, i.e., a handle that lazily binds to a reactor.</span>
-    <span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="../../src/tokio_reactor/lib.rs.html#119-121">Handle</a> {
+    <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <a class="ident" href="../../src/tokio_reactor/lib.rs.html#119-121">Handle</a> {
         <a class="ident" href="../../src/tokio_reactor/lib.rs.html#119-121">Handle</a> { <span class="ident">inner</span>: <span class="prelude-val">None</span> }
     }
 }
 
 <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <a class="ident" href="../../src/tokio_reactor/lib.rs.html#119-121">Handle</a> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
         <span class="macro">write!</span>(<a class="ident" href="../../src/tokio_reactor/lib.rs.html#532">f</a>, <span class="string">&quot;Handle&quot;</span>)
     }
 }
 
-<span class="kw">fn</span> <span class="ident">set_fallback</span>(<span class="ident">handle</span>: <a class="ident" href="../../src/tokio_reactor/lib.rs.html#125-127">HandlePriv</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../src/tokio_reactor/lib.rs.html#140">SetFallbackError</a><span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">set_fallback</span>(<span class="ident">handle</span>: <a class="ident" href="../../src/tokio_reactor/lib.rs.html#125-127">HandlePriv</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../src/tokio_reactor/lib.rs.html#140">SetFallbackError</a><span class="op">&gt;</span> {
     <span class="kw">unsafe</span> {
         <span class="kw">let</span> <span class="ident">val</span> <span class="op">=</span> <a class="ident" href="../../src/tokio_reactor/lib.rs.html#537">handle</a>.<a class="ident" href="../../src/tokio_reactor/lib.rs.html#639">into_usize</a>();
         <span class="kw">match</span> <a class="ident" href="../../src/tokio_reactor/lib.rs.html#187">HANDLE_FALLBACK</a>.<span class="ident">compare_exchange</span>(<span class="number">0</span>, <a class="ident" href="../../src/tokio_reactor/lib.rs.html#539">val</a>, <span class="ident">SeqCst</span>, <span class="ident">SeqCst</span>) {
-            <span class="prelude-val">Ok</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(()),
-            <span class="prelude-val">Err</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Ok</span>(()),
+            <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; {
                 <a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<span class="ident">HandlePriv::from_usize</span>(<a class="ident" href="../../src/tokio_reactor/lib.rs.html#539">val</a>));
                 <span class="prelude-val">Err</span>(<a class="ident" href="../../src/tokio_reactor/lib.rs.html#140">SetFallbackError</a>(()))
             }
@@ -1357,15 +1357,15 @@
     <span class="doccomment">/// Try to get a handle to the current reactor.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Returns `Err` if no handle is found.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">try_current</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="../../src/tokio_reactor/lib.rs.html#125-127">HandlePriv</a><span class="op">&gt;</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">try_current</span>() -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="../../src/tokio_reactor/lib.rs.html#125-127">HandlePriv</a><span class="op">&gt;</span> {
         <a class="ident" href="../../src/tokio_reactor/lib.rs.html#189-192">CURRENT_REACTOR</a>.<span class="ident">with</span>(<span class="op">|</span><span class="ident">current</span><span class="op">|</span> <span class="kw">match</span> <span class="kw-2">*</span><a class="ident" href="../../src/tokio_reactor/lib.rs.html#557">current</a>.<span class="ident">borrow</span>() {
-            <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">handle</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/tokio_reactor/lib.rs.html#558">handle</a>.<span class="ident">clone</span>()),
-            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">HandlePriv::fallback</span>(),
+            <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">handle</span>) =&gt; <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/tokio_reactor/lib.rs.html#558">handle</a>.<span class="ident">clone</span>()),
+            <span class="prelude-val">None</span> =&gt; <span class="ident">HandlePriv::fallback</span>(),
         })
     }
 
     <span class="doccomment">/// Returns a handle to the fallback reactor.</span>
-    <span class="kw">fn</span> <span class="ident">fallback</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="../../src/tokio_reactor/lib.rs.html#125-127">HandlePriv</a><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">fallback</span>() -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="../../src/tokio_reactor/lib.rs.html#125-127">HandlePriv</a><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">fallback</span> <span class="op">=</span> <a class="ident" href="../../src/tokio_reactor/lib.rs.html#187">HANDLE_FALLBACK</a>.<span class="ident">load</span>(<span class="ident">SeqCst</span>);
 
         <span class="comment">// If the fallback hasn&#39;t been previously initialized then let&#39;s spin</span>
@@ -1373,10 +1373,10 @@
         <span class="comment">// actually create a helper thread then we&#39;ll just return a &quot;defunct&quot;</span>
         <span class="comment">// handle which will return errors when I/O objects are attempted to be</span>
         <span class="comment">// associated.</span>
-        <span class="kw">if</span> <a class="ident" href="../../src/tokio_reactor/lib.rs.html#565">fallback</a> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
+        <span class="kw">if</span> <a class="ident" href="../../src/tokio_reactor/lib.rs.html#565">fallback</a> <span class="op">==</span> <span class="number">0</span> {
             <span class="kw">let</span> <span class="ident">reactor</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">Reactor::new</span>() {
-                <span class="prelude-val">Ok</span>(<span class="ident">reactor</span>) <span class="op">=</span><span class="op">&gt;</span> <a class="ident" href="../../src/tokio_reactor/lib.rs.html#574">reactor</a>,
-                <span class="prelude-val">Err</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="prelude-val">Ok</span>(<span class="ident">reactor</span>) =&gt; <a class="ident" href="../../src/tokio_reactor/lib.rs.html#574">reactor</a>,
+                <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; {
                     <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">io::Error::new</span>(
                         <span class="ident">io::ErrorKind::Other</span>,
                         <span class="string">&quot;failed to create reactor&quot;</span>,
@@ -1394,10 +1394,10 @@
                 <span class="kw">let</span> <span class="ident">ret</span> <span class="op">=</span> <a class="ident" href="../../src/tokio_reactor/lib.rs.html#573">reactor</a>.<a class="ident" href="../../src/tokio_reactor/lib.rs.html#283">handle</a>().<a class="ident" href="../../src/tokio_reactor/lib.rs.html#505">into_priv</a>().<span class="ident">unwrap</span>();
 
                 <span class="kw">match</span> <a class="ident" href="../../src/tokio_reactor/lib.rs.html#573">reactor</a>.<a class="ident" href="../../src/tokio_reactor/lib.rs.html#363">background</a>() {
-                    <span class="prelude-val">Ok</span>(<span class="ident">bg</span>) <span class="op">=</span><span class="op">&gt;</span> <a class="ident" href="../../src/tokio_reactor/lib.rs.html#593">bg</a>.<a class="ident" href="../../src/tokio_reactor/background.rs.html#108">forget</a>(),
+                    <span class="prelude-val">Ok</span>(<span class="ident">bg</span>) =&gt; <a class="ident" href="../../src/tokio_reactor/lib.rs.html#593">bg</a>.<a class="ident" href="../../src/tokio_reactor/background.rs.html#108">forget</a>(),
                     <span class="comment">// The global handle is fubar, but y&#39;all probably got bigger</span>
                     <span class="comment">// problems if a thread can&#39;t spawn.</span>
-                    <span class="prelude-val">Err</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {}
+                    <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; {}
                 }
 
                 <span class="kw">return</span> <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/tokio_reactor/lib.rs.html#590">ret</a>);
@@ -1440,22 +1440,22 @@
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">into_usize</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
+    <span class="kw">fn</span> <span class="ident">into_usize</span>(<span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
         <span class="kw">unsafe</span> { <span class="ident">mem::transmute</span>::<span class="op">&lt;</span><span class="ident">Weak</span><span class="op">&lt;</span><a class="ident" href="../../src/tokio_reactor/lib.rs.html#159-171">Inner</a><span class="op">&gt;</span>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span>(<a class="self" href="../../src/tokio_reactor/lib.rs.html#639">self</a>.<span class="ident">inner</span>) }
     }
 
-    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">from_usize</span>(<span class="ident">val</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="../../src/tokio_reactor/lib.rs.html#125-127">HandlePriv</a> {
+    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">from_usize</span>(<span class="ident">val</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a class="ident" href="../../src/tokio_reactor/lib.rs.html#125-127">HandlePriv</a> {
         <span class="kw">let</span> <span class="ident">inner</span> <span class="op">=</span> <span class="ident">mem::transmute</span>::<span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="ident">Weak</span><span class="op">&lt;</span><a class="ident" href="../../src/tokio_reactor/lib.rs.html#159-171">Inner</a><span class="op">&gt;</span><span class="op">&gt;</span>(<a class="ident" href="../../src/tokio_reactor/lib.rs.html#643">val</a>);
         <a class="ident" href="../../src/tokio_reactor/lib.rs.html#125-127">HandlePriv</a> { <a class="ident" href="../../src/tokio_reactor/lib.rs.html#644">inner</a> }
     }
 
-    <span class="kw">fn</span> <span class="ident">inner</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Arc</span><span class="op">&lt;</span><a class="ident" href="../../src/tokio_reactor/lib.rs.html#159-171">Inner</a><span class="op">&gt;</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">inner</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Arc</span><span class="op">&lt;</span><a class="ident" href="../../src/tokio_reactor/lib.rs.html#159-171">Inner</a><span class="op">&gt;</span><span class="op">&gt;</span> {
         <a class="self" href="../../src/tokio_reactor/lib.rs.html#648">self</a>.<span class="ident">inner</span>.<span class="ident">upgrade</span>()
     }
 }
 
 <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <a class="ident" href="../../src/tokio_reactor/lib.rs.html#125-127">HandlePriv</a> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
         <span class="macro">write!</span>(<a class="ident" href="../../src/tokio_reactor/lib.rs.html#654">f</a>, <span class="string">&quot;HandlePriv&quot;</span>)
     }
 }
@@ -1466,7 +1466,7 @@
     <span class="doccomment">/// Register an I/O resource with the reactor.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// The registration token is returned.</span>
-    <span class="kw">fn</span> <span class="ident">add_source</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">source</span>: <span class="kw-2">&amp;</span><span class="ident">dyn</span> <a class="ident" href="../../mio/event_imp/trait.Evented.html">Evented</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">add_source</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">source</span>: <span class="kw-2">&amp;</span><span class="ident">dyn</span> <a class="ident" href="../../mio/event_imp/trait.Evented.html">Evented</a>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span> {
         <span class="comment">// Get an ABA guard value</span>
         <span class="kw">let</span> <span class="ident">aba_guard</span> <span class="op">=</span> <a class="self" href="../../src/tokio_reactor/lib.rs.html#665">self</a>.<span class="ident">next_aba_guard</span>.<span class="ident">fetch_add</span>(<span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <a class="ident" href="../../src/tokio_reactor/lib.rs.html#194">TOKEN_SHIFT</a>, <span class="ident">Relaxed</span>);
 
@@ -1474,7 +1474,7 @@
             <span class="comment">// Block to contain the write lock</span>
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">io_dispatch</span> <span class="op">=</span> <a class="self" href="../../src/tokio_reactor/lib.rs.html#665">self</a>.<span class="ident">io_dispatch</span>.<a class="ident" href="../../src/tokio_reactor/sharded_rwlock.rs.html#87">write</a>();
 
-            <span class="kw">if</span> <a class="ident" href="../../src/tokio_reactor/lib.rs.html#671">io_dispatch</a>.<span class="ident">len</span>() <span class="op">=</span><span class="op">=</span> <a class="ident" href="../../src/tokio_reactor/lib.rs.html#197">MAX_SOURCES</a> {
+            <span class="kw">if</span> <a class="ident" href="../../src/tokio_reactor/lib.rs.html#671">io_dispatch</a>.<span class="ident">len</span>() <span class="op">==</span> <a class="ident" href="../../src/tokio_reactor/lib.rs.html#197">MAX_SOURCES</a> {
                 <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">io::Error::new</span>(
                     <span class="ident">io::ErrorKind::Other</span>,
                     <span class="string">&quot;reactor at max \
@@ -1504,7 +1504,7 @@
     }
 
     <span class="doccomment">/// Deregisters an I/O resource from the reactor.</span>
-    <span class="kw">fn</span> <span class="ident">deregister_source</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">source</span>: <span class="kw-2">&amp;</span><span class="ident">dyn</span> <a class="ident" href="../../mio/event_imp/trait.Evented.html">Evented</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">deregister_source</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">source</span>: <span class="kw-2">&amp;</span><span class="ident">dyn</span> <a class="ident" href="../../mio/event_imp/trait.Evented.html">Evented</a>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <a class="self" href="../../src/tokio_reactor/lib.rs.html#703">self</a>.<span class="ident">io</span>.<span class="ident">deregister</span>(<a class="ident" href="../../src/tokio_reactor/lib.rs.html#703">source</a>)
     }
 
@@ -1520,8 +1520,8 @@
         <span class="kw">let</span> <span class="ident">sched</span> <span class="op">=</span> <a class="ident" href="../../src/tokio_reactor/lib.rs.html#715">io_dispatch</a>.<span class="ident">get</span>(<a class="ident" href="../../src/tokio_reactor/lib.rs.html#713">token</a>).<span class="ident">unwrap</span>();
 
         <span class="kw">let</span> (<span class="ident">task</span>, <span class="ident">ready</span>) <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../src/tokio_reactor/lib.rs.html#713">dir</a> {
-            <a class="ident" href="../../src/tokio_reactor/lib.rs.html#182">Direction::Read</a> <span class="op">=</span><span class="op">&gt;</span> (<span class="kw-2">&amp;</span><a class="ident" href="../../src/tokio_reactor/lib.rs.html#716">sched</a>.<span class="ident">reader</span>, <span class="op">!</span><span class="ident">mio::Ready::writable</span>()),
-            <a class="ident" href="../../src/tokio_reactor/lib.rs.html#183">Direction::Write</a> <span class="op">=</span><span class="op">&gt;</span> (<span class="kw-2">&amp;</span><a class="ident" href="../../src/tokio_reactor/lib.rs.html#716">sched</a>.<span class="ident">writer</span>, <span class="ident">mio::Ready::writable</span>()),
+            <a class="ident" href="../../src/tokio_reactor/lib.rs.html#182">Direction::Read</a> =&gt; (<span class="kw-2">&amp;</span><a class="ident" href="../../src/tokio_reactor/lib.rs.html#716">sched</a>.<span class="ident">reader</span>, <span class="op">!</span><span class="ident">mio::Ready::writable</span>()),
+            <a class="ident" href="../../src/tokio_reactor/lib.rs.html#183">Direction::Write</a> =&gt; (<span class="kw-2">&amp;</span><a class="ident" href="../../src/tokio_reactor/lib.rs.html#716">sched</a>.<span class="ident">writer</span>, <span class="ident">mio::Ready::writable</span>()),
         };
 
         <a class="ident" href="../../src/tokio_reactor/lib.rs.html#718">task</a>.<span class="ident">register_task</span>(<a class="ident" href="../../src/tokio_reactor/lib.rs.html#713">t</a>);
@@ -1546,13 +1546,13 @@
 }
 
 <span class="kw">impl</span> <a class="ident" href="../../src/tokio_reactor/lib.rs.html#181-184">Direction</a> {
-    <span class="kw">fn</span> <span class="ident">mask</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="../../mio/event_imp/struct.Ready.html">mio::Ready</a> {
+    <span class="kw">fn</span> <span class="ident">mask</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="../../mio/event_imp/struct.Ready.html">mio::Ready</a> {
         <span class="kw">match</span> <span class="kw-2">*</span><a class="self" href="../../src/tokio_reactor/lib.rs.html#745">self</a> {
-            <a class="ident" href="../../src/tokio_reactor/lib.rs.html#182">Direction::Read</a> <span class="op">=</span><span class="op">&gt;</span> {
+            <a class="ident" href="../../src/tokio_reactor/lib.rs.html#182">Direction::Read</a> =&gt; {
                 <span class="comment">// Everything except writable is signaled through read.</span>
                 <span class="ident">mio::Ready::all</span>() <span class="op">-</span> <span class="ident">mio::Ready::writable</span>()
             }
-            <a class="ident" href="../../src/tokio_reactor/lib.rs.html#183">Direction::Write</a> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">mio::Ready::writable</span>() <span class="op">|</span> <a class="ident" href="../../src/tokio_reactor/lib.rs.html#770">platform::hup</a>(),
+            <a class="ident" href="../../src/tokio_reactor/lib.rs.html#183">Direction::Write</a> =&gt; <span class="ident">mio::Ready::writable</span>() <span class="op">|</span> <a class="ident" href="../../src/tokio_reactor/lib.rs.html#770">platform::hup</a>(),
         }
     }
 }
@@ -1571,11 +1571,11 @@
     <span class="kw">use</span> <a class="ident" href="../../mio/sys/unix/ready/struct.UnixReady.html">mio::unix::UnixReady</a>;
     <span class="kw">use</span> <a class="ident" href="../../mio/event_imp/struct.Ready.html">mio::Ready</a>;
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">hup</span>() <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="../../mio/event_imp/struct.Ready.html">Ready</a> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">hup</span>() -&gt; <a class="ident" href="../../mio/event_imp/struct.Ready.html">Ready</a> {
         <span class="ident">UnixReady::hup</span>().<span class="ident">into</span>()
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_hup</span>(<span class="ident">ready</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../mio/event_imp/struct.Ready.html">Ready</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_hup</span>(<span class="ident">ready</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../mio/event_imp/struct.Ready.html">Ready</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
         <span class="ident">UnixReady::from</span>(<span class="kw-2">*</span><a class="ident" href="../../src/tokio_reactor/lib.rs.html#774">ready</a>).<span class="ident">is_hup</span>()
     }
 }
@@ -1584,11 +1584,11 @@
 <span class="kw">mod</span> <span class="ident">platform</span> {
     <span class="kw">use</span> <span class="ident">mio::Ready</span>;
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">hup</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Ready</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">hup</span>() -&gt; <span class="ident">Ready</span> {
         <span class="ident">Ready::empty</span>()
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_hup</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">Ready</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_hup</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">Ready</span>) -&gt; <span class="ident">bool</span> {
         <span class="bool-val">false</span>
     }
 }
@@ -1596,13 +1596,13 @@
 <span class="comment">// ===== impl SetFallbackError =====</span>
 
 <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for</span> <a class="ident" href="../../src/tokio_reactor/lib.rs.html#140">SetFallbackError</a> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">fmt</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">fmt</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
         <span class="macro">write!</span>(<a class="ident" href="../../src/tokio_reactor/lib.rs.html#795">fmt</a>, <span class="string">&quot;{}&quot;</span>, <a class="self" href="../../src/tokio_reactor/lib.rs.html#795">self</a>.<span class="ident">description</span>())
     }
 }
 
 <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/error/trait.Error.html">Error</a> <span class="kw">for</span> <a class="ident" href="../../src/tokio_reactor/lib.rs.html#140">SetFallbackError</a> {
-    <span class="kw">fn</span> <span class="ident">description</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> {
+    <span class="kw">fn</span> <span class="ident">description</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> {
         <span class="string">&quot;attempted to set fallback reactor while already configured&quot;</span>
     }
 }

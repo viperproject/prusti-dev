@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;object-0.26.2&#x2F;src&#x2F;read&#x2F;coff&#x2F;file.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>file.rs - source</title><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../../../storage.js"></script><script src="../../../../crates.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../../object/index.html'><div class='logo-container rust-logo'><img src='../../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;object-0.27.1&#x2F;src&#x2F;read&#x2F;coff&#x2F;file.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>file.rs - source</title><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../../../storage.js"></script><script src="../../../../crates.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../../object/index.html'><div class='logo-container rust-logo'><img src='../../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -239,18 +239,23 @@
 <span id="239">239</span>
 <span id="240">240</span>
 <span id="241">241</span>
+<span id="242">242</span>
+<span id="243">243</span>
+<span id="244">244</span>
+<span id="245">245</span>
+<span id="246">246</span>
+<span id="247">247</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/vec/struct.Vec.html">alloc::vec::Vec</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/str/index.html">core::str</a>;
 
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::read</span>::{
-    <a class="self" href="../../../../src/object/lib.rs.html#89">self</a>, <a class="ident" href="../../../../src/object/common.rs.html#5-26">Architecture</a>, <a class="ident" href="../../../../src/object/read/mod.rs.html#462-466">Export</a>, <a class="ident" href="../../../../src/object/common.rs.html#349-367">FileFlags</a>, <a class="ident" href="../../../../src/object/read/mod.rs.html#440-444">Import</a>, <a class="ident" href="../../../../src/object/read/traits.rs.html#420">NoDynamicRelocationIterator</a>, <a class="ident" href="../../../../src/object/read/traits.rs.html#12-215">Object</a>,
-    <a class="ident" href="../../../../src/object/read/traits.rs.html#250-320">ObjectSection</a>, <a class="ident" href="../../../../src/object/read/mod.rs.html#79-81">ReadError</a>, <a class="ident" href="../../../../src/object/read/read_ref.rs.html#37-112">ReadRef</a>, <span class="prelude-ty">Result</span>, <a class="ident" href="../../../../src/object/read/mod.rs.html#247">SectionIndex</a>, <a class="ident" href="../../../../src/object/read/mod.rs.html#251">SymbolIndex</a>,
+    <a class="self" href="../../../../src/object/lib.rs.html#98">self</a>, <a class="ident" href="../../../../src/object/common.rs.html#5-26">Architecture</a>, <a class="ident" href="../../../../src/object/read/mod.rs.html#478-482">Export</a>, <a class="ident" href="../../../../src/object/common.rs.html#349-367">FileFlags</a>, <a class="ident" href="../../../../src/object/read/mod.rs.html#456-460">Import</a>, <a class="ident" href="../../../../src/object/read/traits.rs.html#457">NoDynamicRelocationIterator</a>, <a class="ident" href="../../../../src/object/read/traits.rs.html#13-227">Object</a>, <a class="ident" href="../../../../src/object/read/mod.rs.html#248-259">ObjectKind</a>,
+    <a class="ident" href="../../../../src/object/read/traits.rs.html#267-347">ObjectSection</a>, <a class="ident" href="../../../../src/object/read/mod.rs.html#79-81">ReadError</a>, <a class="ident" href="../../../../src/object/read/read_ref.rs.html#37-112">ReadRef</a>, <span class="prelude-ty">Result</span>, <a class="ident" href="../../../../src/object/read/mod.rs.html#263">SectionIndex</a>, <a class="ident" href="../../../../src/object/read/mod.rs.html#267">SymbolIndex</a>,
 };
-<span class="kw">use</span> <span class="kw">crate</span>::{<a class="ident" href="../../../../src/object/lib.rs.html#103">pe</a>, <a class="ident" href="../../../../src/object/endian.rs.html#317">LittleEndian</a> <span class="kw">as</span> <span class="ident">LE</span>};
+<span class="kw">use</span> <span class="kw">crate</span>::{<a class="ident" href="../../../../src/object/lib.rs.html#112">pe</a>, <a class="ident" href="../../../../src/object/endian.rs.html#317">LittleEndian</a> <span class="kw">as</span> <span class="ident">LE</span>};
 
 <span class="kw">use</span> <span class="kw">super</span>::{
-    <a class="ident" href="../../../../src/object/read/coff/comdat.rs.html#35-40">CoffComdat</a>, <a class="ident" href="../../../../src/object/read/coff/comdat.rs.html#13-16">CoffComdatIterator</a>, <a class="ident" href="../../../../src/object/read/coff/section.rs.html#184-188">CoffSection</a>, <a class="ident" href="../../../../src/object/read/coff/section.rs.html#165-168">CoffSectionIterator</a>, <a class="ident" href="../../../../src/object/read/coff/section.rs.html#102-105">CoffSegment</a>,
-    <a class="ident" href="../../../../src/object/read/coff/section.rs.html#84-87">CoffSegmentIterator</a>, <a class="ident" href="../../../../src/object/read/coff/symbol.rs.html#310-317">CoffSymbol</a>, <a class="ident" href="../../../../src/object/read/coff/symbol.rs.html#279-285">CoffSymbolIterator</a>, <a class="ident" href="../../../../src/object/read/coff/symbol.rs.html#246-251">CoffSymbolTable</a>, <a class="ident" href="../../../../src/object/read/coff/section.rs.html#15-17">SectionTable</a>,
+    <a class="ident" href="../../../../src/object/read/coff/comdat.rs.html#35-40">CoffComdat</a>, <a class="ident" href="../../../../src/object/read/coff/comdat.rs.html#13-16">CoffComdatIterator</a>, <a class="ident" href="../../../../src/object/read/coff/section.rs.html#215-219">CoffSection</a>, <a class="ident" href="../../../../src/object/read/coff/section.rs.html#196-199">CoffSectionIterator</a>, <a class="ident" href="../../../../src/object/read/coff/section.rs.html#127-130">CoffSegment</a>,
+    <a class="ident" href="../../../../src/object/read/coff/section.rs.html#109-112">CoffSegmentIterator</a>, <a class="ident" href="../../../../src/object/read/coff/symbol.rs.html#310-317">CoffSymbol</a>, <a class="ident" href="../../../../src/object/read/coff/symbol.rs.html#279-285">CoffSymbolIterator</a>, <a class="ident" href="../../../../src/object/read/coff/symbol.rs.html#246-251">CoffSymbolTable</a>, <a class="ident" href="../../../../src/object/read/coff/section.rs.html#16-18">SectionTable</a>,
     <a class="ident" href="../../../../src/object/read/coff/symbol.rs.html#20-26">SymbolTable</a>,
 };
 
@@ -266,27 +271,27 @@
 <span class="doccomment">/// A COFF object file.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">CoffFile</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="ident">R</span>: <span class="ident">ReadRef</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span><span class="op">&gt;</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> [<span class="ident">u8</span>]<span class="op">&gt;</span> {
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">header</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> <a class="ident" href="../../../../src/object/pe.rs.html#246-254">pe::ImageFileHeader</a>,
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">header</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> <a class="ident" href="../../../../src/object/pe.rs.html#261-269">pe::ImageFileHeader</a>,
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">common</span>: <span class="ident">CoffCommon</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="ident">R</span><span class="op">&gt;</span>,
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">data</span>: <span class="ident">R</span>,
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="ident">R</span>: <span class="ident">ReadRef</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="ident">CoffFile</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="ident">R</span><span class="op">&gt;</span> {
     <span class="doccomment">/// Parse the raw COFF file data.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">parse</span>(<span class="ident">data</span>: <span class="ident">R</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">parse</span>(<span class="ident">data</span>: <span class="ident">R</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">offset</span> <span class="op">=</span> <span class="number">0</span>;
-        <span class="kw">let</span> <span class="ident">header</span> <span class="op">=</span> <span class="ident">pe::ImageFileHeader::parse</span>(<a class="ident" href="../../../../src/object/read/coff/file.rs.html#35">data</a>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../../../src/object/read/coff/file.rs.html#36">offset</a>)<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">sections</span> <span class="op">=</span> <a class="ident" href="../../../../src/object/read/coff/file.rs.html#37">header</a>.<a class="ident" href="../../../../src/object/read/coff/file.rs.html#223-227">sections</a>(<a class="ident" href="../../../../src/object/read/coff/file.rs.html#35">data</a>, <a class="ident" href="../../../../src/object/read/coff/file.rs.html#36">offset</a>)<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">symbols</span> <span class="op">=</span> <a class="ident" href="../../../../src/object/read/coff/file.rs.html#37">header</a>.<a class="ident" href="../../../../src/object/read/coff/file.rs.html#235-238">symbols</a>(<a class="ident" href="../../../../src/object/read/coff/file.rs.html#35">data</a>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">header</span> <span class="op">=</span> <span class="ident">pe::ImageFileHeader::parse</span>(<a class="ident" href="../../../../src/object/read/coff/file.rs.html#34">data</a>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../../../src/object/read/coff/file.rs.html#35">offset</a>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">sections</span> <span class="op">=</span> <a class="ident" href="../../../../src/object/read/coff/file.rs.html#36">header</a>.<a class="ident" href="../../../../src/object/read/coff/file.rs.html#229-233">sections</a>(<a class="ident" href="../../../../src/object/read/coff/file.rs.html#34">data</a>, <a class="ident" href="../../../../src/object/read/coff/file.rs.html#35">offset</a>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">symbols</span> <span class="op">=</span> <a class="ident" href="../../../../src/object/read/coff/file.rs.html#36">header</a>.<a class="ident" href="../../../../src/object/read/coff/file.rs.html#241-244">symbols</a>(<a class="ident" href="../../../../src/object/read/coff/file.rs.html#34">data</a>)<span class="question-mark">?</span>;
 
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../../src/object/read/coff/file.rs.html#27-31">CoffFile</a> {
-            <a class="ident" href="../../../../src/object/read/coff/file.rs.html#37">header</a>,
-            <span class="ident">common</span>: <a class="ident" href="../../../../src/object/read/coff/file.rs.html#18-23">CoffCommon</a> {
-                <a class="ident" href="../../../../src/object/read/coff/file.rs.html#38">sections</a>,
-                <a class="ident" href="../../../../src/object/read/coff/file.rs.html#39">symbols</a>,
+        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../../src/object/read/coff/file.rs.html#26-30">CoffFile</a> {
+            <a class="ident" href="../../../../src/object/read/coff/file.rs.html#36">header</a>,
+            <span class="ident">common</span>: <a class="ident" href="../../../../src/object/read/coff/file.rs.html#17-22">CoffCommon</a> {
+                <a class="ident" href="../../../../src/object/read/coff/file.rs.html#37">sections</a>,
+                <a class="ident" href="../../../../src/object/read/coff/file.rs.html#38">symbols</a>,
                 <span class="ident">image_base</span>: <span class="number">0</span>,
             },
-            <a class="ident" href="../../../../src/object/read/coff/file.rs.html#35">data</a>,
+            <a class="ident" href="../../../../src/object/read/coff/file.rs.html#34">data</a>,
         })
     }
 }
@@ -307,153 +312,160 @@
     <span class="kw">type</span> <span class="ident">Symbol</span> <span class="op">=</span> <span class="ident">CoffSymbol</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">R</span><span class="op">&gt;</span>;
     <span class="kw">type</span> <span class="ident">SymbolIterator</span> <span class="op">=</span> <span class="ident">CoffSymbolIterator</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">R</span><span class="op">&gt;</span>;
     <span class="kw">type</span> <span class="ident">SymbolTable</span> <span class="op">=</span> <span class="ident">CoffSymbolTable</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">R</span><span class="op">&gt;</span>;
-    <span class="kw">type</span> <span class="ident">DynamicRelocationIterator</span> <span class="op">=</span> <a class="ident" href="../../../../src/object/read/traits.rs.html#420">NoDynamicRelocationIterator</a>;
+    <span class="kw">type</span> <span class="ident">DynamicRelocationIterator</span> <span class="op">=</span> <a class="ident" href="../../../../src/object/read/traits.rs.html#457">NoDynamicRelocationIterator</a>;
 
-    <span class="kw">fn</span> <span class="ident">architecture</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="../../../../src/object/common.rs.html#5-26">Architecture</a> {
-        <span class="kw">match</span> <a class="self" href="../../../../src/object/read/coff/file.rs.html#71">self</a>.<span class="ident">header</span>.<span class="ident">machine</span>.<a class="ident" href="../../../../src/object/endian.rs.html#599">get</a>(<a class="ident" href="../../../../src/object/endian.rs.html#317">LE</a>) {
-            <a class="ident" href="../../../../src/object/pe.rs.html#318">pe::IMAGE_FILE_MACHINE_ARMNT</a> <span class="op">=</span><span class="op">&gt;</span> <a class="ident" href="../../../../src/object/common.rs.html#8">Architecture::Arm</a>,
-            <a class="ident" href="../../../../src/object/pe.rs.html#344">pe::IMAGE_FILE_MACHINE_ARM64</a> <span class="op">=</span><span class="op">&gt;</span> <a class="ident" href="../../../../src/object/common.rs.html#7">Architecture::Aarch64</a>,
-            <a class="ident" href="../../../../src/object/pe.rs.html#293">pe::IMAGE_FILE_MACHINE_I386</a> <span class="op">=</span><span class="op">&gt;</span> <a class="ident" href="../../../../src/object/common.rs.html#11">Architecture::I386</a>,
-            <a class="ident" href="../../../../src/object/pe.rs.html#340">pe::IMAGE_FILE_MACHINE_AMD64</a> <span class="op">=</span><span class="op">&gt;</span> <a class="ident" href="../../../../src/object/common.rs.html#12">Architecture::X86_64</a>,
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <a class="ident" href="../../../../src/object/common.rs.html#6">Architecture::Unknown</a>,
+    <span class="kw">fn</span> <span class="ident">architecture</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="../../../../src/object/common.rs.html#5-26">Architecture</a> {
+        <span class="kw">match</span> <a class="self" href="../../../../src/object/read/coff/file.rs.html#70">self</a>.<span class="ident">header</span>.<span class="ident">machine</span>.<a class="ident" href="../../../../src/object/endian.rs.html#599">get</a>(<a class="ident" href="../../../../src/object/endian.rs.html#317">LE</a>) {
+            <a class="ident" href="../../../../src/object/pe.rs.html#333">pe::IMAGE_FILE_MACHINE_ARMNT</a> =&gt; <a class="ident" href="../../../../src/object/common.rs.html#8">Architecture::Arm</a>,
+            <a class="ident" href="../../../../src/object/pe.rs.html#359">pe::IMAGE_FILE_MACHINE_ARM64</a> =&gt; <a class="ident" href="../../../../src/object/common.rs.html#7">Architecture::Aarch64</a>,
+            <a class="ident" href="../../../../src/object/pe.rs.html#308">pe::IMAGE_FILE_MACHINE_I386</a> =&gt; <a class="ident" href="../../../../src/object/common.rs.html#11">Architecture::I386</a>,
+            <a class="ident" href="../../../../src/object/pe.rs.html#355">pe::IMAGE_FILE_MACHINE_AMD64</a> =&gt; <a class="ident" href="../../../../src/object/common.rs.html#12">Architecture::X86_64</a>,
+            <span class="kw">_</span> =&gt; <a class="ident" href="../../../../src/object/common.rs.html#6">Architecture::Unknown</a>,
         }
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">is_little_endian</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    <span class="kw">fn</span> <span class="ident">is_little_endian</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
         <span class="bool-val">true</span>
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">is_64</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    <span class="kw">fn</span> <span class="ident">is_64</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
         <span class="comment">// Windows COFF is always 32-bit, even for 64-bit architectures. This could be confusing.</span>
         <span class="bool-val">false</span>
     }
 
-    <span class="kw">fn</span> <span class="ident">segments</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;file</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">CoffSegmentIterator</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">R</span><span class="op">&gt;</span> {
-        <a class="ident" href="../../../../src/object/read/coff/section.rs.html#84-87">CoffSegmentIterator</a> {
-            <span class="ident">file</span>: <a class="self" href="../../../../src/object/read/coff/file.rs.html#92">self</a>,
-            <span class="ident">iter</span>: <a class="self" href="../../../../src/object/read/coff/file.rs.html#92">self</a>.<span class="ident">common</span>.<span class="ident">sections</span>.<a class="ident" href="../../../../src/object/read/coff/section.rs.html#39">iter</a>(),
+    <span class="kw">fn</span> <span class="ident">kind</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="../../../../src/object/read/mod.rs.html#248-259">ObjectKind</a> {
+        <a class="ident" href="../../../../src/object/read/mod.rs.html#252">ObjectKind::Relocatable</a>
+    }
+
+    <span class="kw">fn</span> <span class="ident">segments</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;file</span> <span class="self">self</span>) -&gt; <span class="ident">CoffSegmentIterator</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">R</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../../src/object/read/coff/section.rs.html#109-112">CoffSegmentIterator</a> {
+            <span class="ident">file</span>: <a class="self" href="../../../../src/object/read/coff/file.rs.html#95">self</a>,
+            <span class="ident">iter</span>: <a class="self" href="../../../../src/object/read/coff/file.rs.html#95">self</a>.<span class="ident">common</span>.<span class="ident">sections</span>.<a class="ident" href="../../../../src/object/read/coff/section.rs.html#40">iter</a>(),
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">section_by_name</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;file</span> <span class="self">self</span>, <span class="ident">section_name</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">CoffSection</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">R</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <a class="self" href="../../../../src/object/read/coff/file.rs.html#99">self</a>.<a class="ident" href="../../../../src/object/read/traits.rs.html#98">sections</a>()
-            .<span class="ident">find</span>(<span class="op">|</span><span class="ident">section</span><span class="op">|</span> <a class="ident" href="../../../../src/object/read/coff/file.rs.html#101">section</a>.<a class="ident" href="../../../../src/object/read/traits.rs.html#307">name</a>() <span class="op">=</span><span class="op">=</span> <span class="prelude-val">Ok</span>(<a class="ident" href="../../../../src/object/read/coff/file.rs.html#99">section_name</a>))
+    <span class="kw">fn</span> <span class="ident">section_by_name_bytes</span>(
+        <span class="kw-2">&amp;</span><span class="lifetime">&#39;file</span> <span class="self">self</span>,
+        <span class="ident">section_name</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
+    ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">CoffSection</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">R</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+        <a class="self" href="../../../../src/object/read/coff/file.rs.html#103">self</a>.<a class="ident" href="../../../../src/object/read/traits.rs.html#107">sections</a>()
+            .<span class="ident">find</span>(<span class="op">|</span><span class="ident">section</span><span class="op">|</span> <a class="ident" href="../../../../src/object/read/coff/file.rs.html#107">section</a>.<a class="ident" href="../../../../src/object/read/traits.rs.html#324">name_bytes</a>() <span class="op">==</span> <span class="prelude-val">Ok</span>(<a class="ident" href="../../../../src/object/read/coff/file.rs.html#104">section_name</a>))
     }
 
-    <span class="kw">fn</span> <span class="ident">section_by_index</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;file</span> <span class="self">self</span>, <span class="ident">index</span>: <a class="ident" href="../../../../src/object/read/mod.rs.html#247">SectionIndex</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">CoffSection</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">R</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">section</span> <span class="op">=</span> <a class="self" href="../../../../src/object/read/coff/file.rs.html#104">self</a>.<span class="ident">common</span>.<span class="ident">sections</span>.<a class="ident" href="../../../../src/object/read/coff/section.rs.html#58">section</a>(<a class="ident" href="../../../../src/object/read/coff/file.rs.html#104">index</a>.<span class="number">0</span>)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../../src/object/read/coff/section.rs.html#184-188">CoffSection</a> {
-            <span class="ident">file</span>: <a class="self" href="../../../../src/object/read/coff/file.rs.html#104">self</a>,
-            <a class="ident" href="../../../../src/object/read/coff/file.rs.html#104">index</a>,
-            <a class="ident" href="../../../../src/object/read/coff/file.rs.html#105">section</a>,
+    <span class="kw">fn</span> <span class="ident">section_by_index</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;file</span> <span class="self">self</span>, <span class="ident">index</span>: <a class="ident" href="../../../../src/object/read/mod.rs.html#263">SectionIndex</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">CoffSection</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">R</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="ident">section</span> <span class="op">=</span> <a class="self" href="../../../../src/object/read/coff/file.rs.html#110">self</a>.<span class="ident">common</span>.<span class="ident">sections</span>.<a class="ident" href="../../../../src/object/read/coff/section.rs.html#59">section</a>(<a class="ident" href="../../../../src/object/read/coff/file.rs.html#110">index</a>.<span class="number">0</span>)<span class="question-mark">?</span>;
+        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../../src/object/read/coff/section.rs.html#215-219">CoffSection</a> {
+            <span class="ident">file</span>: <a class="self" href="../../../../src/object/read/coff/file.rs.html#110">self</a>,
+            <a class="ident" href="../../../../src/object/read/coff/file.rs.html#110">index</a>,
+            <a class="ident" href="../../../../src/object/read/coff/file.rs.html#111">section</a>,
         })
     }
 
-    <span class="kw">fn</span> <span class="ident">sections</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;file</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">CoffSectionIterator</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">R</span><span class="op">&gt;</span> {
-        <a class="ident" href="../../../../src/object/read/coff/section.rs.html#165-168">CoffSectionIterator</a> {
-            <span class="ident">file</span>: <a class="self" href="../../../../src/object/read/coff/file.rs.html#113">self</a>,
-            <span class="ident">iter</span>: <a class="self" href="../../../../src/object/read/coff/file.rs.html#113">self</a>.<span class="ident">common</span>.<span class="ident">sections</span>.<a class="ident" href="../../../../src/object/read/coff/section.rs.html#39">iter</a>().<span class="ident">enumerate</span>(),
+    <span class="kw">fn</span> <span class="ident">sections</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;file</span> <span class="self">self</span>) -&gt; <span class="ident">CoffSectionIterator</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">R</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../../src/object/read/coff/section.rs.html#196-199">CoffSectionIterator</a> {
+            <span class="ident">file</span>: <a class="self" href="../../../../src/object/read/coff/file.rs.html#119">self</a>,
+            <span class="ident">iter</span>: <a class="self" href="../../../../src/object/read/coff/file.rs.html#119">self</a>.<span class="ident">common</span>.<span class="ident">sections</span>.<a class="ident" href="../../../../src/object/read/coff/section.rs.html#40">iter</a>().<span class="ident">enumerate</span>(),
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">comdats</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;file</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">CoffComdatIterator</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">R</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">comdats</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;file</span> <span class="self">self</span>) -&gt; <span class="ident">CoffComdatIterator</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">R</span><span class="op">&gt;</span> {
         <a class="ident" href="../../../../src/object/read/coff/comdat.rs.html#13-16">CoffComdatIterator</a> {
-            <span class="ident">file</span>: <a class="self" href="../../../../src/object/read/coff/file.rs.html#120">self</a>,
+            <span class="ident">file</span>: <a class="self" href="../../../../src/object/read/coff/file.rs.html#126">self</a>,
             <span class="ident">index</span>: <span class="number">0</span>,
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">symbol_by_index</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;file</span> <span class="self">self</span>, <span class="ident">index</span>: <a class="ident" href="../../../../src/object/read/mod.rs.html#251">SymbolIndex</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">CoffSymbol</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">R</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">symbol</span> <span class="op">=</span> <a class="self" href="../../../../src/object/read/coff/file.rs.html#127">self</a>.<span class="ident">common</span>.<span class="ident">symbols</span>.<a class="ident" href="../../../../src/object/read/coff/symbol.rs.html#87">symbol</a>(<a class="ident" href="../../../../src/object/read/coff/file.rs.html#127">index</a>.<span class="number">0</span>)<span class="question-mark">?</span>;
+    <span class="kw">fn</span> <span class="ident">symbol_by_index</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;file</span> <span class="self">self</span>, <span class="ident">index</span>: <a class="ident" href="../../../../src/object/read/mod.rs.html#267">SymbolIndex</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">CoffSymbol</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">R</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="ident">symbol</span> <span class="op">=</span> <a class="self" href="../../../../src/object/read/coff/file.rs.html#133">self</a>.<span class="ident">common</span>.<span class="ident">symbols</span>.<a class="ident" href="../../../../src/object/read/coff/symbol.rs.html#87">symbol</a>(<a class="ident" href="../../../../src/object/read/coff/file.rs.html#133">index</a>.<span class="number">0</span>)<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(<a class="ident" href="../../../../src/object/read/coff/symbol.rs.html#310-317">CoffSymbol</a> {
-            <span class="ident">file</span>: <span class="kw-2">&amp;</span><a class="self" href="../../../../src/object/read/coff/file.rs.html#127">self</a>.<span class="ident">common</span>,
-            <a class="ident" href="../../../../src/object/read/coff/file.rs.html#127">index</a>,
-            <a class="ident" href="../../../../src/object/read/coff/file.rs.html#128">symbol</a>,
+            <span class="ident">file</span>: <span class="kw-2">&amp;</span><a class="self" href="../../../../src/object/read/coff/file.rs.html#133">self</a>.<span class="ident">common</span>,
+            <a class="ident" href="../../../../src/object/read/coff/file.rs.html#133">index</a>,
+            <a class="ident" href="../../../../src/object/read/coff/file.rs.html#134">symbol</a>,
         })
     }
 
-    <span class="kw">fn</span> <span class="ident">symbols</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;file</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">CoffSymbolIterator</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">R</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">symbols</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;file</span> <span class="self">self</span>) -&gt; <span class="ident">CoffSymbolIterator</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">R</span><span class="op">&gt;</span> {
         <a class="ident" href="../../../../src/object/read/coff/symbol.rs.html#279-285">CoffSymbolIterator</a> {
-            <span class="ident">file</span>: <span class="kw-2">&amp;</span><a class="self" href="../../../../src/object/read/coff/file.rs.html#136">self</a>.<span class="ident">common</span>,
+            <span class="ident">file</span>: <span class="kw-2">&amp;</span><a class="self" href="../../../../src/object/read/coff/file.rs.html#142">self</a>.<span class="ident">common</span>,
             <span class="ident">index</span>: <span class="number">0</span>,
         }
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">symbol_table</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;file</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">CoffSymbolTable</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">R</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="prelude-val">Some</span>(<a class="ident" href="../../../../src/object/read/coff/symbol.rs.html#246-251">CoffSymbolTable</a> { <span class="ident">file</span>: <span class="kw-2">&amp;</span><a class="self" href="../../../../src/object/read/coff/file.rs.html#144">self</a>.<span class="ident">common</span> })
+    <span class="kw">fn</span> <span class="ident">symbol_table</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;file</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">CoffSymbolTable</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">R</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+        <span class="prelude-val">Some</span>(<a class="ident" href="../../../../src/object/read/coff/symbol.rs.html#246-251">CoffSymbolTable</a> { <span class="ident">file</span>: <span class="kw-2">&amp;</span><a class="self" href="../../../../src/object/read/coff/file.rs.html#150">self</a>.<span class="ident">common</span> })
     }
 
-    <span class="kw">fn</span> <span class="ident">dynamic_symbols</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;file</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">CoffSymbolIterator</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">R</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">dynamic_symbols</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;file</span> <span class="self">self</span>) -&gt; <span class="ident">CoffSymbolIterator</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">R</span><span class="op">&gt;</span> {
         <a class="ident" href="../../../../src/object/read/coff/symbol.rs.html#279-285">CoffSymbolIterator</a> {
-            <span class="ident">file</span>: <span class="kw-2">&amp;</span><a class="self" href="../../../../src/object/read/coff/file.rs.html#148">self</a>.<span class="ident">common</span>,
+            <span class="ident">file</span>: <span class="kw-2">&amp;</span><a class="self" href="../../../../src/object/read/coff/file.rs.html#154">self</a>.<span class="ident">common</span>,
             <span class="comment">// Hack: don&#39;t return any.</span>
-            <span class="ident">index</span>: <a class="self" href="../../../../src/object/read/coff/file.rs.html#148">self</a>.<span class="ident">common</span>.<span class="ident">symbols</span>.<a class="ident" href="../../../../src/object/read/coff/symbol.rs.html#72">len</a>(),
+            <span class="ident">index</span>: <a class="self" href="../../../../src/object/read/coff/file.rs.html#154">self</a>.<span class="ident">common</span>.<span class="ident">symbols</span>.<a class="ident" href="../../../../src/object/read/coff/symbol.rs.html#72">len</a>(),
         }
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">dynamic_symbol_table</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;file</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">CoffSymbolTable</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">R</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">dynamic_symbol_table</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;file</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">CoffSymbolTable</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">R</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="prelude-val">None</span>
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">dynamic_relocations</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;file</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../../src/object/read/traits.rs.html#420">NoDynamicRelocationIterator</a><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">dynamic_relocations</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;file</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../../src/object/read/traits.rs.html#457">NoDynamicRelocationIterator</a><span class="op">&gt;</span> {
         <span class="prelude-val">None</span>
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">imports</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Import</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">imports</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Import</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="comment">// TODO: this could return undefined symbols, but not needed yet.</span>
         <span class="prelude-val">Ok</span>(<span class="ident">Vec::new</span>())
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">exports</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Export</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">exports</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Export</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="comment">// TODO: this could return global symbols, but not needed yet.</span>
         <span class="prelude-val">Ok</span>(<span class="ident">Vec::new</span>())
     }
 
-    <span class="kw">fn</span> <span class="ident">has_debug_symbols</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../../src/object/read/coff/file.rs.html#178">self</a>.<a class="ident" href="../../../../src/object/read/traits.rs.html#86">section_by_name</a>(<span class="string">&quot;.debug_info&quot;</span>).<span class="ident">is_some</span>()
+    <span class="kw">fn</span> <span class="ident">has_debug_symbols</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a class="self" href="../../../../src/object/read/coff/file.rs.html#184">self</a>.<a class="ident" href="../../../../src/object/read/traits.rs.html#90">section_by_name</a>(<span class="string">&quot;.debug_info&quot;</span>).<span class="ident">is_some</span>()
     }
 
-    <span class="kw">fn</span> <span class="ident">relative_address_base</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
+    <span class="kw">fn</span> <span class="ident">relative_address_base</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
         <span class="number">0</span>
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">entry</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
+    <span class="kw">fn</span> <span class="ident">entry</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
         <span class="number">0</span>
     }
 
-    <span class="kw">fn</span> <span class="ident">flags</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="../../../../src/object/common.rs.html#349-367">FileFlags</a> {
+    <span class="kw">fn</span> <span class="ident">flags</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="../../../../src/object/common.rs.html#349-367">FileFlags</a> {
         <a class="ident" href="../../../../src/object/common.rs.html#363-366">FileFlags::Coff</a> {
-            <span class="ident">characteristics</span>: <a class="self" href="../../../../src/object/read/coff/file.rs.html#191">self</a>.<span class="ident">header</span>.<span class="ident">characteristics</span>.<a class="ident" href="../../../../src/object/endian.rs.html#599">get</a>(<a class="ident" href="../../../../src/object/endian.rs.html#317">LE</a>),
+            <span class="ident">characteristics</span>: <a class="self" href="../../../../src/object/read/coff/file.rs.html#197">self</a>.<span class="ident">header</span>.<span class="ident">characteristics</span>.<a class="ident" href="../../../../src/object/endian.rs.html#599">get</a>(<a class="ident" href="../../../../src/object/endian.rs.html#317">LE</a>),
         }
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../../src/object/pe.rs.html#246-254">pe::ImageFileHeader</a> {
+<span class="kw">impl</span> <a class="ident" href="../../../../src/object/pe.rs.html#261-269">pe::ImageFileHeader</a> {
     <span class="doccomment">/// Read the file header.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// `data` must be the entire file data.</span>
     <span class="doccomment">/// `offset` must be the file header offset. It is updated to point after the optional header,</span>
     <span class="doccomment">/// which is where the section headers are located.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">parse</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="ident">R</span>: <span class="ident">ReadRef</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">data</span>: <span class="ident">R</span>, <span class="ident">offset</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">read::Result</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> <span class="self">Self</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">header</span> <span class="op">=</span> <a class="ident" href="../../../../src/object/read/coff/file.rs.html#204">data</a>
-            .<a class="ident" href="../../../../src/object/read/read_ref.rs.html#72">read</a>::<span class="op">&lt;</span><a class="ident" href="../../../../src/object/pe.rs.html#246-254">pe::ImageFileHeader</a><span class="op">&gt;</span>(<a class="ident" href="../../../../src/object/read/coff/file.rs.html#204">offset</a>)
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">parse</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="ident">R</span>: <span class="ident">ReadRef</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">data</span>: <span class="ident">R</span>, <span class="ident">offset</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) -&gt; <span class="ident">read::Result</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> <span class="self">Self</span><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="ident">header</span> <span class="op">=</span> <a class="ident" href="../../../../src/object/read/coff/file.rs.html#210">data</a>
+            .<a class="ident" href="../../../../src/object/read/read_ref.rs.html#72">read</a>::<span class="op">&lt;</span><a class="ident" href="../../../../src/object/pe.rs.html#261-269">pe::ImageFileHeader</a><span class="op">&gt;</span>(<a class="ident" href="../../../../src/object/read/coff/file.rs.html#210">offset</a>)
             .<a class="ident" href="../../../../src/object/read/mod.rs.html#80">read_error</a>(<span class="string">&quot;Invalid COFF file header size or alignment&quot;</span>)<span class="question-mark">?</span>;
 
         <span class="comment">// Skip over the optional header.</span>
-        <span class="kw-2">*</span><a class="ident" href="../../../../src/object/read/coff/file.rs.html#204">offset</a> <span class="op">=</span> <a class="ident" href="../../../../src/object/read/coff/file.rs.html#204">offset</a>
-            .<span class="ident">checked_add</span>(<a class="ident" href="../../../../src/object/read/coff/file.rs.html#205">header</a>.<span class="ident">size_of_optional_header</span>.<a class="ident" href="../../../../src/object/endian.rs.html#599">get</a>(<a class="ident" href="../../../../src/object/endian.rs.html#317">LE</a>).<span class="ident">into</span>())
+        <span class="kw-2">*</span><a class="ident" href="../../../../src/object/read/coff/file.rs.html#210">offset</a> <span class="op">=</span> <a class="ident" href="../../../../src/object/read/coff/file.rs.html#210">offset</a>
+            .<span class="ident">checked_add</span>(<a class="ident" href="../../../../src/object/read/coff/file.rs.html#211">header</a>.<span class="ident">size_of_optional_header</span>.<a class="ident" href="../../../../src/object/endian.rs.html#599">get</a>(<a class="ident" href="../../../../src/object/endian.rs.html#317">LE</a>).<span class="ident">into</span>())
             .<a class="ident" href="../../../../src/object/read/mod.rs.html#80">read_error</a>(<span class="string">&quot;Invalid COFF optional header size&quot;</span>)<span class="question-mark">?</span>;
 
         <span class="comment">// TODO: maybe validate that the machine is known?</span>
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../../src/object/read/coff/file.rs.html#205">header</a>)
+        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../../src/object/read/coff/file.rs.html#211">header</a>)
     }
 
     <span class="doccomment">/// Read the section table.</span>
@@ -465,8 +477,8 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">data</span>: <span class="ident">R</span>,
         <span class="ident">offset</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">read::Result</span><span class="op">&lt;</span><span class="ident">SectionTable</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="ident">SectionTable::parse</span>(<a class="self" href="../../../../src/object/read/coff/file.rs.html#224">self</a>, <a class="ident" href="../../../../src/object/read/coff/file.rs.html#225">data</a>, <a class="ident" href="../../../../src/object/read/coff/file.rs.html#226">offset</a>)
+    ) -&gt; <span class="ident">read::Result</span><span class="op">&lt;</span><span class="ident">SectionTable</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+        <span class="ident">SectionTable::parse</span>(<a class="self" href="../../../../src/object/read/coff/file.rs.html#230">self</a>, <a class="ident" href="../../../../src/object/read/coff/file.rs.html#231">data</a>, <a class="ident" href="../../../../src/object/read/coff/file.rs.html#232">offset</a>)
     }
 
     <span class="doccomment">/// Read the symbol table and string table.</span>
@@ -476,8 +488,8 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">symbols</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="ident">R</span>: <span class="ident">ReadRef</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span><span class="op">&gt;</span><span class="op">&gt;</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">data</span>: <span class="ident">R</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">read::Result</span><span class="op">&lt;</span><span class="ident">SymbolTable</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="ident">R</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="ident">SymbolTable::parse</span>(<a class="self" href="../../../../src/object/read/coff/file.rs.html#236">self</a>, <a class="ident" href="../../../../src/object/read/coff/file.rs.html#237">data</a>)
+    ) -&gt; <span class="ident">read::Result</span><span class="op">&lt;</span><span class="ident">SymbolTable</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="ident">R</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+        <span class="ident">SymbolTable::parse</span>(<a class="self" href="../../../../src/object/read/coff/file.rs.html#242">self</a>, <a class="ident" href="../../../../src/object/read/coff/file.rs.html#243">data</a>)
     }
 }
 </code></pre></div>

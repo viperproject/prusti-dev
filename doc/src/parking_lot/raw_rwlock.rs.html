@@ -1156,7 +1156,7 @@
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">try_lock_exclusive</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    <span class="kw">fn</span> <span class="ident">try_lock_exclusive</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
         <span class="kw">if</span> <a class="self" href="../../src/parking_lot/raw_rwlock.rs.html#82">self</a>.<span class="ident">state</span>.<span class="ident">compare_exchange</span>(<span class="number">0</span>, <a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#47">WRITER_BIT</a>, <span class="ident">Ordering::Acquire</span>, <span class="ident">Ordering::Relaxed</span>).<span class="ident">is_ok</span>()
         {
             <a class="self" href="../../src/parking_lot/raw_rwlock.rs.html#82">self</a>.<a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#1067">deadlock_acquire</a>();
@@ -1186,7 +1186,7 @@
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">try_lock_shared</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    <span class="kw">fn</span> <span class="ident">try_lock_shared</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
         <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span>
             <span class="kw">if</span> <a class="self" href="../../src/parking_lot/raw_rwlock.rs.html#112">self</a>.<a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#466">try_lock_shared_fast</a>(<span class="bool-val">false</span>) { <span class="bool-val">true</span> } <span class="kw">else</span> { <a class="self" href="../../src/parking_lot/raw_rwlock.rs.html#112">self</a>.<a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#495">try_lock_shared_slow</a>(<span class="bool-val">false</span>) };
         <span class="kw">if</span> <a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#113">result</a> {
@@ -1203,7 +1203,7 @@
         } <span class="kw">else</span> {
             <a class="self" href="../../src/parking_lot/raw_rwlock.rs.html#122">self</a>.<span class="ident">state</span>.<span class="ident">fetch_sub</span>(<a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#51">ONE_READER</a>, <span class="ident">Ordering::Release</span>)
         };
-        <span class="kw">if</span> <a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#124">state</a> <span class="op">&amp;</span> (<a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#49">READERS_MASK</a> <span class="op">|</span> <a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#41">WRITER_PARKED_BIT</a>) <span class="op">=</span><span class="op">=</span> (<a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#51">ONE_READER</a> <span class="op">|</span> <a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#41">WRITER_PARKED_BIT</a>) {
+        <span class="kw">if</span> <a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#124">state</a> <span class="op">&amp;</span> (<a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#49">READERS_MASK</a> <span class="op">|</span> <a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#41">WRITER_PARKED_BIT</a>) <span class="op">==</span> (<a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#51">ONE_READER</a> <span class="op">|</span> <a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#41">WRITER_PARKED_BIT</a>) {
             <a class="self" href="../../src/parking_lot/raw_rwlock.rs.html#122">self</a>.<a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#674">unlock_shared_slow</a>();
         }
     }
@@ -1229,7 +1229,7 @@
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">bump_shared</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) {
         <span class="kw">if</span> <a class="self" href="../../src/parking_lot/raw_rwlock.rs.html#153">self</a>.<span class="ident">state</span>.<span class="ident">load</span>(<span class="ident">Ordering::Relaxed</span>) <span class="op">&amp;</span> (<a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#49">READERS_MASK</a> <span class="op">|</span> <a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#47">WRITER_BIT</a>)
-            <span class="op">=</span><span class="op">=</span> <a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#51">ONE_READER</a> <span class="op">|</span> <a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#47">WRITER_BIT</a>
+            <span class="op">==</span> <a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#51">ONE_READER</a> <span class="op">|</span> <a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#47">WRITER_BIT</a>
         {
             <a class="self" href="../../src/parking_lot/raw_rwlock.rs.html#153">self</a>.<a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#846">bump_shared_slow</a>();
         }
@@ -1260,7 +1260,7 @@
     <span class="kw">type</span> <span class="ident">Instant</span> <span class="op">=</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/time/struct.Instant.html">Instant</a>;
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">try_lock_shared_for</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">timeout</span>: <span class="ident"><span class="self">Self</span>::Duration</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    <span class="kw">fn</span> <span class="ident">try_lock_shared_for</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">timeout</span>: <span class="ident"><span class="self">Self</span>::Duration</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
         <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="kw">if</span> <a class="self" href="../../src/parking_lot/raw_rwlock.rs.html#186">self</a>.<a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#466">try_lock_shared_fast</a>(<span class="bool-val">false</span>) {
             <span class="bool-val">true</span>
         } <span class="kw">else</span> {
@@ -1273,7 +1273,7 @@
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">try_lock_shared_until</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">timeout</span>: <span class="ident"><span class="self">Self</span>::Instant</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    <span class="kw">fn</span> <span class="ident">try_lock_shared_until</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">timeout</span>: <span class="ident"><span class="self">Self</span>::Instant</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
         <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="kw">if</span> <a class="self" href="../../src/parking_lot/raw_rwlock.rs.html#199">self</a>.<a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#466">try_lock_shared_fast</a>(<span class="bool-val">false</span>) {
             <span class="bool-val">true</span>
         } <span class="kw">else</span> {
@@ -1286,7 +1286,7 @@
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">try_lock_exclusive_for</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">timeout</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    <span class="kw">fn</span> <span class="ident">try_lock_exclusive_for</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">timeout</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
         <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="kw">if</span> <a class="self" href="../../src/parking_lot/raw_rwlock.rs.html#212">self</a>
             .<span class="ident">state</span>
             .<span class="ident">compare_exchange_weak</span>(<span class="number">0</span>, <a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#47">WRITER_BIT</a>, <span class="ident">Ordering::Acquire</span>, <span class="ident">Ordering::Relaxed</span>)
@@ -1303,7 +1303,7 @@
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">try_lock_exclusive_until</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">timeout</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/time/struct.Instant.html">Instant</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    <span class="kw">fn</span> <span class="ident">try_lock_exclusive_until</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">timeout</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/time/struct.Instant.html">Instant</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
         <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="kw">if</span> <a class="self" href="../../src/parking_lot/raw_rwlock.rs.html#229">self</a>
             .<span class="ident">state</span>
             .<span class="ident">compare_exchange_weak</span>(<span class="number">0</span>, <a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#47">WRITER_BIT</a>, <span class="ident">Ordering::Acquire</span>, <span class="ident">Ordering::Relaxed</span>)
@@ -1331,7 +1331,7 @@
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">try_lock_shared_recursive</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    <span class="kw">fn</span> <span class="ident">try_lock_shared_recursive</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
         <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span>
             <span class="kw">if</span> <a class="self" href="../../src/parking_lot/raw_rwlock.rs.html#257">self</a>.<a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#466">try_lock_shared_fast</a>(<span class="bool-val">true</span>) { <span class="bool-val">true</span> } <span class="kw">else</span> { <a class="self" href="../../src/parking_lot/raw_rwlock.rs.html#257">self</a>.<a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#495">try_lock_shared_slow</a>(<span class="bool-val">true</span>) };
         <span class="kw">if</span> <a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#258">result</a> {
@@ -1343,7 +1343,7 @@
 
 <span class="kw">unsafe</span> <span class="kw">impl</span> <a class="ident" href="../../lock_api/rwlock/trait.RawRwLockRecursiveTimed.html">RawRwLockRecursiveTimed</a> <span class="kw">for</span> <a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#59-61">RawRwLock</a> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">try_lock_shared_recursive_for</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">timeout</span>: <span class="ident"><span class="self">Self</span>::Duration</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    <span class="kw">fn</span> <span class="ident">try_lock_shared_recursive_for</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">timeout</span>: <span class="ident"><span class="self">Self</span>::Duration</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
         <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="kw">if</span> <a class="self" href="../../src/parking_lot/raw_rwlock.rs.html#269">self</a>.<a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#466">try_lock_shared_fast</a>(<span class="bool-val">true</span>) {
             <span class="bool-val">true</span>
         } <span class="kw">else</span> {
@@ -1356,7 +1356,7 @@
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">try_lock_shared_recursive_until</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">timeout</span>: <span class="ident"><span class="self">Self</span>::Instant</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    <span class="kw">fn</span> <span class="ident">try_lock_shared_recursive_until</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">timeout</span>: <span class="ident"><span class="self">Self</span>::Instant</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
         <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="kw">if</span> <a class="self" href="../../src/parking_lot/raw_rwlock.rs.html#282">self</a>.<a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#466">try_lock_shared_fast</a>(<span class="bool-val">true</span>) {
             <span class="bool-val">true</span>
         } <span class="kw">else</span> {
@@ -1380,7 +1380,7 @@
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">try_lock_upgradable</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    <span class="kw">fn</span> <span class="ident">try_lock_upgradable</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
         <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span>
             <span class="kw">if</span> <a class="self" href="../../src/parking_lot/raw_rwlock.rs.html#306">self</a>.<a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#524">try_lock_upgradable_fast</a>() { <span class="bool-val">true</span> } <span class="kw">else</span> { <a class="self" href="../../src/parking_lot/raw_rwlock.rs.html#306">self</a>.<a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#543">try_lock_upgradable_slow</a>() };
         <span class="kw">if</span> <a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#307">result</a> {
@@ -1393,7 +1393,7 @@
     <span class="kw">fn</span> <span class="ident">unlock_upgradable</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) {
         <a class="self" href="../../src/parking_lot/raw_rwlock.rs.html#316">self</a>.<a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#1073">deadlock_release</a>();
         <span class="kw">let</span> <span class="ident">state</span> <span class="op">=</span> <a class="self" href="../../src/parking_lot/raw_rwlock.rs.html#316">self</a>.<span class="ident">state</span>.<span class="ident">load</span>(<span class="ident">Ordering::Relaxed</span>);
-        <span class="kw">if</span> <a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#318">state</a> <span class="op">&amp;</span> <a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#39">PARKED_BIT</a> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
+        <span class="kw">if</span> <a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#318">state</a> <span class="op">&amp;</span> <a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#39">PARKED_BIT</a> <span class="op">==</span> <span class="number">0</span> {
             <span class="kw">if</span> <a class="self" href="../../src/parking_lot/raw_rwlock.rs.html#316">self</a>
                 .<span class="ident">state</span>
                 .<span class="ident">compare_exchange_weak</span>(
@@ -1421,7 +1421,7 @@
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">try_upgrade</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    <span class="kw">fn</span> <span class="ident">try_upgrade</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
         <span class="kw">if</span> <a class="self" href="../../src/parking_lot/raw_rwlock.rs.html#347">self</a>
             .<span class="ident">state</span>
             .<span class="ident">compare_exchange_weak</span>(
@@ -1444,7 +1444,7 @@
     <span class="kw">fn</span> <span class="ident">unlock_upgradable_fair</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) {
         <a class="self" href="../../src/parking_lot/raw_rwlock.rs.html#367">self</a>.<a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#1073">deadlock_release</a>();
         <span class="kw">let</span> <span class="ident">state</span> <span class="op">=</span> <a class="self" href="../../src/parking_lot/raw_rwlock.rs.html#367">self</a>.<span class="ident">state</span>.<span class="ident">load</span>(<span class="ident">Ordering::Relaxed</span>);
-        <span class="kw">if</span> <a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#369">state</a> <span class="op">&amp;</span> <a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#39">PARKED_BIT</a> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
+        <span class="kw">if</span> <a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#369">state</a> <span class="op">&amp;</span> <a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#39">PARKED_BIT</a> <span class="op">==</span> <span class="number">0</span> {
             <span class="kw">if</span> <a class="self" href="../../src/parking_lot/raw_rwlock.rs.html#367">self</a>
                 .<span class="ident">state</span>
                 .<span class="ident">compare_exchange_weak</span>(
@@ -1463,7 +1463,7 @@
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">bump_upgradable</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-        <span class="kw">if</span> <a class="self" href="../../src/parking_lot/raw_rwlock.rs.html#388">self</a>.<span class="ident">state</span>.<span class="ident">load</span>(<span class="ident">Ordering::Relaxed</span>) <span class="op">=</span><span class="op">=</span> <a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#51">ONE_READER</a> <span class="op">|</span> <a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#44">UPGRADABLE_BIT</a> <span class="op">|</span> <a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#39">PARKED_BIT</a> {
+        <span class="kw">if</span> <a class="self" href="../../src/parking_lot/raw_rwlock.rs.html#388">self</a>.<span class="ident">state</span>.<span class="ident">load</span>(<span class="ident">Ordering::Relaxed</span>) <span class="op">==</span> <a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#51">ONE_READER</a> <span class="op">|</span> <a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#44">UPGRADABLE_BIT</a> <span class="op">|</span> <a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#39">PARKED_BIT</a> {
             <a class="self" href="../../src/parking_lot/raw_rwlock.rs.html#388">self</a>.<a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#859">bump_upgradable_slow</a>();
         }
     }
@@ -1494,7 +1494,7 @@
 
 <span class="kw">unsafe</span> <span class="kw">impl</span> <a class="ident" href="../../lock_api/rwlock/trait.RawRwLockUpgradeTimed.html">RawRwLockUpgradeTimed</a> <span class="kw">for</span> <a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#59-61">RawRwLock</a> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">try_lock_upgradable_until</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">timeout</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/time/struct.Instant.html">Instant</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    <span class="kw">fn</span> <span class="ident">try_lock_upgradable_until</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">timeout</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/time/struct.Instant.html">Instant</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
         <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="kw">if</span> <a class="self" href="../../src/parking_lot/raw_rwlock.rs.html#420">self</a>.<a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#524">try_lock_upgradable_fast</a>() {
             <span class="bool-val">true</span>
         } <span class="kw">else</span> {
@@ -1507,7 +1507,7 @@
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">try_lock_upgradable_for</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">timeout</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    <span class="kw">fn</span> <span class="ident">try_lock_upgradable_for</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">timeout</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
         <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="kw">if</span> <a class="self" href="../../src/parking_lot/raw_rwlock.rs.html#433">self</a>.<a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#524">try_lock_upgradable_fast</a>() {
             <span class="bool-val">true</span>
         } <span class="kw">else</span> {
@@ -1520,17 +1520,17 @@
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">try_upgrade_until</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">timeout</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/time/struct.Instant.html">Instant</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    <span class="kw">fn</span> <span class="ident">try_upgrade_until</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">timeout</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/time/struct.Instant.html">Instant</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
         <span class="kw">let</span> <span class="ident">state</span> <span class="op">=</span>
             <a class="self" href="../../src/parking_lot/raw_rwlock.rs.html#446">self</a>.<span class="ident">state</span>.<span class="ident">fetch_sub</span>((<a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#51">ONE_READER</a> <span class="op">|</span> <a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#44">UPGRADABLE_BIT</a>) <span class="op">-</span> <a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#47">WRITER_BIT</a>, <span class="ident">Ordering::Relaxed</span>);
-        <span class="kw">if</span> <a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#447">state</a> <span class="op">&amp;</span> <a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#49">READERS_MASK</a> <span class="op">=</span><span class="op">=</span> <a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#51">ONE_READER</a> { <span class="bool-val">true</span> } <span class="kw">else</span> { <a class="self" href="../../src/parking_lot/raw_rwlock.rs.html#446">self</a>.<a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#815">upgrade_slow</a>(<span class="prelude-val">Some</span>(<a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#446">timeout</a>)) }
+        <span class="kw">if</span> <a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#447">state</a> <span class="op">&amp;</span> <a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#49">READERS_MASK</a> <span class="op">==</span> <a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#51">ONE_READER</a> { <span class="bool-val">true</span> } <span class="kw">else</span> { <a class="self" href="../../src/parking_lot/raw_rwlock.rs.html#446">self</a>.<a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#815">upgrade_slow</a>(<span class="prelude-val">Some</span>(<a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#446">timeout</a>)) }
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">try_upgrade_for</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">timeout</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    <span class="kw">fn</span> <span class="ident">try_upgrade_for</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">timeout</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
         <span class="kw">let</span> <span class="ident">state</span> <span class="op">=</span>
             <a class="self" href="../../src/parking_lot/raw_rwlock.rs.html#453">self</a>.<span class="ident">state</span>.<span class="ident">fetch_sub</span>((<a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#51">ONE_READER</a> <span class="op">|</span> <a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#44">UPGRADABLE_BIT</a>) <span class="op">-</span> <a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#47">WRITER_BIT</a>, <span class="ident">Ordering::Relaxed</span>);
-        <span class="kw">if</span> <a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#454">state</a> <span class="op">&amp;</span> <a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#49">READERS_MASK</a> <span class="op">=</span><span class="op">=</span> <a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#51">ONE_READER</a> {
+        <span class="kw">if</span> <a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#454">state</a> <span class="op">&amp;</span> <a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#49">READERS_MASK</a> <span class="op">==</span> <a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#51">ONE_READER</a> {
             <span class="bool-val">true</span>
         } <span class="kw">else</span> {
             <a class="self" href="../../src/parking_lot/raw_rwlock.rs.html#453">self</a>.<a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#815">upgrade_slow</a>(<a class="ident" href="../../src/parking_lot/util.rs.html#36">util::to_deadline</a>(<a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#453">timeout</a>))
@@ -1540,7 +1540,7 @@
 
 <span class="kw">impl</span> <a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#59-61">RawRwLock</a> {
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">try_lock_shared_fast</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">recursive</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    <span class="kw">fn</span> <span class="ident">try_lock_shared_fast</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">recursive</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
         <span class="kw">let</span> <span class="ident">state</span> <span class="op">=</span> <a class="self" href="../../src/parking_lot/raw_rwlock.rs.html#466">self</a>.<span class="ident">state</span>.<span class="ident">load</span>(<span class="ident">Ordering::Relaxed</span>);
 
         <span class="comment">// We can&#39;t allow grabbing a shared lock if there is a writer, even if</span>
@@ -1549,7 +1549,7 @@
             <span class="comment">// To allow recursive locks, we make an exception and allow readers</span>
             <span class="comment">// to skip ahead of a pending writer to avoid deadlocking, at the</span>
             <span class="comment">// cost of breaking the fairness guarantees.</span>
-            <span class="kw">if</span> <span class="op">!</span><a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#466">recursive</a> <span class="op">|</span><span class="op">|</span> <a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#467">state</a> <span class="op">&amp;</span> <a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#49">READERS_MASK</a> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
+            <span class="kw">if</span> <span class="op">!</span><a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#466">recursive</a> <span class="op">|</span><span class="op">|</span> <a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#467">state</a> <span class="op">&amp;</span> <a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#49">READERS_MASK</a> <span class="op">==</span> <span class="number">0</span> {
                 <span class="kw">return</span> <span class="bool-val">false</span>;
             }
         }
@@ -1557,7 +1557,7 @@
         <span class="comment">// Use hardware lock elision to avoid cache conflicts when multiple</span>
         <span class="comment">// readers try to acquire the lock. We only do this if the lock is</span>
         <span class="comment">// completely empty since elision handles conflicts poorly.</span>
-        <span class="kw">if</span> <a class="ident" href="../../src/parking_lot/elision.rs.html#27">have_elision</a>() <span class="op">&amp;&amp;</span> <a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#467">state</a> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
+        <span class="kw">if</span> <a class="ident" href="../../src/parking_lot/elision.rs.html#27">have_elision</a>() <span class="op">&amp;&amp;</span> <a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#467">state</a> <span class="op">==</span> <span class="number">0</span> {
             <a class="self" href="../../src/parking_lot/raw_rwlock.rs.html#466">self</a>.<span class="ident">state</span>.<a class="ident" href="../../src/parking_lot/elision.rs.html#15-19">elision_compare_exchange_acquire</a>(<span class="number">0</span>, <a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#51">ONE_READER</a>).<span class="ident">is_ok</span>()
         } <span class="kw">else</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">new_state</span>) <span class="op">=</span> <a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#467">state</a>.<span class="ident">checked_add</span>(<a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#51">ONE_READER</a>) {
             <a class="self" href="../../src/parking_lot/raw_rwlock.rs.html#466">self</a>.<span class="ident">state</span>
@@ -1569,19 +1569,19 @@
     }
 
     <span class="attribute">#[<span class="ident">cold</span>]</span>
-    <span class="kw">fn</span> <span class="ident">try_lock_shared_slow</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">recursive</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    <span class="kw">fn</span> <span class="ident">try_lock_shared_slow</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">recursive</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">state</span> <span class="op">=</span> <a class="self" href="../../src/parking_lot/raw_rwlock.rs.html#495">self</a>.<span class="ident">state</span>.<span class="ident">load</span>(<span class="ident">Ordering::Relaxed</span>);
         <span class="kw">loop</span> {
             <span class="comment">// This mirrors the condition in try_lock_shared_fast</span>
             <span class="kw">if</span> <a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#496">state</a> <span class="op">&amp;</span> <a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#47">WRITER_BIT</a> <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {
-                <span class="kw">if</span> <span class="op">!</span><a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#495">recursive</a> <span class="op">|</span><span class="op">|</span> <a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#496">state</a> <span class="op">&amp;</span> <a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#49">READERS_MASK</a> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
+                <span class="kw">if</span> <span class="op">!</span><a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#495">recursive</a> <span class="op">|</span><span class="op">|</span> <a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#496">state</a> <span class="op">&amp;</span> <a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#49">READERS_MASK</a> <span class="op">==</span> <span class="number">0</span> {
                     <span class="kw">return</span> <span class="bool-val">false</span>;
                 }
             }
-            <span class="kw">if</span> <a class="ident" href="../../src/parking_lot/elision.rs.html#27">have_elision</a>() <span class="op">&amp;&amp;</span> <a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#496">state</a> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
+            <span class="kw">if</span> <a class="ident" href="../../src/parking_lot/elision.rs.html#27">have_elision</a>() <span class="op">&amp;&amp;</span> <a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#496">state</a> <span class="op">==</span> <span class="number">0</span> {
                 <span class="kw">match</span> <a class="self" href="../../src/parking_lot/raw_rwlock.rs.html#495">self</a>.<span class="ident">state</span>.<a class="ident" href="../../src/parking_lot/elision.rs.html#15-19">elision_compare_exchange_acquire</a>(<span class="number">0</span>, <a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#51">ONE_READER</a>) {
-                    <span class="prelude-val">Ok</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="bool-val">true</span>,
-                    <span class="prelude-val">Err</span>(<span class="ident">x</span>) <span class="op">=</span><span class="op">&gt;</span> <a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#496">state</a> <span class="op">=</span> <a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#507">x</a>,
+                    <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; <span class="kw">return</span> <span class="bool-val">true</span>,
+                    <span class="prelude-val">Err</span>(<span class="ident">x</span>) =&gt; <a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#496">state</a> <span class="op">=</span> <a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#507">x</a>,
                 }
             } <span class="kw">else</span> {
                 <span class="kw">match</span> <a class="self" href="../../src/parking_lot/raw_rwlock.rs.html#495">self</a>.<span class="ident">state</span>.<span class="ident">compare_exchange_weak</span>(
@@ -1590,15 +1590,15 @@
                     <span class="ident">Ordering::Acquire</span>,
                     <span class="ident">Ordering::Relaxed</span>,
                 ) {
-                    <span class="prelude-val">Ok</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="bool-val">true</span>,
-                    <span class="prelude-val">Err</span>(<span class="ident">x</span>) <span class="op">=</span><span class="op">&gt;</span> <a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#496">state</a> <span class="op">=</span> <a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#517">x</a>,
+                    <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; <span class="kw">return</span> <span class="bool-val">true</span>,
+                    <span class="prelude-val">Err</span>(<span class="ident">x</span>) =&gt; <a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#496">state</a> <span class="op">=</span> <a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#517">x</a>,
                 }
             }
         }
     }
 
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">try_lock_upgradable_fast</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    <span class="kw">fn</span> <span class="ident">try_lock_upgradable_fast</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
         <span class="kw">let</span> <span class="ident">state</span> <span class="op">=</span> <a class="self" href="../../src/parking_lot/raw_rwlock.rs.html#524">self</a>.<span class="ident">state</span>.<span class="ident">load</span>(<span class="ident">Ordering::Relaxed</span>);
 
         <span class="comment">// We can&#39;t grab an upgradable lock if there is already a writer or</span>
@@ -1617,7 +1617,7 @@
     }
 
     <span class="attribute">#[<span class="ident">cold</span>]</span>
-    <span class="kw">fn</span> <span class="ident">try_lock_upgradable_slow</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    <span class="kw">fn</span> <span class="ident">try_lock_upgradable_slow</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">state</span> <span class="op">=</span> <a class="self" href="../../src/parking_lot/raw_rwlock.rs.html#543">self</a>.<span class="ident">state</span>.<span class="ident">load</span>(<span class="ident">Ordering::Relaxed</span>);
         <span class="kw">loop</span> {
             <span class="comment">// This mirrors the condition in try_lock_upgradable_fast</span>
@@ -1633,14 +1633,14 @@
                 <span class="ident">Ordering::Acquire</span>,
                 <span class="ident">Ordering::Relaxed</span>,
             ) {
-                <span class="prelude-val">Ok</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="bool-val">true</span>,
-                <span class="prelude-val">Err</span>(<span class="ident">x</span>) <span class="op">=</span><span class="op">&gt;</span> <a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#544">state</a> <span class="op">=</span> <a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#560">x</a>,
+                <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; <span class="kw">return</span> <span class="bool-val">true</span>,
+                <span class="prelude-val">Err</span>(<span class="ident">x</span>) =&gt; <a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#544">state</a> <span class="op">=</span> <a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#560">x</a>,
             }
         }
     }
 
     <span class="attribute">#[<span class="ident">cold</span>]</span>
-    <span class="kw">fn</span> <span class="ident">lock_exclusive_slow</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">timeout</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/time/struct.Instant.html">Instant</a><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    <span class="kw">fn</span> <span class="ident">lock_exclusive_slow</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">timeout</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/time/struct.Instant.html">Instant</a><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
         <span class="comment">// Step 1: grab exclusive ownership of WRITER_BIT</span>
         <span class="kw">let</span> <span class="ident">timed_out</span> <span class="op">=</span> <span class="op">!</span><a class="self" href="../../src/parking_lot/raw_rwlock.rs.html#566">self</a>.<a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#985-994">lock_common</a>(
             <a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#566">timeout</a>,
@@ -1658,8 +1658,8 @@
                         <span class="ident">Ordering::Acquire</span>,
                         <span class="ident">Ordering::Relaxed</span>,
                     ) {
-                        <span class="prelude-val">Ok</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="bool-val">true</span>,
-                        <span class="prelude-val">Err</span>(<span class="ident">x</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">*</span><a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#571">state</a> <span class="op">=</span> <a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#585">x</a>,
+                        <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; <span class="kw">return</span> <span class="bool-val">true</span>,
+                        <span class="prelude-val">Err</span>(<span class="ident">x</span>) =&gt; <span class="kw-2">*</span><a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#571">state</a> <span class="op">=</span> <a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#585">x</a>,
                     }
                 }
             },
@@ -1699,7 +1699,7 @@
     }
 
     <span class="attribute">#[<span class="ident">cold</span>]</span>
-    <span class="kw">fn</span> <span class="ident">lock_shared_slow</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">recursive</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>, <span class="ident">timeout</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/time/struct.Instant.html">Instant</a><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    <span class="kw">fn</span> <span class="ident">lock_shared_slow</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">recursive</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>, <span class="ident">timeout</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/time/struct.Instant.html">Instant</a><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
         <a class="self" href="../../src/parking_lot/raw_rwlock.rs.html#625">self</a>.<a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#985-994">lock_common</a>(
             <a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#625">timeout</a>,
             <a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#54">TOKEN_SHARED</a>,
@@ -1709,16 +1709,16 @@
                     <span class="comment">// Use hardware lock elision to avoid cache conflicts when multiple</span>
                     <span class="comment">// readers try to acquire the lock. We only do this if the lock is</span>
                     <span class="comment">// completely empty since elision handles conflicts poorly.</span>
-                    <span class="kw">if</span> <a class="ident" href="../../src/parking_lot/elision.rs.html#27">have_elision</a>() <span class="op">&amp;&amp;</span> <span class="kw-2">*</span><a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#629">state</a> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
+                    <span class="kw">if</span> <a class="ident" href="../../src/parking_lot/elision.rs.html#27">have_elision</a>() <span class="op">&amp;&amp;</span> <span class="kw-2">*</span><a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#629">state</a> <span class="op">==</span> <span class="number">0</span> {
                         <span class="kw">match</span> <a class="self" href="../../src/parking_lot/raw_rwlock.rs.html#625">self</a>.<span class="ident">state</span>.<a class="ident" href="../../src/parking_lot/elision.rs.html#15-19">elision_compare_exchange_acquire</a>(<span class="number">0</span>, <a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#51">ONE_READER</a>) {
-                            <span class="prelude-val">Ok</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="bool-val">true</span>,
-                            <span class="prelude-val">Err</span>(<span class="ident">x</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">*</span><a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#629">state</a> <span class="op">=</span> <a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#638">x</a>,
+                            <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; <span class="kw">return</span> <span class="bool-val">true</span>,
+                            <span class="prelude-val">Err</span>(<span class="ident">x</span>) =&gt; <span class="kw-2">*</span><a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#629">state</a> <span class="op">=</span> <a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#638">x</a>,
                         }
                     }
 
                     <span class="comment">// This is the same condition as try_lock_shared_fast</span>
                     <span class="kw">if</span> <span class="kw-2">*</span><a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#629">state</a> <span class="op">&amp;</span> <a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#47">WRITER_BIT</a> <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {
-                        <span class="kw">if</span> <span class="op">!</span><a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#625">recursive</a> <span class="op">|</span><span class="op">|</span> <span class="kw-2">*</span><a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#629">state</a> <span class="op">&amp;</span> <a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#49">READERS_MASK</a> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
+                        <span class="kw">if</span> <span class="op">!</span><a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#625">recursive</a> <span class="op">|</span><span class="op">|</span> <span class="kw-2">*</span><a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#629">state</a> <span class="op">&amp;</span> <a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#49">READERS_MASK</a> <span class="op">==</span> <span class="number">0</span> {
                             <span class="kw">return</span> <span class="bool-val">false</span>;
                         }
                     }
@@ -1766,7 +1766,7 @@
     }
 
     <span class="attribute">#[<span class="ident">cold</span>]</span>
-    <span class="kw">fn</span> <span class="ident">lock_upgradable_slow</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">timeout</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/time/struct.Instant.html">Instant</a><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    <span class="kw">fn</span> <span class="ident">lock_upgradable_slow</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">timeout</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/time/struct.Instant.html">Instant</a><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
         <a class="self" href="../../src/parking_lot/raw_rwlock.rs.html#692">self</a>.<a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#985-994">lock_common</a>(
             <a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#692">timeout</a>,
             <a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#56">TOKEN_UPGRADABLE</a>,
@@ -1807,15 +1807,15 @@
     <span class="kw">fn</span> <span class="ident">unlock_upgradable_slow</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">force_fair</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) {
         <span class="comment">// Just release the lock if there are no parked threads.</span>
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">state</span> <span class="op">=</span> <a class="self" href="../../src/parking_lot/raw_rwlock.rs.html#730">self</a>.<span class="ident">state</span>.<span class="ident">load</span>(<span class="ident">Ordering::Relaxed</span>);
-        <span class="kw">while</span> <a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#732">state</a> <span class="op">&amp;</span> <a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#39">PARKED_BIT</a> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
+        <span class="kw">while</span> <a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#732">state</a> <span class="op">&amp;</span> <a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#39">PARKED_BIT</a> <span class="op">==</span> <span class="number">0</span> {
             <span class="kw">match</span> <a class="self" href="../../src/parking_lot/raw_rwlock.rs.html#730">self</a>.<span class="ident">state</span>.<span class="ident">compare_exchange_weak</span>(
                 <a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#732">state</a>,
                 <a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#732">state</a> <span class="op">-</span> (<a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#51">ONE_READER</a> <span class="op">|</span> <a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#44">UPGRADABLE_BIT</a>),
                 <span class="ident">Ordering::Release</span>,
                 <span class="ident">Ordering::Relaxed</span>,
             ) {
-                <span class="prelude-val">Ok</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span>,
-                <span class="prelude-val">Err</span>(<span class="ident">x</span>) <span class="op">=</span><span class="op">&gt;</span> <a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#732">state</a> <span class="op">=</span> <a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#741">x</a>,
+                <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; <span class="kw">return</span>,
+                <span class="prelude-val">Err</span>(<span class="ident">x</span>) =&gt; <a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#732">state</a> <span class="op">=</span> <a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#741">x</a>,
             }
         }
 
@@ -1841,8 +1841,8 @@
                         <span class="ident">Ordering::Relaxed</span>,
                         <span class="ident">Ordering::Relaxed</span>,
                     ) {
-                        <span class="prelude-val">Ok</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <a class="ident" href="../../src/parking_lot/raw_mutex.rs.html#29">TOKEN_HANDOFF</a>,
-                        <span class="prelude-val">Err</span>(<span class="ident">x</span>) <span class="op">=</span><span class="op">&gt;</span> <a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#749">state</a> <span class="op">=</span> <a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#768">x</a>,
+                        <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; <span class="kw">return</span> <a class="ident" href="../../src/parking_lot/raw_mutex.rs.html#29">TOKEN_HANDOFF</a>,
+                        <span class="prelude-val">Err</span>(<span class="ident">x</span>) =&gt; <a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#749">state</a> <span class="op">=</span> <a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#768">x</a>,
                     }
                 }
             }
@@ -1861,8 +1861,8 @@
                     <span class="ident">Ordering::Relaxed</span>,
                     <span class="ident">Ordering::Relaxed</span>,
                 ) {
-                    <span class="prelude-val">Ok</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <a class="ident" href="../../src/parking_lot/raw_mutex.rs.html#25">TOKEN_NORMAL</a>,
-                    <span class="prelude-val">Err</span>(<span class="ident">x</span>) <span class="op">=</span><span class="op">&gt;</span> <a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#749">state</a> <span class="op">=</span> <a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#788">x</a>,
+                    <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; <span class="kw">return</span> <a class="ident" href="../../src/parking_lot/raw_mutex.rs.html#25">TOKEN_NORMAL</a>,
+                    <span class="prelude-val">Err</span>(<span class="ident">x</span>) =&gt; <a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#749">state</a> <span class="op">=</span> <a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#788">x</a>,
                 }
             }
         };
@@ -1870,7 +1870,7 @@
     }
 
     <span class="attribute">#[<span class="ident">cold</span>]</span>
-    <span class="kw">fn</span> <span class="ident">try_upgrade_slow</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    <span class="kw">fn</span> <span class="ident">try_upgrade_slow</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">state</span> <span class="op">=</span> <a class="self" href="../../src/parking_lot/raw_rwlock.rs.html#796">self</a>.<span class="ident">state</span>.<span class="ident">load</span>(<span class="ident">Ordering::Relaxed</span>);
         <span class="kw">loop</span> {
             <span class="kw">if</span> <a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#797">state</a> <span class="op">&amp;</span> <a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#49">READERS_MASK</a> <span class="op">!</span><span class="op">=</span> <a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#51">ONE_READER</a> {
@@ -1882,14 +1882,14 @@
                 <span class="ident">Ordering::Relaxed</span>,
                 <span class="ident">Ordering::Relaxed</span>,
             ) {
-                <span class="prelude-val">Ok</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="bool-val">true</span>,
-                <span class="prelude-val">Err</span>(<span class="ident">x</span>) <span class="op">=</span><span class="op">&gt;</span> <a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#797">state</a> <span class="op">=</span> <a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#809">x</a>,
+                <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; <span class="kw">return</span> <span class="bool-val">true</span>,
+                <span class="prelude-val">Err</span>(<span class="ident">x</span>) =&gt; <a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#797">state</a> <span class="op">=</span> <a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#809">x</a>,
             }
         }
     }
 
     <span class="attribute">#[<span class="ident">cold</span>]</span>
-    <span class="kw">fn</span> <span class="ident">upgrade_slow</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">timeout</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/time/struct.Instant.html">Instant</a><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    <span class="kw">fn</span> <span class="ident">upgrade_slow</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">timeout</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/time/struct.Instant.html">Instant</a><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
         <a class="self" href="../../src/parking_lot/raw_rwlock.rs.html#815">self</a>.<a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#905">wait_for_readers</a>(<a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#815">timeout</a>, <a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#51">ONE_READER</a> <span class="op">|</span> <a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#44">UPGRADABLE_BIT</a>)
     }
 
@@ -1944,7 +1944,7 @@
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">wake_parked_threads</span><span class="op">&lt;</span><span class="ident">C</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">new_state</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="ident">callback</span>: <span class="ident">C</span>)
     <span class="kw">where</span>
-        <span class="ident">C</span>: <span class="ident">FnOnce</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a class="ident" href="../../parking_lot_core/parking_lot/struct.UnparkResult.html">UnparkResult</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="../../parking_lot_core/parking_lot/struct.UnparkToken.html">UnparkToken</a>,
+        <span class="ident">C</span>: <span class="ident">FnOnce</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a class="ident" href="../../parking_lot_core/parking_lot/struct.UnparkResult.html">UnparkResult</a>) -&gt; <a class="ident" href="../../parking_lot_core/parking_lot/struct.UnparkToken.html">UnparkToken</a>,
     {
         <span class="comment">// We must wake up at least one upgrader or writer if there is one,</span>
         <span class="comment">// otherwise they may end up parked indefinitely since unlock_shared</span>
@@ -1979,7 +1979,7 @@
     <span class="comment">// Common code for waiting for readers to exit the lock after acquiring</span>
     <span class="comment">// WRITER_BIT.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">wait_for_readers</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">timeout</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/time/struct.Instant.html">Instant</a><span class="op">&gt;</span>, <span class="ident">prev_value</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    <span class="kw">fn</span> <span class="ident">wait_for_readers</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">timeout</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/time/struct.Instant.html">Instant</a><span class="op">&gt;</span>, <span class="ident">prev_value</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
         <span class="comment">// At this point WRITER_BIT is already set, we just need to wait for the</span>
         <span class="comment">// remaining readers to exit the lock.</span>
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">spinwait</span> <span class="op">=</span> <span class="ident">SpinWait::new</span>();
@@ -1992,7 +1992,7 @@
             }
 
             <span class="comment">// Set the parked bit</span>
-            <span class="kw">if</span> <a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#909">state</a> <span class="op">&amp;</span> <a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#41">WRITER_PARKED_BIT</a> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
+            <span class="kw">if</span> <a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#909">state</a> <span class="op">&amp;</span> <a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#41">WRITER_PARKED_BIT</a> <span class="op">==</span> <span class="number">0</span> {
                 <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">x</span>) <span class="op">=</span> <a class="self" href="../../src/parking_lot/raw_rwlock.rs.html#905">self</a>.<span class="ident">state</span>.<span class="ident">compare_exchange_weak</span>(
                     <a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#909">state</a>,
                     <a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#909">state</a> <span class="op">|</span> <a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#41">WRITER_PARKED_BIT</a>,
@@ -2025,13 +2025,13 @@
                     <span class="comment">// We still need to re-check the state if we are unparked</span>
                     <span class="comment">// since a previous writer timing-out could have allowed</span>
                     <span class="comment">// another reader to sneak in before we parked.</span>
-                    <span class="ident">ParkResult::Unparked</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="ident">ParkResult::Invalid</span> <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="ident">ParkResult::Unparked</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="ident">ParkResult::Invalid</span> =&gt; {
                         <a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#909">state</a> <span class="op">=</span> <a class="self" href="../../src/parking_lot/raw_rwlock.rs.html#905">self</a>.<span class="ident">state</span>.<span class="ident">load</span>(<span class="ident">Ordering::Relaxed</span>);
                         <span class="kw">continue</span>;
                     }
 
                     <span class="comment">// Timeout expired</span>
-                    <span class="ident">ParkResult::TimedOut</span> <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="ident">ParkResult::TimedOut</span> =&gt; {
                         <span class="comment">// We need to release WRITER_BIT and revert back to</span>
                         <span class="comment">// our previous value. We also wake up any threads that</span>
                         <span class="comment">// might be waiting on WRITER_BIT.</span>
@@ -2065,10 +2065,10 @@
         <span class="ident">token</span>: <a class="ident" href="../../parking_lot_core/parking_lot/struct.ParkToken.html">ParkToken</a>,
         <span class="kw-2">mut</span> <span class="ident">try_lock</span>: <span class="ident">F</span>,
         <span class="ident">validate</span>: <span class="ident">V</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>
+    ) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>
     <span class="kw">where</span>
-        <span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-        <span class="ident">V</span>: <span class="ident">Fn</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+        <span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+        <span class="ident">V</span>: <span class="ident">Fn</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
     {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">spinwait</span> <span class="op">=</span> <span class="ident">SpinWait::new</span>();
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">state</span> <span class="op">=</span> <a class="self" href="../../src/parking_lot/raw_rwlock.rs.html#986">self</a>.<span class="ident">state</span>.<span class="ident">load</span>(<span class="ident">Ordering::Relaxed</span>);
@@ -2079,13 +2079,13 @@
             }
 
             <span class="comment">// If there are no parked threads, try spinning a few times.</span>
-            <span class="kw">if</span> <a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#997">state</a> <span class="op">&amp;</span> (<a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#39">PARKED_BIT</a> <span class="op">|</span> <a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#41">WRITER_PARKED_BIT</a>) <span class="op">=</span><span class="op">=</span> <span class="number">0</span> <span class="op">&amp;&amp;</span> <a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#996">spinwait</a>.<span class="ident">spin</span>() {
+            <span class="kw">if</span> <a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#997">state</a> <span class="op">&amp;</span> (<a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#39">PARKED_BIT</a> <span class="op">|</span> <a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#41">WRITER_PARKED_BIT</a>) <span class="op">==</span> <span class="number">0</span> <span class="op">&amp;&amp;</span> <a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#996">spinwait</a>.<span class="ident">spin</span>() {
                 <a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#997">state</a> <span class="op">=</span> <a class="self" href="../../src/parking_lot/raw_rwlock.rs.html#986">self</a>.<span class="ident">state</span>.<span class="ident">load</span>(<span class="ident">Ordering::Relaxed</span>);
                 <span class="kw">continue</span>;
             }
 
             <span class="comment">// Set the parked bit</span>
-            <span class="kw">if</span> <a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#997">state</a> <span class="op">&amp;</span> <a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#39">PARKED_BIT</a> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
+            <span class="kw">if</span> <a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#997">state</a> <span class="op">&amp;</span> <a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#39">PARKED_BIT</a> <span class="op">==</span> <span class="number">0</span> {
                 <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">x</span>) <span class="op">=</span> <a class="self" href="../../src/parking_lot/raw_rwlock.rs.html#986">self</a>.<span class="ident">state</span>.<span class="ident">compare_exchange_weak</span>(
                     <a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#997">state</a>,
                     <a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#997">state</a> <span class="op">|</span> <a class="ident" href="../../src/parking_lot/raw_rwlock.rs.html#39">PARKED_BIT</a>,
@@ -2121,16 +2121,16 @@
                 ) {
                     <span class="comment">// The thread that unparked us passed the lock on to us</span>
                     <span class="comment">// directly without unlocking it.</span>
-                    <span class="ident">ParkResult::Unparked</span>(<a class="ident" href="../../src/parking_lot/raw_mutex.rs.html#29">TOKEN_HANDOFF</a>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="bool-val">true</span>,
+                    <span class="ident">ParkResult::Unparked</span>(<a class="ident" href="../../src/parking_lot/raw_mutex.rs.html#29">TOKEN_HANDOFF</a>) =&gt; <span class="kw">return</span> <span class="bool-val">true</span>,
 
                     <span class="comment">// We were unparked normally, try acquiring the lock again</span>
-                    <span class="ident">ParkResult::Unparked</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> (),
+                    <span class="ident">ParkResult::Unparked</span>(<span class="kw">_</span>) =&gt; (),
 
                     <span class="comment">// The validation function failed, try locking again</span>
-                    <span class="ident">ParkResult::Invalid</span> <span class="op">=</span><span class="op">&gt;</span> (),
+                    <span class="ident">ParkResult::Invalid</span> =&gt; (),
 
                     <span class="comment">// Timeout expired</span>
-                    <span class="ident">ParkResult::TimedOut</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="bool-val">false</span>,
+                    <span class="ident">ParkResult::TimedOut</span> =&gt; <span class="kw">return</span> <span class="bool-val">false</span>,
                 }
             }
 

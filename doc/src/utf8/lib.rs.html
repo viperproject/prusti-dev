@@ -217,13 +217,13 @@
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for</span> <span class="ident">DecodeError</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
         <span class="kw">match</span> <span class="kw-2">*</span><a class="self" href="../../src/utf8/lib.rs.html#34">self</a> {
             <a class="ident" href="../../src/utf8/lib.rs.html#19-23">DecodeError::Invalid</a> {
                 <span class="ident">valid_prefix</span>,
                 <span class="ident">invalid_sequence</span>,
                 <span class="ident">remaining_input</span>,
-            } <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write!</span>(
+            } =&gt; <span class="macro">write!</span>(
                 <a class="ident" href="../../src/utf8/lib.rs.html#34">f</a>,
                 <span class="string">&quot;found invalid byte sequence {invalid_sequence:02x?} after \
                  {valid_byte_count} valid bytes, followed by {unprocessed_byte_count} more \
@@ -235,7 +235,7 @@
             <a class="ident" href="../../src/utf8/lib.rs.html#27-30">DecodeError::Incomplete</a> {
                 <span class="ident">valid_prefix</span>,
                 <span class="ident">incomplete_suffix</span>,
-            } <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write!</span>(
+            } =&gt; <span class="macro">write!</span>(
                 <a class="ident" href="../../src/utf8/lib.rs.html#34">f</a>,
                 <span class="string">&quot;found incomplete byte sequence {incomplete_suffix:02x?} after \
                  {valid_byte_count} bytes&quot;</span>,
@@ -254,10 +254,10 @@
     <span class="kw">pub</span> <span class="ident">buffer_len</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>,
 }
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">decode</span>(<span class="ident">input</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, <a class="ident" href="../../src/utf8/lib.rs.html#16-31">DecodeError</a><span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">decode</span>(<span class="ident">input</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, <a class="ident" href="../../src/utf8/lib.rs.html#16-31">DecodeError</a><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">error</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">str::from_utf8</span>(<a class="ident" href="../../src/utf8/lib.rs.html#71">input</a>) {
-        <span class="prelude-val">Ok</span>(<span class="ident">valid</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/utf8/lib.rs.html#73">valid</a>),
-        <span class="prelude-val">Err</span>(<span class="ident">error</span>) <span class="op">=</span><span class="op">&gt;</span> <a class="ident" href="../../src/utf8/lib.rs.html#74">error</a>,
+        <span class="prelude-val">Ok</span>(<span class="ident">valid</span>) =&gt; <span class="kw">return</span> <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/utf8/lib.rs.html#73">valid</a>),
+        <span class="prelude-val">Err</span>(<span class="ident">error</span>) =&gt; <a class="ident" href="../../src/utf8/lib.rs.html#74">error</a>,
     };
 
     <span class="comment">// FIXME: separate function from here to guide inlining?</span>
@@ -267,7 +267,7 @@
     };
 
     <span class="kw">match</span> <a class="ident" href="../../src/utf8/lib.rs.html#72">error</a>.<span class="ident">error_len</span>() {
-        <span class="prelude-val">Some</span>(<span class="ident">invalid_sequence_length</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="prelude-val">Some</span>(<span class="ident">invalid_sequence_length</span>) =&gt; {
             <span class="kw">let</span> (<span class="ident">invalid</span>, <span class="ident">rest</span>) <span class="op">=</span> <a class="ident" href="../../src/utf8/lib.rs.html#78">after_valid</a>.<span class="ident">split_at</span>(<a class="ident" href="../../src/utf8/lib.rs.html#84">invalid_sequence_length</a>);
             <span class="prelude-val">Err</span>(<a class="ident" href="../../src/utf8/lib.rs.html#19-23">DecodeError::Invalid</a> {
                 <span class="ident">valid_prefix</span>: <a class="ident" href="../../src/utf8/lib.rs.html#79">valid</a>,
@@ -275,7 +275,7 @@
                 <span class="ident">remaining_input</span>: <a class="ident" href="../../src/utf8/lib.rs.html#85">rest</a>
             })
         }
-        <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="prelude-val">None</span> =&gt; {
             <span class="prelude-val">Err</span>(<a class="ident" href="../../src/utf8/lib.rs.html#27-30">DecodeError::Incomplete</a> {
                 <span class="ident">valid_prefix</span>: <a class="ident" href="../../src/utf8/lib.rs.html#79">valid</a>,
                 <span class="ident">incomplete_suffix</span>: <span class="ident">Incomplete::new</span>(<a class="ident" href="../../src/utf8/lib.rs.html#78">after_valid</a>),
@@ -285,18 +285,18 @@
 }
 
 <span class="kw">impl</span> <a class="ident" href="../../src/utf8/lib.rs.html#66-69">Incomplete</a> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">empty</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">empty</span>() -&gt; <span class="self">Self</span> {
         <a class="ident" href="../../src/utf8/lib.rs.html#66-69">Incomplete</a> {
             <span class="ident">buffer</span>: [<span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>],
             <span class="ident">buffer_len</span>: <span class="number">0</span>,
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_empty</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../src/utf8/lib.rs.html#109">self</a>.<span class="ident">buffer_len</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_empty</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a class="self" href="../../src/utf8/lib.rs.html#109">self</a>.<span class="ident">buffer_len</span> <span class="op">==</span> <span class="number">0</span>
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">bytes</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">bytes</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="self">Self</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buffer</span> <span class="op">=</span> [<span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>];
         <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <a class="ident" href="../../src/utf8/lib.rs.html#113">bytes</a>.<span class="ident">len</span>();
         <a class="ident" href="../../src/utf8/lib.rs.html#114">buffer</a>[..<a class="ident" href="../../src/utf8/lib.rs.html#115">len</a>].<span class="ident">copy_from_slice</span>(<a class="ident" href="../../src/utf8/lib.rs.html#113">bytes</a>);
@@ -311,19 +311,19 @@
     <span class="doccomment">/// * `Some((result, remaining_input))`: We’re done with this `Incomplete`.</span>
     <span class="doccomment">///   To keep decoding, pass `remaining_input` to `decode()`.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">try_complete</span><span class="op">&lt;</span><span class="lifetime">&#39;input</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">input</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;input</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>])
-                                <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]<span class="op">&gt;</span>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;input</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>])<span class="op">&gt;</span> {
+                                -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]<span class="op">&gt;</span>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;input</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>])<span class="op">&gt;</span> {
         <span class="kw">let</span> (<span class="ident">consumed</span>, <span class="ident">opt_result</span>) <span class="op">=</span> <a class="self" href="../../src/utf8/lib.rs.html#127">self</a>.<a class="ident" href="../../src/utf8/lib.rs.html#149">try_complete_offsets</a>(<a class="ident" href="../../src/utf8/lib.rs.html#127">input</a>);
         <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <a class="ident" href="../../src/utf8/lib.rs.html#129">opt_result</a><span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">remaining_input</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="ident" href="../../src/utf8/lib.rs.html#127">input</a>[<a class="ident" href="../../src/utf8/lib.rs.html#129">consumed</a>..];
         <span class="kw">let</span> <span class="ident">result_bytes</span> <span class="op">=</span> <a class="self" href="../../src/utf8/lib.rs.html#127">self</a>.<a class="ident" href="../../src/utf8/lib.rs.html#140">take_buffer</a>();
         <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../src/utf8/lib.rs.html#130">result</a> {
-            <span class="prelude-val">Ok</span>(()) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="kw">unsafe</span> { <span class="ident">str::from_utf8_unchecked</span>(<a class="ident" href="../../src/utf8/lib.rs.html#132">result_bytes</a>) }),
-            <span class="prelude-val">Err</span>(()) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../src/utf8/lib.rs.html#132">result_bytes</a>),
+            <span class="prelude-val">Ok</span>(()) =&gt; <span class="prelude-val">Ok</span>(<span class="kw">unsafe</span> { <span class="ident">str::from_utf8_unchecked</span>(<a class="ident" href="../../src/utf8/lib.rs.html#132">result_bytes</a>) }),
+            <span class="prelude-val">Err</span>(()) =&gt; <span class="prelude-val">Err</span>(<a class="ident" href="../../src/utf8/lib.rs.html#132">result_bytes</a>),
         };
         <span class="prelude-val">Some</span>((<a class="ident" href="../../src/utf8/lib.rs.html#133">result</a>, <a class="ident" href="../../src/utf8/lib.rs.html#131">remaining_input</a>))
     }
 
-    <span class="kw">fn</span> <span class="ident">take_buffer</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] {
+    <span class="kw">fn</span> <span class="ident">take_buffer</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] {
         <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <a class="self" href="../../src/utf8/lib.rs.html#140">self</a>.<span class="ident">buffer_len</span> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
         <a class="self" href="../../src/utf8/lib.rs.html#140">self</a>.<span class="ident">buffer_len</span> <span class="op">=</span> <span class="number">0</span>;
         <span class="kw-2">&amp;</span><a class="self" href="../../src/utf8/lib.rs.html#140">self</a>.<span class="ident">buffer</span>[..<a class="ident" href="../../src/utf8/lib.rs.html#141">len</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>]
@@ -332,7 +332,7 @@
     <span class="doccomment">/// (consumed_from_input, None): not enough input</span>
     <span class="doccomment">/// (consumed_from_input, Some(Err(()))): error bytes in buffer</span>
     <span class="doccomment">/// (consumed_from_input, Some(Ok(()))): UTF-8 string in buffer</span>
-    <span class="kw">fn</span> <span class="ident">try_complete_offsets</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">input</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) <span class="op">-</span><span class="op">&gt;</span> (<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span>(), ()<span class="op">&gt;</span><span class="op">&gt;</span>) {
+    <span class="kw">fn</span> <span class="ident">try_complete_offsets</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">input</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; (<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span>(), ()<span class="op">&gt;</span><span class="op">&gt;</span>) {
         <span class="kw">let</span> <span class="ident">initial_buffer_len</span> <span class="op">=</span> <a class="self" href="../../src/utf8/lib.rs.html#149">self</a>.<span class="ident">buffer_len</span> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
         <span class="kw">let</span> <span class="ident">copied_from_input</span>;
         {
@@ -342,11 +342,11 @@
         }
         <span class="kw">let</span> <span class="ident">spliced</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="self" href="../../src/utf8/lib.rs.html#149">self</a>.<span class="ident">buffer</span>[..<a class="ident" href="../../src/utf8/lib.rs.html#150">initial_buffer_len</a> <span class="op">+</span> <a class="ident" href="../../src/utf8/lib.rs.html#151">copied_from_input</a>];
         <span class="kw">match</span> <span class="ident">str::from_utf8</span>(<a class="ident" href="../../src/utf8/lib.rs.html#157">spliced</a>) {
-            <span class="prelude-val">Ok</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; {
                 <a class="self" href="../../src/utf8/lib.rs.html#149">self</a>.<span class="ident">buffer_len</span> <span class="op">=</span> <a class="ident" href="../../src/utf8/lib.rs.html#157">spliced</a>.<span class="ident">len</span>() <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>;
                 (<a class="ident" href="../../src/utf8/lib.rs.html#151">copied_from_input</a>, <span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(())))
             }
-            <span class="prelude-val">Err</span>(<span class="ident">error</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="prelude-val">Err</span>(<span class="ident">error</span>) =&gt; {
                 <span class="kw">let</span> <span class="ident">valid_up_to</span> <span class="op">=</span> <a class="ident" href="../../src/utf8/lib.rs.html#163">error</a>.<span class="ident">valid_up_to</span>();
                 <span class="kw">if</span> <a class="ident" href="../../src/utf8/lib.rs.html#164">valid_up_to</a> <span class="op">&gt;</span> <span class="number">0</span> {
                     <span class="kw">let</span> <span class="ident">consumed</span> <span class="op">=</span> <a class="ident" href="../../src/utf8/lib.rs.html#164">valid_up_to</a>.<span class="ident">checked_sub</span>(<a class="ident" href="../../src/utf8/lib.rs.html#150">initial_buffer_len</a>).<span class="ident">unwrap</span>();
@@ -354,13 +354,13 @@
                     (<a class="ident" href="../../src/utf8/lib.rs.html#166">consumed</a>, <span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(())))
                 } <span class="kw">else</span> {
                     <span class="kw">match</span> <a class="ident" href="../../src/utf8/lib.rs.html#163">error</a>.<span class="ident">error_len</span>() {
-                        <span class="prelude-val">Some</span>(<span class="ident">invalid_sequence_length</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                        <span class="prelude-val">Some</span>(<span class="ident">invalid_sequence_length</span>) =&gt; {
                             <span class="kw">let</span> <span class="ident">consumed</span> <span class="op">=</span> <a class="ident" href="../../src/utf8/lib.rs.html#171">invalid_sequence_length</a>
                                 .<span class="ident">checked_sub</span>(<a class="ident" href="../../src/utf8/lib.rs.html#150">initial_buffer_len</a>).<span class="ident">unwrap</span>();
                             <a class="self" href="../../src/utf8/lib.rs.html#149">self</a>.<span class="ident">buffer_len</span> <span class="op">=</span> <a class="ident" href="../../src/utf8/lib.rs.html#171">invalid_sequence_length</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>;
                             (<a class="ident" href="../../src/utf8/lib.rs.html#172">consumed</a>, <span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(())))
                         }
-                        <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> {
+                        <span class="prelude-val">None</span> =&gt; {
                             <a class="self" href="../../src/utf8/lib.rs.html#149">self</a>.<span class="ident">buffer_len</span> <span class="op">=</span> <a class="ident" href="../../src/utf8/lib.rs.html#157">spliced</a>.<span class="ident">len</span>() <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>;
                             (<a class="ident" href="../../src/utf8/lib.rs.html#151">copied_from_input</a>, <span class="prelude-val">None</span>)
                         }
