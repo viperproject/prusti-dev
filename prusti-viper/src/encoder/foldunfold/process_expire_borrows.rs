@@ -400,10 +400,11 @@ fn dump_borrows_cfg(
     report::log::report_with_writer(
         "graphviz_reborrowing_dag_during_foldunfold",
         format!(
-            "{}.{:?}.{}.dot",
+            "{}.{:?}.{}.{}.dot",
             source_filename,
             dag,
-            surrounding_block_index.index()
+            surrounding_block_index.index(),
+            curr_block_index,
         ),
         |writer| cfg.to_graphviz(writer, curr_block_index),
     );
