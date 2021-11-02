@@ -4444,8 +4444,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                             }
                         }
                         match ty.kind() {
-                            ty::TyKind::RawPtr(ty::TypeAndMut { ty, mutbl })
-                            | ty::TyKind::Ref(_, ty, mutbl) => {
+                            ty::TyKind::Ref(_, ty, mutbl) => {
                                 debug!(
                                     "encode_loop_invariant_permissions \
                                      mir_place={:?} mutability={:?} \
@@ -5369,7 +5368,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         ty: ty::Ty<'tcx>,
         location: mir::Location,
     ) -> SpannedEncodingResult<Vec<vir::Stmt>> {
-        println!("assign box init into {:?}", encoded_lhs);
         assert_eq!(op_ty, ty.boxed_ty());
         let ref_field = self.encoder.encode_dereference_field(op_ty)
             .with_span(
