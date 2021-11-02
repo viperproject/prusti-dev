@@ -1336,7 +1336,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 )).with_span(span);
             }
             mir::Rvalue::ShallowInitBox(_, op_ty) => {
-                self.encode_assign_box_init(
+                self.encode_assign_box(
                     op_ty,
                     encoded_lhs,
                     ty,
@@ -2185,7 +2185,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                             );
 
                             // Allocate `box_content`
-                            stmts.extend(self.encode_havoc_and_allocation(&box_content));
+                            stmts.extend(self.encode_havoc_and_initialization(&box_content));
 
                             // Initialize `box_content`
                             stmts.extend(
@@ -2280,7 +2280,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                         "std::iter::Iterator::next" |
                         "core::iter::Iterator::next" => {
                             return Err(SpannedEncodingError::unsupported(
-                                "iterators are not fully supported yet".to_string(),
+                                "iterators are not fully supported yet",
                                 term.source_info.span,
                             ));
                         }
@@ -2729,8 +2729,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         let (target_local, encoded_target) = {
             match destination.as_ref() {
                 Some((ref target_place, _)) => {
-                    // will panic if attempting to encode unsupported type
-                    let (encoded_target, pre_stmts, ty, _) = self.encode_place(target_place, ArrayAccessKind::Shared, location).unwrap();
+                    let (encoded_target, pre_stmts, ty, _) = self.encode_place(target_place, ArrayAccessKind::Shared, location)?;
                     stmts.extend(pre_stmts);
 
                     let target_local = if let Some(target_local) = target_place.as_local() {
@@ -2810,7 +2809,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
 
         // Havoc and inhale variables that store constants
         for constant_arg in &constant_args {
-            stmts.extend(self.encode_havoc_and_allocation(constant_arg));
+            stmts.extend(self.encode_havoc_and_initialization(constant_arg));
         }
 
         // Encode precondition.
@@ -3188,11 +3187,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         -> SpannedEncodingResult<vir::Expr>
     {
         Ok(match self.locals.get_type(local).kind() {
-            ty::TyKind::RawPtr(ty::TypeAndMut {
-                ty,
-                mutbl: mutability,
-            })
-            | ty::TyKind::Ref(_, ty, mutability) => {
+            ty::TyKind::Ref(_, ty, mutability) => {
                 // Use unfolded references.
                 let encoded_local = self.encode_prusti_local(local);
                 let span = override_span.unwrap_or_else(|| self.mir_encoder.get_local_span(local.into()));
@@ -5328,7 +5323,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             op_ty
         );
         match op {
-            mir::NullOp::Box => self.encode_assign_box_init(
+            mir::NullOp::Box => self.encode_assign_box(
                 op_ty,
                 encoded_lhs,
                 ty,
@@ -5367,7 +5362,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         }
     }
 
-    fn encode_assign_box_init(
+    fn encode_assign_box(
         &mut self,
         op_ty: ty::Ty<'tcx>,
         encoded_lhs: vir::Expr,
@@ -5390,12 +5385,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             false
         )?;
 
-        println!("res1: {:#?}", stmts);
-
         // Allocate `box_content`
-        stmts.extend(self.encode_havoc_and_allocation(&box_content));
-
-        println!("res2: {:#?}", stmts);
+        // TODO: This is also encoding initialization, which should be avoided because both
+        //   `Rvalue::NullaryOp(NullOp::Box)` and `Rvalue::ShallowInitBox` don't initialize the
+        //   content of the box.
+        stmts.extend(self.encode_havoc_and_initialization(&box_content));
 
         // Leave `box_content` uninitialized
         Ok(stmts)
@@ -5737,7 +5731,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             encoded_operand
         };
 
-        let mut stmts = self.encode_havoc_and_allocation(&encoded_lhs);
+        let mut stmts = self.encode_havoc_and_initialization(&encoded_lhs);
         for i in 0..len {
             let idx = vir::Expr::from(i);
             let lookup_pure_call = array_types.encode_lookup_pure_call(
@@ -5796,13 +5790,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
     }
 
     /// Havoc and assume permission on fields
-    fn encode_havoc_and_allocation(&mut self, dst: &vir::Expr) -> Vec<vir::Stmt> {
+    fn encode_havoc_and_initialization(&mut self, dst: &vir::Expr) -> Vec<vir::Stmt> {
         debug!("Encode havoc and allocation {:?}", dst);
 
         let mut stmts = vec![];
         // Havoc `dst`
         stmts.extend(self.encode_havoc(dst));
-        // Allocate `dst`
+        // Initialize `dst`
         stmts.push(vir::Stmt::Inhale( vir::Inhale {
             expr: self.mir_encoder
                     .encode_place_predicate_permission(dst.clone(), vir::PermAmount::Write)
@@ -5917,7 +5911,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         src: vir::Expr,
         dst: vir::Expr,
     ) -> SpannedEncodingResult<Vec<vir::Stmt>> {
-        let mut stmts = self.encode_havoc_and_allocation(&dst);
+        let mut stmts = self.encode_havoc_and_initialization(&dst);
         stmts.push(vir::Stmt::Inhale( vir::Inhale {
             expr: vir::Expr::eq_cmp(
                 vir::Expr::snap_app(src),
@@ -5985,7 +5979,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         );
         let tymap = HashMap::new();
         let span = self.mir_encoder.get_span_of_location(location);
-        let mut stmts = self.encode_havoc_and_allocation(dst);
+        let mut stmts = self.encode_havoc_and_initialization(dst);
         // Initialize values
         match *aggregate {
             mir::AggregateKind::Tuple => {
@@ -6202,7 +6196,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         let lookup_ret_ty = self.encoder.encode_snapshot_type(array_types.elem_ty_rs, &tymap)?;
 
         let (encoded_base_expr, mut stmts) = self.postprocess_place_encoding(base, ArrayAccessKind::Shared)?;
-        stmts.extend(self.encode_havoc_and_allocation(&lookup_res));
+        stmts.extend(self.encode_havoc_and_initialization(&lookup_res));
 
         let idx_val_int = self.encoder.patch_snapshots(vir::Expr::snap_app(index), &tymap)?;
 
@@ -6244,7 +6238,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         let idx_val_int = self.encoder.patch_snapshots(vir::Expr::snap_app(index), &tymap)?;
 
         // var res: Ref := havoc_ref()
-        stmts.extend(self.encode_havoc_and_allocation(&res));
+        stmts.extend(self.encode_havoc_and_initialization(&res));
 
         // label before for old[label](..) stuff
         let before_label = self.cfg_method.get_fresh_label_name();
@@ -6364,7 +6358,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 let elem_snap_ty = self.encoder.encode_snapshot_type(slice_types.elem_ty_rs, &tymap)?;
 
                 let (encoded_base_expr, mut stmts) = self.postprocess_place_encoding(*base, array_encode_kind)?;
-                stmts.extend(self.encode_havoc_and_allocation(&res));
+                stmts.extend(self.encode_havoc_and_initialization(&res));
 
                 let idx_val_int = self.encoder.patch_snapshots(vir::Expr::snap_app(index), &tymap)?;
 
