@@ -161,9 +161,7 @@ fn get_keys(settings: &Config) -> HashSet<String> {
 
 fn check_keys(settings: &Config, allowed_keys: &HashSet<String>, source: &str) {
     for key in settings.cache.clone().into_table().unwrap().keys() {
-        if !allowed_keys.contains(key) {
-            panic!("{} contains unknown configuration flag: “{}”", source, key);
-        }
+        assert!(allowed_keys.contains(key), "{} contains unknown configuration flag: “{}”", source, key);
     }
 }
 
