@@ -283,14 +283,92 @@ impl ApplyOnState for vir::Stmt {
 
                 // Restore permissions from the `lhs` to the `rhs`
 
+                // Like `has_prefix`, but ignoring the labels if they are equal.
+                fn old_has_prefix(this: &vir::Expr, other: &vir::Expr) -> bool {
+                    if let (
+                        vir::Expr::LabelledOld(vir::LabelledOld {
+                            label: this_label,
+                            base: this_base,
+                            ..
+                        }),
+                        vir::Expr::LabelledOld(vir::LabelledOld {
+                            label: other_label,
+                            base: other_base,
+                            ..
+                        }),
+                    ) = (this, other)
+                    {
+                        this_label == other_label && this_base.has_prefix(other_base)
+                    } else {
+                        this.has_prefix(other)
+                    }
+                }
+
+                // Like `has_proper_prefix`, but ignoring the labels if they are equal.
+                fn old_has_proper_prefix(this: &vir::Expr, other: &vir::Expr) -> bool {
+                    if let (
+                        vir::Expr::LabelledOld(vir::LabelledOld {
+                            label: this_label,
+                            base: this_base,
+                            ..
+                        }),
+                        vir::Expr::LabelledOld(vir::LabelledOld {
+                            label: other_label,
+                            base: other_base,
+                            ..
+                        }),
+                    ) = (this, other)
+                    {
+                        this_label == other_label && this_base.has_proper_prefix(other_base)
+                    } else {
+                        this.has_proper_prefix(other)
+                    }
+                }
+
+                // Like `replace_place`, but ignoring the labels if they are equal.
+                fn old_replace_place(
+                    this: &vir::Expr,
+                    target: &vir::Expr,
+                    replacement: &vir::Expr,
+                ) -> vir::Expr {
+                    if let (
+                        vir::Expr::LabelledOld(vir::LabelledOld {
+                            label: this_label,
+                            base: this_base,
+                            ..
+                        }),
+                        vir::Expr::LabelledOld(vir::LabelledOld {
+                            label: target_label,
+                            base: target_base,
+                            ..
+                        }),
+                    ) = (this, target)
+                    {
+                        if this_label == target_label {
+                            if let vir::Expr::LabelledOld(repl_labelled) = replacement {
+                                return vir::Expr::LabelledOld(vir::LabelledOld {
+                                    base: box this_base
+                                        .clone()
+                                        .replace_place(target_base, repl_labelled.base.as_ref()),
+                                    label: repl_labelled.label.clone(),
+                                    position: repl_labelled.position,
+                                });
+                            } else {
+                                return this_base.clone().replace_place(target_base, replacement);
+                            }
+                        }
+                    }
+                    this.clone().replace_place(target, replacement)
+                }
+
                 // In Prusti, lose permission from the lhs and rhs
-                state.remove_pred_matching(|p| p.has_prefix(left));
-                state.remove_acc_matching(|p| p.has_proper_prefix(left) && !p.is_local());
-                state.remove_pred_matching(|p| p.has_prefix(right));
-                state.remove_acc_matching(|p| p.has_proper_prefix(right) && !p.is_local());
+                state.remove_pred_matching(|p| old_has_prefix(p, left));
+                state.remove_acc_matching(|p| old_has_proper_prefix(p, left) && !p.is_local());
+                state.remove_pred_matching(|p| old_has_prefix(p, right));
+                state.remove_acc_matching(|p| old_has_proper_prefix(p, right) && !p.is_local());
 
                 // The rhs is no longer moved
-                state.remove_moved_matching(|p| p.has_prefix(right));
+                state.remove_moved_matching(|p| old_has_prefix(p, right));
 
                 let rhs_is_array = right.get_type().name().starts_with("Array$");
 
@@ -302,10 +380,8 @@ impl ApplyOnState for vir::Stmt {
                     original_state
                         .acc()
                         .iter()
-                        .filter(|(p, _)| p.has_proper_prefix(left))
-                        .map(|(p, perm_amount)| {
-                            (p.clone().replace_place(left, right), *perm_amount)
-                        })
+                        .filter(|(p, _)| old_has_proper_prefix(p, left))
+                        .map(|(p, perm_amount)| (old_replace_place(p, left, right), *perm_amount))
                         .filter(|(p, _)| !p.is_local())
                         .collect()
                 };
@@ -320,10 +396,8 @@ impl ApplyOnState for vir::Stmt {
                     original_state
                         .pred()
                         .iter()
-                        .filter(|(p, _)| p.has_prefix(left))
-                        .map(|(p, perm_amount)| {
-                            (p.clone().replace_place(left, right), *perm_amount)
-                        })
+                        .filter(|(p, _)| old_has_prefix(p, left))
+                        .map(|(p, perm_amount)| (old_replace_place(p, left, right), *perm_amount))
                         .collect()
                 };
 
@@ -370,7 +444,7 @@ impl ApplyOnState for vir::Stmt {
                 */
 
                 // Finally, mark the lhs as moved
-                if !left.has_prefix(right) &&   // Maybe this is always true?
+                if !old_has_prefix(left, right) &&   // Maybe this is always true?
                         !unchecked
                 {
                     state.insert_moved(left.clone());
