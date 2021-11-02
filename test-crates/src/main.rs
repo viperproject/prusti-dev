@@ -283,9 +283,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     }
 
     // Panic
-    if !failed_crates.is_empty() {
-        panic!("Failed to verify {} crates", failed_crates.len());
-    }
+    assert!(failed_crates.is_empty(), "Failed to verify {} crates", failed_crates.len());
 
     Ok(())
 }
