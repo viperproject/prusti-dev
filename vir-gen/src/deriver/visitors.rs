@@ -144,7 +144,7 @@ impl Deriver {
             call
         };
         let method = parse_quote! {
-            pub fn #method_name(&mut self, #parameter_name: #parameter_type) -> #result_type {
+            fn #method_name(&mut self, #parameter_name: #parameter_type) -> #result_type {
                 #body
             }
         };
@@ -167,7 +167,7 @@ impl Deriver {
         };
         let method = parse_quote! {
             #[allow(clippy::boxed_local)]
-            pub fn #method_name(&mut self, #parameter_name: Box<#parameter_type>) -> #result_type {
+            fn #method_name(&mut self, #parameter_name: Box<#parameter_type>) -> #result_type {
                 #body
             }
         };
@@ -200,7 +200,7 @@ impl Deriver {
             }
         };
         let method = parse_quote! {
-            pub fn #method_name(&mut self) -> #result_type {
+            fn #method_name(&mut self) -> #result_type {
                 #result
             }
         };
@@ -234,7 +234,7 @@ impl Deriver {
             }
         };
         let method = parse_quote! {
-            pub fn #method_name(&mut self, #parameter_name: #parameter_type) -> #result_type {
+            fn #method_name(&mut self, #parameter_name: #parameter_type) -> #result_type {
                 #result
             }
         };
