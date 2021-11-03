@@ -14,6 +14,8 @@ const PRIMITIVE_VALID_DOMAIN_NAME: &str = "PrimitiveValidDomain";
 pub enum BuiltinMethodKind {
     HavocBool,
     HavocInt,
+    HavocF32,
+    HavocF64,
     HavocRef,
 }
 
@@ -62,6 +64,8 @@ impl BuiltinEncoder {
         match method {
             BuiltinMethodKind::HavocBool => "builtin$havoc_bool".to_string(),
             BuiltinMethodKind::HavocInt => "builtin$havoc_int".to_string(),
+            BuiltinMethodKind::HavocF32 => "builtin$havoc_f32".to_string(),
+            BuiltinMethodKind::HavocF64 => "builtin$havoc_f64".to_string(),
             BuiltinMethodKind::HavocRef => "builtin$havoc_ref".to_string(),
         }
     }
@@ -70,6 +74,8 @@ impl BuiltinEncoder {
         let return_type = match method {
             BuiltinMethodKind::HavocBool => vir::Type::Bool,
             BuiltinMethodKind::HavocInt => vir::Type::Int,
+            BuiltinMethodKind::HavocF32 => vir::Type::Float(vir::Float::F32),
+            BuiltinMethodKind::HavocF64 => vir::Type::Float(vir::Float::F64),
             BuiltinMethodKind::HavocRef => vir::Type::typed_ref(""),
         };
         vir::BodylessMethod {
@@ -83,6 +89,8 @@ impl BuiltinEncoder {
         match function {
             BuiltinFunctionKind::Unreachable(vir::Type::Int) => "builtin$unreach_int".to_string(),
             BuiltinFunctionKind::Unreachable(vir::Type::Bool) => "builtin$unreach_bool".to_string(),
+            BuiltinFunctionKind::Unreachable(vir::Type::Float(vir::Float::F32)) => "builtin$unreach_f32".to_string(),
+            BuiltinFunctionKind::Unreachable(vir::Type::Float(vir::Float::F64)) => "builtin$unreach_f64".to_string(),
             BuiltinFunctionKind::Unreachable(vir::Type::TypedRef(_)) => {
                 "builtin$unreach_ref".to_string()
             }
@@ -101,6 +109,8 @@ impl BuiltinEncoder {
             }
             BuiltinFunctionKind::Undefined(vir::Type::Int) => "builtin$undef_int".to_string(),
             BuiltinFunctionKind::Undefined(vir::Type::Bool) => "builtin$undef_bool".to_string(),
+            BuiltinFunctionKind::Undefined(vir::Type::Float(vir::Float::F32)) => "builtin$undef_f32".to_string(),
+            BuiltinFunctionKind::Undefined(vir::Type::Float(vir::Float::F64)) => "builtin$undef_f64".to_string(),
             BuiltinFunctionKind::Undefined(vir::Type::TypedRef(_)) => "builtin$undef_ref".to_string(),
             // TODO polymorphic: might combine this case with typed_ref
             BuiltinFunctionKind::Undefined(vir::Type::TypeVar(_)) => "builtin$undef_var".to_string(),

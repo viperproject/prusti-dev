@@ -711,6 +711,22 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             ty::TyKind::Uint(ty::UintTy::U64) => scalar_value.to_u64().unwrap().into(),
             ty::TyKind::Uint(ty::UintTy::U128) => scalar_value.to_u128().unwrap().into(),
             ty::TyKind::Uint(ty::UintTy::Usize) => scalar_value.to_machine_usize(&self.env().tcx()).unwrap().into(),
+            ty::TyKind::Float(ty::FloatTy::F32) => {
+                let bits = scalar_value.to_u32().unwrap();
+                vir::Expr::Const(
+                    vir::ConstExpr {
+                        value: vir::Const::Float(vir::FloatConst::F32(bits)),
+                        position: vir::Position::default(),
+                    })
+            },
+            ty::TyKind::Float(ty::FloatTy::F64) => {
+                let bits = scalar_value.to_u64().unwrap();
+                vir::Expr::Const(
+                    vir::ConstExpr {
+                        value: vir::Const::Float(vir::FloatConst::F64(bits)),
+                        position: vir::Position::default(),
+                    })
+            }
             ty::TyKind::FnDef(def_id, _) => {
                 self.encode_spec_funcs(*def_id)?;
                 vir::Expr::Const( vir::ConstExpr {value: vir::Const::FnPtr, position: vir::Position::default()} )

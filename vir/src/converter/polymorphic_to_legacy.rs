@@ -46,11 +46,21 @@ impl From<polymorphic::PermAmount> for legacy::PermAmount {
     }
 }
 
+impl From<polymorphic::Float> for legacy::Float {
+    fn from(float: polymorphic::Float) -> legacy::Float {
+        match float {
+            polymorphic::Float::F32 => legacy::Float::F32,
+            polymorphic::Float::F64 => legacy::Float::F64,
+        }
+    }
+}
+
 impl From<polymorphic::Type> for legacy::Type {
     fn from(typ: polymorphic::Type) -> legacy::Type {
         match typ {
             polymorphic::Type::Int => legacy::Type::Int,
             polymorphic::Type::Bool => legacy::Type::Bool,
+            polymorphic::Type::Float(float) => legacy::Type::Float(float.into()),
             polymorphic::Type::Seq(seq) => legacy::Type::Seq(Box::new((*seq.typ).into())),
             polymorphic::Type::TypedRef(_) | polymorphic::Type::TypeVar(_) => {
                 legacy::Type::TypedRef(typ.encode_as_string())
@@ -66,6 +76,7 @@ impl From<polymorphic::TypeId> for legacy::TypeId {
         match type_id {
             polymorphic::TypeId::Int => legacy::TypeId::Int,
             polymorphic::TypeId::Bool => legacy::TypeId::Bool,
+            polymorphic::TypeId::Float => legacy::TypeId::Float,
             polymorphic::TypeId::Ref => legacy::TypeId::Ref,
             polymorphic::TypeId::Seq => legacy::TypeId::Seq,
             polymorphic::TypeId::Domain => legacy::TypeId::Domain,
@@ -366,12 +377,22 @@ impl From<polymorphic::ContainerOpKind> for legacy::ContainerOpKind {
     }
 }
 
+impl From<polymorphic::FloatConst> for legacy::FloatConst {
+    fn from(old: polymorphic::FloatConst) -> legacy::FloatConst {
+        match old {
+            polymorphic::FloatConst::F32(value) => legacy::FloatConst::F32(value),
+            polymorphic::FloatConst::F64(value) => legacy::FloatConst::F64(value),
+        }
+    }
+}
+
 impl From<polymorphic::Const> for legacy::Const {
     fn from(old_const: polymorphic::Const) -> legacy::Const {
         match old_const {
             polymorphic::Const::Bool(bool_value) => legacy::Const::Bool(bool_value),
             polymorphic::Const::Int(i64_value) => legacy::Const::Int(i64_value),
             polymorphic::Const::BigInt(label) => legacy::Const::BigInt(label),
+            polymorphic::Const::Float(float_value) => legacy::Const::Float(float_value.into()),
             polymorphic::Const::FnPtr => legacy::Const::FnPtr,
         }
     }

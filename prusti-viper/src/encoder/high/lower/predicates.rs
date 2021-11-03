@@ -22,6 +22,7 @@ impl IntoPredicates for vir_high::TypeDecl {
         match self {
             vir_high::TypeDecl::Bool => construct_bool_predicate(encoder),
             vir_high::TypeDecl::Int(ty_decl) => ty_decl.lower(ty, encoder),
+            vir_high::TypeDecl::Float(ty_decl) => ty_decl.lower(ty, encoder),
             vir_high::TypeDecl::TypeVar(ty_decl) => ty_decl.lower(ty, encoder),
             vir_high::TypeDecl::Tuple(ty_decl) => ty_decl.lower(ty, encoder),
             vir_high::TypeDecl::Struct(ty_decl) => ty_decl.lower(ty, encoder),
@@ -59,6 +60,18 @@ impl IntoPredicates for vir_high::type_decl::Int {
                 .as_ref()
                 .map(|bound| (**bound).lower(encoder)),
         );
+        Ok(vec![predicate])
+    }
+}
+
+impl IntoPredicates for vir_high::type_decl::Float {
+    fn lower(
+        &self,
+        ty: &vir_high::Type,
+        encoder: &impl HighTypeEncoderInterfacePrivate,
+    ) -> Predicates {
+        let field = create_value_field(ty.clone())?.lower(encoder);
+        let predicate = Predicate::new_primitive_value(ty.lower(encoder), field, None, None);
         Ok(vec![predicate])
     }
 }

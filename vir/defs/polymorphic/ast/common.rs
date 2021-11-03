@@ -114,9 +114,16 @@ impl Ord for PermAmount {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
+pub enum Float {
+    F32,
+    F64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
 pub enum Type {
     Int,
     Bool,
+    Float(Float),
     Seq(SeqType),
     //Ref, // At the moment we don't need this
     /// TypedRef: the first parameter is the name of the predicate that encodes the type
@@ -132,6 +139,8 @@ impl fmt::Display for Type {
         match self {
             Type::Int => write!(f, "Int"),
             Type::Bool => write!(f, "Bool"),
+            Type::Float(Float::F32) => write!(f, "F32"),
+            Type::Float(Float::F64) => write!(f, "F64"),
             Type::Seq(seq) => seq.fmt(f),
             Type::TypedRef(_) => write!(f, "Ref({})", self.encode_as_string()),
             Type::Domain(_) => write!(f, "Domain({})", self.encode_as_string()),
@@ -175,6 +184,8 @@ impl Type {
         match self {
             Type::Bool => "bool".to_string(),
             Type::Int => "int".to_string(),
+            Type::Float(Float::F32) => "f32".to_string(),
+            Type::Float(Float::F64) => "f64".to_string(),
             Type::Domain(_) | Type::Snapshot(_) | Type::TypedRef(_) | Type::TypeVar(_) => {
                 self.encode_as_string()
             }
@@ -275,6 +286,7 @@ impl Type {
         match self {
             Type::Bool => TypeId::Bool,
             Type::Int => TypeId::Int,
+            Type::Float(_) => TypeId::Float,
             Type::TypedRef(_) => TypeId::Ref,
             Type::Domain(_) => TypeId::Domain,
             Type::Snapshot(_) => TypeId::Snapshot,
@@ -550,6 +562,7 @@ impl fmt::Display for TypeVar {
 pub enum TypeId {
     Int,
     Bool,
+    Float,
     Ref,
     Seq,
     Domain,
