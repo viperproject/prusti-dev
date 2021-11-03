@@ -56,6 +56,11 @@
 <span id="56">56</span>
 <span id="57">57</span>
 <span id="58">58</span>
+<span id="59">59</span>
+<span id="60">60</span>
+<span id="61">61</span>
+<span id="62">62</span>
+<span id="63">63</span>
 </pre><pre class="rust"><code><span class="comment">// © 2019, ETH Zurich</span>
 <span class="comment">//</span>
 <span class="comment">// This Source Code Form is subject to the terms of the Mozilla Public</span>
@@ -110,8 +115,13 @@
         <a class="self" href="../../src/viper/ast_utils.rs.html#51">self</a>.<span class="ident">jni</span>.<a class="ident" href="../../src/viper/jni_utils.rs.html#117">to_string</a>(<a class="ident" href="../../src/viper/ast_utils.rs.html#51">program</a>.<a class="ident" href="../../src/viper/ast_factory/structs.rs.html#7">to_jobject</a>())
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ensure_local_capacity</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">capacity</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>) {
-        <a class="self" href="../../src/viper/ast_utils.rs.html#55">self</a>.<span class="ident">env</span>.<span class="ident">ensure_local_capacity</span>(<a class="ident" href="../../src/viper/ast_utils.rs.html#55">capacity</a>).<span class="ident">unwrap</span>();
+    <span class="doccomment">/// Important: the result of the `f` call must not contain Java objects. Use carefully.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">with_local_frame</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">capacity</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>, <span class="ident">f</span>: <span class="kw">impl</span> <span class="ident">FnOnce</span>() -&gt; <span class="ident">T</span>) -&gt; <span class="ident">T</span> {
+        <a class="self" href="../../src/viper/ast_utils.rs.html#56">self</a>.<span class="ident">jni</span>.<a class="ident" href="../../src/viper/jni_utils.rs.html#62">unwrap_result</a>(<a class="self" href="../../src/viper/ast_utils.rs.html#56">self</a>.<span class="ident">env</span>.<span class="ident">push_local_frame</span>(<a class="ident" href="../../src/viper/ast_utils.rs.html#56">capacity</a>));
+        <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <a class="ident" href="../../src/viper/ast_utils.rs.html#56">f</a>();
+        <a class="self" href="../../src/viper/ast_utils.rs.html#56">self</a>.<span class="ident">jni</span>
+            .<a class="ident" href="../../src/viper/jni_utils.rs.html#62">unwrap_result</a>(<a class="self" href="../../src/viper/ast_utils.rs.html#56">self</a>.<span class="ident">env</span>.<span class="ident">pop_local_frame</span>(<span class="ident">JObject::null</span>()));
+        <a class="ident" href="../../src/viper/ast_utils.rs.html#58">result</a>
     }
 }
 </code></pre></div>

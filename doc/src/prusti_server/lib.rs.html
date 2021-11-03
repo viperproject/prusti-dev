@@ -98,6 +98,8 @@
 <span id="98"> 98</span>
 <span id="99"> 99</span>
 <span id="100">100</span>
+<span id="101">101</span>
+<span id="102">102</span>
 </pre><pre class="rust"><code><span class="comment">// © 2020, ETH Zurich</span>
 <span class="comment">//</span>
 <span class="comment">// This Source Code Form is subject to the terms of the Mozilla Public</span>
@@ -119,9 +121,9 @@
 <span class="attribute">#[<span class="ident">macro_use</span>]</span>
 <span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">serde</span>;
 
-<span class="kw">mod</span> <a class="ident" href="../../src/prusti_server/service.rs.html#7-184">service</a>;
-<span class="kw">mod</span> <a class="ident" href="../../src/prusti_server/verifier_runner.rs.html#7-74">verifier_runner</a>;
-<span class="kw">mod</span> <a class="ident" href="../../src/prusti_server/verifier_thread.rs.html#7-81">verifier_thread</a>;
+<span class="kw">mod</span> <a class="ident" href="../../src/prusti_server/service.rs.html#7-186">service</a>;
+<span class="kw">mod</span> <a class="ident" href="../../src/prusti_server/verifier_runner.rs.html#7-60">verifier_runner</a>;
+<span class="kw">mod</span> <a class="ident" href="../../src/prusti_server/verifier_thread.rs.html#7-80">verifier_thread</a>;
 
 <span class="kw">use</span> <a class="ident" href="../../futures/future/trait.Future.html">futures::Future</a>;
 <span class="kw">use</span> <span class="ident">prusti_common</span>::{<a class="ident" href="../../prusti_common/verification_context/struct.VerifierBuilder.html">verification_context::VerifierBuilder</a>, <a class="ident" href="../../prusti_common/verification_service/index.html">verification_service</a>::<span class="kw-2">*</span>, <a class="ident" href="../../prusti_common/stopwatch/struct.Stopwatch.html">Stopwatch</a>};
@@ -176,7 +178,7 @@
         });
 
         <span class="kw">let</span> <span class="ident">program_name</span> <span class="op">=</span> <a class="ident" href="../../src/prusti_server/lib.rs.html#60">request</a>.<span class="ident">program</span>.<span class="ident">name</span>.<span class="ident">clone</span>();
-        <span class="kw">match</span> <a class="ident" href="../../src/prusti_server/lib.rs.html#71">thread</a>.<a class="ident" href="../../src/prusti_server/verifier_thread.rs.html#69">verify</a>(<a class="ident" href="../../src/prusti_server/lib.rs.html#60">request</a>.<span class="ident">program</span>).<span class="ident">wait</span>() {
+        <span class="kw">match</span> <a class="ident" href="../../src/prusti_server/lib.rs.html#71">thread</a>.<a class="ident" href="../../src/prusti_server/verifier_thread.rs.html#68">verify</a>(<a class="ident" href="../../src/prusti_server/lib.rs.html#60">request</a>.<span class="ident">program</span>).<span class="ident">wait</span>() {
             <span class="prelude-val">Ok</span>(<span class="ident">result</span>) =&gt; {
                 <span class="comment">// put back the thread for later reuse</span>
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">threads</span> <span class="op">=</span> <a class="self" href="../../src/prusti_server/lib.rs.html#60">self</a>.<span class="ident">threads</span>.<span class="ident">write</span>().<span class="ident">unwrap</span>();
@@ -184,7 +186,9 @@
                     <span class="comment">// evict least-recently-used thread from cache)</span>
                     <a class="ident" href="../../src/prusti_server/lib.rs.html#82">threads</a>.<span class="ident">pop_back</span>();
                 }
-                <a class="ident" href="../../src/prusti_server/lib.rs.html#82">threads</a>.<span class="ident">push_front</span>(<a class="ident" href="../../src/prusti_server/lib.rs.html#71">thread</a>);
+                <span class="kw">if</span> <a class="self" href="../../src/prusti_server/lib.rs.html#60">self</a>.<span class="ident">cache_size</span> <span class="op">&gt;</span> <span class="number">0</span> {
+                    <a class="ident" href="../../src/prusti_server/lib.rs.html#82">threads</a>.<span class="ident">push_front</span>(<a class="ident" href="../../src/prusti_server/lib.rs.html#71">thread</a>);
+                }
                 <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/prusti_server/lib.rs.html#80">result</a>)
             }
             <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; {
