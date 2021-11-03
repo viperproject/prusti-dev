@@ -9,6 +9,72 @@ use ast_factory::{
 use jni::objects::JObject;
 use viper_sys::wrappers::viper::silver::ast;
 
+// Floating-Point Operations
+#[derive(Debug, Clone, Copy)]
+pub enum UnOpFloat {
+    Neg,
+    Abs,
+    IsZero,
+    IsInfinite,
+    IsNan,
+    IsNegative,
+    IsPositive,
+    GetType,
+    FromBV,
+    ToBV,
+}
+
+#[derive(Debug, Clone, Copy)]
+pub enum BinOpFloat {
+    Add,
+    Sub,
+    Mul,
+    Div,
+    Eq,
+    Leq,
+    Geq,
+    Lt,
+    Gt,
+    Min,
+    Max,
+}
+
+// Floating-Point Size
+#[derive(Debug)]
+pub enum FloatSizeViper {
+    F32,
+    F64,
+}
+
+// Bitwise Operations on Backend Bitvectors
+pub enum UnOpBv {
+    Not,
+    Neg,
+    GetType,
+    FromInt,
+    ToInt,
+    FromNat,
+    ToNat,
+}
+
+pub enum BinOpBv {
+    BitAnd,
+    BitOr,
+    BitXor,
+    BvAdd,
+    BvMul,
+    BvShl,
+    BvLShr,
+    BvAShr,
+}
+pub enum BvSize {
+    BV8,
+    BV16,
+    BV32,
+    BV64,
+    BV128,
+}
+
 impl<'a> AstFactory<'a> {
     pub fn add_with_pos(&self, left: Expr, right: Expr, pos: Position) -> Expr<'a> {
         build_ast_node_with_pos!(
@@ -198,6 +264,300 @@ impl<'a> AstFactory<'a> {
 
     pub fn minus(&self, expr: Expr) -> Expr<'a> {
         self.minus_with_pos(expr, self.no_position())
+    }
+
+    // Backend Bitvectors
+    pub fn backend_bv8_lit(&self, bits: u8) -> Expr<'a> {
+        let bv_factory_ = ast::utility::BVFactory::with(self.env);
+        let bv_factory = ast::utility::BVFactory::new(&bv_factory_, 8).unwrap();
+        let from_int = ast::utility::BVFactory::call_from__int(
+            &bv_factory_,
+            bv_factory,
+            self.jni.new_string("toBV8"),
+        )
+        .unwrap();
+        self.backend_func_app(from_int, &[self.int_lit(bits as i64)], self.no_position())
+    }
+
+    pub fn backend_bv16_lit(&self, bits: u16) -> Expr<'a> {
+        let bv_factory_ = ast::utility::BVFactory::with(self.env);
+        let bv_factory = ast::utility::BVFactory::new(&bv_factory_, 16).unwrap();
+        let from_int = ast::utility::BVFactory::call_from__int(
+            &bv_factory_,
+            bv_factory,
+            self.jni.new_string("toBV16"),
+        )
+        .unwrap();
+        self.backend_func_app(from_int, &[self.int_lit(bits as i64)], self.no_position())
+    }
+
+    pub fn backend_bv32_lit(&self, bits: u32) -> Expr<'a> {
+        let bv_factory_ = ast::utility::BVFactory::with(self.env);
+        let bv_factory = ast::utility::BVFactory::new(&bv_factory_, 32).unwrap();
+        let from_int = ast::utility::BVFactory::call_from__int(
+            &bv_factory_,
+            bv_factory,
+            self.jni.new_string("toBV32"),
+        )
+        .unwrap();
+        self.backend_func_app(from_int, &[self.int_lit(bits as i64)], self.no_position())
+    }
+
+    pub fn backend_bv64_lit(&self, bits: u64) -> Expr<'a> {
+        let bv_factory_ = ast::utility::BVFactory::with(self.env);
+        let bv_factory = ast::utility::BVFactory::new(&bv_factory_, 64).unwrap();
+        let from_int = ast::utility::BVFactory::call_from__int(
+            &bv_factory_,
+            bv_factory,
+            self.jni.new_string("toBV64"),
+        )
+        .unwrap();
+        self.backend_func_app(from_int, &[self.int_lit(bits as i64)], self.no_position())
+    }
+
+    pub fn backend_bv128_lit(&self, bits: u128) -> Expr<'a> {
+        let bv_factory_ = ast::utility::BVFactory::with(self.env);
+        let bv_factory = ast::utility::BVFactory::new(&bv_factory_, 128).unwrap();
+        let from_int = ast::utility::BVFactory::call_from__int(
+            &bv_factory_,
+            bv_factory,
+            self.jni.new_string("toBV128"),
+        )
+        .unwrap();
+        self.backend_func_app(from_int, &[self.int_lit(bits as i64)], self.no_position())
+    }
+
+    pub fn bv_binop(&self, op_kind: BinOpBv, bv_size: BvSize, left: Expr, right: Expr) -> Expr<'a> {
+        let factory_ = ast::utility::BVFactory::with(self.env); // FloatFactory
+        let factory = match bv_size {
+            BvSize::BV8 => ast::utility::BVFactory::new(&factory_, 8),
+            BvSize::BV16 => ast::utility::BVFactory::new(&factory_, 16),
+            BvSize::BV32 => ast::utility::BVFactory::new(&factory_, 32),
+            BvSize::BV64 => ast::utility::BVFactory::new(&factory_, 64),
+            BvSize::BV128 => ast::utility::BVFactory::new(&factory_, 128),
+        }
+        .unwrap();
+        let op = match op_kind {
+            BinOpBv::BitAnd => {
+                ast::utility::BVFactory::call_and(&factory_, factory, self.jni.new_string("and"))
+            }
+            BinOpBv::BitOr => {
+                ast::utility::BVFactory::call_or(&factory_, factory, self.jni.new_string("or"))
+            }
+            BinOpBv::BitXor => {
+                ast::utility::BVFactory::call_xor(&factory_, factory, self.jni.new_string("xor"))
+            }
+            BinOpBv::BvAdd => {
+                ast::utility::BVFactory::call_add(&factory_, factory, self.jni.new_string("add"))
+            }
+            BinOpBv::BvMul => {
+                ast::utility::BVFactory::call_mul(&factory_, factory, self.jni.new_string("mul"))
+            }
+            BinOpBv::BvShl => {
+                ast::utility::BVFactory::call_shl(&factory_, factory, self.jni.new_string("shl"))
+            }
+            BinOpBv::BvLShr => {
+                ast::utility::BVFactory::call_lshr(&factory_, factory, self.jni.new_string("lshr"))
+            }
+            BinOpBv::BvAShr => {
+                ast::utility::BVFactory::call_ashr(&factory_, factory, self.jni.new_string("rshr"))
+            }
+        }
+        .unwrap();
+        self.backend_func_app(op, &[left, right], self.no_position())
+    }
+
+    pub fn bv_unnop(&self, op_kind: UnOpBv, bv_size: BvSize, arg: Expr) -> Expr<'a> {
+        let factory_ = ast::utility::BVFactory::with(self.env); // FloatFactory
+        let factory = match bv_size {
+            //
+            BvSize::BV8 => ast::utility::BVFactory::new(&factory_, 8),
+            BvSize::BV16 => ast::utility::BVFactory::new(&factory_, 16),
+            BvSize::BV32 => ast::utility::BVFactory::new(&factory_, 32),
+            BvSize::BV64 => ast::utility::BVFactory::new(&factory_, 64),
+            BvSize::BV128 => ast::utility::BVFactory::new(&factory_, 128),
+        }
+        .unwrap();
+        let op = match op_kind {
+            UnOpBv::Not => {
+                ast::utility::BVFactory::call_not(&factory_, factory, self.jni.new_string("not"))
+            }
+            UnOpBv::Neg => {
+                ast::utility::BVFactory::call_neg(&factory_, factory, self.jni.new_string("neg"))
+            }
+            _ => unreachable!("unimplemented unop for bitvectors"),
+        }
+        .unwrap();
+        self.backend_func_app(op, &[arg], self.no_position())
+    }
+
+    // Backend Floating-Points
+    pub fn float_binop(
+        &self,
+        op_kind: BinOpFloat,
+        f_size: FloatSizeViper,
+        left: Expr,
+        right: Expr,
+    ) -> Expr<'a> {
+        let rm = ast::utility::RoundingMode::with(self.env)
+            .call_RNE()
+            .unwrap(); // Rounding mode
+        let factory_ = ast::utility::FloatFactory::with(self.env); // FloatFactory
+        let factory = match f_size {
+            //
+            FloatSizeViper::F32 => ast::utility::FloatFactory::new(&factory_, 24, 8, rm),
+            FloatSizeViper::F64 => ast::utility::FloatFactory::new(&factory_, 52, 12, rm),
+        }
+        .unwrap();
+        let op = match op_kind {
+            // create FloatFactory function to call
+            BinOpFloat::Add => ast::utility::FloatFactory::call_add(
+                &factory_,
+                factory,
+                self.jni.new_string("fp_add"),
+            ),
+            BinOpFloat::Sub => ast::utility::FloatFactory::call_sub(
+                &factory_,
+                factory,
+                self.jni.new_string("fp_sub"),
+            ),
+            BinOpFloat::Mul => ast::utility::FloatFactory::call_mul(
+                &factory_,
+                factory,
+                self.jni.new_string("fp_mul"),
+            ),
+            BinOpFloat::Div => ast::utility::FloatFactory::call_div(
+                &factory_,
+                factory,
+                self.jni.new_string("fp_div"),
+            ),
+            BinOpFloat::Min => ast::utility::FloatFactory::call_min(
+                &factory_,
+                factory,
+                self.jni.new_string("fp_min"),
+            ),
+            BinOpFloat::Max => ast::utility::FloatFactory::call_max(
+                &factory_,
+                factory,
+                self.jni.new_string("fp_max"),
+            ),
+            BinOpFloat::Eq => ast::utility::FloatFactory::call_eq(
+                &factory_,
+                factory,
+                self.jni.new_string("fp_eq"),
+            ),
+            BinOpFloat::Leq => ast::utility::FloatFactory::call_leq(
+                &factory_,
+                factory,
+                self.jni.new_string("fp_leq"),
+            ),
+            BinOpFloat::Geq => ast::utility::FloatFactory::call_geq(
+                &factory_,
+                factory,
+                self.jni.new_string("fp_geq"),
+            ),
+            BinOpFloat::Lt => ast::utility::FloatFactory::call_lt(
+                &factory_,
+                factory,
+                self.jni.new_string("fp_lt"),
+            ),
+            BinOpFloat::Gt => ast::utility::FloatFactory::call_gt(
+                &factory_,
+                factory,
+                self.jni.new_string("fp_gt"),
+            ),
+        }
+        .unwrap();
+        self.backend_func_app(op, &[left, right], self.no_position())
+    }
+
+    pub fn float_unop(&self, op_kind: UnOpFloat, f_size: FloatSizeViper, arg: Expr) -> Expr<'a> {
+        let rm = ast::utility::RoundingMode::with(self.env)
+            .call_RNE()
+            .unwrap(); // Rounding mode
+        let factory_ = ast::utility::FloatFactory::with(self.env); // FloatFactory
+        let factory = match f_size {
+            // FloatFactory JObject
+            FloatSizeViper::F32 => ast::utility::FloatFactory::new(&factory_, 24, 8, rm),
+            FloatSizeViper::F64 => ast::utility::FloatFactory::new(&factory_, 52, 12, rm),
+        }
+        .unwrap();
+
+        let op = match op_kind {
+            UnOpFloat::Neg => ast::utility::FloatFactory::call_neg(
+                &factory_,
+                factory,
+                self.jni.new_string("fp_neg"),
+            ),
+            UnOpFloat::Abs => ast::utility::FloatFactory::call_abs(
+                &factory_,
+                factory,
+                self.jni.new_string("fp_abs"),
+            ),
+            UnOpFloat::IsZero => ast::utility::FloatFactory::call_isZero(
+                &factory_,
+                factory,
+                self.jni.new_string("fp_isZero"),
+            ),
+            UnOpFloat::IsInfinite => ast::utility::FloatFactory::call_isInfinite(
+                &factory_,
+                factory,
+                self.jni.new_string("fp_isInfinite"),
+            ),
+            UnOpFloat::IsNan => ast::utility::FloatFactory::call_isNaN(
+                &factory_,
+                factory,
+                self.jni.new_string("fp_isNaN"),
+            ),
+            UnOpFloat::IsNegative => ast::utility::FloatFactory::call_isNegative(
+                &factory_,
+                factory,
+                self.jni.new_string("fp_isNegative"),
+            ),
+            UnOpFloat::IsPositive => ast::utility::FloatFactory::call_isPositive(
+                &factory_,
+                factory,
+                self.jni.new_string("fp_isPositive"),
+            ),
+            UnOpFloat::GetType => ast::utility::FloatFactory::call_typ(&factory_, factory),
+            UnOpFloat::FromBV => todo!(),
+            UnOpFloat::ToBV => todo!(),
+        }
+        .unwrap();
+
+        self.backend_func_app(op, &[arg], self.no_position())
+    }
+
+    pub fn backend_f32_lit(&self, bits: u32) -> Expr<'a> {
+        let bv = self.backend_bv32_lit(bits);
+        let rm = ast::utility::RoundingMode::with(self.env)
+            .call_RNE()
+            .unwrap(); // Rounding mode
+        let float_factory_ = ast::utility::FloatFactory::with(self.env); // FloatFactory
+        let float_factory = ast::utility::FloatFactory::new(&float_factory_, 24, 8, rm).unwrap(); // FloatFactory JObject
+        let from_bv = ast::utility::FloatFactory::call_from__bv(
+            &float_factory_,
+            float_factory,
+            self.jni.new_string("tofp"),
+        )
+        .unwrap();
+        self.backend_func_app(from_bv, &[bv], self.no_position())
+    }
+
+    pub fn backend_f64_lit(&self, bits: u64) -> Expr<'a> {
+        let bv = self.backend_bv64_lit(bits);
+        let rm = ast::utility::RoundingMode::with(self.env)
+            .call_RNE()
+            .unwrap(); // Rounding mode
+        let float_factory_ = ast::utility::FloatFactory::with(self.env); // FloatFactory
+        let float_factory = ast::utility::FloatFactory::new(&float_factory_, 52, 12, rm).unwrap(); // FloatFactory JObject
+        let from_bv = ast::utility::FloatFactory::call_from__bv(
+            &float_factory_,
+            float_factory,
+            self.jni.new_string("tofp"),
+        )
+        .unwrap();
+        self.backend_func_app(from_bv, &[bv], self.no_position())
     }
 
     pub fn or_with_pos(&self, left: Expr, right: Expr, pos: Position) -> Expr<'a> {
@@ -533,6 +893,27 @@ impl<'a> AstFactory<'a> {
                 self.jni.new_seq(&map_to_jobjects!(args)),
                 self.jni.new_map(&map_to_jobject_pairs!(type_var_map)),
                 self.no_position().to_jobject(),
+                self.no_info(),
+                self.no_trafos(),
+            ),
+        );
+        Expr::new(obj)
+    }
+
+    pub fn backend_func_app(
+        &self,
+        backend_function: JObject,
+        args: &[Expr],
+        pos: Position,
+    ) -> Expr<'a> {
+        let backendfunc_app_object_wrapper = ast::BackendFuncApp_object::with(self.env);
+        let obj = self.jni.unwrap_result(
+            backendfunc_app_object_wrapper.call_apply(
+                self.jni
+                    .unwrap_result(backendfunc_app_object_wrapper.singleton()),
+                backend_function,
+                self.jni.new_seq(&map_to_jobjects!(args)),
+                pos.to_jobject(),
                 self.no_info(),
                 self.no_trafos(),
             ),

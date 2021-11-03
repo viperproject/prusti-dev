@@ -369,6 +369,8 @@ impl ast::StmtFolder for VarPurifier {
                 method_name = match replacement.typ {
                 ast::Type::Int => "builtin$havoc_int",
                 ast::Type::Bool => "builtin$havoc_bool",
+                ast::Type::Float(ast::Float::F32) => "builtin$havoc_f32",
+                ast::Type::Float(ast::Float::F64) => "builtin$havoc_f64",
                 ast::Type::TypedRef(_) => "builtin$havoc_ref",
                 ast::Type::TypeVar(_) => "builtin$havoc_ref",
                 ast::Type::Domain(_)
