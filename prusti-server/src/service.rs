@@ -34,7 +34,9 @@ impl Default for ServerSideService {
 
 impl ServerSideService {
     pub fn new() -> Self {
-        let max_concurrency = config::server_max_concurrency().unwrap_or_else(num_cpus::get);
+        // Workaround for issue https://github.com/viperproject/silicon/issues/578
+        let _max_concurrency = config::server_max_concurrency().unwrap_or_else(num_cpus::get);
+        let max_concurrency = 1;
 
         let cache_size = config::server_max_stored_verifiers().unwrap_or(max_concurrency);
         if cache_size < max_concurrency {
@@ -175,7 +177,7 @@ impl PrustiServerConnection {
 }
 
 impl VerificationService for PrustiServerConnection {
-    /// panics if the verification request fails
+    /// Panics if the verification request fails
     fn verify(&self, request: VerificationRequest) -> VerificationResult {
         self.verify_checked(request)
             .expect("Verification request to server failed!")

@@ -54,7 +54,7 @@ impl<'v> VerificationContext<'v> {
     pub fn new_viper_verifier(
         &self,
         backend_config: &ViperBackendConfig,
-    ) -> viper::Verifier<viper::state::Started> {
+    ) -> viper::Verifier {
         let mut verifier_args: Vec<String> = backend_config.verifier_args.clone();
         let report_path: Option<PathBuf>;
         if config::dump_debug_info() {

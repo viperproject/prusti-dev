@@ -402,10 +402,10 @@ fn verify_programs(env: &Environment, programs: Vec<vir::Program>)
         let mut stopwatch = Stopwatch::start("prusti-viper", "JVM startup");
         let verifier_builder = VerifierBuilder::new();
         stopwatch.start_next("running verifier");
-        VerifierRunner::with_default_configured_runner(&verifier_builder, |runner| {
-            renamed_programs.map(|(program_name, program)| {
-                (program_name, runner.verify(program))
-            }).collect()
-        })
+        let config = ViperBackendConfig::default();
+        let runner = VerifierRunner::new(&verifier_builder, &config);
+        renamed_programs.map(|(program_name, program)| {
+            (program_name, runner.verify(program))
+        }).collect()
     }
 }
