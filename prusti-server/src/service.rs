@@ -36,10 +36,12 @@ impl ServerSideService {
     pub fn new() -> Self {
         let max_concurrency = config::server_max_concurrency().unwrap_or_else(num_cpus::get);
 
-        let cache_size = config::server_max_stored_verifiers().unwrap_or(max_concurrency);
-        if cache_size < max_concurrency {
-            warn!("PRUSTI_SERVER_MAX_STORED_VERIFIERS is lower than PRUSTI_SERVER_MAX_CONCURRENCY. You probably don't want to do this, since it means the server will likely have to keep creating new verifiers, reducing the performance gained from reuse.");
-        }
+        // Workaround for issue https://github.com/viperproject/prusti-dev/issues/744
+        let cache_size = 0;
+        //let cache_size = config::server_max_stored_verifiers().unwrap_or(max_concurrency);
+        // if cache_size < max_concurrency {
+        //     warn!("PRUSTI_SERVER_MAX_STORED_VERIFIERS is lower than PRUSTI_SERVER_MAX_CONCURRENCY. You probably don't want to do this, since it means the server will likely have to keep creating new verifiers, reducing the performance gained from reuse.");
+        // }
 
         Self {
             max_concurrency,
