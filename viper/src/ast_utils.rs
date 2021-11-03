@@ -54,13 +54,10 @@ impl<'a> AstUtils<'a> {
 
     /// Important: the result of the `f` call must not contain Java objects. Use carefully.
     pub fn with_local_frame<T>(&self, capacity: i32, f: impl FnOnce() -> T) -> T {
-        self.jni.unwrap_result(
-            self.env.push_local_frame(capacity)
-        );
+        self.jni.unwrap_result(self.env.push_local_frame(capacity));
         let result = f();
-        self.jni.unwrap_result(
-            self.env.pop_local_frame(JObject::null())
-        );
+        self.jni
+            .unwrap_result(self.env.pop_local_frame(JObject::null()));
         result
     }
 }
