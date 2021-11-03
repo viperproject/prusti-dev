@@ -11,8 +11,9 @@ use crate::encoder::{
 };
 #[rustfmt::skip]
 use ::log::{debug, trace};
+use super::errors::SpannedEncodingError;
 use crate::encoder::{high::types::HighTypeEncoderInterface, mir::types::MirTypeEncoderInterface};
-use prusti_common::{config, report, utils::to_string::ToString, vir::ToGraphViz};
+use prusti_common::{config, report, utils::to_string::ToString, vir::ToGraphViz, Stopwatch};
 use rustc_middle::mir;
 use std::{
     self,
@@ -27,8 +28,6 @@ use vir_crate::{
         FallibleExprFolder, PermAmount, PermAmountError,
     },
 };
-
-use super::errors::SpannedEncodingError;
 
 mod action;
 mod borrows;
@@ -93,10 +92,7 @@ impl From<SpannedEncodingError> for FoldUnfoldError {
     }
 }
 
-pub fn add_folding_unfolding_to_expr(
-    expr: vir::Expr,
-    pctxt: &PathCtxt,
-) -> Result<vir::Expr, FoldUnfoldError> {
+fn add_unfolding_to_expr(expr: vir::Expr, pctxt: &PathCtxt) -> Result<vir::Expr, FoldUnfoldError> {
     let pctxt_at_label = HashMap::new();
     // First, add unfolding only inside old expressions
     let expr = ExprReplacer::new(pctxt.clone(), &pctxt_at_label, true).fallible_fold(expr)?;
@@ -130,16 +126,16 @@ pub fn add_folding_unfolding_to_function(
         pres: function
             .pres
             .into_iter()
-            .map(|e| add_folding_unfolding_to_expr(e, &pctxt))
+            .map(|e| add_unfolding_to_expr(e, &pctxt))
             .collect::<Result<_, FoldUnfoldError>>()?,
         posts: function
             .posts
             .into_iter()
-            .map(|e| add_folding_unfolding_to_expr(e, &pctxt))
+            .map(|e| add_unfolding_to_expr(e, &pctxt))
             .collect::<Result<_, FoldUnfoldError>>()?,
         body: function
             .body
-            .map(|e| add_folding_unfolding_to_expr(e, &pctxt))
+            .map(|e| add_unfolding_to_expr(e, &pctxt))
             .map_or(Ok(None), |r| r.map(Some))?,
         ..function
     };
@@ -162,6 +158,8 @@ pub fn add_fold_unfold<'p, 'v: 'p, 'tcx: 'v>(
     cfg_map: &'p HashMap<mir::BasicBlock, HashSet<CfgBlockIndex>>,
     method_pos: vir::Position,
 ) -> Result<vir::CfgMethod, FoldUnfoldError> {
+    let _stopwatch =
+        Stopwatch::start_debug("prusti-client", "add fold-unfold statements to a method");
     let cfg_vars = cfg.get_all_vars();
     let predicates = encoder.get_used_viper_predicates_map()?;
     // Collect all old expressions used in the CFG
@@ -472,8 +470,14 @@ impl<'p, 'v: 'p, 'tcx: 'v> vir::CfgReplacer<PathCtxt<'p>, ActionVec> for FoldUnf
 
         if let vir::Stmt::ExpireBorrows(vir::ExpireBorrows { ref dag }) = stmt {
             let mut stmts = vec![vir::Stmt::comment(format!("{}", stmt))];
+            trace!("State acc {{\n{}\n}}", pctxt.state().display_acc());
+            trace!("State pred {{\n{}\n}}", pctxt.state().display_pred());
+            trace!("State moved {{\n{}\n}}", pctxt.state().display_moved());
             let expire_borrow_statements =
                 self.process_expire_borrows(dag, pctxt, curr_block_index, new_cfg, label)?;
+            trace!("State acc {{\n{}\n}}", pctxt.state().display_acc());
+            trace!("State pred {{\n{}\n}}", pctxt.state().display_pred());
+            trace!("State moved {{\n{}\n}}", pctxt.state().display_moved());
             stmts.extend(expire_borrow_statements);
             return Ok(stmts);
         }
@@ -1419,55 +1423,127 @@ impl<'b, 'a: 'b> FallibleExprFolder for ExprReplacer<'b, 'a> {
         Ok(res)
     }
 
-    fn fallible_fold_func_app(
-        &mut self,
-        vir::FuncApp {
-            function_name,
-            arguments,
-            formal_arguments,
-            return_type,
-            position,
-        }: vir::FuncApp,
-    ) -> Result<vir::Expr, Self::Error> {
+    fn fallible_fold_func_app(&mut self, func_app: vir::FuncApp) -> Result<vir::Expr, Self::Error> {
         if self.wait_old_expr {
             Ok(vir::Expr::FuncApp(vir::FuncApp {
-                function_name,
-                arguments: arguments
+                arguments: func_app
+                    .arguments
                     .into_iter()
                     .map(|e| self.fallible_fold(e))
                     .collect::<Result<Vec<_>, Self::Error>>()?,
-                formal_arguments,
-                return_type,
-                position,
+                ..func_app
             }))
         } else {
-            let func_app = vir::Expr::FuncApp(vir::FuncApp {
-                function_name,
-                arguments,
-                formal_arguments,
-                return_type,
-                position,
-            });
-
             trace!("[enter] fold_func_app {}", func_app);
 
-            let perms: Vec<_> = func_app
+            // Compute the unfoldings to be generated around the function call
+            let perms: Vec<_> = vir::Expr::FuncApp(func_app.clone())
                 .get_required_permissions(self.curr_pctxt.predicates(), self.curr_pctxt.old_exprs())
                 .into_iter()
                 .collect();
-
-            let mut result = func_app;
-            for action in self
+            let unfolding_actions: Vec<_> = self
                 .curr_pctxt
                 .clone()
                 .obtain_permissions(perms)?
                 .into_iter()
-                .rev()
-            {
+                .collect();
+
+            // Prepare the fold-unfold state used for the arguments
+            let mut inner_pctxt = self.curr_pctxt.clone();
+            let inner_state = inner_pctxt.mut_state();
+            for action in &unfolding_actions {
+                action
+                    .to_stmt()
+                    .apply_on_state(inner_state, self.curr_pctxt.predicates())?;
+            }
+
+            // Store state
+            let mut tmp_curr_pctxt = inner_pctxt;
+            std::mem::swap(&mut self.curr_pctxt, &mut tmp_curr_pctxt);
+
+            // Add unfoldings to the arguments
+            let arguments = func_app
+                .arguments
+                .into_iter()
+                .map(|e| self.fallible_fold(e))
+                .collect::<Result<Vec<_>, Self::Error>>()?;
+
+            // Restore state
+            std::mem::swap(&mut self.curr_pctxt, &mut tmp_curr_pctxt);
+
+            let mut result = vir::Expr::FuncApp(vir::FuncApp {
+                arguments,
+                ..func_app
+            });
+            for action in unfolding_actions.iter().rev() {
                 result = action.to_expr(result)?;
             }
 
             trace!("[exit] fold_func_app {}", result);
+            Ok(result)
+        }
+    }
+
+    fn fallible_fold_domain_func_app(
+        &mut self,
+        domain_func_app: vir::DomainFuncApp,
+    ) -> Result<vir::Expr, Self::Error> {
+        if self.wait_old_expr {
+            Ok(vir::Expr::DomainFuncApp(vir::DomainFuncApp {
+                arguments: domain_func_app
+                    .arguments
+                    .into_iter()
+                    .map(|e| self.fallible_fold(e))
+                    .collect::<Result<Vec<_>, Self::Error>>()?,
+                ..domain_func_app
+            }))
+        } else {
+            trace!("[enter] fold_domain_func_app {}", domain_func_app);
+
+            // Compute the unfoldings to be generated around the function call
+            let perms: Vec<_> = vir::Expr::DomainFuncApp(domain_func_app.clone())
+                .get_required_permissions(self.curr_pctxt.predicates(), self.curr_pctxt.old_exprs())
+                .into_iter()
+                .collect();
+            let unfolding_actions: Vec<_> = self
+                .curr_pctxt
+                .clone()
+                .obtain_permissions(perms)?
+                .into_iter()
+                .collect();
+
+            // Prepare the fold-unfold state used for the arguments
+            let mut inner_pctxt = self.curr_pctxt.clone();
+            let inner_state = inner_pctxt.mut_state();
+            for action in &unfolding_actions {
+                action
+                    .to_stmt()
+                    .apply_on_state(inner_state, self.curr_pctxt.predicates())?;
+            }
+
+            // Store state
+            let mut tmp_curr_pctxt = inner_pctxt;
+            std::mem::swap(&mut self.curr_pctxt, &mut tmp_curr_pctxt);
+
+            // Add unfoldings to the arguments
+            let arguments = domain_func_app
+                .arguments
+                .into_iter()
+                .map(|e| self.fallible_fold(e))
+                .collect::<Result<Vec<_>, Self::Error>>()?;
+
+            // Restore state
+            std::mem::swap(&mut self.curr_pctxt, &mut tmp_curr_pctxt);
+
+            let mut result = vir::Expr::DomainFuncApp(vir::DomainFuncApp {
+                arguments,
+                ..domain_func_app
+            });
+            for action in unfolding_actions.iter().rev() {
+                result = action.to_expr(result)?;
+            }
+
+            trace!("[exit] fold_domain_func_app {}", result);
             Ok(result)
         }
     }

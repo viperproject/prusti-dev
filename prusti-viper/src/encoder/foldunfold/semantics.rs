@@ -223,20 +223,25 @@ impl ApplyOnState for vir::Stmt {
                 ..
             }) => {
                 assert_eq!(arguments.len(), 1);
-                let place = &arguments[0];
-                debug_assert!(place.is_place());
-                assert!(state.contains_pred(place));
-                assert!(!state.is_prefix_of_some_moved(place));
+                let self_place = &arguments[0];
+                debug_assert!(self_place.is_place());
+                assert!(state.contains_pred(self_place));
+                assert!(!state.is_prefix_of_some_moved(self_place));
 
                 // We want to unfold place
-                let predicate_type = place.get_type();
+                let predicate_type = self_place.get_type();
                 let predicate = predicates.get(predicate_type).unwrap();
 
                 let pred_self_place: vir::Expr = predicate.self_place();
                 let places_in_pred: Vec<_> = predicate
                     .get_body_footprint(enum_variant)
                     .into_iter()
-                    .map(|aop| aop.map_place(|p| p.replace_place(&pred_self_place, place)))
+                    .map(|perm| {
+                        debug_assert_eq!(perm.get_perm_amount(), vir::PermAmount::Write);
+                        // Scale permission
+                        perm.map_place(|place| place.replace_place(&pred_self_place, self_place))
+                            .update_perm_amount(permission)
+                    })
                     .collect();
 
                 for contained_place in &places_in_pred {
@@ -244,7 +249,7 @@ impl ApplyOnState for vir::Stmt {
                 }
 
                 // Simulate unfolding of `place`
-                state.remove_pred(place, permission)?;
+                state.remove_pred(self_place, permission)?;
                 state.insert_all_perms(places_in_pred.into_iter())?;
             }
 
@@ -278,29 +283,107 @@ impl ApplyOnState for vir::Stmt {
 
                 // Restore permissions from the `lhs` to the `rhs`
 
+                // Like `has_prefix`, but ignoring the labels if they are equal.
+                fn old_has_prefix(this: &vir::Expr, other: &vir::Expr) -> bool {
+                    if let (
+                        vir::Expr::LabelledOld(vir::LabelledOld {
+                            label: this_label,
+                            base: this_base,
+                            ..
+                        }),
+                        vir::Expr::LabelledOld(vir::LabelledOld {
+                            label: other_label,
+                            base: other_base,
+                            ..
+                        }),
+                    ) = (this, other)
+                    {
+                        this_label == other_label && this_base.has_prefix(other_base)
+                    } else {
+                        this.has_prefix(other)
+                    }
+                }
+
+                // Like `has_proper_prefix`, but ignoring the labels if they are equal.
+                fn old_has_proper_prefix(this: &vir::Expr, other: &vir::Expr) -> bool {
+                    if let (
+                        vir::Expr::LabelledOld(vir::LabelledOld {
+                            label: this_label,
+                            base: this_base,
+                            ..
+                        }),
+                        vir::Expr::LabelledOld(vir::LabelledOld {
+                            label: other_label,
+                            base: other_base,
+                            ..
+                        }),
+                    ) = (this, other)
+                    {
+                        this_label == other_label && this_base.has_proper_prefix(other_base)
+                    } else {
+                        this.has_proper_prefix(other)
+                    }
+                }
+
+                // Like `replace_place`, but ignoring the labels if they are equal.
+                fn old_replace_place(
+                    this: &vir::Expr,
+                    target: &vir::Expr,
+                    replacement: &vir::Expr,
+                ) -> vir::Expr {
+                    if let (
+                        vir::Expr::LabelledOld(vir::LabelledOld {
+                            label: this_label,
+                            base: this_base,
+                            ..
+                        }),
+                        vir::Expr::LabelledOld(vir::LabelledOld {
+                            label: target_label,
+                            base: target_base,
+                            ..
+                        }),
+                    ) = (this, target)
+                    {
+                        if this_label == target_label {
+                            if let vir::Expr::LabelledOld(repl_labelled) = replacement {
+                                return vir::Expr::LabelledOld(vir::LabelledOld {
+                                    base: box this_base
+                                        .clone()
+                                        .replace_place(target_base, repl_labelled.base.as_ref()),
+                                    label: repl_labelled.label.clone(),
+                                    position: repl_labelled.position,
+                                });
+                            } else {
+                                return this_base.clone().replace_place(target_base, replacement);
+                            }
+                        }
+                    }
+                    this.clone().replace_place(target, replacement)
+                }
+
                 // In Prusti, lose permission from the lhs and rhs
-                state.remove_pred_matching(|p| p.has_prefix(left));
-                state.remove_acc_matching(|p| p.has_proper_prefix(left) && !p.is_local());
-                state.remove_pred_matching(|p| p.has_prefix(right));
-                state.remove_acc_matching(|p| p.has_proper_prefix(right) && !p.is_local());
+                state.remove_pred_matching(|p| old_has_prefix(p, left));
+                state.remove_acc_matching(|p| old_has_proper_prefix(p, left) && !p.is_local());
+                state.remove_pred_matching(|p| old_has_prefix(p, right));
+                state.remove_acc_matching(|p| old_has_proper_prefix(p, right) && !p.is_local());
 
                 // The rhs is no longer moved
-                state.remove_moved_matching(|p| p.has_prefix(right));
+                state.remove_moved_matching(|p| old_has_prefix(p, right));
 
                 // And we create permissions for the rhs
                 let new_acc_places: Vec<_> = original_state
                     .acc()
                     .iter()
-                    .filter(|(p, _)| p.has_proper_prefix(left))
-                    .map(|(p, perm_amount)| (p.clone().replace_place(left, right), *perm_amount))
+                    .filter(|(p, _)| old_has_proper_prefix(p, left))
+                    .map(|(p, perm_amount)| (old_replace_place(p, left, right), *perm_amount))
                     .filter(|(p, _)| !p.is_local())
                     .collect();
 
                 let new_pred_places: Vec<_> = original_state
                     .pred()
                     .iter()
-                    .filter(|(p, _)| p.has_prefix(left))
-                    .map(|(p, perm_amount)| (p.clone().replace_place(left, right), *perm_amount))
+                    .filter(|(p, _)| old_has_prefix(p, left))
+                    .map(|(p, perm_amount)| (old_replace_place(p, left, right), *perm_amount))
                     .collect();
 
                 // assert!(
@@ -346,7 +429,7 @@ impl ApplyOnState for vir::Stmt {
                 */
 
                 // Finally, mark the lhs as moved
-                if !left.has_prefix(right) &&   // Maybe this is always true?
+                if !old_has_prefix(left, right) &&   // Maybe this is always true?
                         !unchecked
                 {
                     state.insert_moved(left.clone());

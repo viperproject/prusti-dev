@@ -52,7 +52,12 @@ impl<'a> AstUtils<'a> {
         self.jni.to_string(program.to_jobject())
     }
 
-    pub fn ensure_local_capacity(&self, capacity: i32) {
-        self.env.ensure_local_capacity(capacity).unwrap();
+    /// Important: the result of the `f` call must not contain Java objects. Use carefully.
+    pub fn with_local_frame<T>(&self, capacity: i32, f: impl FnOnce() -> T) -> T {
+        self.jni.unwrap_result(self.env.push_local_frame(capacity));
+        let result = f();
+        self.jni
+            .unwrap_result(self.env.pop_local_frame(JObject::null()));
+        result
     }
 }

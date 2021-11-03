@@ -11,8 +11,8 @@ Prusti
 [Prusti](http://www.pm.inf.ethz.ch/research/prusti.html) is a prototype verifier for Rust,
 built upon the the [Viper verification infrastructure](http://www.pm.inf.ethz.ch/research/viper.html).
 
-By default Prusti verifies absence of panics by proving that statements such as `unreachable!()` and `panic!()` are unreachable.
-Overflow checking can be enabled with a configuration flag, otherwise all integers are treated as unbounded.
+By default Prusti verifies absence of integer overflows and panics by proving that statements such as `unreachable!()` and `panic!()` are unreachable.
+Overflow checking can be disabled with a configuration flag, treating all integers as unbounded.
 In Prusti, the functional behaviour of a function can be specified by using annotations, among which are preconditions, postconditions, and loop invariants.
 The tool checks them, reporting error messages when the code does not adhere to the provided specification.
 
