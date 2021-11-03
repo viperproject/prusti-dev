@@ -39,9 +39,8 @@ impl VerifierThread {
         let config = backend_config.clone();
         builder
             .spawn(move || {
-                VerifierRunner::with_runner(&verifier_builder, &config, |runner| {
-                    Self::listen_for_requests(runner, request_receiver)
-                });
+                let runner = VerifierRunner::new(&verifier_builder, &config);
+                Self::listen_for_requests(runner, request_receiver);
             })
             .unwrap();
 
