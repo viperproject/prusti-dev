@@ -19,7 +19,10 @@ pub struct VerifierRunner<'v> {
 }
 
 impl<'v> VerifierRunner<'v> {
-    pub fn new(verifier_builder: &'v VerifierBuilder, backend_config: &'v ViperBackendConfig) -> Self {
+    pub fn new(
+        verifier_builder: &'v VerifierBuilder,
+        backend_config: &'v ViperBackendConfig,
+    ) -> Self {
         let stopwatch = Stopwatch::start("prusti-server", "jvm attachment");
         let context = verifier_builder.new_verification_context();
         stopwatch.finish();
