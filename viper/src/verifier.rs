@@ -8,7 +8,10 @@
 
 use ast_factory::*;
 use ast_utils::AstUtils;
-use jni::{objects::JObject, JNIEnv};
+use jni::{
+    objects::{AutoLocal, JObject},
+    JNIEnv,
+};
 use jni_utils::JniUtils;
 use silicon_counterexample::SiliconCounterexample;
 use std::{marker::PhantomData, path::PathBuf};
@@ -25,7 +28,7 @@ pub mod state {
 pub struct Verifier<'a, VerifierState> {
     env: &'a JNIEnv<'a>,
     verifier_wrapper: silver::verifier::Verifier<'a>,
-    verifier_instance: JObject<'a>,
+    verifier_instance: AutoLocal<'a, 'a>,
     jni: JniUtils<'a>,
     state: PhantomData<VerifierState>,
 }
@@ -37,41 +40,41 @@ impl<'a, VerifierState> Verifier<'a, VerifierState> {
         report_path: Option<PathBuf>,
     ) -> Verifier<'a, state::Uninitialized> {
         let jni = JniUtils::new(env);
-
-        // this local frame will be popped again when the `Verifier` is dropped:
-        jni.unwrap_result(env.push_local_frame(16));
-
+        let ast_utils = AstUtils::new(env);
         let verifier_wrapper = silver::verifier::Verifier::with(env);
-        let verifier_instance = jni.unwrap_result(env.with_local_frame(16, || {
-            let reporter = if let Some(real_report_path) = report_path {
-                jni.unwrap_result(silver::reporter::CSVReporter::with(env).new(
-                    jni.new_string("csv_reporter"),
-                    jni.new_string(real_report_path.to_str().unwrap()),
-                ))
-            } else {
-                jni.unwrap_result(silver::reporter::NoopReporter_object::with(env).singleton())
-            };
+        let verifier_instance = AutoLocal::new(
+            env,
+            jni.unwrap_result(env.with_local_frame(16, || {
+                let reporter = if let Some(real_report_path) = report_path {
+                    jni.unwrap_result(silver::reporter::CSVReporter::with(env).new(
+                        jni.new_string("csv_reporter"),
+                        jni.new_string(real_report_path.to_str().unwrap()),
+                    ))
+                } else {
+                    jni.unwrap_result(silver::reporter::NoopReporter_object::with(env).singleton())
+                };
 
-            let debug_info = jni.new_seq(&[]);
-            match backend {
-                VerificationBackend::Silicon => {
-                    silicon::Silicon::with(env).new(reporter, debug_info)
+                let debug_info = jni.new_seq(&[]);
+                match backend {
+                    VerificationBackend::Silicon => {
+                        silicon::Silicon::with(env).new(reporter, debug_info)
+                    }
+                    VerificationBackend::Carbon => {
+                        carbon::CarbonVerifier::with(env).new(reporter, debug_info)
+                    }
                 }
-                VerificationBackend::Carbon => {
-                    carbon::CarbonVerifier::with(env).new(reporter, debug_info)
-                }
-            }
-        }));
+            })),
+        );
 
-        jni.unwrap_result(env.with_local_frame(16, || {
-            let name =
-                jni.to_string(jni.unwrap_result(verifier_wrapper.call_name(verifier_instance)));
+        ast_utils.with_local_frame(16, || {
+            let name = jni.to_string(
+                jni.unwrap_result(verifier_wrapper.call_name(verifier_instance.as_obj())),
+            );
             let build_version = jni.to_string(
-                jni.unwrap_result(verifier_wrapper.call_buildVersion(verifier_instance)),
+                jni.unwrap_result(verifier_wrapper.call_buildVersion(verifier_instance.as_obj())),
             );
             info!("Using backend {} version {}", name, build_version);
-            Ok(JObject::null())
-        }));
+        });
 
         Verifier {
             env,
@@ -83,21 +86,10 @@ impl<'a, VerifierState> Verifier<'a, VerifierState> {
     }
 }
 
-impl<'a, VerifierState> Drop for Verifier<'a, VerifierState> {
-    fn drop(&mut self) {
-        // tell the JVM GC it's okay to clean up `self.verifier_instance`
-        // when the last local frame is popped
-        self.jni
-            .unwrap_result(self.env.pop_local_frame(JObject::null()));
-    }
-}
-
 impl<'a> Verifier<'a, state::Uninitialized> {
     pub fn parse_command_line(self, args: &[String]) -> Verifier<'a, state::Stopped> {
-        // this local frame will be popped by the Drop implementation
-        // of `self` at the end of this code block:
-        self.jni.unwrap_result(self.env.push_local_frame(16));
-        {
+        let ast_utils = AstUtils::new(self.env);
+        ast_utils.with_local_frame(16, || {
             let args = self.jni.new_seq(
                 &args
                     .iter()
@@ -106,15 +98,22 @@ impl<'a> Verifier<'a, state::Uninitialized> {
             );
             self.jni.unwrap_result(
                 self.verifier_wrapper
-                    .call_parseCommandLine(self.verifier_instance, args),
+                    .call_parseCommandLine(self.verifier_instance.as_obj(), args),
             );
-        }
-        let verifier_wrapper = silver::verifier::Verifier::with(self.env);
-        Verifier {
-            env: self.env,
+        });
+
+        let Self {
+            env,
             verifier_wrapper,
-            verifier_instance: self.verifier_instance,
-            jni: self.jni,
+            verifier_instance,
+            jni,
+            ..
+        } = self;
+        Verifier {
+            env,
+            verifier_wrapper,
+            verifier_instance,
+            jni,
             state: PhantomData,
         }
     }
@@ -122,17 +121,25 @@ impl<'a> Verifier<'a, state::Uninitialized> {
 
 impl<'a> Verifier<'a, state::Stopped> {
     pub fn start(self) -> Verifier<'a, state::Started> {
-        // this local frame will be popped by the Drop implementation
-        // of `self` at the end of this code block:
-        self.jni.unwrap_result(self.env.push_local_frame(16));
-        self.jni
-            .unwrap_result(self.verifier_wrapper.call_start(self.verifier_instance));
-        let verifier_wrapper = silver::verifier::Verifier::with(self.env);
-        Verifier {
-            env: self.env,
+        let ast_utils = AstUtils::new(self.env);
+        ast_utils.with_local_frame(16, || {
+            self.jni.unwrap_result(
+                self.verifier_wrapper
+                    .call_start(self.verifier_instance.as_obj()),
+            );
+        });
+        let Self {
+            env,
             verifier_wrapper,
-            verifier_instance: self.verifier_instance,
-            jni: self.jni,
+            verifier_instance,
+            jni,
+            ..
+        } = self;
+        Verifier {
+            env,
+            verifier_wrapper,
+            verifier_instance,
+            jni,
             state: PhantomData,
         }
     }
@@ -172,7 +179,7 @@ impl<'a> Verifier<'a, state::Started> {
             run_timed!("Viper verification", debug,
                 let viper_result = self.jni.unwrap_result(
                     self.verifier_wrapper
-                        .call_verify(self.verifier_instance, program.to_jobject()),
+                        .call_verify(self.verifier_instance.as_obj(), program.to_jobject()),
                 );
             );
             debug!(
