@@ -5,6 +5,7 @@ use crate::common::display;
 pub enum TypeDecl {
     Bool,
     Int(Int),
+    Float(Float),
     TypeVar(TypeVar),
     Tuple(Tuple),
     Struct(Struct),
@@ -30,6 +31,11 @@ pub enum TypeDecl {
 pub struct Int {
     pub lower_bound: Option<Box<Expression>>,
     pub upper_bound: Option<Box<Expression>>,
+}
+
+pub enum Float {
+    F32,
+    F64,
 }
 
 pub struct TypeVar {

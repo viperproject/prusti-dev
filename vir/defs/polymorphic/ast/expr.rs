@@ -1163,6 +1163,8 @@ impl Expr {
             Expr::Const(ConstExpr { value, .. }) => match value {
                 Const::Bool(..) => &Type::Bool,
                 Const::Int(..) | Const::BigInt(..) => &Type::Int,
+                Const::Float(FloatConst::F32(..)) => &Type::Float(Float::F32),
+                Const::Float(FloatConst::F64(..)) => &Type::Float(Float::F64),
                 Const::FnPtr => &FN_PTR_TYPE,
             },
             Expr::BinOp(BinOp {
@@ -1900,10 +1902,17 @@ pub enum ContainerOpKind {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub enum FloatConst {
+    F32(u32),
+    F64(u64),
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum Const {
     Bool(bool),
     Int(i64),
     BigInt(String),
+    Float(FloatConst),
     /// All function pointers share the same constant, because their function
     /// is determined by the type system.
     FnPtr,
@@ -2664,6 +2673,7 @@ impl fmt::Display for Const {
             Const::Bool(val) => write!(f, "{}", val),
             Const::Int(val) => write!(f, "{}", val),
             Const::BigInt(ref val) => write!(f, "{}", val),
+            Const::Float(val) => write!(f, "{:?}", val),
             Const::FnPtr => write!(f, "FnPtr"),
         }
     }

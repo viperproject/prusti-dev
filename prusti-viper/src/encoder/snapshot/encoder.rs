@@ -625,6 +625,8 @@ impl SnapshotEncoder {
             ty::TyKind::Int(_) => Type::Int,
             ty::TyKind::Uint(_) => Type::Int,
             ty::TyKind::Char => Type::Int,
+            ty::TyKind::Float(ty::FloatTy::F32) => Type::Float(vir::Float::F32),
+            ty::TyKind::Float(ty::FloatTy::F64) => Type::Float(vir::Float::F64),
             ty::TyKind::Bool => Type::Bool,
             ty::TyKind::Tuple(substs) if substs.is_empty() => self.snap_unit().get_type().clone(),
             ty::TyKind::Adt(adt_def, _) if adt_def.variants.is_empty() => {
@@ -685,6 +687,12 @@ impl SnapshotEncoder {
 
             ty::TyKind::Int(_) | ty::TyKind::Uint(_) | ty::TyKind::Char => {
                 Ok(Snapshot::Primitive(Type::Int))
+            }
+            ty::TyKind::Float(ty::FloatTy::F32) => {
+                Ok(Snapshot::Primitive(Type::Float(vir::Float::F32)))
+            }
+            ty::TyKind::Float(ty::FloatTy::F64) => {
+                Ok(Snapshot::Primitive(Type::Float(vir::Float::F64)))
             }
             ty::TyKind::Bool => Ok(Snapshot::Primitive(Type::Bool)),
 

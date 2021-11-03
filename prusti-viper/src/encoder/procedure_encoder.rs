@@ -888,6 +888,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             let builtin_method = match var.typ {
                 vir::Type::Int => BuiltinMethodKind::HavocInt,
                 vir::Type::Bool => BuiltinMethodKind::HavocBool,
+                vir::Type::Float(vir::Float::F32) => BuiltinMethodKind::HavocF32,
+                vir::Type::Float(vir::Float::F64) => BuiltinMethodKind::HavocF64,
                 vir::Type::TypedRef(_) => BuiltinMethodKind::HavocRef,
                 vir::Type::TypeVar(_) => BuiltinMethodKind::HavocRef,
                 vir::Type::Domain(_) => BuiltinMethodKind::HavocRef,

@@ -29,7 +29,7 @@ impl Generic for BodylessMethod {
 impl Generic for Type {
     fn substitute(self, map: &HashMap<TypeVar, Type>) -> Self {
         match self {
-            Type::Bool | Type::Int => self,
+            Type::Bool | Type::Int | Type::Float(..) => self,
             Type::Seq(mut seq) => {
                 let typ = *seq.typ;
                 *seq.typ = typ.substitute(map);
