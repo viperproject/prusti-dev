@@ -87,7 +87,8 @@ impl<'a, VerifierState> Drop for Verifier<'a, VerifierState> {
     fn drop(&mut self) {
         // tell the JVM GC it's okay to clean up `self.verifier_instance`
         // when the last local frame is popped
-        self.env.pop_local_frame(JObject::null()).unwrap();
+        self.jni
+            .unwrap_result(self.env.pop_local_frame(JObject::null()));
     }
 }
 
@@ -95,7 +96,7 @@ impl<'a> Verifier<'a, state::Uninitialized> {
     pub fn parse_command_line(self, args: &[String]) -> Verifier<'a, state::Stopped> {
         // this local frame will be popped by the Drop implementation
         // of `self` at the end of this code block:
-        self.env.push_local_frame(16).unwrap();
+        self.jni.unwrap_result(self.env.push_local_frame(16));
         {
             let args = self.jni.new_seq(
                 &args
