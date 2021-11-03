@@ -4,16 +4,18 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use crate::config;
-use std::collections::HashMap;
-use viper::{self, AstFactory};
-use crate::vir::{
-    ast::*,
-    cfg::{CfgMethod, CfgBlock, Successor, RETURN_LABEL},
-    borrows::borrow_id,
-    Program,
+use crate::{
+    config,
+    vir::{
+        ast::*,
+        borrows::borrow_id,
+        cfg::{CfgBlock, CfgMethod, Successor, RETURN_LABEL},
+        Program,
+    },
 };
 use prusti_utils::force_matches;
+use std::collections::HashMap;
+use viper::{self, AstFactory};
 
 pub trait ToViper<'v, T> {
     fn to_viper(&self, ast: &AstFactory<'v>) -> T;
@@ -53,8 +55,14 @@ impl<'v> ToViper<'v, viper::Program<'v>> for Program {
             ast.perm_type(),
             &[],
             &[
-                ast.lt_cmp(ast.no_perm(), ast.result_with_pos(ast.perm_type(), ast.no_position())),
-                ast.lt_cmp(ast.result_with_pos(ast.perm_type(), ast.no_position()), ast.full_perm()),
+                ast.lt_cmp(
+                    ast.no_perm(),
+                    ast.result_with_pos(ast.perm_type(), ast.no_position()),
+                ),
+                ast.lt_cmp(
+                    ast.result_with_pos(ast.perm_type(), ast.no_position()),
+                    ast.full_perm(),
+                ),
             ],
             ast.no_position(),
             None,
@@ -85,7 +93,16 @@ impl<'v> ToViper<'v, viper::Type<'v>> for Type {
             Type::TypedRef(_) => ast.ref_type(),
             Type::Domain(ref name) => ast.domain_type(name, &[], &[]),
             Type::Snapshot(ref name) => ast.domain_type(&format!("Snap${}", name), &[], &[]),
-            Type::Seq(ref elem_ty) => ast.seq_type(elem_ty.to_viper(ast))
+            Type::Seq(ref elem_ty) => ast.seq_type(elem_ty.to_viper(ast)),
+            Type::Float(Float::F32) => ast.backend_f32_type(),
+            Type::Float(Float::F64) => ast.backend_f64_type(),
+            Type::BitVector(bv_size) => match bv_size {
+                BitVector::BV8 => ast.backend_bv8_type(),
+                BitVector::BV16 => ast.backend_bv16_type(),
+                BitVector::BV32 => ast.backend_bv32_type(),
+                BitVector::BV64 => ast.backend_bv64_type(),
+                BitVector::BV128 => ast.backend_bv128_type(),
+            },
         }
     }
 }
@@ -125,9 +142,7 @@ impl<'v> ToViper<'v, viper::Stmt<'v>> for Stmt {
                 assert!(!pos.is_default(), "stmt with default pos: {}", self);
                 ast.exhale(expr.to_viper(ast), pos.to_viper(ast))
             }
-            Stmt::Assert(ref expr, ref pos) => {
-                ast.assert(expr.to_viper(ast), pos.to_viper(ast))
-            }
+            Stmt::Assert(ref expr, ref pos) => ast.assert(expr.to_viper(ast), pos.to_viper(ast)),
             Stmt::MethodCall(ref method_name, ref args, ref targets) => {
                 let fake_position = Position::default();
                 ast.method_call(
@@ -185,8 +200,7 @@ impl<'v> ToViper<'v, viper::Stmt<'v>> for Stmt {
                             .into_iter()
                             .map(|access| {
                                 let fake_position = Position::default();
-                                let assert =
-                                    Stmt::Assert(access, fake_position);
+                                let assert = Stmt::Assert(access, fake_position);
                                 assert.to_viper(ast)
                             })
                             .collect()
@@ -223,10 +237,12 @@ impl<'v> ToViper<'v, viper::Stmt<'v>> for Stmt {
                             ast.seqn(stmts.as_slice(), &[])
                         }
                         Stmt::If(ref guard, ref then_stmts, ref else_stmts) => {
-                            let then_stmts: Vec<_> = then_stmts.iter()
+                            let then_stmts: Vec<_> = then_stmts
+                                .iter()
                                 .map(|stmt| stmt_to_viper_in_packge(stmt, ast))
                                 .collect();
-                            let else_stmts: Vec<_> = else_stmts.iter()
+                            let else_stmts: Vec<_> = else_stmts
+                                .iter()
                                 .map(|stmt| stmt_to_viper_in_packge(stmt, ast))
                                 .collect();
                             ast.if_stmt(
@@ -264,7 +280,8 @@ impl<'v> ToViper<'v, viper::Stmt<'v>> for Stmt {
                         pos.to_viper(ast),
                     )
                 });
-                let position = ast.identifier_position(pos.line(), pos.column(), &pos.id().to_string());
+                let position =
+                    ast.identifier_position(pos.line(), pos.column(), &pos.id().to_string());
                 let apply = ast.apply(wand.to_viper(ast), position);
                 ast.seqn(&[inhale, apply], &[])
             }
@@ -346,67 +363,184 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for Expr {
                     perm.to_viper(ast),
                     pos.to_viper(ast),
                 ),
-            Expr::UnaryOp(op, ref expr, ref pos) => match op {
-                UnaryOpKind::Not => ast.not_with_pos(expr.to_viper(ast), pos.to_viper(ast)),
-                UnaryOpKind::Minus => ast.minus_with_pos(expr.to_viper(ast), pos.to_viper(ast)),
+            Expr::UnaryOp(op, ref expr, ref pos) => match expr.get_type() {
+                Type::Float(float_ty) => {
+                    let size = match float_ty {
+                        Float::F32 => viper::FloatSizeViper::F32,
+                        Float::F64 => viper::FloatSizeViper::F64,
+                    };
+                    let op_kind = match op {
+                        UnaryOpKind::Minus => viper::UnOpFloat::Neg,
+                        UnaryOpKind::IsNaN => viper::UnOpFloat::IsNan,
+                        _ => unreachable!("illegal unary operation for floats: {}", op),
+                    };
+                    ast.float_unop(op_kind, size, expr.to_viper(ast))
+                }
+                Type::BitVector(bitvector_ty) => {
+                    let bv_size = match bitvector_ty {
+                        BitVector::BV8 => viper::BvSize::BV8,
+                        BitVector::BV16 => viper::BvSize::BV16,
+                        BitVector::BV32 => viper::BvSize::BV32,
+                        BitVector::BV64 => viper::BvSize::BV64,
+                        BitVector::BV128 => viper::BvSize::BV128,
+                    };
+                    let op_kind = match op {
+                        UnaryOpKind::Not => viper::UnOpBv::Not,
+                        UnaryOpKind::Minus => viper::UnOpBv::Neg,
+                        _ => unreachable!("illegal unary operation for bitvectors: {}", op),
+                    };
+                    ast.bv_unnop(op_kind, bv_size, expr.to_viper(ast))
+                }
+                typ => match op {
+                    UnaryOpKind::Not => ast.not_with_pos(expr.to_viper(ast), pos.to_viper(ast)),
+                    UnaryOpKind::Minus => ast.minus_with_pos(expr.to_viper(ast), pos.to_viper(ast)),
+                    _ => unreachable!("illegal unary operation {} for type {}", op, typ),
+                },
             },
-            Expr::BinOp(op, ref left, ref right, ref pos) => match op {
-                BinaryOpKind::EqCmp => {
-                    ast.eq_cmp_with_pos(left.to_viper(ast), right.to_viper(ast), pos.to_viper(ast))
+            Expr::BinOp(op, ref left, ref right, ref pos) => match left.get_maybe_type() {
+                Some(Type::Float(float_ty)) => {
+                    let size = match float_ty {
+                        Float::F32 => viper::FloatSizeViper::F32,
+                        Float::F64 => viper::FloatSizeViper::F64,
+                    };
+                    let float_op_kind = match op {
+                        BinaryOpKind::Add => viper::BinOpFloat::Add,
+                        BinaryOpKind::Sub => viper::BinOpFloat::Sub,
+                        BinaryOpKind::Mul => viper::BinOpFloat::Mul,
+                        BinaryOpKind::Div => viper::BinOpFloat::Div,
+                        BinaryOpKind::EqCmp => viper::BinOpFloat::Eq,
+                        BinaryOpKind::GtCmp => viper::BinOpFloat::Gt,
+                        BinaryOpKind::GeCmp => viper::BinOpFloat::Geq,
+                        BinaryOpKind::LtCmp => viper::BinOpFloat::Lt,
+                        BinaryOpKind::LeCmp => viper::BinOpFloat::Leq,
+                        BinaryOpKind::Min => viper::BinOpFloat::Min,
+                        BinaryOpKind::Max => viper::BinOpFloat::Max,
+                        _ => unreachable!("illegal binary operation for floats: {}", op),
+                    };
+                    ast.float_binop(float_op_kind, size, left.to_viper(ast), right.to_viper(ast))
                 }
-                BinaryOpKind::NeCmp => {
-                    ast.ne_cmp_with_pos(left.to_viper(ast), right.to_viper(ast), pos.to_viper(ast))
-                }
-                BinaryOpKind::GtCmp => {
-                    ast.gt_cmp_with_pos(left.to_viper(ast), right.to_viper(ast), pos.to_viper(ast))
-                }
-                BinaryOpKind::GeCmp => {
-                    ast.ge_cmp_with_pos(left.to_viper(ast), right.to_viper(ast), pos.to_viper(ast))
-                }
-                BinaryOpKind::LtCmp => {
-                    ast.lt_cmp_with_pos(left.to_viper(ast), right.to_viper(ast), pos.to_viper(ast))
-                }
-                BinaryOpKind::LeCmp => {
-                    ast.le_cmp_with_pos(left.to_viper(ast), right.to_viper(ast), pos.to_viper(ast))
-                }
-                BinaryOpKind::Add => {
-                    ast.add_with_pos(left.to_viper(ast), right.to_viper(ast), pos.to_viper(ast))
-                }
-                BinaryOpKind::Sub => {
-                    ast.sub_with_pos(left.to_viper(ast), right.to_viper(ast), pos.to_viper(ast))
-                }
-                BinaryOpKind::Mul => {
-                    ast.mul_with_pos(left.to_viper(ast), right.to_viper(ast), pos.to_viper(ast))
-                }
-                BinaryOpKind::Div => {
-                    ast.div_with_pos(left.to_viper(ast), right.to_viper(ast), pos.to_viper(ast))
-                }
-                BinaryOpKind::Mod => {
-                    ast.module_with_pos(left.to_viper(ast), right.to_viper(ast), pos.to_viper(ast))
-                }
-                BinaryOpKind::And => {
-                    ast.and_with_pos(left.to_viper(ast), right.to_viper(ast), pos.to_viper(ast))
-                }
-                BinaryOpKind::Or => {
-                    ast.or_with_pos(left.to_viper(ast), right.to_viper(ast), pos.to_viper(ast))
-                }
-                BinaryOpKind::Implies => {
-                    ast.implies_with_pos(left.to_viper(ast), right.to_viper(ast), pos.to_viper(ast))
-                }
+                Some(Type::BitVector(bitvector_ty)) => match op {
+                    BinaryOpKind::EqCmp => ast.eq_cmp_with_pos(
+                        left.to_viper(ast),
+                        right.to_viper(ast),
+                        pos.to_viper(ast),
+                    ),
+                    BinaryOpKind::NeCmp => ast.ne_cmp_with_pos(
+                        left.to_viper(ast),
+                        right.to_viper(ast),
+                        pos.to_viper(ast),
+                    ),
+                    BinaryOpKind::GtCmp => ast.gt_cmp_with_pos(
+                        left.to_viper(ast),
+                        right.to_viper(ast),
+                        pos.to_viper(ast),
+                    ),
+                    BinaryOpKind::GeCmp => ast.ge_cmp_with_pos(
+                        left.to_viper(ast),
+                        right.to_viper(ast),
+                        pos.to_viper(ast),
+                    ),
+                    BinaryOpKind::LtCmp => ast.lt_cmp_with_pos(
+                        left.to_viper(ast),
+                        right.to_viper(ast),
+                        pos.to_viper(ast),
+                    ),
+                    BinaryOpKind::LeCmp => ast.le_cmp_with_pos(
+                        left.to_viper(ast),
+                        right.to_viper(ast),
+                        pos.to_viper(ast),
+                    ),
+                    _ => {
+                        let size = match bitvector_ty {
+                            BitVector::BV8 => viper::BvSize::BV8,
+                            BitVector::BV16 => viper::BvSize::BV16,
+                            BitVector::BV32 => viper::BvSize::BV32,
+                            BitVector::BV64 => viper::BvSize::BV64,
+                            BitVector::BV128 => viper::BvSize::BV128,
+                        };
+                        let op_kind = match op {
+                            BinaryOpKind::Add => viper::BinOpBv::BvAdd,
+                            BinaryOpKind::Mul => viper::BinOpBv::BvMul,
+                            BinaryOpKind::BitAnd => viper::BinOpBv::BitAnd,
+                            BinaryOpKind::BitOr => viper::BinOpBv::BitOr,
+                            BinaryOpKind::BitXor => viper::BinOpBv::BitXor,
+                            BinaryOpKind::Shl => viper::BinOpBv::BvShl,
+                            BinaryOpKind::LShr => viper::BinOpBv::BvLShr,
+                            BinaryOpKind::AShr => viper::BinOpBv::BvAShr,
+                            _ => unreachable!("illegal binary operation for bitvectors: {}", op),
+                        };
+                        ast.bv_binop(op_kind, size, left.to_viper(ast), right.to_viper(ast))
+                    }
+                },
+                typ => match op {
+                    BinaryOpKind::EqCmp => ast.eq_cmp_with_pos(
+                        left.to_viper(ast),
+                        right.to_viper(ast),
+                        pos.to_viper(ast),
+                    ),
+                    BinaryOpKind::NeCmp => ast.ne_cmp_with_pos(
+                        left.to_viper(ast),
+                        right.to_viper(ast),
+                        pos.to_viper(ast),
+                    ),
+                    BinaryOpKind::GtCmp => ast.gt_cmp_with_pos(
+                        left.to_viper(ast),
+                        right.to_viper(ast),
+                        pos.to_viper(ast),
+                    ),
+                    BinaryOpKind::GeCmp => ast.ge_cmp_with_pos(
+                        left.to_viper(ast),
+                        right.to_viper(ast),
+                        pos.to_viper(ast),
+                    ),
+                    BinaryOpKind::LtCmp => ast.lt_cmp_with_pos(
+                        left.to_viper(ast),
+                        right.to_viper(ast),
+                        pos.to_viper(ast),
+                    ),
+                    BinaryOpKind::LeCmp => ast.le_cmp_with_pos(
+                        left.to_viper(ast),
+                        right.to_viper(ast),
+                        pos.to_viper(ast),
+                    ),
+                    BinaryOpKind::Add => {
+                        ast.add_with_pos(left.to_viper(ast), right.to_viper(ast), pos.to_viper(ast))
+                    }
+                    BinaryOpKind::Sub => {
+                        ast.sub_with_pos(left.to_viper(ast), right.to_viper(ast), pos.to_viper(ast))
+                    }
+                    BinaryOpKind::Mul => {
+                        ast.mul_with_pos(left.to_viper(ast), right.to_viper(ast), pos.to_viper(ast))
+                    }
+                    BinaryOpKind::Div => {
+                        ast.div_with_pos(left.to_viper(ast), right.to_viper(ast), pos.to_viper(ast))
+                    }
+                    BinaryOpKind::Mod => ast.module_with_pos(
+                        left.to_viper(ast),
+                        right.to_viper(ast),
+                        pos.to_viper(ast),
+                    ),
+                    BinaryOpKind::And => {
+                        ast.and_with_pos(left.to_viper(ast), right.to_viper(ast), pos.to_viper(ast))
+                    }
+                    BinaryOpKind::Or => {
+                        ast.or_with_pos(left.to_viper(ast), right.to_viper(ast), pos.to_viper(ast))
+                    }
+                    BinaryOpKind::Implies => ast.implies_with_pos(
+                        left.to_viper(ast),
+                        right.to_viper(ast),
+                        pos.to_viper(ast),
+                    ),
+                    _ => unreachable!("illegal binary operation {} for type {:?}", op, typ),
+                },
             },
-            Expr::ContainerOp(op_kind, box ref left, box ref right, _pos) => {
-                match op_kind {
-                    ContainerOpKind::SeqIndex => {
-                        ast.seq_index(left.to_viper(ast), right.to_viper(ast))
-                    }
-                    ContainerOpKind::SeqConcat => {
-                        ast.seq_append(left.to_viper(ast), right.to_viper(ast))
-                    }
-                    ContainerOpKind::SeqLen => {
-                        ast.seq_length(left.to_viper(ast))
-                    }
+            Expr::ContainerOp(op_kind, box ref left, box ref right, _pos) => match op_kind {
+                ContainerOpKind::SeqIndex => ast.seq_index(left.to_viper(ast), right.to_viper(ast)),
+                ContainerOpKind::SeqConcat => {
+                    ast.seq_append(left.to_viper(ast), right.to_viper(ast))
                 }
-            }
+                ContainerOpKind::SeqLen => ast.seq_length(left.to_viper(ast)),
+            },
             Expr::Seq(ty, elems, _pos) => {
                 let elem_ty = force_matches!(ty, Type::Seq(box elem_ty) => elem_ty);
                 let viper_elem_ty = elem_ty.to_viper(ast);
@@ -501,9 +635,7 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for Expr {
             Expr::InhaleExhale(ref inhale_expr, ref exhale_expr, ref _pos) => {
                 ast.inhale_exhale_pred(inhale_expr.to_viper(ast), exhale_expr.to_viper(ast))
             }
-            Expr::Downcast(ref base, ..) => {
-                base.to_viper(ast)
-            }
+            Expr::Downcast(ref base, ..) => base.to_viper(ast),
             Expr::SnapApp(..) => unreachable!("unpatched snapshot operation"),
             // DEBUG: enable this version to see snap$(...) in the Viper output
             // for unpatched snapshot operations; this pushes the error to the
@@ -538,6 +670,15 @@ impl<'v, 'a, 'b> ToViper<'v, viper::Expr<'v>> for (&'a Const, &'b Position) {
             Const::Bool(false) => ast.false_lit_with_pos(self.1.to_viper(ast)),
             Const::Int(x) => ast.int_lit_with_pos(*x, self.1.to_viper(ast)),
             Const::BigInt(ref x) => ast.int_lit_from_ref_with_pos(x, self.1.to_viper(ast)),
+            Const::Float(FloatConst::F32(val)) => ast.backend_f32_lit(*val),
+            Const::Float(FloatConst::F64(val)) => ast.backend_f64_lit(*val),
+            Const::BitVector(bv_const) => match bv_const {
+                BitVectorConst::BV8(val) => ast.backend_bv8_lit(*val),
+                BitVectorConst::BV16(val) => ast.backend_bv16_lit(*val),
+                BitVectorConst::BV32(val) => ast.backend_bv32_lit(*val),
+                BitVectorConst::BV64(val) => ast.backend_bv64_lit(*val),
+                BitVectorConst::BV128(val) => ast.backend_bv128_lit(*val),
+            },
             Const::FnPtr => ast.null_lit_with_pos(self.1.to_viper(ast)),
         }
     }
@@ -732,7 +873,13 @@ impl<'a, 'v> ToViper<'v, viper::Method<'v>> for &'a CfgMethod {
 
         if config::enable_verify_only_basic_block_path() {
             let path = config::verify_only_basic_block_path();
-            cfg_method_convert_basic_block_path(self, path, ast, &mut blocks_ast, &mut declarations);
+            cfg_method_convert_basic_block_path(
+                self,
+                path,
+                ast,
+                &mut blocks_ast,
+                &mut declarations,
+            );
             // self.convert_basic_block_path(path, ast, &mut blocks_ast, &mut declarations);
         } else {
             // Sort blocks by label, except for the first block
@@ -741,7 +888,12 @@ impl<'a, 'v> ToViper<'v, viper::Method<'v>> for &'a CfgMethod {
             blocks.insert(0, (0, &self.basic_blocks[0]));
 
             for (index, block) in blocks.into_iter() {
-                blocks_ast.push(block_to_viper(ast, self.basic_blocks_labels(), block, index));
+                blocks_ast.push(block_to_viper(
+                    ast,
+                    self.basic_blocks_labels(),
+                    block,
+                    index,
+                ));
                 declarations.push(
                     ast.label(&index_to_label(self.basic_blocks_labels(), index), &[])
                         .into(),
@@ -790,10 +942,18 @@ fn cfg_method_convert_basic_block_path<'v>(
         .collect();
     let mut current_label = index_to_label(cfg_method.basic_blocks_labels(), 0);
     while let Some((index, block)) = remaining_blocks.remove(&current_label) {
-        blocks_ast.push(block_to_viper(ast, cfg_method.basic_blocks_labels(), block, index));
+        blocks_ast.push(block_to_viper(
+            ast,
+            cfg_method.basic_blocks_labels(),
+            block,
+            index,
+        ));
         declarations.push(
-            ast.label(&index_to_label(cfg_method.basic_blocks_labels(), index), &[])
-                .into(),
+            ast.label(
+                &index_to_label(cfg_method.basic_blocks_labels(), index),
+                &[],
+            )
+            .into(),
         );
 
         let mut successors: Vec<_> = block
@@ -828,14 +988,24 @@ fn cfg_method_convert_basic_block_path<'v>(
                 ast.false_lit_with_pos(fake_position.to_viper(ast)),
                 fake_position.to_viper(ast),
             ),
-            successor_to_viper(ast, index, cfg_method.basic_blocks_labels(), &block.successor),
+            successor_to_viper(
+                ast,
+                index,
+                cfg_method.basic_blocks_labels(),
+                &block.successor,
+            ),
         ];
         blocks_ast.push(ast.seqn(&stmts, &[]));
         declarations.push(ast.label(&label, &[]).into());
     }
 
     for (label, (index, block)) in remaining_blocks {
-        blocks_ast.push(block_to_viper(ast, cfg_method.basic_blocks_labels(), block, index));
+        blocks_ast.push(block_to_viper(
+            ast,
+            cfg_method.basic_blocks_labels(),
+            block,
+            index,
+        ));
         declarations.push(ast.label(&label, &[]).into());
     }
 }

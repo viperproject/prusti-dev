@@ -90,6 +90,13 @@ pub fn compute_identifier(name: &str, formal_args: &[LocalVar], return_type: &Ty
         match typ {
             Type::Int => "$int$".to_string(),
             Type::Bool => "$bool$".to_string(),
+            Type::Float(Float::F32) => "$f32$".to_string(),
+            Type::Float(Float::F64) => "$f64$".to_string(),
+            Type::BitVector(BitVector::BV8) => "$bv8$".to_string(),
+            Type::BitVector(BitVector::BV16) => "$bv16$".to_string(),
+            Type::BitVector(BitVector::BV32) => "$bv32$".to_string(),
+            Type::BitVector(BitVector::BV64) => "$bv64$".to_string(),
+            Type::BitVector(BitVector::BV128) => "$bv128$".to_string(),
             Type::TypedRef(ref name) => name.to_string(),
             Type::Domain(ref name) => name.to_string(),
             Type::Snapshot(ref name) => format!("Snap${}", name),

@@ -84,6 +84,7 @@ pub enum PlaceComponent {
 pub enum UnaryOpKind {
     Not,
     Minus,
+    IsNaN,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
@@ -102,6 +103,14 @@ pub enum BinaryOpKind {
     And,
     Or,
     Implies,
+    BitAnd,
+    BitOr,
+    BitXor,
+    Shl,
+    LShr,
+    AShr,
+    Min,
+    Max,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
@@ -113,10 +122,27 @@ pub enum ContainerOpKind {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub enum FloatConst {
+    F32(u32),
+    F64(u64),
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub enum BitVectorConst {
+    BV8(u8),
+    BV16(u16),
+    BV32(u32),
+    BV64(u64),
+    BV128(u128),
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum Const {
     Bool(bool),
     Int(i64),
     BigInt(String),
+    Float(FloatConst),
+    BitVector(BitVectorConst),
     /// All function pointers share the same constant, because their function
     /// is determined by the type system.
     FnPtr,
@@ -198,7 +224,7 @@ impl fmt::Display for Expr {
                     .map(|x| x.to_string())
                     .collect::<Vec<String>>()
                     .join(", "),
-                body
+                body.to_string()
             ),
             Expr::Exists(ref vars, ref triggers, ref body, ref _pos) => write!(
                 f,
@@ -212,11 +238,15 @@ impl fmt::Display for Expr {
                     .map(|x| x.to_string())
                     .collect::<Vec<String>>()
                     .join(", "),
-                body
+                body.to_string()
             ),
-            Expr::LetExpr(ref var, ref expr, ref body, ref _pos) => {
-                write!(f, "(let {:?} == ({}) in {})", var, expr, body)
-            }
+            Expr::LetExpr(ref var, ref expr, ref body, ref _pos) => write!(
+                f,
+                "(let {:?} == ({}) in {})",
+                var,
+                expr.to_string(),
+                body.to_string()
+            ),
             Expr::FuncApp(ref name, ref args, ref params, ref typ, ref _pos) => write!(
                 f,
                 "{}<{},{}>({})",
@@ -226,7 +256,7 @@ impl fmt::Display for Expr {
                     .map(|p| p.typ.to_string())
                     .collect::<Vec<String>>()
                     .join(", "),
-                typ,
+                typ.to_string(),
                 args.iter()
                     .map(|f| f.to_string())
                     .collect::<Vec<String>>()
@@ -264,10 +294,14 @@ impl fmt::Display for Expr {
                 write!(f, "[({}), ({})]", inhale_expr, exhale_expr)
             }
 
-            Expr::Downcast(ref base, ref enum_place, ref field) => {
-                write!(f, "(downcast {} to {} in {})", enum_place, field, base,)
-            }
-            Expr::SnapApp(ref expr, _) => write!(f, "snap({})", expr),
+            Expr::Downcast(ref base, ref enum_place, ref field) => write!(
+                f,
+                "(downcast {} to {} in {})",
+                enum_place.to_string(),
+                field,
+                base.to_string(),
+            ),
+            Expr::SnapApp(ref expr, _) => write!(f, "snap({})", expr.to_string()),
         }
     }
 }
@@ -277,6 +311,7 @@ impl fmt::Display for UnaryOpKind {
         match self {
             UnaryOpKind::Not => write!(f, "!"),
             UnaryOpKind::Minus => write!(f, "-"),
+            UnaryOpKind::IsNaN => write!(f, "isNaN"),
         }
     }
 }
@@ -298,6 +333,14 @@ impl fmt::Display for BinaryOpKind {
             BinaryOpKind::And => write!(f, "&&"),
             BinaryOpKind::Or => write!(f, "||"),
             BinaryOpKind::Implies => write!(f, "==>"),
+            BinaryOpKind::BitAnd => write!(f, "&"),
+            BinaryOpKind::BitOr => write!(f, "|"),
+            BinaryOpKind::BitXor => write!(f, "^"),
+            BinaryOpKind::Shl => write!(f, "<<"),
+            BinaryOpKind::LShr => write!(f, ">>>"),
+            BinaryOpKind::AShr => write!(f, ">>"),
+            BinaryOpKind::Min => write!(f, "min"),
+            BinaryOpKind::Max => write!(f, "max"),
         }
     }
 }
@@ -308,6 +351,8 @@ impl fmt::Display for Const {
             Const::Bool(val) => write!(f, "{}", val),
             Const::Int(val) => write!(f, "{}", val),
             Const::BigInt(ref val) => write!(f, "{}", val),
+            Const::Float(val) => write!(f, "{:?}", val),
+            Const::BitVector(val) => write!(f, "{:?}", val),
             Const::FnPtr => write!(f, "FnPtr"),
         }
     }
@@ -1083,10 +1128,14 @@ impl Expr {
     /// Returns the type of the expression.
     /// For function applications, the return type is provided.
     pub fn get_type(&self) -> &Type {
+        self.get_maybe_type().unwrap()
+    }
+
+    pub fn get_maybe_type(&self) -> Option<&Type> {
         lazy_static! {
             static ref FN_PTR_TYPE: Type = Type::TypedRef("FnPtr".to_string());
         }
-        match self {
+        let result = match self {
             Expr::Local(LocalVar { ref typ, .. }, _)
             | Expr::Variant(_, Field { ref typ, .. }, _)
             | Expr::Field(_, Field { ref typ, .. }, _)
@@ -1100,6 +1149,13 @@ impl Expr {
             Expr::Const(constant, ..) => match constant {
                 Const::Bool(..) => &Type::Bool,
                 Const::Int(..) | Const::BigInt(..) => &Type::Int,
+                Const::Float(FloatConst::F32(..)) => &Type::Float(Float::F32),
+                Const::Float(FloatConst::F64(..)) => &Type::Float(Float::F64),
+                Const::BitVector(BitVectorConst::BV8(..)) => &Type::BitVector(BitVector::BV8),
+                Const::BitVector(BitVectorConst::BV16(..)) => &Type::BitVector(BitVector::BV16),
+                Const::BitVector(BitVectorConst::BV32(..)) => &Type::BitVector(BitVector::BV32),
+                Const::BitVector(BitVectorConst::BV64(..)) => &Type::BitVector(BitVector::BV64),
+                Const::BitVector(BitVectorConst::BV128(..)) => &Type::BitVector(BitVector::BV128),
                 Const::FnPtr => &FN_PTR_TYPE,
             },
             Expr::BinOp(ref kind, box ref base1, box ref base2, _pos) => match kind {
@@ -1116,7 +1172,15 @@ impl Expr {
                 | BinaryOpKind::Sub
                 | BinaryOpKind::Mul
                 | BinaryOpKind::Div
-                | BinaryOpKind::Mod => {
+                | BinaryOpKind::Mod
+                | BinaryOpKind::BitAnd
+                | BinaryOpKind::BitOr
+                | BinaryOpKind::BitXor
+                | BinaryOpKind::Shl
+                | BinaryOpKind::LShr
+                | BinaryOpKind::AShr
+                | BinaryOpKind::Min
+                | BinaryOpKind::Max => {
                     let typ1 = base1.get_type();
                     let typ2 = base2.get_type();
                     assert_eq!(typ1, typ2, "expr: {:?}", self);
@@ -1134,18 +1198,19 @@ impl Expr {
             | Expr::PredicateAccessPredicate(..)
             | Expr::FieldAccessPredicate(..)
             | Expr::InhaleExhale(..) => {
-                unreachable!("Unexpected expression: {:?}", self);
+                return None;
             }
             Expr::Downcast(box ref base, ..) => base.get_type(),
             // Note: SnapApp returns the same type as the wrapped expression,
             // to allow for e.g. field access without special considerations.
             // SnapApps are replaced later in the encoder.
             Expr::SnapApp(box ref expr, _) => expr.get_type(),
-            Expr::ContainerOp(op_kind, box ref left, box ref right, _) => {
-                todo!("get_type container_op({:?}, {}, {})", op_kind, left, right)
+            Expr::ContainerOp(_op_kind, box ref _left, box ref _right, _) => {
+                return None;
             }
             Expr::Seq(ref ty, ..) => ty,
-        }
+        };
+        Some(result)
     }
 
     /// If returns true, then the expression is guaranteed to be boolean. However, it may return
