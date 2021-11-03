@@ -12,7 +12,7 @@ use std::{
     path::{Path, PathBuf},
 };
 use verification_backend::VerificationBackend;
-use verifier::{state, Verifier};
+use verifier::Verifier;
 
 pub struct VerificationContext<'a> {
     env: AttachGuard<'a>,
@@ -35,7 +35,7 @@ impl<'a> VerificationContext<'a> {
         &self,
         backend: VerificationBackend,
         report_path: Option<PathBuf>,
-    ) -> Verifier<state::Started> {
+    ) -> Verifier {
         self.new_verifier_with_args(backend, vec![], report_path)
     }
 
@@ -44,7 +44,7 @@ impl<'a> VerificationContext<'a> {
         backend: VerificationBackend,
         extra_args: Vec<String>,
         report_path: Option<PathBuf>,
-    ) -> Verifier<state::Started> {
+    ) -> Verifier {
         let mut verifier_args: Vec<String> = vec![];
 
         // Set Z3 binary
@@ -77,7 +77,7 @@ impl<'a> VerificationContext<'a> {
 
         debug!("Verifier arguments: '{}'", verifier_args.to_vec().join(" "));
 
-        Verifier::<state::Uninitialized>::new(&self.env, backend, report_path)
+        Verifier::new(&self.env, backend, report_path)
             .parse_command_line(&verifier_args)
             .start()
     }
