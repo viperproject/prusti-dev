@@ -11,31 +11,24 @@ use ast_utils::AstUtils;
 use jni::{objects::JObject, JNIEnv};
 use jni_utils::JniUtils;
 use silicon_counterexample::SiliconCounterexample;
-use std::{marker::PhantomData, path::PathBuf};
+use std::path::PathBuf;
 use verification_backend::VerificationBackend;
 use verification_result::{VerificationError, VerificationResult};
 use viper_sys::wrappers::{scala, viper::*};
 
-pub mod state {
-    pub struct Uninitialized;
-    pub struct Stopped;
-    pub struct Started;
-}
-
-pub struct Verifier<'a, VerifierState> {
+pub struct Verifier<'a> {
     env: &'a JNIEnv<'a>,
     verifier_wrapper: silver::verifier::Verifier<'a>,
     verifier_instance: JObject<'a>,
     jni: JniUtils<'a>,
-    state: PhantomData<VerifierState>,
 }
 
-impl<'a, VerifierState> Verifier<'a, VerifierState> {
+impl<'a> Verifier<'a> {
     pub fn new(
         env: &'a JNIEnv,
         backend: VerificationBackend,
         report_path: Option<PathBuf>,
-    ) -> Verifier<'a, state::Uninitialized> {
+    ) -> Self {
         let jni = JniUtils::new(env);
         let reporter = if let Some(real_report_path) = report_path {
             jni.unwrap_result(silver::reporter::CSVReporter::with(env).new(
@@ -65,51 +58,29 @@ impl<'a, VerifierState> Verifier<'a, VerifierState> {
             verifier_wrapper,
             verifier_instance,
             jni,
-            state: PhantomData,
         }
     }
-}
 
-impl<'a> Verifier<'a, state::Uninitialized> {
-    pub fn parse_command_line(self, args: &[String]) -> Verifier<'a, state::Stopped> {
-        {
-            let args = self.jni.new_seq(
-                &args
-                    .iter()
-                    .map(|x| self.jni.new_string(x))
-                    .collect::<Vec<JObject>>(),
-            );
-            self.jni.unwrap_result(
-                self.verifier_wrapper
-                    .call_parseCommandLine(self.verifier_instance, args),
-            );
-        }
-        Verifier {
-            env: self.env,
-            verifier_wrapper: self.verifier_wrapper,
-            verifier_instance: self.verifier_instance,
-            jni: self.jni,
-            state: PhantomData,
-        }
+    pub fn parse_command_line(self, args: &[String]) -> Self {
+        let args = self.jni.new_seq(
+            &args
+                .iter()
+                .map(|x| self.jni.new_string(x))
+                .collect::<Vec<JObject>>(),
+        );
+        self.jni.unwrap_result(
+            self.verifier_wrapper
+                .call_parseCommandLine(self.verifier_instance, args),
+        );
+        self
     }
-}
 
-impl<'a> Verifier<'a, state::Stopped> {
-    pub fn start(self) -> Verifier<'a, state::Started> {
+    pub fn start(self) -> Self {
         self.jni
             .unwrap_result(self.verifier_wrapper.call_start(self.verifier_instance));
-
-        Verifier {
-            env: self.env,
-            verifier_wrapper: self.verifier_wrapper,
-            verifier_instance: self.verifier_instance,
-            jni: self.jni,
-            state: PhantomData,
-        }
+        self
     }
-}
 
-impl<'a> Verifier<'a, state::Started> {
     pub fn verify(&self, program: Program) -> VerificationResult {
         let ast_utils = AstUtils::new(self.env);
 
@@ -300,5 +271,13 @@ impl<'a> Verifier<'a, state::Started> {
         } else {
             VerificationResult::Success
         }
+    }
+}
+
+impl<'a> Drop for Verifier<'a> {
+    fn drop(&mut self) {
+        // Tell the verifier to stop its threads.
+        self.jni
+            .unwrap_result(self.verifier_wrapper.call_stop(self.verifier_instance));
     }
 }
