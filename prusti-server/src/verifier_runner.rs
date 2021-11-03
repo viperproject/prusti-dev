@@ -14,61 +14,47 @@ use prusti_common::{
 };
 
 pub struct VerifierRunner<'v> {
-    verifier: viper::Verifier<'v, viper::state::Started>,
-    ast_factory: viper::AstFactory<'v>,
-    ast_utils: viper::AstUtils<'v>,
+    context: VerificationContext<'v>,
+    backend_config: &'v ViperBackendConfig,
 }
 
 impl<'v> VerifierRunner<'v> {
-    pub fn with_runner<F, Res>(
-        verifier_builder: &VerifierBuilder,
-        backend_config: &ViperBackendConfig,
-        body: F,
-    ) -> Res
-    where
-        F: FnOnce(VerifierRunner) -> Res,
-    {
-        let mut stopwatch = Stopwatch::start("prusti-server", "jvm attachment");
+    pub fn new(
+        verifier_builder: &'v VerifierBuilder,
+        backend_config: &'v ViperBackendConfig,
+    ) -> Self {
+        let stopwatch = Stopwatch::start("prusti-server", "jvm attachment");
         let context = verifier_builder.new_verification_context();
-        stopwatch.start_next("verifier startup");
-        let runner = VerifierRunner::new(&context, backend_config);
         stopwatch.finish();
-        body(runner)
-    }
-
-    pub fn with_default_configured_runner<F, Res>(
-        verifier_builder: &VerifierBuilder,
-        body: F,
-    ) -> Res
-    where
-        F: FnOnce(VerifierRunner) -> Res,
-    {
-        Self::with_runner(verifier_builder, &ViperBackendConfig::default(), body)
-    }
-
-    fn new(context: &'v VerificationContext, backend_config: &ViperBackendConfig) -> Self {
         Self {
-            verifier: context.new_viper_verifier(backend_config),
-            ast_factory: context.new_ast_factory(),
-            ast_utils: context.new_ast_utils(),
+            context,
+            backend_config,
         }
     }
 
     pub fn verify(&self, program: Program) -> viper::VerificationResult {
-        let mut stopwatch = Stopwatch::start("prusti-server", "construction of JVM objects");
-        let viper_program = program.to_viper(&self.ast_factory);
-        if config::dump_viper_program() {
-            stopwatch.start_next("dumping viper program");
-            self.dump(viper_program, &program.name);
-        }
-        stopwatch.start_next("verification");
-        self.verifier.verify(viper_program)
+        let ast_factory = self.context.new_ast_factory();
+        let ast_utils = self.context.new_ast_utils();
+        ast_utils.with_local_frame(16, || {
+            // Create a new verifier each time.
+            // Workaround for https://github.com/viperproject/prusti-dev/issues/744
+            let mut stopwatch = Stopwatch::start("prusti-server", "verifier startup");
+            let verifier = self.context.new_viper_verifier(self.backend_config);
+            stopwatch.start_next("construction of JVM objects");
+            let viper_program = program.to_viper(&ast_factory);
+            if config::dump_viper_program() {
+                stopwatch.start_next("dumping viper program");
+                dump(&ast_utils, viper_program, &program.name);
+            }
+            stopwatch.start_next("verification");
+            verifier.verify(viper_program)
+        })
     }
+}
 
-    fn dump(&self, program: viper::Program, program_name: &str) {
-        let namespace = "viper_program";
-        let filename = format!("{}.vpr", program_name);
-        info!("Dumping Viper program to '{}/{}'", namespace, filename);
-        log::report(namespace, filename, self.ast_utils.pretty_print(program));
-    }
+fn dump(ast_utils: &viper::AstUtils, program: viper::Program, program_name: &str) {
+    let namespace = "viper_program";
+    let filename = format!("{}.vpr", program_name);
+    info!("Dumping Viper program to '{}/{}'", namespace, filename);
+    log::report(namespace, filename, ast_utils.pretty_print(program));
 }

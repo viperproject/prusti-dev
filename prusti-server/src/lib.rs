@@ -84,7 +84,9 @@ impl PrustiServer {
                     // evict least-recently-used thread from cache)
                     threads.pop_back();
                 }
-                threads.push_front(thread);
+                if self.cache_size > 0 {
+                    threads.push_front(thread);
+                }
                 Ok(result)
             }
             Err(_) => {
