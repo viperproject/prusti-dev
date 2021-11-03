@@ -120,10 +120,27 @@ impl Ord for PermAmount {
     }
 }
 
+#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
+pub enum Float {
+    F32,
+    F64,
+}
+
+#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
+pub enum BitVector {
+    BV8,
+    BV16,
+    BV32,
+    BV64,
+    BV128,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum Type {
     Int,
     Bool,
+    Float(Float),
+    BitVector(BitVector),
     Seq(Box<Type>),
     //Ref, // At the moment we don't need this
     /// TypedRef: the first parameter is the name of the predicate that encodes the type
@@ -136,6 +153,8 @@ pub enum Type {
 pub enum TypeId {
     Int,
     Bool,
+    Float,
+    BitVector,
     Ref,
     Seq,
     Domain,
@@ -147,6 +166,13 @@ impl fmt::Display for Type {
         match self {
             Type::Int => write!(f, "Int"),
             Type::Bool => write!(f, "Bool"),
+            Type::Float(Float::F32) => write!(f, "F32"),
+            Type::Float(Float::F64) => write!(f, "F64"),
+            Type::BitVector(BitVector::BV8) => write!(f, "BV8"),
+            Type::BitVector(BitVector::BV16) => write!(f, "BV16"),
+            Type::BitVector(BitVector::BV32) => write!(f, "BV32"),
+            Type::BitVector(BitVector::BV64) => write!(f, "BV64"),
+            Type::BitVector(BitVector::BV128) => write!(f, "BV128"),
             //Type::Ref => write!(f, "Ref"),
             Type::TypedRef(ref name) => write!(f, "Ref({})", name),
             Type::Domain(ref name) => write!(f, "Domain({})", name),
@@ -173,6 +199,13 @@ impl Type {
         match self {
             Type::Bool => "bool".to_string(),
             Type::Int => "int".to_string(),
+            Type::Float(Float::F32) => "f32".to_string(),
+            Type::Float(Float::F64) => "f64".to_string(),
+            Type::BitVector(BitVector::BV8) => "bv8".to_string(),
+            Type::BitVector(BitVector::BV16) => "bv16".to_string(),
+            Type::BitVector(BitVector::BV32) => "bv32".to_string(),
+            Type::BitVector(BitVector::BV64) => "bv64".to_string(),
+            Type::BitVector(BitVector::BV128) => "bv128".to_string(),
             Type::TypedRef(ref pred_name) => pred_name.to_string(),
             Type::Domain(ref pred_name) => pred_name.to_string(),
             Type::Snapshot(ref pred_name) => pred_name.to_string(),
@@ -209,6 +242,8 @@ impl Type {
         match self {
             Type::Bool => TypeId::Bool,
             Type::Int => TypeId::Int,
+            Type::Float(_) => TypeId::Float,
+            Type::BitVector(_) => TypeId::BitVector,
             Type::TypedRef(_) => TypeId::Ref,
             Type::Domain(_) => TypeId::Domain,
             Type::Snapshot(_) => TypeId::Snapshot,
