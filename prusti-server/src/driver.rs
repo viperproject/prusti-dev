@@ -1,18 +1,10 @@
-// © 2020, ETH Zurich
+// © 2021, ETH Zurich
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#![deny(unused_must_use)]
-
-extern crate clap;
-extern crate env_logger;
-extern crate log;
-extern crate prusti_server;
-
 use clap::{App, Arg};
-use prusti_server::ServerSideService;
 
 fn main() {
     env_logger::init_from_env(env_logger::Env::new().filter_or("PRUSTI_LOG", "info"));
@@ -35,6 +27,5 @@ fn main() {
         .parse()
         .expect("Invalid port provided");
 
-    let service = ServerSideService::new();
-    service.listen_on_port(port);
+    prusti_server::start_server_on_port(port);
 }

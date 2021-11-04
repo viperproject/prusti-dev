@@ -24,7 +24,7 @@ fn setup() {
 fn runtime_error() {
     setup();
 
-    let verification_context: VerificationContext = VIPER.new_verification_context();
+    let verification_context: VerificationContext = VIPER.attach_current_thread();
     let ast = verification_context.new_ast_factory();
 
     // This is an error, as Silicon expects the method body to be a Seqn statement.
@@ -90,7 +90,7 @@ where
 {
     setup();
 
-    let verification_context: VerificationContext = VIPER.new_verification_context();
+    let verification_context: VerificationContext = VIPER.attach_current_thread();
     let ast = verification_context.new_ast_factory();
 
     let method_body = body_constructor(&ast);

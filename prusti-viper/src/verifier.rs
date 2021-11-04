@@ -6,7 +6,7 @@
 
 use prusti_common::vir::{self, optimizations::optimize_program, ToViper, ToViperDecl};
 use prusti_common::{
-    config, report::log, verification_context::VerifierBuilder, verification_service::*, Stopwatch,
+    config, report::log, Stopwatch,
 };
 use crate::encoder::Encoder;
 use crate::encoder::counterexample_translation;
@@ -23,8 +23,9 @@ use std::fs::{create_dir_all, canonicalize};
 use std::ffi::OsString;
 use prusti_interface::specs::typed;
 use ::log::{info, debug, error};
-use prusti_server::{PrustiServerConnection, ServerSideService, VerifierRunner};
+use prusti_server::{VerificationRequest, ViperBackendConfig, PrustiClient, process_verification_request, spawn_server_thread};
 use rustc_span::DUMMY_SP;
+use prusti_server::tokio::runtime::Builder;
 
 // /// A verifier builder is an object that lives entire program's
 // /// lifetime, has no mutable state, and is responsible for constructing
@@ -369,43 +370,61 @@ fn verify_programs(env: &Environment, programs: Vec<vir::Program>)
         .to_str()
         .unwrap()
         .to_owned();
-    // Prepend the Rust file name to the program.
-    let renamed_programs = programs.into_iter().map(|program| {
+    let verification_requests = programs.into_iter().map(|program| {
         let program_name = program.name.clone();
+        // Prepend the Rust file name to the program.
         let renamed_program = vir::Program {
             name: format!("{}_{}", rust_program_name, program_name),
             ..program
         };
-        (program_name, renamed_program)
+        let request = VerificationRequest {
+            program: renamed_program,
+            backend_config: Default::default(),
+        };
+        (program_name, request)
     });
     if let Some(server_address) = config::server_address() {
         let server_address = if server_address == "MOCK" {
-            ServerSideService::spawn_off_thread().to_string()
+            spawn_server_thread().to_string()
         } else {
             server_address
         };
         info!("Connecting to Prusti server at {}", server_address);
-        let service = PrustiServerConnection::new(&server_address).unwrap_or_else(|error| {
+        let client = PrustiClient::new(&server_address).unwrap_or_else(|error| {
             panic!(
                 "Could not parse server address ({}) due to {:?}",
                 server_address, error
             )
         });
-        renamed_programs.map(|(program_name, program)| {
-            let request = VerificationRequest {
-                program,
-                backend_config: Default::default(),
-            };
-            (program_name, service.verify(request))
+        // Here we construct a Tokio runtime to block until completion of the futures returned by
+        // `client.verify`. However, to report verification errors as early as possible,
+        // `verify_programs` should return an asynchronous stream of verification results.
+        let mut runtime = Builder::new()
+            .basic_scheduler()
+            .thread_name("prusti-viper")
+            .enable_all()
+            .build()
+            .expect("failed to construct Tokio runtime");
+        verification_requests.map(|(program_name, request)| {
+            let remote_result = runtime.block_on(client.verify(request));
+            let result = remote_result.unwrap_or_else(|error| {
+                panic!(
+                    "Verification request of program {} failed: {:?}",
+                    program_name,
+                    error
+                )
+            });
+            (program_name, result)
         }).collect()
     } else {
         let mut stopwatch = Stopwatch::start("prusti-viper", "JVM startup");
-        let verifier_builder = VerifierBuilder::new();
-        stopwatch.start_next("running verifier");
-        let config = ViperBackendConfig::default();
-        let runner = VerifierRunner::new(&verifier_builder, &config);
-        renamed_programs.map(|(program_name, program)| {
-            (program_name, runner.verify(program))
+        let viper = Viper::new_with_args(config::extra_jvm_args());
+        stopwatch.start_next("attach current thread to the JVM");
+        let viper_thread = viper.attach_current_thread();
+        stopwatch.finish();
+        verification_requests.map(|(program_name, request)| {
+            let result = process_verification_request(&viper_thread, request);
+            (program_name, result)
         }).collect()
     }
 }

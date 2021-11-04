@@ -15,14 +15,14 @@ benchmark_main!(ast_factory);
 benchmark_group!(ast_factory, bench_build_program, bench_verify_program);
 
 fn bench_build_program(bench: &mut Bencher) {
-    let verification_context: VerificationContext = VIPER.new_verification_context();
+    let verification_context: VerificationContext = VIPER.attach_current_thread();
     let ast_factory = verification_context.new_ast_factory();
 
     bench.iter(|| build_program(&ast_factory));
 }
 
 fn bench_verify_program(bench: &mut Bencher) {
-    let verification_context: VerificationContext = VIPER.new_verification_context();
+    let verification_context: VerificationContext = VIPER.attach_current_thread();
     let ast_factory = verification_context.new_ast_factory();
     let backend = VerificationBackend::Silicon;
     let verifier = verification_context.new_verifier(backend, None);
