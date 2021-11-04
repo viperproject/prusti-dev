@@ -24,7 +24,7 @@ fn setup() {
 fn success_with_empty_program() {
     setup();
 
-    let verification_context: VerificationContext = VIPER.new_verification_context();
+    let verification_context: VerificationContext = VIPER.attach_current_thread();
 
     let ast = verification_context.new_ast_factory();
 
@@ -41,7 +41,7 @@ fn success_with_empty_program() {
 fn failure_with_assert_false() {
     setup();
 
-    let verification_context: VerificationContext = VIPER.new_verification_context();
+    let verification_context: VerificationContext = VIPER.attach_current_thread();
     let ast = verification_context.new_ast_factory();
 
     let false_lit = ast.false_lit();
@@ -76,7 +76,7 @@ fn failure_with_assert_false() {
 fn success_with_assert_with_boolean_operations() {
     setup();
 
-    let verification_context: VerificationContext = VIPER.new_verification_context();
+    let verification_context: VerificationContext = VIPER.attach_current_thread();
     let ast = verification_context.new_ast_factory();
 
     let true_lit = ast.true_lit();
@@ -110,7 +110,7 @@ fn success_with_assert_with_boolean_operations() {
 fn success_with_assert_false_in_dead_code() {
     setup();
 
-    let verification_context: VerificationContext = VIPER.new_verification_context();
+    let verification_context: VerificationContext = VIPER.attach_current_thread();
     let ast = verification_context.new_ast_factory();
 
     let assert_false = ast.assert(ast.false_lit(), ast.no_position());
@@ -139,7 +139,7 @@ fn success_with_assert_false_in_dead_code() {
 fn success_with_assign_if_and_assert() {
     setup();
 
-    let verification_context: VerificationContext = VIPER.new_verification_context();
+    let verification_context: VerificationContext = VIPER.attach_current_thread();
     let ast = verification_context.new_ast_factory();
 
     let local_var = ast.local_var("x", ast.bool_type());
@@ -172,7 +172,7 @@ fn success_with_assign_if_and_assert() {
 fn failure_with_assign_if_and_assert() {
     setup();
 
-    let verification_context: VerificationContext = VIPER.new_verification_context();
+    let verification_context: VerificationContext = VIPER.attach_current_thread();
     let ast = verification_context.new_ast_factory();
 
     let local_var = ast.local_var("x", ast.bool_type());
@@ -220,7 +220,7 @@ fn failure_with_assign_if_and_assert() {
 fn success_with_complex_post_condition() {
     setup();
 
-    let verification_context: VerificationContext = VIPER.new_verification_context();
+    let verification_context: VerificationContext = VIPER.attach_current_thread();
     let ast = verification_context.new_ast_factory();
 
     let condition = ast.and(

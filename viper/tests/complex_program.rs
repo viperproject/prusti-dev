@@ -14,7 +14,7 @@ lazy_static! {
 fn success_with_complex_program() {
     env_logger::init();
 
-    let verification_context: VerificationContext = VIPER.new_verification_context();
+    let verification_context: VerificationContext = VIPER.attach_current_thread();
     let ast = verification_context.new_ast_factory();
 
     let wrapper_type = ast.domain_type(

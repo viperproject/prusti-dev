@@ -9,11 +9,8 @@
 // wraps libtest.
 #![test_runner(test_runner)]
 
-extern crate compiletest_rs;
-extern crate prusti_server;
-
 use compiletest_rs::{common::Mode, run_tests, Config};
-use prusti_server::ServerSideService;
+use prusti_server::spawn_server_thread;
 use std::{env, path::PathBuf};
 
 fn find_prusti_rustc_path() -> PathBuf {
@@ -155,7 +152,7 @@ fn run_verification_core_proof(group_name: &str, filter: &Option<String>) {
 
 fn test_runner(_tests: &[&()]) {
     // Spawn server process as child (so it stays around until main function terminates)
-    let server_address = ServerSideService::spawn_off_thread();
+    let server_address = spawn_server_thread();
     env::set_var("PRUSTI_SERVER_ADDRESS", server_address.to_string());
 
     // Filter the tests to run

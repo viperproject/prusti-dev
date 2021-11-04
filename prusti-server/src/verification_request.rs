@@ -1,12 +1,13 @@
+// © 2021, ETH Zurich
+//
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
+use prusti_common::{config, vir::Program};
+use serde::{Deserialize, Serialize};
 use std::str::FromStr;
-
-use crate::config;
 use viper::{self, VerificationBackend};
-use crate::vir::Program;
-
-pub trait VerificationService {
-    fn verify(&self, request: VerificationRequest) -> viper::VerificationResult;
-}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct VerificationRequest {
@@ -14,10 +15,9 @@ pub struct VerificationRequest {
     pub backend_config: ViperBackendConfig,
 }
 
-/**
-The configuration for the viper backend, (i.e. verifier).
-Expresses which backend (silicon or carbon) should be used, and provides command-line arguments to the viper verifier.
-*/
+/// The configuration for the viper backend, (i.e. verifier).
+/// Expresses which backend (silicon or carbon) should be used, and provides command-line arguments
+/// to the viper verifier.
 #[derive(Debug, Clone, Serialize, Deserialize, Eq, PartialEq, Hash)]
 pub struct ViperBackendConfig {
     pub backend: VerificationBackend,
@@ -46,9 +46,7 @@ impl Default for ViperBackendConfig {
                 ]);
             }
             VerificationBackend::Carbon => {
-                verifier_args.extend(vec![
-                    "--disableAllocEncoding".to_string(),
-                ]);
+                verifier_args.extend(vec!["--disableAllocEncoding".to_string()]);
             }
         }
         Self {
