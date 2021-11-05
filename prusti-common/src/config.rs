@@ -90,7 +90,6 @@ lazy_static! {
         settings.set_default("no_verify", false).unwrap();
         settings.set_default("full_compilation", false).unwrap();
         settings.set_default("json_communication", false).unwrap();
-        settings.set_default("json_communication", false).unwrap();
         settings.set_default("optimizations","all").unwrap();
         settings.set_default("intern_names", true).unwrap();
         settings.set_default("enable_purification_optimization", false).unwrap();

@@ -4,8 +4,6 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#![cfg_attr(feature = "cargo-clippy", allow(clippy::new_ret_no_self))]
-
 use ast_factory::*;
 use ast_utils::AstUtils;
 use jni::{objects::JObject, JNIEnv};
