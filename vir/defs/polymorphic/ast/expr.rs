@@ -2380,7 +2380,7 @@ impl fmt::Display for ForAll {
                 .map(|x| x.to_string())
                 .collect::<Vec<String>>()
                 .join(", "),
-            (&self.body).to_string()
+            self.body
         )
     }
 }
@@ -2421,7 +2421,7 @@ impl fmt::Display for Exists {
                 .map(|x| x.to_string())
                 .collect::<Vec<String>>()
                 .join(", "),
-            (&self.body).to_string()
+            self.body
         )
     }
 }
@@ -2452,9 +2452,7 @@ impl fmt::Display for LetExpr {
         write!(
             f,
             "(let {:?} == ({}) in {})",
-            &self.variable,
-            (&self.def).to_string(),
-            (&self.body).to_string()
+            &self.variable, self.def, self.body
         )
     }
 }
@@ -2584,9 +2582,7 @@ impl fmt::Display for DowncastExpr {
         write!(
             f,
             "(downcast {} to {} in {})",
-            (&self.enum_place).to_string(),
-            &self.field,
-            (&self.base).to_string(),
+            self.enum_place, &self.field, self.base,
         )
     }
 }
@@ -2612,7 +2608,7 @@ pub struct SnapApp {
 
 impl fmt::Display for SnapApp {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "snap({})", (&*self.base).to_string())
+        write!(f, "snap({})", self.base)
     }
 }
 
