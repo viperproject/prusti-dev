@@ -5,18 +5,16 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use crate::AbstractState;
+use rustc_data_structures::fx::FxHashMap;
 use rustc_middle::mir;
 use serde::{ser::SerializeMap, Serialize, Serializer};
-use std::{
-    collections::{BTreeMap, HashMap},
-    fmt,
-};
+use std::{collections::BTreeMap, fmt};
 
 /// Records the abstract state at every program point and CFG edge of `mir`.
 pub struct PointwiseState<'mir, 'tcx: 'mir, S: AbstractState> {
-    state_before: HashMap<mir::Location, S>,
+    state_before: FxHashMap<mir::Location, S>,
     /// Maps each basic block to a map of its successor blocks to the state on the CFG edge.
-    state_after_block: HashMap<mir::BasicBlock, HashMap<mir::BasicBlock, S>>,
+    state_after_block: FxHashMap<mir::BasicBlock, FxHashMap<mir::BasicBlock, S>>,
     // Needed for translation of location to statement/terminator in serialization.
     mir: &'mir mir::Body<'tcx>,
 }
@@ -60,7 +58,7 @@ impl<'mir, 'tcx: 'mir, S: AbstractState> Serialize for PointwiseState<'mir, 'tcx
 
             let terminator_str = format!("terminator: {:?}", self.mir[bb].terminator().kind);
 
-            let new_map = HashMap::new();
+            let new_map = FxHashMap::default();
             let map_after = self.lookup_after_block(bb).unwrap_or(&new_map);
             let ordered_succ_map: BTreeMap<_, _> = map_after
                 .iter()
@@ -85,8 +83,8 @@ impl<'mir, 'tcx: 'mir, S: AbstractState> Serialize for PointwiseState<'mir, 'tcx
 impl<'mir, 'tcx: 'mir, S: AbstractState> PointwiseState<'mir, 'tcx, S> {
     pub fn new(mir: &'mir mir::Body<'tcx>) -> Self {
         Self {
-            state_before: HashMap::new(),
-            state_after_block: HashMap::new(),
+            state_before: FxHashMap::default(),
+            state_after_block: FxHashMap::default(),
             mir,
         }
     }
@@ -110,7 +108,7 @@ impl<'mir, 'tcx: 'mir, S: AbstractState> PointwiseState<'mir, 'tcx, S> {
     pub fn lookup_after_block(
         &self,
         block: mir::BasicBlock,
-    ) -> Option<&HashMap<mir::BasicBlock, S>> {
+    ) -> Option<&FxHashMap<mir::BasicBlock, S>> {
         self.state_after_block.get(&block)
     }
 
@@ -120,10 +118,10 @@ impl<'mir, 'tcx: 'mir, S: AbstractState> PointwiseState<'mir, 'tcx, S> {
     pub(crate) fn lookup_mut_after_block(
         &mut self,
         block: mir::BasicBlock,
-    ) -> &mut HashMap<mir::BasicBlock, S> {
+    ) -> &mut FxHashMap<mir::BasicBlock, S> {
         self.state_after_block
             .entry(block)
-            .or_insert_with(HashMap::new)
+            .or_insert_with(FxHashMap::default)
     }
 
     /// Update the state before the `location`.

@@ -5,9 +5,10 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use crate::{domains::place_utils::*, AbstractState, Analysis, AnalysisError};
+use rustc_data_structures::fx::FxHashSet;
 use rustc_middle::{mir, ty::TyCtxt};
 use rustc_span::def_id::DefId;
-use std::collections::{BTreeSet, HashSet};
+use std::collections::BTreeSet;
 
 use crate::analysis::AnalysisResult;
 use serde::{ser::SerializeSeq, Serialize, Serializer};
@@ -28,7 +29,7 @@ pub struct DefinitelyInitializedAnalysis<'mir, 'tcx: 'mir> {
 /// set at the same time is illegal.
 #[derive(Clone)]
 pub struct DefinitelyInitializedState<'mir, 'tcx: 'mir> {
-    def_init_places: HashSet<mir::Place<'tcx>>,
+    def_init_places: FxHashSet<mir::Place<'tcx>>,
     def_id: DefId,
     mir: &'mir mir::Body<'tcx>,
     tcx: TyCtxt<'tcx>,
@@ -69,7 +70,7 @@ impl<'mir, 'tcx: 'mir> Analysis<'mir, 'tcx> for DefinitelyInitializedAnalysis<'m
     /// The bottom element of the lattice contains all possible places,
     /// meaning all locals (which includes all their fields)
     fn new_bottom(&self) -> Self::State {
-        let mut places = HashSet::new();
+        let mut places = FxHashSet::default();
         for local in self.mir.local_decls.indices() {
             places.insert(local.into());
         }
@@ -83,7 +84,7 @@ impl<'mir, 'tcx: 'mir> Analysis<'mir, 'tcx> for DefinitelyInitializedAnalysis<'m
 
     fn new_initial(&self) -> Self::State {
         // Top = empty set
-        let mut places = HashSet::new();
+        let mut places = FxHashSet::default();
         // join/insert places in arguments
         // they are guaranteed to be disjoint and not prefixes of each other,
         // therefore insert them directly
@@ -169,14 +170,14 @@ impl<'mir, 'tcx: 'mir> Serialize for DefinitelyInitializedState<'mir, 'tcx> {
 }
 
 impl<'mir, 'tcx: 'mir> DefinitelyInitializedState<'mir, 'tcx> {
-    pub fn get_def_init_places(&self) -> &HashSet<mir::Place<'tcx>> {
+    pub fn get_def_init_places(&self) -> &FxHashSet<mir::Place<'tcx>> {
         &self.def_init_places
     }
 
     /// The top element of the lattice contains no places
     pub fn new_top(def_id: DefId, mir: &'mir mir::Body<'tcx>, tcx: TyCtxt<'tcx>) -> Self {
         Self {
-            def_init_places: HashSet::new(),
+            def_init_places: FxHashSet::default(),
             def_id,
             mir,
             tcx,
@@ -465,10 +466,10 @@ impl<'mir, 'tcx: 'mir> AbstractState for DefinitelyInitializedState<'mir, 'tcx> 
             other.check_invariant();
         }
 
-        let mut intersection = HashSet::new();
+        let mut intersection = FxHashSet::default();
         // TODO: make more efficient/modify self directly?
         let mut propagate_places_fn =
-            |place_set1: &HashSet<mir::Place<'tcx>>, place_set2: &HashSet<mir::Place<'tcx>>| {
+            |place_set1: &FxHashSet<mir::Place<'tcx>>, place_set2: &FxHashSet<mir::Place<'tcx>>| {
                 for place in place_set1.iter() {
                     // find matching place in place_set2:
                     // if there is a matching place that contains exactly the same or more memory
