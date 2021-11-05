@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;tungstenite-0.9.2&#x2F;src&#x2F;client.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>client.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../tungstenite/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;tungstenite-0.11.1&#x2F;src&#x2F;client.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>client.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../tungstenite/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -200,16 +200,78 @@
 <span id="200">200</span>
 <span id="201">201</span>
 <span id="202">202</span>
-</pre><pre class="rust"><code><span class="doccomment">//! Methods to connect to an WebSocket as a client.</span>
+<span id="203">203</span>
+<span id="204">204</span>
+<span id="205">205</span>
+<span id="206">206</span>
+<span id="207">207</span>
+<span id="208">208</span>
+<span id="209">209</span>
+<span id="210">210</span>
+<span id="211">211</span>
+<span id="212">212</span>
+<span id="213">213</span>
+<span id="214">214</span>
+<span id="215">215</span>
+<span id="216">216</span>
+<span id="217">217</span>
+<span id="218">218</span>
+<span id="219">219</span>
+<span id="220">220</span>
+<span id="221">221</span>
+<span id="222">222</span>
+<span id="223">223</span>
+<span id="224">224</span>
+<span id="225">225</span>
+<span id="226">226</span>
+<span id="227">227</span>
+<span id="228">228</span>
+<span id="229">229</span>
+<span id="230">230</span>
+<span id="231">231</span>
+<span id="232">232</span>
+<span id="233">233</span>
+<span id="234">234</span>
+<span id="235">235</span>
+<span id="236">236</span>
+<span id="237">237</span>
+<span id="238">238</span>
+<span id="239">239</span>
+<span id="240">240</span>
+<span id="241">241</span>
+<span id="242">242</span>
+<span id="243">243</span>
+<span id="244">244</span>
+<span id="245">245</span>
+<span id="246">246</span>
+<span id="247">247</span>
+<span id="248">248</span>
+<span id="249">249</span>
+<span id="250">250</span>
+<span id="251">251</span>
+<span id="252">252</span>
+<span id="253">253</span>
+<span id="254">254</span>
+<span id="255">255</span>
+<span id="256">256</span>
+<span id="257">257</span>
+<span id="258">258</span>
+<span id="259">259</span>
+<span id="260">260</span>
+<span id="261">261</span>
+<span id="262">262</span>
+</pre><pre class="rust"><code><span class="doccomment">//! Methods to connect to a WebSocket as a client.</span>
 
 <span class="kw">use</span> <span class="ident">std::io</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>};
 <span class="kw">use</span> <span class="ident">std::net</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/std/net/addr/enum.SocketAddr.html">SocketAddr</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/net/tcp/struct.TcpStream.html">TcpStream</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/net/addr/trait.ToSocketAddrs.html">ToSocketAddrs</a>};
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/result/enum.Result.html">std::result::Result</a> <span class="kw">as</span> <span class="ident">StdResult</span>;
 
+<span class="kw">use</span> <a class="ident" href="../../http/uri/struct.Uri.html">http::Uri</a>;
 <span class="kw">use</span> <a class="ident" href="../../log/index.html">log</a>::<span class="kw-2">*</span>;
+
 <span class="kw">use</span> <a class="ident" href="../../url/struct.Url.html">url::Url</a>;
 
-<span class="kw">use</span> <a class="ident" href="../../src/tungstenite/handshake/client.rs.html#224-229"><span class="kw">crate</span>::handshake::client::Response</a>;
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::handshake::client</span>::{<a class="ident" href="../../src/tungstenite/handshake/client.rs.html#17">Request</a>, <a class="ident" href="../../src/tungstenite/handshake/client.rs.html#20">Response</a>};
 <span class="kw">use</span> <a class="ident" href="../../src/tungstenite/protocol/mod.rs.html#32-46"><span class="kw">crate</span>::protocol::WebSocketConfig</a>;
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tls&quot;</span>)]</span>
@@ -248,25 +310,25 @@
 <span class="kw">mod</span> <span class="ident">encryption</span> {
     <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/net/tcp/struct.TcpStream.html">std::net::TcpStream</a>;
 
-    <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::error</span>::{<a class="ident" href="../../src/tungstenite/error.rs.html#27-68">Error</a>, <span class="prelude-ty">Result</span>};
+    <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::error</span>::{<a class="ident" href="../../src/tungstenite/error.rs.html#27-70">Error</a>, <span class="prelude-ty">Result</span>};
     <span class="kw">use</span> <a class="ident" href="../../src/tungstenite/stream.rs.html#16-21"><span class="kw">crate</span>::stream::Mode</a>;
 
     <span class="doccomment">/// TLS support is nod compiled in, this is just standard `TcpStream`.</span>
     <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">AutoStream</span> <span class="op">=</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/net/tcp/struct.TcpStream.html">TcpStream</a>;
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">wrap_stream</span>(<span class="ident">stream</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/net/tcp/struct.TcpStream.html">TcpStream</a>, <span class="ident">_domain</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, <span class="ident">mode</span>: <a class="ident" href="../../src/tungstenite/stream.rs.html#16-21">Mode</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/tungstenite/client.rs.html#53">AutoStream</a><span class="op">&gt;</span> {
-        <span class="kw">match</span> <a class="ident" href="../../src/tungstenite/client.rs.html#55">mode</a> {
-            <a class="ident" href="../../src/tungstenite/stream.rs.html#18">Mode::Plain</a> =&gt; <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/tungstenite/client.rs.html#55">stream</a>),
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">wrap_stream</span>(<span class="ident">stream</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/net/tcp/struct.TcpStream.html">TcpStream</a>, <span class="ident">_domain</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, <span class="ident">mode</span>: <a class="ident" href="../../src/tungstenite/stream.rs.html#16-21">Mode</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/tungstenite/client.rs.html#55">AutoStream</a><span class="op">&gt;</span> {
+        <span class="kw">match</span> <a class="ident" href="../../src/tungstenite/client.rs.html#57">mode</a> {
+            <a class="ident" href="../../src/tungstenite/stream.rs.html#18">Mode::Plain</a> =&gt; <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/tungstenite/client.rs.html#57">stream</a>),
             <a class="ident" href="../../src/tungstenite/stream.rs.html#20">Mode::Tls</a> =&gt; <span class="prelude-val">Err</span>(<a class="ident" href="../../src/tungstenite/error.rs.html#65">Error::Url</a>(<span class="string">&quot;TLS support not compiled in.&quot;</span>.<span class="ident">into</span>())),
         }
     }
 }
 
-<span class="kw">use</span> <a class="ident" href="../../src/tungstenite/client.rs.html#55"><span class="self">self</span>::encryption::wrap_stream</a>;
-<span class="kw">pub</span> <span class="kw">use</span> <a class="ident" href="../../src/tungstenite/client.rs.html#53"><span class="self">self</span>::encryption::AutoStream</a>;
+<span class="kw">use</span> <a class="ident" href="../../src/tungstenite/client.rs.html#57"><span class="self">self</span>::encryption::wrap_stream</a>;
+<span class="kw">pub</span> <span class="kw">use</span> <a class="ident" href="../../src/tungstenite/client.rs.html#55"><span class="self">self</span>::encryption::AutoStream</a>;
 
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::error</span>::{<a class="ident" href="../../src/tungstenite/error.rs.html#27-68">Error</a>, <span class="prelude-ty">Result</span>};
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::handshake::client</span>::{<a class="ident" href="../../src/tungstenite/handshake/client.rs.html#70-74">ClientHandshake</a>, <a class="ident" href="../../src/tungstenite/handshake/client.rs.html#19-24">Request</a>};
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::error</span>::{<a class="ident" href="../../src/tungstenite/error.rs.html#27-70">Error</a>, <span class="prelude-ty">Result</span>};
+<span class="kw">use</span> <a class="ident" href="../../src/tungstenite/handshake/client.rs.html#24-28"><span class="kw">crate</span>::handshake::client::ClientHandshake</a>;
 <span class="kw">use</span> <a class="ident" href="../../src/tungstenite/handshake/mod.rs.html#59-64"><span class="kw">crate</span>::handshake::HandshakeError</a>;
 <span class="kw">use</span> <a class="ident" href="../../src/tungstenite/protocol/mod.rs.html#63-68"><span class="kw">crate</span>::protocol::WebSocket</a>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::stream</span>::{<a class="ident" href="../../src/tungstenite/stream.rs.html#16-21">Mode</a>, <a class="ident" href="../../src/tungstenite/stream.rs.html#24-27">NoDelay</a>};
@@ -286,40 +348,26 @@
 <span class="doccomment">/// This function uses `native_tls` to do TLS. If you want to use other TLS libraries,</span>
 <span class="doccomment">/// use `client` instead. There is no need to enable the &quot;tls&quot; feature if you don&#39;t call</span>
 <span class="doccomment">/// `connect` since it&#39;s the only function that uses native_tls.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">connect_with_config</span><span class="op">&lt;</span><span class="lifetime">&#39;t</span>, <span class="ident">Req</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Request</span><span class="op">&lt;</span><span class="lifetime">&#39;t</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>(
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">connect_with_config</span><span class="op">&lt;</span><span class="ident">Req</span>: <a class="ident" href="../../src/tungstenite/client.rs.html#194-197">IntoClientRequest</a><span class="op">&gt;</span>(
     <span class="ident">request</span>: <span class="ident">Req</span>,
     <span class="ident">config</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../src/tungstenite/protocol/mod.rs.html#32-46">WebSocketConfig</a><span class="op">&gt;</span>,
-) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="ident">WebSocket</span><span class="op">&lt;</span><a class="ident" href="../../src/tungstenite/client.rs.html#53">AutoStream</a><span class="op">&gt;</span>, <a class="ident" href="../../src/tungstenite/handshake/client.rs.html#224-229">Response</a>)<span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="ident">request</span>: <a class="ident" href="../../src/tungstenite/handshake/client.rs.html#19-24">Request</a> <span class="op">=</span> <a class="ident" href="../../src/tungstenite/client.rs.html#88">request</a>.<span class="ident">into</span>();
-    <span class="kw">let</span> <span class="ident">mode</span> <span class="op">=</span> <a class="ident" href="../../src/tungstenite/client.rs.html#162">url_mode</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/tungstenite/client.rs.html#91">request</a>.<span class="ident">url</span>)<span class="question-mark">?</span>;
-    <span class="kw">let</span> <span class="ident">host</span> <span class="op">=</span> <a class="ident" href="../../src/tungstenite/client.rs.html#91">request</a>
-        .<span class="ident">url</span>
+) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="ident">WebSocket</span><span class="op">&lt;</span><a class="ident" href="../../src/tungstenite/client.rs.html#55">AutoStream</a><span class="op">&gt;</span>, <a class="ident" href="../../src/tungstenite/handshake/client.rs.html#20">Response</a>)<span class="op">&gt;</span> {
+    <span class="kw">let</span> <span class="ident">request</span>: <a class="ident" href="../../src/tungstenite/handshake/client.rs.html#17">Request</a> <span class="op">=</span> <a class="ident" href="../../src/tungstenite/client.rs.html#90">request</a>.<a class="ident" href="../../src/tungstenite/client.rs.html#196">into_client_request</a>()<span class="question-mark">?</span>;
+    <span class="kw">let</span> <span class="ident">uri</span> <span class="op">=</span> <a class="ident" href="../../src/tungstenite/client.rs.html#93">request</a>.<span class="ident">uri</span>();
+    <span class="kw">let</span> <span class="ident">mode</span> <span class="op">=</span> <a class="ident" href="../../src/tungstenite/client.rs.html#148">uri_mode</a>(<a class="ident" href="../../src/tungstenite/client.rs.html#94">uri</a>)<span class="question-mark">?</span>;
+    <span class="kw">let</span> <span class="ident">host</span> <span class="op">=</span> <a class="ident" href="../../src/tungstenite/client.rs.html#93">request</a>
+        .<span class="ident">uri</span>()
         .<span class="ident">host</span>()
         .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <a class="ident" href="../../src/tungstenite/error.rs.html#65">Error::Url</a>(<span class="string">&quot;No host name in the URL&quot;</span>.<span class="ident">into</span>()))<span class="question-mark">?</span>;
-    <span class="kw">let</span> <span class="ident">port</span> <span class="op">=</span> <a class="ident" href="../../src/tungstenite/client.rs.html#91">request</a>
-        .<span class="ident">url</span>
-        .<span class="ident">port_or_known_default</span>()
-        .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <a class="ident" href="../../src/tungstenite/error.rs.html#65">Error::Url</a>(<span class="string">&quot;No port number in the URL&quot;</span>.<span class="ident">into</span>()))<span class="question-mark">?</span>;
-    <span class="kw">let</span> <span class="ident">addrs</span>;
-    <span class="kw">let</span> <span class="ident">addr</span>;
-    <span class="kw">let</span> <span class="ident">addrs</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../src/tungstenite/client.rs.html#93">host</a> {
-        <span class="ident">url::Host::Domain</span>(<span class="ident">domain</span>) =&gt; {
-            <a class="ident" href="../../src/tungstenite/client.rs.html#101">addrs</a> <span class="op">=</span> (<a class="ident" href="../../src/tungstenite/client.rs.html#104">domain</a>, <a class="ident" href="../../src/tungstenite/client.rs.html#97">port</a>).<span class="ident">to_socket_addrs</span>()<span class="question-mark">?</span>;
-            <a class="ident" href="../../src/tungstenite/client.rs.html#101">addrs</a>.<span class="ident">as_slice</span>()
-        }
-        <span class="ident">url::Host::Ipv4</span>(<span class="ident">ip</span>) =&gt; {
-            <a class="ident" href="../../src/tungstenite/client.rs.html#102">addr</a> <span class="op">=</span> (<a class="ident" href="../../src/tungstenite/client.rs.html#108">ip</a>, <a class="ident" href="../../src/tungstenite/client.rs.html#97">port</a>).<span class="ident">into</span>();
-            <span class="ident">std::slice::from_ref</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/tungstenite/client.rs.html#102">addr</a>)
-        }
-        <span class="ident">url::Host::Ipv6</span>(<span class="ident">ip</span>) =&gt; {
-            <a class="ident" href="../../src/tungstenite/client.rs.html#102">addr</a> <span class="op">=</span> (<a class="ident" href="../../src/tungstenite/client.rs.html#112">ip</a>, <a class="ident" href="../../src/tungstenite/client.rs.html#97">port</a>).<span class="ident">into</span>();
-            <span class="ident">std::slice::from_ref</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/tungstenite/client.rs.html#102">addr</a>)
-        }
-    };
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">stream</span> <span class="op">=</span> <a class="ident" href="../../src/tungstenite/client.rs.html#143">connect_to_some</a>(<a class="ident" href="../../src/tungstenite/client.rs.html#103">addrs</a>, <span class="kw-2">&amp;</span><a class="ident" href="../../src/tungstenite/client.rs.html#91">request</a>.<span class="ident">url</span>, <a class="ident" href="../../src/tungstenite/client.rs.html#92">mode</a>)<span class="question-mark">?</span>;
-    <a class="ident" href="../../src/tungstenite/stream.rs.html#26">NoDelay::set_nodelay</a>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../src/tungstenite/client.rs.html#117">stream</a>, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
-    <a class="ident" href="../../src/tungstenite/client.rs.html#176-183">client_with_config</a>(<a class="ident" href="../../src/tungstenite/client.rs.html#91">request</a>, <a class="ident" href="../../src/tungstenite/client.rs.html#117">stream</a>, <a class="ident" href="../../src/tungstenite/client.rs.html#89">config</a>).<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="kw">match</span> <a class="ident" href="../../src/tungstenite/client.rs.html#119">e</a> {
-        <a class="ident" href="../../src/tungstenite/handshake/mod.rs.html#63">HandshakeError::Failure</a>(<span class="ident">f</span>) =&gt; <a class="ident" href="../../src/tungstenite/client.rs.html#120">f</a>,
+    <span class="kw">let</span> <span class="ident">port</span> <span class="op">=</span> <a class="ident" href="../../src/tungstenite/client.rs.html#94">uri</a>.<span class="ident">port_u16</span>().<span class="ident">unwrap_or</span>(<span class="kw">match</span> <a class="ident" href="../../src/tungstenite/client.rs.html#95">mode</a> {
+        <a class="ident" href="../../src/tungstenite/stream.rs.html#18">Mode::Plain</a> =&gt; <span class="number">80</span>,
+        <a class="ident" href="../../src/tungstenite/stream.rs.html#20">Mode::Tls</a> =&gt; <span class="number">443</span>,
+    });
+    <span class="kw">let</span> <span class="ident">addrs</span> <span class="op">=</span> (<a class="ident" href="../../src/tungstenite/client.rs.html#96">host</a>, <a class="ident" href="../../src/tungstenite/client.rs.html#100">port</a>).<span class="ident">to_socket_addrs</span>()<span class="question-mark">?</span>;
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">stream</span> <span class="op">=</span> <a class="ident" href="../../src/tungstenite/client.rs.html#129">connect_to_some</a>(<a class="ident" href="../../src/tungstenite/client.rs.html#104">addrs</a>.<span class="ident">as_slice</span>(), <span class="kw-2">&amp;</span><a class="ident" href="../../src/tungstenite/client.rs.html#93">request</a>.<span class="ident">uri</span>(), <a class="ident" href="../../src/tungstenite/client.rs.html#95">mode</a>)<span class="question-mark">?</span>;
+    <a class="ident" href="../../src/tungstenite/stream.rs.html#26">NoDelay::set_nodelay</a>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../src/tungstenite/client.rs.html#105">stream</a>, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
+    <a class="ident" href="../../src/tungstenite/client.rs.html#162-169">client_with_config</a>(<a class="ident" href="../../src/tungstenite/client.rs.html#93">request</a>, <a class="ident" href="../../src/tungstenite/client.rs.html#105">stream</a>, <a class="ident" href="../../src/tungstenite/client.rs.html#91">config</a>).<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="kw">match</span> <a class="ident" href="../../src/tungstenite/client.rs.html#107">e</a> {
+        <a class="ident" href="../../src/tungstenite/handshake/mod.rs.html#63">HandshakeError::Failure</a>(<span class="ident">f</span>) =&gt; <a class="ident" href="../../src/tungstenite/client.rs.html#108">f</a>,
         <a class="ident" href="../../src/tungstenite/handshake/mod.rs.html#61">HandshakeError::Interrupted</a>(<span class="kw">_</span>) =&gt; <span class="macro">panic!</span>(<span class="string">&quot;Bug: blocking handshake not blocked&quot;</span>),
     })
 }
@@ -336,35 +384,33 @@
 <span class="doccomment">/// This function uses `native_tls` to do TLS. If you want to use other TLS libraries,</span>
 <span class="doccomment">/// use `client` instead. There is no need to enable the &quot;tls&quot; feature if you don&#39;t call</span>
 <span class="doccomment">/// `connect` since it&#39;s the only function that uses native_tls.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">connect</span><span class="op">&lt;</span><span class="lifetime">&#39;t</span>, <span class="ident">Req</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Request</span><span class="op">&lt;</span><span class="lifetime">&#39;t</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>(
-    <span class="ident">request</span>: <span class="ident">Req</span>,
-) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="ident">WebSocket</span><span class="op">&lt;</span><a class="ident" href="../../src/tungstenite/client.rs.html#53">AutoStream</a><span class="op">&gt;</span>, <a class="ident" href="../../src/tungstenite/handshake/client.rs.html#224-229">Response</a>)<span class="op">&gt;</span> {
-    <a class="ident" href="../../src/tungstenite/client.rs.html#87-90">connect_with_config</a>(<a class="ident" href="../../src/tungstenite/client.rs.html#138">request</a>, <span class="prelude-val">None</span>)
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">connect</span><span class="op">&lt;</span><span class="ident">Req</span>: <a class="ident" href="../../src/tungstenite/client.rs.html#194-197">IntoClientRequest</a><span class="op">&gt;</span>(<span class="ident">request</span>: <span class="ident">Req</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="ident">WebSocket</span><span class="op">&lt;</span><a class="ident" href="../../src/tungstenite/client.rs.html#55">AutoStream</a><span class="op">&gt;</span>, <a class="ident" href="../../src/tungstenite/handshake/client.rs.html#20">Response</a>)<span class="op">&gt;</span> {
+    <a class="ident" href="../../src/tungstenite/client.rs.html#89-92">connect_with_config</a>(<a class="ident" href="../../src/tungstenite/client.rs.html#125">request</a>, <span class="prelude-val">None</span>)
 }
 
-<span class="kw">fn</span> <span class="ident">connect_to_some</span>(<span class="ident">addrs</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/net/addr/enum.SocketAddr.html">SocketAddr</a>], <span class="ident">url</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../url/struct.Url.html">Url</a>, <span class="ident">mode</span>: <a class="ident" href="../../src/tungstenite/stream.rs.html#16-21">Mode</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/tungstenite/client.rs.html#53">AutoStream</a><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="ident">domain</span> <span class="op">=</span> <a class="ident" href="../../src/tungstenite/client.rs.html#143">url</a>
-        .<span class="ident">host_str</span>()
+<span class="kw">fn</span> <span class="ident">connect_to_some</span>(<span class="ident">addrs</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/net/addr/enum.SocketAddr.html">SocketAddr</a>], <span class="ident">uri</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../http/uri/struct.Uri.html">Uri</a>, <span class="ident">mode</span>: <a class="ident" href="../../src/tungstenite/stream.rs.html#16-21">Mode</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/tungstenite/client.rs.html#55">AutoStream</a><span class="op">&gt;</span> {
+    <span class="kw">let</span> <span class="ident">domain</span> <span class="op">=</span> <a class="ident" href="../../src/tungstenite/client.rs.html#129">uri</a>
+        .<span class="ident">host</span>()
         .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <a class="ident" href="../../src/tungstenite/error.rs.html#65">Error::Url</a>(<span class="string">&quot;No host name in the URL&quot;</span>.<span class="ident">into</span>()))<span class="question-mark">?</span>;
-    <span class="kw">for</span> <a class="ident" href="../../src/tungstenite/client.rs.html#147">addr</a> <span class="kw">in</span> <a class="ident" href="../../src/tungstenite/client.rs.html#143">addrs</a> {
-        <span class="macro">debug!</span>(<span class="string">&quot;Trying to contact {} at {}...&quot;</span>, <a class="ident" href="../../src/tungstenite/client.rs.html#143">url</a>, <a class="ident" href="../../src/tungstenite/client.rs.html#147">addr</a>);
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">raw_stream</span>) <span class="op">=</span> <span class="ident">TcpStream::connect</span>(<a class="ident" href="../../src/tungstenite/client.rs.html#147">addr</a>) {
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">stream</span>) <span class="op">=</span> <a class="ident" href="../../src/tungstenite/client.rs.html#55">wrap_stream</a>(<a class="ident" href="../../src/tungstenite/client.rs.html#149">raw_stream</a>, <a class="ident" href="../../src/tungstenite/client.rs.html#144">domain</a>, <a class="ident" href="../../src/tungstenite/client.rs.html#143">mode</a>) {
-                <span class="kw">return</span> <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/tungstenite/client.rs.html#150">stream</a>);
+    <span class="kw">for</span> <a class="ident" href="../../src/tungstenite/client.rs.html#133">addr</a> <span class="kw">in</span> <a class="ident" href="../../src/tungstenite/client.rs.html#129">addrs</a> {
+        <span class="macro">debug!</span>(<span class="string">&quot;Trying to contact {} at {}...&quot;</span>, <a class="ident" href="../../src/tungstenite/client.rs.html#129">uri</a>, <a class="ident" href="../../src/tungstenite/client.rs.html#133">addr</a>);
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">raw_stream</span>) <span class="op">=</span> <span class="ident">TcpStream::connect</span>(<a class="ident" href="../../src/tungstenite/client.rs.html#133">addr</a>) {
+            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">stream</span>) <span class="op">=</span> <a class="ident" href="../../src/tungstenite/client.rs.html#57">wrap_stream</a>(<a class="ident" href="../../src/tungstenite/client.rs.html#135">raw_stream</a>, <a class="ident" href="../../src/tungstenite/client.rs.html#130">domain</a>, <a class="ident" href="../../src/tungstenite/client.rs.html#129">mode</a>) {
+                <span class="kw">return</span> <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/tungstenite/client.rs.html#136">stream</a>);
             }
         }
     }
-    <span class="prelude-val">Err</span>(<a class="ident" href="../../src/tungstenite/error.rs.html#65">Error::Url</a>(<span class="macro">format!</span>(<span class="string">&quot;Unable to connect to {}&quot;</span>, <a class="ident" href="../../src/tungstenite/client.rs.html#143">url</a>).<span class="ident">into</span>()))
+    <span class="prelude-val">Err</span>(<a class="ident" href="../../src/tungstenite/error.rs.html#65">Error::Url</a>(<span class="macro">format!</span>(<span class="string">&quot;Unable to connect to {}&quot;</span>, <a class="ident" href="../../src/tungstenite/client.rs.html#129">uri</a>).<span class="ident">into</span>()))
 }
 
 <span class="doccomment">/// Get the mode of the given URL.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// This function may be used to ease the creation of custom TLS streams</span>
 <span class="doccomment">/// in non-blocking algorithmss or for use with TLS libraries other than `native_tls`.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">url_mode</span>(<span class="ident">url</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../url/struct.Url.html">Url</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/tungstenite/stream.rs.html#16-21">Mode</a><span class="op">&gt;</span> {
-    <span class="kw">match</span> <a class="ident" href="../../src/tungstenite/client.rs.html#162">url</a>.<span class="ident">scheme</span>() {
-        <span class="string">&quot;ws&quot;</span> =&gt; <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/tungstenite/stream.rs.html#18">Mode::Plain</a>),
-        <span class="string">&quot;wss&quot;</span> =&gt; <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/tungstenite/stream.rs.html#20">Mode::Tls</a>),
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">uri_mode</span>(<span class="ident">uri</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../http/uri/struct.Uri.html">Uri</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/tungstenite/stream.rs.html#16-21">Mode</a><span class="op">&gt;</span> {
+    <span class="kw">match</span> <a class="ident" href="../../src/tungstenite/client.rs.html#148">uri</a>.<span class="ident">scheme_str</span>() {
+        <span class="prelude-val">Some</span>(<span class="string">&quot;ws&quot;</span>) =&gt; <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/tungstenite/stream.rs.html#18">Mode::Plain</a>),
+        <span class="prelude-val">Some</span>(<span class="string">&quot;wss&quot;</span>) =&gt; <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/tungstenite/stream.rs.html#20">Mode::Tls</a>),
         <span class="kw">_</span> =&gt; <span class="prelude-val">Err</span>(<a class="ident" href="../../src/tungstenite/error.rs.html#65">Error::Url</a>(<span class="string">&quot;URL scheme not supported&quot;</span>.<span class="ident">into</span>())),
     }
 }
@@ -375,16 +421,16 @@
 <span class="doccomment">/// Use this function if you need a nonblocking handshake support or if you</span>
 <span class="doccomment">/// want to use a custom stream like `mio::tcp::TcpStream` or `openssl::ssl::SslStream`.</span>
 <span class="doccomment">/// Any stream supporting `Read + Write` will do.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">client_with_config</span><span class="op">&lt;</span><span class="lifetime">&#39;t</span>, <span class="ident">Stream</span>, <span class="ident">Req</span><span class="op">&gt;</span>(
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">client_with_config</span><span class="op">&lt;</span><span class="ident">Stream</span>, <span class="ident">Req</span><span class="op">&gt;</span>(
     <span class="ident">request</span>: <span class="ident">Req</span>,
     <span class="ident">stream</span>: <span class="ident">Stream</span>,
     <span class="ident">config</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../src/tungstenite/protocol/mod.rs.html#32-46">WebSocketConfig</a><span class="op">&gt;</span>,
-) -&gt; <span class="ident">StdResult</span><span class="op">&lt;</span>(<span class="ident">WebSocket</span><span class="op">&lt;</span><span class="ident">Stream</span><span class="op">&gt;</span>, <a class="ident" href="../../src/tungstenite/handshake/client.rs.html#224-229">Response</a>), <span class="ident">HandshakeError</span><span class="op">&lt;</span><span class="ident">ClientHandshake</span><span class="op">&lt;</span><span class="ident">Stream</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>
+) -&gt; <span class="ident">StdResult</span><span class="op">&lt;</span>(<span class="ident">WebSocket</span><span class="op">&lt;</span><span class="ident">Stream</span><span class="op">&gt;</span>, <a class="ident" href="../../src/tungstenite/handshake/client.rs.html#20">Response</a>), <span class="ident">HandshakeError</span><span class="op">&lt;</span><span class="ident">ClientHandshake</span><span class="op">&lt;</span><span class="ident">Stream</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>
 <span class="kw">where</span>
     <span class="ident">Stream</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>,
-    <span class="ident">Req</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Request</span><span class="op">&lt;</span><span class="lifetime">&#39;t</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="ident">Req</span>: <a class="ident" href="../../src/tungstenite/client.rs.html#194-197">IntoClientRequest</a>,
 {
-    <span class="ident">ClientHandshake::start</span>(<a class="ident" href="../../src/tungstenite/client.rs.html#178">stream</a>, <a class="ident" href="../../src/tungstenite/client.rs.html#177">request</a>.<span class="ident">into</span>(), <a class="ident" href="../../src/tungstenite/client.rs.html#179">config</a>).<a class="ident" href="../../src/tungstenite/handshake/mod.rs.html#38">handshake</a>()
+    <span class="ident">ClientHandshake::start</span>(<a class="ident" href="../../src/tungstenite/client.rs.html#164">stream</a>, <a class="ident" href="../../src/tungstenite/client.rs.html#163">request</a>.<a class="ident" href="../../src/tungstenite/client.rs.html#196">into_client_request</a>()<span class="question-mark">?</span>, <a class="ident" href="../../src/tungstenite/client.rs.html#165">config</a>)<span class="question-mark">?</span>.<a class="ident" href="../../src/tungstenite/handshake/mod.rs.html#38">handshake</a>()
 }
 
 <span class="doccomment">/// Do the client handshake over the given stream.</span>
@@ -392,15 +438,89 @@
 <span class="doccomment">/// Use this function if you need a nonblocking handshake support or if you</span>
 <span class="doccomment">/// want to use a custom stream like `mio::tcp::TcpStream` or `openssl::ssl::SslStream`.</span>
 <span class="doccomment">/// Any stream supporting `Read + Write` will do.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">client</span><span class="op">&lt;</span><span class="lifetime">&#39;t</span>, <span class="ident">Stream</span>, <span class="ident">Req</span><span class="op">&gt;</span>(
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">client</span><span class="op">&lt;</span><span class="ident">Stream</span>, <span class="ident">Req</span><span class="op">&gt;</span>(
     <span class="ident">request</span>: <span class="ident">Req</span>,
     <span class="ident">stream</span>: <span class="ident">Stream</span>,
-) -&gt; <span class="ident">StdResult</span><span class="op">&lt;</span>(<span class="ident">WebSocket</span><span class="op">&lt;</span><span class="ident">Stream</span><span class="op">&gt;</span>, <a class="ident" href="../../src/tungstenite/handshake/client.rs.html#224-229">Response</a>), <span class="ident">HandshakeError</span><span class="op">&lt;</span><span class="ident">ClientHandshake</span><span class="op">&lt;</span><span class="ident">Stream</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>
+) -&gt; <span class="ident">StdResult</span><span class="op">&lt;</span>(<span class="ident">WebSocket</span><span class="op">&lt;</span><span class="ident">Stream</span><span class="op">&gt;</span>, <a class="ident" href="../../src/tungstenite/handshake/client.rs.html#20">Response</a>), <span class="ident">HandshakeError</span><span class="op">&lt;</span><span class="ident">ClientHandshake</span><span class="op">&lt;</span><span class="ident">Stream</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>
 <span class="kw">where</span>
     <span class="ident">Stream</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>,
-    <span class="ident">Req</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Request</span><span class="op">&lt;</span><span class="lifetime">&#39;t</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="ident">Req</span>: <a class="ident" href="../../src/tungstenite/client.rs.html#194-197">IntoClientRequest</a>,
 {
-    <a class="ident" href="../../src/tungstenite/client.rs.html#176-183">client_with_config</a>(<a class="ident" href="../../src/tungstenite/client.rs.html#194">request</a>, <a class="ident" href="../../src/tungstenite/client.rs.html#195">stream</a>, <span class="prelude-val">None</span>)
+    <a class="ident" href="../../src/tungstenite/client.rs.html#162-169">client_with_config</a>(<a class="ident" href="../../src/tungstenite/client.rs.html#180">request</a>, <a class="ident" href="../../src/tungstenite/client.rs.html#181">stream</a>, <span class="prelude-val">None</span>)
+}
+
+<span class="doccomment">/// Trait for converting various types into HTTP requests used for a client connection.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// This trait is implemented by default for string slices, strings, `url::Url`, `http::Uri` and</span>
+<span class="doccomment">/// `http::Request&lt;()&gt;`.</span>
+<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">IntoClientRequest</span> {
+    <span class="doccomment">/// Convert into a `Request` that can be used for a client connection.</span>
+    <span class="kw">fn</span> <span class="ident">into_client_request</span>(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/tungstenite/handshake/client.rs.html#17">Request</a><span class="op">&gt;</span>;
+}
+
+<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <a class="ident" href="../../src/tungstenite/client.rs.html#194-197">IntoClientRequest</a> <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> {
+    <span class="kw">fn</span> <span class="ident">into_client_request</span>(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/tungstenite/handshake/client.rs.html#17">Request</a><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="ident">uri</span>: <a class="ident" href="../../http/uri/struct.Uri.html">Uri</a> <span class="op">=</span> <a class="self" href="../../src/tungstenite/client.rs.html#200">self</a>.<span class="ident">parse</span>()<span class="question-mark">?</span>;
+
+        <span class="prelude-val">Ok</span>(<span class="ident">Request::get</span>(<a class="ident" href="../../src/tungstenite/client.rs.html#201">uri</a>).<span class="ident">body</span>(())<span class="question-mark">?</span>)
+    }
+}
+
+<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <a class="ident" href="../../src/tungstenite/client.rs.html#194-197">IntoClientRequest</a> <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> {
+    <span class="kw">fn</span> <span class="ident">into_client_request</span>(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/tungstenite/handshake/client.rs.html#17">Request</a><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="ident">uri</span>: <a class="ident" href="../../http/uri/struct.Uri.html">Uri</a> <span class="op">=</span> <a class="self" href="../../src/tungstenite/client.rs.html#208">self</a>.<span class="ident">parse</span>()<span class="question-mark">?</span>;
+
+        <span class="prelude-val">Ok</span>(<span class="ident">Request::get</span>(<a class="ident" href="../../src/tungstenite/client.rs.html#209">uri</a>).<span class="ident">body</span>(())<span class="question-mark">?</span>)
+    }
+}
+
+<span class="kw">impl</span> <a class="ident" href="../../src/tungstenite/client.rs.html#194-197">IntoClientRequest</a> <span class="kw">for</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> {
+    <span class="kw">fn</span> <span class="ident">into_client_request</span>(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/tungstenite/handshake/client.rs.html#17">Request</a><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="ident">uri</span>: <a class="ident" href="../../http/uri/struct.Uri.html">Uri</a> <span class="op">=</span> <a class="self" href="../../src/tungstenite/client.rs.html#216">self</a>.<span class="ident">parse</span>()<span class="question-mark">?</span>;
+
+        <span class="prelude-val">Ok</span>(<span class="ident">Request::get</span>(<a class="ident" href="../../src/tungstenite/client.rs.html#217">uri</a>).<span class="ident">body</span>(())<span class="question-mark">?</span>)
+    }
+}
+
+<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <a class="ident" href="../../src/tungstenite/client.rs.html#194-197">IntoClientRequest</a> <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="../../http/uri/struct.Uri.html">Uri</a> {
+    <span class="kw">fn</span> <span class="ident">into_client_request</span>(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/tungstenite/handshake/client.rs.html#17">Request</a><span class="op">&gt;</span> {
+        <span class="prelude-val">Ok</span>(<span class="ident">Request::get</span>(<a class="self" href="../../src/tungstenite/client.rs.html#224">self</a>.<span class="ident">clone</span>()).<span class="ident">body</span>(())<span class="question-mark">?</span>)
+    }
+}
+
+<span class="kw">impl</span> <a class="ident" href="../../src/tungstenite/client.rs.html#194-197">IntoClientRequest</a> <span class="kw">for</span> <a class="ident" href="../../http/uri/struct.Uri.html">Uri</a> {
+    <span class="kw">fn</span> <span class="ident">into_client_request</span>(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/tungstenite/handshake/client.rs.html#17">Request</a><span class="op">&gt;</span> {
+        <span class="prelude-val">Ok</span>(<span class="ident">Request::get</span>(<a class="self" href="../../src/tungstenite/client.rs.html#230">self</a>).<span class="ident">body</span>(())<span class="question-mark">?</span>)
+    }
+}
+
+<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <a class="ident" href="../../src/tungstenite/client.rs.html#194-197">IntoClientRequest</a> <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="../../url/struct.Url.html">Url</a> {
+    <span class="kw">fn</span> <span class="ident">into_client_request</span>(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/tungstenite/handshake/client.rs.html#17">Request</a><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="ident">uri</span>: <a class="ident" href="../../http/uri/struct.Uri.html">Uri</a> <span class="op">=</span> <a class="self" href="../../src/tungstenite/client.rs.html#236">self</a>.<span class="ident">as_str</span>().<span class="ident">parse</span>()<span class="question-mark">?</span>;
+
+        <span class="prelude-val">Ok</span>(<span class="ident">Request::get</span>(<a class="ident" href="../../src/tungstenite/client.rs.html#237">uri</a>).<span class="ident">body</span>(())<span class="question-mark">?</span>)
+    }
+}
+
+<span class="kw">impl</span> <a class="ident" href="../../src/tungstenite/client.rs.html#194-197">IntoClientRequest</a> <span class="kw">for</span> <a class="ident" href="../../url/struct.Url.html">Url</a> {
+    <span class="kw">fn</span> <span class="ident">into_client_request</span>(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/tungstenite/handshake/client.rs.html#17">Request</a><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="ident">uri</span>: <a class="ident" href="../../http/uri/struct.Uri.html">Uri</a> <span class="op">=</span> <a class="self" href="../../src/tungstenite/client.rs.html#244">self</a>.<span class="ident">as_str</span>().<span class="ident">parse</span>()<span class="question-mark">?</span>;
+
+        <span class="prelude-val">Ok</span>(<span class="ident">Request::get</span>(<a class="ident" href="../../src/tungstenite/client.rs.html#245">uri</a>).<span class="ident">body</span>(())<span class="question-mark">?</span>)
+    }
+}
+
+<span class="kw">impl</span> <a class="ident" href="../../src/tungstenite/client.rs.html#194-197">IntoClientRequest</a> <span class="kw">for</span> <a class="ident" href="../../src/tungstenite/handshake/client.rs.html#17">Request</a> {
+    <span class="kw">fn</span> <span class="ident">into_client_request</span>(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/tungstenite/handshake/client.rs.html#17">Request</a><span class="op">&gt;</span> {
+        <span class="prelude-val">Ok</span>(<a class="self" href="../../src/tungstenite/client.rs.html#252">self</a>)
+    }
+}
+
+<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;h</span>, <span class="lifetime">&#39;b</span><span class="op">&gt;</span> <a class="ident" href="../../src/tungstenite/client.rs.html#194-197">IntoClientRequest</a> <span class="kw">for</span> <span class="ident">httparse::Request</span><span class="op">&lt;</span><span class="lifetime">&#39;h</span>, <span class="lifetime">&#39;b</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">into_client_request</span>(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/tungstenite/handshake/client.rs.html#17">Request</a><span class="op">&gt;</span> {
+        <span class="kw">use</span> <a class="ident" href="../../src/tungstenite/handshake/headers.rs.html#15-18"><span class="kw">crate</span>::handshake::headers::FromHttparse</a>;
+        <span class="ident">Request::from_httparse</span>(<a class="self" href="../../src/tungstenite/client.rs.html#258">self</a>)
+    }
 }
 </code></pre></div>
 </section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="tungstenite" data-search-index-js="../../search-index.js" data-search-js="../../search.js"></div>

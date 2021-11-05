@@ -1,1 +1,1 @@
-initSidebarItems({"constant":[["MAX_HEADERS","Limit for the number of header lines."]],"struct":[["Headers","HTTP request or response headers."],["HeadersIter","The iterator over headers."]],"trait":[["FromHttparse","Trait to convert raw objects into HTTP parseables."]]});
+initSidebarItems({"constant":[["MAX_HEADERS","Limit for the number of header lines."]]});

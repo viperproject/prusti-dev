@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;hyper-0.12.36&#x2F;src&#x2F;client&#x2F;connect&#x2F;dns.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>dns.rs - source</title><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../../../storage.js"></script><script src="../../../../crates.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../../hyper/index.html'><div class='logo-container rust-logo'><img src='../../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;hyper-0.13.10&#x2F;src&#x2F;client&#x2F;connect&#x2F;dns.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>dns.rs - source</title><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../../../storage.js"></script><script src="../../../../crates.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../../hyper/index.html'><div class='logo-container rust-logo'><img src='../../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -390,41 +390,81 @@
 <span id="390">390</span>
 <span id="391">391</span>
 <span id="392">392</span>
-</pre><pre class="rust"><code><span class="doccomment">//! The `Resolve` trait, support types, and some basic implementations.</span>
+<span id="393">393</span>
+<span id="394">394</span>
+<span id="395">395</span>
+<span id="396">396</span>
+<span id="397">397</span>
+<span id="398">398</span>
+<span id="399">399</span>
+<span id="400">400</span>
+<span id="401">401</span>
+<span id="402">402</span>
+<span id="403">403</span>
+<span id="404">404</span>
+<span id="405">405</span>
+<span id="406">406</span>
+<span id="407">407</span>
+<span id="408">408</span>
+<span id="409">409</span>
+<span id="410">410</span>
+<span id="411">411</span>
+<span id="412">412</span>
+<span id="413">413</span>
+<span id="414">414</span>
+<span id="415">415</span>
+<span id="416">416</span>
+<span id="417">417</span>
+<span id="418">418</span>
+<span id="419">419</span>
+<span id="420">420</span>
+<span id="421">421</span>
+<span id="422">422</span>
+<span id="423">423</span>
+<span id="424">424</span>
+<span id="425">425</span>
+<span id="426">426</span>
+<span id="427">427</span>
+<span id="428">428</span>
+<span id="429">429</span>
+<span id="430">430</span>
+<span id="431">431</span>
+<span id="432">432</span>
+</pre><pre class="rust"><code><span class="doccomment">//! DNS Resolution used by the `HttpConnector`.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! This module contains:</span>
 <span class="doccomment">//!</span>
-<span class="doccomment">//! - A [`GaiResolver`](dns::GaiResolver) that is the default resolver for the</span>
+<span class="doccomment">//! - A [`GaiResolver`](GaiResolver) that is the default resolver for the</span>
 <span class="doccomment">//!   `HttpConnector`.</span>
-<span class="doccomment">//! - The [`Resolve`](dns::Resolve) trait and related types to build a custom</span>
-<span class="doccomment">//!   resolver for use with the `HttpConnector`.</span>
-<span class="kw">use</span> <span class="ident">std</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">fmt</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/index.html">io</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/vec/index.html">vec</a>};
+<span class="doccomment">//! - The `Name` type used as an argument to custom resolvers.</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! # Resolvers are `Service`s</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! A resolver is just a</span>
+<span class="doccomment">//! `Service&lt;Name, Response = impl Iterator&lt;Item = IpAddr&gt;&gt;`.</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! A simple resolver that ignores the name and always returns a specific</span>
+<span class="doccomment">//! address:</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! ```rust,ignore</span>
+<span class="doccomment">//! use std::{convert::Infallible, iter, net::IpAddr};</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! let resolver = tower::service_fn(|_name| async {</span>
+<span class="doccomment">//!     Ok::&lt;_, Infallible&gt;(iter::once(IpAddr::from([127, 0, 0, 1])))</span>
+<span class="doccomment">//! });</span>
+<span class="doccomment">//! ```</span>
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/error/trait.Error.html">std::error::Error</a>;
-<span class="kw">use</span> <span class="ident">std::net</span>::{
-    <a class="ident" href="https://doc.rust-lang.org/nightly/std/net/ip/enum.IpAddr.html">IpAddr</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/net/ip/struct.Ipv4Addr.html">Ipv4Addr</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/net/ip/struct.Ipv6Addr.html">Ipv6Addr</a>,
-    <a class="ident" href="https://doc.rust-lang.org/nightly/std/net/addr/enum.SocketAddr.html">SocketAddr</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/net/addr/trait.ToSocketAddrs.html">ToSocketAddrs</a>,
-    <a class="ident" href="https://doc.rust-lang.org/nightly/std/net/addr/struct.SocketAddrV4.html">SocketAddrV4</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/net/addr/struct.SocketAddrV6.html">SocketAddrV6</a>,
-};
+<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">std::future::Future</a>;
+<span class="kw">use</span> <span class="ident">std::net</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/std/net/ip/enum.IpAddr.html">IpAddr</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/net/ip/struct.Ipv4Addr.html">Ipv4Addr</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/net/ip/struct.Ipv6Addr.html">Ipv6Addr</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/net/addr/enum.SocketAddr.html">SocketAddr</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/net/addr/struct.SocketAddrV4.html">SocketAddrV4</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/net/addr/struct.SocketAddrV6.html">SocketAddrV6</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/net/addr/trait.ToSocketAddrs.html">ToSocketAddrs</a>};
+<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">std::pin::Pin</a>;
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/str/traits/trait.FromStr.html">std::str::FromStr</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/sync/struct.Arc.html">std::sync::Arc</a>;
+<span class="kw">use</span> <span class="ident">std::task</span>::{<a class="self" href="https://doc.rust-lang.org/nightly/std/task/index.html">self</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>};
+<span class="kw">use</span> <span class="ident">std</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">fmt</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/index.html">io</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/vec/index.html">vec</a>};
 
-<span class="kw">use</span> <span class="ident">futures</span>::{<a class="ident" href="../../../../futures/poll/enum.Async.html">Async</a>, <a class="ident" href="../../../../hyper/rt/trait.Future.html">Future</a>, <a class="ident" href="../../../../futures/poll/type.Poll.html">Poll</a>};
-<span class="kw">use</span> <span class="ident">futures::future</span>::{<a class="ident" href="../../../../futures/future/trait.Executor.html">Executor</a>, <a class="ident" href="../../../../futures/future/struct.ExecuteError.html">ExecuteError</a>};
-<span class="kw">use</span> <a class="ident" href="../../../../futures/sync/oneshot/index.html">futures::sync::oneshot</a>;
-<span class="kw">use</span> <span class="ident">futures_cpupool</span>::{<a class="ident" href="../../../../futures_cpupool/struct.Builder.html">Builder</a> <span class="kw">as</span> <span class="ident">CpuPoolBuilder</span>};
-<span class="kw">use</span> <a class="ident" href="../../../../tokio_threadpool/index.html">tokio_threadpool</a>;
+<span class="kw">use</span> <a class="ident" href="../../../../tokio/runtime/task/join/struct.JoinHandle.html">tokio::task::JoinHandle</a>;
+<span class="kw">use</span> <a class="ident" href="../../../../hyper/service/trait.Service.html">tower_service::Service</a>;
 
-<span class="kw">use</span> <a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#282-284"><span class="self">self</span>::sealed::GaiTask</a>;
-
-<span class="doccomment">/// Resolve a hostname to a set of IP addresses.</span>
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">Resolve</span> {
-    <span class="doccomment">/// The set of IP addresses to try to connect to.</span>
-    <span class="kw">type</span> <span class="ident">Addrs</span>: <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span><span class="op">=</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/net/ip/enum.IpAddr.html">IpAddr</a><span class="op">&gt;</span>;
-    <span class="doccomment">/// A Future of the resolved set of addresses.</span>
-    <span class="kw">type</span> <span class="ident">Future</span>: <span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Item</span><span class="op">=</span><span class="ident"><span class="self">Self</span>::Addrs</span>, <span class="ident">Error</span><span class="op">=</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a><span class="op">&gt;</span>;
-    <span class="doccomment">/// Resolve a hostname.</span>
-    <span class="kw">fn</span> <span class="ident">resolve</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">name</span>: <a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#39-41">Name</a>) -&gt; <span class="ident"><span class="self">Self</span>::Future</span>;
-}
+<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">use</span> <a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#320-327"><span class="self">self</span>::sealed::Resolve</a>;
 
 <span class="doccomment">/// A domain name to resolve into IP addresses.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Hash</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>)]</span>
@@ -435,50 +475,48 @@
 <span class="doccomment">/// A resolver using blocking `getaddrinfo` calls in a threadpool.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">GaiResolver</span> {
-    <span class="ident">executor</span>: <a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#187">GaiExecutor</a>,
+    <span class="ident">_priv</span>: (),
 }
 
 <span class="doccomment">/// An iterator of IP addresses returned from `getaddrinfo`.</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">GaiAddrs</span> {
-    <span class="ident">inner</span>: <a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#217-219">IpAddrs</a>,
+    <span class="ident">inner</span>: <a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#175-177">IpAddrs</a>,
 }
 
-<span class="doccomment">/// A future to resole a name returned by `GaiResolver`.</span>
+<span class="doccomment">/// A future to resolve a name returned by `GaiResolver`.</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">GaiFuture</span> {
-    <span class="ident">rx</span>: <span class="ident">oneshot::SpawnHandle</span><span class="op">&lt;</span><a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#217-219">IpAddrs</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a><span class="op">&gt;</span>,
+    <span class="ident">inner</span>: <span class="ident">JoinHandle</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#175-177">IpAddrs</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a><span class="op">&gt;</span><span class="op">&gt;</span>,
 }
 
 <span class="kw">impl</span> <a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#39-41">Name</a> {
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">host</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>) -&gt; <a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#39-41">Name</a> {
-        <a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#39-41">Name</a> {
-            <a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#60">host</a>,
-        }
+        <a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#39-41">Name</a> { <a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#60">host</a> }
     }
 
     <span class="doccomment">/// View the hostname as a string slice.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_str</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> {
-        <span class="kw-2">&amp;</span><a class="self" href="../../../../src/hyper/client/connect/dns.rs.html#67">self</a>.<span class="ident">host</span>
+        <span class="kw-2">&amp;</span><a class="self" href="../../../../src/hyper/client/connect/dns.rs.html#65">self</a>.<span class="ident">host</span>
     }
 }
 
 <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#39-41">Name</a> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <span class="ident">fmt::Debug::fmt</span>(<span class="kw-2">&amp;</span><a class="self" href="../../../../src/hyper/client/connect/dns.rs.html#73">self</a>.<span class="ident">host</span>, <a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#73">f</a>)
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+        <span class="ident">fmt::Debug::fmt</span>(<span class="kw-2">&amp;</span><a class="self" href="../../../../src/hyper/client/connect/dns.rs.html#71">self</a>.<span class="ident">host</span>, <a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#71">f</a>)
     }
 }
 
 <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for</span> <a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#39-41">Name</a> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <span class="ident">fmt::Display::fmt</span>(<span class="kw-2">&amp;</span><a class="self" href="../../../../src/hyper/client/connect/dns.rs.html#79">self</a>.<span class="ident">host</span>, <a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#79">f</a>)
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+        <span class="ident">fmt::Display::fmt</span>(<span class="kw-2">&amp;</span><a class="self" href="../../../../src/hyper/client/connect/dns.rs.html#77">self</a>.<span class="ident">host</span>, <a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#77">f</a>)
     }
 }
 
 <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/str/traits/trait.FromStr.html">FromStr</a> <span class="kw">for</span> <a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#39-41">Name</a> {
-    <span class="kw">type</span> <span class="prelude-val">Err</span> <span class="op">=</span> <a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#95">InvalidNameError</a>;
+    <span class="kw">type</span> <span class="prelude-val">Err</span> <span class="op">=</span> <a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#93">InvalidNameError</a>;
 
     <span class="kw">fn</span> <span class="ident">from_str</span>(<span class="ident">host</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident"><span class="self">Self</span>::Err</span><span class="op">&gt;</span> {
         <span class="comment">// Possibly add validation later</span>
-        <span class="prelude-val">Ok</span>(<span class="ident">Name::new</span>(<a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#87">host</a>.<span class="ident">to_owned</span>()))
+        <span class="prelude-val">Ok</span>(<span class="ident">Name::new</span>(<a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#85">host</a>.<span class="ident">to_owned</span>()))
     }
 }
 
@@ -486,78 +524,69 @@
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">InvalidNameError</span>(());
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for</span> <a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#95">InvalidNameError</a> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="self" href="../../../../src/hyper/client/connect/dns.rs.html#98">self</a>.<span class="ident">description</span>().<span class="ident">fmt</span>(<a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#98">f</a>)
+<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for</span> <a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#93">InvalidNameError</a> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+        <a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#96">f</a>.<span class="ident">write_str</span>(<span class="string">&quot;Not a valid domain name&quot;</span>)
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/error/trait.Error.html">Error</a> <span class="kw">for</span> <a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#95">InvalidNameError</a> {
-    <span class="kw">fn</span> <span class="ident">description</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> {
-        <span class="string">&quot;Not a valid domain name&quot;</span>
-    }
-}
-
+<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/error/trait.Error.html">Error</a> <span class="kw">for</span> <a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#93">InvalidNameError</a> {}
 
 <span class="kw">impl</span> <a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#45-47">GaiResolver</a> {
     <span class="doccomment">/// Construct a new `GaiResolver`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Takes number of DNS worker threads.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">threads</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="self">Self</span> {
-        <span class="kw">let</span> <span class="ident">pool</span> <span class="op">=</span> <span class="ident">CpuPoolBuilder::new</span>()
-            .<span class="ident">name_prefix</span>(<span class="string">&quot;hyper-dns&quot;</span>)
-            .<span class="ident">pool_size</span>(<a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#114">threads</a>)
-            .<span class="ident">create</span>();
-        <span class="ident">GaiResolver::new_with_executor</span>(<a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#115">pool</a>)
-    }
-
-    <span class="doccomment">/// Construct a new `GaiResolver` with a shared thread pool executor.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Takes an executor to run blocking `getaddrinfo` tasks on.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_with_executor</span><span class="op">&lt;</span><span class="ident">E</span>: <span class="lifetime">&#39;static</span><span class="op">&gt;</span>(<span class="ident">executor</span>: <span class="ident">E</span>) -&gt; <span class="self">Self</span>
-    <span class="kw">where</span>
-        <span class="ident">E</span>: <span class="ident">Executor</span><span class="op">&lt;</span><a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#282-284">GaiTask</a><span class="op">&gt;</span> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a>,
-    {
-        <a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#45-47">GaiResolver</a> {
-            <span class="ident">executor</span>: <a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#187">GaiExecutor</a>(<span class="ident">Arc::new</span>(<a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#125">executor</a>)),
-        }
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="self">Self</span> {
+        <a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#45-47">GaiResolver</a> { <span class="ident">_priv</span>: () }
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#28-35">Resolve</a> <span class="kw">for</span> <a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#45-47">GaiResolver</a> {
-    <span class="kw">type</span> <span class="ident">Addrs</span> <span class="op">=</span> <a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#50-52">GaiAddrs</a>;
+<span class="kw">impl</span> <span class="ident">Service</span><span class="op">&lt;</span><a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#39-41">Name</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#45-47">GaiResolver</a> {
+    <span class="kw">type</span> <span class="ident">Response</span> <span class="op">=</span> <a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#50-52">GaiAddrs</a>;
+    <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a>;
     <span class="kw">type</span> <span class="ident">Future</span> <span class="op">=</span> <a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#55-57">GaiFuture</a>;
 
-    <span class="kw">fn</span> <span class="ident">resolve</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">name</span>: <a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#39-41">Name</a>) -&gt; <span class="ident"><span class="self">Self</span>::Future</span> {
-        <span class="kw">let</span> <span class="ident">blocking</span> <span class="op">=</span> <span class="ident">GaiBlocking::new</span>(<a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#139">name</a>.<span class="ident">host</span>);
-        <span class="kw">let</span> <span class="ident">rx</span> <span class="op">=</span> <span class="ident">oneshot::spawn</span>(<a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#140">blocking</a>, <span class="kw-2">&amp;</span><a class="self" href="../../../../src/hyper/client/connect/dns.rs.html#139">self</a>.<span class="ident">executor</span>);
-        <a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#55-57">GaiFuture</a> {
-            <a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#141">rx</a>,
-        }
+    <span class="kw">fn</span> <span class="ident">poll_ready</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">_cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">task::Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a><span class="op">&gt;</span><span class="op">&gt;</span> {
+        <span class="ident">Poll::Ready</span>(<span class="prelude-val">Ok</span>(()))
+    }
+
+    <span class="kw">fn</span> <span class="ident">call</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">name</span>: <a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#39-41">Name</a>) -&gt; <span class="ident"><span class="self">Self</span>::Future</span> {
+        <span class="kw">let</span> <span class="ident">blocking</span> <span class="op">=</span> <span class="ident">tokio::task::spawn_blocking</span>(<span class="kw">move</span> <span class="op">|</span><span class="op">|</span> {
+            <span class="macro">debug!</span>(<span class="string">&quot;resolving host={:?}&quot;</span>, <a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#119">name</a>.<span class="ident">host</span>);
+            (<span class="kw-2">&amp;</span><span class="kw-2">*</span><a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#119">name</a>.<span class="ident">host</span>, <span class="number">0</span>)
+                .<span class="ident">to_socket_addrs</span>()
+                .<span class="ident">map</span>(<span class="op">|</span><span class="ident">i</span><span class="op">|</span> <a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#175-177">IpAddrs</a> { <span class="ident">iter</span>: <a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#124">i</a> })
+        });
+
+        <a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#55-57">GaiFuture</a> { <span class="ident">inner</span>: <a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#120">blocking</a> }
     }
 }
 
 <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#45-47">GaiResolver</a> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#149">f</a>.<span class="ident">pad</span>(<span class="string">&quot;GaiResolver&quot;</span>)
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+        <a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#132">f</a>.<span class="ident">pad</span>(<span class="string">&quot;GaiResolver&quot;</span>)
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../../hyper/rt/trait.Future.html">Future</a> <span class="kw">for</span> <a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#55-57">GaiFuture</a> {
-    <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#50-52">GaiAddrs</a>;
-    <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a>;
+<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a> <span class="kw">for</span> <a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#55-57">GaiFuture</a> {
+    <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#50-52">GaiAddrs</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a><span class="op">&gt;</span>;
 
-    <span class="kw">fn</span> <span class="ident">poll</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">addrs</span> <span class="op">=</span> <span class="macro">try_ready!</span>(<a class="self" href="../../../../src/hyper/client/connect/dns.rs.html#158">self</a>.<span class="ident">rx</span>.<span class="ident">poll</span>());
-        <span class="prelude-val">Ok</span>(<span class="ident">Async::Ready</span>(<a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#50-52">GaiAddrs</a> {
-            <span class="ident">inner</span>: <a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#159">addrs</a>,
-        }))
+    <span class="kw">fn</span> <span class="ident">poll</span>(<span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">task::Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Output</span><span class="op">&gt;</span> {
+        <span class="ident">Pin::new</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="self" href="../../../../src/hyper/client/connect/dns.rs.html#140">self</a>.<span class="ident">inner</span>).<span class="ident">poll</span>(<a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#140">cx</a>).<span class="ident">map</span>(<span class="op">|</span><span class="ident">res</span><span class="op">|</span> <span class="kw">match</span> <a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#141">res</a> {
+            <span class="prelude-val">Ok</span>(<span class="prelude-val">Ok</span>(<span class="ident">addrs</span>)) =&gt; <span class="prelude-val">Ok</span>(<a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#50-52">GaiAddrs</a> { <span class="ident">inner</span>: <a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#142">addrs</a> }),
+            <span class="prelude-val">Ok</span>(<span class="prelude-val">Err</span>(<span class="ident">err</span>)) =&gt; <span class="prelude-val">Err</span>(<a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#143">err</a>),
+            <span class="prelude-val">Err</span>(<span class="ident">join_err</span>) =&gt; {
+                <span class="kw">if</span> <a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#144">join_err</a>.<span class="ident">is_cancelled</span>() {
+                    <span class="prelude-val">Err</span>(<span class="ident">io::Error::new</span>(<span class="ident">io::ErrorKind::Interrupted</span>, <a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#144">join_err</a>))
+                } <span class="kw">else</span> {
+                    <span class="macro">panic!</span>(<span class="string">&quot;gai background task failed: {:?}&quot;</span>, <a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#144">join_err</a>)
+                }
+            }
+        })
     }
 }
 
 <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#55-57">GaiFuture</a> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#167">f</a>.<span class="ident">pad</span>(<span class="string">&quot;GaiFuture&quot;</span>)
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+        <a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#156">f</a>.<span class="ident">pad</span>(<span class="string">&quot;GaiFuture&quot;</span>)
     }
 }
 
@@ -565,44 +594,13 @@
     <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/net/ip/enum.IpAddr.html">IpAddr</a>;
 
     <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span> {
-        <a class="self" href="../../../../src/hyper/client/connect/dns.rs.html#175">self</a>.<span class="ident">inner</span>.<span class="ident">next</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">sa</span><span class="op">|</span> <a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#176">sa</a>.<span class="ident">ip</span>())
+        <a class="self" href="../../../../src/hyper/client/connect/dns.rs.html#164">self</a>.<span class="ident">inner</span>.<span class="ident">next</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">sa</span><span class="op">|</span> <a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#165">sa</a>.<span class="ident">ip</span>())
     }
 }
 
 <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#50-52">GaiAddrs</a> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#181">f</a>.<span class="ident">pad</span>(<span class="string">&quot;GaiAddrs&quot;</span>)
-    }
-}
-
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>)]</span>
-<span class="kw">struct</span> <span class="ident">GaiExecutor</span>(<span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">dyn</span> <span class="ident">Executor</span><span class="op">&lt;</span><a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#282-284">GaiTask</a><span class="op">&gt;</span> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a><span class="op">&gt;</span>);
-
-<span class="kw">impl</span> <span class="ident">Executor</span><span class="op">&lt;</span><span class="ident">oneshot::Execute</span><span class="op">&lt;</span><a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#196-198">GaiBlocking</a><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#187">GaiExecutor</a> {
-    <span class="kw">fn</span> <span class="ident">execute</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">future</span>: <span class="ident">oneshot::Execute</span><span class="op">&lt;</span><a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#196-198">GaiBlocking</a><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">ExecuteError</span><span class="op">&lt;</span><span class="ident">oneshot::Execute</span><span class="op">&lt;</span><a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#196-198">GaiBlocking</a><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <a class="self" href="../../../../src/hyper/client/connect/dns.rs.html#190">self</a>.<span class="number">0</span>.<span class="ident">execute</span>(<a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#282-284">GaiTask</a> { <span class="ident">work</span>: <a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#190">future</a> })
-            .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">err</span><span class="op">|</span> <span class="ident">ExecuteError::new</span>(<a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#192">err</a>.<span class="ident">kind</span>(), <a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#192">err</a>.<span class="ident">into_future</span>().<span class="ident">work</span>))
-    }
-}
-
-<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct</span> <span class="ident">GaiBlocking</span> {
-    <span class="ident">host</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>,
-}
-
-<span class="kw">impl</span> <a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#196-198">GaiBlocking</a> {
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">host</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>) -&gt; <a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#196-198">GaiBlocking</a> {
-        <a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#196-198">GaiBlocking</a> { <a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#201">host</a> }
-    }
-}
-
-<span class="kw">impl</span> <a class="ident" href="../../../../hyper/rt/trait.Future.html">Future</a> <span class="kw">for</span> <a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#196-198">GaiBlocking</a> {
-    <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#217-219">IpAddrs</a>;
-    <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a>;
-
-    <span class="kw">fn</span> <span class="ident">poll</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
-        <span class="macro">debug!</span>(<span class="string">&quot;resolving host={:?}&quot;</span>, <a class="self" href="../../../../src/hyper/client/connect/dns.rs.html#210">self</a>.<span class="ident">host</span>);
-        (<span class="kw-2">&amp;</span><span class="kw-2">*</span><a class="self" href="../../../../src/hyper/client/connect/dns.rs.html#210">self</a>.<span class="ident">host</span>, <span class="number">0</span>).<span class="ident">to_socket_addrs</span>()
-            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">i</span><span class="op">|</span> <span class="ident">Async::Ready</span>(<a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#217-219">IpAddrs</a> { <span class="ident">iter</span>: <a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#213">i</a> }))
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+        <a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#170">f</a>.<span class="ident">pad</span>(<span class="string">&quot;GaiAddrs&quot;</span>)
     }
 }
 
@@ -610,153 +608,237 @@
     <span class="ident">iter</span>: <span class="ident">vec::IntoIter</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/net/addr/enum.SocketAddr.html">SocketAddr</a><span class="op">&gt;</span>,
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#217-219">IpAddrs</a> {
+<span class="kw">impl</span> <a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#175-177">IpAddrs</a> {
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">addrs</span>: <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/net/addr/enum.SocketAddr.html">SocketAddr</a><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
-        <a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#217-219">IpAddrs</a> { <span class="ident">iter</span>: <a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#222">addrs</a>.<span class="ident">into_iter</span>() }
+        <a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#175-177">IpAddrs</a> {
+            <span class="ident">iter</span>: <a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#180">addrs</a>.<span class="ident">into_iter</span>(),
+        }
     }
 
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">try_parse</span>(<span class="ident">host</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, <span class="ident">port</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#217-219">IpAddrs</a><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">addr</span>) <span class="op">=</span> <a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#226">host</a>.<span class="ident">parse</span>::<span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/net/ip/struct.Ipv4Addr.html">Ipv4Addr</a><span class="op">&gt;</span>() {
-            <span class="kw">let</span> <span class="ident">addr</span> <span class="op">=</span> <span class="ident">SocketAddrV4::new</span>(<a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#227">addr</a>, <a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#226">port</a>);
-            <span class="kw">return</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#217-219">IpAddrs</a> { <span class="ident">iter</span>: <span class="macro">vec!</span>[<span class="ident">SocketAddr::V4</span>(<a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#228">addr</a>)].<span class="ident">into_iter</span>() })
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">try_parse</span>(<span class="ident">host</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, <span class="ident">port</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#175-177">IpAddrs</a><span class="op">&gt;</span> {
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">addr</span>) <span class="op">=</span> <a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#186">host</a>.<span class="ident">parse</span>::<span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/net/ip/struct.Ipv4Addr.html">Ipv4Addr</a><span class="op">&gt;</span>() {
+            <span class="kw">let</span> <span class="ident">addr</span> <span class="op">=</span> <span class="ident">SocketAddrV4::new</span>(<a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#187">addr</a>, <a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#186">port</a>);
+            <span class="kw">return</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#175-177">IpAddrs</a> {
+                <span class="ident">iter</span>: <span class="macro">vec!</span>[<span class="ident">SocketAddr::V4</span>(<a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#188">addr</a>)].<span class="ident">into_iter</span>(),
+            });
         }
-        <span class="kw">let</span> <span class="ident">host</span> <span class="op">=</span> {
-            <span class="comment">// trim_left/trim_right deprecated...</span>
-            <span class="comment">// TODO: use trim_start/trim_end in Rust 1.30</span>
-            <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">deprecated</span>)]</span>
-            {
-                <a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#226">host</a>
-                .<span class="ident">trim_left_matches</span>(<span class="string">&#39;[&#39;</span>)
-                .<span class="ident">trim_right_matches</span>(<span class="string">&#39;]&#39;</span>)
-            }
-        };
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">addr</span>) <span class="op">=</span> <a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#231">host</a>.<span class="ident">parse</span>::<span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/net/ip/struct.Ipv6Addr.html">Ipv6Addr</a><span class="op">&gt;</span>() {
-            <span class="kw">let</span> <span class="ident">addr</span> <span class="op">=</span> <span class="ident">SocketAddrV6::new</span>(<a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#241">addr</a>, <a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#226">port</a>, <span class="number">0</span>, <span class="number">0</span>);
-            <span class="kw">return</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#217-219">IpAddrs</a> { <span class="ident">iter</span>: <span class="macro">vec!</span>[<span class="ident">SocketAddr::V6</span>(<a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#242">addr</a>)].<span class="ident">into_iter</span>() })
+        <span class="kw">let</span> <span class="ident">host</span> <span class="op">=</span> <a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#186">host</a>.<span class="ident">trim_start_matches</span>(<span class="string">&#39;[&#39;</span>).<span class="ident">trim_end_matches</span>(<span class="string">&#39;]&#39;</span>);
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">addr</span>) <span class="op">=</span> <a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#193">host</a>.<span class="ident">parse</span>::<span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/net/ip/struct.Ipv6Addr.html">Ipv6Addr</a><span class="op">&gt;</span>() {
+            <span class="kw">let</span> <span class="ident">addr</span> <span class="op">=</span> <span class="ident">SocketAddrV6::new</span>(<a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#194">addr</a>, <a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#186">port</a>, <span class="number">0</span>, <span class="number">0</span>);
+            <span class="kw">return</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#175-177">IpAddrs</a> {
+                <span class="ident">iter</span>: <span class="macro">vec!</span>[<span class="ident">SocketAddr::V6</span>(<a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#195">addr</a>)].<span class="ident">into_iter</span>(),
+            });
         }
         <span class="prelude-val">None</span>
     }
 
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">split_by_preference</span>(<span class="self">self</span>) -&gt; (<a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#217-219">IpAddrs</a>, <a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#217-219">IpAddrs</a>) {
-        <span class="kw">let</span> <span class="ident">preferring_v6</span> <span class="op">=</span> <a class="self" href="../../../../src/hyper/client/connect/dns.rs.html#248">self</a>.<span class="ident">iter</span>
-            .<span class="ident">as_slice</span>()
-            .<span class="ident">first</span>()
-            .<span class="ident">map</span>(<span class="ident">SocketAddr::is_ipv6</span>)
-            .<span class="ident">unwrap_or</span>(<span class="bool-val">false</span>);
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">fn</span> <span class="ident">filter</span>(<span class="self">self</span>, <span class="ident">predicate</span>: <span class="kw">impl</span> <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><span class="ident">SocketAddr</span>) -&gt; <span class="ident">bool</span>) -&gt; <a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#175-177">IpAddrs</a> {
+        <span class="ident">IpAddrs::new</span>(<a class="self" href="../../../../src/hyper/client/connect/dns.rs.html#204">self</a>.<span class="ident">iter</span>.<span class="ident">filter</span>(<a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#204">predicate</a>).<span class="ident">collect</span>())
+    }
 
-        <span class="kw">let</span> (<span class="ident">preferred</span>, <span class="ident">fallback</span>) <span class="op">=</span> <a class="self" href="../../../../src/hyper/client/connect/dns.rs.html#248">self</a>.<span class="ident">iter</span>
-            .<span class="ident">partition</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span>, <span class="kw">_</span><span class="op">&gt;</span>(<span class="op">|</span><span class="ident">addr</span><span class="op">|</span> <a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#256">addr</a>.<span class="ident">is_ipv6</span>() <span class="op">==</span> <a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#249">preferring_v6</a>);
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">split_by_preference</span>(
+        <span class="self">self</span>,
+        <span class="ident">local_addr_ipv4</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/net/ip/struct.Ipv4Addr.html">Ipv4Addr</a><span class="op">&gt;</span>,
+        <span class="ident">local_addr_ipv6</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/net/ip/struct.Ipv6Addr.html">Ipv6Addr</a><span class="op">&gt;</span>,
+    ) -&gt; (<a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#175-177">IpAddrs</a>, <a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#175-177">IpAddrs</a>) {
+        <span class="kw">match</span> (<a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#210">local_addr_ipv4</a>, <a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#211">local_addr_ipv6</a>) {
+            (<span class="prelude-val">Some</span>(<span class="kw">_</span>), <span class="prelude-val">None</span>) =&gt; (<a class="self" href="../../../../src/hyper/client/connect/dns.rs.html#209">self</a>.<a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#204">filter</a>(<span class="ident">SocketAddr::is_ipv4</span>), <span class="ident">IpAddrs::new</span>(<span class="macro">vec!</span>[])),
+            (<span class="prelude-val">None</span>, <span class="prelude-val">Some</span>(<span class="kw">_</span>)) =&gt; (<a class="self" href="../../../../src/hyper/client/connect/dns.rs.html#209">self</a>.<a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#204">filter</a>(<span class="ident">SocketAddr::is_ipv6</span>), <span class="ident">IpAddrs::new</span>(<span class="macro">vec!</span>[])),
+            <span class="kw">_</span> =&gt; {
+                <span class="kw">let</span> <span class="ident">preferring_v6</span> <span class="op">=</span> <a class="self" href="../../../../src/hyper/client/connect/dns.rs.html#209">self</a>
+                    .<span class="ident">iter</span>
+                    .<span class="ident">as_slice</span>()
+                    .<span class="ident">first</span>()
+                    .<span class="ident">map</span>(<span class="ident">SocketAddr::is_ipv6</span>)
+                    .<span class="ident">unwrap_or</span>(<span class="bool-val">false</span>);
 
-        (<span class="ident">IpAddrs::new</span>(<a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#255">preferred</a>), <span class="ident">IpAddrs::new</span>(<a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#255">fallback</a>))
+                <span class="kw">let</span> (<span class="ident">preferred</span>, <span class="ident">fallback</span>) <span class="op">=</span> <a class="self" href="../../../../src/hyper/client/connect/dns.rs.html#209">self</a>
+                    .<span class="ident">iter</span>
+                    .<span class="ident">partition</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span>, <span class="kw">_</span><span class="op">&gt;</span>(<span class="op">|</span><span class="ident">addr</span><span class="op">|</span> <a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#226">addr</a>.<span class="ident">is_ipv6</span>() <span class="op">==</span> <a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#217">preferring_v6</a>);
+
+                (<span class="ident">IpAddrs::new</span>(<a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#224">preferred</a>), <span class="ident">IpAddrs::new</span>(<a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#224">fallback</a>))
+            }
+        }
     }
 
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">is_empty</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../../src/hyper/client/connect/dns.rs.html#261">self</a>.<span class="ident">iter</span>.<span class="ident">as_slice</span>().<span class="ident">is_empty</span>()
+        <a class="self" href="../../../../src/hyper/client/connect/dns.rs.html#233">self</a>.<span class="ident">iter</span>.<span class="ident">as_slice</span>().<span class="ident">is_empty</span>()
     }
 
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">len</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="../../../../src/hyper/client/connect/dns.rs.html#265">self</a>.<span class="ident">iter</span>.<span class="ident">as_slice</span>().<span class="ident">len</span>()
+        <a class="self" href="../../../../src/hyper/client/connect/dns.rs.html#237">self</a>.<span class="ident">iter</span>.<span class="ident">as_slice</span>().<span class="ident">len</span>()
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for</span> <a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#217-219">IpAddrs</a> {
+<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for</span> <a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#175-177">IpAddrs</a> {
     <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/net/addr/enum.SocketAddr.html">SocketAddr</a>;
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/net/addr/enum.SocketAddr.html">SocketAddr</a><span class="op">&gt;</span> {
-        <a class="self" href="../../../../src/hyper/client/connect/dns.rs.html#273">self</a>.<span class="ident">iter</span>.<span class="ident">next</span>()
+        <a class="self" href="../../../../src/hyper/client/connect/dns.rs.html#245">self</a>.<span class="ident">iter</span>.<span class="ident">next</span>()
     }
 }
 
-<span class="comment">// Make this Future unnameable outside of this crate.</span>
-<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">mod</span> <span class="ident">sealed</span> {
-    <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
-    <span class="comment">// Blocking task to be executed on a thread pool.</span>
-    <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">GaiTask</span> {
-        <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">work</span>: <span class="ident">oneshot::Execute</span><span class="op">&lt;</span><a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#196-198">GaiBlocking</a><span class="op">&gt;</span>
+<span class="comment">/*
+/// A resolver using `getaddrinfo` calls via the `tokio_executor::threadpool::blocking` API.
+///
+/// Unlike the `GaiResolver` this will not spawn dedicated threads, but only works when running on the
+/// multi-threaded Tokio runtime.
+#[cfg(feature = &quot;runtime&quot;)]
+#[derive(Clone, Debug)]
+pub struct TokioThreadpoolGaiResolver(());
+
+/// The future returned by `TokioThreadpoolGaiResolver`.
+#[cfg(feature = &quot;runtime&quot;)]
+#[derive(Debug)]
+pub struct TokioThreadpoolGaiFuture {
+    name: Name,
+}
+
+#[cfg(feature = &quot;runtime&quot;)]
+impl TokioThreadpoolGaiResolver {
+    /// Creates a new DNS resolver that will use tokio threadpool&#39;s blocking
+    /// feature.
+    ///
+    /// **Requires** its futures to be run on the threadpool runtime.
+    pub fn new() -&gt; Self {
+        TokioThreadpoolGaiResolver(())
+    }
+}
+
+#[cfg(feature = &quot;runtime&quot;)]
+impl Service&lt;Name&gt; for TokioThreadpoolGaiResolver {
+    type Response = GaiAddrs;
+    type Error = io::Error;
+    type Future = TokioThreadpoolGaiFuture;
+
+    fn poll_ready(&amp;mut self, _cx: &amp;mut task::Context&lt;&#39;_&gt;) -&gt; Poll&lt;Result&lt;(), io::Error&gt;&gt; {
+        Poll::Ready(Ok(()))
     }
 
-    <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#282-284">GaiTask</a> {
-        <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-            <a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#287">f</a>.<span class="ident">pad</span>(<span class="string">&quot;GaiTask&quot;</span>)
+    fn call(&amp;mut self, name: Name) -&gt; Self::Future {
+        TokioThreadpoolGaiFuture { name }
+    }
+}
+
+#[cfg(feature = &quot;runtime&quot;)]
+impl Future for TokioThreadpoolGaiFuture {
+    type Output = Result&lt;GaiAddrs, io::Error&gt;;
+
+    fn poll(self: Pin&lt;&amp;mut Self&gt;, _cx: &amp;mut task::Context&lt;&#39;_&gt;) -&gt; Poll&lt;Self::Output&gt; {
+        match ready!(tokio_executor::threadpool::blocking(|| (
+            self.name.as_str(),
+            0
+        )
+            .to_socket_addrs()))
+        {
+            Ok(Ok(iter)) =&gt; Poll::Ready(Ok(GaiAddrs {
+                inner: IpAddrs { iter },
+            })),
+            Ok(Err(e)) =&gt; Poll::Ready(Err(e)),
+            // a BlockingError, meaning not on a tokio_executor::threadpool :(
+            Err(e) =&gt; Poll::Ready(Err(io::Error::new(io::ErrorKind::Other, e))),
         }
     }
+}
+*/</span>
 
-    <span class="kw">impl</span> <a class="ident" href="../../../../hyper/rt/trait.Future.html">Future</a> <span class="kw">for</span> <a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#282-284">GaiTask</a> {
-        <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> ();
-        <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> ();
+<span class="kw">mod</span> <span class="ident">sealed</span> {
+    <span class="kw">use</span> <span class="kw">super</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/std/net/ip/enum.IpAddr.html">IpAddr</a>, <a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#39-41">Name</a>};
+    <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::common</span>::{<a class="ident" href="../../../../src/hyper/common/mod.rs.html#18">task</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>};
+    <span class="kw">use</span> <a class="ident" href="../../../../hyper/service/trait.Service.html">tower_service::Service</a>;
 
-        <span class="kw">fn</span> <span class="ident">poll</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span>(), ()<span class="op">&gt;</span> {
-            <a class="self" href="../../../../src/hyper/client/connect/dns.rs.html#296">self</a>.<span class="ident">work</span>.<span class="ident">poll</span>()
+    <span class="comment">// &quot;Trait alias&quot; for `Service&lt;Name, Response = Addrs&gt;`</span>
+    <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">Resolve</span> {
+        <span class="kw">type</span> <span class="ident">Addrs</span>: <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/net/ip/enum.IpAddr.html">IpAddr</a><span class="op">&gt;</span>;
+        <span class="kw">type</span> <span class="ident">Error</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/error/trait.Error.html">std::error::Error</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a><span class="op">&gt;</span><span class="op">&gt;</span>;
+        <span class="kw">type</span> <span class="ident">Future</span>: <span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Output</span> <span class="op">=</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Addrs</span>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span><span class="op">&gt;</span>;
+
+        <span class="kw">fn</span> <span class="ident">poll_ready</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">task::Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span><span class="op">&gt;</span>;
+        <span class="kw">fn</span> <span class="ident">resolve</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">name</span>: <a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#39-41">Name</a>) -&gt; <span class="ident"><span class="self">Self</span>::Future</span>;
+    }
+
+    <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> <a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#320-327">Resolve</a> <span class="kw">for</span> <span class="ident">S</span>
+    <span class="kw">where</span>
+        <span class="ident">S</span>: <span class="ident">Service</span><span class="op">&lt;</span><a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#39-41">Name</a><span class="op">&gt;</span>,
+        <span class="ident">S::Response</span>: <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/net/ip/enum.IpAddr.html">IpAddr</a><span class="op">&gt;</span>,
+        <span class="ident">S::Error</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/error/trait.Error.html">std::error::Error</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a><span class="op">&gt;</span><span class="op">&gt;</span>,
+    {
+        <span class="kw">type</span> <span class="ident">Addrs</span> <span class="op">=</span> <span class="ident">S::Response</span>;
+        <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <span class="ident">S::Error</span>;
+        <span class="kw">type</span> <span class="ident">Future</span> <span class="op">=</span> <span class="ident">S::Future</span>;
+
+        <span class="kw">fn</span> <span class="ident">poll_ready</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">task::Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+            <span class="ident">Service::poll_ready</span>(<a class="self" href="../../../../src/hyper/client/connect/dns.rs.html#339">self</a>, <a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#339">cx</a>)
+        }
+
+        <span class="kw">fn</span> <span class="ident">resolve</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">name</span>: <a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#39-41">Name</a>) -&gt; <span class="ident"><span class="self">Self</span>::Future</span> {
+            <span class="ident">Service::call</span>(<a class="self" href="../../../../src/hyper/client/connect/dns.rs.html#343">self</a>, <a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#343">name</a>)
         }
     }
 }
 
-
-<span class="doccomment">/// A resolver using `getaddrinfo` calls via the `tokio_threadpool::blocking` API.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Unlike the `GaiResolver` this will not spawn dedicated threads, but only works when running on the</span>
-<span class="doccomment">/// multi-threaded Tokio runtime.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">TokioThreadpoolGaiResolver</span>(());
-
-<span class="doccomment">/// The future returned by `TokioThreadpoolGaiResolver`.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">TokioThreadpoolGaiFuture</span> {
-    <span class="ident">name</span>: <a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#39-41">Name</a>,
-}
-
-<span class="kw">impl</span> <a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#308">TokioThreadpoolGaiResolver</a> {
-    <span class="doccomment">/// Creates a new DNS resolver that will use tokio threadpool&#39;s blocking</span>
-    <span class="doccomment">/// feature.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// **Requires** its futures to be run on the threadpool runtime.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="self">Self</span> {
-        <a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#308">TokioThreadpoolGaiResolver</a>(())
-    }
-}
-
-<span class="kw">impl</span> <a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#28-35">Resolve</a> <span class="kw">for</span> <a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#308">TokioThreadpoolGaiResolver</a> {
-    <span class="kw">type</span> <span class="ident">Addrs</span> <span class="op">=</span> <a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#50-52">GaiAddrs</a>;
-    <span class="kw">type</span> <span class="ident">Future</span> <span class="op">=</span> <a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#312-314">TokioThreadpoolGaiFuture</a>;
-
-    <span class="kw">fn</span> <span class="ident">resolve</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">name</span>: <a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#39-41">Name</a>) -&gt; <a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#312-314">TokioThreadpoolGaiFuture</a> {
-        <a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#312-314">TokioThreadpoolGaiFuture</a> { <a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#330">name</a> }
-    }
-}
-
-<span class="kw">impl</span> <a class="ident" href="../../../../hyper/rt/trait.Future.html">Future</a> <span class="kw">for</span> <a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#312-314">TokioThreadpoolGaiFuture</a> {
-    <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#50-52">GaiAddrs</a>;
-    <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a>;
-
-    <span class="kw">fn</span> <span class="ident">poll</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#50-52">GaiAddrs</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a><span class="op">&gt;</span> {
-        <span class="kw">match</span> <span class="ident">tokio_threadpool::blocking</span>(<span class="op">|</span><span class="op">|</span> (<a class="self" href="../../../../src/hyper/client/connect/dns.rs.html#339">self</a>.<span class="ident">name</span>.<a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#67">as_str</a>(), <span class="number">0</span>).<span class="ident">to_socket_addrs</span>()) {
-            <span class="prelude-val">Ok</span>(<span class="ident">Async::Ready</span>(<span class="prelude-val">Ok</span>(<span class="ident">iter</span>))) =&gt; <span class="prelude-val">Ok</span>(<span class="ident">Async::Ready</span>(<a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#50-52">GaiAddrs</a> { <span class="ident">inner</span>: <a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#217-219">IpAddrs</a> { <a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#341">iter</a> } })),
-            <span class="prelude-val">Ok</span>(<span class="ident">Async::Ready</span>(<span class="prelude-val">Err</span>(<span class="ident">e</span>))) =&gt; <span class="prelude-val">Err</span>(<a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#342">e</a>),
-            <span class="prelude-val">Ok</span>(<span class="ident">Async::NotReady</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="ident">Async::NotReady</span>),
-            <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; <span class="prelude-val">Err</span>(<span class="ident">io::Error::new</span>(<span class="ident">io::ErrorKind::Other</span>, <a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#344">e</a>)),
-        }
-    }
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">resolve</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>(<span class="ident">resolver</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">R</span>, <span class="ident">name</span>: <a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#39-41">Name</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">R::Addrs</span>, <span class="ident">R::Error</span><span class="op">&gt;</span>
+<span class="kw">where</span>
+    <span class="ident">R</span>: <a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#320-327">Resolve</a>,
+{
+    <span class="ident">futures_util::future::poll_fn</span>(<span class="op">|</span><span class="ident">cx</span><span class="op">|</span> <a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#349">resolver</a>.<a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#325">poll_ready</a>(<a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#353">cx</a>)).<span class="kw">await</span><span class="question-mark">?</span>;
+    <a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#349">resolver</a>.<a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#326">resolve</a>(<a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#349">name</a>).<span class="kw">await</span>
 }
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">mod</span> <span class="ident">tests</span> {
-    <span class="kw">use</span> <span class="ident">std::net</span>::{<span class="ident">Ipv4Addr</span>, <span class="ident">Ipv6Addr</span>};
     <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
+    <span class="kw">use</span> <span class="ident">std::net</span>::{<span class="ident">Ipv4Addr</span>, <span class="ident">Ipv6Addr</span>};
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_ip_addrs_split_by_preference</span>() {
-        <span class="kw">let</span> <span class="ident">v4_addr</span> <span class="op">=</span> (<span class="ident">Ipv4Addr::new</span>(<span class="number">127</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">1</span>), <span class="number">80</span>).<span class="ident">into</span>();
-        <span class="kw">let</span> <span class="ident">v6_addr</span> <span class="op">=</span> (<span class="ident">Ipv6Addr::new</span>(<span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">1</span>), <span class="number">80</span>).<span class="ident">into</span>();
+        <span class="kw">let</span> <span class="ident">ip_v4</span> <span class="op">=</span> <span class="ident">Ipv4Addr::new</span>(<span class="number">127</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">1</span>);
+        <span class="kw">let</span> <span class="ident">ip_v6</span> <span class="op">=</span> <span class="ident">Ipv6Addr::new</span>(<span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">1</span>);
+        <span class="kw">let</span> <span class="ident">v4_addr</span> <span class="op">=</span> (<span class="ident">ip_v4</span>, <span class="number">80</span>).<span class="ident">into</span>();
+        <span class="kw">let</span> <span class="ident">v6_addr</span> <span class="op">=</span> (<span class="ident">ip_v6</span>, <span class="number">80</span>).<span class="ident">into</span>();
 
-        <span class="kw">let</span> (<span class="kw-2">mut</span> <span class="ident">preferred</span>, <span class="kw-2">mut</span> <span class="ident">fallback</span>) <span class="op">=</span>
-            <span class="ident">IpAddrs</span> { <span class="ident">iter</span>: <span class="macro">vec!</span>[<span class="ident">v4_addr</span>, <span class="ident">v6_addr</span>].<span class="ident">into_iter</span>() }.<span class="ident">split_by_preference</span>();
+        <span class="kw">let</span> (<span class="kw-2">mut</span> <span class="ident">preferred</span>, <span class="kw-2">mut</span> <span class="ident">fallback</span>) <span class="op">=</span> <span class="ident">IpAddrs</span> {
+            <span class="ident">iter</span>: <span class="macro">vec!</span>[<span class="ident">v4_addr</span>, <span class="ident">v6_addr</span>].<span class="ident">into_iter</span>(),
+        }
+        .<span class="ident">split_by_preference</span>(<span class="prelude-val">None</span>, <span class="prelude-val">None</span>);
         <span class="macro">assert!</span>(<span class="ident">preferred</span>.<span class="ident">next</span>().<span class="ident">unwrap</span>().<span class="ident">is_ipv4</span>());
         <span class="macro">assert!</span>(<span class="ident">fallback</span>.<span class="ident">next</span>().<span class="ident">unwrap</span>().<span class="ident">is_ipv6</span>());
 
-        <span class="kw">let</span> (<span class="kw-2">mut</span> <span class="ident">preferred</span>, <span class="kw-2">mut</span> <span class="ident">fallback</span>) <span class="op">=</span>
-            <span class="ident">IpAddrs</span> { <span class="ident">iter</span>: <span class="macro">vec!</span>[<span class="ident">v6_addr</span>, <span class="ident">v4_addr</span>].<span class="ident">into_iter</span>() }.<span class="ident">split_by_preference</span>();
+        <span class="kw">let</span> (<span class="kw-2">mut</span> <span class="ident">preferred</span>, <span class="kw-2">mut</span> <span class="ident">fallback</span>) <span class="op">=</span> <span class="ident">IpAddrs</span> {
+            <span class="ident">iter</span>: <span class="macro">vec!</span>[<span class="ident">v6_addr</span>, <span class="ident">v4_addr</span>].<span class="ident">into_iter</span>(),
+        }
+        .<span class="ident">split_by_preference</span>(<span class="prelude-val">None</span>, <span class="prelude-val">None</span>);
         <span class="macro">assert!</span>(<span class="ident">preferred</span>.<span class="ident">next</span>().<span class="ident">unwrap</span>().<span class="ident">is_ipv6</span>());
         <span class="macro">assert!</span>(<span class="ident">fallback</span>.<span class="ident">next</span>().<span class="ident">unwrap</span>().<span class="ident">is_ipv4</span>());
+
+        <span class="kw">let</span> (<span class="kw-2">mut</span> <span class="ident">preferred</span>, <span class="kw-2">mut</span> <span class="ident">fallback</span>) <span class="op">=</span> <span class="ident">IpAddrs</span> {
+            <span class="ident">iter</span>: <span class="macro">vec!</span>[<span class="ident">v4_addr</span>, <span class="ident">v6_addr</span>].<span class="ident">into_iter</span>(),
+        }
+        .<span class="ident">split_by_preference</span>(<span class="prelude-val">Some</span>(<span class="ident">ip_v4</span>), <span class="prelude-val">Some</span>(<span class="ident">ip_v6</span>));
+        <span class="macro">assert!</span>(<span class="ident">preferred</span>.<span class="ident">next</span>().<span class="ident">unwrap</span>().<span class="ident">is_ipv4</span>());
+        <span class="macro">assert!</span>(<span class="ident">fallback</span>.<span class="ident">next</span>().<span class="ident">unwrap</span>().<span class="ident">is_ipv6</span>());
+
+        <span class="kw">let</span> (<span class="kw-2">mut</span> <span class="ident">preferred</span>, <span class="kw-2">mut</span> <span class="ident">fallback</span>) <span class="op">=</span> <span class="ident">IpAddrs</span> {
+            <span class="ident">iter</span>: <span class="macro">vec!</span>[<span class="ident">v6_addr</span>, <span class="ident">v4_addr</span>].<span class="ident">into_iter</span>(),
+        }
+        .<span class="ident">split_by_preference</span>(<span class="prelude-val">Some</span>(<span class="ident">ip_v4</span>), <span class="prelude-val">Some</span>(<span class="ident">ip_v6</span>));
+        <span class="macro">assert!</span>(<span class="ident">preferred</span>.<span class="ident">next</span>().<span class="ident">unwrap</span>().<span class="ident">is_ipv6</span>());
+        <span class="macro">assert!</span>(<span class="ident">fallback</span>.<span class="ident">next</span>().<span class="ident">unwrap</span>().<span class="ident">is_ipv4</span>());
+
+        <span class="kw">let</span> (<span class="kw-2">mut</span> <span class="ident">preferred</span>, <span class="ident">fallback</span>) <span class="op">=</span> <span class="ident">IpAddrs</span> {
+            <span class="ident">iter</span>: <span class="macro">vec!</span>[<span class="ident">v4_addr</span>, <span class="ident">v6_addr</span>].<span class="ident">into_iter</span>(),
+        }
+        .<span class="ident">split_by_preference</span>(<span class="prelude-val">Some</span>(<span class="ident">ip_v4</span>), <span class="prelude-val">None</span>);
+        <span class="macro">assert!</span>(<span class="ident">preferred</span>.<span class="ident">next</span>().<span class="ident">unwrap</span>().<span class="ident">is_ipv4</span>());
+        <span class="macro">assert!</span>(<span class="ident">fallback</span>.<span class="ident">is_empty</span>());
+
+        <span class="kw">let</span> (<span class="kw-2">mut</span> <span class="ident">preferred</span>, <span class="ident">fallback</span>) <span class="op">=</span> <span class="ident">IpAddrs</span> {
+            <span class="ident">iter</span>: <span class="macro">vec!</span>[<span class="ident">v4_addr</span>, <span class="ident">v6_addr</span>].<span class="ident">into_iter</span>(),
+        }
+        .<span class="ident">split_by_preference</span>(<span class="prelude-val">None</span>, <span class="prelude-val">Some</span>(<span class="ident">ip_v6</span>));
+        <span class="macro">assert!</span>(<span class="ident">preferred</span>.<span class="ident">next</span>().<span class="ident">unwrap</span>().<span class="ident">is_ipv6</span>());
+        <span class="macro">assert!</span>(<span class="ident">fallback</span>.<span class="ident">is_empty</span>());
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
@@ -769,13 +851,11 @@
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">ip_addrs_try_parse_v6</span>() {
-        <span class="kw">let</span> <span class="ident">uri</span> <span class="op">=</span> <span class="ident">::http::Uri::from_static</span>(<span class="string">&quot;http://[::1]:8080/&quot;</span>);
-        <span class="kw">let</span> <span class="ident">dst</span> <span class="op">=</span> <span class="ident"><span class="kw">super</span>::<span class="kw">super</span>::Destination</span> { <span class="ident">uri</span> };
+        <span class="kw">let</span> <span class="ident">dst</span> <span class="op">=</span> <span class="ident">::http::Uri::from_static</span>(<span class="string">&quot;http://[::1]:8080/&quot;</span>);
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">addrs</span> <span class="op">=</span> <span class="ident">IpAddrs::try_parse</span>(
-            <span class="ident">dst</span>.<span class="ident">host</span>(),
-            <span class="ident">dst</span>.<span class="ident">port</span>().<span class="ident">expect</span>(<span class="string">&quot;port&quot;</span>)
-        ).<span class="ident">expect</span>(<span class="string">&quot;try_parse&quot;</span>);
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">addrs</span> <span class="op">=</span>
+            <span class="ident">IpAddrs::try_parse</span>(<span class="ident">dst</span>.<span class="ident">host</span>().<span class="ident">expect</span>(<span class="string">&quot;host&quot;</span>), <span class="ident">dst</span>.<span class="ident">port_u16</span>().<span class="ident">expect</span>(<span class="string">&quot;port&quot;</span>))
+                .<span class="ident">expect</span>(<span class="string">&quot;try_parse&quot;</span>);
 
         <span class="kw">let</span> <span class="ident">expected</span> <span class="op">=</span> <span class="string">&quot;[::1]:8080&quot;</span>.<span class="ident">parse</span>::<span class="op">&lt;</span><span class="ident">SocketAddr</span><span class="op">&gt;</span>().<span class="ident">expect</span>(<span class="string">&quot;expected&quot;</span>);
 

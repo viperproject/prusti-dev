@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;hyper-0.12.36&#x2F;src&#x2F;proto&#x2F;h1&#x2F;encode.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>encode.rs - source</title><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../../../storage.js"></script><script src="../../../../crates.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../../hyper/index.html'><div class='logo-container rust-logo'><img src='../../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;hyper-0.13.10&#x2F;src&#x2F;proto&#x2F;h1&#x2F;encode.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>encode.rs - source</title><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../../../storage.js"></script><script src="../../../../crates.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../../hyper/index.html'><div class='logo-container rust-logo'><img src='../../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -417,21 +417,20 @@
 <span id="417">417</span>
 <span id="418">418</span>
 <span id="419">419</span>
-<span id="420">420</span>
-<span id="421">421</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
+<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/struct.IoSlice.html">std::io::IoSlice</a>;
 
-<span class="kw">use</span> <span class="ident">bytes</span>::{<a class="ident" href="../../../../bytes/buf/buf/trait.Buf.html">Buf</a>, <a class="ident" href="../../../../bytes/buf/into_buf/trait.IntoBuf.html">IntoBuf</a>};
-<span class="kw">use</span> <span class="ident">bytes::buf</span>::{<a class="ident" href="../../../../bytes/buf/chain/struct.Chain.html">Chain</a>, <a class="ident" href="../../../../bytes/buf/take/struct.Take.html">Take</a>};
-<span class="kw">use</span> <a class="ident" href="../../../../iovec/struct.IoVec.html">iovec::IoVec</a>;
+<span class="kw">use</span> <span class="ident">bytes::buf::ext</span>::{<a class="ident" href="../../../../bytes/buf/ext/trait.BufExt.html">BufExt</a>, <a class="ident" href="../../../../bytes/buf/ext/chain/struct.Chain.html">Chain</a>, <a class="ident" href="../../../../bytes/buf/ext/take/struct.Take.html">Take</a>};
+<span class="kw">use</span> <a class="ident" href="../../../../hyper/body/trait.Buf.html">bytes::Buf</a>;
 
-<span class="kw">use</span> <a class="ident" href="../../../../src/hyper/common/buf.rs.html#6">common::StaticBuf</a>;
-<span class="kw">use</span> <a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#400-407"><span class="kw">super</span>::io::WriteBuf</a>;
+<span class="kw">use</span> <a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#427-434"><span class="kw">super</span>::io::WriteBuf</a>;
+
+<span class="kw">type</span> <span class="ident">StaticBuf</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>];
 
 <span class="doccomment">/// Encoders to handle different Transfer-Encodings.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">PartialEq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Encoder</span> {
-    <span class="ident">kind</span>: <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#26-38">Kind</a>,
+    <span class="ident">kind</span>: <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#27-39">Kind</a>,
     <span class="ident">is_last</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
 }
 
@@ -451,7 +450,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// Enforces that the body is not longer than the Content-Length header.</span>
     <span class="ident">Length</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>),
-    <span class="doccomment">/// An Encoder for when neither Content-Length nore Chunked encoding is set.</span>
+    <span class="doccomment">/// An Encoder for when neither Content-Length nor Chunked encoding is set.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// This is mostly only used with HTTP/1.0 with a length. This kind requires</span>
     <span class="doccomment">/// the connection to be closed when the body is finished.</span>
@@ -462,131 +461,128 @@
 <span class="kw">enum</span> <span class="ident">BufKind</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span> {
     <span class="ident">Exact</span>(<span class="ident">B</span>),
     <span class="ident">Limited</span>(<span class="ident">Take</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span>),
-    <span class="ident">Chunked</span>(<span class="ident">Chain</span><span class="op">&lt;</span><span class="ident">Chain</span><span class="op">&lt;</span><a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#262-266">ChunkSize</a>, <span class="ident">B</span><span class="op">&gt;</span>, <a class="ident" href="../../../../src/hyper/common/buf.rs.html#6">StaticBuf</a><span class="op">&gt;</span>),
-    <span class="ident">ChunkedEnd</span>(<a class="ident" href="../../../../src/hyper/common/buf.rs.html#6">StaticBuf</a>),
+    <span class="ident">Chunked</span>(<span class="ident">Chain</span><span class="op">&lt;</span><span class="ident">Chain</span><span class="op">&lt;</span><a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#261-265">ChunkSize</a>, <span class="ident">B</span><span class="op">&gt;</span>, <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#9">StaticBuf</a><span class="op">&gt;</span>),
+    <span class="ident">ChunkedEnd</span>(<a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#9">StaticBuf</a>),
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#12-15">Encoder</a> {
-    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">kind</span>: <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#26-38">Kind</a>) -&gt; <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#12-15">Encoder</a> {
-        <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#12-15">Encoder</a> {
-            <span class="ident">kind</span>: <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#49">kind</a>,
+<span class="kw">impl</span> <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#13-16">Encoder</a> {
+    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">kind</span>: <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#27-39">Kind</a>) -&gt; <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#13-16">Encoder</a> {
+        <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#13-16">Encoder</a> {
+            <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#50">kind</a>,
             <span class="ident">is_last</span>: <span class="bool-val">false</span>,
         }
     }
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">chunked</span>() -&gt; <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#12-15">Encoder</a> {
-        <span class="ident">Encoder::new</span>(<a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#28">Kind::Chunked</a>)
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">chunked</span>() -&gt; <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#13-16">Encoder</a> {
+        <span class="ident">Encoder::new</span>(<a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#29">Kind::Chunked</a>)
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">length</span>(<span class="ident">len</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) -&gt; <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#12-15">Encoder</a> {
-        <span class="ident">Encoder::new</span>(<a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#32">Kind::Length</a>(<a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#59">len</a>))
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">length</span>(<span class="ident">len</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) -&gt; <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#13-16">Encoder</a> {
+        <span class="ident">Encoder::new</span>(<a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#33">Kind::Length</a>(<a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#60">len</a>))
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">close_delimited</span>() -&gt; <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#12-15">Encoder</a> {
-        <span class="ident">Encoder::new</span>(<a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#37">Kind::CloseDelimited</a>)
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">close_delimited</span>() -&gt; <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#13-16">Encoder</a> {
+        <span class="ident">Encoder::new</span>(<a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#38">Kind::CloseDelimited</a>)
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_eof</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">match</span> <a class="self" href="../../../../src/hyper/proto/h1/encode.rs.html#67">self</a>.<span class="ident">kind</span> {
-            <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#32">Kind::Length</a>(<span class="number">0</span>) =&gt; <span class="bool-val">true</span>,
-            <span class="kw">_</span> =&gt; <span class="bool-val">false</span>
+        <span class="kw">match</span> <a class="self" href="../../../../src/hyper/proto/h1/encode.rs.html#68">self</a>.<span class="ident">kind</span> {
+            <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#33">Kind::Length</a>(<span class="number">0</span>) =&gt; <span class="bool-val">true</span>,
+            <span class="kw">_</span> =&gt; <span class="bool-val">false</span>,
         }
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_last</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">is_last</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="self">Self</span> {
-        <a class="self" href="../../../../src/hyper/proto/h1/encode.rs.html#74">self</a>.<span class="ident">is_last</span> <span class="op">=</span> <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#74">is_last</a>;
-        <a class="self" href="../../../../src/hyper/proto/h1/encode.rs.html#74">self</a>
+        <a class="self" href="../../../../src/hyper/proto/h1/encode.rs.html#75">self</a>.<span class="ident">is_last</span> <span class="op">=</span> <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#75">is_last</a>;
+        <a class="self" href="../../../../src/hyper/proto/h1/encode.rs.html#75">self</a>
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_last</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../../src/hyper/proto/h1/encode.rs.html#79">self</a>.<span class="ident">is_last</span>
+        <a class="self" href="../../../../src/hyper/proto/h1/encode.rs.html#80">self</a>.<span class="ident">is_last</span>
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">end</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">EncodedBuf</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span><span class="op">&gt;</span>, <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#23">NotEof</a><span class="op">&gt;</span> {
-        <span class="kw">match</span> <a class="self" href="../../../../src/hyper/proto/h1/encode.rs.html#83">self</a>.<span class="ident">kind</span> {
-            <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#32">Kind::Length</a>(<span class="number">0</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>),
-            <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#28">Kind::Chunked</a> =&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#18-20">EncodedBuf</a> {
-                <span class="ident">kind</span>: <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#45">BufKind::ChunkedEnd</a>(<a class="ident" href="../../../../src/hyper/common/buf.rs.html#6">StaticBuf</a>(<span class="string">b&quot;0\r\n\r\n&quot;</span>)),
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">end</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">EncodedBuf</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span><span class="op">&gt;</span>, <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#24">NotEof</a><span class="op">&gt;</span> {
+        <span class="kw">match</span> <a class="self" href="../../../../src/hyper/proto/h1/encode.rs.html#84">self</a>.<span class="ident">kind</span> {
+            <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#33">Kind::Length</a>(<span class="number">0</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>),
+            <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#29">Kind::Chunked</a> =&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#19-21">EncodedBuf</a> {
+                <span class="ident">kind</span>: <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#46">BufKind::ChunkedEnd</a>(<span class="string">b&quot;0\r\n\r\n&quot;</span>),
             })),
-            <span class="kw">_</span> =&gt; <span class="prelude-val">Err</span>(<a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#23">NotEof</a>),
+            <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#38">Kind::CloseDelimited</a> =&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>),
+            <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#33">Kind::Length</a>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Err</span>(<a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#24">NotEof</a>),
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">encode</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">msg</span>: <span class="ident">B</span>) -&gt; <span class="ident">EncodedBuf</span><span class="op">&lt;</span><span class="ident">B::Buf</span><span class="op">&gt;</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">encode</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">msg</span>: <span class="ident">B</span>) -&gt; <span class="ident">EncodedBuf</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span>
     <span class="kw">where</span>
-        <span class="ident">B</span>: <a class="ident" href="../../../../bytes/buf/into_buf/trait.IntoBuf.html">IntoBuf</a>,
+        <span class="ident">B</span>: <a class="ident" href="../../../../hyper/body/trait.Buf.html">Buf</a>,
     {
-        <span class="kw">let</span> <span class="ident">msg</span> <span class="op">=</span> <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#93">msg</a>.<span class="ident">into_buf</span>();
-        <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#97">msg</a>.<span class="ident">remaining</span>();
-        <span class="macro">debug_assert!</span>(<a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#98">len</a> <span class="op">&gt;</span> <span class="number">0</span>, <span class="string">&quot;encode() called with empty buf&quot;</span>);
+        <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#95">msg</a>.<span class="ident">remaining</span>();
+        <span class="macro">debug_assert!</span>(<a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#99">len</a> <span class="op">&gt;</span> <span class="number">0</span>, <span class="string">&quot;encode() called with empty buf&quot;</span>);
 
-        <span class="kw">let</span> <span class="ident">kind</span> <span class="op">=</span> <span class="kw">match</span> <a class="self" href="../../../../src/hyper/proto/h1/encode.rs.html#93">self</a>.<span class="ident">kind</span> {
-            <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#28">Kind::Chunked</a> =&gt; {
-                <span class="macro">trace!</span>(<span class="string">&quot;encoding chunked {}B&quot;</span>, <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#98">len</a>);
-                <span class="kw">let</span> <span class="ident">buf</span> <span class="op">=</span> <span class="ident">ChunkSize::new</span>(<a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#98">len</a>)
-                    .<span class="ident">chain</span>(<a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#97">msg</a>)
-                    .<span class="ident">chain</span>(<a class="ident" href="../../../../src/hyper/common/buf.rs.html#6">StaticBuf</a>(<span class="string">b&quot;\r\n&quot;</span>));
-                <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#44">BufKind::Chunked</a>(<a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#104">buf</a>)
-            },
-            <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#32">Kind::Length</a>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">remaining</span>) =&gt; {
-                <span class="macro">trace!</span>(<span class="string">&quot;sized write, len = {}&quot;</span>, <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#98">len</a>);
-                <span class="kw">if</span> <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#98">len</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> <span class="op">&gt;</span> <span class="kw-2">*</span><a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#109">remaining</a> {
-                    <span class="kw">let</span> <span class="ident">limit</span> <span class="op">=</span> <span class="kw-2">*</span><a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#109">remaining</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
-                    <span class="kw-2">*</span><a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#109">remaining</a> <span class="op">=</span> <span class="number">0</span>;
-                    <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#43">BufKind::Limited</a>(<a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#97">msg</a>.<span class="ident">take</span>(<a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#112">limit</a>))
+        <span class="kw">let</span> <span class="ident">kind</span> <span class="op">=</span> <span class="kw">match</span> <a class="self" href="../../../../src/hyper/proto/h1/encode.rs.html#95">self</a>.<span class="ident">kind</span> {
+            <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#29">Kind::Chunked</a> =&gt; {
+                <span class="macro">trace!</span>(<span class="string">&quot;encoding chunked {}B&quot;</span>, <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#99">len</a>);
+                <span class="kw">let</span> <span class="ident">buf</span> <span class="op">=</span> <span class="ident">ChunkSize::new</span>(<a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#99">len</a>)
+                    .<span class="ident">chain</span>(<a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#95">msg</a>)
+                    .<span class="ident">chain</span>(<span class="string">b&quot;\r\n&quot;</span> <span class="kw">as</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]);
+                <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#45">BufKind::Chunked</a>(<a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#105">buf</a>)
+            }
+            <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#33">Kind::Length</a>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">remaining</span>) =&gt; {
+                <span class="macro">trace!</span>(<span class="string">&quot;sized write, len = {}&quot;</span>, <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#99">len</a>);
+                <span class="kw">if</span> <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#99">len</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> <span class="op">&gt;</span> <span class="kw-2">*</span><a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#110">remaining</a> {
+                    <span class="kw">let</span> <span class="ident">limit</span> <span class="op">=</span> <span class="kw-2">*</span><a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#110">remaining</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
+                    <span class="kw-2">*</span><a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#110">remaining</a> <span class="op">=</span> <span class="number">0</span>;
+                    <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#44">BufKind::Limited</a>(<a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#95">msg</a>.<span class="ident">take</span>(<a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#113">limit</a>))
                 } <span class="kw">else</span> {
-                    <span class="kw-2">*</span><a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#109">remaining</a> <span class="op">-</span><span class="op">=</span> <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#98">len</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>;
-                    <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#42">BufKind::Exact</a>(<a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#97">msg</a>)
+                    <span class="kw-2">*</span><a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#110">remaining</a> <span class="op">-</span><span class="op">=</span> <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#99">len</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>;
+                    <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#43">BufKind::Exact</a>(<a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#95">msg</a>)
                 }
-            },
-            <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#37">Kind::CloseDelimited</a> =&gt; {
-                <span class="macro">trace!</span>(<span class="string">&quot;close delimited write {}B&quot;</span>, <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#98">len</a>);
-                <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#42">BufKind::Exact</a>(<a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#97">msg</a>)
+            }
+            <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#38">Kind::CloseDelimited</a> =&gt; {
+                <span class="macro">trace!</span>(<span class="string">&quot;close delimited write {}B&quot;</span>, <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#99">len</a>);
+                <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#43">BufKind::Exact</a>(<a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#95">msg</a>)
             }
         };
-        <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#18-20">EncodedBuf</a> {
-            <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#101">kind</a>,
-        }
+        <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#19-21">EncodedBuf</a> { <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#102">kind</a> }
     }
 
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">encode_and_end</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">msg</span>: <span class="ident">B</span>, <span class="ident">dst</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">WriteBuf</span><span class="op">&lt;</span><span class="ident">EncodedBuf</span><span class="op">&lt;</span><span class="ident">B::Buf</span><span class="op">&gt;</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">encode_and_end</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">msg</span>: <span class="ident">B</span>, <span class="ident">dst</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">WriteBuf</span><span class="op">&lt;</span><span class="ident">EncodedBuf</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>
     <span class="kw">where</span>
-        <span class="ident">B</span>: <a class="ident" href="../../../../bytes/buf/into_buf/trait.IntoBuf.html">IntoBuf</a>,
+        <span class="ident">B</span>: <a class="ident" href="../../../../hyper/body/trait.Buf.html">Buf</a>,
     {
-        <span class="kw">let</span> <span class="ident">msg</span> <span class="op">=</span> <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#130">msg</a>.<span class="ident">into_buf</span>();
-        <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#134">msg</a>.<span class="ident">remaining</span>();
-        <span class="macro">debug_assert!</span>(<a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#135">len</a> <span class="op">&gt;</span> <span class="number">0</span>, <span class="string">&quot;encode() called with empty buf&quot;</span>);
+        <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#129">msg</a>.<span class="ident">remaining</span>();
+        <span class="macro">debug_assert!</span>(<a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#133">len</a> <span class="op">&gt;</span> <span class="number">0</span>, <span class="string">&quot;encode() called with empty buf&quot;</span>);
 
-        <span class="kw">match</span> <a class="self" href="../../../../src/hyper/proto/h1/encode.rs.html#130">self</a>.<span class="ident">kind</span> {
-            <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#28">Kind::Chunked</a> =&gt; {
-                <span class="macro">trace!</span>(<span class="string">&quot;encoding chunked {}B&quot;</span>, <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#135">len</a>);
-                <span class="kw">let</span> <span class="ident">buf</span> <span class="op">=</span> <span class="ident">ChunkSize::new</span>(<a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#135">len</a>)
-                    .<span class="ident">chain</span>(<a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#134">msg</a>)
-                    .<span class="ident">chain</span>(<a class="ident" href="../../../../src/hyper/common/buf.rs.html#6">StaticBuf</a>(<span class="string">b&quot;\r\n0\r\n\r\n&quot;</span>));
-                <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#130">dst</a>.<a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#434">buffer</a>(<a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#141">buf</a>);
-                <span class="op">!</span><a class="self" href="../../../../src/hyper/proto/h1/encode.rs.html#130">self</a>.<span class="ident">is_last</span>
-            },
-            <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#32">Kind::Length</a>(<span class="ident">remaining</span>) =&gt; {
+        <span class="kw">match</span> <a class="self" href="../../../../src/hyper/proto/h1/encode.rs.html#129">self</a>.<span class="ident">kind</span> {
+            <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#29">Kind::Chunked</a> =&gt; {
+                <span class="macro">trace!</span>(<span class="string">&quot;encoding chunked {}B&quot;</span>, <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#133">len</a>);
+                <span class="kw">let</span> <span class="ident">buf</span> <span class="op">=</span> <span class="ident">ChunkSize::new</span>(<a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#133">len</a>)
+                    .<span class="ident">chain</span>(<a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#129">msg</a>)
+                    .<span class="ident">chain</span>(<span class="string">b&quot;\r\n0\r\n\r\n&quot;</span> <span class="kw">as</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]);
+                <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#129">dst</a>.<a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#460">buffer</a>(<a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#139">buf</a>);
+                <span class="op">!</span><a class="self" href="../../../../src/hyper/proto/h1/encode.rs.html#129">self</a>.<span class="ident">is_last</span>
+            }
+            <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#33">Kind::Length</a>(<span class="ident">remaining</span>) =&gt; {
                 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html">std::cmp::Ordering</a>;
 
-                <span class="macro">trace!</span>(<span class="string">&quot;sized write, len = {}&quot;</span>, <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#135">len</a>);
-                <span class="kw">match</span> (<a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#135">len</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>).<span class="ident">cmp</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#147">remaining</a>) {
+                <span class="macro">trace!</span>(<span class="string">&quot;sized write, len = {}&quot;</span>, <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#133">len</a>);
+                <span class="kw">match</span> (<a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#133">len</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>).<span class="ident">cmp</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#145">remaining</a>) {
                     <span class="ident">Ordering::Equal</span> =&gt; {
-                        <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#130">dst</a>.<a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#434">buffer</a>(<a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#134">msg</a>);
-                        <span class="op">!</span><a class="self" href="../../../../src/hyper/proto/h1/encode.rs.html#130">self</a>.<span class="ident">is_last</span>
-                    },
+                        <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#129">dst</a>.<a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#460">buffer</a>(<a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#129">msg</a>);
+                        <span class="op">!</span><a class="self" href="../../../../src/hyper/proto/h1/encode.rs.html#129">self</a>.<span class="ident">is_last</span>
+                    }
                     <span class="ident">Ordering::Greater</span> =&gt; {
-                        <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#130">dst</a>.<a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#434">buffer</a>(<a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#134">msg</a>.<span class="ident">take</span>(<a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#147">remaining</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>));
-                        <span class="op">!</span><a class="self" href="../../../../src/hyper/proto/h1/encode.rs.html#130">self</a>.<span class="ident">is_last</span>
-                    },
+                        <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#129">dst</a>.<a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#460">buffer</a>(<a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#129">msg</a>.<span class="ident">take</span>(<a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#145">remaining</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>));
+                        <span class="op">!</span><a class="self" href="../../../../src/hyper/proto/h1/encode.rs.html#129">self</a>.<span class="ident">is_last</span>
+                    }
                     <span class="ident">Ordering::Less</span> =&gt; {
-                        <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#130">dst</a>.<a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#434">buffer</a>(<a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#134">msg</a>);
+                        <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#129">dst</a>.<a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#460">buffer</a>(<a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#129">msg</a>);
                         <span class="bool-val">false</span>
                     }
                 }
-            },
-            <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#37">Kind::CloseDelimited</a> =&gt; {
-                <span class="macro">trace!</span>(<span class="string">&quot;close delimited write {}B&quot;</span>, <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#135">len</a>);
-                <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#130">dst</a>.<a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#434">buffer</a>(<a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#134">msg</a>);
+            }
+            <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#38">Kind::CloseDelimited</a> =&gt; {
+                <span class="macro">trace!</span>(<span class="string">&quot;close delimited write {}B&quot;</span>, <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#133">len</a>);
+                <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#129">dst</a>.<a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#460">buffer</a>(<a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#129">msg</a>);
                 <span class="bool-val">false</span>
             }
         }
@@ -594,81 +590,82 @@
 
     <span class="doccomment">/// Encodes the full body, without verifying the remaining length matches.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// This is used in conjunction with Payload::__hyper_full_data(), which</span>
+    <span class="doccomment">/// This is used in conjunction with HttpBody::__hyper_full_data(), which</span>
     <span class="doccomment">/// means we can trust that the buf has the correct size (the buf itself</span>
     <span class="doccomment">/// was checked to make the headers).</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">danger_full_buf</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">msg</span>: <span class="ident">B</span>, <span class="ident">dst</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">WriteBuf</span><span class="op">&lt;</span><span class="ident">EncodedBuf</span><span class="op">&lt;</span><span class="ident">B::Buf</span><span class="op">&gt;</span><span class="op">&gt;</span>)
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">danger_full_buf</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">msg</span>: <span class="ident">B</span>, <span class="ident">dst</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">WriteBuf</span><span class="op">&lt;</span><span class="ident">EncodedBuf</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span><span class="op">&gt;</span>)
     <span class="kw">where</span>
-        <span class="ident">B</span>: <a class="ident" href="../../../../bytes/buf/into_buf/trait.IntoBuf.html">IntoBuf</a>,
+        <span class="ident">B</span>: <a class="ident" href="../../../../hyper/body/trait.Buf.html">Buf</a>,
     {
-        <span class="kw">let</span> <span class="ident">msg</span> <span class="op">=</span> <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#179">msg</a>.<span class="ident">into_buf</span>();
-        <span class="macro">debug_assert!</span>(<a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#183">msg</a>.<span class="ident">remaining</span>() <span class="op">&gt;</span> <span class="number">0</span>, <span class="string">&quot;encode() called with empty buf&quot;</span>);
-        <span class="macro">debug_assert!</span>(<span class="kw">match</span> <a class="self" href="../../../../src/hyper/proto/h1/encode.rs.html#179">self</a>.<span class="ident">kind</span> {
-            <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#32">Kind::Length</a>(<span class="ident">len</span>) =&gt; <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#186">len</a> <span class="op">==</span> <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#183">msg</a>.<span class="ident">remaining</span>() <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>,
-            <span class="kw">_</span> =&gt; <span class="bool-val">true</span>,
-        }, <span class="string">&quot;danger_full_buf length mismatches&quot;</span>);
+        <span class="macro">debug_assert!</span>(<a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#177">msg</a>.<span class="ident">remaining</span>() <span class="op">&gt;</span> <span class="number">0</span>, <span class="string">&quot;encode() called with empty buf&quot;</span>);
+        <span class="macro">debug_assert!</span>(
+            <span class="kw">match</span> <a class="self" href="../../../../src/hyper/proto/h1/encode.rs.html#177">self</a>.<span class="ident">kind</span> {
+                <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#33">Kind::Length</a>(<span class="ident">len</span>) =&gt; <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#184">len</a> <span class="op">==</span> <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#177">msg</a>.<span class="ident">remaining</span>() <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>,
+                <span class="kw">_</span> =&gt; <span class="bool-val">true</span>,
+            },
+            <span class="string">&quot;danger_full_buf length mismatches&quot;</span>
+        );
 
-        <span class="kw">match</span> <a class="self" href="../../../../src/hyper/proto/h1/encode.rs.html#179">self</a>.<span class="ident">kind</span> {
-            <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#28">Kind::Chunked</a> =&gt; {
-                <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#183">msg</a>.<span class="ident">remaining</span>();
+        <span class="kw">match</span> <a class="self" href="../../../../src/hyper/proto/h1/encode.rs.html#177">self</a>.<span class="ident">kind</span> {
+            <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#29">Kind::Chunked</a> =&gt; {
+                <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#177">msg</a>.<span class="ident">remaining</span>();
                 <span class="macro">trace!</span>(<span class="string">&quot;encoding chunked {}B&quot;</span>, <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#192">len</a>);
                 <span class="kw">let</span> <span class="ident">buf</span> <span class="op">=</span> <span class="ident">ChunkSize::new</span>(<a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#192">len</a>)
-                    .<span class="ident">chain</span>(<a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#183">msg</a>)
-                    .<span class="ident">chain</span>(<a class="ident" href="../../../../src/hyper/common/buf.rs.html#6">StaticBuf</a>(<span class="string">b&quot;\r\n0\r\n\r\n&quot;</span>));
-                <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#179">dst</a>.<a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#434">buffer</a>(<a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#194">buf</a>);
-            },
+                    .<span class="ident">chain</span>(<a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#177">msg</a>)
+                    .<span class="ident">chain</span>(<span class="string">b&quot;\r\n0\r\n\r\n&quot;</span> <span class="kw">as</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]);
+                <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#177">dst</a>.<a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#460">buffer</a>(<a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#194">buf</a>);
+            }
             <span class="kw">_</span> =&gt; {
-                <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#179">dst</a>.<a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#434">buffer</a>(<a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#183">msg</a>);
-            },
+                <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#177">dst</a>.<a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#460">buffer</a>(<a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#177">msg</a>);
+            }
         }
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span> <a class="ident" href="../../../../bytes/buf/buf/trait.Buf.html">Buf</a> <span class="kw">for</span> <span class="ident">EncodedBuf</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span>
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span> <a class="ident" href="../../../../hyper/body/trait.Buf.html">Buf</a> <span class="kw">for</span> <span class="ident">EncodedBuf</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span>
 <span class="kw">where</span>
-    <span class="ident">B</span>: <a class="ident" href="../../../../bytes/buf/buf/trait.Buf.html">Buf</a>,
+    <span class="ident">B</span>: <a class="ident" href="../../../../hyper/body/trait.Buf.html">Buf</a>,
 {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">remaining</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
         <span class="kw">match</span> <a class="self" href="../../../../src/hyper/proto/h1/encode.rs.html#211">self</a>.<span class="ident">kind</span> {
-            <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#42">BufKind::Exact</a>(<span class="kw-2">ref</span> <span class="ident">b</span>) =&gt; <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#213">b</a>.<span class="ident">remaining</span>(),
-            <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#43">BufKind::Limited</a>(<span class="kw-2">ref</span> <span class="ident">b</span>) =&gt; <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#214">b</a>.<span class="ident">remaining</span>(),
-            <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#44">BufKind::Chunked</a>(<span class="kw-2">ref</span> <span class="ident">b</span>) =&gt; <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#215">b</a>.<span class="ident">remaining</span>(),
-            <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#45">BufKind::ChunkedEnd</a>(<span class="kw-2">ref</span> <span class="ident">b</span>) =&gt; <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#216">b</a>.<span class="ident">remaining</span>(),
+            <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#43">BufKind::Exact</a>(<span class="kw-2">ref</span> <span class="ident">b</span>) =&gt; <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#213">b</a>.<span class="ident">remaining</span>(),
+            <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#44">BufKind::Limited</a>(<span class="kw-2">ref</span> <span class="ident">b</span>) =&gt; <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#214">b</a>.<span class="ident">remaining</span>(),
+            <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#45">BufKind::Chunked</a>(<span class="kw-2">ref</span> <span class="ident">b</span>) =&gt; <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#215">b</a>.<span class="ident">remaining</span>(),
+            <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#46">BufKind::ChunkedEnd</a>(<span class="kw-2">ref</span> <span class="ident">b</span>) =&gt; <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#216">b</a>.<span class="ident">remaining</span>(),
         }
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">bytes</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] {
         <span class="kw">match</span> <a class="self" href="../../../../src/hyper/proto/h1/encode.rs.html#221">self</a>.<span class="ident">kind</span> {
-            <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#42">BufKind::Exact</a>(<span class="kw-2">ref</span> <span class="ident">b</span>) =&gt; <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#223">b</a>.<span class="ident">bytes</span>(),
-            <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#43">BufKind::Limited</a>(<span class="kw-2">ref</span> <span class="ident">b</span>) =&gt; <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#224">b</a>.<span class="ident">bytes</span>(),
-            <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#44">BufKind::Chunked</a>(<span class="kw-2">ref</span> <span class="ident">b</span>) =&gt; <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#225">b</a>.<span class="ident">bytes</span>(),
-            <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#45">BufKind::ChunkedEnd</a>(<span class="kw-2">ref</span> <span class="ident">b</span>) =&gt; <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#226">b</a>.<span class="ident">bytes</span>(),
+            <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#43">BufKind::Exact</a>(<span class="kw-2">ref</span> <span class="ident">b</span>) =&gt; <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#223">b</a>.<span class="ident">bytes</span>(),
+            <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#44">BufKind::Limited</a>(<span class="kw-2">ref</span> <span class="ident">b</span>) =&gt; <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#224">b</a>.<span class="ident">bytes</span>(),
+            <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#45">BufKind::Chunked</a>(<span class="kw-2">ref</span> <span class="ident">b</span>) =&gt; <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#225">b</a>.<span class="ident">bytes</span>(),
+            <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#46">BufKind::ChunkedEnd</a>(<span class="kw-2">ref</span> <span class="ident">b</span>) =&gt; <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#226">b</a>.<span class="ident">bytes</span>(),
         }
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">advance</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">cnt</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
         <span class="kw">match</span> <a class="self" href="../../../../src/hyper/proto/h1/encode.rs.html#231">self</a>.<span class="ident">kind</span> {
-            <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#42">BufKind::Exact</a>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">b</span>) =&gt; <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#233">b</a>.<span class="ident">advance</span>(<a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#231">cnt</a>),
-            <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#43">BufKind::Limited</a>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">b</span>) =&gt; <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#234">b</a>.<span class="ident">advance</span>(<a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#231">cnt</a>),
-            <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#44">BufKind::Chunked</a>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">b</span>) =&gt; <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#235">b</a>.<span class="ident">advance</span>(<a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#231">cnt</a>),
-            <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#45">BufKind::ChunkedEnd</a>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">b</span>) =&gt; <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#236">b</a>.<span class="ident">advance</span>(<a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#231">cnt</a>),
+            <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#43">BufKind::Exact</a>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">b</span>) =&gt; <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#233">b</a>.<span class="ident">advance</span>(<a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#231">cnt</a>),
+            <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#44">BufKind::Limited</a>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">b</span>) =&gt; <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#234">b</a>.<span class="ident">advance</span>(<a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#231">cnt</a>),
+            <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#45">BufKind::Chunked</a>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">b</span>) =&gt; <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#235">b</a>.<span class="ident">advance</span>(<a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#231">cnt</a>),
+            <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#46">BufKind::ChunkedEnd</a>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">b</span>) =&gt; <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#236">b</a>.<span class="ident">advance</span>(<a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#231">cnt</a>),
         }
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">bytes_vec</span><span class="op">&lt;</span><span class="lifetime">&#39;t</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;t</span> <span class="self">self</span>, <span class="ident">dst</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="kw-2">&amp;</span><span class="lifetime">&#39;t</span> <a class="ident" href="../../../../iovec/struct.IoVec.html">IoVec</a>]) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
+    <span class="kw">fn</span> <span class="ident">bytes_vectored</span><span class="op">&lt;</span><span class="lifetime">&#39;t</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;t</span> <span class="self">self</span>, <span class="ident">dst</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">IoSlice</span><span class="op">&lt;</span><span class="lifetime">&#39;t</span><span class="op">&gt;</span>]) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
         <span class="kw">match</span> <a class="self" href="../../../../src/hyper/proto/h1/encode.rs.html#241">self</a>.<span class="ident">kind</span> {
-            <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#42">BufKind::Exact</a>(<span class="kw-2">ref</span> <span class="ident">b</span>) =&gt; <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#243">b</a>.<span class="ident">bytes_vec</span>(<a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#241">dst</a>),
-            <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#43">BufKind::Limited</a>(<span class="kw-2">ref</span> <span class="ident">b</span>) =&gt; <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#244">b</a>.<span class="ident">bytes_vec</span>(<a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#241">dst</a>),
-            <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#44">BufKind::Chunked</a>(<span class="kw-2">ref</span> <span class="ident">b</span>) =&gt; <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#245">b</a>.<span class="ident">bytes_vec</span>(<a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#241">dst</a>),
-            <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#45">BufKind::ChunkedEnd</a>(<span class="kw-2">ref</span> <span class="ident">b</span>) =&gt; <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#246">b</a>.<span class="ident">bytes_vec</span>(<a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#241">dst</a>),
+            <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#43">BufKind::Exact</a>(<span class="kw-2">ref</span> <span class="ident">b</span>) =&gt; <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#243">b</a>.<span class="ident">bytes_vectored</span>(<a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#241">dst</a>),
+            <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#44">BufKind::Limited</a>(<span class="kw-2">ref</span> <span class="ident">b</span>) =&gt; <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#244">b</a>.<span class="ident">bytes_vectored</span>(<a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#241">dst</a>),
+            <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#45">BufKind::Chunked</a>(<span class="kw-2">ref</span> <span class="ident">b</span>) =&gt; <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#245">b</a>.<span class="ident">bytes_vectored</span>(<a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#241">dst</a>),
+            <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#46">BufKind::ChunkedEnd</a>(<span class="kw-2">ref</span> <span class="ident">b</span>) =&gt; <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#246">b</a>.<span class="ident">bytes_vectored</span>(<a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#241">dst</a>),
         }
     }
 }
-
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_pointer_width</span> <span class="op">=</span> <span class="string">&quot;32&quot;</span>)]</span>
 <span class="kw">const</span> <span class="ident">USIZE_BYTES</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">4</span>;
@@ -677,93 +674,93 @@
 <span class="kw">const</span> <span class="ident">USIZE_BYTES</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> <span class="op">=</span> <span class="number">8</span>;
 
 <span class="comment">// each byte will become 2 hex</span>
-<span class="kw">const</span> <span class="ident">CHUNK_SIZE_MAX_BYTES</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> <span class="op">=</span> <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#256">USIZE_BYTES</a> <span class="op">*</span> <span class="number">2</span>;
+<span class="kw">const</span> <span class="ident">CHUNK_SIZE_MAX_BYTES</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> <span class="op">=</span> <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#255">USIZE_BYTES</a> <span class="op">*</span> <span class="number">2</span>;
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
 <span class="kw">struct</span> <span class="ident">ChunkSize</span> {
-    <span class="ident">bytes</span>: [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#259">CHUNK_SIZE_MAX_BYTES</a> <span class="op">+</span> <span class="number">2</span>],
+    <span class="ident">bytes</span>: [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#258">CHUNK_SIZE_MAX_BYTES</a> <span class="op">+</span> <span class="number">2</span>],
     <span class="ident">pos</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>,
     <span class="ident">len</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>,
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#262-266">ChunkSize</a> {
-    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">len</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#262-266">ChunkSize</a> {
+<span class="kw">impl</span> <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#261-265">ChunkSize</a> {
+    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">len</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#261-265">ChunkSize</a> {
         <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Write.html">std::fmt::Write</a>;
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">size</span> <span class="op">=</span> <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#262-266">ChunkSize</a> {
-            <span class="ident">bytes</span>: [<span class="number">0</span>; <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#259">CHUNK_SIZE_MAX_BYTES</a> <span class="op">+</span> <span class="number">2</span>],
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">size</span> <span class="op">=</span> <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#261-265">ChunkSize</a> {
+            <span class="ident">bytes</span>: [<span class="number">0</span>; <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#258">CHUNK_SIZE_MAX_BYTES</a> <span class="op">+</span> <span class="number">2</span>],
             <span class="ident">pos</span>: <span class="number">0</span>,
             <span class="ident">len</span>: <span class="number">0</span>,
         };
-        <span class="macro">write!</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#271">size</a>, <span class="string">&quot;{:X}\r\n&quot;</span>, <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#269">len</a>)
-            .<span class="ident">expect</span>(<span class="string">&quot;CHUNK_SIZE_MAX_BYTES should fit any usize&quot;</span>);
-        <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#271">size</a>
+        <span class="macro">write!</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#270">size</a>, <span class="string">&quot;{:X}\r\n&quot;</span>, <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#268">len</a>).<span class="ident">expect</span>(<span class="string">&quot;CHUNK_SIZE_MAX_BYTES should fit any usize&quot;</span>);
+        <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#270">size</a>
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../../bytes/buf/buf/trait.Buf.html">Buf</a> <span class="kw">for</span> <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#262-266">ChunkSize</a> {
+<span class="kw">impl</span> <a class="ident" href="../../../../hyper/body/trait.Buf.html">Buf</a> <span class="kw">for</span> <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#261-265">ChunkSize</a> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">remaining</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        (<a class="self" href="../../../../src/hyper/proto/h1/encode.rs.html#284">self</a>.<span class="ident">len</span> <span class="op">-</span> <a class="self" href="../../../../src/hyper/proto/h1/encode.rs.html#284">self</a>.<span class="ident">pos</span>).<span class="ident">into</span>()
+        (<a class="self" href="../../../../src/hyper/proto/h1/encode.rs.html#282">self</a>.<span class="ident">len</span> <span class="op">-</span> <a class="self" href="../../../../src/hyper/proto/h1/encode.rs.html#282">self</a>.<span class="ident">pos</span>).<span class="ident">into</span>()
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">bytes</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] {
-        <span class="kw-2">&amp;</span><a class="self" href="../../../../src/hyper/proto/h1/encode.rs.html#289">self</a>.<span class="ident">bytes</span>[<a class="self" href="../../../../src/hyper/proto/h1/encode.rs.html#289">self</a>.<span class="ident">pos</span>.<span class="ident">into</span>() .. <a class="self" href="../../../../src/hyper/proto/h1/encode.rs.html#289">self</a>.<span class="ident">len</span>.<span class="ident">into</span>()]
+        <span class="kw-2">&amp;</span><a class="self" href="../../../../src/hyper/proto/h1/encode.rs.html#287">self</a>.<span class="ident">bytes</span>[<a class="self" href="../../../../src/hyper/proto/h1/encode.rs.html#287">self</a>.<span class="ident">pos</span>.<span class="ident">into</span>()..<a class="self" href="../../../../src/hyper/proto/h1/encode.rs.html#287">self</a>.<span class="ident">len</span>.<span class="ident">into</span>()]
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">advance</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">cnt</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
-        <span class="macro">assert!</span>(<a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#294">cnt</a> <span class="op">&lt;</span><span class="op">=</span> <a class="self" href="../../../../src/hyper/proto/h1/encode.rs.html#294">self</a>.<span class="ident">remaining</span>());
-        <a class="self" href="../../../../src/hyper/proto/h1/encode.rs.html#294">self</a>.<span class="ident">pos</span> <span class="op">+</span><span class="op">=</span> <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#294">cnt</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="comment">// just asserted cnt fits in u8</span>
+        <span class="macro">assert!</span>(<a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#292">cnt</a> <span class="op">&lt;</span><span class="op">=</span> <a class="self" href="../../../../src/hyper/proto/h1/encode.rs.html#292">self</a>.<span class="ident">remaining</span>());
+        <a class="self" href="../../../../src/hyper/proto/h1/encode.rs.html#292">self</a>.<span class="ident">pos</span> <span class="op">+</span><span class="op">=</span> <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#292">cnt</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="comment">// just asserted cnt fits in u8</span>
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#262-266">ChunkSize</a> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#301">f</a>.<span class="ident">debug_struct</span>(<span class="string">&quot;ChunkSize&quot;</span>)
-            .<span class="ident">field</span>(<span class="string">&quot;bytes&quot;</span>, <span class="op">&amp;&amp;</span><a class="self" href="../../../../src/hyper/proto/h1/encode.rs.html#301">self</a>.<span class="ident">bytes</span>[..<a class="self" href="../../../../src/hyper/proto/h1/encode.rs.html#301">self</a>.<span class="ident">len</span>.<span class="ident">into</span>()])
-            .<span class="ident">field</span>(<span class="string">&quot;pos&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../../src/hyper/proto/h1/encode.rs.html#301">self</a>.<span class="ident">pos</span>)
+<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#261-265">ChunkSize</a> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+        <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#299">f</a>.<span class="ident">debug_struct</span>(<span class="string">&quot;ChunkSize&quot;</span>)
+            .<span class="ident">field</span>(<span class="string">&quot;bytes&quot;</span>, <span class="op">&amp;&amp;</span><a class="self" href="../../../../src/hyper/proto/h1/encode.rs.html#299">self</a>.<span class="ident">bytes</span>[..<a class="self" href="../../../../src/hyper/proto/h1/encode.rs.html#299">self</a>.<span class="ident">len</span>.<span class="ident">into</span>()])
+            .<span class="ident">field</span>(<span class="string">&quot;pos&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../../src/hyper/proto/h1/encode.rs.html#299">self</a>.<span class="ident">pos</span>)
             .<span class="ident">finish</span>()
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Write.html">fmt::Write</a> <span class="kw">for</span> <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#262-266">ChunkSize</a> {
+<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Write.html">fmt::Write</a> <span class="kw">for</span> <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#261-265">ChunkSize</a> {
     <span class="kw">fn</span> <span class="ident">write_str</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">num</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
         <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">std::io::Write</a>;
-        (<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="self" href="../../../../src/hyper/proto/h1/encode.rs.html#310">self</a>.<span class="ident">bytes</span>[<a class="self" href="../../../../src/hyper/proto/h1/encode.rs.html#310">self</a>.<span class="ident">len</span>.<span class="ident">into</span>()..]).<span class="ident">write</span>(<a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#310">num</a>.<span class="ident">as_bytes</span>())
+        (<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="self" href="../../../../src/hyper/proto/h1/encode.rs.html#308">self</a>.<span class="ident">bytes</span>[<a class="self" href="../../../../src/hyper/proto/h1/encode.rs.html#308">self</a>.<span class="ident">len</span>.<span class="ident">into</span>()..])
+            .<span class="ident">write_all</span>(<a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#308">num</a>.<span class="ident">as_bytes</span>())
             .<span class="ident">expect</span>(<span class="string">&quot;&amp;mut [u8].write() cannot error&quot;</span>);
-        <a class="self" href="../../../../src/hyper/proto/h1/encode.rs.html#310">self</a>.<span class="ident">len</span> <span class="op">+</span><span class="op">=</span> <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#310">num</a>.<span class="ident">len</span>() <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="comment">// safe because bytes is never bigger than 256</span>
+        <a class="self" href="../../../../src/hyper/proto/h1/encode.rs.html#308">self</a>.<span class="ident">len</span> <span class="op">+</span><span class="op">=</span> <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#308">num</a>.<span class="ident">len</span>() <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="comment">// safe because bytes is never bigger than 256</span>
         <span class="prelude-val">Ok</span>(())
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">B</span>: <a class="ident" href="../../../../bytes/buf/buf/trait.Buf.html">Buf</a><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">EncodedBuf</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span> {
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">B</span>: <a class="ident" href="../../../../hyper/body/trait.Buf.html">Buf</a><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">EncodedBuf</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">buf</span>: <span class="ident">B</span>) -&gt; <span class="self">Self</span> {
-        <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#18-20">EncodedBuf</a> {
-            <span class="ident">kind</span>: <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#42">BufKind::Exact</a>(<a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#320">buf</a>),
+        <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#19-21">EncodedBuf</a> {
+            <span class="ident">kind</span>: <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#43">BufKind::Exact</a>(<a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#319">buf</a>),
         }
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">B</span>: <a class="ident" href="../../../../bytes/buf/buf/trait.Buf.html">Buf</a><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Take</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">EncodedBuf</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span> {
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">B</span>: <a class="ident" href="../../../../hyper/body/trait.Buf.html">Buf</a><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Take</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">EncodedBuf</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">buf</span>: <span class="ident">Take</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
-        <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#18-20">EncodedBuf</a> {
-            <span class="ident">kind</span>: <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#43">BufKind::Limited</a>(<a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#328">buf</a>),
+        <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#19-21">EncodedBuf</a> {
+            <span class="ident">kind</span>: <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#44">BufKind::Limited</a>(<a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#327">buf</a>),
         }
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">B</span>: <a class="ident" href="../../../../bytes/buf/buf/trait.Buf.html">Buf</a><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Chain</span><span class="op">&lt;</span><span class="ident">Chain</span><span class="op">&lt;</span><a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#262-266">ChunkSize</a>, <span class="ident">B</span><span class="op">&gt;</span>, <a class="ident" href="../../../../src/hyper/common/buf.rs.html#6">StaticBuf</a><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">EncodedBuf</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">buf</span>: <span class="ident">Chain</span><span class="op">&lt;</span><span class="ident">Chain</span><span class="op">&lt;</span><a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#262-266">ChunkSize</a>, <span class="ident">B</span><span class="op">&gt;</span>, <a class="ident" href="../../../../src/hyper/common/buf.rs.html#6">StaticBuf</a><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
-        <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#18-20">EncodedBuf</a> {
-            <span class="ident">kind</span>: <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#44">BufKind::Chunked</a>(<a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#336">buf</a>),
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">B</span>: <a class="ident" href="../../../../hyper/body/trait.Buf.html">Buf</a><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Chain</span><span class="op">&lt;</span><span class="ident">Chain</span><span class="op">&lt;</span><a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#261-265">ChunkSize</a>, <span class="ident">B</span><span class="op">&gt;</span>, <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#9">StaticBuf</a><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">EncodedBuf</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">buf</span>: <span class="ident">Chain</span><span class="op">&lt;</span><span class="ident">Chain</span><span class="op">&lt;</span><a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#261-265">ChunkSize</a>, <span class="ident">B</span><span class="op">&gt;</span>, <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#9">StaticBuf</a><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
+        <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#19-21">EncodedBuf</a> {
+            <span class="ident">kind</span>: <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#45">BufKind::Chunked</a>(<a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#335">buf</a>),
         }
     }
 }
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">mod</span> <span class="ident">tests</span> {
-    <span class="kw">use</span> <span class="ident">bytes</span>::{<span class="ident">BufMut</span>};
+    <span class="kw">use</span> <span class="ident">bytes::BufMut</span>;
 
     <span class="kw">use</span> <span class="ident"><span class="kw">super</span>::<span class="kw">super</span>::io::Cursor</span>;
     <span class="kw">use</span> <span class="ident"><span class="kw">super</span>::Encoder</span>;
@@ -787,7 +784,10 @@
         <span class="kw">let</span> <span class="ident">end</span> <span class="op">=</span> <span class="ident">encoder</span>.<span class="ident">end</span>::<span class="op">&lt;</span><span class="ident">Cursor</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>().<span class="ident">unwrap</span>().<span class="ident">unwrap</span>();
         <span class="ident">dst</span>.<span class="ident">put</span>(<span class="ident">end</span>);
 
-        <span class="macro">assert_eq!</span>(<span class="ident">dst</span>, <span class="string">b&quot;7\r\nfoo bar\r\nD\r\nbaz quux herp\r\n0\r\n\r\n&quot;</span>.<span class="ident">as_ref</span>());
+        <span class="macro">assert_eq!</span>(
+            <span class="ident">dst</span>,
+            <span class="string">b&quot;7\r\nfoo bar\r\nD\r\nbaz quux herp\r\n0\r\n\r\n&quot;</span>.<span class="ident">as_ref</span>()
+        );
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
@@ -796,11 +796,9 @@
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">encoder</span> <span class="op">=</span> <span class="ident">Encoder::length</span>(<span class="ident">max_len</span> <span class="kw">as</span> <span class="ident">u64</span>);
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">dst</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
 
-
         <span class="kw">let</span> <span class="ident">msg1</span> <span class="op">=</span> <span class="string">b&quot;foo bar&quot;</span>.<span class="ident">as_ref</span>();
         <span class="kw">let</span> <span class="ident">buf1</span> <span class="op">=</span> <span class="ident">encoder</span>.<span class="ident">encode</span>(<span class="ident">msg1</span>);
         <span class="ident">dst</span>.<span class="ident">put</span>(<span class="ident">buf1</span>);
-
 
         <span class="macro">assert_eq!</span>(<span class="ident">dst</span>, <span class="string">b&quot;foo bar&quot;</span>);
         <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">encoder</span>.<span class="ident">is_eof</span>());
@@ -821,15 +819,13 @@
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">encoder</span> <span class="op">=</span> <span class="ident">Encoder::close_delimited</span>();
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">dst</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
 
-
         <span class="kw">let</span> <span class="ident">msg1</span> <span class="op">=</span> <span class="string">b&quot;foo bar&quot;</span>.<span class="ident">as_ref</span>();
         <span class="kw">let</span> <span class="ident">buf1</span> <span class="op">=</span> <span class="ident">encoder</span>.<span class="ident">encode</span>(<span class="ident">msg1</span>);
         <span class="ident">dst</span>.<span class="ident">put</span>(<span class="ident">buf1</span>);
 
-
         <span class="macro">assert_eq!</span>(<span class="ident">dst</span>, <span class="string">b&quot;foo bar&quot;</span>);
         <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">encoder</span>.<span class="ident">is_eof</span>());
-        <span class="ident">encoder</span>.<span class="ident">end</span>::<span class="op">&lt;</span>()<span class="op">&gt;</span>().<span class="ident">unwrap_err</span>();
+        <span class="ident">encoder</span>.<span class="ident">end</span>::<span class="op">&lt;</span>()<span class="op">&gt;</span>().<span class="ident">unwrap</span>();
 
         <span class="kw">let</span> <span class="ident">msg2</span> <span class="op">=</span> <span class="string">b&quot;baz&quot;</span>.<span class="ident">as_ref</span>();
         <span class="kw">let</span> <span class="ident">buf2</span> <span class="op">=</span> <span class="ident">encoder</span>.<span class="ident">encode</span>(<span class="ident">msg2</span>);
@@ -837,7 +833,7 @@
 
         <span class="macro">assert_eq!</span>(<span class="ident">dst</span>, <span class="string">b&quot;foo barbaz&quot;</span>);
         <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">encoder</span>.<span class="ident">is_eof</span>());
-        <span class="ident">encoder</span>.<span class="ident">end</span>::<span class="op">&lt;</span>()<span class="op">&gt;</span>().<span class="ident">unwrap_err</span>();
+        <span class="ident">encoder</span>.<span class="ident">end</span>::<span class="op">&lt;</span>()<span class="op">&gt;</span>().<span class="ident">unwrap</span>();
     }
 }
 </code></pre></div>

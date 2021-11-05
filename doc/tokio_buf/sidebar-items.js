@@ -1,1 +1,0 @@
-initSidebarItems({"mod":[["util","Types and utilities for working with `BufStream`."]],"struct":[["SizeHint","A `BufStream` size hint"]],"trait":[["BufStream","An asynchronous stream of bytes."],["BufStreamExt","An extension trait for `BufStream`’s that provides a variety of convenient adapters."]]});

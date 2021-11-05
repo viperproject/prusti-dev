@@ -1,1 +1,0 @@
-initSidebarItems({"struct":[["CollectBytesError","Error returned from collecting into a `Bytes`"],["CollectError","Errors returned from `Collect` future."],["CollectVecError","Error returned from collecting into a `Vec<u8>`"],["LimitError","Errors returned from `Limit`."]]});

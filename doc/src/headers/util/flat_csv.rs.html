@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;headers-0.2.3&#x2F;src&#x2F;util&#x2F;flat_csv.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>flat_csv.rs - source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../headers/index.html'><div class='logo-container rust-logo'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;headers-0.3.5&#x2F;src&#x2F;util&#x2F;flat_csv.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>flat_csv.rs - source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../headers/index.html'><div class='logo-container rust-logo'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -197,26 +197,13 @@
 <span id="197">197</span>
 <span id="198">198</span>
 <span id="199">199</span>
-<span id="200">200</span>
-<span id="201">201</span>
-<span id="202">202</span>
-<span id="203">203</span>
-<span id="204">204</span>
-<span id="205">205</span>
-<span id="206">206</span>
-<span id="207">207</span>
-<span id="208">208</span>
-<span id="209">209</span>
-<span id="210">210</span>
-<span id="211">211</span>
-<span id="212">212</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.FromIterator.html">std::iter::FromIterator</a>;
 <span class="kw">use</span> <span class="ident">std::marker::PhantomData</span>;
 
-<span class="kw">use</span> <span class="ident">bytes</span>::{<a class="ident" href="../../../bytes/bytes/struct.Bytes.html">Bytes</a>, <a class="ident" href="../../../bytes/bytes/struct.BytesMut.html">BytesMut</a>};
-<span class="kw">use</span> <a class="ident" href="../../../http/header/value/struct.HeaderValue.html">::HeaderValue</a>;
-<span class="kw">use</span> <a class="ident" href="../../../src/headers/util/mod.rs.html#78-84">::util::TryFromValues</a>;
+<span class="kw">use</span> <a class="ident" href="../../../bytes/bytes_mut/struct.BytesMut.html">bytes::BytesMut</a>;
+<span class="kw">use</span> <a class="ident" href="../../../src/headers/util/mod.rs.html#72-78">util::TryFromValues</a>;
+<span class="kw">use</span> <a class="ident" href="../../../http/header/value/struct.HeaderValue.html">HeaderValue</a>;
 
 <span class="comment">// A single `HeaderValue` that can flatten multiple values with commas.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Hash</span>)]</span>
@@ -248,65 +235,59 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Sep</span>: <a class="ident" href="../../../src/headers/util/flat_csv.rs.html#16-19">Separator</a><span class="op">&gt;</span> <span class="ident">FlatCsv</span><span class="op">&lt;</span><span class="ident">Sep</span><span class="op">&gt;</span> {
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">iter</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a><span class="op">&gt;</span> {
-        <a class="self" href="../../../src/headers/util/flat_csv.rs.html#38">self</a>
-            .<span class="ident">value</span>
-            .<span class="ident">to_str</span>()
-            .<span class="ident">ok</span>()
-            .<span class="ident">into_iter</span>()
-            .<span class="ident">flat_map</span>(<span class="op">|</span><span class="ident">value_str</span><span class="op">|</span> {
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">in_quotes</span> <span class="op">=</span> <span class="bool-val">false</span>;
-                <a class="ident" href="../../../src/headers/util/flat_csv.rs.html#44">value_str</a>
-                    .<span class="ident">split</span>(<span class="kw">move</span> <span class="op">|</span><span class="ident">c</span><span class="op">|</span> {
-                        <span class="kw">if</span> <a class="ident" href="../../../src/headers/util/flat_csv.rs.html#45">in_quotes</a> {
-                            <span class="kw">if</span> <a class="ident" href="../../../src/headers/util/flat_csv.rs.html#47">c</a> <span class="op">==</span> <span class="string">&#39;&quot;&#39;</span> {
-                                <a class="ident" href="../../../src/headers/util/flat_csv.rs.html#45">in_quotes</a> <span class="op">=</span> <span class="bool-val">false</span>;
+        <a class="self" href="../../../src/headers/util/flat_csv.rs.html#38">self</a>.<span class="ident">value</span>.<span class="ident">to_str</span>().<span class="ident">ok</span>().<span class="ident">into_iter</span>().<span class="ident">flat_map</span>(<span class="op">|</span><span class="ident">value_str</span><span class="op">|</span> {
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">in_quotes</span> <span class="op">=</span> <span class="bool-val">false</span>;
+            <a class="ident" href="../../../src/headers/util/flat_csv.rs.html#39">value_str</a>
+                .<span class="ident">split</span>(<span class="kw">move</span> <span class="op">|</span><span class="ident">c</span><span class="op">|</span> {
+                    <span class="kw">if</span> <a class="ident" href="../../../src/headers/util/flat_csv.rs.html#40">in_quotes</a> {
+                        <span class="kw">if</span> <a class="ident" href="../../../src/headers/util/flat_csv.rs.html#42">c</a> <span class="op">==</span> <span class="string">&#39;&quot;&#39;</span> {
+                            <a class="ident" href="../../../src/headers/util/flat_csv.rs.html#40">in_quotes</a> <span class="op">=</span> <span class="bool-val">false</span>;
+                        }
+                        <span class="bool-val">false</span> <span class="comment">// dont split</span>
+                    } <span class="kw">else</span> {
+                        <span class="kw">if</span> <a class="ident" href="../../../src/headers/util/flat_csv.rs.html#42">c</a> <span class="op">==</span> <span class="ident">Sep::CHAR</span> {
+                            <span class="bool-val">true</span> <span class="comment">// split</span>
+                        } <span class="kw">else</span> {
+                            <span class="kw">if</span> <a class="ident" href="../../../src/headers/util/flat_csv.rs.html#42">c</a> <span class="op">==</span> <span class="string">&#39;&quot;&#39;</span> {
+                                <a class="ident" href="../../../src/headers/util/flat_csv.rs.html#40">in_quotes</a> <span class="op">=</span> <span class="bool-val">true</span>;
                             }
                             <span class="bool-val">false</span> <span class="comment">// dont split</span>
-                        } <span class="kw">else</span> {
-                            <span class="kw">if</span> <a class="ident" href="../../../src/headers/util/flat_csv.rs.html#47">c</a> <span class="op">==</span> <span class="ident">Sep::CHAR</span> {
-                                <span class="bool-val">true</span> <span class="comment">// split</span>
-                            } <span class="kw">else</span> {
-                                <span class="kw">if</span> <a class="ident" href="../../../src/headers/util/flat_csv.rs.html#47">c</a> <span class="op">==</span> <span class="string">&#39;&quot;&#39;</span> {
-                                    <a class="ident" href="../../../src/headers/util/flat_csv.rs.html#45">in_quotes</a> <span class="op">=</span> <span class="bool-val">true</span>;
-                                }
-                                <span class="bool-val">false</span> <span class="comment">// dont split</span>
-                            }
                         }
-                    })
-                    .<span class="ident">map</span>(<span class="op">|</span><span class="ident">item</span><span class="op">|</span> <a class="ident" href="../../../src/headers/util/flat_csv.rs.html#64">item</a>.<span class="ident">trim</span>())
-            })
+                    }
+                })
+                .<span class="ident">map</span>(<span class="op">|</span><span class="ident">item</span><span class="op">|</span> <a class="ident" href="../../../src/headers/util/flat_csv.rs.html#59">item</a>.<span class="ident">trim</span>())
+        })
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Sep</span>: <a class="ident" href="../../../src/headers/util/flat_csv.rs.html#16-19">Separator</a><span class="op">&gt;</span> <a class="ident" href="../../../src/headers/util/mod.rs.html#78-84">TryFromValues</a> <span class="kw">for</span> <span class="ident">FlatCsv</span><span class="op">&lt;</span><span class="ident">Sep</span><span class="op">&gt;</span> {
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Sep</span>: <a class="ident" href="../../../src/headers/util/flat_csv.rs.html#16-19">Separator</a><span class="op">&gt;</span> <a class="ident" href="../../../src/headers/util/mod.rs.html#72-78">TryFromValues</a> <span class="kw">for</span> <span class="ident">FlatCsv</span><span class="op">&lt;</span><span class="ident">Sep</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">try_from_values</span><span class="op">&lt;</span><span class="lifetime">&#39;i</span>, <span class="ident">I</span><span class="op">&gt;</span>(<span class="ident">values</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">I</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <a class="ident" href="../../../headers/struct.Error.html">::Error</a><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">I</span>: <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;i</span> <a class="ident" href="../../../http/header/value/struct.HeaderValue.html">HeaderValue</a><span class="op">&gt;</span>,
     {
-        <span class="kw">let</span> <span class="ident">flat</span> <span class="op">=</span> <a class="ident" href="../../../src/headers/util/flat_csv.rs.html#70">values</a>.<span class="ident">collect</span>();
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/headers/util/flat_csv.rs.html#74">flat</a>)
+        <span class="kw">let</span> <span class="ident">flat</span> <span class="op">=</span> <a class="ident" href="../../../src/headers/util/flat_csv.rs.html#65">values</a>.<span class="ident">collect</span>();
+        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/headers/util/flat_csv.rs.html#69">flat</a>)
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Sep</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><a class="ident" href="../../../http/header/value/struct.HeaderValue.html">HeaderValue</a><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">FlatCsv</span><span class="op">&lt;</span><span class="ident">Sep</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">value</span>: <a class="ident" href="../../../http/header/value/struct.HeaderValue.html">HeaderValue</a>) -&gt; <span class="self">Self</span> {
         <a class="ident" href="../../../src/headers/util/flat_csv.rs.html#11-14">FlatCsv</a> {
-            <a class="ident" href="../../../src/headers/util/flat_csv.rs.html#80">value</a>,
+            <a class="ident" href="../../../src/headers/util/flat_csv.rs.html#75">value</a>,
             <span class="ident">_marker</span>: <span class="ident">PhantomData</span>,
         }
     }
 }
 
-
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Sep</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">FlatCsv</span><span class="op">&lt;</span><span class="ident">Sep</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../../http/header/value/struct.HeaderValue.html">HeaderValue</a> {
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">flat</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">FlatCsv</span><span class="op">&lt;</span><span class="ident">Sep</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="../../../http/header/value/struct.HeaderValue.html">HeaderValue</a> {
-        <a class="ident" href="../../../src/headers/util/flat_csv.rs.html#90">flat</a>.<span class="ident">value</span>.<span class="ident">clone</span>()
+        <a class="ident" href="../../../src/headers/util/flat_csv.rs.html#84">flat</a>.<span class="ident">value</span>.<span class="ident">clone</span>()
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Sep</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <span class="ident">FlatCsv</span><span class="op">&lt;</span><span class="ident">Sep</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <span class="ident">fmt::Debug::fmt</span>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/headers/util/flat_csv.rs.html#96">self</a>.<span class="ident">value</span>, <a class="ident" href="../../../src/headers/util/flat_csv.rs.html#96">f</a>)
+        <span class="ident">fmt::Debug::fmt</span>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/headers/util/flat_csv.rs.html#90">self</a>.<span class="ident">value</span>, <a class="ident" href="../../../src/headers/util/flat_csv.rs.html#90">f</a>)
     }
 }
 
@@ -315,11 +296,11 @@
     <span class="kw">where</span>
         <span class="ident">I</span>: <span class="ident">IntoIterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="../../../http/header/value/struct.HeaderValue.html">HeaderValue</a><span class="op">&gt;</span>,
     {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">values</span> <span class="op">=</span> <a class="ident" href="../../../src/headers/util/flat_csv.rs.html#102">iter</a>.<span class="ident">into_iter</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">values</span> <span class="op">=</span> <a class="ident" href="../../../src/headers/util/flat_csv.rs.html#96">iter</a>.<span class="ident">into_iter</span>();
 
         <span class="comment">// Common case is there is only 1 value, optimize for that</span>
-        <span class="kw">if</span> <span class="kw">let</span> (<span class="number">1</span>, <span class="prelude-val">Some</span>(<span class="number">1</span>)) <span class="op">=</span> <a class="ident" href="../../../src/headers/util/flat_csv.rs.html#106">values</a>.<span class="ident">size_hint</span>() {
-            <span class="kw">return</span> <a class="ident" href="../../../src/headers/util/flat_csv.rs.html#106">values</a>
+        <span class="kw">if</span> <span class="kw">let</span> (<span class="number">1</span>, <span class="prelude-val">Some</span>(<span class="number">1</span>)) <span class="op">=</span> <a class="ident" href="../../../src/headers/util/flat_csv.rs.html#100">values</a>.<span class="ident">size_hint</span>() {
+            <span class="kw">return</span> <a class="ident" href="../../../src/headers/util/flat_csv.rs.html#100">values</a>
                 .<span class="ident">next</span>()
                 .<span class="ident">expect</span>(<span class="string">&quot;size_hint claimed 1 item&quot;</span>)
                 .<span class="ident">clone</span>()
@@ -327,23 +308,21 @@
         }
 
         <span class="comment">// Otherwise, there are multiple, so this should merge them into 1.</span>
-        <span class="kw">let</span> <span class="ident">bytes</span> <span class="op">=</span> <a class="ident" href="../../../src/headers/util/flat_csv.rs.html#106">values</a>
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> <a class="ident" href="../../../src/headers/util/flat_csv.rs.html#100">values</a>
             .<span class="ident">next</span>()
             .<span class="ident">cloned</span>()
-            .<span class="ident">map</span>(<span class="ident">Bytes::from</span>)
-            .<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">Bytes::new</span>());
+            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">val</span><span class="op">|</span> <span class="ident">BytesMut::from</span>(<a class="ident" href="../../../src/headers/util/flat_csv.rs.html#115">val</a>.<span class="ident">as_bytes</span>()))
+            .<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">BytesMut::new</span>());
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> <span class="ident">BytesMut::from</span>(<a class="ident" href="../../../src/headers/util/flat_csv.rs.html#118">bytes</a>);
-
-        <span class="kw">for</span> <a class="ident" href="../../../src/headers/util/flat_csv.rs.html#126">val</a> <span class="kw">in</span> <a class="ident" href="../../../src/headers/util/flat_csv.rs.html#106">values</a> {
-            <a class="ident" href="../../../src/headers/util/flat_csv.rs.html#124">buf</a>.<span class="ident">extend_from_slice</span>(<span class="kw-2">&amp;</span>[<span class="ident">Sep::BYTE</span>, <span class="string">b&#39; &#39;</span>]);
-            <a class="ident" href="../../../src/headers/util/flat_csv.rs.html#124">buf</a>.<span class="ident">extend_from_slice</span>(<a class="ident" href="../../../src/headers/util/flat_csv.rs.html#126">val</a>.<span class="ident">as_bytes</span>());
+        <span class="kw">for</span> <a class="ident" href="../../../src/headers/util/flat_csv.rs.html#118">val</a> <span class="kw">in</span> <a class="ident" href="../../../src/headers/util/flat_csv.rs.html#100">values</a> {
+            <a class="ident" href="../../../src/headers/util/flat_csv.rs.html#112">buf</a>.<span class="ident">extend_from_slice</span>(<span class="kw-2">&amp;</span>[<span class="ident">Sep::BYTE</span>, <span class="string">b&#39; &#39;</span>]);
+            <a class="ident" href="../../../src/headers/util/flat_csv.rs.html#112">buf</a>.<span class="ident">extend_from_slice</span>(<a class="ident" href="../../../src/headers/util/flat_csv.rs.html#118">val</a>.<span class="ident">as_bytes</span>());
         }
 
-        <span class="kw">let</span> <span class="ident">val</span> <span class="op">=</span> <span class="ident">HeaderValue::from_shared</span>(<a class="ident" href="../../../src/headers/util/flat_csv.rs.html#124">buf</a>.<span class="ident">freeze</span>())
-            .<span class="ident">expect</span>(<span class="string">&quot;comma separated HeaderValues are valid&quot;</span>);
+        <span class="kw">let</span> <span class="ident">val</span> <span class="op">=</span>
+            <span class="ident">HeaderValue::from_maybe_shared</span>(<a class="ident" href="../../../src/headers/util/flat_csv.rs.html#112">buf</a>.<span class="ident">freeze</span>()).<span class="ident">expect</span>(<span class="string">&quot;comma separated HeaderValues are valid&quot;</span>);
 
-        <a class="ident" href="../../../src/headers/util/flat_csv.rs.html#131">val</a>.<span class="ident">into</span>()
+        <a class="ident" href="../../../src/headers/util/flat_csv.rs.html#123">val</a>.<span class="ident">into</span>()
     }
 }
 
@@ -353,33 +332,28 @@
     <span class="kw">where</span>
         <span class="ident">I</span>: <span class="ident">IntoIterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <a class="ident" href="../../../http/header/value/struct.HeaderValue.html">HeaderValue</a><span class="op">&gt;</span>,
     {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">values</span> <span class="op">=</span> <a class="ident" href="../../../src/headers/util/flat_csv.rs.html#140">iter</a>.<span class="ident">into_iter</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">values</span> <span class="op">=</span> <a class="ident" href="../../../src/headers/util/flat_csv.rs.html#132">iter</a>.<span class="ident">into_iter</span>();
 
         <span class="comment">// Common case is there is only 1 value, optimize for that</span>
-        <span class="kw">if</span> <span class="kw">let</span> (<span class="number">1</span>, <span class="prelude-val">Some</span>(<span class="number">1</span>)) <span class="op">=</span> <a class="ident" href="../../../src/headers/util/flat_csv.rs.html#144">values</a>.<span class="ident">size_hint</span>() {
-            <span class="kw">return</span> <a class="ident" href="../../../src/headers/util/flat_csv.rs.html#144">values</a>
-                .<span class="ident">next</span>()
-                .<span class="ident">expect</span>(<span class="string">&quot;size_hint claimed 1 item&quot;</span>)
-                .<span class="ident">into</span>();
+        <span class="kw">if</span> <span class="kw">let</span> (<span class="number">1</span>, <span class="prelude-val">Some</span>(<span class="number">1</span>)) <span class="op">=</span> <a class="ident" href="../../../src/headers/util/flat_csv.rs.html#136">values</a>.<span class="ident">size_hint</span>() {
+            <span class="kw">return</span> <a class="ident" href="../../../src/headers/util/flat_csv.rs.html#136">values</a>.<span class="ident">next</span>().<span class="ident">expect</span>(<span class="string">&quot;size_hint claimed 1 item&quot;</span>).<span class="ident">into</span>();
         }
 
         <span class="comment">// Otherwise, there are multiple, so this should merge them into 1.</span>
-        <span class="kw">let</span> <span class="ident">bytes</span> <span class="op">=</span> <a class="ident" href="../../../src/headers/util/flat_csv.rs.html#144">values</a>
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> <a class="ident" href="../../../src/headers/util/flat_csv.rs.html#136">values</a>
             .<span class="ident">next</span>()
-            .<span class="ident">map</span>(<span class="ident">Bytes::from</span>)
-            .<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">Bytes::new</span>());
+            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">val</span><span class="op">|</span> <span class="ident">BytesMut::from</span>(<a class="ident" href="../../../src/headers/util/flat_csv.rs.html#146">val</a>.<span class="ident">as_bytes</span>()))
+            .<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">BytesMut::new</span>());
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> <span class="ident">BytesMut::from</span>(<a class="ident" href="../../../src/headers/util/flat_csv.rs.html#155">bytes</a>);
-
-        <span class="kw">for</span> <a class="ident" href="../../../src/headers/util/flat_csv.rs.html#162">val</a> <span class="kw">in</span> <a class="ident" href="../../../src/headers/util/flat_csv.rs.html#144">values</a> {
-            <a class="ident" href="../../../src/headers/util/flat_csv.rs.html#160">buf</a>.<span class="ident">extend_from_slice</span>(<span class="kw-2">&amp;</span>[<span class="ident">Sep::BYTE</span>, <span class="string">b&#39; &#39;</span>]);
-            <a class="ident" href="../../../src/headers/util/flat_csv.rs.html#160">buf</a>.<span class="ident">extend_from_slice</span>(<a class="ident" href="../../../src/headers/util/flat_csv.rs.html#162">val</a>.<span class="ident">as_bytes</span>());
+        <span class="kw">for</span> <a class="ident" href="../../../src/headers/util/flat_csv.rs.html#149">val</a> <span class="kw">in</span> <a class="ident" href="../../../src/headers/util/flat_csv.rs.html#136">values</a> {
+            <a class="ident" href="../../../src/headers/util/flat_csv.rs.html#144">buf</a>.<span class="ident">extend_from_slice</span>(<span class="kw-2">&amp;</span>[<span class="ident">Sep::BYTE</span>, <span class="string">b&#39; &#39;</span>]);
+            <a class="ident" href="../../../src/headers/util/flat_csv.rs.html#144">buf</a>.<span class="ident">extend_from_slice</span>(<a class="ident" href="../../../src/headers/util/flat_csv.rs.html#149">val</a>.<span class="ident">as_bytes</span>());
         }
 
-        <span class="kw">let</span> <span class="ident">val</span> <span class="op">=</span> <span class="ident">HeaderValue::from_shared</span>(<a class="ident" href="../../../src/headers/util/flat_csv.rs.html#160">buf</a>.<span class="ident">freeze</span>())
-            .<span class="ident">expect</span>(<span class="string">&quot;comma separated HeaderValues are valid&quot;</span>);
+        <span class="kw">let</span> <span class="ident">val</span> <span class="op">=</span>
+            <span class="ident">HeaderValue::from_maybe_shared</span>(<a class="ident" href="../../../src/headers/util/flat_csv.rs.html#144">buf</a>.<span class="ident">freeze</span>()).<span class="ident">expect</span>(<span class="string">&quot;comma separated HeaderValues are valid&quot;</span>);
 
-        <a class="ident" href="../../../src/headers/util/flat_csv.rs.html#167">val</a>.<span class="ident">into</span>()
+        <a class="ident" href="../../../src/headers/util/flat_csv.rs.html#154">val</a>.<span class="ident">into</span>()
     }
 }
 

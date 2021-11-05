@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;tungstenite-0.9.2&#x2F;src&#x2F;error.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>error.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../tungstenite/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;tungstenite-0.11.1&#x2F;src&#x2F;error.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>error.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../tungstenite/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -136,10 +136,32 @@
 <span id="136">136</span>
 <span id="137">137</span>
 <span id="138">138</span>
+<span id="139">139</span>
+<span id="140">140</span>
+<span id="141">141</span>
+<span id="142">142</span>
+<span id="143">143</span>
+<span id="144">144</span>
+<span id="145">145</span>
+<span id="146">146</span>
+<span id="147">147</span>
+<span id="148">148</span>
+<span id="149">149</span>
+<span id="150">150</span>
+<span id="151">151</span>
+<span id="152">152</span>
+<span id="153">153</span>
+<span id="154">154</span>
+<span id="155">155</span>
+<span id="156">156</span>
+<span id="157">157</span>
+<span id="158">158</span>
+<span id="159">159</span>
+<span id="160">160</span>
+<span id="161">161</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Error handling.</span>
 
-<span class="kw">use</span> <span class="ident">std::borrow</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/core/borrow/trait.Borrow.html">Borrow</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/borrow/enum.Cow.html">Cow</a>};
-
+<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/borrow/enum.Cow.html">std::borrow::Cow</a>;
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/error/trait.Error.html">std::error::Error</a> <span class="kw">as</span> <span class="ident">ErrorTrait</span>;
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/index.html">std::io</a>;
@@ -147,6 +169,7 @@
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/str/index.html">std::str</a>;
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/index.html">std::string</a>;
 
+<span class="kw">use</span> <a class="ident" href="../../http/index.html">http</a>;
 <span class="kw">use</span> <a class="ident" href="../../httparse/index.html">httparse</a>;
 
 <span class="kw">use</span> <a class="ident" href="../../src/tungstenite/protocol/message.rs.html#173-188"><span class="kw">crate</span>::protocol::Message</a>;
@@ -158,7 +181,7 @@
 }
 
 <span class="doccomment">/// Result type of all Tungstenite library calls.</span>
-<span class="kw">pub</span> <span class="kw">type</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">result::Result</span><span class="op">&lt;</span><span class="ident">T</span>, <a class="ident" href="../../src/tungstenite/error.rs.html#27-68">Error</a><span class="op">&gt;</span>;
+<span class="kw">pub</span> <span class="kw">type</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">result::Result</span><span class="op">&lt;</span><span class="ident">T</span>, <a class="ident" href="../../src/tungstenite/error.rs.html#27-70">Error</a><span class="op">&gt;</span>;
 
 <span class="doccomment">/// Possible WebSocket errors</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
@@ -183,7 +206,7 @@
     <span class="doccomment">/// connection when it really shouldn&#39;t anymore, so this really indicates a programmer</span>
     <span class="doccomment">/// error on your part.</span>
     <span class="ident">AlreadyClosed</span>,
-    <span class="doccomment">/// Input-output error. Appart from WouldBlock, these are generally errors with the</span>
+    <span class="doccomment">/// Input-output error. Apart from WouldBlock, these are generally errors with the</span>
     <span class="doccomment">/// underlying connection and you should probably consider them fatal.</span>
     <span class="ident">Io</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a>),
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tls&quot;</span>)]</span>
@@ -199,63 +222,86 @@
     <span class="ident">SendQueueFull</span>(<a class="ident" href="../../src/tungstenite/protocol/message.rs.html#173-188">Message</a>),
     <span class="doccomment">/// UTF coding error</span>
     <span class="ident">Utf8</span>,
-    <span class="doccomment">/// Invlid URL.</span>
+    <span class="doccomment">/// Invalid URL.</span>
     <span class="ident">Url</span>(<span class="ident">Cow</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a><span class="op">&gt;</span>),
     <span class="doccomment">/// HTTP error.</span>
-    <span class="ident">Http</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>),
+    <span class="ident">Http</span>(<a class="ident" href="../../http/status/struct.StatusCode.html">http::StatusCode</a>),
+    <span class="doccomment">/// HTTP format error.</span>
+    <span class="ident">HttpFormat</span>(<a class="ident" href="../../http/error/struct.Error.html">http::Error</a>),
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for</span> <a class="ident" href="../../src/tungstenite/error.rs.html#27-68">Error</a> {
+<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for</span> <a class="ident" href="../../src/tungstenite/error.rs.html#27-70">Error</a> {
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <span class="kw">match</span> <span class="kw-2">*</span><a class="self" href="../../src/tungstenite/error.rs.html#71">self</a> {
-            <a class="ident" href="../../src/tungstenite/error.rs.html#39">Error::ConnectionClosed</a> =&gt; <span class="macro">write!</span>(<a class="ident" href="../../src/tungstenite/error.rs.html#71">f</a>, <span class="string">&quot;Connection closed normally&quot;</span>),
-            <a class="ident" href="../../src/tungstenite/error.rs.html#47">Error::AlreadyClosed</a> =&gt; <span class="macro">write!</span>(<a class="ident" href="../../src/tungstenite/error.rs.html#71">f</a>, <span class="string">&quot;Trying to work with closed connection&quot;</span>),
-            <a class="ident" href="../../src/tungstenite/error.rs.html#50">Error::Io</a>(<span class="kw-2">ref</span> <span class="ident">err</span>) =&gt; <span class="macro">write!</span>(<a class="ident" href="../../src/tungstenite/error.rs.html#71">f</a>, <span class="string">&quot;IO error: {}&quot;</span>, <a class="ident" href="../../src/tungstenite/error.rs.html#75">err</a>),
+        <span class="kw">match</span> <span class="kw-2">*</span><a class="self" href="../../src/tungstenite/error.rs.html#73">self</a> {
+            <a class="ident" href="../../src/tungstenite/error.rs.html#39">Error::ConnectionClosed</a> =&gt; <span class="macro">write!</span>(<a class="ident" href="../../src/tungstenite/error.rs.html#73">f</a>, <span class="string">&quot;Connection closed normally&quot;</span>),
+            <a class="ident" href="../../src/tungstenite/error.rs.html#47">Error::AlreadyClosed</a> =&gt; <span class="macro">write!</span>(<a class="ident" href="../../src/tungstenite/error.rs.html#73">f</a>, <span class="string">&quot;Trying to work with closed connection&quot;</span>),
+            <a class="ident" href="../../src/tungstenite/error.rs.html#50">Error::Io</a>(<span class="kw-2">ref</span> <span class="ident">err</span>) =&gt; <span class="macro">write!</span>(<a class="ident" href="../../src/tungstenite/error.rs.html#73">f</a>, <span class="string">&quot;IO error: {}&quot;</span>, <a class="ident" href="../../src/tungstenite/error.rs.html#77">err</a>),
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tls&quot;</span>)]</span>
             <span class="ident">Error::Tls</span>(<span class="kw-2">ref</span> <span class="ident">err</span>) =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;TLS error: {}&quot;</span>, <span class="ident">err</span>),
-            <a class="ident" href="../../src/tungstenite/error.rs.html#57">Error::Capacity</a>(<span class="kw-2">ref</span> <span class="ident">msg</span>) =&gt; <span class="macro">write!</span>(<a class="ident" href="../../src/tungstenite/error.rs.html#71">f</a>, <span class="string">&quot;Space limit exceeded: {}&quot;</span>, <a class="ident" href="../../src/tungstenite/error.rs.html#78">msg</a>),
-            <a class="ident" href="../../src/tungstenite/error.rs.html#59">Error::Protocol</a>(<span class="kw-2">ref</span> <span class="ident">msg</span>) =&gt; <span class="macro">write!</span>(<a class="ident" href="../../src/tungstenite/error.rs.html#71">f</a>, <span class="string">&quot;WebSocket protocol error: {}&quot;</span>, <a class="ident" href="../../src/tungstenite/error.rs.html#79">msg</a>),
-            <a class="ident" href="../../src/tungstenite/error.rs.html#61">Error::SendQueueFull</a>(<span class="kw">_</span>) =&gt; <span class="macro">write!</span>(<a class="ident" href="../../src/tungstenite/error.rs.html#71">f</a>, <span class="string">&quot;Send queue is full&quot;</span>),
-            <a class="ident" href="../../src/tungstenite/error.rs.html#63">Error::Utf8</a> =&gt; <span class="macro">write!</span>(<a class="ident" href="../../src/tungstenite/error.rs.html#71">f</a>, <span class="string">&quot;UTF-8 encoding error&quot;</span>),
-            <a class="ident" href="../../src/tungstenite/error.rs.html#65">Error::Url</a>(<span class="kw-2">ref</span> <span class="ident">msg</span>) =&gt; <span class="macro">write!</span>(<a class="ident" href="../../src/tungstenite/error.rs.html#71">f</a>, <span class="string">&quot;URL error: {}&quot;</span>, <a class="ident" href="../../src/tungstenite/error.rs.html#82">msg</a>),
-            <a class="ident" href="../../src/tungstenite/error.rs.html#67">Error::Http</a>(<span class="ident">code</span>) =&gt; <span class="macro">write!</span>(<a class="ident" href="../../src/tungstenite/error.rs.html#71">f</a>, <span class="string">&quot;HTTP code: {}&quot;</span>, <a class="ident" href="../../src/tungstenite/error.rs.html#83">code</a>),
+            <a class="ident" href="../../src/tungstenite/error.rs.html#57">Error::Capacity</a>(<span class="kw-2">ref</span> <span class="ident">msg</span>) =&gt; <span class="macro">write!</span>(<a class="ident" href="../../src/tungstenite/error.rs.html#73">f</a>, <span class="string">&quot;Space limit exceeded: {}&quot;</span>, <a class="ident" href="../../src/tungstenite/error.rs.html#80">msg</a>),
+            <a class="ident" href="../../src/tungstenite/error.rs.html#59">Error::Protocol</a>(<span class="kw-2">ref</span> <span class="ident">msg</span>) =&gt; <span class="macro">write!</span>(<a class="ident" href="../../src/tungstenite/error.rs.html#73">f</a>, <span class="string">&quot;WebSocket protocol error: {}&quot;</span>, <a class="ident" href="../../src/tungstenite/error.rs.html#81">msg</a>),
+            <a class="ident" href="../../src/tungstenite/error.rs.html#61">Error::SendQueueFull</a>(<span class="kw">_</span>) =&gt; <span class="macro">write!</span>(<a class="ident" href="../../src/tungstenite/error.rs.html#73">f</a>, <span class="string">&quot;Send queue is full&quot;</span>),
+            <a class="ident" href="../../src/tungstenite/error.rs.html#63">Error::Utf8</a> =&gt; <span class="macro">write!</span>(<a class="ident" href="../../src/tungstenite/error.rs.html#73">f</a>, <span class="string">&quot;UTF-8 encoding error&quot;</span>),
+            <a class="ident" href="../../src/tungstenite/error.rs.html#65">Error::Url</a>(<span class="kw-2">ref</span> <span class="ident">msg</span>) =&gt; <span class="macro">write!</span>(<a class="ident" href="../../src/tungstenite/error.rs.html#73">f</a>, <span class="string">&quot;URL error: {}&quot;</span>, <a class="ident" href="../../src/tungstenite/error.rs.html#84">msg</a>),
+            <a class="ident" href="../../src/tungstenite/error.rs.html#67">Error::Http</a>(<span class="ident">code</span>) =&gt; <span class="macro">write!</span>(<a class="ident" href="../../src/tungstenite/error.rs.html#73">f</a>, <span class="string">&quot;HTTP error: {}&quot;</span>, <a class="ident" href="../../src/tungstenite/error.rs.html#85">code</a>),
+            <a class="ident" href="../../src/tungstenite/error.rs.html#69">Error::HttpFormat</a>(<span class="kw-2">ref</span> <span class="ident">err</span>) =&gt; <span class="macro">write!</span>(<a class="ident" href="../../src/tungstenite/error.rs.html#73">f</a>, <span class="string">&quot;HTTP format error: {}&quot;</span>, <a class="ident" href="../../src/tungstenite/error.rs.html#86">err</a>),
         }
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/error/trait.Error.html">ErrorTrait</a> <span class="kw">for</span> <a class="ident" href="../../src/tungstenite/error.rs.html#27-68">Error</a> {
-    <span class="kw">fn</span> <span class="ident">description</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> {
-        <span class="kw">match</span> <span class="kw-2">*</span><a class="self" href="../../src/tungstenite/error.rs.html#89">self</a> {
-            <a class="ident" href="../../src/tungstenite/error.rs.html#39">Error::ConnectionClosed</a> =&gt; <span class="string">&quot;A close handshake is performed&quot;</span>,
-            <a class="ident" href="../../src/tungstenite/error.rs.html#47">Error::AlreadyClosed</a> =&gt; <span class="string">&quot;Trying to read or write after getting close notification&quot;</span>,
-            <a class="ident" href="../../src/tungstenite/error.rs.html#50">Error::Io</a>(<span class="kw-2">ref</span> <span class="ident">err</span>) =&gt; <a class="ident" href="../../src/tungstenite/error.rs.html#93">err</a>.<span class="ident">description</span>(),
-            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tls&quot;</span>)]</span>
-            <span class="ident">Error::Tls</span>(<span class="kw-2">ref</span> <span class="ident">err</span>) =&gt; <span class="ident">err</span>.<span class="ident">description</span>(),
-            <a class="ident" href="../../src/tungstenite/error.rs.html#57">Error::Capacity</a>(<span class="kw-2">ref</span> <span class="ident">msg</span>) =&gt; <a class="ident" href="../../src/tungstenite/error.rs.html#96">msg</a>.<span class="ident">borrow</span>(),
-            <a class="ident" href="../../src/tungstenite/error.rs.html#59">Error::Protocol</a>(<span class="kw-2">ref</span> <span class="ident">msg</span>) =&gt; <a class="ident" href="../../src/tungstenite/error.rs.html#97">msg</a>.<span class="ident">borrow</span>(),
-            <a class="ident" href="../../src/tungstenite/error.rs.html#61">Error::SendQueueFull</a>(<span class="kw">_</span>) =&gt; <span class="string">&quot;Send queue is full&quot;</span>,
-            <a class="ident" href="../../src/tungstenite/error.rs.html#63">Error::Utf8</a> =&gt; <span class="string">&quot;&quot;</span>,
-            <a class="ident" href="../../src/tungstenite/error.rs.html#65">Error::Url</a>(<span class="kw-2">ref</span> <span class="ident">msg</span>) =&gt; <a class="ident" href="../../src/tungstenite/error.rs.html#100">msg</a>.<span class="ident">borrow</span>(),
-            <a class="ident" href="../../src/tungstenite/error.rs.html#67">Error::Http</a>(<span class="kw">_</span>) =&gt; <span class="string">&quot;&quot;</span>,
-        }
-    }
-}
+<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/error/trait.Error.html">ErrorTrait</a> <span class="kw">for</span> <a class="ident" href="../../src/tungstenite/error.rs.html#27-70">Error</a> {}
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../src/tungstenite/error.rs.html#27-68">Error</a> {
+<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../src/tungstenite/error.rs.html#27-70">Error</a> {
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">err</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a>) -&gt; <span class="self">Self</span> {
-        <a class="ident" href="../../src/tungstenite/error.rs.html#50">Error::Io</a>(<a class="ident" href="../../src/tungstenite/error.rs.html#107">err</a>)
+        <a class="ident" href="../../src/tungstenite/error.rs.html#50">Error::Io</a>(<a class="ident" href="../../src/tungstenite/error.rs.html#94">err</a>)
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/str/error/struct.Utf8Error.html">str::Utf8Error</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../src/tungstenite/error.rs.html#27-68">Error</a> {
+<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/str/error/struct.Utf8Error.html">str::Utf8Error</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../src/tungstenite/error.rs.html#27-70">Error</a> {
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="kw">_</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/str/error/struct.Utf8Error.html">str::Utf8Error</a>) -&gt; <span class="self">Self</span> {
         <a class="ident" href="../../src/tungstenite/error.rs.html#63">Error::Utf8</a>
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.FromUtf8Error.html">string::FromUtf8Error</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../src/tungstenite/error.rs.html#27-68">Error</a> {
+<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.FromUtf8Error.html">string::FromUtf8Error</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../src/tungstenite/error.rs.html#27-70">Error</a> {
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="kw">_</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.FromUtf8Error.html">string::FromUtf8Error</a>) -&gt; <span class="self">Self</span> {
         <a class="ident" href="../../src/tungstenite/error.rs.html#63">Error::Utf8</a>
+    }
+}
+
+<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><a class="ident" href="../../http/header/value/struct.InvalidHeaderValue.html">http::header::InvalidHeaderValue</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../src/tungstenite/error.rs.html#27-70">Error</a> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">err</span>: <a class="ident" href="../../http/header/value/struct.InvalidHeaderValue.html">http::header::InvalidHeaderValue</a>) -&gt; <span class="self">Self</span> {
+        <a class="ident" href="../../src/tungstenite/error.rs.html#69">Error::HttpFormat</a>(<a class="ident" href="../../src/tungstenite/error.rs.html#112">err</a>.<span class="ident">into</span>())
+    }
+}
+
+<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><a class="ident" href="../../http/header/name/struct.InvalidHeaderName.html">http::header::InvalidHeaderName</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../src/tungstenite/error.rs.html#27-70">Error</a> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">err</span>: <a class="ident" href="../../http/header/name/struct.InvalidHeaderName.html">http::header::InvalidHeaderName</a>) -&gt; <span class="self">Self</span> {
+        <a class="ident" href="../../src/tungstenite/error.rs.html#69">Error::HttpFormat</a>(<a class="ident" href="../../src/tungstenite/error.rs.html#118">err</a>.<span class="ident">into</span>())
+    }
+}
+
+<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><a class="ident" href="../../http/header/value/struct.ToStrError.html">http::header::ToStrError</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../src/tungstenite/error.rs.html#27-70">Error</a> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="kw">_</span>: <a class="ident" href="../../http/header/value/struct.ToStrError.html">http::header::ToStrError</a>) -&gt; <span class="self">Self</span> {
+        <a class="ident" href="../../src/tungstenite/error.rs.html#63">Error::Utf8</a>
+    }
+}
+
+<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><a class="ident" href="../../http/uri/struct.InvalidUri.html">http::uri::InvalidUri</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../src/tungstenite/error.rs.html#27-70">Error</a> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">err</span>: <a class="ident" href="../../http/uri/struct.InvalidUri.html">http::uri::InvalidUri</a>) -&gt; <span class="self">Self</span> {
+        <a class="ident" href="../../src/tungstenite/error.rs.html#69">Error::HttpFormat</a>(<a class="ident" href="../../src/tungstenite/error.rs.html#130">err</a>.<span class="ident">into</span>())
+    }
+}
+
+<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><a class="ident" href="../../http/status/struct.InvalidStatusCode.html">http::status::InvalidStatusCode</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../src/tungstenite/error.rs.html#27-70">Error</a> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">err</span>: <a class="ident" href="../../http/status/struct.InvalidStatusCode.html">http::status::InvalidStatusCode</a>) -&gt; <span class="self">Self</span> {
+        <a class="ident" href="../../src/tungstenite/error.rs.html#69">Error::HttpFormat</a>(<a class="ident" href="../../src/tungstenite/error.rs.html#136">err</a>.<span class="ident">into</span>())
+    }
+}
+
+<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><a class="ident" href="../../http/error/struct.Error.html">http::Error</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../src/tungstenite/error.rs.html#27-70">Error</a> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">err</span>: <a class="ident" href="../../http/error/struct.Error.html">http::Error</a>) -&gt; <span class="self">Self</span> {
+        <a class="ident" href="../../src/tungstenite/error.rs.html#69">Error::HttpFormat</a>(<a class="ident" href="../../src/tungstenite/error.rs.html#142">err</a>)
     }
 }
 
@@ -266,11 +312,11 @@
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><a class="ident" href="../../httparse/enum.Error.html">httparse::Error</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../src/tungstenite/error.rs.html#27-68">Error</a> {
+<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><a class="ident" href="../../httparse/enum.Error.html">httparse::Error</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../src/tungstenite/error.rs.html#27-70">Error</a> {
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">err</span>: <a class="ident" href="../../httparse/enum.Error.html">httparse::Error</a>) -&gt; <span class="self">Self</span> {
-        <span class="kw">match</span> <a class="ident" href="../../src/tungstenite/error.rs.html#132">err</a> {
+        <span class="kw">match</span> <a class="ident" href="../../src/tungstenite/error.rs.html#155">err</a> {
             <span class="ident">httparse::Error::TooManyHeaders</span> =&gt; <a class="ident" href="../../src/tungstenite/error.rs.html#57">Error::Capacity</a>(<span class="string">&quot;Too many headers&quot;</span>.<span class="ident">into</span>()),
-            <span class="ident">e</span> =&gt; <a class="ident" href="../../src/tungstenite/error.rs.html#59">Error::Protocol</a>(<span class="ident">Cow::Owned</span>(<a class="ident" href="../../src/tungstenite/error.rs.html#135">e</a>.<span class="ident">description</span>().<span class="ident">into</span>())),
+            <span class="ident">e</span> =&gt; <a class="ident" href="../../src/tungstenite/error.rs.html#59">Error::Protocol</a>(<a class="ident" href="../../src/tungstenite/error.rs.html#158">e</a>.<span class="ident">to_string</span>().<span class="ident">into</span>()),
         }
     }
 }

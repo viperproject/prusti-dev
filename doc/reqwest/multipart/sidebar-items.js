@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["Form","A multipart/form-data request."],["Part","A field in a multipart form."]]});
+initSidebarItems({"struct":[["Form","An async multipart/form-data request."],["Part","A field in a multipart form."]]});

@@ -1,0 +1,95 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Core primitives for `tracing`."><meta name="keywords" content="rust, rustlang, rust-lang, tracing_core"><title>tracing_core - Rust</title><link rel="stylesheet" type="text/css" href="../normalize.css"><link rel="stylesheet" type="text/css" href="../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../ayu.css" disabled ><script id="default-settings" ></script><script src="../storage.js"></script><script src="../crates.js"></script><noscript><link rel="stylesheet" href="../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../favicon.svg"><style type="text/css">#crate-search{background-image:url("../down-arrow.svg");}</style></head><body class="rustdoc mod crate"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../tracing_core/index.html'><div class='logo-container rust-logo'><img src='https:&#x2F;&#x2F;raw.githubusercontent.com&#x2F;tokio-rs&#x2F;tracing&#x2F;master&#x2F;assets&#x2F;logo-type.png' alt='logo'></div></a><h2 class="location">Crate tracing_core</h2><div class="block version"><div class="narrow-helper"></div><p>Version 0.1.21</p></div><div class="sidebar-elems"><a id="all-types" href="all.html"><p>See all tracing_core's items</p></a><div class="block items"><ul><li><a href="#modules">Modules</a></li><li><a href="#macros">Macros</a></li><li><a href="#structs">Structs</a></li><li><a href="#traits">Traits</a></li></ul></div><div id="sidebar-vars" data-name="tracing_core" data-ty="mod" data-relpath=""></div><script defer src="sidebar-items.js"></script></div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../wheel.svg"></a></div></form></nav><section id="main" class="content"><h1 class="fqn"><span class="in-band">Crate <a class="mod" href="#">tracing_core</a><button id="copy-path" onclick="copy_path(this)" title="Copy item path to clipboard"><img src="../clipboard.svg" width="19" height="18" alt="Copy item path"></button></span><span class="out-of-band"><span id="render-detail"><a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">[<span class="inner">&#x2212;</span>]</a></span><a class="srclink" href="../src/tracing_core/lib.rs.html#1-279" title="goto source code">[src]</a></span></h1><details class="rustdoc-toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>Core primitives for <code>tracing</code>.</p>
+<p><a href="https://crates.io/crates/tracing"><code>tracing</code></a> is a framework for instrumenting Rust programs to collect
+structured, event-based diagnostic information. This crate defines the core
+primitives of <code>tracing</code>.</p>
+<p>This crate provides:</p>
+<ul>
+<li>
+<p><a href="span/struct.Id.html"><code>span::Id</code></a> identifies a span within the execution of a program.</p>
+</li>
+<li>
+<p><a href="event/struct.Event.html"><code>Event</code></a> represents a single event within a trace.</p>
+</li>
+<li>
+<p><a href="subscriber/trait.Subscriber.html"><code>Subscriber</code></a>, the trait implemented to collect trace data.</p>
+</li>
+<li>
+<p><a href="metadata/struct.Metadata.html"><code>Metadata</code></a> and <a href="callsite/trait.Callsite.html"><code>Callsite</code></a> provide information describing spans and
+<code>Event</code>s.</p>
+</li>
+<li>
+<p><a href="field/struct.Field.html"><code>Field</code></a>, <a href="field/struct.FieldSet.html"><code>FieldSet</code></a>, <a href="field/trait.Value.html"><code>Value</code></a>, and <a href="field/struct.ValueSet.html"><code>ValueSet</code></a> represent the
+structured data attached to a span.</p>
+</li>
+<li>
+<p><a href="dispatcher/struct.Dispatch.html"><code>Dispatch</code></a> allows spans and events to be dispatched to <code>Subscriber</code>s.</p>
+</li>
+</ul>
+<p>In addition, it defines the global callsite registry and per-thread current
+dispatcher which other components of the tracing system rely on.</p>
+<p><em>Compiler support: <a href="#supported-rust-versions">requires <code>rustc</code> 1.42+</a></em></p>
+<h3 id="usage" class="section-header"><a href="#usage">Usage</a></h3>
+<p>Application authors will typically not use this crate directly. Instead,
+they will use the <a href="https://crates.io/crates/tracing"><code>tracing</code></a> crate, which provides a much more
+fully-featured API. However, this crate’s API will change very infrequently,
+so it may be used when dependencies must be very stable.</p>
+<p><code>Subscriber</code> implementations may depend on <code>tracing-core</code> rather than
+<code>tracing</code>, as the additional APIs provided by <code>tracing</code> are primarily useful
+for instrumenting libraries and applications, and are generally not
+necessary for <code>Subscriber</code> implementations.</p>
+<p>The <a href="https://github.com/tokio-rs/tracing"><code>tokio-rs/tracing</code></a> repository contains less stable crates designed to
+be used with the <code>tracing</code> ecosystem. It includes a collection of
+<code>Subscriber</code> implementations, as well as utility and adapter crates.</p>
+<h4 id="crate-feature-flags" class="section-header"><a href="#crate-feature-flags">Crate Feature Flags</a></h4>
+<p>The following crate feature flags are available:</p>
+<ul>
+<li>
+<p><code>std</code>: Depend on the Rust standard library (enabled by default).</p>
+<p><code>no_std</code> users may disable this feature with <code>default-features = false</code>:</p>
+<div class="example-wrap"><pre class="language-toml"><code>[dependencies]
+tracing-core = { version = &quot;0.1.21&quot;, default-features = false }</code></pre></div>
+<p><strong>Note</strong>:<code>tracing-core</code>’s <code>no_std</code> support requires <code>liballoc</code>.</p>
+</li>
+</ul>
+<h3 id="supported-rust-versions" class="section-header"><a href="#supported-rust-versions">Supported Rust Versions</a></h3>
+<p>Tracing is built against the latest stable release. The minimum supported
+version is 1.42. The current Tracing version is not guaranteed to build on
+Rust versions earlier than the minimum supported version.</p>
+<p>Tracing follows the same compiler support policies as the rest of the Tokio
+project. The current stable Rust compiler and the three most recent minor
+versions before it will always be supported. For example, if the current
+stable compiler version is 1.45, the minimum supported version will not be
+increased past 1.42, three minor versions prior. Increasing the minimum
+supported compiler version is not considered a semver breaking change as
+long as doing so complies with this policy.</p>
+</div></details><h2 id="reexports" class="section-header"><a href="#reexports">Re-exports</a></h2>
+<div class="item-table"><div class="item-row"><div class="item-left import-item"><code>pub use self::metadata::<a class="struct" href="metadata/struct.Kind.html" title="struct tracing_core::metadata::Kind">Kind</a>;</code></div><div class="item-right docblock-short"></div></div><div class="item-row"><div class="item-left import-item"><code>pub use self::subscriber::<a class="struct" href="subscriber/struct.Interest.html" title="struct tracing_core::subscriber::Interest">Interest</a>;</code></div><div class="item-right docblock-short"></div></div></div><h2 id="modules" class="section-header"><a href="#modules">Modules</a></h2>
+<div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="mod" href="callsite/index.html" title="tracing_core::callsite mod">callsite</a></div><div class="item-right docblock-short"><p>Callsites represent the source locations from which spans or events
+originate.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="mod" href="dispatcher/index.html" title="tracing_core::dispatcher mod">dispatcher</a></div><div class="item-right docblock-short"><p>Dispatches trace events to <a href="struct.Subscriber.html"><code>Subscriber</code></a>s.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="mod" href="event/index.html" title="tracing_core::event mod">event</a></div><div class="item-right docblock-short"><p>Events represent single points in time during the execution of a program.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="mod" href="field/index.html" title="tracing_core::field mod">field</a></div><div class="item-right docblock-short"><p>Span and <code>Event</code> key-value data.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="mod" href="metadata/index.html" title="tracing_core::metadata mod">metadata</a></div><div class="item-right docblock-short"><p>Metadata describing trace data.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="mod" href="span/index.html" title="tracing_core::span mod">span</a></div><div class="item-right docblock-short"><p>Spans represent periods of time in the execution of a program.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="mod" href="subscriber/index.html" title="tracing_core::subscriber mod">subscriber</a></div><div class="item-right docblock-short"><p>Subscribers collect and record trace data.</p>
+</div></div></div><h2 id="macros" class="section-header"><a href="#macros">Macros</a></h2>
+<div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="macro" href="macro.identify_callsite.html" title="tracing_core::identify_callsite macro">identify_callsite</a></div><div class="item-right docblock-short"><p>Statically constructs an <a href="callsite/struct.Identifier.html"><code>Identifier</code></a> for the provided <a href="callsite/trait.Callsite.html"><code>Callsite</code></a>.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="macro" href="macro.metadata.html" title="tracing_core::metadata macro">metadata</a></div><div class="item-right docblock-short"><p>Statically constructs new span <a href="metadata/struct.Metadata.html">metadata</a>.</p>
+</div></div></div><h2 id="structs" class="section-header"><a href="#structs">Structs</a></h2>
+<div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.Dispatch.html" title="tracing_core::Dispatch struct">Dispatch</a></div><div class="item-right docblock-short"><p><code>Dispatch</code> trace data to a <a href="trait.Subscriber.html"><code>Subscriber</code></a>.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.Event.html" title="tracing_core::Event struct">Event</a></div><div class="item-right docblock-short"><p><code>Event</code>s represent single points in time where something occurred during the
+execution of a program.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.Field.html" title="tracing_core::Field struct">Field</a></div><div class="item-right docblock-short"><p>An opaque key allowing <em>O</em>(1) access to a field in a <code>Span</code>’s key-value
+data.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.Level.html" title="tracing_core::Level struct">Level</a></div><div class="item-right docblock-short"><p>Describes the level of verbosity of a span or event.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.LevelFilter.html" title="tracing_core::LevelFilter struct">LevelFilter</a></div><div class="item-right docblock-short"><p>A filter comparable to a verbosity <a href="struct.Level.html" title="Level"><code>Level</code></a>.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.Metadata.html" title="tracing_core::Metadata struct">Metadata</a></div><div class="item-right docblock-short"><p>Metadata describing a <a href="../span/index.html">span</a> or <a href="../event/index.html">event</a>.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.Once.html" title="tracing_core::Once struct">Once</a></div><div class="item-right docblock-short"><p>A synchronization primitive which can be used to run a one-time global
+initialization. Useful for one-time initialization for FFI or related
+functionality. This type can only be constructed with <a href="struct.Once.html#method.new" title="Once::new()"><code>Once::new()</code></a>.</p>
+</div></div></div><h2 id="traits" class="section-header"><a href="#traits">Traits</a></h2>
+<div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="trait" href="trait.Callsite.html" title="tracing_core::Callsite trait">Callsite</a></div><div class="item-right docblock-short"><p>Trait implemented by callsites.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="trait" href="trait.Subscriber.html" title="tracing_core::Subscriber trait">Subscriber</a></div><div class="item-right docblock-short"><p>Trait representing the functions required to collect trace data.</p>
+</div></div></div></section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../" data-current-crate="tracing_core" data-search-index-js="../search-index.js" data-search-js="../search.js"></div>
+    <script src="../main.js"></script>
+</body></html>

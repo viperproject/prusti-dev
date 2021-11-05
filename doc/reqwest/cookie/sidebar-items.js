@@ -1,1 +1,0 @@
-initSidebarItems({"struct":[["Cookie","A single HTTP cookie."],["CookieParseError","Error representing a parse failure of a ‘Set-Cookie’ header."]]});

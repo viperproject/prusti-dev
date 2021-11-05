@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;reqwest-0.9.24&#x2F;src&#x2F;async_impl&#x2F;multipart.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>multipart.rs - source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../reqwest/index.html'><div class='logo-container rust-logo'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;reqwest-0.10.10&#x2F;src&#x2F;async_impl&#x2F;multipart.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>multipart.rs - source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../reqwest/index.html'><div class='logo-container rust-logo'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -560,35 +560,138 @@
 <span id="560">560</span>
 <span id="561">561</span>
 <span id="562">562</span>
+<span id="563">563</span>
+<span id="564">564</span>
+<span id="565">565</span>
+<span id="566">566</span>
+<span id="567">567</span>
+<span id="568">568</span>
+<span id="569">569</span>
+<span id="570">570</span>
+<span id="571">571</span>
+<span id="572">572</span>
+<span id="573">573</span>
+<span id="574">574</span>
+<span id="575">575</span>
+<span id="576">576</span>
+<span id="577">577</span>
+<span id="578">578</span>
+<span id="579">579</span>
+<span id="580">580</span>
+<span id="581">581</span>
+<span id="582">582</span>
+<span id="583">583</span>
+<span id="584">584</span>
+<span id="585">585</span>
+<span id="586">586</span>
+<span id="587">587</span>
+<span id="588">588</span>
+<span id="589">589</span>
+<span id="590">590</span>
+<span id="591">591</span>
+<span id="592">592</span>
+<span id="593">593</span>
+<span id="594">594</span>
+<span id="595">595</span>
+<span id="596">596</span>
+<span id="597">597</span>
+<span id="598">598</span>
+<span id="599">599</span>
+<span id="600">600</span>
+<span id="601">601</span>
+<span id="602">602</span>
+<span id="603">603</span>
+<span id="604">604</span>
+<span id="605">605</span>
+<span id="606">606</span>
+<span id="607">607</span>
+<span id="608">608</span>
+<span id="609">609</span>
+<span id="610">610</span>
+<span id="611">611</span>
+<span id="612">612</span>
+<span id="613">613</span>
+<span id="614">614</span>
+<span id="615">615</span>
+<span id="616">616</span>
+<span id="617">617</span>
+<span id="618">618</span>
+<span id="619">619</span>
+<span id="620">620</span>
+<span id="621">621</span>
+<span id="622">622</span>
+<span id="623">623</span>
+<span id="624">624</span>
+<span id="625">625</span>
+<span id="626">626</span>
+<span id="627">627</span>
+<span id="628">628</span>
+<span id="629">629</span>
+<span id="630">630</span>
+<span id="631">631</span>
+<span id="632">632</span>
+<span id="633">633</span>
+<span id="634">634</span>
+<span id="635">635</span>
+<span id="636">636</span>
+<span id="637">637</span>
+<span id="638">638</span>
+<span id="639">639</span>
+<span id="640">640</span>
+<span id="641">641</span>
+<span id="642">642</span>
+<span id="643">643</span>
+<span id="644">644</span>
+<span id="645">645</span>
+<span id="646">646</span>
+<span id="647">647</span>
+<span id="648">648</span>
+<span id="649">649</span>
+<span id="650">650</span>
+<span id="651">651</span>
+<span id="652">652</span>
+<span id="653">653</span>
+<span id="654">654</span>
+<span id="655">655</span>
+<span id="656">656</span>
+<span id="657">657</span>
+<span id="658">658</span>
+<span id="659">659</span>
+<span id="660">660</span>
+<span id="661">661</span>
+<span id="662">662</span>
 </pre><pre class="rust"><code><span class="doccomment">//! multipart/form-data</span>
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/borrow/enum.Cow.html">std::borrow::Cow</a>;
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
+<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">std::pin::Pin</a>;
 
-<span class="kw">use</span> <a class="ident" href="../../../mime/struct.Mime.html">mime_guess::Mime</a>;
-<span class="kw">use</span> <span class="ident">url::percent_encoding</span>::{<a class="self" href="../../../percent_encoding/index.html">self</a>, <a class="ident" href="../../../percent_encoding/trait.EncodeSet.html">EncodeSet</a>, <span class="ident">PATH_SEGMENT_ENCODE_SET</span>};
-<span class="kw">use</span> <a class="ident" href="../../../uuid/struct.Uuid.html">uuid::Uuid</a>;
+<span class="kw">use</span> <a class="ident" href="../../../bytes/bytes/struct.Bytes.html">bytes::Bytes</a>;
 <span class="kw">use</span> <a class="ident" href="../../../reqwest/header/struct.HeaderMap.html">http::HeaderMap</a>;
+<span class="kw">use</span> <a class="ident" href="../../../mime/struct.Mime.html">mime_guess::Mime</a>;
+<span class="kw">use</span> <span class="ident">percent_encoding</span>::{<a class="self" href="../../../percent_encoding/index.html">self</a>, <a class="ident" href="../../../percent_encoding/struct.AsciiSet.html">AsciiSet</a>, <a class="ident" href="../../../percent_encoding/constant.NON_ALPHANUMERIC.html">NON_ALPHANUMERIC</a>};
 
-<span class="kw">use</span> <a class="ident" href="../../../futures/stream/trait.Stream.html">futures::Stream</a>;
+<span class="kw">use</span> <a class="ident" href="../../../futures_core/stream/trait.Stream.html">futures_core::Stream</a>;
+<span class="kw">use</span> <span class="ident">futures_util</span>::{<a class="ident" href="../../../futures_util/future/index.html">future</a>, <a class="ident" href="../../../futures_util/stream/index.html">stream</a>, <a class="ident" href="../../../futures_util/stream/stream/trait.StreamExt.html">StreamExt</a>};
 
-<span class="kw">use</span> <a class="ident" href="../../../src/reqwest/async_impl/body.rs.html#9-11"><span class="kw">super</span>::Body</a>;
+<span class="kw">use</span> <a class="ident" href="../../../src/reqwest/async_impl/body.rs.html#13-15"><span class="kw">super</span>::Body</a>;
 
 <span class="doccomment">/// An async multipart/form-data request.</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Form</span> {
-    <span class="ident">inner</span>: <span class="ident">FormParts</span><span class="op">&lt;</span><a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#20-23">Part</a><span class="op">&gt;</span>,
+    <span class="ident">inner</span>: <span class="ident">FormParts</span><span class="op">&lt;</span><a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#22-26">Part</a><span class="op">&gt;</span>,
 }
 
 <span class="doccomment">/// A field in a multipart form.</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Part</span> {
-    <span class="ident">meta</span>: <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#32-36">PartMetadata</a>,
-    <span class="ident">value</span>: <a class="ident" href="../../../src/reqwest/async_impl/body.rs.html#9-11">Body</a>,
+    <span class="ident">meta</span>: <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#35-39">PartMetadata</a>,
+    <span class="ident">value</span>: <a class="ident" href="../../../src/reqwest/async_impl/body.rs.html#13-15">Body</a>,
+    <span class="ident">body_length</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a><span class="op">&gt;</span>,
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">FormParts</span><span class="op">&lt;</span><span class="ident">P</span><span class="op">&gt;</span> {
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">boundary</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>,
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">computed_headers</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><span class="op">&gt;</span><span class="op">&gt;</span>,
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">fields</span>: <span class="ident">Vec</span><span class="op">&lt;</span>(<span class="ident">Cow</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a><span class="op">&gt;</span>, <span class="ident">P</span>)<span class="op">&gt;</span>,
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">percent_encoding</span>: <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#400-404">PercentEncoding</a>,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">percent_encoding</span>: <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#439-443">PercentEncoding</a>,
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">PartMetadata</span> {
@@ -599,15 +702,21 @@
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">trait</span> <span class="ident">PartProps</span> {
     <span class="kw">fn</span> <span class="ident">value_len</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a><span class="op">&gt;</span>;
-    <span class="kw">fn</span> <span class="ident">metadata</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#32-36">PartMetadata</a>;
+    <span class="kw">fn</span> <span class="ident">metadata</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#35-39">PartMetadata</a>;
 }
 
 <span class="comment">// ===== impl Form =====</span>
 
-<span class="kw">impl</span> <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#15-17">Form</a> {
+<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for</span> <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#17-19">Form</a> {
+    <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="self">Self</span> {
+        <span class="ident"><span class="self">Self</span>::new</span>()
+    }
+}
+
+<span class="kw">impl</span> <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#17-19">Form</a> {
     <span class="doccomment">/// Creates a new async Form without any content.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#15-17">Form</a> {
-        <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#15-17">Form</a> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#17-19">Form</a> {
+        <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#17-19">Form</a> {
             <span class="ident">inner</span>: <span class="ident">FormParts::new</span>(),
         }
     }
@@ -615,7 +724,7 @@
     <span class="doccomment">/// Get the boundary that this form will use.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">boundary</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> {
-        <a class="self" href="../../../src/reqwest/async_impl/multipart.rs.html#55">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#261">boundary</a>()
+        <a class="self" href="../../../src/reqwest/async_impl/multipart.rs.html#64">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#293">boundary</a>()
     }
 
     <span class="doccomment">/// Add a data field with supplied name and value.</span>
@@ -623,205 +732,228 @@
     <span class="doccomment">/// # Examples</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// let form = reqwest::async::multipart::Form::new()</span>
+    <span class="doccomment">/// let form = reqwest::multipart::Form::new()</span>
     <span class="doccomment">///     .text(&quot;username&quot;, &quot;seanmonstar&quot;)</span>
     <span class="doccomment">///     .text(&quot;password&quot;, &quot;secret&quot;);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">text</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">U</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">name</span>: <span class="ident">T</span>, <span class="ident">value</span>: <span class="ident">U</span>) -&gt; <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#15-17">Form</a>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">text</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">U</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">name</span>: <span class="ident">T</span>, <span class="ident">value</span>: <span class="ident">U</span>) -&gt; <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#17-19">Form</a>
     <span class="kw">where</span>
         <span class="ident">T</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Cow</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a><span class="op">&gt;</span><span class="op">&gt;</span>,
         <span class="ident">U</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Cow</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a><span class="op">&gt;</span><span class="op">&gt;</span>,
     {
-        <a class="self" href="../../../src/reqwest/async_impl/multipart.rs.html#68">self</a>.<a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#77-79">part</a>(<a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#68">name</a>, <span class="ident">Part::text</span>(<a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#68">value</a>))
+        <a class="self" href="../../../src/reqwest/async_impl/multipart.rs.html#77">self</a>.<a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#86-88">part</a>(<a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#77">name</a>, <span class="ident">Part::text</span>(<a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#77">value</a>))
     }
 
     <span class="doccomment">/// Adds a customized Part.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">part</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">name</span>: <span class="ident">T</span>, <span class="ident">part</span>: <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#20-23">Part</a>) -&gt; <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#15-17">Form</a>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">part</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">name</span>: <span class="ident">T</span>, <span class="ident">part</span>: <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#22-26">Part</a>) -&gt; <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#17-19">Form</a>
     <span class="kw">where</span>
         <span class="ident">T</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Cow</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a><span class="op">&gt;</span><span class="op">&gt;</span>,
     {
-        <a class="self" href="../../../src/reqwest/async_impl/multipart.rs.html#77">self</a>.<a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#141-143">with_inner</a>(<span class="kw">move</span> <span class="op">|</span><span class="ident">inner</span><span class="op">|</span> <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#81">inner</a>.<a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#266-268">part</a>(<a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#77">name</a>, <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#77">part</a>))
+        <a class="self" href="../../../src/reqwest/async_impl/multipart.rs.html#86">self</a>.<a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#166-168">with_inner</a>(<span class="kw">move</span> <span class="op">|</span><span class="ident">inner</span><span class="op">|</span> <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#90">inner</a>.<a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#298-300">part</a>(<a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#86">name</a>, <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#86">part</a>))
     }
 
     <span class="doccomment">/// Configure this `Form` to percent-encode using the `path-segment` rules.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">percent_encode_path_segment</span>(<span class="self">self</span>) -&gt; <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#15-17">Form</a> {
-        <a class="self" href="../../../src/reqwest/async_impl/multipart.rs.html#85">self</a>.<a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#141-143">with_inner</a>(<span class="op">|</span><span class="ident">inner</span><span class="op">|</span> <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#86">inner</a>.<a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#275">percent_encode_path_segment</a>())
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">percent_encode_path_segment</span>(<span class="self">self</span>) -&gt; <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#17-19">Form</a> {
+        <a class="self" href="../../../src/reqwest/async_impl/multipart.rs.html#94">self</a>.<a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#166-168">with_inner</a>(<span class="op">|</span><span class="ident">inner</span><span class="op">|</span> <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#95">inner</a>.<a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#307">percent_encode_path_segment</a>())
     }
 
     <span class="doccomment">/// Configure this `Form` to percent-encode using the `attr-char` rules.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">percent_encode_attr_chars</span>(<span class="self">self</span>) -&gt; <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#15-17">Form</a> {
-        <a class="self" href="../../../src/reqwest/async_impl/multipart.rs.html#90">self</a>.<a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#141-143">with_inner</a>(<span class="op">|</span><span class="ident">inner</span><span class="op">|</span> <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#91">inner</a>.<a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#281">percent_encode_attr_chars</a>())
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">percent_encode_attr_chars</span>(<span class="self">self</span>) -&gt; <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#17-19">Form</a> {
+        <a class="self" href="../../../src/reqwest/async_impl/multipart.rs.html#99">self</a>.<a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#166-168">with_inner</a>(<span class="op">|</span><span class="ident">inner</span><span class="op">|</span> <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#100">inner</a>.<a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#313">percent_encode_attr_chars</a>())
     }
 
     <span class="doccomment">/// Configure this `Form` to skip percent-encoding</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">percent_encode_noop</span>(<span class="self">self</span>) -&gt; <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#15-17">Form</a> {
-        <a class="self" href="../../../src/reqwest/async_impl/multipart.rs.html#95">self</a>.<a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#141-143">with_inner</a>(<span class="op">|</span><span class="ident">inner</span><span class="op">|</span> <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#96">inner</a>.<a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#287">percent_encode_noop</a>())
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">percent_encode_noop</span>(<span class="self">self</span>) -&gt; <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#17-19">Form</a> {
+        <a class="self" href="../../../src/reqwest/async_impl/multipart.rs.html#104">self</a>.<a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#166-168">with_inner</a>(<span class="op">|</span><span class="ident">inner</span><span class="op">|</span> <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#105">inner</a>.<a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#319">percent_encode_noop</a>())
     }
 
-    <span class="doccomment">/// Consume this instance and transform into an instance of hyper::Body for use in a request.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">stream</span>(<span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <a class="ident" href="../../../hyper/body/body/struct.Body.html">hyper::Body</a> {
-        <span class="kw">if</span> <a class="self" href="../../../src/reqwest/async_impl/multipart.rs.html#100">self</a>.<span class="ident">inner</span>.<span class="ident">fields</span>.<span class="ident">len</span>() <span class="op">==</span> <span class="number">0</span> {
-            <span class="kw">return</span> <span class="ident">hyper::Body::empty</span>();
+    <span class="doccomment">/// Consume this instance and transform into an instance of Body for use in a request.</span>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">stream</span>(<span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <a class="ident" href="../../../src/reqwest/async_impl/body.rs.html#13-15">Body</a> {
+        <span class="kw">if</span> <a class="self" href="../../../src/reqwest/async_impl/multipart.rs.html#109">self</a>.<span class="ident">inner</span>.<span class="ident">fields</span>.<span class="ident">is_empty</span>() {
+            <span class="kw">return</span> <span class="ident">Body::empty</span>();
         }
 
         <span class="comment">// create initial part to init reduce chain</span>
-        <span class="kw">let</span> (<span class="ident">name</span>, <span class="ident">part</span>) <span class="op">=</span> <a class="self" href="../../../src/reqwest/async_impl/multipart.rs.html#100">self</a>.<span class="ident">inner</span>.<span class="ident">fields</span>.<span class="ident">remove</span>(<span class="number">0</span>);
-        <span class="kw">let</span> <span class="ident">start</span> <span class="op">=</span> <a class="self" href="../../../src/reqwest/async_impl/multipart.rs.html#100">self</a>.<a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#121-123">part_stream</a>(<a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#106">name</a>, <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#106">part</a>);
+        <span class="kw">let</span> (<span class="ident">name</span>, <span class="ident">part</span>) <span class="op">=</span> <a class="self" href="../../../src/reqwest/async_impl/multipart.rs.html#109">self</a>.<span class="ident">inner</span>.<span class="ident">fields</span>.<span class="ident">remove</span>(<span class="number">0</span>);
+        <span class="kw">let</span> <span class="ident">start</span> <span class="op">=</span> <span class="ident">Box::pin</span>(<a class="self" href="../../../src/reqwest/async_impl/multipart.rs.html#109">self</a>.<a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#134-140">part_stream</a>(<a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#115">name</a>, <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#115">part</a>))
+            <span class="kw">as</span> <span class="ident">Pin</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Stream</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident"><span class="kw">crate</span>::Result</span><span class="op">&lt;</span><a class="ident" href="../../../bytes/bytes/struct.Bytes.html">Bytes</a><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a><span class="op">&gt;</span><span class="op">&gt;</span>;
 
-        <span class="kw">let</span> <span class="ident">fields</span> <span class="op">=</span> <a class="self" href="../../../src/reqwest/async_impl/multipart.rs.html#100">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#322">take_fields</a>();
+        <span class="kw">let</span> <span class="ident">fields</span> <span class="op">=</span> <a class="self" href="../../../src/reqwest/async_impl/multipart.rs.html#109">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#360">take_fields</a>();
         <span class="comment">// for each field, chain an additional stream</span>
-        <span class="kw">let</span> <span class="ident">stream</span> <span class="op">=</span> <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#109">fields</a>.<span class="ident">into_iter</span>().<span class="ident">fold</span>(<a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#107">start</a>, <span class="op">|</span><span class="ident">memo</span>, (<span class="ident">name</span>, <span class="ident">part</span>)<span class="op">|</span> {
-            <span class="kw">let</span> <span class="ident">part_stream</span> <span class="op">=</span> <a class="self" href="../../../src/reqwest/async_impl/multipart.rs.html#100">self</a>.<a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#121-123">part_stream</a>(<a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#111">name</a>, <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#111">part</a>);
-            <span class="ident">hyper::Body::wrap_stream</span>(<a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#111">memo</a>.<span class="ident">chain</span>(<a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#112">part_stream</a>))
+        <span class="kw">let</span> <span class="ident">stream</span> <span class="op">=</span> <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#119">fields</a>.<span class="ident">into_iter</span>().<span class="ident">fold</span>(<a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#116">start</a>, <span class="op">|</span><span class="ident">memo</span>, (<span class="ident">name</span>, <span class="ident">part</span>)<span class="op">|</span> {
+            <span class="kw">let</span> <span class="ident">part_stream</span> <span class="op">=</span> <a class="self" href="../../../src/reqwest/async_impl/multipart.rs.html#109">self</a>.<a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#134-140">part_stream</a>(<a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#121">name</a>, <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#121">part</a>);
+            <span class="ident">Box::pin</span>(<a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#121">memo</a>.<span class="ident">chain</span>(<a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#122">part_stream</a>))
+                <span class="kw">as</span> <span class="ident">Pin</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Stream</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident"><span class="kw">crate</span>::Result</span><span class="op">&lt;</span><a class="ident" href="../../../bytes/bytes/struct.Bytes.html">Bytes</a><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a><span class="op">&gt;</span><span class="op">&gt;</span>
         });
         <span class="comment">// append special ending boundary</span>
-        <span class="kw">let</span> <span class="ident">last</span> <span class="op">=</span> <span class="ident">hyper::Body::from</span>(<span class="macro">format!</span>(<span class="string">&quot;--{}--\r\n&quot;</span>, <a class="self" href="../../../src/reqwest/async_impl/multipart.rs.html#100">self</a>.<a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#55">boundary</a>()));
-        <span class="ident">hyper::Body::wrap_stream</span>(<a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#111">stream</a>.<span class="ident">chain</span>(<a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#116">last</a>))
+        <span class="kw">let</span> <span class="ident">last</span> <span class="op">=</span> <span class="ident">stream::once</span>(<span class="ident">future::ready</span>(<span class="prelude-val">Ok</span>(
+            <span class="macro">format!</span>(<span class="string">&quot;--{}--\r\n&quot;</span>, <a class="self" href="../../../src/reqwest/async_impl/multipart.rs.html#109">self</a>.<a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#64">boundary</a>()).<span class="ident">into</span>()
+        )));
+        <span class="ident">Body::stream</span>(<a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#121">stream</a>.<span class="ident">chain</span>(<a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#127">last</a>))
     }
 
-    <span class="doccomment">/// Generate a hyper::Body stream for a single Part instance of a Form request. </span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">part_stream</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">name</span>: <span class="ident">T</span>, <span class="ident">part</span>: <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#20-23">Part</a>) -&gt; <a class="ident" href="../../../hyper/body/body/struct.Body.html">hyper::Body</a>
+    <span class="doccomment">/// Generate a hyper::Body stream for a single Part instance of a Form request.</span>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">part_stream</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(
+        <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
+        <span class="ident">name</span>: <span class="ident">T</span>,
+        <span class="ident">part</span>: <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#22-26">Part</a>,
+    ) -&gt; <span class="kw">impl</span> <span class="ident">Stream</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../../bytes/bytes/struct.Bytes.html">Bytes</a>, <a class="ident" href="../../../src/reqwest/error.rs.html#12-14"><span class="kw">crate</span>::Error</a><span class="op">&gt;</span><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">T</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Cow</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a><span class="op">&gt;</span><span class="op">&gt;</span>,
     {
         <span class="comment">// start with boundary</span>
-        <span class="kw">let</span> <span class="ident">boundary</span> <span class="op">=</span> <span class="ident">hyper::Body::from</span>(<span class="macro">format!</span>(<span class="string">&quot;--{}\r\n&quot;</span>, <a class="self" href="../../../src/reqwest/async_impl/multipart.rs.html#121">self</a>.<a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#55">boundary</a>()));
+        <span class="kw">let</span> <span class="ident">boundary</span> <span class="op">=</span> <span class="ident">stream::once</span>(<span class="ident">future::ready</span>(<span class="prelude-val">Ok</span>(
+            <span class="macro">format!</span>(<span class="string">&quot;--{}\r\n&quot;</span>, <a class="self" href="../../../src/reqwest/async_impl/multipart.rs.html#135">self</a>.<a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#64">boundary</a>()).<span class="ident">into</span>()
+        )));
         <span class="comment">// append headers</span>
-        <span class="kw">let</span> <span class="ident">header</span> <span class="op">=</span> <span class="ident">hyper::Body::from</span>({
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">h</span> <span class="op">=</span> <a class="self" href="../../../src/reqwest/async_impl/multipart.rs.html#121">self</a>.<span class="ident">inner</span>.<span class="ident">percent_encoding</span>.<a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#407">encode_headers</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#121">name</a>.<span class="ident">into</span>(), <span class="kw-2">&amp;</span><a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#121">part</a>.<span class="ident">meta</span>);
-            <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#129">h</a>.<span class="ident">extend_from_slice</span>(<span class="string">b&quot;\r\n\r\n&quot;</span>);
-            <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#129">h</a>
-        });
+        <span class="kw">let</span> <span class="ident">header</span> <span class="op">=</span> <span class="ident">stream::once</span>(<span class="ident">future::ready</span>(<span class="prelude-val">Ok</span>({
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">h</span> <span class="op">=</span> <a class="self" href="../../../src/reqwest/async_impl/multipart.rs.html#135">self</a>
+                .<span class="ident">inner</span>
+                .<span class="ident">percent_encoding</span>
+                .<a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#446">encode_headers</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#136">name</a>.<span class="ident">into</span>(), <span class="kw-2">&amp;</span><a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#137">part</a>.<span class="ident">meta</span>);
+            <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#148">h</a>.<span class="ident">extend_from_slice</span>(<span class="string">b&quot;\r\n\r\n&quot;</span>);
+            <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#148">h</a>.<span class="ident">into</span>()
+        })));
         <span class="comment">// then append form data followed by terminating CRLF</span>
-        <span class="ident">hyper::Body::wrap_stream</span>(<a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#126">boundary</a>.<span class="ident">chain</span>(<a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#128">header</a>).<span class="ident">chain</span>(<span class="ident">hyper::Body::wrap_stream</span>(<a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#121">part</a>.<span class="ident">value</span>)).<span class="ident">chain</span>(<span class="ident">hyper::Body::from</span>(<span class="string">&quot;\r\n&quot;</span>.<span class="ident">to_owned</span>())))
+        <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#143">boundary</a>
+            .<span class="ident">chain</span>(<a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#147">header</a>)
+            .<span class="ident">chain</span>(<a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#137">part</a>.<span class="ident">value</span>.<a class="ident" href="../../../src/reqwest/async_impl/body.rs.html#151">into_stream</a>())
+            .<span class="ident">chain</span>(<span class="ident">stream::once</span>(<span class="ident">future::ready</span>(<span class="prelude-val">Ok</span>(<span class="string">&quot;\r\n&quot;</span>.<span class="ident">into</span>()))))
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">compute_length</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a><span class="op">&gt;</span> {
-        <a class="self" href="../../../src/reqwest/async_impl/multipart.rs.html#137">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#295">compute_length</a>()
+        <a class="self" href="../../../src/reqwest/async_impl/multipart.rs.html#162">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#327">compute_length</a>()
     }
 
     <span class="kw">fn</span> <span class="ident">with_inner</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">func</span>: <span class="ident">F</span>) -&gt; <span class="self">Self</span>
     <span class="kw">where</span>
-        <span class="ident">F</span>: <span class="ident">FnOnce</span>(<span class="ident">FormParts</span><span class="op">&lt;</span><a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#20-23">Part</a><span class="op">&gt;</span>) -&gt; <span class="ident">FormParts</span><span class="op">&lt;</span><a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#20-23">Part</a><span class="op">&gt;</span>,
+        <span class="ident">F</span>: <span class="ident">FnOnce</span>(<span class="ident">FormParts</span><span class="op">&lt;</span><a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#22-26">Part</a><span class="op">&gt;</span>) -&gt; <span class="ident">FormParts</span><span class="op">&lt;</span><a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#22-26">Part</a><span class="op">&gt;</span>,
     {
-        <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#15-17">Form</a> {
-            <span class="ident">inner</span>: <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#141">func</a>(<a class="self" href="../../../src/reqwest/async_impl/multipart.rs.html#141">self</a>.<span class="ident">inner</span>),
+        <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#17-19">Form</a> {
+            <span class="ident">inner</span>: <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#166">func</a>(<a class="self" href="../../../src/reqwest/async_impl/multipart.rs.html#166">self</a>.<span class="ident">inner</span>),
         }
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#15-17">Form</a> {
+<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#17-19">Form</a> {
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="self" href="../../../src/reqwest/async_impl/multipart.rs.html#152">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#328">fmt_fields</a>(<span class="string">&quot;Form&quot;</span>, <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#152">f</a>)
+        <a class="self" href="../../../src/reqwest/async_impl/multipart.rs.html#177">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#366">fmt_fields</a>(<span class="string">&quot;Form&quot;</span>, <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#177">f</a>)
     }
 }
 
 <span class="comment">// ===== impl Part =====</span>
 
-<span class="kw">impl</span> <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#20-23">Part</a> {
+<span class="kw">impl</span> <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#22-26">Part</a> {
     <span class="doccomment">/// Makes a text parameter.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">text</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">value</span>: <span class="ident">T</span>) -&gt; <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#20-23">Part</a>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">text</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">value</span>: <span class="ident">T</span>) -&gt; <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#22-26">Part</a>
     <span class="kw">where</span>
         <span class="ident">T</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Cow</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a><span class="op">&gt;</span><span class="op">&gt;</span>,
     {
-        <span class="kw">let</span> <span class="ident">body</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#161">value</a>.<span class="ident">into</span>() {
-            <span class="ident">Cow::Borrowed</span>(<span class="ident">slice</span>) =&gt; <span class="ident">Body::from</span>(<a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#166">slice</a>),
-            <span class="ident">Cow::Owned</span>(<span class="ident">string</span>) =&gt; <span class="ident">Body::from</span>(<a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#167">string</a>),
+        <span class="kw">let</span> <span class="ident">body</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#186">value</a>.<span class="ident">into</span>() {
+            <span class="ident">Cow::Borrowed</span>(<span class="ident">slice</span>) =&gt; <span class="ident">Body::from</span>(<a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#191">slice</a>),
+            <span class="ident">Cow::Owned</span>(<span class="ident">string</span>) =&gt; <span class="ident">Body::from</span>(<a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#192">string</a>),
         };
-        <span class="ident">Part::new</span>(<a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#165">body</a>)
+        <span class="ident">Part::new</span>(<a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#190">body</a>, <span class="prelude-val">None</span>)
     }
 
     <span class="doccomment">/// Makes a new parameter from arbitrary bytes.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">bytes</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">value</span>: <span class="ident">T</span>) -&gt; <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#20-23">Part</a>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">bytes</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">value</span>: <span class="ident">T</span>) -&gt; <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#22-26">Part</a>
     <span class="kw">where</span>
         <span class="ident">T</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Cow</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span>, [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]<span class="op">&gt;</span><span class="op">&gt;</span>,
     {
-        <span class="kw">let</span> <span class="ident">body</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#173">value</a>.<span class="ident">into</span>() {
-            <span class="ident">Cow::Borrowed</span>(<span class="ident">slice</span>) =&gt; <span class="ident">Body::from</span>(<a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#178">slice</a>),
-            <span class="ident">Cow::Owned</span>(<span class="ident">vec</span>) =&gt; <span class="ident">Body::from</span>(<a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#179">vec</a>),
+        <span class="kw">let</span> <span class="ident">body</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#198">value</a>.<span class="ident">into</span>() {
+            <span class="ident">Cow::Borrowed</span>(<span class="ident">slice</span>) =&gt; <span class="ident">Body::from</span>(<a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#203">slice</a>),
+            <span class="ident">Cow::Owned</span>(<span class="ident">vec</span>) =&gt; <span class="ident">Body::from</span>(<a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#204">vec</a>),
         };
-        <span class="ident">Part::new</span>(<a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#177">body</a>)
+        <span class="ident">Part::new</span>(<a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#202">body</a>, <span class="prelude-val">None</span>)
     }
 
     <span class="doccomment">/// Makes a new parameter from an arbitrary stream.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">stream</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">value</span>: <span class="ident">T</span>) -&gt; <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#20-23">Part</a>
-    <span class="kw">where</span>
-        <span class="ident">T</span>: <a class="ident" href="../../../futures/stream/trait.Stream.html">Stream</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
-        <span class="ident">T::Error</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/error/trait.Error.html">std::error::Error</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a>,
-        <a class="ident" href="../../../hyper/body/chunk/struct.Chunk.html">hyper::Chunk</a>: <span class="ident">std::convert::From</span><span class="op">&lt;</span><span class="ident">T::Item</span><span class="op">&gt;</span>,
-    {
-        <span class="ident">Part::new</span>(<span class="ident">Body::wrap</span>(<span class="ident">hyper::Body::wrap_stream</span>(<a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#185">value</a>)))
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">stream</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Body</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">value</span>: <span class="ident">T</span>) -&gt; <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#22-26">Part</a> {
+        <span class="ident">Part::new</span>(<a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#210">value</a>.<span class="ident">into</span>(), <span class="prelude-val">None</span>)
     }
 
-    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">value</span>: <a class="ident" href="../../../src/reqwest/async_impl/body.rs.html#9-11">Body</a>) -&gt; <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#20-23">Part</a> {
-        <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#20-23">Part</a> {
+    <span class="doccomment">/// Makes a new parameter from an arbitrary stream with a known length. This is particularly</span>
+    <span class="doccomment">/// useful when adding something like file contents as a stream, where you can know the content</span>
+    <span class="doccomment">/// length beforehand.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">stream_with_length</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Body</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">value</span>: <span class="ident">T</span>, <span class="ident">length</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) -&gt; <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#22-26">Part</a> {
+        <span class="ident">Part::new</span>(<a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#217">value</a>.<span class="ident">into</span>(), <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#217">length</a>))
+    }
+
+    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">value</span>: <a class="ident" href="../../../src/reqwest/async_impl/body.rs.html#13-15">Body</a>, <span class="ident">body_length</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a><span class="op">&gt;</span>) -&gt; <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#22-26">Part</a> {
+        <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#22-26">Part</a> {
             <span class="ident">meta</span>: <span class="ident">PartMetadata::new</span>(),
-            <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#194">value</a>,
+            <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#221">value</a>,
+            <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#221">body_length</a>,
         }
     }
 
     <span class="doccomment">/// Tries to set the mime of this part.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">mime_str</span>(<span class="self">self</span>, <span class="ident">mime</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="ident">::Result</span><span class="op">&lt;</span><a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#20-23">Part</a><span class="op">&gt;</span> {
-        <span class="prelude-val">Ok</span>(<a class="self" href="../../../src/reqwest/async_impl/multipart.rs.html#202">self</a>.<a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#207">mime</a>(<span class="macro">try_!</span>(<a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#202">mime</a>.<span class="ident">parse</span>())))
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">mime_str</span>(<span class="self">self</span>, <span class="ident">mime</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="ident"><span class="kw">crate</span>::Result</span><span class="op">&lt;</span><a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#22-26">Part</a><span class="op">&gt;</span> {
+        <span class="prelude-val">Ok</span>(<a class="self" href="../../../src/reqwest/async_impl/multipart.rs.html#230">self</a>.<a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#235">mime</a>(<a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#230">mime</a>.<span class="ident">parse</span>().<span class="ident">map_err</span>(<a class="ident" href="../../../src/reqwest/error.rs.html#250"><span class="kw">crate</span>::error::builder</a>)<span class="question-mark">?</span>))
     }
 
     <span class="comment">// Re-export when mime 0.4 is available, with split MediaType/MediaRange.</span>
-    <span class="kw">fn</span> <span class="ident">mime</span>(<span class="self">self</span>, <span class="ident">mime</span>: <a class="ident" href="../../../mime/struct.Mime.html">Mime</a>) -&gt; <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#20-23">Part</a> {
-        <a class="self" href="../../../src/reqwest/async_impl/multipart.rs.html#207">self</a>.<a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#219-221">with_inner</a>(<span class="kw">move</span> <span class="op">|</span><span class="ident">inner</span><span class="op">|</span> <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#208">inner</a>.<a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#347">mime</a>(<a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#207">mime</a>))
+    <span class="kw">fn</span> <span class="ident">mime</span>(<span class="self">self</span>, <span class="ident">mime</span>: <a class="ident" href="../../../mime/struct.Mime.html">Mime</a>) -&gt; <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#22-26">Part</a> {
+        <a class="self" href="../../../src/reqwest/async_impl/multipart.rs.html#235">self</a>.<a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#247-249">with_inner</a>(<span class="kw">move</span> <span class="op">|</span><span class="ident">inner</span><span class="op">|</span> <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#236">inner</a>.<a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#385">mime</a>(<a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#235">mime</a>))
     }
 
     <span class="doccomment">/// Sets the filename, builder style.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">file_name</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">filename</span>: <span class="ident">T</span>) -&gt; <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#20-23">Part</a>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">file_name</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">filename</span>: <span class="ident">T</span>) -&gt; <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#22-26">Part</a>
     <span class="kw">where</span>
         <span class="ident">T</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Cow</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a><span class="op">&gt;</span><span class="op">&gt;</span>,
     {
-        <a class="self" href="../../../src/reqwest/async_impl/multipart.rs.html#212">self</a>.<a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#219-221">with_inner</a>(<span class="kw">move</span> <span class="op">|</span><span class="ident">inner</span><span class="op">|</span> <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#216">inner</a>.<a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#352-354">file_name</a>(<a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#212">filename</a>))
+        <a class="self" href="../../../src/reqwest/async_impl/multipart.rs.html#240">self</a>.<a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#247-249">with_inner</a>(<span class="kw">move</span> <span class="op">|</span><span class="ident">inner</span><span class="op">|</span> <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#244">inner</a>.<a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#390-392">file_name</a>(<a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#240">filename</a>))
     }
 
     <span class="kw">fn</span> <span class="ident">with_inner</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">func</span>: <span class="ident">F</span>) -&gt; <span class="self">Self</span>
     <span class="kw">where</span>
-        <span class="ident">F</span>: <span class="ident">FnOnce</span>(<a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#32-36">PartMetadata</a>) -&gt; <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#32-36">PartMetadata</a>,
+        <span class="ident">F</span>: <span class="ident">FnOnce</span>(<a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#35-39">PartMetadata</a>) -&gt; <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#35-39">PartMetadata</a>,
     {
-        <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#20-23">Part</a> {
-            <span class="ident">meta</span>: <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#219">func</a>(<a class="self" href="../../../src/reqwest/async_impl/multipart.rs.html#219">self</a>.<span class="ident">meta</span>),
-            <span class="ident">value</span>: <a class="self" href="../../../src/reqwest/async_impl/multipart.rs.html#219">self</a>.<span class="ident">value</span>,
+        <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#22-26">Part</a> {
+            <span class="ident">meta</span>: <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#247">func</a>(<a class="self" href="../../../src/reqwest/async_impl/multipart.rs.html#247">self</a>.<span class="ident">meta</span>),
+            ..<a class="self" href="../../../src/reqwest/async_impl/multipart.rs.html#247">self</a>
         }
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#20-23">Part</a> {
+<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#22-26">Part</a> {
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">dbg</span> <span class="op">=</span> <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#231">f</a>.<span class="ident">debug_struct</span>(<span class="string">&quot;Part&quot;</span>);
-        <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#232">dbg</a>.<span class="ident">field</span>(<span class="string">&quot;value&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/reqwest/async_impl/multipart.rs.html#231">self</a>.<span class="ident">value</span>);
-        <a class="self" href="../../../src/reqwest/async_impl/multipart.rs.html#231">self</a>.<span class="ident">meta</span>.<a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#363-366">fmt_fields</a>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#232">dbg</a>);
-        <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#232">dbg</a>.<span class="ident">finish</span>()
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">dbg</span> <span class="op">=</span> <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#259">f</a>.<span class="ident">debug_struct</span>(<span class="string">&quot;Part&quot;</span>);
+        <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#260">dbg</a>.<span class="ident">field</span>(<span class="string">&quot;value&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/reqwest/async_impl/multipart.rs.html#259">self</a>.<span class="ident">value</span>);
+        <a class="self" href="../../../src/reqwest/async_impl/multipart.rs.html#259">self</a>.<span class="ident">meta</span>.<a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#400-403">fmt_fields</a>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#260">dbg</a>);
+        <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#260">dbg</a>.<span class="ident">finish</span>()
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#38-41">PartProps</a> <span class="kw">for</span> <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#20-23">Part</a> {
+<span class="kw">impl</span> <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#41-44">PartProps</a> <span class="kw">for</span> <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#22-26">Part</a> {
     <span class="kw">fn</span> <span class="ident">value_len</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a><span class="op">&gt;</span> {
-        <a class="self" href="../../../src/reqwest/async_impl/multipart.rs.html#240">self</a>.<span class="ident">value</span>.<a class="ident" href="../../../src/reqwest/async_impl/body.rs.html#22">content_length</a>()
+        <span class="kw">if</span> <a class="self" href="../../../src/reqwest/async_impl/multipart.rs.html#268">self</a>.<span class="ident">body_length</span>.<span class="ident">is_some</span>() {
+            <a class="self" href="../../../src/reqwest/async_impl/multipart.rs.html#268">self</a>.<span class="ident">body_length</span>
+        } <span class="kw">else</span> {
+            <a class="self" href="../../../src/reqwest/async_impl/multipart.rs.html#268">self</a>.<span class="ident">value</span>.<a class="ident" href="../../../src/reqwest/async_impl/body.rs.html#155">content_length</a>()
+        }
     }
 
-    <span class="kw">fn</span> <span class="ident">metadata</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#32-36">PartMetadata</a> {
-        <span class="kw-2">&amp;</span><a class="self" href="../../../src/reqwest/async_impl/multipart.rs.html#244">self</a>.<span class="ident">meta</span>
+    <span class="kw">fn</span> <span class="ident">metadata</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#35-39">PartMetadata</a> {
+        <span class="kw-2">&amp;</span><a class="self" href="../../../src/reqwest/async_impl/multipart.rs.html#276">self</a>.<span class="ident">meta</span>
     }
 }
 
 <span class="comment">// ===== impl FormParts =====</span>
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">P</span>: <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#38-41">PartProps</a><span class="op">&gt;</span> <span class="ident">FormParts</span><span class="op">&lt;</span><span class="ident">P</span><span class="op">&gt;</span> {
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">P</span>: <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#41-44">PartProps</a><span class="op">&gt;</span> <span class="ident">FormParts</span><span class="op">&lt;</span><span class="ident">P</span><span class="op">&gt;</span> {
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="self">Self</span> {
-        <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#25-30">FormParts</a> {
-            <span class="ident">boundary</span>: <span class="macro">format!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">Uuid::new_v4</span>().<span class="ident">to_simple</span>()),
+        <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#28-33">FormParts</a> {
+            <span class="ident">boundary</span>: <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#502">gen_boundary</a>(),
             <span class="ident">computed_headers</span>: <span class="ident">Vec::new</span>(),
             <span class="ident">fields</span>: <span class="ident">Vec::new</span>(),
-            <span class="ident">percent_encoding</span>: <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#401">PercentEncoding::PathSegment</a>,
+            <span class="ident">percent_encoding</span>: <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#440">PercentEncoding::PathSegment</a>,
         }
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">boundary</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> {
-        <span class="kw-2">&amp;</span><a class="self" href="../../../src/reqwest/async_impl/multipart.rs.html#261">self</a>.<span class="ident">boundary</span>
+        <span class="kw-2">&amp;</span><a class="self" href="../../../src/reqwest/async_impl/multipart.rs.html#293">self</a>.<span class="ident">boundary</span>
     }
 
     <span class="doccomment">/// Adds a customized Part.</span>
@@ -829,26 +961,26 @@
     <span class="kw">where</span>
         <span class="ident">T</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Cow</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a><span class="op">&gt;</span><span class="op">&gt;</span>,
     {
-        <a class="self" href="../../../src/reqwest/async_impl/multipart.rs.html#266">self</a>.<span class="ident">fields</span>.<span class="ident">push</span>((<a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#266">name</a>.<span class="ident">into</span>(), <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#266">part</a>));
-        <a class="self" href="../../../src/reqwest/async_impl/multipart.rs.html#266">self</a>
+        <a class="self" href="../../../src/reqwest/async_impl/multipart.rs.html#298">self</a>.<span class="ident">fields</span>.<span class="ident">push</span>((<a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#298">name</a>.<span class="ident">into</span>(), <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#298">part</a>));
+        <a class="self" href="../../../src/reqwest/async_impl/multipart.rs.html#298">self</a>
     }
 
     <span class="doccomment">/// Configure this `Form` to percent-encode using the `path-segment` rules.</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">percent_encode_path_segment</span>(<span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="self">Self</span> {
-        <a class="self" href="../../../src/reqwest/async_impl/multipart.rs.html#275">self</a>.<span class="ident">percent_encoding</span> <span class="op">=</span> <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#401">PercentEncoding::PathSegment</a>;
-        <a class="self" href="../../../src/reqwest/async_impl/multipart.rs.html#275">self</a>
+        <a class="self" href="../../../src/reqwest/async_impl/multipart.rs.html#307">self</a>.<span class="ident">percent_encoding</span> <span class="op">=</span> <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#440">PercentEncoding::PathSegment</a>;
+        <a class="self" href="../../../src/reqwest/async_impl/multipart.rs.html#307">self</a>
     }
 
     <span class="doccomment">/// Configure this `Form` to percent-encode using the `attr-char` rules.</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">percent_encode_attr_chars</span>(<span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="self">Self</span> {
-        <a class="self" href="../../../src/reqwest/async_impl/multipart.rs.html#281">self</a>.<span class="ident">percent_encoding</span> <span class="op">=</span> <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#402">PercentEncoding::AttrChar</a>;
-        <a class="self" href="../../../src/reqwest/async_impl/multipart.rs.html#281">self</a>
+        <a class="self" href="../../../src/reqwest/async_impl/multipart.rs.html#313">self</a>.<span class="ident">percent_encoding</span> <span class="op">=</span> <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#441">PercentEncoding::AttrChar</a>;
+        <a class="self" href="../../../src/reqwest/async_impl/multipart.rs.html#313">self</a>
     }
 
     <span class="doccomment">/// Configure this `Form` to skip percent-encoding</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">percent_encode_noop</span>(<span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="self">Self</span> {
-        <a class="self" href="../../../src/reqwest/async_impl/multipart.rs.html#287">self</a>.<span class="ident">percent_encoding</span> <span class="op">=</span> <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#403">PercentEncoding::NoOp</a>;
-        <a class="self" href="../../../src/reqwest/async_impl/multipart.rs.html#287">self</a>
+        <a class="self" href="../../../src/reqwest/async_impl/multipart.rs.html#319">self</a>.<span class="ident">percent_encoding</span> <span class="op">=</span> <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#442">PercentEncoding::NoOp</a>;
+        <a class="self" href="../../../src/reqwest/async_impl/multipart.rs.html#319">self</a>
     }
 
     <span class="comment">// If predictable, computes the length the request will have</span>
@@ -856,108 +988,115 @@
     <span class="comment">// but not if a generic reader has been added;</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">compute_length</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">length</span> <span class="op">=</span> <span class="number">0u64</span>;
-        <span class="kw">for</span> <span class="kw-2">&amp;</span>(<span class="kw-2">ref</span> <span class="ident">name</span>, <span class="kw-2">ref</span> <span class="ident">field</span>) <span class="kw">in</span> <a class="self" href="../../../src/reqwest/async_impl/multipart.rs.html#295">self</a>.<span class="ident">fields</span>.<span class="ident">iter</span>() {
-            <span class="kw">match</span> <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#297">field</a>.<a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#39">value_len</a>() {
+        <span class="kw">for</span> <span class="kw-2">&amp;</span>(<span class="kw-2">ref</span> <span class="ident">name</span>, <span class="kw-2">ref</span> <span class="ident">field</span>) <span class="kw">in</span> <a class="self" href="../../../src/reqwest/async_impl/multipart.rs.html#327">self</a>.<span class="ident">fields</span>.<span class="ident">iter</span>() {
+            <span class="kw">match</span> <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#329">field</a>.<a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#42">value_len</a>() {
                 <span class="prelude-val">Some</span>(<span class="ident">value_length</span>) =&gt; {
                     <span class="comment">// We are constructing the header just to get its length. To not have to</span>
                     <span class="comment">// construct it again when the request is sent we cache these headers.</span>
-                    <span class="kw">let</span> <span class="ident">header</span> <span class="op">=</span> <a class="self" href="../../../src/reqwest/async_impl/multipart.rs.html#295">self</a>.<span class="ident">percent_encoding</span>.<a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#407">encode_headers</a>(<a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#297">name</a>, <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#297">field</a>.<a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#40">metadata</a>());
-                    <span class="kw">let</span> <span class="ident">header_length</span> <span class="op">=</span> <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#302">header</a>.<span class="ident">len</span>();
-                    <a class="self" href="../../../src/reqwest/async_impl/multipart.rs.html#295">self</a>.<span class="ident">computed_headers</span>.<span class="ident">push</span>(<a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#302">header</a>);
+                    <span class="kw">let</span> <span class="ident">header</span> <span class="op">=</span> <a class="self" href="../../../src/reqwest/async_impl/multipart.rs.html#327">self</a>.<span class="ident">percent_encoding</span>.<a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#446">encode_headers</a>(<a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#329">name</a>, <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#329">field</a>.<a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#43">metadata</a>());
+                    <span class="kw">let</span> <span class="ident">header_length</span> <span class="op">=</span> <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#334">header</a>.<span class="ident">len</span>();
+                    <a class="self" href="../../../src/reqwest/async_impl/multipart.rs.html#327">self</a>.<span class="ident">computed_headers</span>.<span class="ident">push</span>(<a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#334">header</a>);
                     <span class="comment">// The additions mimick the format string out of which the field is constructed</span>
                     <span class="comment">// in Reader. Not the cleanest solution because if that format string is</span>
                     <span class="comment">// ever changed then this formula needs to be changed too which is not an</span>
                     <span class="comment">// obvious dependency in the code.</span>
-                    <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#296">length</a> <span class="op">+</span><span class="op">=</span> <span class="number">2</span> <span class="op">+</span> <a class="self" href="../../../src/reqwest/async_impl/multipart.rs.html#295">self</a>.<a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#261">boundary</a>().<span class="ident">len</span>() <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> <span class="op">+</span> <span class="number">2</span> <span class="op">+</span> <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#303">header_length</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> <span class="op">+</span> <span class="number">4</span> <span class="op">+</span> <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#299">value_length</a> <span class="op">+</span> <span class="number">2</span>
+                    <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#328">length</a> <span class="op">+</span><span class="op">=</span> <span class="number">2</span>
+                        <span class="op">+</span> <a class="self" href="../../../src/reqwest/async_impl/multipart.rs.html#327">self</a>.<a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#293">boundary</a>().<span class="ident">len</span>() <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>
+                        <span class="op">+</span> <span class="number">2</span>
+                        <span class="op">+</span> <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#335">header_length</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>
+                        <span class="op">+</span> <span class="number">4</span>
+                        <span class="op">+</span> <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#331">value_length</a>
+                        <span class="op">+</span> <span class="number">2</span>
                 }
                 <span class="kw">_</span> =&gt; <span class="kw">return</span> <span class="prelude-val">None</span>,
             }
         }
         <span class="comment">// If there is a at least one field there is a special boundary for the very last field.</span>
-        <span class="kw">if</span> <span class="op">!</span><a class="self" href="../../../src/reqwest/async_impl/multipart.rs.html#295">self</a>.<span class="ident">fields</span>.<span class="ident">is_empty</span>() {
-            <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#296">length</a> <span class="op">+</span><span class="op">=</span> <span class="number">2</span> <span class="op">+</span> <a class="self" href="../../../src/reqwest/async_impl/multipart.rs.html#295">self</a>.<a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#261">boundary</a>().<span class="ident">len</span>() <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> <span class="op">+</span> <span class="number">4</span>
+        <span class="kw">if</span> <span class="op">!</span><a class="self" href="../../../src/reqwest/async_impl/multipart.rs.html#327">self</a>.<span class="ident">fields</span>.<span class="ident">is_empty</span>() {
+            <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#328">length</a> <span class="op">+</span><span class="op">=</span> <span class="number">2</span> <span class="op">+</span> <a class="self" href="../../../src/reqwest/async_impl/multipart.rs.html#327">self</a>.<a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#293">boundary</a>().<span class="ident">len</span>() <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> <span class="op">+</span> <span class="number">4</span>
         }
-        <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#296">length</a>)
+        <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#328">length</a>)
     }
 
     <span class="doccomment">/// Take the fields vector of this instance, replacing with an empty vector.</span>
     <span class="kw">fn</span> <span class="ident">take_fields</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span>(<span class="ident">Cow</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a><span class="op">&gt;</span>, <span class="ident">P</span>)<span class="op">&gt;</span> {
-        <span class="ident">std::mem::replace</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="self" href="../../../src/reqwest/async_impl/multipart.rs.html#322">self</a>.<span class="ident">fields</span>, <span class="ident">Vec::new</span>())
+        <span class="ident">std::mem::replace</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="self" href="../../../src/reqwest/async_impl/multipart.rs.html#360">self</a>.<span class="ident">fields</span>, <span class="ident">Vec::new</span>())
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">P</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a><span class="op">&gt;</span> <span class="ident">FormParts</span><span class="op">&lt;</span><span class="ident">P</span><span class="op">&gt;</span> {
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">fmt_fields</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">ty_name</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#328">f</a>.<span class="ident">debug_struct</span>(<a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#328">ty_name</a>)
-            .<span class="ident">field</span>(<span class="string">&quot;boundary&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/reqwest/async_impl/multipart.rs.html#328">self</a>.<span class="ident">boundary</span>)
-            .<span class="ident">field</span>(<span class="string">&quot;parts&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/reqwest/async_impl/multipart.rs.html#328">self</a>.<span class="ident">fields</span>)
+        <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#366">f</a>.<span class="ident">debug_struct</span>(<a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#366">ty_name</a>)
+            .<span class="ident">field</span>(<span class="string">&quot;boundary&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/reqwest/async_impl/multipart.rs.html#366">self</a>.<span class="ident">boundary</span>)
+            .<span class="ident">field</span>(<span class="string">&quot;parts&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/reqwest/async_impl/multipart.rs.html#366">self</a>.<span class="ident">fields</span>)
             .<span class="ident">finish</span>()
     }
 }
 
 <span class="comment">// ===== impl PartMetadata =====</span>
 
-<span class="kw">impl</span> <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#32-36">PartMetadata</a> {
+<span class="kw">impl</span> <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#35-39">PartMetadata</a> {
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="self">Self</span> {
-        <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#32-36">PartMetadata</a> {
+        <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#35-39">PartMetadata</a> {
             <span class="ident">mime</span>: <span class="prelude-val">None</span>,
             <span class="ident">file_name</span>: <span class="prelude-val">None</span>,
-            <span class="ident">headers</span>: <span class="ident">HeaderMap::default</span>()
+            <span class="ident">headers</span>: <span class="ident">HeaderMap::default</span>(),
         }
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">mime</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">mime</span>: <a class="ident" href="../../../mime/struct.Mime.html">Mime</a>) -&gt; <span class="self">Self</span> {
-        <a class="self" href="../../../src/reqwest/async_impl/multipart.rs.html#347">self</a>.<span class="ident">mime</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#347">mime</a>);
-        <a class="self" href="../../../src/reqwest/async_impl/multipart.rs.html#347">self</a>
+        <a class="self" href="../../../src/reqwest/async_impl/multipart.rs.html#385">self</a>.<span class="ident">mime</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#385">mime</a>);
+        <a class="self" href="../../../src/reqwest/async_impl/multipart.rs.html#385">self</a>
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">file_name</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">filename</span>: <span class="ident">T</span>) -&gt; <span class="self">Self</span>
     <span class="kw">where</span>
         <span class="ident">T</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Cow</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a><span class="op">&gt;</span><span class="op">&gt;</span>,
     {
-        <a class="self" href="../../../src/reqwest/async_impl/multipart.rs.html#352">self</a>.<span class="ident">file_name</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#352">filename</a>.<span class="ident">into</span>());
-        <a class="self" href="../../../src/reqwest/async_impl/multipart.rs.html#352">self</a>
+        <a class="self" href="../../../src/reqwest/async_impl/multipart.rs.html#390">self</a>.<span class="ident">file_name</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#390">filename</a>.<span class="ident">into</span>());
+        <a class="self" href="../../../src/reqwest/async_impl/multipart.rs.html#390">self</a>
     }
 }
 
-
-<span class="kw">impl</span> <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#32-36">PartMetadata</a> {
+<span class="kw">impl</span> <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#35-39">PartMetadata</a> {
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">fmt_fields</span><span class="op">&lt;</span><span class="lifetime">&#39;f</span>, <span class="lifetime">&#39;fa</span>, <span class="lifetime">&#39;fb</span><span class="op">&gt;</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">debug_struct</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;f</span> <span class="kw-2">mut</span> <span class="ident">fmt::DebugStruct</span><span class="op">&lt;</span><span class="lifetime">&#39;fa</span>, <span class="lifetime">&#39;fb</span><span class="op">&gt;</span>
+        <span class="ident">debug_struct</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;f</span> <span class="kw-2">mut</span> <span class="ident">fmt::DebugStruct</span><span class="op">&lt;</span><span class="lifetime">&#39;fa</span>, <span class="lifetime">&#39;fb</span><span class="op">&gt;</span>,
     ) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;f</span> <span class="kw-2">mut</span> <span class="ident">fmt::DebugStruct</span><span class="op">&lt;</span><span class="lifetime">&#39;fa</span>, <span class="lifetime">&#39;fb</span><span class="op">&gt;</span> {
-        <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#365">debug_struct</a>
-            .<span class="ident">field</span>(<span class="string">&quot;mime&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/reqwest/async_impl/multipart.rs.html#364">self</a>.<span class="ident">mime</span>)
-            .<span class="ident">field</span>(<span class="string">&quot;file_name&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/reqwest/async_impl/multipart.rs.html#364">self</a>.<span class="ident">file_name</span>)
-            .<span class="ident">field</span>(<span class="string">&quot;headers&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/reqwest/async_impl/multipart.rs.html#364">self</a>.<span class="ident">headers</span>)
+        <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#402">debug_struct</a>
+            .<span class="ident">field</span>(<span class="string">&quot;mime&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/reqwest/async_impl/multipart.rs.html#401">self</a>.<span class="ident">mime</span>)
+            .<span class="ident">field</span>(<span class="string">&quot;file_name&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/reqwest/async_impl/multipart.rs.html#401">self</a>.<span class="ident">file_name</span>)
+            .<span class="ident">field</span>(<span class="string">&quot;headers&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/reqwest/async_impl/multipart.rs.html#401">self</a>.<span class="ident">headers</span>)
     }
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">AttrCharEncodeSet</span>;
+<span class="doccomment">/// https://url.spec.whatwg.org/#fragment-percent-encode-set</span>
+<span class="kw">const</span> <span class="ident">FRAGMENT_ENCODE_SET</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../percent_encoding/struct.AsciiSet.html">AsciiSet</a> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">percent_encoding::CONTROLS</span>
+    .<span class="ident">add</span>(<span class="string">b&#39; &#39;</span>)
+    .<span class="ident">add</span>(<span class="string">b&#39;&quot;&#39;</span>)
+    .<span class="ident">add</span>(<span class="string">b&#39;&lt;&#39;</span>)
+    .<span class="ident">add</span>(<span class="string">b&#39;&gt;&#39;</span>)
+    .<span class="ident">add</span>(<span class="string">b&#39;`&#39;</span>);
 
-<span class="kw">impl</span> <a class="ident" href="../../../percent_encoding/trait.EncodeSet.html">EncodeSet</a> <span class="kw">for</span> <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#375">AttrCharEncodeSet</a> {
-    <span class="kw">fn</span> <span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">ch</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">match</span> <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#378">ch</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a> {
-             <span class="string">&#39;!&#39;</span>  =&gt; <span class="bool-val">false</span>,
-             <span class="string">&#39;#&#39;</span>  =&gt; <span class="bool-val">false</span>,
-             <span class="string">&#39;$&#39;</span>  =&gt; <span class="bool-val">false</span>,
-             <span class="string">&#39;&amp;&#39;</span>  =&gt; <span class="bool-val">false</span>,
-             <span class="string">&#39;+&#39;</span>  =&gt; <span class="bool-val">false</span>,
-             <span class="string">&#39;-&#39;</span>  =&gt; <span class="bool-val">false</span>,
-             <span class="string">&#39;.&#39;</span> =&gt; <span class="bool-val">false</span>,
-             <span class="string">&#39;^&#39;</span>  =&gt; <span class="bool-val">false</span>,
-             <span class="string">&#39;_&#39;</span>  =&gt; <span class="bool-val">false</span>,
-             <span class="string">&#39;`&#39;</span>  =&gt; <span class="bool-val">false</span>,
-             <span class="string">&#39;|&#39;</span>  =&gt; <span class="bool-val">false</span>,
-             <span class="string">&#39;~&#39;</span> =&gt; <span class="bool-val">false</span>,
-              <span class="kw">_</span> =&gt; {
-                  <span class="kw">let</span> <span class="ident">is_alpha_numeric</span> <span class="op">=</span> <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#378">ch</a> <span class="op">&gt;</span><span class="op">=</span> <span class="number">0x41</span> <span class="op">&amp;&amp;</span> <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#378">ch</a> <span class="op">&lt;</span><span class="op">=</span> <span class="number">0x5a</span> <span class="op">|</span><span class="op">|</span> <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#378">ch</a> <span class="op">&gt;</span><span class="op">=</span> <span class="number">0x61</span> <span class="op">&amp;&amp;</span> <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#378">ch</a> <span class="op">&lt;</span><span class="op">=</span> <span class="number">0x7a</span> <span class="op">|</span><span class="op">|</span> <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#378">ch</a> <span class="op">&gt;</span><span class="op">=</span> <span class="number">0x30</span> <span class="op">&amp;&amp;</span> <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#378">ch</a> <span class="op">&lt;</span><span class="op">=</span> <span class="number">0x39</span>;
-                  <span class="op">!</span><a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#393">is_alpha_numeric</a>
-              }
-        }
-    }
-}
+<span class="doccomment">/// https://url.spec.whatwg.org/#path-percent-encode-set</span>
+<span class="kw">const</span> <span class="ident">PATH_ENCODE_SET</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../percent_encoding/struct.AsciiSet.html">AsciiSet</a> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#412-417">FRAGMENT_ENCODE_SET</a>.<span class="ident">add</span>(<span class="string">b&#39;#&#39;</span>).<span class="ident">add</span>(<span class="string">b&#39;?&#39;</span>).<span class="ident">add</span>(<span class="string">b&#39;{&#39;</span>).<span class="ident">add</span>(<span class="string">b&#39;}&#39;</span>);
+
+<span class="kw">const</span> <span class="ident">PATH_SEGMENT_ENCODE_SET</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../percent_encoding/struct.AsciiSet.html">AsciiSet</a> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#420">PATH_ENCODE_SET</a>.<span class="ident">add</span>(<span class="string">b&#39;/&#39;</span>).<span class="ident">add</span>(<span class="string">b&#39;%&#39;</span>);
+
+<span class="doccomment">/// https://tools.ietf.org/html/rfc8187#section-3.2.1</span>
+<span class="kw">const</span> <span class="ident">ATTR_CHAR_ENCODE_SET</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../percent_encoding/struct.AsciiSet.html">AsciiSet</a> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="ident" href="../../../percent_encoding/constant.NON_ALPHANUMERIC.html">NON_ALPHANUMERIC</a>
+    .<span class="ident">remove</span>(<span class="string">b&#39;!&#39;</span>)
+    .<span class="ident">remove</span>(<span class="string">b&#39;#&#39;</span>)
+    .<span class="ident">remove</span>(<span class="string">b&#39;$&#39;</span>)
+    .<span class="ident">remove</span>(<span class="string">b&#39;&amp;&#39;</span>)
+    .<span class="ident">remove</span>(<span class="string">b&#39;+&#39;</span>)
+    .<span class="ident">remove</span>(<span class="string">b&#39;-&#39;</span>)
+    .<span class="ident">remove</span>(<span class="string">b&#39;.&#39;</span>)
+    .<span class="ident">remove</span>(<span class="string">b&#39;^&#39;</span>)
+    .<span class="ident">remove</span>(<span class="string">b&#39;_&#39;</span>)
+    .<span class="ident">remove</span>(<span class="string">b&#39;`&#39;</span>)
+    .<span class="ident">remove</span>(<span class="string">b&#39;|&#39;</span>)
+    .<span class="ident">remove</span>(<span class="string">b&#39;~&#39;</span>);
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">enum</span> <span class="ident">PercentEncoding</span> {
     <span class="ident">PathSegment</span>,
@@ -965,124 +1104,157 @@
     <span class="ident">NoOp</span>,
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#400-404">PercentEncoding</a> {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">encode_headers</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">name</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, <span class="ident">field</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#32-36">PartMetadata</a>) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><span class="op">&gt;</span> {
+<span class="kw">impl</span> <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#439-443">PercentEncoding</a> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">encode_headers</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">name</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, <span class="ident">field</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#35-39">PartMetadata</a>) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">s</span> <span class="op">=</span> <span class="macro">format!</span>(
             <span class="string">&quot;Content-Disposition: form-data; {}{}{}&quot;</span>,
-            <a class="self" href="../../../src/reqwest/async_impl/multipart.rs.html#407">self</a>.<a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#439">format_parameter</a>(<span class="string">&quot;name&quot;</span>, <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#407">name</a>),
-            <span class="kw">match</span> <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#407">field</a>.<span class="ident">file_name</span> {
-                <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">file_name</span>) =&gt; <span class="macro">format!</span>(<span class="string">&quot;; {}&quot;</span>, <a class="self" href="../../../src/reqwest/async_impl/multipart.rs.html#407">self</a>.<a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#431">format_filename</a>(<a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#412">file_name</a>)),
+            <a class="self" href="../../../src/reqwest/async_impl/multipart.rs.html#446">self</a>.<a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#482">format_parameter</a>(<span class="string">&quot;name&quot;</span>, <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#446">name</a>),
+            <span class="kw">match</span> <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#446">field</a>.<span class="ident">file_name</span> {
+                <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">file_name</span>) =&gt; <span class="macro">format!</span>(<span class="string">&quot;; {}&quot;</span>, <a class="self" href="../../../src/reqwest/async_impl/multipart.rs.html#446">self</a>.<a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#473">format_filename</a>(<a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#451">file_name</a>)),
                 <span class="prelude-val">None</span> =&gt; <span class="ident">String::new</span>(),
             },
-            <span class="kw">match</span> <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#407">field</a>.<span class="ident">mime</span> {
-                <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">mime</span>) =&gt; <span class="macro">format!</span>(<span class="string">&quot;\r\nContent-Type: {}&quot;</span>, <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#416">mime</a>),
+            <span class="kw">match</span> <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#446">field</a>.<span class="ident">mime</span> {
+                <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">mime</span>) =&gt; <span class="macro">format!</span>(<span class="string">&quot;\r\nContent-Type: {}&quot;</span>, <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#455">mime</a>),
                 <span class="prelude-val">None</span> =&gt; <span class="string">&quot;&quot;</span>.<span class="ident">to_string</span>(),
             },
         );
-        <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#407">field</a>.<span class="ident">headers</span>.<span class="ident">iter</span>().<span class="ident">fold</span>(<a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#408">s</a>.<span class="ident">into_bytes</span>(), <span class="op">|</span><span class="kw-2">mut</span> <span class="ident">header</span>, (<span class="ident">k</span>,<span class="ident">v</span>)<span class="op">|</span> {
-            <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#420">header</a>.<span class="ident">extend_from_slice</span>(<span class="string">b&quot;\r\n&quot;</span>);
-            <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#420">header</a>.<span class="ident">extend_from_slice</span>(<a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#420">k</a>.<span class="ident">as_str</span>().<span class="ident">as_bytes</span>());
-            <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#420">header</a>.<span class="ident">extend_from_slice</span>(<span class="string">b&quot;: &quot;</span>);
-            <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#420">header</a>.<span class="ident">extend_from_slice</span>(<a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#420">v</a>.<span class="ident">as_bytes</span>());
-            <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#420">header</a>
-        })
+        <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#446">field</a>
+            .<span class="ident">headers</span>
+            .<span class="ident">iter</span>()
+            .<span class="ident">fold</span>(<a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#447">s</a>.<span class="ident">into_bytes</span>(), <span class="op">|</span><span class="kw-2">mut</span> <span class="ident">header</span>, (<span class="ident">k</span>, <span class="ident">v</span>)<span class="op">|</span> {
+                <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#462">header</a>.<span class="ident">extend_from_slice</span>(<span class="string">b&quot;\r\n&quot;</span>);
+                <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#462">header</a>.<span class="ident">extend_from_slice</span>(<a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#462">k</a>.<span class="ident">as_str</span>().<span class="ident">as_bytes</span>());
+                <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#462">header</a>.<span class="ident">extend_from_slice</span>(<span class="string">b&quot;: &quot;</span>);
+                <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#462">header</a>.<span class="ident">extend_from_slice</span>(<a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#462">v</a>.<span class="ident">as_bytes</span>());
+                <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#462">header</a>
+            })
     }
 
     <span class="comment">// According to RFC7578 Section 4.2, `filename*=` syntax is invalid.</span>
     <span class="comment">// See https://github.com/seanmonstar/reqwest/issues/419.</span>
     <span class="kw">fn</span> <span class="ident">format_filename</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">filename</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> {
-        <span class="kw">let</span> <span class="ident">legal_filename</span> <span class="op">=</span> <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#431">filename</a>.<span class="ident">replace</span>(<span class="string">&quot;\\&quot;</span>, <span class="string">&quot;\\\\&quot;</span>)
-                                     .<span class="ident">replace</span>(<span class="string">&quot;\&quot;&quot;</span>, <span class="string">&quot;\\\&quot;&quot;</span>)
-                                     .<span class="ident">replace</span>(<span class="string">&quot;\r&quot;</span>, <span class="string">&quot;\\\r&quot;</span>)
-                                     .<span class="ident">replace</span>(<span class="string">&quot;\n&quot;</span>, <span class="string">&quot;\\\n&quot;</span>);
-        <span class="macro">format!</span>(<span class="string">&quot;filename=\&quot;{}\&quot;&quot;</span>, <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#432">legal_filename</a>)
+        <span class="kw">let</span> <span class="ident">legal_filename</span> <span class="op">=</span> <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#473">filename</a>
+            .<span class="ident">replace</span>(<span class="string">&quot;\\&quot;</span>, <span class="string">&quot;\\\\&quot;</span>)
+            .<span class="ident">replace</span>(<span class="string">&quot;\&quot;&quot;</span>, <span class="string">&quot;\\\&quot;&quot;</span>)
+            .<span class="ident">replace</span>(<span class="string">&quot;\r&quot;</span>, <span class="string">&quot;\\\r&quot;</span>)
+            .<span class="ident">replace</span>(<span class="string">&quot;\n&quot;</span>, <span class="string">&quot;\\\n&quot;</span>);
+        <span class="macro">format!</span>(<span class="string">&quot;filename=\&quot;{}\&quot;&quot;</span>, <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#474">legal_filename</a>)
     }
 
     <span class="kw">fn</span> <span class="ident">format_parameter</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">name</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, <span class="ident">value</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> {
-        <span class="kw">let</span> <span class="ident">legal_value</span> <span class="op">=</span> <span class="kw">match</span> <span class="kw-2">*</span><a class="self" href="../../../src/reqwest/async_impl/multipart.rs.html#439">self</a> {
-            <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#401">PercentEncoding::PathSegment</a> =&gt; {
-                <span class="ident">percent_encoding::utf8_percent_encode</span>(<a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#439">value</a>, <span class="ident">PATH_SEGMENT_ENCODE_SET</span>)
-                    .<span class="ident">to_string</span>()
-            },
-            <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#402">PercentEncoding::AttrChar</a> =&gt; {
-                <span class="ident">percent_encoding::utf8_percent_encode</span>(<a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#439">value</a>, <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#375">AttrCharEncodeSet</a>)
-                    .<span class="ident">to_string</span>()
-            },
-            <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#403">PercentEncoding::NoOp</a> =&gt; { <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#439">value</a>.<span class="ident">to_string</span>() },
+        <span class="kw">let</span> <span class="ident">legal_value</span> <span class="op">=</span> <span class="kw">match</span> <span class="kw-2">*</span><a class="self" href="../../../src/reqwest/async_impl/multipart.rs.html#482">self</a> {
+            <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#440">PercentEncoding::PathSegment</a> =&gt; {
+                <span class="ident">percent_encoding::utf8_percent_encode</span>(<a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#482">value</a>, <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#422">PATH_SEGMENT_ENCODE_SET</a>).<span class="ident">to_string</span>()
+            }
+            <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#441">PercentEncoding::AttrChar</a> =&gt; {
+                <span class="ident">percent_encoding::utf8_percent_encode</span>(<a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#482">value</a>, <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#425-437">ATTR_CHAR_ENCODE_SET</a>).<span class="ident">to_string</span>()
+            }
+            <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#442">PercentEncoding::NoOp</a> =&gt; <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#482">value</a>.<span class="ident">to_string</span>(),
         };
-        <span class="kw">if</span> <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#439">value</a>.<span class="ident">len</span>() <span class="op">==</span> <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#440">legal_value</a>.<span class="ident">len</span>() {
+        <span class="kw">if</span> <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#482">value</a>.<span class="ident">len</span>() <span class="op">==</span> <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#483">legal_value</a>.<span class="ident">len</span>() {
             <span class="comment">// nothing has been percent encoded</span>
-            <span class="macro">format!</span>(<span class="string">&quot;{}=\&quot;{}\&quot;&quot;</span>, <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#439">name</a>, <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#439">value</a>)
+            <span class="macro">format!</span>(<span class="string">&quot;{}=\&quot;{}\&quot;&quot;</span>, <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#482">name</a>, <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#482">value</a>)
         } <span class="kw">else</span> {
             <span class="comment">// something has been percent encoded</span>
-            <span class="macro">format!</span>(<span class="string">&quot;{}*=utf-8&#39;&#39;{}&quot;</span>, <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#439">name</a>, <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#440">legal_value</a>)
+            <span class="macro">format!</span>(<span class="string">&quot;{}*=utf-8&#39;&#39;{}&quot;</span>, <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#482">name</a>, <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#483">legal_value</a>)
         }
     }
+}
+
+<span class="kw">fn</span> <span class="ident">gen_boundary</span>() -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> {
+    <span class="kw">use</span> <a class="ident" href="../../../src/reqwest/util.rs.html#5"><span class="kw">crate</span>::util::fast_random</a> <span class="kw">as</span> <span class="ident">random</span>;
+
+    <span class="kw">let</span> <span class="ident">a</span> <span class="op">=</span> <a class="ident" href="../../../src/reqwest/util.rs.html#5">random</a>();
+    <span class="kw">let</span> <span class="ident">b</span> <span class="op">=</span> <a class="ident" href="../../../src/reqwest/util.rs.html#5">random</a>();
+    <span class="kw">let</span> <span class="ident">c</span> <span class="op">=</span> <a class="ident" href="../../../src/reqwest/util.rs.html#5">random</a>();
+    <span class="kw">let</span> <span class="ident">d</span> <span class="op">=</span> <a class="ident" href="../../../src/reqwest/util.rs.html#5">random</a>();
+
+    <span class="macro">format!</span>(<span class="string">&quot;{:016x}-{:016x}-{:016x}-{:016x}&quot;</span>, <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#505">a</a>, <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#506">b</a>, <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#507">c</a>, <a class="ident" href="../../../src/reqwest/async_impl/multipart.rs.html#508">d</a>)
 }
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">mod</span> <span class="ident">tests</span> {
     <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
-    <span class="kw">use</span> <span class="ident">tokio</span>;
+    <span class="kw">use</span> <span class="ident">futures_util::TryStreamExt</span>;
+    <span class="kw">use</span> <span class="ident">futures_util</span>::{<span class="ident">future</span>, <span class="ident">stream</span>};
+    <span class="kw">use</span> <span class="ident">tokio</span>::{<span class="self">self</span>, <span class="ident">runtime</span>};
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">form_empty</span>() {
         <span class="kw">let</span> <span class="ident">form</span> <span class="op">=</span> <span class="ident">Form::new</span>();
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">rt</span> <span class="op">=</span> <span class="ident">tokio::runtime::current_thread::Runtime::new</span>().<span class="ident">expect</span>(<span class="string">&quot;new rt&quot;</span>);
-        <span class="kw">let</span> <span class="ident">body_ft</span> <span class="op">=</span> <span class="ident">form</span>.<span class="ident">stream</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">rt</span> <span class="op">=</span> <span class="ident">runtime::Builder::new</span>()
+            .<span class="ident">basic_scheduler</span>()
+            .<span class="ident">enable_all</span>()
+            .<span class="ident">build</span>()
+            .<span class="ident">expect</span>(<span class="string">&quot;new rt&quot;</span>);
+        <span class="kw">let</span> <span class="ident">body</span> <span class="op">=</span> <span class="ident">form</span>.<span class="ident">stream</span>().<span class="ident">into_stream</span>();
+        <span class="kw">let</span> <span class="ident">s</span> <span class="op">=</span> <span class="ident">body</span>.<span class="ident">map_ok</span>(<span class="op">|</span><span class="ident">try_c</span><span class="op">|</span> <span class="ident">try_c</span>.<span class="ident">to_vec</span>()).<span class="ident">try_concat</span>();
 
-        <span class="kw">let</span> <span class="ident">out</span> <span class="op">=</span> <span class="ident">rt</span>.<span class="ident">block_on</span>(<span class="ident">body_ft</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">c</span><span class="op">|</span> <span class="ident">c</span>.<span class="ident">into_bytes</span>()).<span class="ident">concat2</span>());
-        <span class="macro">assert_eq!</span>(<span class="ident">out</span>.<span class="ident">unwrap</span>(), <span class="ident">Vec::new</span>());
+        <span class="kw">let</span> <span class="ident">out</span> <span class="op">=</span> <span class="ident">rt</span>.<span class="ident">block_on</span>(<span class="ident">s</span>);
+        <span class="macro">assert!</span>(<span class="ident">out</span>.<span class="ident">unwrap</span>().<span class="ident">is_empty</span>());
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">stream_to_end</span>() {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">form</span> <span class="op">=</span> <span class="ident">Form::new</span>()
-            .<span class="ident">part</span>(<span class="string">&quot;reader1&quot;</span>, <span class="ident">Part::stream</span>(<span class="ident">futures::stream::once</span>::<span class="op">&lt;</span><span class="kw">_</span>, <span class="ident">hyper::Error</span><span class="op">&gt;</span>(<span class="prelude-val">Ok</span>(<span class="ident">hyper::Chunk::from</span>(<span class="string">&quot;part1&quot;</span>.<span class="ident">to_owned</span>())))))
-            .<span class="ident">part</span>(<span class="string">&quot;key1&quot;</span>, <span class="ident">Part::text</span>(<span class="string">&quot;value1&quot;</span>))
             .<span class="ident">part</span>(
-                <span class="string">&quot;key2&quot;</span>,
-                <span class="ident">Part::text</span>(<span class="string">&quot;value2&quot;</span>).<span class="ident">mime</span>(<span class="ident">::mime::IMAGE_BMP</span>),
+                <span class="string">&quot;reader1&quot;</span>,
+                <span class="ident">Part::stream</span>(<span class="ident">Body::stream</span>(<span class="ident">stream::once</span>(<span class="ident">future::ready</span>::<span class="op">&lt;</span>
+                    <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident"><span class="kw">crate</span>::Error</span><span class="op">&gt;</span>,
+                <span class="op">&gt;</span>(<span class="prelude-val">Ok</span>(
+                    <span class="string">&quot;part1&quot;</span>.<span class="ident">to_owned</span>()
+                ))))),
             )
-            .<span class="ident">part</span>(<span class="string">&quot;reader2&quot;</span>, <span class="ident">Part::stream</span>(<span class="ident">futures::stream::once</span>::<span class="op">&lt;</span><span class="kw">_</span>, <span class="ident">hyper::Error</span><span class="op">&gt;</span>(<span class="prelude-val">Ok</span>(<span class="ident">hyper::Chunk::from</span>(<span class="string">&quot;part2&quot;</span>.<span class="ident">to_owned</span>())))))
+            .<span class="ident">part</span>(<span class="string">&quot;key1&quot;</span>, <span class="ident">Part::text</span>(<span class="string">&quot;value1&quot;</span>))
+            .<span class="ident">part</span>(<span class="string">&quot;key2&quot;</span>, <span class="ident">Part::text</span>(<span class="string">&quot;value2&quot;</span>).<span class="ident">mime</span>(<span class="ident">mime::IMAGE_BMP</span>))
             .<span class="ident">part</span>(
-                <span class="string">&quot;key3&quot;</span>,
-                <span class="ident">Part::text</span>(<span class="string">&quot;value3&quot;</span>).<span class="ident">file_name</span>(<span class="string">&quot;filename&quot;</span>),
-            );
+                <span class="string">&quot;reader2&quot;</span>,
+                <span class="ident">Part::stream</span>(<span class="ident">Body::stream</span>(<span class="ident">stream::once</span>(<span class="ident">future::ready</span>::<span class="op">&lt;</span>
+                    <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident"><span class="kw">crate</span>::Error</span><span class="op">&gt;</span>,
+                <span class="op">&gt;</span>(<span class="prelude-val">Ok</span>(
+                    <span class="string">&quot;part2&quot;</span>.<span class="ident">to_owned</span>()
+                ))))),
+            )
+            .<span class="ident">part</span>(<span class="string">&quot;key3&quot;</span>, <span class="ident">Part::text</span>(<span class="string">&quot;value3&quot;</span>).<span class="ident">file_name</span>(<span class="string">&quot;filename&quot;</span>));
         <span class="ident">form</span>.<span class="ident">inner</span>.<span class="ident">boundary</span> <span class="op">=</span> <span class="string">&quot;boundary&quot;</span>.<span class="ident">to_string</span>();
         <span class="kw">let</span> <span class="ident">expected</span> <span class="op">=</span> <span class="string">&quot;--boundary\r\n\
-                        Content-Disposition: form-data; name=\&quot;reader1\&quot;\r\n\r\n\
-                        part1\r\n\
-                        --boundary\r\n\
-                        Content-Disposition: form-data; name=\&quot;key1\&quot;\r\n\r\n\
-                        value1\r\n\
-                        --boundary\r\n\
-                        Content-Disposition: form-data; name=\&quot;key2\&quot;\r\n\
-                        Content-Type: image/bmp\r\n\r\n\
-                        value2\r\n\
-                        --boundary\r\n\
-                        Content-Disposition: form-data; name=\&quot;reader2\&quot;\r\n\r\n\
-                        part2\r\n\
-                        --boundary\r\n\
-                        Content-Disposition: form-data; name=\&quot;key3\&quot;; filename=\&quot;filename\&quot;\r\n\r\n\
-                        value3\r\n--boundary--\r\n&quot;</span>;
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">rt</span> <span class="op">=</span> <span class="ident">tokio::runtime::current_thread::Runtime::new</span>().<span class="ident">expect</span>(<span class="string">&quot;new rt&quot;</span>);
-        <span class="kw">let</span> <span class="ident">body_ft</span> <span class="op">=</span> <span class="ident">form</span>.<span class="ident">stream</span>();
+             Content-Disposition: form-data; name=\&quot;reader1\&quot;\r\n\r\n\
+             part1\r\n\
+             --boundary\r\n\
+             Content-Disposition: form-data; name=\&quot;key1\&quot;\r\n\r\n\
+             value1\r\n\
+             --boundary\r\n\
+             Content-Disposition: form-data; name=\&quot;key2\&quot;\r\n\
+             Content-Type: image/bmp\r\n\r\n\
+             value2\r\n\
+             --boundary\r\n\
+             Content-Disposition: form-data; name=\&quot;reader2\&quot;\r\n\r\n\
+             part2\r\n\
+             --boundary\r\n\
+             Content-Disposition: form-data; name=\&quot;key3\&quot;; filename=\&quot;filename\&quot;\r\n\r\n\
+             value3\r\n--boundary--\r\n&quot;</span>;
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">rt</span> <span class="op">=</span> <span class="ident">runtime::Builder::new</span>()
+            .<span class="ident">basic_scheduler</span>()
+            .<span class="ident">enable_all</span>()
+            .<span class="ident">build</span>()
+            .<span class="ident">expect</span>(<span class="string">&quot;new rt&quot;</span>);
+        <span class="kw">let</span> <span class="ident">body</span> <span class="op">=</span> <span class="ident">form</span>.<span class="ident">stream</span>().<span class="ident">into_stream</span>();
+        <span class="kw">let</span> <span class="ident">s</span> <span class="op">=</span> <span class="ident">body</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">try_c</span><span class="op">|</span> <span class="ident">try_c</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">r</span><span class="op">|</span> <span class="ident">r</span>.<span class="ident">to_vec</span>())).<span class="ident">try_concat</span>();
 
-        <span class="kw">let</span> <span class="ident">out</span> <span class="op">=</span> <span class="ident">rt</span>.<span class="ident">block_on</span>(<span class="ident">body_ft</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">c</span><span class="op">|</span> <span class="ident">c</span>.<span class="ident">into_bytes</span>()).<span class="ident">concat2</span>()).<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="ident">out</span> <span class="op">=</span> <span class="ident">rt</span>.<span class="ident">block_on</span>(<span class="ident">s</span>).<span class="ident">unwrap</span>();
         <span class="comment">// These prints are for debug purposes in case the test fails</span>
         <span class="macro">println!</span>(
             <span class="string">&quot;START REAL\n{}\nEND REAL&quot;</span>,
-            <span class="ident">::std::str::from_utf8</span>(<span class="kw-2">&amp;</span><span class="ident">out</span>).<span class="ident">unwrap</span>()
+            <span class="ident">std::str::from_utf8</span>(<span class="kw-2">&amp;</span><span class="ident">out</span>).<span class="ident">unwrap</span>()
         );
         <span class="macro">println!</span>(<span class="string">&quot;START EXPECTED\n{}\nEND EXPECTED&quot;</span>, <span class="ident">expected</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">::std::str::from_utf8</span>(<span class="kw-2">&amp;</span><span class="ident">out</span>).<span class="ident">unwrap</span>(), <span class="ident">expected</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">std::str::from_utf8</span>(<span class="kw-2">&amp;</span><span class="ident">out</span>).<span class="ident">unwrap</span>(), <span class="ident">expected</span>);
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">stream_to_end_with_header</span>() {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">part</span> <span class="op">=</span> <span class="ident">Part::text</span>(<span class="string">&quot;value2&quot;</span>).<span class="ident">mime</span>(<span class="ident">::mime::IMAGE_BMP</span>);
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">part</span> <span class="op">=</span> <span class="ident">Part::text</span>(<span class="string">&quot;value2&quot;</span>).<span class="ident">mime</span>(<span class="ident">mime::IMAGE_BMP</span>);
         <span class="ident">part</span>.<span class="ident">meta</span>.<span class="ident">headers</span>.<span class="ident">insert</span>(<span class="string">&quot;Hdr3&quot;</span>, <span class="string">&quot;/a/b/c&quot;</span>.<span class="ident">parse</span>().<span class="ident">unwrap</span>());
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">form</span> <span class="op">=</span> <span class="ident">Form::new</span>().<span class="ident">part</span>(<span class="string">&quot;key2&quot;</span>, <span class="ident">part</span>);
         <span class="ident">form</span>.<span class="ident">inner</span>.<span class="ident">boundary</span> <span class="op">=</span> <span class="string">&quot;boundary&quot;</span>.<span class="ident">to_string</span>();
@@ -1093,17 +1265,45 @@
                         \r\n\
                         value2\r\n\
                         --boundary--\r\n&quot;</span>;
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">rt</span> <span class="op">=</span> <span class="ident">tokio::runtime::current_thread::Runtime::new</span>().<span class="ident">expect</span>(<span class="string">&quot;new rt&quot;</span>);
-        <span class="kw">let</span> <span class="ident">body_ft</span> <span class="op">=</span> <span class="ident">form</span>.<span class="ident">stream</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">rt</span> <span class="op">=</span> <span class="ident">runtime::Builder::new</span>()
+            .<span class="ident">basic_scheduler</span>()
+            .<span class="ident">enable_all</span>()
+            .<span class="ident">build</span>()
+            .<span class="ident">expect</span>(<span class="string">&quot;new rt&quot;</span>);
+        <span class="kw">let</span> <span class="ident">body</span> <span class="op">=</span> <span class="ident">form</span>.<span class="ident">stream</span>().<span class="ident">into_stream</span>();
+        <span class="kw">let</span> <span class="ident">s</span> <span class="op">=</span> <span class="ident">body</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">try_c</span><span class="op">|</span> <span class="ident">try_c</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">r</span><span class="op">|</span> <span class="ident">r</span>.<span class="ident">to_vec</span>())).<span class="ident">try_concat</span>();
 
-        <span class="kw">let</span> <span class="ident">out</span> <span class="op">=</span> <span class="ident">rt</span>.<span class="ident">block_on</span>(<span class="ident">body_ft</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">c</span><span class="op">|</span> <span class="ident">c</span>.<span class="ident">into_bytes</span>()).<span class="ident">concat2</span>()).<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="ident">out</span> <span class="op">=</span> <span class="ident">rt</span>.<span class="ident">block_on</span>(<span class="ident">s</span>).<span class="ident">unwrap</span>();
         <span class="comment">// These prints are for debug purposes in case the test fails</span>
         <span class="macro">println!</span>(
             <span class="string">&quot;START REAL\n{}\nEND REAL&quot;</span>,
-            <span class="ident">::std::str::from_utf8</span>(<span class="kw-2">&amp;</span><span class="ident">out</span>).<span class="ident">unwrap</span>()
+            <span class="ident">std::str::from_utf8</span>(<span class="kw-2">&amp;</span><span class="ident">out</span>).<span class="ident">unwrap</span>()
         );
         <span class="macro">println!</span>(<span class="string">&quot;START EXPECTED\n{}\nEND EXPECTED&quot;</span>, <span class="ident">expected</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">::std::str::from_utf8</span>(<span class="kw-2">&amp;</span><span class="ident">out</span>).<span class="ident">unwrap</span>(), <span class="ident">expected</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">std::str::from_utf8</span>(<span class="kw-2">&amp;</span><span class="ident">out</span>).<span class="ident">unwrap</span>(), <span class="ident">expected</span>);
+    }
+
+    <span class="attribute">#[<span class="ident">test</span>]</span>
+    <span class="kw">fn</span> <span class="ident">correct_content_length</span>() {
+        <span class="comment">// Setup an arbitrary data stream</span>
+        <span class="kw">let</span> <span class="ident">stream_data</span> <span class="op">=</span> <span class="string">b&quot;just some stream data&quot;</span>;
+        <span class="kw">let</span> <span class="ident">stream_len</span> <span class="op">=</span> <span class="ident">stream_data</span>.<span class="ident">len</span>();
+        <span class="kw">let</span> <span class="ident">stream_data</span> <span class="op">=</span> <span class="ident">stream_data</span>
+            .<span class="ident">chunks</span>(<span class="number">3</span>)
+            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">c</span><span class="op">|</span> <span class="prelude-val">Ok</span>::<span class="op">&lt;</span><span class="kw">_</span>, <span class="ident">std::io::Error</span><span class="op">&gt;</span>(<span class="ident">Bytes::from</span>(<span class="ident">c</span>)));
+        <span class="kw">let</span> <span class="ident">the_stream</span> <span class="op">=</span> <span class="ident">futures_util::stream::iter</span>(<span class="ident">stream_data</span>);
+
+        <span class="kw">let</span> <span class="ident">bytes_data</span> <span class="op">=</span> <span class="string">b&quot;some bytes data&quot;</span>.<span class="ident">to_vec</span>();
+        <span class="kw">let</span> <span class="ident">bytes_len</span> <span class="op">=</span> <span class="ident">bytes_data</span>.<span class="ident">len</span>();
+
+        <span class="kw">let</span> <span class="ident">stream_part</span> <span class="op">=</span> <span class="ident">Part::stream_with_length</span>(<span class="ident">Body::stream</span>(<span class="ident">the_stream</span>), <span class="ident">stream_len</span> <span class="kw">as</span> <span class="ident">u64</span>);
+        <span class="kw">let</span> <span class="ident">body_part</span> <span class="op">=</span> <span class="ident">Part::bytes</span>(<span class="ident">bytes_data</span>);
+
+        <span class="comment">// A simple check to make sure we get the configured body length</span>
+        <span class="macro">assert_eq!</span>(<span class="ident">stream_part</span>.<span class="ident">value_len</span>().<span class="ident">unwrap</span>(), <span class="ident">stream_len</span> <span class="kw">as</span> <span class="ident">u64</span>);
+
+        <span class="comment">// Make sure it delegates to the underlying body if length is not specified</span>
+        <span class="macro">assert_eq!</span>(<span class="ident">body_part</span>.<span class="ident">value_len</span>().<span class="ident">unwrap</span>(), <span class="ident">bytes_len</span> <span class="kw">as</span> <span class="ident">u64</span>);
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>

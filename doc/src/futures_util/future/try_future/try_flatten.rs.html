@@ -166,7 +166,7 @@
 <span class="kw">use</span> <span class="ident">futures_core::stream</span>::{<a class="ident" href="../../../../futures_util/stream/trait.FusedStream.html">FusedStream</a>, <a class="ident" href="../../../../futures_util/stream/trait.Stream.html">Stream</a>, <a class="ident" href="../../../../futures_util/stream/trait.TryStream.html">TryStream</a>};
 <span class="kw">use</span> <span class="ident">futures_core::task</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>};
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;sink&quot;</span>)]</span>
-<span class="kw">use</span> <span class="ident">futures_sink::Sink</span>;
+<span class="kw">use</span> <a class="ident" href="../../../../futures_util/sink/trait.Sink.html">futures_sink::Sink</a>;
 <span class="kw">use</span> <span class="ident">pin_project_lite::pin_project</span>;
 
 <span class="macro">pin_project!</span> {
@@ -272,54 +272,54 @@
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;sink&quot;</span>)]</span>
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Fut</span>, <span class="ident">Item</span><span class="op">&gt;</span> <span class="ident">Sink</span><span class="op">&lt;</span><span class="ident">Item</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">TryFlatten</span><span class="op">&lt;</span><span class="ident">Fut</span>, <span class="ident">Fut::Ok</span><span class="op">&gt;</span>
 <span class="kw">where</span>
-    <span class="ident">Fut</span>: <span class="ident">TryFuture</span>,
+    <span class="ident">Fut</span>: <a class="ident" href="../../../../futures_util/future/trait.TryFuture.html">TryFuture</a>,
     <span class="ident">Fut::Ok</span>: <span class="ident">Sink</span><span class="op">&lt;</span><span class="ident">Item</span>, <span class="ident">Error</span> <span class="op">=</span> <span class="ident">Fut::Error</span><span class="op">&gt;</span>,
 {
     <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <span class="ident">Fut::Error</span>;
 
     <span class="kw">fn</span> <span class="ident">poll_ready</span>(<span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="ident">Poll::Ready</span>(<span class="kw">loop</span> {
-            <span class="kw">match</span> <span class="self">self</span>.<span class="ident">as_mut</span>().<span class="ident">project</span>() {
-                <span class="ident">TryFlattenProj::First</span> { <span class="ident">f</span> } =&gt; <span class="kw">match</span> <span class="macro">ready!</span>(<span class="ident">f</span>.<span class="ident">try_poll</span>(<span class="ident">cx</span>)) {
-                    <span class="prelude-val">Ok</span>(<span class="ident">f</span>) =&gt; <span class="self">self</span>.<span class="ident">set</span>(<span class="ident"><span class="self">Self</span>::Second</span> { <span class="ident">f</span> }),
+            <span class="kw">match</span> <a class="self" href="../../../../src/futures_util/future/try_future/try_flatten.rs.html#118">self</a>.<span class="ident">as_mut</span>().<a class="ident" href="../../../../src/futures_util/future/try_future/try_flatten.rs.html#10-18">project</a>() {
+                <a class="ident" href="../../../../src/futures_util/future/try_future/try_flatten.rs.html#10-18">TryFlattenProj::First</a> { <span class="ident">f</span> } =&gt; <span class="kw">match</span> <span class="macro">ready!</span>(<a class="ident" href="../../../../src/futures_util/future/try_future/try_flatten.rs.html#121">f</a>.<span class="ident">try_poll</span>(<a class="ident" href="../../../../src/futures_util/future/try_future/try_flatten.rs.html#118">cx</a>)) {
+                    <span class="prelude-val">Ok</span>(<span class="ident">f</span>) =&gt; <a class="self" href="../../../../src/futures_util/future/try_future/try_flatten.rs.html#118">self</a>.<span class="ident">set</span>(<span class="ident"><span class="self">Self</span>::Second</span> { <a class="ident" href="../../../../src/futures_util/future/try_future/try_flatten.rs.html#122">f</a> }),
                     <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; {
-                        <span class="self">self</span>.<span class="ident">set</span>(<span class="ident"><span class="self">Self</span>::Empty</span>);
-                        <span class="kw">break</span> <span class="prelude-val">Err</span>(<span class="ident">e</span>);
+                        <a class="self" href="../../../../src/futures_util/future/try_future/try_flatten.rs.html#118">self</a>.<span class="ident">set</span>(<span class="ident"><span class="self">Self</span>::Empty</span>);
+                        <span class="kw">break</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../../../src/futures_util/future/try_future/try_flatten.rs.html#123">e</a>);
                     }
                 },
-                <span class="ident">TryFlattenProj::Second</span> { <span class="ident">f</span> } =&gt; {
-                    <span class="kw">break</span> <span class="macro">ready!</span>(<span class="ident">f</span>.<span class="ident">poll_ready</span>(<span class="ident">cx</span>));
+                <a class="ident" href="../../../../src/futures_util/future/try_future/try_flatten.rs.html#10-18">TryFlattenProj::Second</a> { <span class="ident">f</span> } =&gt; {
+                    <span class="kw">break</span> <span class="macro">ready!</span>(<a class="ident" href="../../../../src/futures_util/future/try_future/try_flatten.rs.html#128">f</a>.<span class="ident">poll_ready</span>(<a class="ident" href="../../../../src/futures_util/future/try_future/try_flatten.rs.html#118">cx</a>));
                 }
-                <span class="ident">TryFlattenProj::Empty</span> =&gt; <span class="macro">panic!</span>(<span class="string">&quot;poll_ready called after eof&quot;</span>),
+                <a class="ident" href="../../../../src/futures_util/future/try_future/try_flatten.rs.html#10-18">TryFlattenProj::Empty</a> =&gt; <span class="macro">panic!</span>(<span class="string">&quot;poll_ready called after eof&quot;</span>),
             }
         })
     }
 
     <span class="kw">fn</span> <span class="ident">start_send</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">item</span>: <span class="ident">Item</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> <span class="self">self</span>.<span class="ident">project</span>() {
-            <span class="ident">TryFlattenProj::First</span> { .. } =&gt; <span class="macro">panic!</span>(<span class="string">&quot;poll_ready not called first&quot;</span>),
-            <span class="ident">TryFlattenProj::Second</span> { <span class="ident">f</span> } =&gt; <span class="ident">f</span>.<span class="ident">start_send</span>(<span class="ident">item</span>),
-            <span class="ident">TryFlattenProj::Empty</span> =&gt; <span class="macro">panic!</span>(<span class="string">&quot;start_send called after eof&quot;</span>),
+        <span class="kw">match</span> <a class="self" href="../../../../src/futures_util/future/try_future/try_flatten.rs.html#136">self</a>.<a class="ident" href="../../../../src/futures_util/future/try_future/try_flatten.rs.html#10-18">project</a>() {
+            <a class="ident" href="../../../../src/futures_util/future/try_future/try_flatten.rs.html#10-18">TryFlattenProj::First</a> { .. } =&gt; <span class="macro">panic!</span>(<span class="string">&quot;poll_ready not called first&quot;</span>),
+            <a class="ident" href="../../../../src/futures_util/future/try_future/try_flatten.rs.html#10-18">TryFlattenProj::Second</a> { <span class="ident">f</span> } =&gt; <a class="ident" href="../../../../src/futures_util/future/try_future/try_flatten.rs.html#139">f</a>.<span class="ident">start_send</span>(<a class="ident" href="../../../../src/futures_util/future/try_future/try_flatten.rs.html#136">item</a>),
+            <a class="ident" href="../../../../src/futures_util/future/try_future/try_flatten.rs.html#10-18">TryFlattenProj::Empty</a> =&gt; <span class="macro">panic!</span>(<span class="string">&quot;start_send called after eof&quot;</span>),
         }
     }
 
     <span class="kw">fn</span> <span class="ident">poll_flush</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> <span class="self">self</span>.<span class="ident">project</span>() {
-            <span class="ident">TryFlattenProj::First</span> { .. } =&gt; <span class="ident">Poll::Ready</span>(<span class="prelude-val">Ok</span>(())),
-            <span class="ident">TryFlattenProj::Second</span> { <span class="ident">f</span> } =&gt; <span class="ident">f</span>.<span class="ident">poll_flush</span>(<span class="ident">cx</span>),
-            <span class="ident">TryFlattenProj::Empty</span> =&gt; <span class="macro">panic!</span>(<span class="string">&quot;poll_flush called after eof&quot;</span>),
+        <span class="kw">match</span> <a class="self" href="../../../../src/futures_util/future/try_future/try_flatten.rs.html#144">self</a>.<a class="ident" href="../../../../src/futures_util/future/try_future/try_flatten.rs.html#10-18">project</a>() {
+            <a class="ident" href="../../../../src/futures_util/future/try_future/try_flatten.rs.html#10-18">TryFlattenProj::First</a> { .. } =&gt; <span class="ident">Poll::Ready</span>(<span class="prelude-val">Ok</span>(())),
+            <a class="ident" href="../../../../src/futures_util/future/try_future/try_flatten.rs.html#10-18">TryFlattenProj::Second</a> { <span class="ident">f</span> } =&gt; <a class="ident" href="../../../../src/futures_util/future/try_future/try_flatten.rs.html#147">f</a>.<span class="ident">poll_flush</span>(<a class="ident" href="../../../../src/futures_util/future/try_future/try_flatten.rs.html#144">cx</a>),
+            <a class="ident" href="../../../../src/futures_util/future/try_future/try_flatten.rs.html#10-18">TryFlattenProj::Empty</a> =&gt; <span class="macro">panic!</span>(<span class="string">&quot;poll_flush called after eof&quot;</span>),
         }
     }
 
     <span class="kw">fn</span> <span class="ident">poll_close</span>(<span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="kw">match</span> <span class="self">self</span>.<span class="ident">as_mut</span>().<span class="ident">project</span>() {
-            <span class="ident">TryFlattenProj::Second</span> { <span class="ident">f</span> } =&gt; <span class="ident">f</span>.<span class="ident">poll_close</span>(<span class="ident">cx</span>),
+        <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="kw">match</span> <a class="self" href="../../../../src/futures_util/future/try_future/try_flatten.rs.html#152">self</a>.<span class="ident">as_mut</span>().<a class="ident" href="../../../../src/futures_util/future/try_future/try_flatten.rs.html#10-18">project</a>() {
+            <a class="ident" href="../../../../src/futures_util/future/try_future/try_flatten.rs.html#10-18">TryFlattenProj::Second</a> { <span class="ident">f</span> } =&gt; <a class="ident" href="../../../../src/futures_util/future/try_future/try_flatten.rs.html#154">f</a>.<span class="ident">poll_close</span>(<a class="ident" href="../../../../src/futures_util/future/try_future/try_flatten.rs.html#152">cx</a>),
             <span class="kw">_</span> =&gt; <span class="ident">Poll::Ready</span>(<span class="prelude-val">Ok</span>(())),
         };
-        <span class="kw">if</span> <span class="ident">res</span>.<span class="ident">is_ready</span>() {
-            <span class="self">self</span>.<span class="ident">set</span>(<span class="ident"><span class="self">Self</span>::Empty</span>);
+        <span class="kw">if</span> <a class="ident" href="../../../../src/futures_util/future/try_future/try_flatten.rs.html#153">res</a>.<span class="ident">is_ready</span>() {
+            <a class="self" href="../../../../src/futures_util/future/try_future/try_flatten.rs.html#152">self</a>.<span class="ident">set</span>(<span class="ident"><span class="self">Self</span>::Empty</span>);
         }
-        <span class="ident">res</span>
+        <a class="ident" href="../../../../src/futures_util/future/try_future/try_flatten.rs.html#153">res</a>
     }
 }
 </code></pre></div>

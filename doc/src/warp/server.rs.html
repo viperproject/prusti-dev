@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;warp-0.1.23&#x2F;src&#x2F;server.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>server.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../warp/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;warp-0.2.5&#x2F;src&#x2F;server.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>server.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../warp/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -434,62 +434,152 @@
 <span id="434">434</span>
 <span id="435">435</span>
 <span id="436">436</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/error/trait.Error.html">std::error::Error</a> <span class="kw">as</span> <span class="ident">StdError</span>;
+<span id="437">437</span>
+<span id="438">438</span>
+<span id="439">439</span>
+<span id="440">440</span>
+<span id="441">441</span>
+<span id="442">442</span>
+<span id="443">443</span>
+<span id="444">444</span>
+<span id="445">445</span>
+<span id="446">446</span>
+<span id="447">447</span>
+<span id="448">448</span>
+<span id="449">449</span>
+<span id="450">450</span>
+<span id="451">451</span>
+<span id="452">452</span>
+<span id="453">453</span>
+<span id="454">454</span>
+<span id="455">455</span>
+<span id="456">456</span>
+<span id="457">457</span>
+<span id="458">458</span>
+<span id="459">459</span>
+<span id="460">460</span>
+<span id="461">461</span>
+<span id="462">462</span>
+<span id="463">463</span>
+<span id="464">464</span>
+<span id="465">465</span>
+<span id="466">466</span>
+<span id="467">467</span>
+<span id="468">468</span>
+<span id="469">469</span>
+<span id="470">470</span>
+<span id="471">471</span>
+<span id="472">472</span>
+<span id="473">473</span>
+<span id="474">474</span>
+<span id="475">475</span>
+<span id="476">476</span>
+<span id="477">477</span>
+<span id="478">478</span>
+<span id="479">479</span>
+<span id="480">480</span>
+<span id="481">481</span>
+<span id="482">482</span>
+<span id="483">483</span>
+<span id="484">484</span>
+<span id="485">485</span>
+<span id="486">486</span>
+<span id="487">487</span>
+<span id="488">488</span>
+<span id="489">489</span>
+<span id="490">490</span>
+<span id="491">491</span>
+<span id="492">492</span>
+<span id="493">493</span>
+<span id="494">494</span>
+<span id="495">495</span>
+<span id="496">496</span>
+<span id="497">497</span>
+<span id="498">498</span>
+<span id="499">499</span>
+<span id="500">500</span>
+<span id="501">501</span>
+<span id="502">502</span>
+<span id="503">503</span>
+<span id="504">504</span>
+<span id="505">505</span>
+<span id="506">506</span>
+<span id="507">507</span>
+<span id="508">508</span>
+<span id="509">509</span>
+<span id="510">510</span>
+<span id="511">511</span>
+<span id="512">512</span>
+<span id="513">513</span>
+<span id="514">514</span>
+<span id="515">515</span>
+<span id="516">516</span>
+<span id="517">517</span>
+<span id="518">518</span>
+<span id="519">519</span>
+<span id="520">520</span>
+<span id="521">521</span>
+</pre><pre class="rust"><code><span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tls&quot;</span>)]</span>
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::tls::TlsConfigBuilder</span>;
+<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/enum.Infallible.html">std::convert::Infallible</a>;
+<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/error/trait.Error.html">std::error::Error</a> <span class="kw">as</span> <span class="ident">StdError</span>;
+<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">std::future::Future</a>;
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/net/addr/enum.SocketAddr.html">std::net::SocketAddr</a>;
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tls&quot;</span>)]</span>
 <span class="kw">use</span> <span class="ident">std::path::Path</span>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/sync/struct.Arc.html">std::sync::Arc</a>;
 
-<span class="kw">use</span> <span class="ident">futures</span>::{<a class="ident" href="../../futures/poll/enum.Async.html">Async</a>, <a class="ident" href="../../futures/future/trait.Future.html">Future</a>, <a class="ident" href="../../futures/poll/type.Poll.html">Poll</a>, <a class="ident" href="../../futures/stream/trait.Stream.html">Stream</a>};
+<span class="kw">use</span> <span class="ident">futures</span>::{<a class="ident" href="../../futures_util/future/index.html">future</a>, <a class="ident" href="../../futures_util/future/future/trait.FutureExt.html">FutureExt</a>, <a class="ident" href="../../futures_core/future/trait.TryFuture.html">TryFuture</a>, <a class="ident" href="../../futures_core/stream/trait.TryStream.html">TryStream</a>, <a class="ident" href="../../futures_util/stream/try_stream/trait.TryStreamExt.html">TryStreamExt</a>};
 <span class="kw">use</span> <a class="ident" href="../../hyper/server/tcp/struct.AddrIncoming.html">hyper::server::conn::AddrIncoming</a>;
-<span class="kw">use</span> <span class="ident">hyper::service</span>::{<a class="ident" href="../../hyper/service/make_service/fn.make_service_fn.html">make_service_fn</a>, <a class="ident" href="../../hyper/service/service/fn.service_fn.html">service_fn</a>};
-<span class="kw">use</span> <span class="ident">hyper</span>::{<a class="ident" href="../../hyper/rt/index.html">rt</a>, <a class="ident" href="../../hyper/server/struct.Server.html">Server</a> <span class="kw">as</span> <span class="ident">HyperServer</span>};
-<span class="kw">use</span> <span class="ident">tokio_io</span>::{<a class="ident" href="../../tokio_io/async_read/trait.AsyncRead.html">AsyncRead</a>, <a class="ident" href="../../tokio_io/async_write/trait.AsyncWrite.html">AsyncWrite</a>};
+<span class="kw">use</span> <span class="ident">hyper::service</span>::{<a class="ident" href="../../hyper/service/make/fn.make_service_fn.html">make_service_fn</a>, <a class="ident" href="../../hyper/service/util/fn.service_fn.html">service_fn</a>};
+<span class="kw">use</span> <a class="ident" href="../../hyper/server/struct.Server.html">hyper::Server</a> <span class="kw">as</span> <span class="ident">HyperServer</span>;
+<span class="kw">use</span> <span class="ident">tokio::io</span>::{<a class="ident" href="../../tokio/io/async_read/trait.AsyncRead.html">AsyncRead</a>, <a class="ident" href="../../tokio/io/async_write/trait.AsyncWrite.html">AsyncWrite</a>};
+<span class="kw">use</span> <a class="ident" href="../../tracing_futures/trait.Instrument.html">tracing_futures::Instrument</a>;
 
-<span class="kw">use</span> <a class="ident" href="../../src/warp/never.rs.html#5">never::Never</a>;
-<span class="kw">use</span> <a class="ident" href="../../src/warp/reject.rs.html#671-677">reject::Reject</a>;
-<span class="kw">use</span> <a class="ident" href="../../src/warp/reply.rs.html#230-293">reply::Reply</a>;
-<span class="kw">use</span> <a class="ident" href="../../src/warp/transport.rs.html#9-11">transport::Transport</a>;
-<span class="kw">use</span> <a class="ident" href="../../src/warp/lib.rs.html#198">Request</a>;
+<span class="kw">use</span> <a class="ident" href="../../src/warp/filter/mod.rs.html#92-401"><span class="kw">crate</span>::filter::Filter</a>;
+<span class="kw">use</span> <a class="ident" href="../../src/warp/reject.rs.html#574-577"><span class="kw">crate</span>::reject::IsReject</a>;
+<span class="kw">use</span> <a class="ident" href="../../src/warp/reply.rs.html#228-291"><span class="kw">crate</span>::reply::Reply</a>;
+<span class="kw">use</span> <a class="ident" href="../../src/warp/transport.rs.html#9-11"><span class="kw">crate</span>::transport::Transport</a>;
 
-<span class="doccomment">/// Create a `Server` with the provided service.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">serve</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>(<span class="ident">service</span>: <span class="ident">S</span>) -&gt; <span class="ident">Server</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>
+<span class="doccomment">/// Create a `Server` with the provided `Filter`.</span>
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">serve</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="ident">filter</span>: <span class="ident">F</span>) -&gt; <span class="ident">Server</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>
 <span class="kw">where</span>
-    <span class="ident">S</span>: <a class="ident" href="../../src/warp/server.rs.html#399-402">IntoWarpService</a> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
+    <span class="ident">F</span>: <a class="ident" href="../../src/warp/filter/mod.rs.html#92-401">Filter</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
+    <span class="ident">F::Extract</span>: <a class="ident" href="../../src/warp/reply.rs.html#228-291">Reply</a>,
+    <span class="ident">F::Error</span>: <a class="ident" href="../../src/warp/reject.rs.html#574-577">IsReject</a>,
 {
-    <a class="ident" href="../../src/warp/server.rs.html#32-35">Server</a> {
+    <a class="ident" href="../../src/warp/server.rs.html#37-40">Server</a> {
         <span class="ident">pipeline</span>: <span class="bool-val">false</span>,
-        <a class="ident" href="../../src/warp/server.rs.html#20">service</a>,
+        <a class="ident" href="../../src/warp/server.rs.html#23">filter</a>,
     }
 }
 
 <span class="doccomment">/// A Warp Server ready to filter requests.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Server</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Server</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span> {
     <span class="ident">pipeline</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-    <span class="ident">service</span>: <span class="ident">S</span>,
+    <span class="ident">filter</span>: <span class="ident">F</span>,
 }
 
 <span class="doccomment">/// A Warp Server ready to filter requests over TLS.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// *This type requires the `&quot;tls&quot;` feature.*</span>
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tls&quot;</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">TlsServer</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> {
-    <span class="ident">server</span>: <span class="ident">Server</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>,
-    <span class="ident">tls</span>: <span class="ident">::rustls::ServerConfig</span>,
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">TlsServer</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span> {
+    <span class="ident">server</span>: <span class="ident">Server</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>,
+    <span class="ident">tls</span>: <span class="ident">TlsConfigBuilder</span>,
 }
 
 <span class="comment">// Getting all various generic bounds to make this a re-usable method is</span>
 <span class="comment">// very complicated, so instead this is just a macro.</span>
 <span class="macro">macro_rules!</span> <span class="ident">into_service</span> {
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">into</span>:<span class="ident">expr</span>) =&gt; {{
-        <span class="kw">let</span> <span class="ident">inner</span> <span class="op">=</span> <span class="ident">Arc::new</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">into</span>.<span class="ident">into_warp_service</span>());
+        <span class="kw">let</span> <span class="ident">inner</span> <span class="op">=</span> <span class="ident"><span class="kw">crate</span>::service</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">into</span>);
         <span class="ident">make_service_fn</span>(<span class="kw">move</span> <span class="op">|</span><span class="ident">transport</span><span class="op">|</span> {
             <span class="kw">let</span> <span class="ident">inner</span> <span class="op">=</span> <span class="ident">inner</span>.<span class="ident">clone</span>();
             <span class="kw">let</span> <span class="ident">remote_addr</span> <span class="op">=</span> <span class="ident">Transport::remote_addr</span>(<span class="ident">transport</span>);
-            <span class="ident">service_fn</span>(<span class="kw">move</span> <span class="op">|</span><span class="ident">req</span><span class="op">|</span> <span class="ident">ReplyFuture</span> {
-                <span class="ident">inner</span>: <span class="ident">inner</span>.<span class="ident">call</span>(<span class="ident">req</span>, <span class="ident">remote_addr</span>),
-            })
+            <span class="ident">future::ok</span>::<span class="op">&lt;</span><span class="kw">_</span>, <span class="ident">Infallible</span><span class="op">&gt;</span>(<span class="ident">service_fn</span>(<span class="kw">move</span> <span class="op">|</span><span class="ident">req</span><span class="op">|</span> {
+                <span class="ident">inner</span>.<span class="ident">call_with_addr</span>(<span class="ident">req</span>, <span class="ident">remote_addr</span>)
+            }))
         })
     }};
 }
@@ -505,26 +595,22 @@
 
 <span class="macro">macro_rules!</span> <span class="ident">bind_inner</span> {
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">this</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">addr</span>:<span class="ident">expr</span>) =&gt; {{
-        <span class="kw">let</span> <span class="ident">service</span> <span class="op">=</span> <span class="macro">into_service!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">this</span>.<span class="ident">service</span>);
+        <span class="kw">let</span> <span class="ident">service</span> <span class="op">=</span> <span class="macro">into_service!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">this</span>.<span class="ident">filter</span>);
         <span class="kw">let</span> (<span class="ident">addr</span>, <span class="ident">incoming</span>) <span class="op">=</span> <span class="macro">addr_incoming!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">addr</span>);
         <span class="kw">let</span> <span class="ident">srv</span> <span class="op">=</span> <span class="ident">HyperServer::builder</span>(<span class="ident">incoming</span>)
             .<span class="ident">http1_pipeline_flush</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">this</span>.<span class="ident">pipeline</span>)
             .<span class="ident">serve</span>(<span class="ident">service</span>);
-        <span class="prelude-val">Ok</span>::<span class="op">&lt;</span><span class="kw">_</span>, <span class="ident">hyper::error::Error</span><span class="op">&gt;</span>((<span class="ident">addr</span>, <span class="ident">srv</span>))
+        <span class="prelude-val">Ok</span>::<span class="op">&lt;</span><span class="kw">_</span>, <span class="ident">hyper::Error</span><span class="op">&gt;</span>((<span class="ident">addr</span>, <span class="ident">srv</span>))
     }};
 
     (<span class="ident">tls</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">this</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">addr</span>:<span class="ident">expr</span>) =&gt; {{
-        <span class="kw">let</span> <span class="ident">service</span> <span class="op">=</span> <span class="macro">into_service!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">this</span>.<span class="ident">server</span>.<span class="ident">service</span>);
+        <span class="kw">let</span> <span class="ident">service</span> <span class="op">=</span> <span class="macro">into_service!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">this</span>.<span class="ident">server</span>.<span class="ident">filter</span>);
         <span class="kw">let</span> (<span class="ident">addr</span>, <span class="ident">incoming</span>) <span class="op">=</span> <span class="macro">addr_incoming!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">addr</span>);
-        <span class="kw">let</span> <span class="ident">tls</span> <span class="op">=</span> <span class="ident">Arc::new</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">this</span>.<span class="ident">tls</span>);
-        <span class="kw">let</span> <span class="ident">incoming</span> <span class="op">=</span> <span class="ident">incoming</span>.<span class="ident">map</span>(<span class="kw">move</span> <span class="op">|</span><span class="ident">sock</span><span class="op">|</span> {
-            <span class="kw">let</span> <span class="ident">session</span> <span class="op">=</span> <span class="ident">::rustls::ServerSession::new</span>(<span class="kw-2">&amp;</span><span class="ident">tls</span>);
-            <span class="ident">::tls::TlsStream::new</span>(<span class="ident">sock</span>, <span class="ident">session</span>)
-        });
-        <span class="kw">let</span> <span class="ident">srv</span> <span class="op">=</span> <span class="ident">HyperServer::builder</span>(<span class="ident">incoming</span>)
+        <span class="kw">let</span> <span class="ident">tls</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">this</span>.<span class="ident">tls</span>.<span class="ident">build</span>()<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">srv</span> <span class="op">=</span> <span class="ident">HyperServer::builder</span>(<span class="ident"><span class="kw">crate</span>::tls::TlsAcceptor::new</span>(<span class="ident">tls</span>, <span class="ident">incoming</span>))
             .<span class="ident">http1_pipeline_flush</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">this</span>.<span class="ident">server</span>.<span class="ident">pipeline</span>)
             .<span class="ident">serve</span>(<span class="ident">service</span>);
-        <span class="prelude-val">Ok</span>::<span class="op">&lt;</span><span class="kw">_</span>, <span class="ident">hyper::error::Error</span><span class="op">&gt;</span>((<span class="ident">addr</span>, <span class="ident">srv</span>))
+        <span class="prelude-val">Ok</span>::<span class="op">&lt;</span><span class="kw">_</span>, <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">std::error::Error</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span><span class="op">&gt;</span><span class="op">&gt;</span>((<span class="ident">addr</span>, <span class="ident">srv</span>))
     }};
 }
 
@@ -556,45 +642,47 @@
 
 <span class="comment">// ===== impl Server =====</span>
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> <span class="ident">Server</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span> <span class="ident">Server</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>
 <span class="kw">where</span>
-    <span class="ident">S</span>: <a class="ident" href="../../src/warp/server.rs.html#399-402">IntoWarpService</a> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
-    <span class="op">&lt;</span><span class="op">&lt;</span><span class="ident">S::Service</span> <span class="kw">as</span> <span class="ident">WarpService</span><span class="op">&gt;</span><span class="ident">::Reply</span> <span class="kw">as</span> <span class="ident">Future</span><span class="op">&gt;</span><span class="ident">::Item</span>: <a class="ident" href="../../src/warp/reply.rs.html#230-293">Reply</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>,
-    <span class="op">&lt;</span><span class="op">&lt;</span><span class="ident">S::Service</span> <span class="kw">as</span> <span class="ident">WarpService</span><span class="op">&gt;</span><span class="ident">::Reply</span> <span class="kw">as</span> <span class="ident">Future</span><span class="op">&gt;</span><span class="ident">::Error</span>: <a class="ident" href="../../src/warp/reject.rs.html#671-677">Reject</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>,
+    <span class="ident">F</span>: <a class="ident" href="../../src/warp/filter/mod.rs.html#92-401">Filter</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
+    <span class="op">&lt;</span><span class="ident">F::Future</span> <span class="kw">as</span> <span class="ident">TryFuture</span><span class="op">&gt;</span><span class="ident">::Ok</span>: <a class="ident" href="../../src/warp/reply.rs.html#228-291">Reply</a>,
+    <span class="op">&lt;</span><span class="ident">F::Future</span> <span class="kw">as</span> <span class="ident">TryFuture</span><span class="op">&gt;</span><span class="ident">::Error</span>: <a class="ident" href="../../src/warp/reject.rs.html#574-577">IsReject</a>,
 {
     <span class="doccomment">/// Run this `Server` forever on the current thread.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">run</span>(<span class="self">self</span>, <span class="ident">addr</span>: <span class="kw">impl</span> <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">SocketAddr</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>) {
-        <span class="kw">let</span> (<span class="ident">addr</span>, <span class="ident">fut</span>) <span class="op">=</span> <a class="self" href="../../src/warp/server.rs.html#130">self</a>.<a class="ident" href="../../src/warp/server.rs.html#202-205">bind_ephemeral</a>(<a class="ident" href="../../src/warp/server.rs.html#130">addr</a>);
+    <span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">run</span>(<span class="self">self</span>, <span class="ident">addr</span>: <span class="kw">impl</span> <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">SocketAddr</span><span class="op">&gt;</span>) {
+        <span class="kw">let</span> (<span class="ident">addr</span>, <span class="ident">fut</span>) <span class="op">=</span> <a class="self" href="../../src/warp/server.rs.html#131">self</a>.<a class="ident" href="../../src/warp/server.rs.html#209-212">bind_ephemeral</a>(<a class="ident" href="../../src/warp/server.rs.html#131">addr</a>);
+        <span class="kw">let</span> <span class="ident">span</span> <span class="op">=</span> <span class="macro">tracing::info_span!</span>(<span class="string">&quot;Server::run&quot;</span>, <span class="question-mark">?</span><span class="ident">addr</span>);
+        <span class="macro">tracing::info!</span>(<span class="ident">parent</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/warp/server.rs.html#133">span</a>, <span class="string">&quot;listening on http://{}&quot;</span>, <a class="ident" href="../../src/warp/server.rs.html#132">addr</a>);
 
-        <span class="macro">info!</span>(<span class="string">&quot;warp drive engaged: listening on http://{}&quot;</span>, <a class="ident" href="../../src/warp/server.rs.html#131">addr</a>);
-
-        <span class="ident">rt::run</span>(<a class="ident" href="../../src/warp/server.rs.html#131">fut</a>);
+        <a class="ident" href="../../src/warp/server.rs.html#132">fut</a>.<span class="ident">instrument</span>(<a class="ident" href="../../src/warp/server.rs.html#133">span</a>).<span class="kw">await</span>;
     }
 
     <span class="doccomment">/// Run this `Server` forever on the current thread with a specific stream</span>
     <span class="doccomment">/// of incoming connections.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// This can be used for Unix Domain Sockets, or TLS, etc.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">run_incoming</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">incoming</span>: <span class="ident">I</span>)
+    <span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">run_incoming</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">incoming</span>: <span class="ident">I</span>)
     <span class="kw">where</span>
-        <span class="ident">I</span>: <a class="ident" href="../../futures/stream/trait.Stream.html">Stream</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
-        <span class="ident">I::Item</span>: <a class="ident" href="../../tokio_io/async_read/trait.AsyncRead.html">AsyncRead</a> <span class="op">+</span> <a class="ident" href="../../tokio_io/async_write/trait.AsyncWrite.html">AsyncWrite</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
-        <span class="ident">I::Error</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">dyn</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/error/trait.Error.html">StdError</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a><span class="op">&gt;</span><span class="op">&gt;</span>,
+        <span class="ident">I</span>: <a class="ident" href="../../futures_core/stream/trait.TryStream.html">TryStream</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>,
+        <span class="ident">I::Ok</span>: <a class="ident" href="../../tokio/io/async_read/trait.AsyncRead.html">AsyncRead</a> <span class="op">+</span> <a class="ident" href="../../tokio/io/async_write/trait.AsyncWrite.html">AsyncWrite</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="op">+</span> <span class="lifetime">&#39;static</span> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
+        <span class="ident">I::Error</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/error/trait.Error.html">StdError</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a><span class="op">&gt;</span><span class="op">&gt;</span>,
     {
-        <a class="self" href="../../src/warp/server.rs.html#142">self</a>.<a class="ident" href="../../src/warp/server.rs.html#151-155">run_incoming2</a>(<a class="ident" href="../../src/warp/server.rs.html#142">incoming</a>.<span class="ident">map</span>(<a class="ident" href="../../src/warp/transport.rs.html#19">::transport::LiftIo</a>));
+        <a class="self" href="../../src/warp/server.rs.html#143">self</a>.<a class="ident" href="../../src/warp/server.rs.html#154-158">run_incoming2</a>(<a class="ident" href="../../src/warp/server.rs.html#143">incoming</a>.<span class="ident">map_ok</span>(<a class="ident" href="../../src/warp/transport.rs.html#19"><span class="kw">crate</span>::transport::LiftIo</a>).<span class="ident">into_stream</span>())
+            .<span class="ident">instrument</span>(<span class="macro">tracing::info_span!</span>(<span class="string">&quot;Server::run_incoming&quot;</span>))
+            .<span class="kw">await</span>;
     }
 
-    <span class="kw">fn</span> <span class="ident">run_incoming2</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">incoming</span>: <span class="ident">I</span>)
+    <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">run_incoming2</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">incoming</span>: <span class="ident">I</span>)
     <span class="kw">where</span>
-        <span class="ident">I</span>: <a class="ident" href="../../futures/stream/trait.Stream.html">Stream</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
-        <span class="ident">I::Item</span>: <a class="ident" href="../../src/warp/transport.rs.html#9-11">Transport</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
-        <span class="ident">I::Error</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">dyn</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/error/trait.Error.html">StdError</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a><span class="op">&gt;</span><span class="op">&gt;</span>,
+        <span class="ident">I</span>: <a class="ident" href="../../futures_core/stream/trait.TryStream.html">TryStream</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>,
+        <span class="ident">I::Ok</span>: <a class="ident" href="../../src/warp/transport.rs.html#9-11">Transport</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="op">+</span> <span class="lifetime">&#39;static</span> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
+        <span class="ident">I::Error</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/error/trait.Error.html">StdError</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a><span class="op">&gt;</span><span class="op">&gt;</span>,
     {
-        <span class="kw">let</span> <span class="ident">fut</span> <span class="op">=</span> <a class="self" href="../../src/warp/server.rs.html#151">self</a>.<a class="ident" href="../../src/warp/server.rs.html#286-290">serve_incoming2</a>(<a class="ident" href="../../src/warp/server.rs.html#151">incoming</a>);
+        <span class="kw">let</span> <span class="ident">fut</span> <span class="op">=</span> <a class="self" href="../../src/warp/server.rs.html#154">self</a>.<a class="ident" href="../../src/warp/server.rs.html#368-372">serve_incoming2</a>(<a class="ident" href="../../src/warp/server.rs.html#154">incoming</a>);
 
-        <span class="macro">info!</span>(<span class="string">&quot;warp drive engaged: listening with custom incoming&quot;</span>);
+        <span class="macro">tracing::info!</span>(<span class="string">&quot;listening with custom incoming&quot;</span>);
 
-        <span class="ident">rt::run</span>(<a class="ident" href="../../src/warp/server.rs.html#157">fut</a>);
+        <a class="ident" href="../../src/warp/server.rs.html#160">fut</a>.<span class="kw">await</span>;
     }
 
     <span class="doccomment">/// Bind to a socket address, returning a `Future` that can be</span>
@@ -603,11 +691,8 @@
     <span class="doccomment">/// # Panics</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Panics if we are unable to bind to the provided address.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">bind</span>(
-        <span class="self">self</span>,
-        <span class="ident">addr</span>: <span class="kw">impl</span> <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">SocketAddr</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
-    ) -&gt; <span class="kw">impl</span> <span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> (), <span class="ident">Error</span> <span class="op">=</span> ()<span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;static</span> {
-        <span class="kw">let</span> (<span class="kw">_</span>, <span class="ident">fut</span>) <span class="op">=</span> <a class="self" href="../../src/warp/server.rs.html#171">self</a>.<a class="ident" href="../../src/warp/server.rs.html#202-205">bind_ephemeral</a>(<a class="ident" href="../../src/warp/server.rs.html#172">addr</a>);
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">bind</span>(<span class="self">self</span>, <span class="ident">addr</span>: <span class="kw">impl</span> <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">SocketAddr</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>) -&gt; <span class="kw">impl</span> <span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Output</span> <span class="op">=</span> ()<span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;static</span> {
+        <span class="kw">let</span> (<span class="kw">_</span>, <span class="ident">fut</span>) <span class="op">=</span> <a class="self" href="../../src/warp/server.rs.html#173">self</a>.<a class="ident" href="../../src/warp/server.rs.html#209-212">bind_ephemeral</a>(<a class="ident" href="../../src/warp/server.rs.html#173">addr</a>);
         <a class="ident" href="../../src/warp/server.rs.html#174">fut</a>
     }
 
@@ -616,15 +701,22 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// In case we are unable to bind to the specified address, resolves to an</span>
     <span class="doccomment">/// error and logs the reason.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">try_bind</span>(
-        <span class="self">self</span>,
-        <span class="ident">addr</span>: <span class="kw">impl</span> <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">SocketAddr</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
-    ) -&gt; <span class="kw">impl</span> <span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> (), <span class="ident">Error</span> <span class="op">=</span> ()<span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;static</span> {
-        <span class="kw">let</span> <span class="ident">addr</span> <span class="op">=</span> <a class="ident" href="../../src/warp/server.rs.html#185">addr</a>.<span class="ident">into</span>();
-        <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="macro">try_bind!</span>(<span class="self">self</span>, <span class="kw-2">&amp;</span><a class="ident" href="../../src/warp/server.rs.html#187">addr</a>).<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="macro">error!</span>(<span class="string">&quot;error binding to {}: {}&quot;</span>, <a class="ident" href="../../src/warp/server.rs.html#187">addr</a>, <a class="ident" href="../../src/warp/server.rs.html#188">e</a>));
-        <span class="ident">futures::future::result</span>(<a class="ident" href="../../src/warp/server.rs.html#188">result</a>).<span class="ident">and_then</span>(<span class="op">|</span>(<span class="kw">_</span>, <span class="ident">srv</span>)<span class="op">|</span> {
-            <a class="ident" href="../../src/warp/server.rs.html#189">srv</a>.<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="macro">error!</span>(<span class="string">&quot;server error: {}&quot;</span>, <a class="ident" href="../../src/warp/server.rs.html#190">e</a>))
+    <span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">try_bind</span>(<span class="self">self</span>, <span class="ident">addr</span>: <span class="kw">impl</span> <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">SocketAddr</span><span class="op">&gt;</span>) {
+        <span class="kw">let</span> <span class="ident">addr</span> <span class="op">=</span> <a class="ident" href="../../src/warp/server.rs.html#183">addr</a>.<span class="ident">into</span>();
+        <span class="kw">let</span> <span class="ident">srv</span> <span class="op">=</span> <span class="kw">match</span> <span class="macro">try_bind!</span>(<span class="self">self</span>, <span class="kw-2">&amp;</span><a class="ident" href="../../src/warp/server.rs.html#184">addr</a>) {
+            <span class="prelude-val">Ok</span>((<span class="kw">_</span>, <span class="ident">srv</span>)) =&gt; <a class="ident" href="../../src/warp/server.rs.html#186">srv</a>,
+            <span class="prelude-val">Err</span>(<span class="ident">err</span>) =&gt; {
+                <span class="macro">tracing::error!</span>(<span class="string">&quot;error binding to {}: {}&quot;</span>, <a class="ident" href="../../src/warp/server.rs.html#184">addr</a>, <a class="ident" href="../../src/warp/server.rs.html#187">err</a>);
+                <span class="kw">return</span>;
+            }
+        };
+
+        <a class="ident" href="../../src/warp/server.rs.html#185">srv</a>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">result</span><span class="op">|</span> {
+            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="op">=</span> <a class="ident" href="../../src/warp/server.rs.html#193">result</a> {
+                <span class="macro">tracing::error!</span>(<span class="string">&quot;server error: {}&quot;</span>, <a class="ident" href="../../src/warp/server.rs.html#194">err</a>)
+            }
         })
+        .<span class="kw">await</span>;
     }
 
     <span class="doccomment">/// Bind to a possibly ephemeral socket address.</span>
@@ -637,10 +729,16 @@
     <span class="doccomment">/// Panics if we are unable to bind to the provided address.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">bind_ephemeral</span>(
         <span class="self">self</span>,
-        <span class="ident">addr</span>: <span class="kw">impl</span> <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">SocketAddr</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
-    ) -&gt; (<a class="ident" href="https://doc.rust-lang.org/nightly/std/net/addr/enum.SocketAddr.html">SocketAddr</a>, <span class="kw">impl</span> <span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> (), <span class="ident">Error</span> <span class="op">=</span> ()<span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>) {
-        <span class="kw">let</span> (<span class="ident">addr</span>, <span class="ident">srv</span>) <span class="op">=</span> <span class="macro">bind!</span>(<span class="self">self</span>, <a class="ident" href="../../src/warp/server.rs.html#204">addr</a>);
-        (<a class="ident" href="../../src/warp/server.rs.html#206">addr</a>, <a class="ident" href="../../src/warp/server.rs.html#206">srv</a>.<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="macro">error!</span>(<span class="string">&quot;server error: {}&quot;</span>, <a class="ident" href="../../src/warp/server.rs.html#207">e</a>)))
+        <span class="ident">addr</span>: <span class="kw">impl</span> <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">SocketAddr</span><span class="op">&gt;</span>,
+    ) -&gt; (<a class="ident" href="https://doc.rust-lang.org/nightly/std/net/addr/enum.SocketAddr.html">SocketAddr</a>, <span class="kw">impl</span> <span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Output</span> <span class="op">=</span> ()<span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>) {
+        <span class="kw">let</span> (<span class="ident">addr</span>, <span class="ident">srv</span>) <span class="op">=</span> <span class="macro">bind!</span>(<span class="self">self</span>, <a class="ident" href="../../src/warp/server.rs.html#211">addr</a>);
+        <span class="kw">let</span> <span class="ident">srv</span> <span class="op">=</span> <a class="ident" href="../../src/warp/server.rs.html#213">srv</a>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">result</span><span class="op">|</span> {
+            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="op">=</span> <a class="ident" href="../../src/warp/server.rs.html#214">result</a> {
+                <span class="macro">tracing::error!</span>(<span class="string">&quot;server error: {}&quot;</span>, <a class="ident" href="../../src/warp/server.rs.html#215">err</a>)
+            }
+        });
+
+        (<a class="ident" href="../../src/warp/server.rs.html#213">addr</a>, <a class="ident" href="../../src/warp/server.rs.html#214">srv</a>)
     }
 
     <span class="doccomment">/// Tried to bind a possibly ephemeral socket address.</span>
@@ -652,11 +750,17 @@
     <span class="doccomment">/// any runtime.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">try_bind_ephemeral</span>(
         <span class="self">self</span>,
-        <span class="ident">addr</span>: <span class="kw">impl</span> <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">SocketAddr</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/net/addr/enum.SocketAddr.html">SocketAddr</a>, <span class="kw">impl</span> <span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> (), <span class="ident">Error</span> <span class="op">=</span> ()<span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>), <a class="ident" href="../../hyper/error/struct.Error.html">hyper::error::Error</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">addr</span> <span class="op">=</span> <a class="ident" href="../../src/warp/server.rs.html#219">addr</a>.<span class="ident">into</span>();
-        <span class="kw">let</span> (<span class="ident">addr</span>, <span class="ident">srv</span>) <span class="op">=</span> <span class="macro">try_bind!</span>(<span class="self">self</span>, <span class="kw-2">&amp;</span><a class="ident" href="../../src/warp/server.rs.html#221">addr</a>)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>((<a class="ident" href="../../src/warp/server.rs.html#222">addr</a>, <a class="ident" href="../../src/warp/server.rs.html#222">srv</a>.<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="macro">error!</span>(<span class="string">&quot;server error: {}&quot;</span>, <a class="ident" href="../../src/warp/server.rs.html#223">e</a>))))
+        <span class="ident">addr</span>: <span class="kw">impl</span> <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">SocketAddr</span><span class="op">&gt;</span>,
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/net/addr/enum.SocketAddr.html">SocketAddr</a>, <span class="kw">impl</span> <span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Output</span> <span class="op">=</span> ()<span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>), <a class="ident" href="../../src/warp/error.rs.html#8-10"><span class="kw">crate</span>::Error</a><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="ident">addr</span> <span class="op">=</span> <a class="ident" href="../../src/warp/server.rs.html#232">addr</a>.<span class="ident">into</span>();
+        <span class="kw">let</span> (<span class="ident">addr</span>, <span class="ident">srv</span>) <span class="op">=</span> <span class="macro">try_bind!</span>(<span class="self">self</span>, <span class="kw-2">&amp;</span><a class="ident" href="../../src/warp/server.rs.html#234">addr</a>).<span class="ident">map_err</span>(<span class="ident"><span class="kw">crate</span>::Error::new</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">srv</span> <span class="op">=</span> <a class="ident" href="../../src/warp/server.rs.html#235">srv</a>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">result</span><span class="op">|</span> {
+            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="op">=</span> <a class="ident" href="../../src/warp/server.rs.html#236">result</a> {
+                <span class="macro">tracing::error!</span>(<span class="string">&quot;server error: {}&quot;</span>, <a class="ident" href="../../src/warp/server.rs.html#237">err</a>)
+            }
+        });
+
+        <span class="prelude-val">Ok</span>((<a class="ident" href="../../src/warp/server.rs.html#235">addr</a>, <a class="ident" href="../../src/warp/server.rs.html#236">srv</a>))
     }
 
     <span class="doccomment">/// Create a server with graceful shutdown signal.</span>
@@ -670,11 +774,9 @@
     <span class="doccomment">/// # Example</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// ```no_run</span>
-    <span class="doccomment">/// extern crate futures;</span>
-    <span class="doccomment">/// extern crate warp;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// use futures::sync::oneshot;</span>
     <span class="doccomment">/// use warp::Filter;</span>
+    <span class="doccomment">/// use futures::future::TryFutureExt;</span>
+    <span class="doccomment">/// use tokio::sync::oneshot;</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// # fn main() {</span>
     <span class="doccomment">/// let routes = warp::any()</span>
@@ -683,10 +785,12 @@
     <span class="doccomment">/// let (tx, rx) = oneshot::channel();</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// let (addr, server) = warp::serve(routes)</span>
-    <span class="doccomment">///     .bind_with_graceful_shutdown(([127, 0, 0, 1], 3030), rx);</span>
+    <span class="doccomment">///     .bind_with_graceful_shutdown(([127, 0, 0, 1], 3030), async {</span>
+    <span class="doccomment">///          rx.await.ok();</span>
+    <span class="doccomment">///     });</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// // Spawn the server into a runtime</span>
-    <span class="doccomment">/// warp::spawn(server);</span>
+    <span class="doccomment">/// tokio::task::spawn(server);</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// // Later, start the shutdown...</span>
     <span class="doccomment">/// let _ = tx.send(());</span>
@@ -695,13 +799,35 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">bind_with_graceful_shutdown</span>(
         <span class="self">self</span>,
         <span class="ident">addr</span>: <span class="kw">impl</span> <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">SocketAddr</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
-        <span class="ident">signal</span>: <span class="kw">impl</span> <span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> ()<span class="op">&gt;</span> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
-    ) -&gt; (<a class="ident" href="https://doc.rust-lang.org/nightly/std/net/addr/enum.SocketAddr.html">SocketAddr</a>, <span class="kw">impl</span> <span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> (), <span class="ident">Error</span> <span class="op">=</span> ()<span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>) {
-        <span class="kw">let</span> (<span class="ident">addr</span>, <span class="ident">srv</span>) <span class="op">=</span> <span class="macro">bind!</span>(<span class="self">self</span>, <a class="ident" href="../../src/warp/server.rs.html#261">addr</a>);
-        <span class="kw">let</span> <span class="ident">fut</span> <span class="op">=</span> <a class="ident" href="../../src/warp/server.rs.html#264">srv</a>
-            .<span class="ident">with_graceful_shutdown</span>(<a class="ident" href="../../src/warp/server.rs.html#262">signal</a>)
-            .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="macro">error!</span>(<span class="string">&quot;server error: {}&quot;</span>, <a class="ident" href="../../src/warp/server.rs.html#267">e</a>));
-        (<a class="ident" href="../../src/warp/server.rs.html#264">addr</a>, <a class="ident" href="../../src/warp/server.rs.html#265">fut</a>)
+        <span class="ident">signal</span>: <span class="kw">impl</span> <span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Output</span> <span class="op">=</span> ()<span class="op">&gt;</span> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
+    ) -&gt; (<a class="ident" href="https://doc.rust-lang.org/nightly/std/net/addr/enum.SocketAddr.html">SocketAddr</a>, <span class="kw">impl</span> <span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Output</span> <span class="op">=</span> ()<span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>) {
+        <span class="kw">let</span> (<span class="ident">addr</span>, <span class="ident">srv</span>) <span class="op">=</span> <span class="macro">bind!</span>(<span class="self">self</span>, <a class="ident" href="../../src/warp/server.rs.html#280">addr</a>);
+        <span class="kw">let</span> <span class="ident">fut</span> <span class="op">=</span> <a class="ident" href="../../src/warp/server.rs.html#283">srv</a>.<span class="ident">with_graceful_shutdown</span>(<a class="ident" href="../../src/warp/server.rs.html#281">signal</a>).<span class="ident">map</span>(<span class="op">|</span><span class="ident">result</span><span class="op">|</span> {
+            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="op">=</span> <a class="ident" href="../../src/warp/server.rs.html#284">result</a> {
+                <span class="macro">tracing::error!</span>(<span class="string">&quot;server error: {}&quot;</span>, <a class="ident" href="../../src/warp/server.rs.html#285">err</a>)
+            }
+        });
+        (<a class="ident" href="../../src/warp/server.rs.html#283">addr</a>, <a class="ident" href="../../src/warp/server.rs.html#284">fut</a>)
+    }
+
+    <span class="doccomment">/// Create a server with graceful shutdown signal.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// When the signal completes, the server will start the graceful shutdown</span>
+    <span class="doccomment">/// process.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">try_bind_with_graceful_shutdown</span>(
+        <span class="self">self</span>,
+        <span class="ident">addr</span>: <span class="kw">impl</span> <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">SocketAddr</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
+        <span class="ident">signal</span>: <span class="kw">impl</span> <span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Output</span> <span class="op">=</span> ()<span class="op">&gt;</span> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/net/addr/enum.SocketAddr.html">SocketAddr</a>, <span class="kw">impl</span> <span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Output</span> <span class="op">=</span> ()<span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>), <a class="ident" href="../../src/warp/error.rs.html#8-10"><span class="kw">crate</span>::Error</a><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="ident">addr</span> <span class="op">=</span> <a class="ident" href="../../src/warp/server.rs.html#298">addr</a>.<span class="ident">into</span>();
+        <span class="kw">let</span> (<span class="ident">addr</span>, <span class="ident">srv</span>) <span class="op">=</span> <span class="macro">try_bind!</span>(<span class="self">self</span>, <span class="kw-2">&amp;</span><a class="ident" href="../../src/warp/server.rs.html#301">addr</a>).<span class="ident">map_err</span>(<span class="ident"><span class="kw">crate</span>::Error::new</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">srv</span> <span class="op">=</span> <a class="ident" href="../../src/warp/server.rs.html#302">srv</a>.<span class="ident">with_graceful_shutdown</span>(<a class="ident" href="../../src/warp/server.rs.html#299">signal</a>).<span class="ident">map</span>(<span class="op">|</span><span class="ident">result</span><span class="op">|</span> {
+            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="op">=</span> <a class="ident" href="../../src/warp/server.rs.html#303">result</a> {
+                <span class="macro">tracing::error!</span>(<span class="string">&quot;server error: {}&quot;</span>, <a class="ident" href="../../src/warp/server.rs.html#304">err</a>)
+            }
+        });
+
+        <span class="prelude-val">Ok</span>((<a class="ident" href="../../src/warp/server.rs.html#302">addr</a>, <a class="ident" href="../../src/warp/server.rs.html#303">srv</a>))
     }
 
     <span class="doccomment">/// Setup this `Server` with a specific stream of incoming connections.</span>
@@ -709,27 +835,73 @@
     <span class="doccomment">/// This can be used for Unix Domain Sockets, or TLS, etc.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Returns a `Future` that can be executed on any runtime.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">serve_incoming</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">incoming</span>: <span class="ident">I</span>) -&gt; <span class="kw">impl</span> <span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> (), <span class="ident">Error</span> <span class="op">=</span> ()<span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">serve_incoming</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">incoming</span>: <span class="ident">I</span>) -&gt; <span class="kw">impl</span> <span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Output</span> <span class="op">=</span> ()<span class="op">&gt;</span>
     <span class="kw">where</span>
-        <span class="ident">I</span>: <a class="ident" href="../../futures/stream/trait.Stream.html">Stream</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
-        <span class="ident">I::Item</span>: <a class="ident" href="../../tokio_io/async_read/trait.AsyncRead.html">AsyncRead</a> <span class="op">+</span> <a class="ident" href="../../tokio_io/async_write/trait.AsyncWrite.html">AsyncWrite</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
-        <span class="ident">I::Error</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">dyn</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/error/trait.Error.html">StdError</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a><span class="op">&gt;</span><span class="op">&gt;</span>,
+        <span class="ident">I</span>: <a class="ident" href="../../futures_core/stream/trait.TryStream.html">TryStream</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>,
+        <span class="ident">I::Ok</span>: <a class="ident" href="../../tokio/io/async_read/trait.AsyncRead.html">AsyncRead</a> <span class="op">+</span> <a class="ident" href="../../tokio/io/async_write/trait.AsyncWrite.html">AsyncWrite</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="op">+</span> <span class="lifetime">&#39;static</span> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
+        <span class="ident">I::Error</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/error/trait.Error.html">StdError</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a><span class="op">&gt;</span><span class="op">&gt;</span>,
     {
-        <span class="kw">let</span> <span class="ident">incoming</span> <span class="op">=</span> <a class="ident" href="../../src/warp/server.rs.html#276">incoming</a>.<span class="ident">map</span>(<a class="ident" href="../../src/warp/transport.rs.html#19">::transport::LiftIo</a>);
-        <a class="self" href="../../src/warp/server.rs.html#276">self</a>.<a class="ident" href="../../src/warp/server.rs.html#286-290">serve_incoming2</a>(<a class="ident" href="../../src/warp/server.rs.html#282">incoming</a>)
+        <span class="kw">let</span> <span class="ident">incoming</span> <span class="op">=</span> <a class="ident" href="../../src/warp/server.rs.html#317">incoming</a>.<span class="ident">map_ok</span>(<a class="ident" href="../../src/warp/transport.rs.html#19"><span class="kw">crate</span>::transport::LiftIo</a>);
+        <a class="self" href="../../src/warp/server.rs.html#317">self</a>.<a class="ident" href="../../src/warp/server.rs.html#368-372">serve_incoming2</a>(<a class="ident" href="../../src/warp/server.rs.html#323">incoming</a>)
+            .<span class="ident">instrument</span>(<span class="macro">tracing::info_span!</span>(<span class="string">&quot;Server::serve_incoming&quot;</span>))
     }
 
-    <span class="kw">fn</span> <span class="ident">serve_incoming2</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">incoming</span>: <span class="ident">I</span>) -&gt; <span class="kw">impl</span> <span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> (), <span class="ident">Error</span> <span class="op">=</span> ()<span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>
+    <span class="doccomment">/// Setup this `Server` with a specific stream of incoming connections and a</span>
+    <span class="doccomment">/// signal to initiate graceful shutdown.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// This can be used for Unix Domain Sockets, or TLS, etc.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// When the signal completes, the server will start the graceful shutdown</span>
+    <span class="doccomment">/// process.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Returns a `Future` that can be executed on any runtime.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">serve_incoming_with_graceful_shutdown</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span>(
+        <span class="self">self</span>,
+        <span class="ident">incoming</span>: <span class="ident">I</span>,
+        <span class="ident">signal</span>: <span class="kw">impl</span> <span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Output</span> <span class="op">=</span> ()<span class="op">&gt;</span> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
+    ) -&gt; <span class="kw">impl</span> <span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Output</span> <span class="op">=</span> ()<span class="op">&gt;</span>
     <span class="kw">where</span>
-        <span class="ident">I</span>: <a class="ident" href="../../futures/stream/trait.Stream.html">Stream</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
-        <span class="ident">I::Item</span>: <a class="ident" href="../../src/warp/transport.rs.html#9-11">Transport</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
-        <span class="ident">I::Error</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">dyn</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/error/trait.Error.html">StdError</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a><span class="op">&gt;</span><span class="op">&gt;</span>,
+        <span class="ident">I</span>: <a class="ident" href="../../futures_core/stream/trait.TryStream.html">TryStream</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>,
+        <span class="ident">I::Ok</span>: <a class="ident" href="../../tokio/io/async_read/trait.AsyncRead.html">AsyncRead</a> <span class="op">+</span> <a class="ident" href="../../tokio/io/async_write/trait.AsyncWrite.html">AsyncWrite</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="op">+</span> <span class="lifetime">&#39;static</span> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
+        <span class="ident">I::Error</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/error/trait.Error.html">StdError</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a><span class="op">&gt;</span><span class="op">&gt;</span>,
     {
-        <span class="kw">let</span> <span class="ident">service</span> <span class="op">=</span> <span class="macro">into_service!</span>(<a class="self" href="../../src/warp/server.rs.html#286">self</a>.<span class="ident">service</span>);
-        <span class="ident">HyperServer::builder</span>(<a class="ident" href="../../src/warp/server.rs.html#286">incoming</a>)
-            .<span class="ident">http1_pipeline_flush</span>(<a class="self" href="../../src/warp/server.rs.html#286">self</a>.<span class="ident">pipeline</span>)
-            .<span class="ident">serve</span>(<a class="ident" href="../../src/warp/server.rs.html#292">service</a>)
-            .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="macro">error!</span>(<span class="string">&quot;server error: {}&quot;</span>, <a class="ident" href="../../src/warp/server.rs.html#296">e</a>))
+        <span class="kw">let</span> <span class="ident">incoming</span> <span class="op">=</span> <a class="ident" href="../../src/warp/server.rs.html#339">incoming</a>.<span class="ident">map_ok</span>(<a class="ident" href="../../src/warp/transport.rs.html#19"><span class="kw">crate</span>::transport::LiftIo</a>);
+        <span class="kw">let</span> <span class="ident">service</span> <span class="op">=</span> <span class="macro">into_service!</span>(<a class="self" href="../../src/warp/server.rs.html#338">self</a>.<span class="ident">filter</span>);
+        <span class="kw">let</span> <span class="ident">pipeline</span> <span class="op">=</span> <a class="self" href="../../src/warp/server.rs.html#338">self</a>.<span class="ident">pipeline</span>;
+
+        <span class="kw">async</span> <span class="kw">move</span> {
+            <span class="kw">let</span> <span class="ident">srv</span> <span class="op">=</span>
+                <span class="ident">HyperServer::builder</span>(<span class="ident">hyper::server::accept::from_stream</span>(<a class="ident" href="../../src/warp/server.rs.html#347">incoming</a>.<span class="ident">into_stream</span>()))
+                    .<span class="ident">http1_pipeline_flush</span>(<a class="ident" href="../../src/warp/server.rs.html#349">pipeline</a>)
+                    .<span class="ident">serve</span>(<a class="ident" href="../../src/warp/server.rs.html#348">service</a>)
+                    .<span class="ident">with_graceful_shutdown</span>(<a class="ident" href="../../src/warp/server.rs.html#340">signal</a>)
+                    .<span class="kw">await</span>;
+
+            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="op">=</span> <a class="ident" href="../../src/warp/server.rs.html#352">srv</a> {
+                <span class="macro">tracing::error!</span>(<span class="string">&quot;server error: {}&quot;</span>, <a class="ident" href="../../src/warp/server.rs.html#359">err</a>);
+            }
+        }
+        .<span class="ident">instrument</span>(<span class="macro">tracing::info_span!</span>(
+            <span class="string">&quot;Server::serve_incoming_with_graceful_shutdown&quot;</span>
+        ))
+    }
+
+    <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">serve_incoming2</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">incoming</span>: <span class="ident">I</span>)
+    <span class="kw">where</span>
+        <span class="ident">I</span>: <a class="ident" href="../../futures_core/stream/trait.TryStream.html">TryStream</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>,
+        <span class="ident">I::Ok</span>: <a class="ident" href="../../src/warp/transport.rs.html#9-11">Transport</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="op">+</span> <span class="lifetime">&#39;static</span> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
+        <span class="ident">I::Error</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/error/trait.Error.html">StdError</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a><span class="op">&gt;</span><span class="op">&gt;</span>,
+    {
+        <span class="kw">let</span> <span class="ident">service</span> <span class="op">=</span> <span class="macro">into_service!</span>(<a class="self" href="../../src/warp/server.rs.html#368">self</a>.<span class="ident">filter</span>);
+
+        <span class="kw">let</span> <span class="ident">srv</span> <span class="op">=</span> <span class="ident">HyperServer::builder</span>(<span class="ident">hyper::server::accept::from_stream</span>(<a class="ident" href="../../src/warp/server.rs.html#368">incoming</a>.<span class="ident">into_stream</span>()))
+            .<span class="ident">http1_pipeline_flush</span>(<a class="self" href="../../src/warp/server.rs.html#368">self</a>.<span class="ident">pipeline</span>)
+            .<span class="ident">serve</span>(<a class="ident" href="../../src/warp/server.rs.html#374">service</a>)
+            .<span class="kw">await</span>;
+
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="op">=</span> <a class="ident" href="../../src/warp/server.rs.html#376">srv</a> {
+            <span class="macro">tracing::error!</span>(<span class="string">&quot;server error: {}&quot;</span>, <a class="ident" href="../../src/warp/server.rs.html#381">err</a>);
+        }
     }
 
     <span class="comment">// Generally shouldn&#39;t be used, as it can slow down non-pipelined responses.</span>
@@ -737,51 +909,82 @@
     <span class="comment">// It&#39;s only real use is to make silly pipeline benchmarks look better.</span>
     <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">unstable_pipeline</span>(<span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="self">Self</span> {
-        <a class="self" href="../../src/warp/server.rs.html#303">self</a>.<span class="ident">pipeline</span> <span class="op">=</span> <span class="bool-val">true</span>;
-        <a class="self" href="../../src/warp/server.rs.html#303">self</a>
+        <a class="self" href="../../src/warp/server.rs.html#390">self</a>.<span class="ident">pipeline</span> <span class="op">=</span> <span class="bool-val">true</span>;
+        <a class="self" href="../../src/warp/server.rs.html#390">self</a>
     }
 
-    <span class="doccomment">/// Configure a server to use TLS with the supplied certificate and key files.</span>
+    <span class="doccomment">/// Configure a server to use TLS.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// *This function requires the `&quot;tls&quot;` feature.*</span>
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tls&quot;</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">tls</span>(<span class="self">self</span>, <span class="ident">cert</span>: <span class="kw">impl</span> <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">Path</span><span class="op">&gt;</span>, <span class="ident">key</span>: <span class="kw">impl</span> <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">Path</span><span class="op">&gt;</span>) -&gt; <span class="ident">TlsServer</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">tls</span> <span class="op">=</span> <span class="ident">::tls::configure</span>(<span class="ident">cert</span>.<span class="ident">as_ref</span>(), <span class="ident">key</span>.<span class="ident">as_ref</span>());
-
-        <span class="ident">TlsServer</span> { <span class="ident">server</span>: <span class="self">self</span>, <span class="ident">tls</span> }
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">tls</span>(<span class="self">self</span>) -&gt; <span class="ident">TlsServer</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span> {
+        <span class="ident">TlsServer</span> {
+            <span class="ident">server</span>: <span class="self">self</span>,
+            <span class="ident">tls</span>: <span class="ident">TlsConfigBuilder::new</span>(),
+        }
     }
 }
 
-<span class="comment">// ===== impl TlsServer =====</span>
+<span class="comment">// // ===== impl TlsServer =====</span>
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tls&quot;</span>)]</span>
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> <span class="ident">TlsServer</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span> <span class="ident">TlsServer</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>
 <span class="kw">where</span>
-    <span class="ident">S</span>: <span class="ident">IntoWarpService</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
-    <span class="op">&lt;</span><span class="op">&lt;</span><span class="ident">S::Service</span> <span class="kw">as</span> <span class="ident">WarpService</span><span class="op">&gt;</span><span class="ident">::Reply</span> <span class="kw">as</span> <span class="ident">Future</span><span class="op">&gt;</span><span class="ident">::Item</span>: <span class="ident">Reply</span> <span class="op">+</span> <span class="ident">Send</span>,
-    <span class="op">&lt;</span><span class="op">&lt;</span><span class="ident">S::Service</span> <span class="kw">as</span> <span class="ident">WarpService</span><span class="op">&gt;</span><span class="ident">::Reply</span> <span class="kw">as</span> <span class="ident">Future</span><span class="op">&gt;</span><span class="ident">::Error</span>: <span class="ident">Reject</span> <span class="op">+</span> <span class="ident">Send</span>,
+    <span class="ident">F</span>: <span class="ident">Filter</span> <span class="op">+</span> <span class="ident">Clone</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
+    <span class="op">&lt;</span><span class="ident">F::Future</span> <span class="kw">as</span> <span class="ident">TryFuture</span><span class="op">&gt;</span><span class="ident">::Ok</span>: <span class="ident">Reply</span>,
+    <span class="op">&lt;</span><span class="ident">F::Future</span> <span class="kw">as</span> <span class="ident">TryFuture</span><span class="op">&gt;</span><span class="ident">::Error</span>: <span class="ident">IsReject</span>,
 {
+    <span class="comment">// TLS config methods</span>
+
+    <span class="doccomment">/// Specify the file path to read the private key.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">key_path</span>(<span class="self">self</span>, <span class="ident">path</span>: <span class="kw">impl</span> <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">Path</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
+        <span class="self">self</span>.<span class="ident">with_tls</span>(<span class="op">|</span><span class="ident">tls</span><span class="op">|</span> <span class="ident">tls</span>.<span class="ident">key_path</span>(<span class="ident">path</span>))
+    }
+
+    <span class="doccomment">/// Specify the file path to read the certificate.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">cert_path</span>(<span class="self">self</span>, <span class="ident">path</span>: <span class="kw">impl</span> <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">Path</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
+        <span class="self">self</span>.<span class="ident">with_tls</span>(<span class="op">|</span><span class="ident">tls</span><span class="op">|</span> <span class="ident">tls</span>.<span class="ident">cert_path</span>(<span class="ident">path</span>))
+    }
+
+    <span class="doccomment">/// Specify the in-memory contents of the private key.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">key</span>(<span class="self">self</span>, <span class="ident">key</span>: <span class="kw">impl</span> <span class="ident">AsRef</span><span class="op">&lt;</span>[<span class="ident">u8</span>]<span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
+        <span class="self">self</span>.<span class="ident">with_tls</span>(<span class="op">|</span><span class="ident">tls</span><span class="op">|</span> <span class="ident">tls</span>.<span class="ident">key</span>(<span class="ident">key</span>.<span class="ident">as_ref</span>()))
+    }
+
+    <span class="doccomment">/// Specify the in-memory contents of the certificate.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">cert</span>(<span class="self">self</span>, <span class="ident">cert</span>: <span class="kw">impl</span> <span class="ident">AsRef</span><span class="op">&lt;</span>[<span class="ident">u8</span>]<span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
+        <span class="self">self</span>.<span class="ident">with_tls</span>(<span class="op">|</span><span class="ident">tls</span><span class="op">|</span> <span class="ident">tls</span>.<span class="ident">cert</span>(<span class="ident">cert</span>.<span class="ident">as_ref</span>()))
+    }
+
+    <span class="kw">fn</span> <span class="ident">with_tls</span><span class="op">&lt;</span><span class="ident">Func</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">func</span>: <span class="ident">Func</span>) -&gt; <span class="self">Self</span>
+    <span class="kw">where</span>
+        <span class="ident">Func</span>: <span class="ident">FnOnce</span>(<span class="ident">TlsConfigBuilder</span>) -&gt; <span class="ident">TlsConfigBuilder</span>,
+    {
+        <span class="kw">let</span> <span class="ident">TlsServer</span> { <span class="ident">server</span>, <span class="ident">tls</span> } <span class="op">=</span> <span class="self">self</span>;
+        <span class="kw">let</span> <span class="ident">tls</span> <span class="op">=</span> <span class="ident">func</span>(<span class="ident">tls</span>);
+        <span class="ident">TlsServer</span> { <span class="ident">server</span>, <span class="ident">tls</span> }
+    }
+
+    <span class="comment">// Server run methods</span>
+
     <span class="doccomment">/// Run this `TlsServer` forever on the current thread.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// *This function requires the `&quot;tls&quot;` feature.*</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">run</span>(<span class="self">self</span>, <span class="ident">addr</span>: <span class="kw">impl</span> <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">SocketAddr</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>) {
+    <span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">run</span>(<span class="self">self</span>, <span class="ident">addr</span>: <span class="kw">impl</span> <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">SocketAddr</span><span class="op">&gt;</span>) {
         <span class="kw">let</span> (<span class="ident">addr</span>, <span class="ident">fut</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">bind_ephemeral</span>(<span class="ident">addr</span>);
+        <span class="kw">let</span> <span class="ident">span</span> <span class="op">=</span> <span class="macro">tracing::info_span!</span>(<span class="string">&quot;TlsServer::run&quot;</span>, <span class="op">%</span><span class="ident">addr</span>);
+        <span class="macro">tracing::info!</span>(<span class="ident">parent</span>: <span class="kw-2">&amp;</span><span class="ident">span</span>, <span class="string">&quot;listening on https://{}&quot;</span>, <span class="ident">addr</span>);
 
-        <span class="macro">info!</span>(<span class="string">&quot;warp drive engaged: listening on https://{}&quot;</span>, <span class="ident">addr</span>);
-
-        <span class="ident">rt::run</span>(<span class="ident">fut</span>);
+        <span class="ident">fut</span>.<span class="ident">instrument</span>(<span class="ident">span</span>).<span class="kw">await</span>;
     }
 
     <span class="doccomment">/// Bind to a socket address, returning a `Future` that can be</span>
-    <span class="doccomment">/// executed on any runtime.</span>
+    <span class="doccomment">/// executed on a runtime.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// *This function requires the `&quot;tls&quot;` feature.*</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">bind</span>(
-        <span class="self">self</span>,
-        <span class="ident">addr</span>: <span class="kw">impl</span> <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">SocketAddr</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
-    ) -&gt; <span class="kw">impl</span> <span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> (), <span class="ident">Error</span> <span class="op">=</span> ()<span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;static</span> {
+    <span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">bind</span>(<span class="self">self</span>, <span class="ident">addr</span>: <span class="kw">impl</span> <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">SocketAddr</span><span class="op">&gt;</span>) {
         <span class="kw">let</span> (<span class="kw">_</span>, <span class="ident">fut</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">bind_ephemeral</span>(<span class="ident">addr</span>);
-        <span class="ident">fut</span>
+        <span class="ident">fut</span>.<span class="kw">await</span>;
     }
 
     <span class="doccomment">/// Bind to a possibly ephemeral socket address.</span>
@@ -792,10 +995,16 @@
     <span class="doccomment">/// *This function requires the `&quot;tls&quot;` feature.*</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">bind_ephemeral</span>(
         <span class="self">self</span>,
-        <span class="ident">addr</span>: <span class="kw">impl</span> <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">SocketAddr</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
-    ) -&gt; (<span class="ident">SocketAddr</span>, <span class="kw">impl</span> <span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> (), <span class="ident">Error</span> <span class="op">=</span> ()<span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>) {
+        <span class="ident">addr</span>: <span class="kw">impl</span> <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">SocketAddr</span><span class="op">&gt;</span>,
+    ) -&gt; (<span class="ident">SocketAddr</span>, <span class="kw">impl</span> <span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Output</span> <span class="op">=</span> ()<span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>) {
         <span class="kw">let</span> (<span class="ident">addr</span>, <span class="ident">srv</span>) <span class="op">=</span> <span class="macro">bind!</span>(<span class="ident">tls</span>: <span class="self">self</span>, <span class="ident">addr</span>);
-        (<span class="ident">addr</span>, <span class="ident">srv</span>.<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="macro">error!</span>(<span class="string">&quot;server error: {}&quot;</span>, <span class="ident">e</span>)))
+        <span class="kw">let</span> <span class="ident">srv</span> <span class="op">=</span> <span class="ident">srv</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">result</span><span class="op">|</span> {
+            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="op">=</span> <span class="ident">result</span> {
+                <span class="macro">tracing::error!</span>(<span class="string">&quot;server error: {}&quot;</span>, <span class="ident">err</span>)
+            }
+        });
+
+        (<span class="ident">addr</span>, <span class="ident">srv</span>)
     }
 
     <span class="doccomment">/// Create a server with graceful shutdown signal.</span>
@@ -807,67 +1016,28 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">bind_with_graceful_shutdown</span>(
         <span class="self">self</span>,
         <span class="ident">addr</span>: <span class="kw">impl</span> <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">SocketAddr</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
-        <span class="ident">signal</span>: <span class="kw">impl</span> <span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> ()<span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
-    ) -&gt; (<span class="ident">SocketAddr</span>, <span class="kw">impl</span> <span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> (), <span class="ident">Error</span> <span class="op">=</span> ()<span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>) {
+        <span class="ident">signal</span>: <span class="kw">impl</span> <span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Output</span> <span class="op">=</span> ()<span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
+    ) -&gt; (<span class="ident">SocketAddr</span>, <span class="kw">impl</span> <span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Output</span> <span class="op">=</span> ()<span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>) {
         <span class="kw">let</span> (<span class="ident">addr</span>, <span class="ident">srv</span>) <span class="op">=</span> <span class="macro">bind!</span>(<span class="ident">tls</span>: <span class="self">self</span>, <span class="ident">addr</span>);
 
-        <span class="kw">let</span> <span class="ident">fut</span> <span class="op">=</span> <span class="ident">srv</span>
-            .<span class="ident">with_graceful_shutdown</span>(<span class="ident">signal</span>)
-            .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="macro">error!</span>(<span class="string">&quot;server error: {}&quot;</span>, <span class="ident">e</span>));
+        <span class="kw">let</span> <span class="ident">fut</span> <span class="op">=</span> <span class="ident">srv</span>.<span class="ident">with_graceful_shutdown</span>(<span class="ident">signal</span>).<span class="ident">map</span>(<span class="op">|</span><span class="ident">result</span><span class="op">|</span> {
+            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="op">=</span> <span class="ident">result</span> {
+                <span class="macro">tracing::error!</span>(<span class="string">&quot;server error: {}&quot;</span>, <span class="ident">err</span>)
+            }
+        });
         (<span class="ident">addr</span>, <span class="ident">fut</span>)
     }
 }
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tls&quot;</span>)]</span>
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> <span class="ident">::std::fmt::Debug</span> <span class="kw">for</span> <span class="ident">TlsServer</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span> <span class="ident">::std::fmt::Debug</span> <span class="kw">for</span> <span class="ident">TlsServer</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>
 <span class="kw">where</span>
-    <span class="ident">S</span>: <span class="ident">::std::fmt::Debug</span>,
+    <span class="ident">F</span>: <span class="ident">::std::fmt::Debug</span>,
 {
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">::std::fmt::Formatter</span>) -&gt; <span class="ident">::std::fmt::Result</span> {
         <span class="ident">f</span>.<span class="ident">debug_struct</span>(<span class="string">&quot;TlsServer&quot;</span>)
             .<span class="ident">field</span>(<span class="string">&quot;server&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">server</span>)
             .<span class="ident">finish</span>()
-    }
-}
-
-<span class="comment">// ===== impl WarpService =====</span>
-
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">IntoWarpService</span> {
-    <span class="kw">type</span> <span class="ident">Service</span>: <a class="ident" href="../../src/warp/server.rs.html#404-407">WarpService</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="op">+</span> <span class="lifetime">&#39;static</span>;
-    <span class="kw">fn</span> <span class="ident">into_warp_service</span>(<span class="self">self</span>) -&gt; <span class="ident"><span class="self">Self</span>::Service</span>;
-}
-
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">WarpService</span> {
-    <span class="kw">type</span> <span class="ident">Reply</span>: <a class="ident" href="../../futures/future/trait.Future.html">Future</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>;
-    <span class="kw">fn</span> <span class="ident">call</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">req</span>: <a class="ident" href="../../src/warp/lib.rs.html#198">Request</a>, <span class="ident">remote_addr</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/net/addr/enum.SocketAddr.html">SocketAddr</a><span class="op">&gt;</span>) -&gt; <span class="ident"><span class="self">Self</span>::Reply</span>;
-}
-
-<span class="comment">// Optimizes better than using Future::then, since it doesn&#39;t</span>
-<span class="comment">// have to return an IntoFuture.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">struct</span> <span class="ident">ReplyFuture</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span> {
-    <span class="ident">inner</span>: <span class="ident">F</span>,
-}
-
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span> <a class="ident" href="../../futures/future/trait.Future.html">Future</a> <span class="kw">for</span> <span class="ident">ReplyFuture</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">F</span>: <a class="ident" href="../../futures/future/trait.Future.html">Future</a>,
-    <span class="ident">F::Item</span>: <a class="ident" href="../../src/warp/reply.rs.html#230-293">Reply</a>,
-    <span class="ident">F::Error</span>: <a class="ident" href="../../src/warp/reject.rs.html#671-677">Reject</a>,
-{
-    <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <a class="ident" href="../../src/warp/reply.rs.html#54">::reply::Response</a>;
-    <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <a class="ident" href="../../src/warp/never.rs.html#5">Never</a>;
-
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">poll</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> <a class="self" href="../../src/warp/server.rs.html#426">self</a>.<span class="ident">inner</span>.<span class="ident">poll</span>() {
-            <span class="prelude-val">Ok</span>(<span class="ident">Async::Ready</span>(<span class="ident">ok</span>)) =&gt; <span class="prelude-val">Ok</span>(<span class="ident">Async::Ready</span>(<a class="ident" href="../../src/warp/server.rs.html#428">ok</a>.<a class="ident" href="../../src/warp/reply.rs.html#234">into_response</a>())),
-            <span class="prelude-val">Ok</span>(<span class="ident">Async::NotReady</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="ident">Async::NotReady</span>),
-            <span class="prelude-val">Err</span>(<span class="ident">err</span>) =&gt; {
-                <span class="macro">debug!</span>(<span class="string">&quot;rejected: {:?}&quot;</span>, <a class="ident" href="../../src/warp/server.rs.html#430">err</a>);
-                <span class="prelude-val">Ok</span>(<span class="ident">Async::Ready</span>(<a class="ident" href="../../src/warp/server.rs.html#430">err</a>.<a class="ident" href="../../src/warp/reject.rs.html#673">into_response</a>()))
-            }
-        }
     }
 }
 </code></pre></div>

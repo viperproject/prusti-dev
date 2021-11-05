@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;warp-0.1.23&#x2F;src&#x2F;route.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>route.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../warp/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;warp-0.2.5&#x2F;src&#x2F;route.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>route.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../warp/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -137,40 +137,44 @@
 <span id="137">137</span>
 <span id="138">138</span>
 <span id="139">139</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/cell/struct.RefCell.html">std::cell::RefCell</a>;
+<span id="140">140</span>
+<span id="141">141</span>
+<span id="142">142</span>
+</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">scoped_tls::scoped_thread_local</span>;
+<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/cell/struct.RefCell.html">std::cell::RefCell</a>;
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/index.html">std::mem</a>;
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/net/addr/enum.SocketAddr.html">std::net::SocketAddr</a>;
 
 <span class="kw">use</span> <a class="ident" href="../../http/index.html">http</a>;
 <span class="kw">use</span> <a class="ident" href="../../hyper/body/body/struct.Body.html">hyper::Body</a>;
 
-<span class="kw">use</span> <a class="ident" href="../../src/warp/lib.rs.html#198">Request</a>;
+<span class="kw">use</span> <a class="ident" href="../../src/warp/lib.rs.html#178"><span class="kw">crate</span>::Request</a>;
 
-<span class="macro">scoped_thread_local!</span>(<span class="kw">static</span> <span class="ident">ROUTE</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><a class="ident" href="../../src/warp/route.rs.html#31-36">Route</a><span class="op">&gt;</span>);
+<span class="macro">scoped_thread_local!</span>(<span class="kw">static</span> <span class="ident">ROUTE</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><a class="ident" href="../../src/warp/route.rs.html#32-37">Route</a><span class="op">&gt;</span>);
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">set</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">U</span><span class="op">&gt;</span>(<span class="ident">r</span>: <span class="kw-2">&amp;</span><span class="ident">RefCell</span><span class="op">&lt;</span><a class="ident" href="../../src/warp/route.rs.html#31-36">Route</a><span class="op">&gt;</span>, <span class="ident">func</span>: <span class="ident">F</span>) -&gt; <span class="ident">U</span>
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">set</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">U</span><span class="op">&gt;</span>(<span class="ident">r</span>: <span class="kw-2">&amp;</span><span class="ident">RefCell</span><span class="op">&lt;</span><a class="ident" href="../../src/warp/route.rs.html#32-37">Route</a><span class="op">&gt;</span>, <span class="ident">func</span>: <span class="ident">F</span>) -&gt; <span class="ident">U</span>
 <span class="kw">where</span>
-    <span class="ident">F</span>: <span class="ident">FnMut</span>() -&gt; <span class="ident">U</span>,
+    <span class="ident">F</span>: <span class="ident">FnOnce</span>() -&gt; <span class="ident">U</span>,
 {
-    <a class="ident" href="../../src/warp/route.rs.html#10">ROUTE</a>.<span class="ident">set</span>(<a class="ident" href="../../src/warp/route.rs.html#12">r</a>, <a class="ident" href="../../src/warp/route.rs.html#12">func</a>)
+    <a class="ident" href="../../src/warp/route.rs.html#11">ROUTE</a>.<span class="ident">set</span>(<a class="ident" href="../../src/warp/route.rs.html#13">r</a>, <a class="ident" href="../../src/warp/route.rs.html#13">func</a>)
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">is_set</span>() -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <a class="ident" href="../../src/warp/route.rs.html#10">ROUTE</a>.<span class="ident">is_set</span>()
+    <a class="ident" href="../../src/warp/route.rs.html#11">ROUTE</a>.<span class="ident">is_set</span>()
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">with</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">R</span><span class="op">&gt;</span>(<span class="ident">func</span>: <span class="ident">F</span>) -&gt; <span class="ident">R</span>
 <span class="kw">where</span>
-    <span class="ident">F</span>: <span class="ident">FnOnce</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../src/warp/route.rs.html#31-36">Route</a>) -&gt; <span class="ident">R</span>,
+    <span class="ident">F</span>: <span class="ident">FnOnce</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../src/warp/route.rs.html#32-37">Route</a>) -&gt; <span class="ident">R</span>,
 {
-    <a class="ident" href="../../src/warp/route.rs.html#10">ROUTE</a>.<span class="ident">with</span>(<span class="kw">move</span> <span class="op">|</span><span class="ident">route</span><span class="op">|</span> <a class="ident" href="../../src/warp/route.rs.html#23">func</a>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">*</span><a class="ident" href="../../src/warp/route.rs.html#27">route</a>.<span class="ident">borrow_mut</span>()))
+    <a class="ident" href="../../src/warp/route.rs.html#11">ROUTE</a>.<span class="ident">with</span>(<span class="kw">move</span> <span class="op">|</span><span class="ident">route</span><span class="op">|</span> <a class="ident" href="../../src/warp/route.rs.html#24">func</a>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">*</span><a class="ident" href="../../src/warp/route.rs.html#28">route</a>.<span class="ident">borrow_mut</span>()))
 }
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">Route</span> {
-    <span class="ident">body</span>: <a class="ident" href="../../src/warp/route.rs.html#39-42">BodyState</a>,
+    <span class="ident">body</span>: <a class="ident" href="../../src/warp/route.rs.html#40-43">BodyState</a>,
     <span class="ident">remote_addr</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/net/addr/enum.SocketAddr.html">SocketAddr</a><span class="op">&gt;</span>,
-    <span class="ident">req</span>: <a class="ident" href="../../src/warp/lib.rs.html#198">Request</a>,
+    <span class="ident">req</span>: <a class="ident" href="../../src/warp/lib.rs.html#178">Request</a>,
     <span class="ident">segments_index</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
 }
 
@@ -180,99 +184,101 @@
     <span class="ident">Taken</span>,
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../src/warp/route.rs.html#31-36">Route</a> {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">req</span>: <a class="ident" href="../../src/warp/lib.rs.html#198">Request</a>, <span class="ident">remote_addr</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/net/addr/enum.SocketAddr.html">SocketAddr</a><span class="op">&gt;</span>) -&gt; <span class="ident">RefCell</span><span class="op">&lt;</span><a class="ident" href="../../src/warp/route.rs.html#31-36">Route</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">segments_index</span> <span class="op">=</span> <span class="kw">if</span> <a class="ident" href="../../src/warp/route.rs.html#45">req</a>.<span class="ident">uri</span>().<span class="ident">path</span>().<span class="ident">starts_with</span>(<span class="string">&quot;/&quot;</span>) {
+<span class="kw">impl</span> <a class="ident" href="../../src/warp/route.rs.html#32-37">Route</a> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">req</span>: <a class="ident" href="../../src/warp/lib.rs.html#178">Request</a>, <span class="ident">remote_addr</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/net/addr/enum.SocketAddr.html">SocketAddr</a><span class="op">&gt;</span>) -&gt; <span class="ident">RefCell</span><span class="op">&lt;</span><a class="ident" href="../../src/warp/route.rs.html#32-37">Route</a><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="ident">segments_index</span> <span class="op">=</span> <span class="kw">if</span> <a class="ident" href="../../src/warp/route.rs.html#46">req</a>.<span class="ident">uri</span>().<span class="ident">path</span>().<span class="ident">starts_with</span>(<span class="string">&#39;/&#39;</span>) {
             <span class="comment">// Skip the beginning slash.</span>
             <span class="number">1</span>
         } <span class="kw">else</span> {
             <span class="number">0</span>
         };
 
-        <span class="ident">RefCell::new</span>(<a class="ident" href="../../src/warp/route.rs.html#31-36">Route</a> {
-            <span class="ident">body</span>: <a class="ident" href="../../src/warp/route.rs.html#40">BodyState::Ready</a>,
-            <a class="ident" href="../../src/warp/route.rs.html#45">remote_addr</a>,
-            <a class="ident" href="../../src/warp/route.rs.html#45">req</a>,
-            <a class="ident" href="../../src/warp/route.rs.html#46">segments_index</a>,
+        <span class="ident">RefCell::new</span>(<a class="ident" href="../../src/warp/route.rs.html#32-37">Route</a> {
+            <span class="ident">body</span>: <a class="ident" href="../../src/warp/route.rs.html#41">BodyState::Ready</a>,
+            <a class="ident" href="../../src/warp/route.rs.html#46">remote_addr</a>,
+            <a class="ident" href="../../src/warp/route.rs.html#46">req</a>,
+            <a class="ident" href="../../src/warp/route.rs.html#47">segments_index</a>,
         })
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">method</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a class="ident" href="../../http/method/struct.Method.html">http::Method</a> {
-        <a class="self" href="../../src/warp/route.rs.html#61">self</a>.<span class="ident">req</span>.<span class="ident">method</span>()
+        <a class="self" href="../../src/warp/route.rs.html#62">self</a>.<span class="ident">req</span>.<span class="ident">method</span>()
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">headers</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a class="ident" href="../../http/header/map/struct.HeaderMap.html">http::HeaderMap</a> {
-        <a class="self" href="../../src/warp/route.rs.html#65">self</a>.<span class="ident">req</span>.<span class="ident">headers</span>()
+        <a class="self" href="../../src/warp/route.rs.html#66">self</a>.<span class="ident">req</span>.<span class="ident">headers</span>()
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">version</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="../../http/version/struct.Version.html">http::Version</a> {
-        <a class="self" href="../../src/warp/route.rs.html#69">self</a>.<span class="ident">req</span>.<span class="ident">version</span>()
+        <a class="self" href="../../src/warp/route.rs.html#70">self</a>.<span class="ident">req</span>.<span class="ident">version</span>()
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">extensions</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a class="ident" href="../../http/extensions/struct.Extensions.html">http::Extensions</a> {
-        <a class="self" href="../../src/warp/route.rs.html#73">self</a>.<span class="ident">req</span>.<span class="ident">extensions</span>()
+        <a class="self" href="../../src/warp/route.rs.html#74">self</a>.<span class="ident">req</span>.<span class="ident">extensions</span>()
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">extensions_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../http/extensions/struct.Extensions.html">http::Extensions</a> {
-        <a class="self" href="../../src/warp/route.rs.html#77">self</a>.<span class="ident">req</span>.<span class="ident">extensions_mut</span>()
+    <span class="comment">/*
+    pub(crate) fn extensions_mut(&amp;mut self) -&gt; &amp;mut http::Extensions {
+        self.req.extensions_mut()
     }
+    */</span>
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">uri</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a class="ident" href="../../http/uri/struct.Uri.html">http::Uri</a> {
-        <a class="self" href="../../src/warp/route.rs.html#81">self</a>.<span class="ident">req</span>.<span class="ident">uri</span>()
+        <a class="self" href="../../src/warp/route.rs.html#84">self</a>.<span class="ident">req</span>.<span class="ident">uri</span>()
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">path</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> {
-        <span class="kw-2">&amp;</span><a class="self" href="../../src/warp/route.rs.html#85">self</a>.<span class="ident">req</span>.<span class="ident">uri</span>().<span class="ident">path</span>()[<a class="self" href="../../src/warp/route.rs.html#85">self</a>.<span class="ident">segments_index</span>..]
+        <span class="kw-2">&amp;</span><a class="self" href="../../src/warp/route.rs.html#88">self</a>.<span class="ident">req</span>.<span class="ident">uri</span>().<span class="ident">path</span>()[<a class="self" href="../../src/warp/route.rs.html#88">self</a>.<span class="ident">segments_index</span>..]
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">full_path</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> {
-        <a class="self" href="../../src/warp/route.rs.html#89">self</a>.<span class="ident">req</span>.<span class="ident">uri</span>().<span class="ident">path</span>()
+        <a class="self" href="../../src/warp/route.rs.html#92">self</a>.<span class="ident">req</span>.<span class="ident">uri</span>().<span class="ident">path</span>()
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">set_unmatched_path</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">index</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
-        <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <a class="self" href="../../src/warp/route.rs.html#93">self</a>.<span class="ident">segments_index</span> <span class="op">+</span> <a class="ident" href="../../src/warp/route.rs.html#93">index</a>;
-        <span class="kw">let</span> <span class="ident">path</span> <span class="op">=</span> <a class="self" href="../../src/warp/route.rs.html#93">self</a>.<span class="ident">req</span>.<span class="ident">uri</span>().<span class="ident">path</span>();
-        <span class="kw">if</span> <a class="ident" href="../../src/warp/route.rs.html#95">path</a>.<span class="ident">is_empty</span>() {
+        <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <a class="self" href="../../src/warp/route.rs.html#96">self</a>.<span class="ident">segments_index</span> <span class="op">+</span> <a class="ident" href="../../src/warp/route.rs.html#96">index</a>;
+        <span class="kw">let</span> <span class="ident">path</span> <span class="op">=</span> <a class="self" href="../../src/warp/route.rs.html#96">self</a>.<span class="ident">req</span>.<span class="ident">uri</span>().<span class="ident">path</span>();
+        <span class="kw">if</span> <a class="ident" href="../../src/warp/route.rs.html#98">path</a>.<span class="ident">is_empty</span>() {
             <span class="comment">// malformed path</span>
             <span class="kw">return</span>;
-        } <span class="kw">else</span> <span class="kw">if</span> <a class="ident" href="../../src/warp/route.rs.html#95">path</a>.<span class="ident">len</span>() <span class="op">==</span> <a class="ident" href="../../src/warp/route.rs.html#94">index</a> {
-            <a class="self" href="../../src/warp/route.rs.html#93">self</a>.<span class="ident">segments_index</span> <span class="op">=</span> <a class="ident" href="../../src/warp/route.rs.html#94">index</a>;
+        } <span class="kw">else</span> <span class="kw">if</span> <a class="ident" href="../../src/warp/route.rs.html#98">path</a>.<span class="ident">len</span>() <span class="op">==</span> <a class="ident" href="../../src/warp/route.rs.html#97">index</a> {
+            <a class="self" href="../../src/warp/route.rs.html#96">self</a>.<span class="ident">segments_index</span> <span class="op">=</span> <a class="ident" href="../../src/warp/route.rs.html#97">index</a>;
         } <span class="kw">else</span> {
-            <span class="macro">debug_assert_eq!</span>(<a class="ident" href="../../src/warp/route.rs.html#95">path</a>.<span class="ident">as_bytes</span>()[<a class="ident" href="../../src/warp/route.rs.html#94">index</a>], <span class="string">b&#39;/&#39;</span>);
-            <a class="self" href="../../src/warp/route.rs.html#93">self</a>.<span class="ident">segments_index</span> <span class="op">=</span> <a class="ident" href="../../src/warp/route.rs.html#94">index</a> <span class="op">+</span> <span class="number">1</span>;
+            <span class="macro">debug_assert_eq!</span>(<a class="ident" href="../../src/warp/route.rs.html#98">path</a>.<span class="ident">as_bytes</span>()[<a class="ident" href="../../src/warp/route.rs.html#97">index</a>], <span class="string">b&#39;/&#39;</span>);
+            <a class="self" href="../../src/warp/route.rs.html#96">self</a>.<span class="ident">segments_index</span> <span class="op">=</span> <a class="ident" href="../../src/warp/route.rs.html#97">index</a> <span class="op">+</span> <span class="number">1</span>;
         }
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">query</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a><span class="op">&gt;</span> {
-        <a class="self" href="../../src/warp/route.rs.html#107">self</a>.<span class="ident">req</span>.<span class="ident">uri</span>().<span class="ident">query</span>()
+        <a class="self" href="../../src/warp/route.rs.html#110">self</a>.<span class="ident">req</span>.<span class="ident">uri</span>().<span class="ident">query</span>()
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">matched_path_index</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="../../src/warp/route.rs.html#111">self</a>.<span class="ident">segments_index</span>
+        <a class="self" href="../../src/warp/route.rs.html#114">self</a>.<span class="ident">segments_index</span>
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">reset_matched_path_index</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">index</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
         <span class="macro">debug_assert!</span>(
-            <a class="ident" href="../../src/warp/route.rs.html#115">index</a> <span class="op">&lt;</span><span class="op">=</span> <a class="self" href="../../src/warp/route.rs.html#115">self</a>.<span class="ident">segments_index</span>,
+            <a class="ident" href="../../src/warp/route.rs.html#118">index</a> <span class="op">&lt;</span><span class="op">=</span> <a class="self" href="../../src/warp/route.rs.html#118">self</a>.<span class="ident">segments_index</span>,
             <span class="string">&quot;reset_match_path_index should not be bigger: current={}, arg={}&quot;</span>,
-            <a class="self" href="../../src/warp/route.rs.html#115">self</a>.<span class="ident">segments_index</span>,
-            <a class="ident" href="../../src/warp/route.rs.html#115">index</a>,
+            <a class="self" href="../../src/warp/route.rs.html#118">self</a>.<span class="ident">segments_index</span>,
+            <a class="ident" href="../../src/warp/route.rs.html#118">index</a>,
         );
-        <a class="self" href="../../src/warp/route.rs.html#115">self</a>.<span class="ident">segments_index</span> <span class="op">=</span> <a class="ident" href="../../src/warp/route.rs.html#115">index</a>;
+        <a class="self" href="../../src/warp/route.rs.html#118">self</a>.<span class="ident">segments_index</span> <span class="op">=</span> <a class="ident" href="../../src/warp/route.rs.html#118">index</a>;
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">remote_addr</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/net/addr/enum.SocketAddr.html">SocketAddr</a><span class="op">&gt;</span> {
-        <a class="self" href="../../src/warp/route.rs.html#125">self</a>.<span class="ident">remote_addr</span>
+        <a class="self" href="../../src/warp/route.rs.html#128">self</a>.<span class="ident">remote_addr</span>
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">take_body</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../hyper/body/body/struct.Body.html">Body</a><span class="op">&gt;</span> {
-        <span class="kw">match</span> <a class="self" href="../../src/warp/route.rs.html#129">self</a>.<span class="ident">body</span> {
-            <a class="ident" href="../../src/warp/route.rs.html#40">BodyState::Ready</a> =&gt; {
-                <span class="kw">let</span> <span class="ident">body</span> <span class="op">=</span> <span class="ident">mem::replace</span>(<a class="self" href="../../src/warp/route.rs.html#129">self</a>.<span class="ident">req</span>.<span class="ident">body_mut</span>(), <span class="ident">Body::empty</span>());
-                <a class="self" href="../../src/warp/route.rs.html#129">self</a>.<span class="ident">body</span> <span class="op">=</span> <a class="ident" href="../../src/warp/route.rs.html#41">BodyState::Taken</a>;
-                <span class="prelude-val">Some</span>(<a class="ident" href="../../src/warp/route.rs.html#132">body</a>)
+        <span class="kw">match</span> <a class="self" href="../../src/warp/route.rs.html#132">self</a>.<span class="ident">body</span> {
+            <a class="ident" href="../../src/warp/route.rs.html#41">BodyState::Ready</a> =&gt; {
+                <span class="kw">let</span> <span class="ident">body</span> <span class="op">=</span> <span class="ident">mem::replace</span>(<a class="self" href="../../src/warp/route.rs.html#132">self</a>.<span class="ident">req</span>.<span class="ident">body_mut</span>(), <span class="ident">Body::empty</span>());
+                <a class="self" href="../../src/warp/route.rs.html#132">self</a>.<span class="ident">body</span> <span class="op">=</span> <a class="ident" href="../../src/warp/route.rs.html#42">BodyState::Taken</a>;
+                <span class="prelude-val">Some</span>(<a class="ident" href="../../src/warp/route.rs.html#135">body</a>)
             }
-            <a class="ident" href="../../src/warp/route.rs.html#41">BodyState::Taken</a> =&gt; <span class="prelude-val">None</span>,
+            <a class="ident" href="../../src/warp/route.rs.html#42">BodyState::Taken</a> =&gt; <span class="prelude-val">None</span>,
         }
     }
 }

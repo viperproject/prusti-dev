@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;hyper-tls-0.3.2&#x2F;src&#x2F;client.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>client.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../hyper_tls/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;hyper-tls-0.4.3&#x2F;src&#x2F;client.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>client.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../hyper_tls/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -165,28 +165,39 @@
 <span id="165">165</span>
 <span id="166">166</span>
 <span id="167">167</span>
+<span id="168">168</span>
+<span id="169">169</span>
+<span id="170">170</span>
+<span id="171">171</span>
+<span id="172">172</span>
+<span id="173">173</span>
+<span id="174">174</span>
+<span id="175">175</span>
+<span id="176">176</span>
+<span id="177">177</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/index.html">std::io</a>;
+<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">std::future::Future</a>;
+<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">std::pin::Pin</a>;
+<span class="kw">use</span> <span class="ident">std::task</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>};
 
-<span class="kw">use</span> <span class="ident">futures</span>::{<a class="ident" href="../../futures/poll/enum.Async.html">Async</a>, <a class="ident" href="../../futures/future/trait.Future.html">Future</a>, <a class="ident" href="../../futures/future/index.html">future</a>, <a class="ident" href="../../futures/poll/type.Poll.html">Poll</a>};
-<span class="kw">use</span> <span class="ident">hyper::client::connect</span>::{<a class="ident" href="../../hyper/client/connect/trait.Connect.html">Connect</a>, <a class="ident" href="../../hyper/client/connect/struct.Connected.html">Connected</a>, <a class="ident" href="../../hyper/client/connect/struct.Destination.html">Destination</a>, <a class="ident" href="../../hyper/client/connect/http/struct.HttpConnector.html">HttpConnector</a>};
-<span class="kw">pub</span> <span class="kw">use</span> <a class="ident" href="../../hyper_tls/struct.Error.html">native_tls::Error</a>;
-<span class="kw">use</span> <span class="ident">native_tls</span>::{<a class="self" href="../../native_tls/index.html">self</a>, <a class="ident" href="../../native_tls/enum.HandshakeError.html">HandshakeError</a>, <a class="ident" href="../../native_tls/struct.TlsConnector.html">TlsConnector</a>};
+<span class="kw">use</span> <span class="ident">hyper</span>::{<a class="ident" href="../../hyper/client/connect/http/struct.HttpConnector.html">client::connect::HttpConnector</a>, <a class="ident" href="../../tower_service/trait.Service.html">service::Service</a>, <a class="ident" href="../../http/uri/struct.Uri.html">Uri</a>};
+<span class="kw">use</span> <span class="ident">tokio::io</span>::{<a class="ident" href="../../tokio/io/async_read/trait.AsyncRead.html">AsyncRead</a>, <a class="ident" href="../../tokio/io/async_write/trait.AsyncWrite.html">AsyncWrite</a>};
+<span class="kw">use</span> <a class="ident" href="../../tokio_tls/struct.TlsConnector.html">tokio_tls::TlsConnector</a>;
 
-<span class="kw">use</span> <span class="ident">stream</span>::{<a class="ident" href="../../src/hyper_tls/stream.rs.html#10-15">MaybeHttpsStream</a>, <a class="ident" href="../../src/hyper_tls/stream.rs.html#18-20">TlsStream</a>};
+<span class="kw">use</span> <a class="ident" href="../../src/hyper_tls/stream.rs.html#12-17"><span class="kw">crate</span>::stream::MaybeHttpsStream</a>;
+
+<span class="kw">type</span> <span class="ident">BoxError</span> <span class="op">=</span> <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/error/trait.Error.html">std::error::Error</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a><span class="op">&gt;</span>;
 
 <span class="doccomment">/// A Connector for the `https` scheme.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">HttpsConnector</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
     <span class="ident">force_https</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
     <span class="ident">http</span>: <span class="ident">T</span>,
-    <span class="ident">tls</span>: <a class="ident" href="../../native_tls/struct.TlsConnector.html">TlsConnector</a>,
+    <span class="ident">tls</span>: <a class="ident" href="../../tokio_tls/struct.TlsConnector.html">TlsConnector</a>,
 }
 
 <span class="kw">impl</span> <span class="ident">HttpsConnector</span><span class="op">&lt;</span><a class="ident" href="../../hyper/client/connect/http/struct.HttpConnector.html">HttpConnector</a><span class="op">&gt;</span> {
     <span class="doccomment">/// Construct a new HttpsConnector.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Takes number of DNS worker threads.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// This uses hyper&#39;s default `HttpConnector`, and default `TlsConnector`.</span>
     <span class="doccomment">/// If you wish to use something besides the defaults, use `From::from`.</span>
@@ -198,16 +209,29 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// If you would like to force the use of HTTPS then call https_only(true)</span>
     <span class="doccomment">/// on the returned connector.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">threads</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <a class="ident" href="../../hyper_tls/struct.Error.html">Error</a><span class="op">&gt;</span> {
-        <span class="ident">TlsConnector::builder</span>()
-            .<span class="ident">build</span>()
-            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">tls</span><span class="op">|</span> <span class="ident">HttpsConnector::new_</span>(<a class="ident" href="../../src/hyper_tls/client.rs.html#34">threads</a>, <a class="ident" href="../../src/hyper_tls/client.rs.html#37">tls</a>))
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// # Panics</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// This will panic if the underlying TLS context could not be created.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// To handle that error yourself, you can use the `HttpsConnector::from`</span>
+    <span class="doccomment">/// constructor after trying to make a `TlsConnector`.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="self">Self</span> {
+        <span class="ident">native_tls::TlsConnector::new</span>()
+            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">tls</span><span class="op">|</span> <span class="ident">HttpsConnector::new_</span>(<a class="ident" href="../../src/hyper_tls/client.rs.html#44">tls</a>.<span class="ident">into</span>()))
+            .<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="macro">panic!</span>(<span class="string">&quot;HttpsConnector::new() failure: {}&quot;</span>, <a class="ident" href="../../src/hyper_tls/client.rs.html#45">e</a>))
     }
 
-    <span class="kw">fn</span> <span class="ident">new_</span>(<span class="ident">threads</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="ident">tls</span>: <a class="ident" href="../../native_tls/struct.TlsConnector.html">TlsConnector</a>) -&gt; <span class="self">Self</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">http</span> <span class="op">=</span> <span class="ident">HttpConnector::new</span>(<a class="ident" href="../../src/hyper_tls/client.rs.html#40">threads</a>);
-        <a class="ident" href="../../src/hyper_tls/client.rs.html#41">http</a>.<span class="ident">enforce_http</span>(<span class="bool-val">false</span>);
-        <span class="ident">HttpsConnector::from</span>((<a class="ident" href="../../src/hyper_tls/client.rs.html#41">http</a>, <a class="ident" href="../../src/hyper_tls/client.rs.html#40">tls</a>))
+    <span class="kw">fn</span> <span class="ident">new_</span>(<span class="ident">tls</span>: <a class="ident" href="../../tokio_tls/struct.TlsConnector.html">TlsConnector</a>) -&gt; <span class="self">Self</span> {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">http</span> <span class="op">=</span> <span class="ident">HttpConnector::new</span>();
+        <a class="ident" href="../../src/hyper_tls/client.rs.html#49">http</a>.<span class="ident">enforce_http</span>(<span class="bool-val">false</span>);
+        <span class="ident">HttpsConnector::from</span>((<a class="ident" href="../../src/hyper_tls/client.rs.html#49">http</a>, <a class="ident" href="../../src/hyper_tls/client.rs.html#48">tls</a>))
+    }
+}
+
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for</span> <span class="ident">HttpsConnector</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="self">Self</span> {
+        <span class="ident"><span class="self">Self</span>::new_with_connector</span>(<span class="ident">Default::default</span>())
     }
 }
 
@@ -216,122 +240,118 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// If a URL is not `https` when connecting, an error is returned.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">https_only</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">enable</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) {
-        <a class="self" href="../../src/hyper_tls/client.rs.html#51">self</a>.<span class="ident">force_https</span> <span class="op">=</span> <a class="ident" href="../../src/hyper_tls/client.rs.html#51">enable</a>;
+        <a class="self" href="../../src/hyper_tls/client.rs.html#65">self</a>.<span class="ident">force_https</span> <span class="op">=</span> <a class="ident" href="../../src/hyper_tls/client.rs.html#65">enable</a>;
     }
-
-    <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
-    <span class="attribute">#[<span class="ident">deprecated</span>(<span class="ident">since</span> <span class="op">=</span> <span class="string">&quot;0.3&quot;</span>, <span class="ident">note</span> <span class="op">=</span> <span class="string">&quot;use `https_only` method instead&quot;</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">force_https</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">enable</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) {
-        <a class="self" href="../../src/hyper_tls/client.rs.html#57">self</a>.<span class="ident">force_https</span> <span class="op">=</span> <a class="ident" href="../../src/hyper_tls/client.rs.html#57">enable</a>;
+    
+    <span class="doccomment">/// With connector constructor</span>
+    <span class="doccomment">/// </span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_with_connector</span>(<span class="ident">http</span>: <span class="ident">T</span>) -&gt; <span class="self">Self</span> {
+        <span class="ident">native_tls::TlsConnector::new</span>()
+            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">tls</span><span class="op">|</span> <span class="ident">HttpsConnector::from</span>((<a class="ident" href="../../src/hyper_tls/client.rs.html#71">http</a>, <a class="ident" href="../../src/hyper_tls/client.rs.html#73">tls</a>.<span class="ident">into</span>())))
+            .<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="macro">panic!</span>(<span class="string">&quot;HttpsConnector::new_with_connector(&lt;connector&gt;) failure: {}&quot;</span>, <a class="ident" href="../../src/hyper_tls/client.rs.html#74">e</a>))
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span>(<span class="ident">T</span>, <a class="ident" href="../../native_tls/struct.TlsConnector.html">TlsConnector</a>)<span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">HttpsConnector</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">args</span>: (<span class="ident">T</span>, <a class="ident" href="../../native_tls/struct.TlsConnector.html">TlsConnector</a>)) -&gt; <span class="ident">HttpsConnector</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-        <a class="ident" href="../../src/hyper_tls/client.rs.html#13-17">HttpsConnector</a> {
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span>(<span class="ident">T</span>, <a class="ident" href="../../tokio_tls/struct.TlsConnector.html">TlsConnector</a>)<span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">HttpsConnector</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">args</span>: (<span class="ident">T</span>, <a class="ident" href="../../tokio_tls/struct.TlsConnector.html">TlsConnector</a>)) -&gt; <span class="ident">HttpsConnector</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../src/hyper_tls/client.rs.html#16-20">HttpsConnector</a> {
             <span class="ident">force_https</span>: <span class="bool-val">false</span>,
-            <span class="ident">http</span>: <a class="ident" href="../../src/hyper_tls/client.rs.html#63">args</a>.<span class="number">0</span>,
-            <span class="ident">tls</span>: <a class="ident" href="../../src/hyper_tls/client.rs.html#63">args</a>.<span class="number">1</span>,
+            <span class="ident">http</span>: <a class="ident" href="../../src/hyper_tls/client.rs.html#79">args</a>.<span class="number">0</span>,
+            <span class="ident">tls</span>: <a class="ident" href="../../src/hyper_tls/client.rs.html#79">args</a>.<span class="number">1</span>,
         }
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <span class="ident">HttpsConnector</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="ident" href="../../src/hyper_tls/client.rs.html#73">f</a>.<span class="ident">debug_struct</span>(<span class="string">&quot;HttpsConnector&quot;</span>)
-            .<span class="ident">field</span>(<span class="string">&quot;force_https&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../src/hyper_tls/client.rs.html#73">self</a>.<span class="ident">force_https</span>)
-            .<span class="ident">field</span>(<span class="string">&quot;http&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../src/hyper_tls/client.rs.html#73">self</a>.<span class="ident">http</span>)
+        <a class="ident" href="../../src/hyper_tls/client.rs.html#89">f</a>.<span class="ident">debug_struct</span>(<span class="string">&quot;HttpsConnector&quot;</span>)
+            .<span class="ident">field</span>(<span class="string">&quot;force_https&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../src/hyper_tls/client.rs.html#89">self</a>.<span class="ident">force_https</span>)
+            .<span class="ident">field</span>(<span class="string">&quot;http&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../src/hyper_tls/client.rs.html#89">self</a>.<span class="ident">http</span>)
             .<span class="ident">finish</span>()
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <a class="ident" href="../../hyper/client/connect/trait.Connect.html">Connect</a> <span class="kw">for</span> <span class="ident">HttpsConnector</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">Service</span><span class="op">&lt;</span><a class="ident" href="../../http/uri/struct.Uri.html">Uri</a><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">HttpsConnector</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>
 <span class="kw">where</span>
-    <span class="ident">T</span>: <span class="ident">Connect</span><span class="op">&lt;</span><span class="ident">Error</span><span class="op">=</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a><span class="op">&gt;</span>,
-    <span class="ident">T::Transport</span>: <span class="lifetime">&#39;static</span>,
-    <span class="ident">T::Future</span>: <span class="lifetime">&#39;static</span>,
+    <span class="ident">T</span>: <span class="ident">Service</span><span class="op">&lt;</span><a class="ident" href="../../http/uri/struct.Uri.html">Uri</a><span class="op">&gt;</span>,
+    <span class="ident">T::Response</span>: <a class="ident" href="../../tokio/io/async_read/trait.AsyncRead.html">AsyncRead</a> <span class="op">+</span> <a class="ident" href="../../tokio/io/async_write/trait.AsyncWrite.html">AsyncWrite</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
+    <span class="ident">T::Future</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
+    <span class="ident">T::Error</span>: <span class="ident">Into</span><span class="op">&lt;</span><a class="ident" href="../../src/hyper_tls/client.rs.html#12">BoxError</a><span class="op">&gt;</span>,
 {
-    <span class="kw">type</span> <span class="ident">Transport</span> <span class="op">=</span> <span class="ident">MaybeHttpsStream</span><span class="op">&lt;</span><span class="ident">T::Transport</span><span class="op">&gt;</span>;
-    <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a>;
-    <span class="kw">type</span> <span class="ident">Future</span> <span class="op">=</span> <span class="ident">HttpsConnecting</span><span class="op">&lt;</span><span class="ident">T::Transport</span><span class="op">&gt;</span>;
+    <span class="kw">type</span> <span class="ident">Response</span> <span class="op">=</span> <span class="ident">MaybeHttpsStream</span><span class="op">&lt;</span><span class="ident">T::Response</span><span class="op">&gt;</span>;
+    <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <a class="ident" href="../../src/hyper_tls/client.rs.html#12">BoxError</a>;
+    <span class="kw">type</span> <span class="ident">Future</span> <span class="op">=</span> <span class="ident">HttpsConnecting</span><span class="op">&lt;</span><span class="ident">T::Response</span><span class="op">&gt;</span>;
 
-    <span class="kw">fn</span> <span class="ident">connect</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">dst</span>: <a class="ident" href="../../hyper/client/connect/struct.Destination.html">Destination</a>) -&gt; <span class="ident"><span class="self">Self</span>::Future</span> {
-        <span class="kw">let</span> <span class="ident">is_https</span> <span class="op">=</span> <a class="ident" href="../../src/hyper_tls/client.rs.html#91">dst</a>.<span class="ident">scheme</span>() <span class="op">==</span> <span class="string">&quot;https&quot;</span>;
-        <span class="comment">// Early abort if HTTPS is forced but can&#39;t be used</span>
-        <span class="kw">if</span> <span class="op">!</span><a class="ident" href="../../src/hyper_tls/client.rs.html#92">is_https</a> <span class="op">&amp;&amp;</span> <a class="self" href="../../src/hyper_tls/client.rs.html#91">self</a>.<span class="ident">force_https</span> {
-            <span class="kw">let</span> <span class="ident">err</span> <span class="op">=</span> <span class="ident">io::Error::new</span>(<span class="ident">io::ErrorKind::Other</span>, <span class="string">&quot;HTTPS scheme forced but can&#39;t be used&quot;</span>);
-            <span class="kw">return</span> <a class="ident" href="../../src/hyper_tls/client.rs.html#125">HttpsConnecting</a>(<span class="ident">Box::new</span>(<span class="ident">future::err</span>(<a class="ident" href="../../src/hyper_tls/client.rs.html#95">err</a>)));
+    <span class="kw">fn</span> <span class="ident">poll_ready</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+        <span class="kw">match</span> <a class="self" href="../../src/hyper_tls/client.rs.html#108">self</a>.<span class="ident">http</span>.<span class="ident">poll_ready</span>(<a class="ident" href="../../src/hyper_tls/client.rs.html#108">cx</a>) {
+            <span class="ident">Poll::Ready</span>(<span class="prelude-val">Ok</span>(())) =&gt; <span class="ident">Poll::Ready</span>(<span class="prelude-val">Ok</span>(())),
+            <span class="ident">Poll::Ready</span>(<span class="prelude-val">Err</span>(<span class="ident">e</span>)) =&gt; <span class="ident">Poll::Ready</span>(<span class="prelude-val">Err</span>(<a class="ident" href="../../src/hyper_tls/client.rs.html#111">e</a>.<span class="ident">into</span>())),
+            <span class="ident">Poll::Pending</span> =&gt; <span class="ident">Poll::Pending</span>,
         }
-
-        <span class="kw">let</span> <span class="ident">host</span> <span class="op">=</span> <a class="ident" href="../../src/hyper_tls/client.rs.html#91">dst</a>.<span class="ident">host</span>().<span class="ident">to_owned</span>();
-        <span class="kw">let</span> <span class="ident">connecting</span> <span class="op">=</span> <a class="self" href="../../src/hyper_tls/client.rs.html#91">self</a>.<span class="ident">http</span>.<span class="ident">connect</span>(<a class="ident" href="../../src/hyper_tls/client.rs.html#91">dst</a>);
-        <span class="kw">let</span> <span class="ident">tls</span> <span class="op">=</span> <a class="self" href="../../src/hyper_tls/client.rs.html#91">self</a>.<span class="ident">tls</span>.<span class="ident">clone</span>();
-        <span class="kw">let</span> <span class="ident">fut</span>: <span class="ident">BoxedFut</span><span class="op">&lt;</span><span class="ident">T::Transport</span><span class="op">&gt;</span> <span class="op">=</span> <span class="kw">if</span> <a class="ident" href="../../src/hyper_tls/client.rs.html#92">is_https</a> {
-            <span class="kw">let</span> <span class="ident">fut</span> <span class="op">=</span> <a class="ident" href="../../src/hyper_tls/client.rs.html#100">connecting</a>.<span class="ident">and_then</span>(<span class="kw">move</span> <span class="op">|</span>(<span class="ident">tcp</span>, <span class="ident">connected</span>)<span class="op">|</span> {
-                <span class="kw">let</span> <span class="ident">handshake</span> <span class="op">=</span> <a class="ident" href="../../src/hyper_tls/client.rs.html#143-145">Handshaking</a> {
-                    <span class="ident">inner</span>: <span class="prelude-val">Some</span>(<a class="ident" href="../../src/hyper_tls/client.rs.html#101">tls</a>.<span class="ident">connect</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/hyper_tls/client.rs.html#99">host</a>, <a class="ident" href="../../src/hyper_tls/client.rs.html#103">tcp</a>)),
-                };
-                <a class="ident" href="../../src/hyper_tls/client.rs.html#104">handshake</a>
-                    .<span class="ident">map</span>(<span class="op">|</span><span class="ident">conn</span><span class="op">|</span> (<a class="ident" href="../../src/hyper_tls/stream.rs.html#14">MaybeHttpsStream::Https</a>(<span class="ident">TlsStream::new</span>(<a class="ident" href="../../src/hyper_tls/client.rs.html#108">conn</a>)), <a class="ident" href="../../src/hyper_tls/client.rs.html#103">connected</a>))
-                    .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">io::Error::new</span>(<span class="ident">io::ErrorKind::Other</span>, <a class="ident" href="../../src/hyper_tls/client.rs.html#109">e</a>))
-            });
-            <span class="ident">Box::new</span>(<a class="ident" href="../../src/hyper_tls/client.rs.html#103">fut</a>)
-        } <span class="kw">else</span> {
-            <span class="ident">Box::new</span>(<a class="ident" href="../../src/hyper_tls/client.rs.html#100">connecting</a>.<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">tcp</span>, <span class="ident">connected</span>)<span class="op">|</span> {
-                (<a class="ident" href="../../src/hyper_tls/stream.rs.html#12">MaybeHttpsStream::Http</a>(<a class="ident" href="../../src/hyper_tls/client.rs.html#113">tcp</a>), <a class="ident" href="../../src/hyper_tls/client.rs.html#113">connected</a>)
-            }))
-        };
-        <a class="ident" href="../../src/hyper_tls/client.rs.html#125">HttpsConnecting</a>(<a class="ident" href="../../src/hyper_tls/client.rs.html#102">fut</a>)
     }
 
+    <span class="kw">fn</span> <span class="ident">call</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">dst</span>: <a class="ident" href="../../http/uri/struct.Uri.html">Uri</a>) -&gt; <span class="ident"><span class="self">Self</span>::Future</span> {
+        <span class="kw">let</span> <span class="ident">is_https</span> <span class="op">=</span> <a class="ident" href="../../src/hyper_tls/client.rs.html#116">dst</a>.<span class="ident">scheme_str</span>() <span class="op">==</span> <span class="prelude-val">Some</span>(<span class="string">&quot;https&quot;</span>);
+        <span class="comment">// Early abort if HTTPS is forced but can&#39;t be used</span>
+        <span class="kw">if</span> <span class="op">!</span><a class="ident" href="../../src/hyper_tls/client.rs.html#117">is_https</a> <span class="op">&amp;&amp;</span> <a class="self" href="../../src/hyper_tls/client.rs.html#116">self</a>.<span class="ident">force_https</span> {
+            <span class="kw">return</span> <a class="ident" href="../../src/hyper_tls/client.rs.html#142">err</a>(<a class="ident" href="../../src/hyper_tls/client.rs.html#169">ForceHttpsButUriNotHttps</a>.<span class="ident">into</span>());
+        }
+
+        <span class="kw">let</span> <span class="ident">host</span> <span class="op">=</span> <a class="ident" href="../../src/hyper_tls/client.rs.html#116">dst</a>.<span class="ident">host</span>().<span class="ident">unwrap_or</span>(<span class="string">&quot;&quot;</span>).<span class="ident">trim_matches</span>(<span class="op">|</span><span class="ident">c</span><span class="op">|</span> <a class="ident" href="../../src/hyper_tls/client.rs.html#123">c</a> <span class="op">==</span> <span class="string">&#39;[&#39;</span> <span class="op">|</span><span class="op">|</span> <a class="ident" href="../../src/hyper_tls/client.rs.html#123">c</a> <span class="op">==</span> <span class="string">&#39;]&#39;</span>).<span class="ident">to_owned</span>();
+        <span class="kw">let</span> <span class="ident">connecting</span> <span class="op">=</span> <a class="self" href="../../src/hyper_tls/client.rs.html#116">self</a>.<span class="ident">http</span>.<span class="ident">call</span>(<a class="ident" href="../../src/hyper_tls/client.rs.html#116">dst</a>);
+        <span class="kw">let</span> <span class="ident">tls</span> <span class="op">=</span> <a class="self" href="../../src/hyper_tls/client.rs.html#116">self</a>.<span class="ident">tls</span>.<span class="ident">clone</span>();
+        <span class="kw">let</span> <span class="ident">fut</span> <span class="op">=</span> <span class="kw">async</span> <span class="kw">move</span> {
+            <span class="kw">let</span> <span class="ident">tcp</span> <span class="op">=</span> <a class="ident" href="../../src/hyper_tls/client.rs.html#124">connecting</a>.<span class="kw">await</span>.<span class="ident">map_err</span>(<span class="ident">Into::into</span>)<span class="question-mark">?</span>;
+            <span class="kw">let</span> <span class="ident">maybe</span> <span class="op">=</span> <span class="kw">if</span> <a class="ident" href="../../src/hyper_tls/client.rs.html#117">is_https</a> {
+                <span class="kw">let</span> <span class="ident">tls</span> <span class="op">=</span> <a class="ident" href="../../src/hyper_tls/client.rs.html#125">tls</a>
+                    .<span class="ident">connect</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/hyper_tls/client.rs.html#123">host</a>, <a class="ident" href="../../src/hyper_tls/client.rs.html#127">tcp</a>)
+                    .<span class="kw">await</span><span class="question-mark">?</span>;
+                <a class="ident" href="../../src/hyper_tls/stream.rs.html#16">MaybeHttpsStream::Https</a>(<a class="ident" href="../../src/hyper_tls/client.rs.html#129">tls</a>)
+            } <span class="kw">else</span> {
+                <a class="ident" href="../../src/hyper_tls/stream.rs.html#14">MaybeHttpsStream::Http</a>(<a class="ident" href="../../src/hyper_tls/client.rs.html#127">tcp</a>)
+            };
+            <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/hyper_tls/client.rs.html#128">maybe</a>)
+        };
+        <a class="ident" href="../../src/hyper_tls/client.rs.html#150">HttpsConnecting</a>(<span class="ident">Box::pin</span>(<a class="ident" href="../../src/hyper_tls/client.rs.html#126">fut</a>))
+    }
 }
 
-<span class="kw">type</span> <span class="ident">BoxedFut</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Item</span><span class="op">=</span>(<span class="ident">MaybeHttpsStream</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <a class="ident" href="../../hyper/client/connect/struct.Connected.html">Connected</a>), <span class="ident">Error</span><span class="op">=</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a><span class="op">&gt;</span> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a><span class="op">&gt;</span>;
+<span class="kw">fn</span> <span class="ident">err</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">e</span>: <a class="ident" href="../../src/hyper_tls/client.rs.html#12">BoxError</a>) -&gt; <span class="ident">HttpsConnecting</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+    <a class="ident" href="../../src/hyper_tls/client.rs.html#150">HttpsConnecting</a>(<span class="ident">Box::pin</span>(<span class="kw">async</span> { <span class="prelude-val">Err</span>(<a class="ident" href="../../src/hyper_tls/client.rs.html#142">e</a>) }))
+}
+
+<span class="kw">type</span> <span class="ident">BoxedFut</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="op">=</span>
+    <span class="ident">Pin</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Output</span> <span class="op">=</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">MaybeHttpsStream</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <a class="ident" href="../../src/hyper_tls/client.rs.html#12">BoxError</a><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a><span class="op">&gt;</span><span class="op">&gt;</span>;
 
 <span class="doccomment">/// A Future representing work to connect to a URL, and a TLS handshake.</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">HttpsConnecting</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">BoxedFut</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>);
 
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="../../tokio/io/async_read/trait.AsyncRead.html">AsyncRead</a> <span class="op">+</span> <a class="ident" href="../../tokio/io/async_write/trait.AsyncWrite.html">AsyncWrite</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a> <span class="kw">for</span> <span class="ident">HttpsConnecting</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+    <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">MaybeHttpsStream</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <a class="ident" href="../../src/hyper_tls/client.rs.html#12">BoxError</a><span class="op">&gt;</span>;
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <a class="ident" href="../../futures/future/trait.Future.html">Future</a> <span class="kw">for</span> <span class="ident">HttpsConnecting</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> (<span class="ident">MaybeHttpsStream</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <a class="ident" href="../../hyper/client/connect/struct.Connected.html">Connected</a>);
-    <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a>;
-
-    <span class="kw">fn</span> <span class="ident">poll</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
-        <a class="self" href="../../src/hyper_tls/client.rs.html#132">self</a>.<span class="number">0</span>.<span class="ident">poll</span>()
+    <span class="kw">fn</span> <span class="ident">poll</span>(<span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Output</span><span class="op">&gt;</span> {
+        <span class="ident">Pin::new</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="self" href="../../src/hyper_tls/client.rs.html#155">self</a>.<span class="number">0</span>).<span class="ident">poll</span>(<a class="ident" href="../../src/hyper_tls/client.rs.html#155">cx</a>)
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <span class="ident">HttpsConnecting</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="ident" href="../../src/hyper_tls/client.rs.html#138">f</a>.<span class="ident">pad</span>(<span class="string">&quot;HttpsConnecting&quot;</span>)
+        <a class="ident" href="../../src/hyper_tls/client.rs.html#161">f</a>.<span class="ident">pad</span>(<span class="string">&quot;HttpsConnecting&quot;</span>)
     }
 }
 
-<span class="kw">struct</span> <span class="ident">Handshaking</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="ident">inner</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">native_tls::TlsStream</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <span class="ident">HandshakeError</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-}
+<span class="comment">// ===== Custom Errors =====</span>
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">io::Read</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">io::Write</a><span class="op">&gt;</span> <a class="ident" href="../../futures/future/trait.Future.html">Future</a> <span class="kw">for</span> <span class="ident">Handshaking</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="ident">native_tls::TlsStream</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>;
-    <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <a class="ident" href="../../hyper_tls/struct.Error.html">native_tls::Error</a>;
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
+<span class="kw">struct</span> <span class="ident">ForceHttpsButUriNotHttps</span>;
 
-    <span class="kw">fn</span> <span class="ident">poll</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> <a class="self" href="../../src/hyper_tls/client.rs.html#151">self</a>.<span class="ident">inner</span>.<span class="ident">take</span>().<span class="ident">expect</span>(<span class="string">&quot;polled after ready&quot;</span>) {
-            <span class="prelude-val">Ok</span>(<span class="ident">stream</span>) =&gt; <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/hyper_tls/client.rs.html#153">stream</a>.<span class="ident">into</span>()),
-            <span class="prelude-val">Err</span>(<span class="ident">HandshakeError::WouldBlock</span>(<span class="ident">mid</span>)) =&gt; {
-                <span class="kw">match</span> <a class="ident" href="../../src/hyper_tls/client.rs.html#154">mid</a>.<span class="ident">handshake</span>() {
-                    <span class="prelude-val">Ok</span>(<span class="ident">stream</span>) =&gt; <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/hyper_tls/client.rs.html#156">stream</a>.<span class="ident">into</span>()),
-                    <span class="prelude-val">Err</span>(<span class="ident">HandshakeError::Failure</span>(<span class="ident">err</span>)) =&gt; <span class="prelude-val">Err</span>(<a class="ident" href="../../src/hyper_tls/client.rs.html#157">err</a>),
-                    <span class="prelude-val">Err</span>(<span class="ident">HandshakeError::WouldBlock</span>(<span class="ident">mid</span>)) =&gt; {
-                        <a class="self" href="../../src/hyper_tls/client.rs.html#151">self</a>.<span class="ident">inner</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(<span class="ident">HandshakeError::WouldBlock</span>(<a class="ident" href="../../src/hyper_tls/client.rs.html#158">mid</a>)));
-                        <span class="prelude-val">Ok</span>(<span class="ident">Async::NotReady</span>)
-                    }
-                }
-            },
-            <span class="prelude-val">Err</span>(<span class="ident">HandshakeError::Failure</span>(<span class="ident">err</span>)) =&gt; <span class="prelude-val">Err</span>(<a class="ident" href="../../src/hyper_tls/client.rs.html#164">err</a>),
-        }
+<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for</span> <a class="ident" href="../../src/hyper_tls/client.rs.html#169">ForceHttpsButUriNotHttps</a> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+        <a class="ident" href="../../src/hyper_tls/client.rs.html#172">f</a>.<span class="ident">write_str</span>(<span class="string">&quot;https required but URI was not https&quot;</span>)
     }
 }
+
+<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/error/trait.Error.html">std::error::Error</a> <span class="kw">for</span> <a class="ident" href="../../src/hyper_tls/client.rs.html#169">ForceHttpsButUriNotHttps</a> {}
 </code></pre></div>
 </section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="hyper_tls" data-search-index-js="../../search-index.js" data-search-js="../../search.js"></div>
     <script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script>

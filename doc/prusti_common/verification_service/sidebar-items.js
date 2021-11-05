@@ -1,1 +1,0 @@
-initSidebarItems({"struct":[["VerificationRequest",""],["ViperBackendConfig","The configuration for the viper backend, (i.e. verifier). Expresses which backend (silicon or carbon) should be used, and provides command-line arguments to the viper verifier."]],"trait":[["VerificationService",""]]});

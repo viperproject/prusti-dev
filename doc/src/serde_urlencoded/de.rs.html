@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;serde_urlencoded-0.6.1&#x2F;src&#x2F;de.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>de.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../serde_urlencoded/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;serde_urlencoded-0.7.0&#x2F;src&#x2F;de.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>de.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../serde_urlencoded/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -318,20 +318,22 @@
 <span id="318">318</span>
 <span id="319">319</span>
 <span id="320">320</span>
+<span id="321">321</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Deserialization support for the `application/x-www-form-urlencoded` format.</span>
 
+<span class="kw">use</span> <a class="ident" href="../../form_urlencoded/fn.parse.html">form_urlencoded::parse</a>;
+<span class="kw">use</span> <a class="ident" href="../../form_urlencoded/struct.Parse.html">form_urlencoded::Parse</a> <span class="kw">as</span> <span class="ident">UrlEncodedParse</span>;
 <span class="kw">use</span> <a class="ident" href="../../serde/de/value/struct.MapDeserializer.html">serde::de::value::MapDeserializer</a>;
 <span class="kw">use</span> <a class="ident" href="../../serde/de/trait.Error.html">serde::de::Error</a> <span class="kw">as</span> <span class="ident">de_Error</span>;
 <span class="kw">use</span> <span class="ident">serde::de</span>::{<a class="self" href="../../serde/de/index.html">self</a>, <a class="ident" href="../../serde/de/trait.IntoDeserializer.html">IntoDeserializer</a>};
+<span class="kw">use</span> <span class="ident">serde::forward_to_deserialize_any</span>;
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/borrow/enum.Cow.html">std::borrow::Cow</a>;
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">std::io::Read</a>;
-<span class="kw">use</span> <a class="ident" href="../../form_urlencoded/fn.parse.html">url::form_urlencoded::parse</a>;
-<span class="kw">use</span> <a class="ident" href="../../form_urlencoded/struct.Parse.html">url::form_urlencoded::Parse</a> <span class="kw">as</span> <span class="ident">UrlEncodedParse</span>;
 
 <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">inline</span>)]</span>
 <span class="kw">pub</span> <span class="kw">use</span> <a class="ident" href="../../serde_urlencoded/de/struct.Error.html">serde::de::value::Error</a>;
 
-<span class="doccomment">/// Deserializes a `application/x-wwww-url-encoded` value from a `&amp;[u8]`.</span>
+<span class="doccomment">/// Deserializes a `application/x-www-form-urlencoded` value from a `&amp;[u8]`.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// ```</span>
 <span class="doccomment">/// let meal = vec![</span>
@@ -350,10 +352,10 @@
 <span class="kw">where</span>
     <span class="ident">T</span>: <span class="ident">de::Deserialize</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span>,
 {
-    <span class="ident">T::deserialize</span>(<span class="ident">Deserializer::new</span>(<a class="ident" href="../../form_urlencoded/fn.parse.html">parse</a>(<a class="ident" href="../../src/serde_urlencoded/de.rs.html#29">input</a>)))
+    <span class="ident">T::deserialize</span>(<span class="ident">Deserializer::new</span>(<a class="ident" href="../../form_urlencoded/fn.parse.html">parse</a>(<a class="ident" href="../../src/serde_urlencoded/de.rs.html#30">input</a>)))
 }
 
-<span class="doccomment">/// Deserializes a `application/x-wwww-url-encoded` value from a `&amp;str`.</span>
+<span class="doccomment">/// Deserializes a `application/x-www-form-urlencoded` value from a `&amp;str`.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// ```</span>
 <span class="doccomment">/// let meal = vec![</span>
@@ -372,7 +374,7 @@
 <span class="kw">where</span>
     <span class="ident">T</span>: <span class="ident">de::Deserialize</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span>,
 {
-    <a class="ident" href="../../src/serde_urlencoded/de.rs.html#29-31">from_bytes</a>(<a class="ident" href="../../src/serde_urlencoded/de.rs.html#51">input</a>.<span class="ident">as_bytes</span>())
+    <a class="ident" href="../../src/serde_urlencoded/de.rs.html#30-32">from_bytes</a>(<a class="ident" href="../../src/serde_urlencoded/de.rs.html#52">input</a>.<span class="ident">as_bytes</span>())
 }
 
 <span class="doccomment">/// Convenience function that reads all bytes from `reader` and deserializes</span>
@@ -383,10 +385,10 @@
     <span class="ident">R</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a>,
 {
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> <span class="macro">vec!</span>[];
-    <a class="ident" href="../../src/serde_urlencoded/de.rs.html#60">reader</a>.<span class="ident">read_to_end</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../src/serde_urlencoded/de.rs.html#65">buf</a>).<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> {
-        <span class="ident">de::Error::custom</span>(<span class="macro">format_args!</span>(<span class="string">&quot;could not read input: {}&quot;</span>, <a class="ident" href="../../src/serde_urlencoded/de.rs.html#66">e</a>))
+    <a class="ident" href="../../src/serde_urlencoded/de.rs.html#61">reader</a>.<span class="ident">read_to_end</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../src/serde_urlencoded/de.rs.html#66">buf</a>).<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> {
+        <span class="ident">de::Error::custom</span>(<span class="macro">format_args!</span>(<span class="string">&quot;could not read input: {}&quot;</span>, <a class="ident" href="../../src/serde_urlencoded/de.rs.html#67">e</a>))
     })<span class="question-mark">?</span>;
-    <a class="ident" href="../../src/serde_urlencoded/de.rs.html#29-31">from_bytes</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/serde_urlencoded/de.rs.html#65">buf</a>)
+    <a class="ident" href="../../src/serde_urlencoded/de.rs.html#30-32">from_bytes</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/serde_urlencoded/de.rs.html#66">buf</a>)
 }
 
 <span class="doccomment">/// A deserializer for the `application/x-www-form-urlencoded` format.</span>
@@ -405,8 +407,8 @@
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> <span class="ident">Deserializer</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> {
     <span class="doccomment">/// Returns a new `Deserializer`.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">parser</span>: <span class="ident">UrlEncodedParse</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
-        <a class="ident" href="../../src/serde_urlencoded/de.rs.html#81-83">Deserializer</a> {
-            <span class="ident">inner</span>: <span class="ident">MapDeserializer::new</span>(<a class="ident" href="../../src/serde_urlencoded/de.rs.html#155">PartIterator</a>(<a class="ident" href="../../src/serde_urlencoded/de.rs.html#87">parser</a>)),
+        <a class="ident" href="../../src/serde_urlencoded/de.rs.html#82-84">Deserializer</a> {
+            <span class="ident">inner</span>: <span class="ident">MapDeserializer::new</span>(<a class="ident" href="../../src/serde_urlencoded/de.rs.html#156">PartIterator</a>(<a class="ident" href="../../src/serde_urlencoded/de.rs.html#88">parser</a>)),
         }
     }
 }
@@ -418,29 +420,29 @@
     <span class="kw">where</span>
         <span class="ident">V</span>: <span class="ident">de::Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span>,
     {
-        <a class="self" href="../../src/serde_urlencoded/de.rs.html#97">self</a>.<span class="ident">deserialize_map</span>(<a class="ident" href="../../src/serde_urlencoded/de.rs.html#97">visitor</a>)
+        <a class="self" href="../../src/serde_urlencoded/de.rs.html#98">self</a>.<span class="ident">deserialize_map</span>(<a class="ident" href="../../src/serde_urlencoded/de.rs.html#98">visitor</a>)
     }
 
     <span class="kw">fn</span> <span class="ident">deserialize_map</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">visitor</span>: <span class="ident">V</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">V::Value</span>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">V</span>: <span class="ident">de::Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span>,
     {
-        <a class="ident" href="../../src/serde_urlencoded/de.rs.html#104">visitor</a>.<span class="ident">visit_map</span>(<a class="self" href="../../src/serde_urlencoded/de.rs.html#104">self</a>.<span class="ident">inner</span>)
+        <a class="ident" href="../../src/serde_urlencoded/de.rs.html#105">visitor</a>.<span class="ident">visit_map</span>(<a class="self" href="../../src/serde_urlencoded/de.rs.html#105">self</a>.<span class="ident">inner</span>)
     }
 
     <span class="kw">fn</span> <span class="ident">deserialize_seq</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">visitor</span>: <span class="ident">V</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">V::Value</span>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">V</span>: <span class="ident">de::Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span>,
     {
-        <a class="ident" href="../../src/serde_urlencoded/de.rs.html#111">visitor</a>.<span class="ident">visit_seq</span>(<a class="self" href="../../src/serde_urlencoded/de.rs.html#111">self</a>.<span class="ident">inner</span>)
+        <a class="ident" href="../../src/serde_urlencoded/de.rs.html#112">visitor</a>.<span class="ident">visit_seq</span>(<a class="self" href="../../src/serde_urlencoded/de.rs.html#112">self</a>.<span class="ident">inner</span>)
     }
 
     <span class="kw">fn</span> <span class="ident">deserialize_unit</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">visitor</span>: <span class="ident">V</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">V::Value</span>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">V</span>: <span class="ident">de::Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span>,
     {
-        <a class="self" href="../../src/serde_urlencoded/de.rs.html#118">self</a>.<span class="ident">inner</span>.<span class="ident">end</span>()<span class="question-mark">?</span>;
-        <a class="ident" href="../../src/serde_urlencoded/de.rs.html#118">visitor</a>.<span class="ident">visit_unit</span>()
+        <a class="self" href="../../src/serde_urlencoded/de.rs.html#119">self</a>.<span class="ident">inner</span>.<span class="ident">end</span>()<span class="question-mark">?</span>;
+        <a class="ident" href="../../src/serde_urlencoded/de.rs.html#119">visitor</a>.<span class="ident">visit_unit</span>()
     }
 
     <span class="macro">forward_to_deserialize_any!</span> {
@@ -478,7 +480,7 @@
     <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> (<span class="ident">Part</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span>, <span class="ident">Part</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span>);
 
     <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span> {
-        <a class="self" href="../../src/serde_urlencoded/de.rs.html#160">self</a>.<span class="number">0</span>.<span class="ident">next</span>().<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">k</span>, <span class="ident">v</span>)<span class="op">|</span> (<a class="ident" href="../../src/serde_urlencoded/de.rs.html#165">Part</a>(<a class="ident" href="../../src/serde_urlencoded/de.rs.html#161">k</a>), <a class="ident" href="../../src/serde_urlencoded/de.rs.html#165">Part</a>(<a class="ident" href="../../src/serde_urlencoded/de.rs.html#161">v</a>)))
+        <a class="self" href="../../src/serde_urlencoded/de.rs.html#161">self</a>.<span class="number">0</span>.<span class="ident">next</span>().<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">k</span>, <span class="ident">v</span>)<span class="op">|</span> (<a class="ident" href="../../src/serde_urlencoded/de.rs.html#166">Part</a>(<a class="ident" href="../../src/serde_urlencoded/de.rs.html#162">k</a>), <a class="ident" href="../../src/serde_urlencoded/de.rs.html#166">Part</a>(<a class="ident" href="../../src/serde_urlencoded/de.rs.html#162">v</a>)))
     }
 }
 
@@ -488,7 +490,7 @@
     <span class="kw">type</span> <span class="ident">Deserializer</span> <span class="op">=</span> <span class="self">Self</span>;
 
     <span class="kw">fn</span> <span class="ident">into_deserializer</span>(<span class="self">self</span>) -&gt; <span class="ident"><span class="self">Self</span>::Deserializer</span> {
-        <a class="self" href="../../src/serde_urlencoded/de.rs.html#170">self</a>
+        <a class="self" href="../../src/serde_urlencoded/de.rs.html#171">self</a>
     }
 }
 
@@ -514,9 +516,9 @@
     <span class="kw">where</span>
         <span class="ident">V</span>: <span class="ident">de::Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span>,
     {
-        <span class="kw">match</span> <a class="self" href="../../src/serde_urlencoded/de.rs.html#193">self</a>.<span class="number">0</span> {
-            <span class="ident">Cow::Borrowed</span>(<span class="ident">value</span>) =&gt; <a class="ident" href="../../src/serde_urlencoded/de.rs.html#193">visitor</a>.<span class="ident">visit_borrowed_str</span>(<a class="ident" href="../../src/serde_urlencoded/de.rs.html#198">value</a>),
-            <span class="ident">Cow::Owned</span>(<span class="ident">value</span>) =&gt; <a class="ident" href="../../src/serde_urlencoded/de.rs.html#193">visitor</a>.<span class="ident">visit_string</span>(<a class="ident" href="../../src/serde_urlencoded/de.rs.html#199">value</a>),
+        <span class="kw">match</span> <a class="self" href="../../src/serde_urlencoded/de.rs.html#194">self</a>.<span class="number">0</span> {
+            <span class="ident">Cow::Borrowed</span>(<span class="ident">value</span>) =&gt; <a class="ident" href="../../src/serde_urlencoded/de.rs.html#194">visitor</a>.<span class="ident">visit_borrowed_str</span>(<a class="ident" href="../../src/serde_urlencoded/de.rs.html#199">value</a>),
+            <span class="ident">Cow::Owned</span>(<span class="ident">value</span>) =&gt; <a class="ident" href="../../src/serde_urlencoded/de.rs.html#194">visitor</a>.<span class="ident">visit_string</span>(<a class="ident" href="../../src/serde_urlencoded/de.rs.html#200">value</a>),
         }
     }
 
@@ -524,7 +526,7 @@
     <span class="kw">where</span>
         <span class="ident">V</span>: <span class="ident">de::Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span>,
     {
-        <a class="ident" href="../../src/serde_urlencoded/de.rs.html#203">visitor</a>.<span class="ident">visit_some</span>(<a class="self" href="../../src/serde_urlencoded/de.rs.html#203">self</a>)
+        <a class="ident" href="../../src/serde_urlencoded/de.rs.html#204">visitor</a>.<span class="ident">visit_some</span>(<a class="self" href="../../src/serde_urlencoded/de.rs.html#204">self</a>)
     }
 
     <span class="kw">fn</span> <span class="ident">deserialize_enum</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span>(
@@ -536,7 +538,7 @@
     <span class="kw">where</span>
         <span class="ident">V</span>: <span class="ident">de::Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span>,
     {
-        <a class="ident" href="../../src/serde_urlencoded/de.rs.html#214">visitor</a>.<span class="ident">visit_enum</span>(<a class="ident" href="../../src/serde_urlencoded/de.rs.html#265">ValueEnumAccess</a>(<a class="self" href="../../src/serde_urlencoded/de.rs.html#211">self</a>.<span class="number">0</span>))
+        <a class="ident" href="../../src/serde_urlencoded/de.rs.html#215">visitor</a>.<span class="ident">visit_enum</span>(<a class="ident" href="../../src/serde_urlencoded/de.rs.html#266">ValueEnumAccess</a>(<a class="self" href="../../src/serde_urlencoded/de.rs.html#212">self</a>.<span class="number">0</span>))
     }
 
     <span class="kw">fn</span> <span class="ident">deserialize_newtype_struct</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span>(
@@ -547,7 +549,7 @@
     <span class="kw">where</span>
         <span class="ident">V</span>: <span class="ident">de::Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span>,
     {
-        <a class="ident" href="../../src/serde_urlencoded/de.rs.html#225">visitor</a>.<span class="ident">visit_newtype_struct</span>(<a class="self" href="../../src/serde_urlencoded/de.rs.html#223">self</a>)
+        <a class="ident" href="../../src/serde_urlencoded/de.rs.html#226">visitor</a>.<span class="ident">visit_newtype_struct</span>(<a class="self" href="../../src/serde_urlencoded/de.rs.html#224">self</a>)
     }
 
     <span class="macro">forward_to_deserialize_any!</span> {
@@ -586,7 +588,7 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> <span class="ident">de::EnumAccess</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">ValueEnumAccess</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> {
     <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <a class="ident" href="../../serde_urlencoded/de/struct.Error.html">Error</a>;
-    <span class="kw">type</span> <span class="ident">Variant</span> <span class="op">=</span> <a class="ident" href="../../src/serde_urlencoded/de.rs.html#283">UnitOnlyVariantAccess</a>;
+    <span class="kw">type</span> <span class="ident">Variant</span> <span class="op">=</span> <a class="ident" href="../../src/serde_urlencoded/de.rs.html#284">UnitOnlyVariantAccess</a>;
 
     <span class="kw">fn</span> <span class="ident">variant_seed</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span>(
         <span class="self">self</span>,
@@ -595,14 +597,14 @@
     <span class="kw">where</span>
         <span class="ident">V</span>: <span class="ident">de::DeserializeSeed</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span>,
     {
-        <span class="kw">let</span> <span class="ident">variant</span> <span class="op">=</span> <a class="ident" href="../../src/serde_urlencoded/de.rs.html#273">seed</a>.<span class="ident">deserialize</span>(<a class="self" href="../../src/serde_urlencoded/de.rs.html#272">self</a>.<span class="number">0</span>.<span class="ident">into_deserializer</span>())<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>((<a class="ident" href="../../src/serde_urlencoded/de.rs.html#278">variant</a>, <a class="ident" href="../../src/serde_urlencoded/de.rs.html#283">UnitOnlyVariantAccess</a>))
+        <span class="kw">let</span> <span class="ident">variant</span> <span class="op">=</span> <a class="ident" href="../../src/serde_urlencoded/de.rs.html#274">seed</a>.<span class="ident">deserialize</span>(<a class="self" href="../../src/serde_urlencoded/de.rs.html#273">self</a>.<span class="number">0</span>.<span class="ident">into_deserializer</span>())<span class="question-mark">?</span>;
+        <span class="prelude-val">Ok</span>((<a class="ident" href="../../src/serde_urlencoded/de.rs.html#279">variant</a>, <a class="ident" href="../../src/serde_urlencoded/de.rs.html#284">UnitOnlyVariantAccess</a>))
     }
 }
 
 <span class="kw">struct</span> <span class="ident">UnitOnlyVariantAccess</span>;
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> <span class="ident">de::VariantAccess</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../src/serde_urlencoded/de.rs.html#283">UnitOnlyVariantAccess</a> {
+<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> <span class="ident">de::VariantAccess</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../src/serde_urlencoded/de.rs.html#284">UnitOnlyVariantAccess</a> {
     <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <a class="ident" href="../../serde_urlencoded/de/struct.Error.html">Error</a>;
 
     <span class="kw">fn</span> <span class="ident">unit_variant</span>(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {

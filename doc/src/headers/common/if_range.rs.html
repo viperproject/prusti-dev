@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;headers-0.2.3&#x2F;src&#x2F;common&#x2F;if_range.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>if_range.rs - source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../headers/index.html'><div class='logo-container rust-logo'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;headers-0.3.5&#x2F;src&#x2F;common&#x2F;if_range.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>if_range.rs - source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../headers/index.html'><div class='logo-container rust-logo'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -118,11 +118,25 @@
 <span id="118">118</span>
 <span id="119">119</span>
 <span id="120">120</span>
+<span id="121">121</span>
+<span id="122">122</span>
+<span id="123">123</span>
+<span id="124">124</span>
+<span id="125">125</span>
+<span id="126">126</span>
+<span id="127">127</span>
+<span id="128">128</span>
+<span id="129">129</span>
+<span id="130">130</span>
+<span id="131">131</span>
+<span id="132">132</span>
+<span id="133">133</span>
+<span id="134">134</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/time/struct.SystemTime.html">std::time::SystemTime</a>;
 
-<span class="kw">use</span> <a class="ident" href="../../../http/header/value/struct.HeaderValue.html">::HeaderValue</a>;
-<span class="kw">use</span> <span class="ident">util</span>::{<a class="ident" href="../../../src/headers/util/entity.rs.html#36">EntityTag</a>, <a class="ident" href="../../../src/headers/util/http_date.rs.html#35">HttpDate</a>};
-<span class="kw">use</span> <span class="kw">super</span>::{<a class="ident" href="../../../src/headers/common/last_modified.rs.html#34">LastModified</a>, <a class="ident" href="../../../src/headers/common/etag.rs.html#30">ETag</a>};
+<span class="kw">use</span> <span class="kw">super</span>::{<a class="ident" href="../../../src/headers/common/etag.rs.html#34">ETag</a>, <a class="ident" href="../../../src/headers/common/last_modified.rs.html#34">LastModified</a>};
+<span class="kw">use</span> <span class="ident">util</span>::{<a class="ident" href="../../../src/headers/util/entity.rs.html#37">EntityTag</a>, <a class="ident" href="../../../src/headers/util/http_date.rs.html#35">HttpDate</a>};
+<span class="kw">use</span> <a class="ident" href="../../../http/header/value/struct.HeaderValue.html">HeaderValue</a>;
 
 <span class="doccomment">/// `If-Range` header, defined in [RFC7233](http://tools.ietf.org/html/rfc7233#section-3.2)</span>
 <span class="doccomment">///</span>
@@ -170,7 +184,7 @@
 
 <span class="kw">impl</span> <a class="ident" href="../../../src/headers/common/if_range.rs.html#44">IfRange</a> {
     <span class="doccomment">/// Create an `IfRange` header with an entity tag.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">etag</span>(<span class="ident">tag</span>: <a class="ident" href="../../../src/headers/common/etag.rs.html#30">ETag</a>) -&gt; <a class="ident" href="../../../src/headers/common/if_range.rs.html#44">IfRange</a> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">etag</span>(<span class="ident">tag</span>: <a class="ident" href="../../../src/headers/common/etag.rs.html#34">ETag</a>) -&gt; <a class="ident" href="../../../src/headers/common/if_range.rs.html#44">IfRange</a> {
         <a class="ident" href="../../../src/headers/common/if_range.rs.html#44">IfRange</a>(<a class="ident" href="../../../src/headers/common/if_range.rs.html#75">IfRange_::EntityTag</a>(<a class="ident" href="../../../src/headers/common/if_range.rs.html#53">tag</a>.<span class="number">0</span>))
     }
 
@@ -181,10 +195,10 @@
 
     <span class="doccomment">/// Checks if the resource has been modified, or if the range request</span>
     <span class="doccomment">/// can be served.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_modified</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">_etag</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><a class="ident" href="../../../src/headers/common/etag.rs.html#30">ETag</a><span class="op">&gt;</span>, <span class="ident">last_modified</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><a class="ident" href="../../../src/headers/common/last_modified.rs.html#34">LastModified</a><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_modified</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">etag</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><a class="ident" href="../../../src/headers/common/etag.rs.html#34">ETag</a><span class="op">&gt;</span>, <span class="ident">last_modified</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><a class="ident" href="../../../src/headers/common/last_modified.rs.html#34">LastModified</a><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
         <span class="kw">match</span> <a class="self" href="../../../src/headers/common/if_range.rs.html#64">self</a>.<span class="number">0</span> {
             <a class="ident" href="../../../src/headers/common/if_range.rs.html#77">IfRange_::Date</a>(<span class="ident">since</span>) =&gt; <a class="ident" href="../../../src/headers/common/if_range.rs.html#64">last_modified</a>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">time</span><span class="op">|</span> <a class="ident" href="../../../src/headers/common/if_range.rs.html#66">since</a> <span class="op">&lt;</span> <a class="ident" href="../../../src/headers/common/if_range.rs.html#66">time</a>.<span class="number">0</span>).<span class="ident">unwrap_or</span>(<span class="bool-val">true</span>),
-            <a class="ident" href="../../../src/headers/common/if_range.rs.html#75">IfRange_::EntityTag</a>(<span class="kw">_</span>) =&gt; <span class="bool-val">true</span>,
+            <a class="ident" href="../../../src/headers/common/if_range.rs.html#75">IfRange_::EntityTag</a>(<span class="kw-2">ref</span> <span class="ident">entity</span>) =&gt; <a class="ident" href="../../../src/headers/common/if_range.rs.html#64">etag</a>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">etag</span><span class="op">|</span> <span class="op">!</span><a class="ident" href="../../../src/headers/common/if_range.rs.html#67">etag</a>.<span class="number">0</span>.<a class="ident" href="../../../src/headers/util/entity.rs.html#68-70">strong_eq</a>(<a class="ident" href="../../../src/headers/common/if_range.rs.html#67">entity</a>)).<span class="ident">unwrap_or</span>(<span class="bool-val">true</span>),
         }
     }
 }
@@ -192,12 +206,12 @@
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">PartialEq</span>)]</span>
 <span class="kw">enum</span> <span class="ident">IfRange_</span> {
     <span class="doccomment">/// The entity-tag the client has of the resource</span>
-    <span class="ident">EntityTag</span>(<a class="ident" href="../../../src/headers/util/entity.rs.html#36">EntityTag</a>),
+    <span class="ident">EntityTag</span>(<a class="ident" href="../../../src/headers/util/entity.rs.html#37">EntityTag</a>),
     <span class="doccomment">/// The date when the client retrieved the resource</span>
     <span class="ident">Date</span>(<a class="ident" href="../../../src/headers/util/http_date.rs.html#35">HttpDate</a>),
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../src/headers/util/mod.rs.html#78-84">::util::TryFromValues</a> <span class="kw">for</span> <a class="ident" href="../../../src/headers/common/if_range.rs.html#73-78">IfRange_</a> {
+<span class="kw">impl</span> <a class="ident" href="../../../src/headers/util/mod.rs.html#72-78">::util::TryFromValues</a> <span class="kw">for</span> <a class="ident" href="../../../src/headers/common/if_range.rs.html#73-78">IfRange_</a> {
     <span class="kw">fn</span> <span class="ident">try_from_values</span><span class="op">&lt;</span><span class="lifetime">&#39;i</span>, <span class="ident">I</span><span class="op">&gt;</span>(<span class="ident">values</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">I</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <a class="ident" href="../../../headers/struct.Error.html">::Error</a><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">I</span>: <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;i</span> <a class="ident" href="../../../http/header/value/struct.HeaderValue.html">HeaderValue</a><span class="op">&gt;</span>,
@@ -225,8 +239,6 @@
     }
 }
 
-
-
 <span class="comment">/*
 #[cfg(test)]
 mod tests {
@@ -238,6 +250,22 @@ mod tests {
     test_header!(test3, vec![b&quot;this-is-invalid&quot;], None::&lt;IfRange&gt;);
 }
 */</span>
+
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
+<span class="kw">mod</span> <span class="ident">tests</span> {
+    <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
+
+    <span class="attribute">#[<span class="ident">test</span>]</span>
+    <span class="kw">fn</span> <span class="ident">test_is_modified_etag</span>() {
+        <span class="kw">let</span> <span class="ident">etag</span> <span class="op">=</span> <span class="ident">ETag::from_static</span>(<span class="string">&quot;\&quot;xyzzy\&quot;&quot;</span>);
+        <span class="kw">let</span> <span class="ident">if_range</span> <span class="op">=</span> <span class="ident">IfRange::etag</span>(<span class="ident">etag</span>.<span class="ident">clone</span>());
+
+        <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">if_range</span>.<span class="ident">is_modified</span>(<span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="ident">etag</span>), <span class="prelude-val">None</span>));
+
+        <span class="kw">let</span> <span class="ident">etag</span> <span class="op">=</span> <span class="ident">ETag::from_static</span>(<span class="string">&quot;W/\&quot;xyzzy\&quot;&quot;</span>);
+        <span class="macro">assert!</span>(<span class="ident">if_range</span>.<span class="ident">is_modified</span>(<span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="ident">etag</span>), <span class="prelude-val">None</span>));
+    }
+}
 </code></pre></div>
 </section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="headers" data-search-index-js="../../../search-index.js" data-search-js="../../../search.js"></div>
     <script src="../../../main.js"></script><script src="../../../source-script.js"></script><script src="../../../source-files.js"></script>
