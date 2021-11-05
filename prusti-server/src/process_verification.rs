@@ -11,17 +11,17 @@ use std::{fs::create_dir_all, path::PathBuf};
 use viper::{VerificationBackend, VerificationContext};
 
 pub fn process_verification_request<'v, 't: 'v>(
-    viper_thread: &'v VerificationContext<'t>,
+    verification_context: &'v VerificationContext<'t>,
     request: VerificationRequest,
 ) -> viper::VerificationResult {
-    let ast_utils = viper_thread.new_ast_utils();
+    let ast_utils = verification_context.new_ast_utils();
     ast_utils.with_local_frame(16, || {
         // Create a new verifier each time.
         // Workaround for https://github.com/viperproject/prusti-dev/issues/744
         let mut stopwatch = Stopwatch::start("prusti-server", "verifier startup");
-        let verifier = new_viper_verifier(&viper_thread, request.backend_config);
+        let verifier = new_viper_verifier(verification_context, request.backend_config);
         stopwatch.start_next("construction of JVM objects");
-        let ast_factory = viper_thread.new_ast_factory();
+        let ast_factory = verification_context.new_ast_factory();
         let viper_program = request.program.to_viper(&ast_factory);
         if config::dump_viper_program() {
             stopwatch.start_next("dumping viper program");
@@ -40,7 +40,7 @@ fn dump_program(ast_utils: &viper::AstUtils, program: viper::Program, program_na
 }
 
 fn new_viper_verifier<'v, 't: 'v>(
-    viper_thread: &'v viper::VerificationContext<'t>,
+    verification_context: &'v viper::VerificationContext<'t>,
     backend_config: ViperBackendConfig,
 ) -> viper::Verifier<'v> {
     let mut verifier_args: Vec<String> = backend_config.verifier_args;
@@ -70,5 +70,5 @@ fn new_viper_verifier<'v, 't: 'v>(
         }
     }
 
-    viper_thread.new_verifier_with_args(backend_config.backend, verifier_args, report_path)
+    verification_context.new_verifier_with_args(backend_config.backend, verifier_args, report_path)
 }
