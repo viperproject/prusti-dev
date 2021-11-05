@@ -150,7 +150,7 @@ impl NameGenerator {
 
     pub(crate) fn generate_mod_name(&self, ident: &syn::Ident) -> String {
         let uuid = Uuid::new_v4().to_simple();
-        format!("{}_{}", ident.to_string(), uuid)
+        format!("{}_{}", ident, uuid)
     }
 }
 
