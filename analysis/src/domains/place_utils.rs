@@ -8,11 +8,11 @@
 //! copied from prusti-interface/utils
 
 use log::trace;
+use rustc_data_structures::fx::FxHashSet;
 use rustc_middle::{
     mir,
     ty::{self, TyCtxt},
 };
-use std::collections::HashSet;
 
 /// Check if the place `potential_prefix` is a prefix of `place`. For example:
 ///
@@ -171,14 +171,14 @@ pub(crate) fn expand<'tcx>(
 pub(crate) fn collapse<'tcx>(
     mir: &mir::Body<'tcx>,
     tcx: TyCtxt<'tcx>,
-    places: &mut HashSet<mir::Place<'tcx>>,
+    places: &mut FxHashSet<mir::Place<'tcx>>,
     guide_place: &mir::Place<'tcx>,
 ) {
     let guide_place = *guide_place;
     fn recurse<'tcx>(
         mir: &mir::Body<'tcx>,
         tcx: TyCtxt<'tcx>,
-        places: &mut HashSet<mir::Place<'tcx>>,
+        places: &mut FxHashSet<mir::Place<'tcx>>,
         current_place: mir::Place<'tcx>,
         guide_place: mir::Place<'tcx>,
     ) {

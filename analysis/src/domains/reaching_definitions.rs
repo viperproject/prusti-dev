@@ -10,13 +10,14 @@ use crate::{
 };
 use rustc_data_structures::{
     fingerprint::Fingerprint,
+    fx::{FxHashMap, FxHashSet},
     stable_hasher::{HashStable, StableHasher},
 };
 use rustc_middle::{mir, ty::TyCtxt};
 use rustc_span::def_id::DefId;
 use serde::{ser::SerializeMap, Serialize, Serializer};
 use std::{
-    collections::{BTreeMap, BTreeSet, HashMap, HashSet},
+    collections::{BTreeMap, BTreeSet},
     fmt,
 };
 
@@ -34,7 +35,7 @@ pub struct ReachingDefsAnalysis<'mir, 'tcx: 'mir> {
 #[derive(Clone)]
 pub struct ReachingDefsState<'mir, 'tcx: 'mir> {
     // Local -> Location OR index of function parameter
-    reaching_defs: HashMap<mir::Local, HashSet<DefLocation>>,
+    reaching_defs: FxHashMap<mir::Local, FxHashSet<DefLocation>>,
     mir: &'mir mir::Body<'tcx>, // just for context
     tcx: TyCtxt<'tcx>,
 }
@@ -69,17 +70,19 @@ impl<'mir, 'tcx: 'mir> Analysis<'mir, 'tcx> for ReachingDefsAnalysis<'mir, 'tcx>
     /// For a completely new bottom element we do not even insert any locals with sets into the map.
     fn new_bottom(&self) -> Self::State {
         ReachingDefsState {
-            reaching_defs: HashMap::new(),
+            reaching_defs: FxHashMap::default(),
             mir: self.mir,
             tcx: self.tcx,
         }
     }
 
     fn new_initial(&self) -> Self::State {
-        let mut reaching_defs: HashMap<mir::Local, HashSet<DefLocation>> = HashMap::new();
+        let mut reaching_defs: FxHashMap<mir::Local, FxHashSet<DefLocation>> = FxHashMap::default();
         // insert parameters
         for (idx, local) in self.mir.args_iter().enumerate() {
-            let location_set = reaching_defs.entry(local).or_insert_with(HashSet::new);
+            let location_set = reaching_defs
+                .entry(local)
+                .or_insert_with(FxHashSet::default);
             location_set.insert(DefLocation::Parameter(idx));
         }
         ReachingDefsState {
@@ -175,7 +178,10 @@ impl<'mir, 'tcx: 'mir> ReachingDefsState<'mir, 'tcx> {
         let stmt = &self.mir[location.block].statements[location.statement_index];
         if let mir::StatementKind::Assign(box (ref target, _)) = stmt.kind {
             if let Some(local) = target.as_local() {
-                let location_set = self.reaching_defs.entry(local).or_insert_with(HashSet::new);
+                let location_set = self
+                    .reaching_defs
+                    .entry(local)
+                    .or_insert_with(FxHashSet::default);
                 location_set.clear();
                 location_set.insert(DefLocation::Assignment(location));
             }
@@ -202,7 +208,7 @@ impl<'mir, 'tcx: 'mir> ReachingDefsState<'mir, 'tcx> {
                         let location_set = dest_state
                             .reaching_defs
                             .entry(local)
-                            .or_insert_with(HashSet::new);
+                            .or_insert_with(FxHashSet::default);
                         location_set.clear();
                         location_set.insert(DefLocation::Assignment(location));
                     }
@@ -218,7 +224,7 @@ impl<'mir, 'tcx: 'mir> ReachingDefsState<'mir, 'tcx> {
                             let location_set = cleanup_state
                                 .reaching_defs
                                 .entry(local)
-                                .or_insert_with(HashSet::new);
+                                .or_insert_with(FxHashSet::default);
                             location_set.insert(DefLocation::Assignment(location));
                         }
                     }
@@ -250,7 +256,7 @@ impl<'mir, 'tcx: 'mir> AbstractState for ReachingDefsState<'mir, 'tcx> {
             let location_set = self
                 .reaching_defs
                 .entry(*local)
-                .or_insert_with(HashSet::new);
+                .or_insert_with(FxHashSet::default);
             location_set.extend(other_locations);
         }
     }
