@@ -37,7 +37,7 @@ mod verifier;
 use arg_value::arg_value;
 use callbacks::PrustiCompilerCalls;
 use lazy_static::lazy_static;
-use log::info;
+use log::{info, warn};
 use prusti_common::{config, report::user};
 use rustc_interface::interface::try_print_query_stack;
 use std::{borrow::Cow, env, panic, path::PathBuf};
@@ -147,6 +147,8 @@ fn main() {
     // be called.
     let mut rustc_args = Vec::new();
     let mut is_codegen = false;
+    let mut contains_edition = false;
+    let mut only_print = false;
     for arg in original_rustc_args {
         if arg == "--codegen" || arg == "-C" {
             is_codegen = true;
@@ -158,8 +160,21 @@ fn main() {
                 rustc_args.push("-C".to_owned());
                 is_codegen = false;
             }
+            if arg == "--edition=2018" || arg == "--edition=2021" {
+                contains_edition = true;
+            }
+            if arg.starts_with("--print=") {
+                only_print = true;
+            }
             rustc_args.push(arg);
         }
+    }
+    if !contains_edition && !only_print {
+        warn!(
+            "Specifications are supported only from 2018 edition. Please specify \
+               the edition with adding a command line argument `--edition=2018` or \
+               `--edition=2021`."
+        );
     }
 
     let exit_code = rustc_driver::catch_with_exit_code(move || {
