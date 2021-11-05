@@ -63,7 +63,8 @@ where
         backend_config: Default::default(),
     };
 
-    Builder::new_current_thread()
+    Builder::new()
+        .basic_scheduler()
         .enable_all()
         .build()
         .expect("failed to construct Tokio runtime")

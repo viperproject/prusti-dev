@@ -399,7 +399,8 @@ fn verify_programs(env: &Environment, programs: Vec<vir::Program>)
         // Here we construct a Tokio runtime to block until completion of the futures returned by
         // `client.verify`. However, to report verification errors as early as possible,
         // `verify_programs` should return an asynchronous stream of verification results.
-        let runtime = Builder::new_current_thread()
+        let mut runtime = Builder::new()
+            .basic_scheduler()
             .thread_name("prusti-viper")
             .enable_all()
             .build()
