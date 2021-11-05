@@ -220,24 +220,57 @@ pub fn generate_new_struct(item: &syn::ItemImpl) -> syn::Result<syn::ItemStruct>
                                        item.span());
 
     let mut new_struct: syn::ItemStruct = parse_quote_spanned! {item.span()=>
-        struct #struct_ident {}
+        #[allow(non_camel_case_types)] struct #struct_ident {}
     };
 
     new_struct.generics = item.generics.clone();
     let generics = &new_struct.generics;
 
-    let mut fields_str: String = String::new();
+    let mut fields = vec![];
 
     // Add `PhantomData` markers for each type parameter to silence errors
     // about unused type parameters.
     for param in generics.params.iter() {
-        let field = format!("core::marker::PhantomData<{}>,", param.to_token_stream().to_string());
-        fields_str.push_str(&field);
+        let field: ParsableUnnamedField = match param {
+            syn::GenericParam::Type(tp) => {
+                let ident = tp.ident.clone();
+                syn::parse_quote!{ ::core::marker::PhantomData<#ident> }
+            }
+            syn::GenericParam::Lifetime(ld) => {
+                let ident = ld.lifetime.clone();
+                syn::parse_quote!{ &#ident ::core::marker::PhantomData<()> }
+            }
+            syn::GenericParam::Const(_cp) => continue,
+        };
+        // Unwrap the `ParsableUnnamedField` and push. See below.
+        fields.push(field.0);
     }
 
-    let fields : syn::FieldsUnnamed =
-        syn::parse_str(&format!("({})", fields_str)).unwrap();
-
-    new_struct.fields = syn::Fields::Unnamed(fields);
+    new_struct.fields = syn::Fields::Unnamed( syn::parse_quote!{ ( #(#fields),* ) } );
     Ok(new_struct)
+}
+
+/// The `syn::Field` doesn't implement `syn::parse::Parse` directly since it can do
+/// both `parse_unnamed` and `parse_named`. This is a wrapper to tell `parse_quote`
+/// to use `parse_unnamed` when parsing. https://github.com/dtolnay/syn/issues/651
+struct ParsableUnnamedField(syn::Field);
+impl syn::parse::Parse for ParsableUnnamedField {
+    fn parse(input: syn::parse::ParseStream<'_>) -> syn::parse::Result<Self> {
+        Ok(ParsableUnnamedField( syn::Field::parse_unnamed(input)? ))
+    }
+}
+
+/// We take the Generics (parameters) defined with the `#[extern_spec] impl<...>` (the `<...>`)
+/// but then need to pass those as arguments: `SomeStruct<...>`. This function translates from
+/// the syntax of one to the other; e.g. `<T: Bound, 'l: Bound, const C: usize>` -> `<T, 'l, C>`
+pub fn rewrite_generics(gens: &syn::Generics) -> syn::AngleBracketedGenericArguments {
+    let args: Vec<syn::GenericArgument> = gens.params.clone().iter().map(|gp| {
+        let ts = match gp {
+            syn::GenericParam::Type(syn::TypeParam { ident, .. }) |
+            syn::GenericParam::Const(syn::ConstParam { ident, .. }) => ident.into_token_stream(),
+            syn::GenericParam::Lifetime(ld) => ld.lifetime.clone().into_token_stream(),
+        };
+        syn::parse2::<syn::GenericArgument>(ts).unwrap()
+    }).collect();
+    syn::parse_quote!{ < #(#args),* > }
 }

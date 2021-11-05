@@ -145,12 +145,12 @@ impl NameGenerator {
         };
         let uuid = Uuid::new_v4().to_simple();
 
-        Ok(format!("PrustiStruct{}{}", path_str, uuid))
+        Ok(format!("PrustiStruct{}_{}", path_str, uuid))
     }
 
     pub(crate) fn generate_mod_name(&self, ident: &syn::Ident) -> String {
         let uuid = Uuid::new_v4().to_simple();
-        format!("{}{}", ident.to_string(), uuid)
+        format!("{}_{}", ident.to_string(), uuid)
     }
 }
 
