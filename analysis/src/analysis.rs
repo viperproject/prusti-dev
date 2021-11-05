@@ -6,12 +6,10 @@
 
 use crate::{analysis_error::AnalysisError::SuccessorWithoutState, AbstractState};
 pub use crate::{domains::*, AnalysisError, PointwiseState};
+use rustc_data_structures::fx::FxHashMap;
 use rustc_middle::mir;
 use rustc_span::def_id::DefId;
-use std::{
-    collections::{BTreeSet, HashMap},
-    iter::FromIterator,
-};
+use std::{collections::BTreeSet, iter::FromIterator};
 
 pub type AnalysisResult<T> = std::result::Result<T, AnalysisError>;
 
@@ -67,8 +65,8 @@ pub trait Analysis<'mir, 'tcx: 'mir> {
         let mut work_set: BTreeSet<mir::BasicBlock> =
             BTreeSet::from_iter(mir.basic_blocks().indices());
 
-        let mut counters: HashMap<mir::BasicBlock, u32> =
-            HashMap::with_capacity(mir.basic_blocks().len());
+        let mut counters: FxHashMap<mir::BasicBlock, u32> =
+            FxHashMap::with_capacity_and_hasher(mir.basic_blocks().len(), Default::default());
 
         //'block_loop:
         // extract the bb with the minimal index -> hopefully better performance
@@ -138,7 +136,7 @@ pub trait Analysis<'mir, 'tcx: 'mir> {
 
             let next_states = self.apply_terminator_effect(&current_state, location)?;
 
-            let mut new_map: HashMap<mir::BasicBlock, Self::State> = HashMap::new();
+            let mut new_map: FxHashMap<mir::BasicBlock, Self::State> = FxHashMap::default();
             for (next_bb, state) in next_states {
                 if let Some(s) = new_map.get_mut(&next_bb) {
                     // join states with same destination for Map
