@@ -42,8 +42,8 @@ pub fn spawn_server_thread() -> SocketAddr {
             move |address| sender.send(address).unwrap(),
         );
     });
-    let address = receiver.recv().unwrap();
-    address
+    // Return the address received by the server thread.
+    receiver.recv().unwrap()
 }
 
 fn listen_on_port_with_address_callback<F>(port: u16, address_callback: F) -> !
