@@ -27,8 +27,7 @@ fn concurrent_verifier_initialization() {
 
             for _ in 0..num_threads {
                 handlers.push(thread::spawn(move || {
-                    let verification_context: VerificationContext =
-                        VIPER.new_verification_context();
+                    let verification_context: VerificationContext = VIPER.attach_current_thread();
 
                     let ast = verification_context.new_ast_factory();
 
