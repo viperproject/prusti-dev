@@ -72,7 +72,7 @@ fn simple_assert_false() {
  --> src/main.rs:1:13
   |
 1 | fn main() { assert!(false); }
-  |             ^^^^^^^^^^^^^^^
+  |             ^^^^^^^^^^^^^^
   |
   = note: this error originates in the macro `assert` (in Nightly builds, run with -Z macro-backtrace for more info)
 
