@@ -449,10 +449,10 @@ pub fn extern_spec(_attr: TokenStream, tokens:TokenStream) -> TokenStream {
             );
 
             let struct_ident = &new_struct.ident;
-            let generics = &new_struct.generics;
+            let generic_args = extern_spec_rewriter::rewrite_generics(&new_struct.generics);
 
             let struct_ty: syn::Type = parse_quote_spanned! {item_span=>
-                #struct_ident #generics
+                #struct_ident #generic_args
             };
 
             let rewritten_item = handle_result!(
