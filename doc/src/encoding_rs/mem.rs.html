@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;encoding_rs-0.8.29&#x2F;src&#x2F;mem.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mem.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../encoding_rs/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">   1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;encoding_rs-0.8.29&#x2F;src&#x2F;mem.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mem.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../encoding_rs/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">   1</span>
 <span id="2">   2</span>
 <span id="3">   3</span>
 <span id="4">   4</span>
@@ -3476,17 +3476,17 @@
                     <span class="kw">if</span> <span class="ident">offset</span> <span class="op">+</span> (<span class="number">4</span> <span class="op">*</span> (<span class="ident">ALU_ALIGNMENT</span> <span class="op">/</span> <span class="ident">unit_size</span>)) <span class="op">&lt;</span><span class="op">=</span> <span class="ident">len</span> {
                         <span class="kw">let</span> <span class="ident">len_minus_unroll</span> <span class="op">=</span> <span class="ident">len</span> <span class="op">-</span> (<span class="number">4</span> <span class="op">*</span> (<span class="ident">ALU_ALIGNMENT</span> <span class="op">/</span> <span class="ident">unit_size</span>));
                         <span class="kw">loop</span> {
-                            <span class="kw">let</span> <span class="ident">unroll_accu</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw-2">*</span>(<span class="ident">src</span>.<span class="ident">add</span>(<span class="ident">offset</span>) <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">usize</span>) }
+                            <span class="kw">let</span> <span class="ident">unroll_accu</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw-2">*</span>(<span class="ident">src</span>.<span class="ident">add</span>(<span class="ident">offset</span>) <span class="kw">as</span> <span class="kw-2">*const</span> <span class="ident">usize</span>) }
                                 <span class="op">|</span> <span class="kw">unsafe</span> {
-                                    <span class="kw-2">*</span>(<span class="ident">src</span>.<span class="ident">add</span>(<span class="ident">offset</span> <span class="op">+</span> (<span class="ident">ALU_ALIGNMENT</span> <span class="op">/</span> <span class="ident">unit_size</span>)) <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">usize</span>)
+                                    <span class="kw-2">*</span>(<span class="ident">src</span>.<span class="ident">add</span>(<span class="ident">offset</span> <span class="op">+</span> (<span class="ident">ALU_ALIGNMENT</span> <span class="op">/</span> <span class="ident">unit_size</span>)) <span class="kw">as</span> <span class="kw-2">*const</span> <span class="ident">usize</span>)
                                 }
                                 <span class="op">|</span> <span class="kw">unsafe</span> {
                                     <span class="kw-2">*</span>(<span class="ident">src</span>.<span class="ident">add</span>(<span class="ident">offset</span> <span class="op">+</span> (<span class="number">2</span> <span class="op">*</span> (<span class="ident">ALU_ALIGNMENT</span> <span class="op">/</span> <span class="ident">unit_size</span>)))
-                                        <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">usize</span>)
+                                        <span class="kw">as</span> <span class="kw-2">*const</span> <span class="ident">usize</span>)
                                 }
                                 <span class="op">|</span> <span class="kw">unsafe</span> {
                                     <span class="kw-2">*</span>(<span class="ident">src</span>.<span class="ident">add</span>(<span class="ident">offset</span> <span class="op">+</span> (<span class="number">3</span> <span class="op">*</span> (<span class="ident">ALU_ALIGNMENT</span> <span class="op">/</span> <span class="ident">unit_size</span>)))
-                                        <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">usize</span>)
+                                        <span class="kw">as</span> <span class="kw-2">*const</span> <span class="ident">usize</span>)
                                 };
                             <span class="kw">if</span> <span class="ident">unroll_accu</span> <span class="op">&amp;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">mask</span> <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {
                                 <span class="kw">return</span> <span class="bool-val">false</span>;
@@ -3498,7 +3498,7 @@
                         }
                     }
                     <span class="kw">while</span> <span class="ident">offset</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">len_minus_stride</span> {
-                        <span class="ident">accu</span> <span class="op">|</span><span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw-2">*</span>(<span class="ident">src</span>.<span class="ident">add</span>(<span class="ident">offset</span>) <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">usize</span>) };
+                        <span class="ident">accu</span> <span class="op">|</span><span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw-2">*</span>(<span class="ident">src</span>.<span class="ident">add</span>(<span class="ident">offset</span>) <span class="kw">as</span> <span class="kw-2">*const</span> <span class="ident">usize</span>) };
                         <span class="ident">offset</span> <span class="op">+</span><span class="op">=</span> <span class="ident">ALU_ALIGNMENT</span> <span class="op">/</span> <span class="ident">unit_size</span>;
                     }
                 }
@@ -3549,18 +3549,18 @@
                     <span class="kw">if</span> <span class="ident">offset</span> <span class="op">+</span> (<span class="number">4</span> <span class="op">*</span> (<span class="ident">SIMD_STRIDE_SIZE</span> <span class="op">/</span> <span class="ident">unit_size</span>)) <span class="op">&lt;</span><span class="op">=</span> <span class="ident">len</span> {
                         <span class="kw">let</span> <span class="ident">len_minus_unroll</span> <span class="op">=</span> <span class="ident">len</span> <span class="op">-</span> (<span class="number">4</span> <span class="op">*</span> (<span class="ident">SIMD_STRIDE_SIZE</span> <span class="op">/</span> <span class="ident">unit_size</span>));
                         <span class="kw">loop</span> {
-                            <span class="kw">let</span> <span class="ident">unroll_accu</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw-2">*</span>(<span class="ident">src</span>.<span class="ident">add</span>(<span class="ident">offset</span>) <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">simd_ty</span>) }
+                            <span class="kw">let</span> <span class="ident">unroll_accu</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw-2">*</span>(<span class="ident">src</span>.<span class="ident">add</span>(<span class="ident">offset</span>) <span class="kw">as</span> <span class="kw-2">*const</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">simd_ty</span>) }
                                 <span class="op">|</span> <span class="kw">unsafe</span> {
                                     <span class="kw-2">*</span>(<span class="ident">src</span>.<span class="ident">add</span>(<span class="ident">offset</span> <span class="op">+</span> (<span class="ident">SIMD_STRIDE_SIZE</span> <span class="op">/</span> <span class="ident">unit_size</span>))
-                                        <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">simd_ty</span>)
+                                        <span class="kw">as</span> <span class="kw-2">*const</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">simd_ty</span>)
                                 }
                                 <span class="op">|</span> <span class="kw">unsafe</span> {
                                     <span class="kw-2">*</span>(<span class="ident">src</span>.<span class="ident">add</span>(<span class="ident">offset</span> <span class="op">+</span> (<span class="number">2</span> <span class="op">*</span> (<span class="ident">SIMD_STRIDE_SIZE</span> <span class="op">/</span> <span class="ident">unit_size</span>)))
-                                        <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">simd_ty</span>)
+                                        <span class="kw">as</span> <span class="kw-2">*const</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">simd_ty</span>)
                                 }
                                 <span class="op">|</span> <span class="kw">unsafe</span> {
                                     <span class="kw-2">*</span>(<span class="ident">src</span>.<span class="ident">add</span>(<span class="ident">offset</span> <span class="op">+</span> (<span class="number">3</span> <span class="op">*</span> (<span class="ident">SIMD_STRIDE_SIZE</span> <span class="op">/</span> <span class="ident">unit_size</span>)))
-                                        <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">simd_ty</span>)
+                                        <span class="kw">as</span> <span class="kw-2">*const</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">simd_ty</span>)
                                 };
                             <span class="kw">if</span> <span class="op">!</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">func</span>(<span class="ident">unroll_accu</span>) {
                                 <span class="kw">return</span> <span class="bool-val">false</span>;
@@ -3573,7 +3573,7 @@
                     }
                     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">simd_accu</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">splat</span>;
                     <span class="kw">while</span> <span class="ident">offset</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">len_minus_stride</span> {
-                        <span class="ident">simd_accu</span> <span class="op">=</span> <span class="ident">simd_accu</span> <span class="op">|</span> <span class="kw">unsafe</span> { <span class="kw-2">*</span>(<span class="ident">src</span>.<span class="ident">add</span>(<span class="ident">offset</span>) <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">simd_ty</span>) };
+                        <span class="ident">simd_accu</span> <span class="op">=</span> <span class="ident">simd_accu</span> <span class="op">|</span> <span class="kw">unsafe</span> { <span class="kw-2">*</span>(<span class="ident">src</span>.<span class="ident">add</span>(<span class="ident">offset</span>) <span class="kw">as</span> <span class="kw-2">*const</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">simd_ty</span>) };
                         <span class="ident">offset</span> <span class="op">+</span><span class="op">=</span> <span class="ident">SIMD_STRIDE_SIZE</span> <span class="op">/</span> <span class="ident">unit_size</span>;
                     }
                     <span class="kw">if</span> <span class="op">!</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">func</span>(<span class="ident">simd_accu</span>) {
@@ -3639,7 +3639,7 @@
                 <span class="kw">let</span> <span class="ident">len_minus_stride</span> <span class="op">=</span> <span class="ident">len</span> <span class="op">-</span> <span class="ident">SIMD_STRIDE_SIZE</span> <span class="op">/</span> <span class="ident">unit_size</span>;
                 <span class="kw">loop</span> {
                     <span class="kw">let</span> <span class="ident">offset_plus_stride</span> <span class="op">=</span> <span class="ident">offset</span> <span class="op">+</span> <span class="ident">SIMD_STRIDE_SIZE</span> <span class="op">/</span> <span class="ident">unit_size</span>;
-                    <span class="kw">if</span> <span class="ident">contains_surrogates</span>(<span class="kw">unsafe</span> { <span class="kw-2">*</span>(<span class="ident">src</span>.<span class="ident">add</span>(<span class="ident">offset</span>) <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">u16x8</span>) }) {
+                    <span class="kw">if</span> <span class="ident">contains_surrogates</span>(<span class="kw">unsafe</span> { <span class="kw-2">*</span>(<span class="ident">src</span>.<span class="ident">add</span>(<span class="ident">offset</span>) <span class="kw">as</span> <span class="kw-2">*const</span> <span class="ident">u16x8</span>) }) {
                         <span class="kw">if</span> <span class="ident">offset_plus_stride</span> <span class="op">==</span> <span class="ident">len</span> {
                             <span class="kw">break</span> <span class="lifetime">&#39;outer</span>;
                         }
@@ -3742,7 +3742,7 @@
                     }
                     <span class="kw">let</span> <span class="ident">len_minus_stride</span> <span class="op">=</span> <span class="ident">len</span> <span class="op">-</span> <span class="ident">SIMD_STRIDE_SIZE</span>;
                     <span class="kw">loop</span> {
-                        <span class="kw">if</span> <span class="op">!</span><span class="ident">simd_is_str_latin1</span>(<span class="kw">unsafe</span> { <span class="kw-2">*</span>(<span class="ident">src</span>.<span class="ident">add</span>(<span class="ident">offset</span>) <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">u8x16</span>) }) {
+                        <span class="kw">if</span> <span class="op">!</span><span class="ident">simd_is_str_latin1</span>(<span class="kw">unsafe</span> { <span class="kw-2">*</span>(<span class="ident">src</span>.<span class="ident">add</span>(<span class="ident">offset</span>) <span class="kw">as</span> <span class="kw-2">*const</span> <span class="ident">u8x16</span>) }) {
                             <span class="comment">// TODO: Ensure this compiles away when inlined into `is_str_latin1()`.</span>
                             <span class="kw">while</span> <span class="ident">bytes</span>[<span class="ident">offset</span>] <span class="op">&amp;</span> <span class="number">0xC0</span> <span class="op">==</span> <span class="number">0x80</span> {
                                 <span class="ident">offset</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
@@ -3830,7 +3830,7 @@
                     }
                     <span class="kw">let</span> <span class="ident">len_minus_stride</span> <span class="op">=</span> <span class="ident">len</span> <span class="op">-</span> (<span class="ident">SIMD_STRIDE_SIZE</span> <span class="op">/</span> <span class="number">2</span>);
                     <span class="kw">loop</span> {
-                        <span class="kw">if</span> <span class="ident">is_u16x8_bidi</span>(<span class="kw">unsafe</span> { <span class="kw-2">*</span>(<span class="ident">src</span>.<span class="ident">add</span>(<span class="ident">offset</span>) <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">u16x8</span>) }) {
+                        <span class="kw">if</span> <span class="ident">is_u16x8_bidi</span>(<span class="kw">unsafe</span> { <span class="kw-2">*</span>(<span class="ident">src</span>.<span class="ident">add</span>(<span class="ident">offset</span>) <span class="kw">as</span> <span class="kw-2">*const</span> <span class="ident">u16x8</span>) }) {
                             <span class="kw">return</span> <span class="bool-val">true</span>;
                         }
                         <span class="ident">offset</span> <span class="op">+</span><span class="op">=</span> <span class="ident">SIMD_STRIDE_SIZE</span> <span class="op">/</span> <span class="number">2</span>;
@@ -3885,7 +3885,7 @@
                     }
                     <span class="kw">let</span> <span class="ident">len_minus_stride</span> <span class="op">=</span> <span class="ident">len</span> <span class="op">-</span> (<span class="ident">SIMD_STRIDE_SIZE</span> <span class="op">/</span> <span class="number">2</span>);
                     <span class="kw">loop</span> {
-                        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">s</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw-2">*</span>(<span class="ident">src</span>.<span class="ident">add</span>(<span class="ident">offset</span>) <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">u16x8</span>) };
+                        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">s</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw-2">*</span>(<span class="ident">src</span>.<span class="ident">add</span>(<span class="ident">offset</span>) <span class="kw">as</span> <span class="kw-2">*const</span> <span class="ident">u16x8</span>) };
                         <span class="kw">if</span> <span class="op">!</span><span class="ident">simd_is_latin1</span>(<span class="ident">s</span>) {
                             <span class="kw">loop</span> {
                                 <span class="kw">if</span> <span class="ident">is_u16x8_bidi</span>(<span class="ident">s</span>) {
@@ -3900,7 +3900,7 @@
                                     }
                                     <span class="kw">return</span> <span class="ident">Latin1Bidi::LeftToRight</span>;
                                 }
-                                <span class="ident">s</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw-2">*</span>(<span class="ident">src</span>.<span class="ident">add</span>(<span class="ident">offset</span>) <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">u16x8</span>) };
+                                <span class="ident">s</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw-2">*</span>(<span class="ident">src</span>.<span class="ident">add</span>(<span class="ident">offset</span>) <span class="kw">as</span> <span class="kw-2">*const</span> <span class="ident">u16x8</span>) };
                             }
                         }
                         <span class="ident">offset</span> <span class="op">+</span><span class="op">=</span> <span class="ident">SIMD_STRIDE_SIZE</span> <span class="op">/</span> <span class="number">2</span>;
@@ -3954,7 +3954,7 @@
                     }
                     <span class="kw">let</span> <span class="ident">len_minus_stride</span> <span class="op">=</span> <a class="ident" href="../../src/encoding_rs/mem.rs.html#583">len</a> <span class="op">-</span> <a class="ident" href="../../src/encoding_rs/ascii.rs.html#1007">ALU_ALIGNMENT</a> <span class="op">/</span> <span class="number">2</span>;
                     <span class="kw">loop</span> {
-                        <span class="kw">if</span> <span class="kw">unsafe</span> { <span class="kw-2">*</span>(<a class="ident" href="../../src/encoding_rs/mem.rs.html#585">src</a>.<span class="ident">add</span>(<a class="ident" href="../../src/encoding_rs/mem.rs.html#582">offset</a>) <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>) } <span class="op">&amp;</span> <a class="ident" href="../../src/encoding_rs/mem.rs.html#83">LATIN1_MASK</a> <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {
+                        <span class="kw">if</span> <span class="kw">unsafe</span> { <span class="kw-2">*</span>(<a class="ident" href="../../src/encoding_rs/mem.rs.html#585">src</a>.<span class="ident">add</span>(<a class="ident" href="../../src/encoding_rs/mem.rs.html#582">offset</a>) <span class="kw">as</span> <span class="kw-2">*const</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>) } <span class="op">&amp;</span> <a class="ident" href="../../src/encoding_rs/mem.rs.html#83">LATIN1_MASK</a> <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {
                             <span class="kw">if</span> <a class="ident" href="../../src/encoding_rs/mem.rs.html#496">is_utf16_bidi_impl</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/encoding_rs/mem.rs.html#581">buffer</a>[<a class="ident" href="../../src/encoding_rs/mem.rs.html#582">offset</a>..]) {
                                 <span class="kw">return</span> <a class="ident" href="../../src/encoding_rs/mem.rs.html#78">Latin1Bidi::Bidi</a>;
                             }
@@ -4831,7 +4831,7 @@
 <span class="doccomment">/// # Panics</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// Panics if the destination buffer is shorter than stated above.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">convert_utf8_to_utf16</span>(<span class="ident">src</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>], <span class="ident">dst</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u16.html">u16</a>]) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">convert_utf8_to_utf16</span>(<span class="ident">src</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>], <span class="ident">dst</span>: <span class="kw-2">&amp;mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u16.html">u16</a>]) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a> {
     <span class="comment">// TODO: Can the requirement for dst to be at least one unit longer</span>
     <span class="comment">// be eliminated?</span>
     <span class="macro">assert!</span>(<a class="ident" href="../../src/encoding_rs/mem.rs.html#1478">dst</a>.<span class="ident">len</span>() <span class="op">&gt;</span> <a class="ident" href="../../src/encoding_rs/mem.rs.html#1478">src</a>.<span class="ident">len</span>());
@@ -4840,7 +4840,7 @@
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">total_written</span> <span class="op">=</span> <span class="number">0usize</span>;
     <span class="kw">loop</span> {
         <span class="kw">let</span> (<span class="ident">result</span>, <span class="ident">read</span>, <span class="ident">written</span>) <span class="op">=</span>
-            <a class="ident" href="../../src/encoding_rs/mem.rs.html#1482">decoder</a>.<a class="ident" href="../../src/encoding_rs/utf_8.rs.html#500-605">decode_to_utf16_raw</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/encoding_rs/mem.rs.html#1478">src</a>[<a class="ident" href="../../src/encoding_rs/mem.rs.html#1483">total_read</a>..], <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../src/encoding_rs/mem.rs.html#1478">dst</a>[<a class="ident" href="../../src/encoding_rs/mem.rs.html#1484">total_written</a>..], <span class="bool-val">true</span>);
+            <a class="ident" href="../../src/encoding_rs/mem.rs.html#1482">decoder</a>.<a class="ident" href="../../src/encoding_rs/utf_8.rs.html#500-605">decode_to_utf16_raw</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/encoding_rs/mem.rs.html#1478">src</a>[<a class="ident" href="../../src/encoding_rs/mem.rs.html#1483">total_read</a>..], <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/encoding_rs/mem.rs.html#1478">dst</a>[<a class="ident" href="../../src/encoding_rs/mem.rs.html#1484">total_written</a>..], <span class="bool-val">true</span>);
         <a class="ident" href="../../src/encoding_rs/mem.rs.html#1483">total_read</a> <span class="op">+</span><span class="op">=</span> <a class="ident" href="../../src/encoding_rs/mem.rs.html#1486">read</a>;
         <a class="ident" href="../../src/encoding_rs/mem.rs.html#1484">total_written</a> <span class="op">+</span><span class="op">=</span> <a class="ident" href="../../src/encoding_rs/mem.rs.html#1486">written</a>;
         <span class="kw">match</span> <a class="ident" href="../../src/encoding_rs/mem.rs.html#1486">result</a> {
@@ -4870,7 +4870,7 @@
 <span class="doccomment">/// # Panics</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// Panics if the destination buffer is shorter than stated above.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">convert_str_to_utf16</span>(<span class="ident">src</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.str.html">str</a>, <span class="ident">dst</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u16.html">u16</a>]) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">convert_str_to_utf16</span>(<span class="ident">src</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.str.html">str</a>, <span class="ident">dst</span>: <span class="kw-2">&amp;mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u16.html">u16</a>]) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a> {
     <span class="macro">assert!</span>(
         <a class="ident" href="../../src/encoding_rs/mem.rs.html#1517">dst</a>.<span class="ident">len</span>() <span class="op">&gt;</span><span class="op">=</span> <a class="ident" href="../../src/encoding_rs/mem.rs.html#1517">src</a>.<span class="ident">len</span>(),
         <span class="string">&quot;Destination must not be shorter than the source.&quot;</span>
@@ -4881,7 +4881,7 @@
     <span class="lifetime">&#39;outer</span>: <span class="kw">loop</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">byte</span> <span class="op">=</span> {
             <span class="kw">let</span> <span class="ident">src_remaining</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="ident" href="../../src/encoding_rs/mem.rs.html#1522">bytes</a>[<a class="ident" href="../../src/encoding_rs/mem.rs.html#1523">read</a>..];
-            <span class="kw">let</span> <span class="ident">dst_remaining</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../src/encoding_rs/mem.rs.html#1517">dst</a>[<a class="ident" href="../../src/encoding_rs/mem.rs.html#1524">written</a>..];
+            <span class="kw">let</span> <span class="ident">dst_remaining</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/encoding_rs/mem.rs.html#1517">dst</a>[<a class="ident" href="../../src/encoding_rs/mem.rs.html#1524">written</a>..];
             <span class="kw">let</span> <span class="ident">length</span> <span class="op">=</span> <a class="ident" href="../../src/encoding_rs/mem.rs.html#1527">src_remaining</a>.<span class="ident">len</span>();
             <span class="kw">match</span> <span class="kw">unsafe</span> {
                 <a class="ident" href="../../src/encoding_rs/ascii.rs.html#1483">ascii_to_basic_latin</a>(<a class="ident" href="../../src/encoding_rs/mem.rs.html#1527">src_remaining</a>.<span class="ident">as_ptr</span>(), <a class="ident" href="../../src/encoding_rs/mem.rs.html#1528">dst_remaining</a>.<span class="ident">as_mut_ptr</span>(), <a class="ident" href="../../src/encoding_rs/mem.rs.html#1529">length</a>)
@@ -4969,7 +4969,7 @@
 <span class="doccomment">/// # Panics</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// Panics if the destination buffer is shorter than stated above.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">convert_utf8_to_utf16_without_replacement</span>(<span class="ident">src</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>], <span class="ident">dst</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u16.html">u16</a>]) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a><span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">convert_utf8_to_utf16_without_replacement</span>(<span class="ident">src</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>], <span class="ident">dst</span>: <span class="kw-2">&amp;mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u16.html">u16</a>]) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a><span class="op">&gt;</span> {
     <span class="macro">assert!</span>(
         <a class="ident" href="../../src/encoding_rs/mem.rs.html#1616">dst</a>.<span class="ident">len</span>() <span class="op">&gt;</span><span class="op">=</span> <a class="ident" href="../../src/encoding_rs/mem.rs.html#1616">src</a>.<span class="ident">len</span>(),
         <span class="string">&quot;Destination must not be shorter than the source.&quot;</span>
@@ -5007,7 +5007,7 @@
 <span class="doccomment">/// `convert_utf16_to_str_partial()` instead of using this function</span>
 <span class="doccomment">/// together with the `unsafe` method `as_bytes_mut()` on `&amp;mut str`.</span>
 <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">convert_utf16_to_utf8_partial</span>(<span class="ident">src</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u16.html">u16</a>], <span class="ident">dst</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>]) -&gt; (<a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>) {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">convert_utf16_to_utf8_partial</span>(<span class="ident">src</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u16.html">u16</a>], <span class="ident">dst</span>: <span class="kw-2">&amp;mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>]) -&gt; (<a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>) {
     <span class="comment">// The two functions called below are marked `inline(never)` to make</span>
     <span class="comment">// transitions from the hot part (first function) into the cold part</span>
     <span class="comment">// (second function) go through a return and another call to discouge</span>
@@ -5020,7 +5020,7 @@
         <span class="kw">return</span> (<a class="ident" href="../../src/encoding_rs/mem.rs.html#1662">read</a>, <a class="ident" href="../../src/encoding_rs/mem.rs.html#1662">written</a>);
     }
     <span class="kw">let</span> (<span class="ident">tail_read</span>, <span class="ident">tail_written</span>) <span class="op">=</span>
-        <a class="ident" href="../../src/encoding_rs/utf_8.rs.html#749">convert_utf16_to_utf8_partial_tail</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/encoding_rs/mem.rs.html#1654">src</a>[<a class="ident" href="../../src/encoding_rs/mem.rs.html#1662">read</a>..], <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../src/encoding_rs/mem.rs.html#1654">dst</a>[<a class="ident" href="../../src/encoding_rs/mem.rs.html#1662">written</a>..]);
+        <a class="ident" href="../../src/encoding_rs/utf_8.rs.html#749">convert_utf16_to_utf8_partial_tail</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/encoding_rs/mem.rs.html#1654">src</a>[<a class="ident" href="../../src/encoding_rs/mem.rs.html#1662">read</a>..], <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/encoding_rs/mem.rs.html#1654">dst</a>[<a class="ident" href="../../src/encoding_rs/mem.rs.html#1662">written</a>..]);
     (<a class="ident" href="../../src/encoding_rs/mem.rs.html#1662">read</a> <span class="op">+</span> <a class="ident" href="../../src/encoding_rs/mem.rs.html#1666">tail_read</a>, <a class="ident" href="../../src/encoding_rs/mem.rs.html#1662">written</a> <span class="op">+</span> <a class="ident" href="../../src/encoding_rs/mem.rs.html#1666">tail_written</a>)
 }
 
@@ -5042,7 +5042,7 @@
 <span class="doccomment">/// instead of using this function together with the `unsafe` method</span>
 <span class="doccomment">/// `as_bytes_mut()` on `&amp;mut str`.</span>
 <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">convert_utf16_to_utf8</span>(<span class="ident">src</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u16.html">u16</a>], <span class="ident">dst</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>]) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">convert_utf16_to_utf8</span>(<span class="ident">src</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u16.html">u16</a>], <span class="ident">dst</span>: <span class="kw-2">&amp;mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>]) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a> {
     <span class="macro">assert!</span>(<a class="ident" href="../../src/encoding_rs/mem.rs.html#1689">dst</a>.<span class="ident">len</span>() <span class="op">&gt;</span><span class="op">=</span> <a class="ident" href="../../src/encoding_rs/mem.rs.html#1689">src</a>.<span class="ident">len</span>() <span class="op">*</span> <span class="number">3</span>);
     <span class="kw">let</span> (<span class="ident">read</span>, <span class="ident">written</span>) <span class="op">=</span> <a class="ident" href="../../src/encoding_rs/mem.rs.html#1654">convert_utf16_to_utf8_partial</a>(<a class="ident" href="../../src/encoding_rs/mem.rs.html#1689">src</a>, <a class="ident" href="../../src/encoding_rs/mem.rs.html#1689">dst</a>);
     <span class="macro">debug_assert_eq!</span>(<a class="ident" href="../../src/encoding_rs/mem.rs.html#1691">read</a>, <a class="ident" href="../../src/encoding_rs/mem.rs.html#1689">src</a>.<span class="ident">len</span>());
@@ -5062,8 +5062,8 @@
 <span class="doccomment">/// not allocating memory for the worst case up front. Specifically,</span>
 <span class="doccomment">/// if the input starts with or ends with an unpaired surrogate, those are</span>
 <span class="doccomment">/// replaced with the REPLACEMENT CHARACTER.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">convert_utf16_to_str_partial</span>(<span class="ident">src</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u16.html">u16</a>], <span class="ident">dst</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.str.html">str</a>) -&gt; (<a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>) {
-    <span class="kw">let</span> <span class="ident">bytes</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>] <span class="op">=</span> <span class="kw">unsafe</span> { <a class="ident" href="../../src/encoding_rs/mem.rs.html#1709">dst</a>.<span class="ident">as_bytes_mut</span>() };
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">convert_utf16_to_str_partial</span>(<span class="ident">src</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u16.html">u16</a>], <span class="ident">dst</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.str.html">str</a>) -&gt; (<a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>) {
+    <span class="kw">let</span> <span class="ident">bytes</span>: <span class="kw-2">&amp;mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>] <span class="op">=</span> <span class="kw">unsafe</span> { <a class="ident" href="../../src/encoding_rs/mem.rs.html#1709">dst</a>.<span class="ident">as_bytes_mut</span>() };
     <span class="kw">let</span> (<span class="ident">read</span>, <span class="ident">written</span>) <span class="op">=</span> <a class="ident" href="../../src/encoding_rs/mem.rs.html#1654">convert_utf16_to_utf8_partial</a>(<a class="ident" href="../../src/encoding_rs/mem.rs.html#1709">src</a>, <a class="ident" href="../../src/encoding_rs/mem.rs.html#1710">bytes</a>);
     <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <a class="ident" href="../../src/encoding_rs/mem.rs.html#1710">bytes</a>.<span class="ident">len</span>();
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">trail</span> <span class="op">=</span> <a class="ident" href="../../src/encoding_rs/mem.rs.html#1711">written</a>;
@@ -5087,7 +5087,7 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// Panics if the destination buffer is shorter than stated above.</span>
 <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">convert_utf16_to_str</span>(<span class="ident">src</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u16.html">u16</a>], <span class="ident">dst</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.str.html">str</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">convert_utf16_to_str</span>(<span class="ident">src</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u16.html">u16</a>], <span class="ident">dst</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.str.html">str</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a> {
     <span class="macro">assert!</span>(<a class="ident" href="../../src/encoding_rs/mem.rs.html#1734">dst</a>.<span class="ident">len</span>() <span class="op">&gt;</span><span class="op">=</span> <a class="ident" href="../../src/encoding_rs/mem.rs.html#1734">src</a>.<span class="ident">len</span>() <span class="op">*</span> <span class="number">3</span>);
     <span class="kw">let</span> (<span class="ident">read</span>, <span class="ident">written</span>) <span class="op">=</span> <a class="ident" href="../../src/encoding_rs/mem.rs.html#1709">convert_utf16_to_str_partial</a>(<a class="ident" href="../../src/encoding_rs/mem.rs.html#1734">src</a>, <a class="ident" href="../../src/encoding_rs/mem.rs.html#1734">dst</a>);
     <span class="macro">debug_assert_eq!</span>(<a class="ident" href="../../src/encoding_rs/mem.rs.html#1736">read</a>, <a class="ident" href="../../src/encoding_rs/mem.rs.html#1734">src</a>.<span class="ident">len</span>());
@@ -5105,7 +5105,7 @@
 <span class="doccomment">/// # Panics</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// Panics if the destination buffer is shorter than stated above.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">convert_latin1_to_utf16</span>(<span class="ident">src</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>], <span class="ident">dst</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u16.html">u16</a>]) {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">convert_latin1_to_utf16</span>(<span class="ident">src</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>], <span class="ident">dst</span>: <span class="kw-2">&amp;mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u16.html">u16</a>]) {
     <span class="macro">assert!</span>(
         <a class="ident" href="../../src/encoding_rs/mem.rs.html#1752">dst</a>.<span class="ident">len</span>() <span class="op">&gt;</span><span class="op">=</span> <a class="ident" href="../../src/encoding_rs/mem.rs.html#1752">src</a>.<span class="ident">len</span>(),
         <span class="string">&quot;Destination must not be shorter than the source.&quot;</span>
@@ -5131,7 +5131,7 @@
 <span class="doccomment">/// If you want to convert into a `&amp;mut str`, use</span>
 <span class="doccomment">/// `convert_utf16_to_str_partial()` instead of using this function</span>
 <span class="doccomment">/// together with the `unsafe` method `as_bytes_mut()` on `&amp;mut str`.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">convert_latin1_to_utf8_partial</span>(<span class="ident">src</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>], <span class="ident">dst</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>]) -&gt; (<a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>) {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">convert_latin1_to_utf8_partial</span>(<span class="ident">src</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>], <span class="ident">dst</span>: <span class="kw-2">&amp;mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>]) -&gt; (<a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>) {
     <span class="kw">let</span> <span class="ident">src_len</span> <span class="op">=</span> <a class="ident" href="../../src/encoding_rs/mem.rs.html#1778">src</a>.<span class="ident">len</span>();
     <span class="kw">let</span> <span class="ident">src_ptr</span> <span class="op">=</span> <a class="ident" href="../../src/encoding_rs/mem.rs.html#1778">src</a>.<span class="ident">as_ptr</span>();
     <span class="kw">let</span> <span class="ident">dst_ptr</span> <span class="op">=</span> <a class="ident" href="../../src/encoding_rs/mem.rs.html#1778">dst</a>.<span class="ident">as_mut_ptr</span>();
@@ -5187,7 +5187,7 @@
 <span class="doccomment">/// `&amp;mut [u8]` as the destination is not safe. If you want to convert into</span>
 <span class="doccomment">/// a `&amp;mut str`, use `convert_utf16_to_str()` instead of this function.</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">convert_latin1_to_utf8</span>(<span class="ident">src</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>], <span class="ident">dst</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>]) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">convert_latin1_to_utf8</span>(<span class="ident">src</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>], <span class="ident">dst</span>: <span class="kw-2">&amp;mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>]) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a> {
     <span class="macro">assert!</span>(
         <a class="ident" href="../../src/encoding_rs/mem.rs.html#1834">dst</a>.<span class="ident">len</span>() <span class="op">&gt;</span><span class="op">=</span> <a class="ident" href="../../src/encoding_rs/mem.rs.html#1834">src</a>.<span class="ident">len</span>() <span class="op">*</span> <span class="number">2</span>,
         <span class="string">&quot;Destination must not be shorter than the source times two.&quot;</span>
@@ -5206,8 +5206,8 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// If the output isn&#39;t large enough, not all input is consumed.</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">convert_latin1_to_str_partial</span>(<span class="ident">src</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>], <span class="ident">dst</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.str.html">str</a>) -&gt; (<a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>) {
-    <span class="kw">let</span> <span class="ident">bytes</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>] <span class="op">=</span> <span class="kw">unsafe</span> { <a class="ident" href="../../src/encoding_rs/mem.rs.html#1853">dst</a>.<span class="ident">as_bytes_mut</span>() };
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">convert_latin1_to_str_partial</span>(<span class="ident">src</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>], <span class="ident">dst</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.str.html">str</a>) -&gt; (<a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>) {
+    <span class="kw">let</span> <span class="ident">bytes</span>: <span class="kw-2">&amp;mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>] <span class="op">=</span> <span class="kw">unsafe</span> { <a class="ident" href="../../src/encoding_rs/mem.rs.html#1853">dst</a>.<span class="ident">as_bytes_mut</span>() };
     <span class="kw">let</span> (<span class="ident">read</span>, <span class="ident">written</span>) <span class="op">=</span> <a class="ident" href="../../src/encoding_rs/mem.rs.html#1778">convert_latin1_to_utf8_partial</a>(<a class="ident" href="../../src/encoding_rs/mem.rs.html#1853">src</a>, <a class="ident" href="../../src/encoding_rs/mem.rs.html#1854">bytes</a>);
     <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <a class="ident" href="../../src/encoding_rs/mem.rs.html#1854">bytes</a>.<span class="ident">len</span>();
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">trail</span> <span class="op">=</span> <a class="ident" href="../../src/encoding_rs/mem.rs.html#1855">written</a>;
@@ -5236,7 +5236,7 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// Panics if the destination buffer is shorter than stated above.</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">convert_latin1_to_str</span>(<span class="ident">src</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>], <span class="ident">dst</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.str.html">str</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">convert_latin1_to_str</span>(<span class="ident">src</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>], <span class="ident">dst</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.str.html">str</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a> {
     <span class="macro">assert!</span>(
         <a class="ident" href="../../src/encoding_rs/mem.rs.html#1883">dst</a>.<span class="ident">len</span>() <span class="op">&gt;</span><span class="op">=</span> <a class="ident" href="../../src/encoding_rs/mem.rs.html#1883">src</a>.<span class="ident">len</span>() <span class="op">*</span> <span class="number">2</span>,
         <span class="string">&quot;Destination must not be shorter than the source times two.&quot;</span>
@@ -5269,7 +5269,7 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// If debug assertions are enabled (and not fuzzing) and the input is</span>
 <span class="doccomment">/// not in the range U+0000 to U+00FF, inclusive.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">convert_utf8_to_latin1_lossy</span>(<span class="ident">src</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>], <span class="ident">dst</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>]) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">convert_utf8_to_latin1_lossy</span>(<span class="ident">src</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>], <span class="ident">dst</span>: <span class="kw-2">&amp;mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>]) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a> {
     <span class="macro">assert!</span>(
         <a class="ident" href="../../src/encoding_rs/mem.rs.html#1916">dst</a>.<span class="ident">len</span>() <span class="op">&gt;</span><span class="op">=</span> <a class="ident" href="../../src/encoding_rs/mem.rs.html#1916">src</a>.<span class="ident">len</span>(),
         <span class="string">&quot;Destination must not be shorter than the source.&quot;</span>
@@ -5331,7 +5331,7 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// (Probably in future versions if debug assertions are enabled (and not</span>
 <span class="doccomment">/// fuzzing) and the input is not in the range U+0000 to U+00FF, inclusive.)</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">convert_utf16_to_latin1_lossy</span>(<span class="ident">src</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u16.html">u16</a>], <span class="ident">dst</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>]) {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">convert_utf16_to_latin1_lossy</span>(<span class="ident">src</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u16.html">u16</a>], <span class="ident">dst</span>: <span class="kw-2">&amp;mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>]) {
     <span class="macro">assert!</span>(
         <a class="ident" href="../../src/encoding_rs/mem.rs.html#1978">dst</a>.<span class="ident">len</span>() <span class="op">&gt;</span><span class="op">=</span> <a class="ident" href="../../src/encoding_rs/mem.rs.html#1978">src</a>.<span class="ident">len</span>(),
         <span class="string">&quot;Destination must not be shorter than the source.&quot;</span>
@@ -5364,8 +5364,8 @@
     <span class="kw">unsafe</span> {
         <a class="ident" href="../../src/encoding_rs/mem.rs.html#2007">vec</a>.<span class="ident">set_len</span>(<a class="ident" href="../../src/encoding_rs/mem.rs.html#2006">capacity</a>);
     }
-    (<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../src/encoding_rs/mem.rs.html#2007">vec</a>[..<a class="ident" href="../../src/encoding_rs/mem.rs.html#1998">up_to</a>]).<span class="ident">copy_from_slice</span>(<a class="ident" href="../../src/encoding_rs/mem.rs.html#2005">head</a>);
-    <span class="kw">let</span> <span class="ident">written</span> <span class="op">=</span> <a class="ident" href="../../src/encoding_rs/mem.rs.html#1834">convert_latin1_to_utf8</a>(<a class="ident" href="../../src/encoding_rs/mem.rs.html#2005">tail</a>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../src/encoding_rs/mem.rs.html#2007">vec</a>[<a class="ident" href="../../src/encoding_rs/mem.rs.html#1998">up_to</a>..]);
+    (<span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/encoding_rs/mem.rs.html#2007">vec</a>[..<a class="ident" href="../../src/encoding_rs/mem.rs.html#1998">up_to</a>]).<span class="ident">copy_from_slice</span>(<a class="ident" href="../../src/encoding_rs/mem.rs.html#2005">head</a>);
+    <span class="kw">let</span> <span class="ident">written</span> <span class="op">=</span> <a class="ident" href="../../src/encoding_rs/mem.rs.html#1834">convert_latin1_to_utf8</a>(<a class="ident" href="../../src/encoding_rs/mem.rs.html#2005">tail</a>, <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/encoding_rs/mem.rs.html#2007">vec</a>[<a class="ident" href="../../src/encoding_rs/mem.rs.html#1998">up_to</a>..]);
     <a class="ident" href="../../src/encoding_rs/mem.rs.html#2007">vec</a>.<span class="ident">truncate</span>(<a class="ident" href="../../src/encoding_rs/mem.rs.html#1998">up_to</a> <span class="op">+</span> <a class="ident" href="../../src/encoding_rs/mem.rs.html#2012">written</a>);
     <span class="ident">Cow::Owned</span>(<span class="kw">unsafe</span> { <span class="ident">String::from_utf8_unchecked</span>(<a class="ident" href="../../src/encoding_rs/mem.rs.html#2007">vec</a>) })
 }
@@ -5401,8 +5401,8 @@
     <span class="kw">unsafe</span> {
         <a class="ident" href="../../src/encoding_rs/mem.rs.html#2044">vec</a>.<span class="ident">set_len</span>(<a class="ident" href="../../src/encoding_rs/mem.rs.html#2043">capacity</a>);
     }
-    (<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../src/encoding_rs/mem.rs.html#2044">vec</a>[..<a class="ident" href="../../src/encoding_rs/mem.rs.html#2036">up_to</a>]).<span class="ident">copy_from_slice</span>(<a class="ident" href="../../src/encoding_rs/mem.rs.html#2042">head</a>);
-    <span class="kw">let</span> <span class="ident">written</span> <span class="op">=</span> <a class="ident" href="../../src/encoding_rs/mem.rs.html#1916">convert_utf8_to_latin1_lossy</a>(<a class="ident" href="../../src/encoding_rs/mem.rs.html#2042">tail</a>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../src/encoding_rs/mem.rs.html#2044">vec</a>[<a class="ident" href="../../src/encoding_rs/mem.rs.html#2036">up_to</a>..]);
+    (<span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/encoding_rs/mem.rs.html#2044">vec</a>[..<a class="ident" href="../../src/encoding_rs/mem.rs.html#2036">up_to</a>]).<span class="ident">copy_from_slice</span>(<a class="ident" href="../../src/encoding_rs/mem.rs.html#2042">head</a>);
+    <span class="kw">let</span> <span class="ident">written</span> <span class="op">=</span> <a class="ident" href="../../src/encoding_rs/mem.rs.html#1916">convert_utf8_to_latin1_lossy</a>(<a class="ident" href="../../src/encoding_rs/mem.rs.html#2042">tail</a>, <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/encoding_rs/mem.rs.html#2044">vec</a>[<a class="ident" href="../../src/encoding_rs/mem.rs.html#2036">up_to</a>..]);
     <a class="ident" href="../../src/encoding_rs/mem.rs.html#2044">vec</a>.<span class="ident">truncate</span>(<a class="ident" href="../../src/encoding_rs/mem.rs.html#2036">up_to</a> <span class="op">+</span> <a class="ident" href="../../src/encoding_rs/mem.rs.html#2049">written</a>);
     <span class="ident">Cow::Owned</span>(<a class="ident" href="../../src/encoding_rs/mem.rs.html#2044">vec</a>)
 }
@@ -5428,7 +5428,7 @@
 
 <span class="doccomment">/// Replaces unpaired surrogates in the input with the REPLACEMENT CHARACTER.</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ensure_utf16_validity</span>(<span class="ident">buffer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u16.html">u16</a>]) {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ensure_utf16_validity</span>(<span class="ident">buffer</span>: <span class="kw-2">&amp;mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u16.html">u16</a>]) {
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">offset</span> <span class="op">=</span> <span class="number">0</span>;
     <span class="kw">loop</span> {
         <a class="ident" href="../../src/encoding_rs/mem.rs.html#2076">offset</a> <span class="op">+</span><span class="op">=</span> <a class="ident" href="../../src/encoding_rs/mem.rs.html#2056">utf16_valid_up_to</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/encoding_rs/mem.rs.html#2075">buffer</a>[<a class="ident" href="../../src/encoding_rs/mem.rs.html#2076">offset</a>..]);
@@ -5451,7 +5451,7 @@
 <span class="doccomment">/// # Panics</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// Panics if the destination buffer is shorter than stated above.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">copy_ascii_to_ascii</span>(<span class="ident">src</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>], <span class="ident">dst</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>]) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">copy_ascii_to_ascii</span>(<span class="ident">src</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>], <span class="ident">dst</span>: <span class="kw-2">&amp;mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>]) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a> {
     <span class="macro">assert!</span>(
         <a class="ident" href="../../src/encoding_rs/mem.rs.html#2098">dst</a>.<span class="ident">len</span>() <span class="op">&gt;</span><span class="op">=</span> <a class="ident" href="../../src/encoding_rs/mem.rs.html#2098">src</a>.<span class="ident">len</span>(),
         <span class="string">&quot;Destination must not be shorter than the source.&quot;</span>
@@ -5477,7 +5477,7 @@
 <span class="doccomment">/// # Panics</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// Panics if the destination buffer is shorter than stated above.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">copy_ascii_to_basic_latin</span>(<span class="ident">src</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>], <span class="ident">dst</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u16.html">u16</a>]) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">copy_ascii_to_basic_latin</span>(<span class="ident">src</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>], <span class="ident">dst</span>: <span class="kw-2">&amp;mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u16.html">u16</a>]) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a> {
     <span class="macro">assert!</span>(
         <a class="ident" href="../../src/encoding_rs/mem.rs.html#2124">dst</a>.<span class="ident">len</span>() <span class="op">&gt;</span><span class="op">=</span> <a class="ident" href="../../src/encoding_rs/mem.rs.html#2124">src</a>.<span class="ident">len</span>(),
         <span class="string">&quot;Destination must not be shorter than the source.&quot;</span>
@@ -5503,7 +5503,7 @@
 <span class="doccomment">/// # Panics</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// Panics if the destination buffer is shorter than stated above.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">copy_basic_latin_to_ascii</span>(<span class="ident">src</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u16.html">u16</a>], <span class="ident">dst</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>]) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">copy_basic_latin_to_ascii</span>(<span class="ident">src</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u16.html">u16</a>], <span class="ident">dst</span>: <span class="kw-2">&amp;mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>]) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a> {
     <span class="macro">assert!</span>(
         <a class="ident" href="../../src/encoding_rs/mem.rs.html#2150">dst</a>.<span class="ident">len</span>() <span class="op">&gt;</span><span class="op">=</span> <a class="ident" href="../../src/encoding_rs/mem.rs.html#2150">src</a>.<span class="ident">len</span>(),
         <span class="string">&quot;Destination must not be shorter than the source.&quot;</span>
@@ -5544,7 +5544,7 @@
             <span class="ident">src</span>[<span class="ident">i</span>] <span class="op">=</span> <span class="ident">i</span> <span class="kw">as</span> <span class="ident">u8</span>;
         }
         <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="number">0</span>..<span class="ident">src</span>.<span class="ident">len</span>() {
-            <span class="kw">let</span> <span class="ident">tail</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">src</span>[<span class="ident">i</span>..];
+            <span class="kw">let</span> <span class="ident">tail</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="ident">src</span>[<span class="ident">i</span>..];
             <span class="kw">for</span> <span class="ident">j</span> <span class="kw">in</span> <span class="number">0</span>..<span class="ident">tail</span>.<span class="ident">len</span>() {
                 <span class="ident">tail</span>[<span class="ident">j</span>] <span class="op">=</span> <span class="number">0xA0</span>;
                 <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">is_ascii</span>(<span class="ident">tail</span>));
@@ -5572,7 +5572,7 @@
             <span class="ident">src</span>[<span class="ident">i</span>] <span class="op">=</span> <span class="ident">i</span> <span class="kw">as</span> <span class="ident">u16</span>;
         }
         <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="number">0</span>..<span class="ident">src</span>.<span class="ident">len</span>() {
-            <span class="kw">let</span> <span class="ident">tail</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">src</span>[<span class="ident">i</span>..];
+            <span class="kw">let</span> <span class="ident">tail</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="ident">src</span>[<span class="ident">i</span>..];
             <span class="kw">for</span> <span class="ident">j</span> <span class="kw">in</span> <span class="number">0</span>..<span class="ident">tail</span>.<span class="ident">len</span>() {
                 <span class="ident">tail</span>[<span class="ident">j</span>] <span class="op">=</span> <span class="number">0xA0</span>;
                 <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">is_basic_latin</span>(<span class="ident">tail</span>));
@@ -5605,7 +5605,7 @@
             <span class="ident">src</span>[<span class="ident">i</span>] <span class="op">=</span> <span class="ident">i</span> <span class="kw">as</span> <span class="ident">u16</span>;
         }
         <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="number">0</span>..<span class="ident">src</span>.<span class="ident">len</span>() {
-            <span class="kw">let</span> <span class="ident">tail</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">src</span>[<span class="ident">i</span>..];
+            <span class="kw">let</span> <span class="ident">tail</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="ident">src</span>[<span class="ident">i</span>..];
             <span class="kw">for</span> <span class="ident">j</span> <span class="kw">in</span> <span class="number">0</span>..<span class="ident">tail</span>.<span class="ident">len</span>() {
                 <span class="ident">tail</span>[<span class="ident">j</span>] <span class="op">=</span> <span class="number">0x100</span> <span class="op">+</span> <span class="ident">j</span> <span class="kw">as</span> <span class="ident">u16</span>;
                 <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">is_utf16_latin1</span>(<span class="ident">tail</span>));
@@ -5638,7 +5638,7 @@
             <span class="ident">src</span>[<span class="ident">i</span>] <span class="op">=</span> <span class="ident">i</span> <span class="kw">as</span> <span class="ident">u16</span>;
         }
         <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="number">0</span>..<span class="ident">src</span>.<span class="ident">len</span>() {
-            <span class="kw">let</span> <span class="ident">tail</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">src</span>[<span class="ident">i</span>..];
+            <span class="kw">let</span> <span class="ident">tail</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="ident">src</span>[<span class="ident">i</span>..];
             <span class="kw">for</span> <span class="ident">j</span> <span class="kw">in</span> <span class="number">0</span>..<span class="ident">tail</span>.<span class="ident">len</span>() {
                 <span class="ident">tail</span>[<span class="ident">j</span>] <span class="op">=</span> <span class="number">0x100</span> <span class="op">+</span> <span class="ident">j</span> <span class="kw">as</span> <span class="ident">u16</span>;
                 <span class="kw">let</span> <span class="ident">s</span> <span class="op">=</span> <span class="ident">String::from_utf16</span>(<span class="ident">tail</span>).<span class="ident">unwrap</span>();
@@ -5675,7 +5675,7 @@
             <span class="ident">src</span>[<span class="ident">i</span>] <span class="op">=</span> <span class="ident">i</span> <span class="kw">as</span> <span class="ident">u16</span>;
         }
         <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="number">0</span>..<span class="ident">src</span>.<span class="ident">len</span>() {
-            <span class="kw">let</span> <span class="ident">tail</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">src</span>[<span class="ident">i</span>..];
+            <span class="kw">let</span> <span class="ident">tail</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="ident">src</span>[<span class="ident">i</span>..];
             <span class="kw">for</span> <span class="ident">j</span> <span class="kw">in</span> <span class="number">0</span>..<span class="ident">tail</span>.<span class="ident">len</span>() {
                 <span class="ident">tail</span>[<span class="ident">j</span>] <span class="op">=</span> <span class="number">0x100</span> <span class="op">+</span> <span class="ident">j</span> <span class="kw">as</span> <span class="ident">u16</span>;
                 <span class="kw">let</span> <span class="ident">s</span> <span class="op">=</span> <span class="ident">String::from_utf16</span>(<span class="ident">tail</span>).<span class="ident">unwrap</span>();
@@ -5703,7 +5703,7 @@
         <span class="kw">let</span> <span class="ident">src</span> <span class="op">=</span> <span class="string">&quot;abcdefghijklmnopqrstu\u{1F4A9}v\u{2603}w\u{00B6}xyzz&quot;</span>;
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">dst</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u16</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Vec::with_capacity</span>(<span class="ident">src</span>.<span class="ident">len</span>() <span class="op">+</span> <span class="number">1</span>);
         <span class="ident">dst</span>.<span class="ident">resize</span>(<span class="ident">src</span>.<span class="ident">len</span>() <span class="op">+</span> <span class="number">1</span>, <span class="number">0</span>);
-        <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">convert_utf8_to_utf16</span>(<span class="ident">src</span>.<span class="ident">as_bytes</span>(), <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">dst</span>[..]);
+        <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">convert_utf8_to_utf16</span>(<span class="ident">src</span>.<span class="ident">as_bytes</span>(), <span class="kw-2">&amp;mut</span> <span class="ident">dst</span>[..]);
         <span class="ident">dst</span>.<span class="ident">truncate</span>(<span class="ident">len</span>);
         <span class="kw">let</span> <span class="ident">reference</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u16</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">src</span>.<span class="ident">encode_utf16</span>().<span class="ident">collect</span>();
         <span class="macro">assert_eq!</span>(<span class="ident">dst</span>, <span class="ident">reference</span>);
@@ -5714,7 +5714,7 @@
         <span class="kw">let</span> <span class="ident">src</span> <span class="op">=</span> <span class="string">&quot;abcdefghijklmnopqrstu\u{1F4A9}v\u{2603}w\u{00B6}xyzz&quot;</span>;
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">dst</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u16</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Vec::with_capacity</span>(<span class="ident">src</span>.<span class="ident">len</span>());
         <span class="ident">dst</span>.<span class="ident">resize</span>(<span class="ident">src</span>.<span class="ident">len</span>(), <span class="number">0</span>);
-        <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">convert_str_to_utf16</span>(<span class="ident">src</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">dst</span>[..]);
+        <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">convert_str_to_utf16</span>(<span class="ident">src</span>, <span class="kw-2">&amp;mut</span> <span class="ident">dst</span>[..]);
         <span class="ident">dst</span>.<span class="ident">truncate</span>(<span class="ident">len</span>);
         <span class="kw">let</span> <span class="ident">reference</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u16</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">src</span>.<span class="ident">encode_utf16</span>().<span class="ident">collect</span>();
         <span class="macro">assert_eq!</span>(<span class="ident">dst</span>, <span class="ident">reference</span>);
@@ -5726,8 +5726,8 @@
         <span class="kw">let</span> <span class="ident">src</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u16</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">reference</span>.<span class="ident">encode_utf16</span>().<span class="ident">collect</span>();
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">dst</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Vec::with_capacity</span>(<span class="ident">src</span>.<span class="ident">len</span>() <span class="op">*</span> <span class="number">3</span> <span class="op">+</span> <span class="number">1</span>);
         <span class="ident">dst</span>.<span class="ident">resize</span>(<span class="ident">src</span>.<span class="ident">len</span>() <span class="op">*</span> <span class="number">3</span> <span class="op">+</span> <span class="number">1</span>, <span class="number">0</span>);
-        <span class="kw">let</span> (<span class="ident">read</span>, <span class="ident">written</span>) <span class="op">=</span> <span class="ident">convert_utf16_to_utf8_partial</span>(<span class="kw-2">&amp;</span><span class="ident">src</span>[..], <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">dst</span>[..<span class="number">24</span>]);
-        <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">written</span> <span class="op">+</span> <span class="ident">convert_utf16_to_utf8</span>(<span class="kw-2">&amp;</span><span class="ident">src</span>[<span class="ident">read</span>..], <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">dst</span>[<span class="ident">written</span>..]);
+        <span class="kw">let</span> (<span class="ident">read</span>, <span class="ident">written</span>) <span class="op">=</span> <span class="ident">convert_utf16_to_utf8_partial</span>(<span class="kw-2">&amp;</span><span class="ident">src</span>[..], <span class="kw-2">&amp;mut</span> <span class="ident">dst</span>[..<span class="number">24</span>]);
+        <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">written</span> <span class="op">+</span> <span class="ident">convert_utf16_to_utf8</span>(<span class="kw-2">&amp;</span><span class="ident">src</span>[<span class="ident">read</span>..], <span class="kw-2">&amp;mut</span> <span class="ident">dst</span>[<span class="ident">written</span>..]);
         <span class="ident">dst</span>.<span class="ident">truncate</span>(<span class="ident">len</span>);
         <span class="macro">assert_eq!</span>(<span class="ident">dst</span>, <span class="ident">reference</span>.<span class="ident">as_bytes</span>());
     }
@@ -5738,7 +5738,7 @@
         <span class="kw">let</span> <span class="ident">src</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u16</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">reference</span>.<span class="ident">encode_utf16</span>().<span class="ident">collect</span>();
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">dst</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Vec::with_capacity</span>(<span class="ident">src</span>.<span class="ident">len</span>() <span class="op">*</span> <span class="number">3</span> <span class="op">+</span> <span class="number">1</span>);
         <span class="ident">dst</span>.<span class="ident">resize</span>(<span class="ident">src</span>.<span class="ident">len</span>() <span class="op">*</span> <span class="number">3</span> <span class="op">+</span> <span class="number">1</span>, <span class="number">0</span>);
-        <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">convert_utf16_to_utf8</span>(<span class="kw-2">&amp;</span><span class="ident">src</span>[..], <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">dst</span>[..]);
+        <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">convert_utf16_to_utf8</span>(<span class="kw-2">&amp;</span><span class="ident">src</span>[..], <span class="kw-2">&amp;mut</span> <span class="ident">dst</span>[..]);
         <span class="ident">dst</span>.<span class="ident">truncate</span>(<span class="ident">len</span>);
         <span class="macro">assert_eq!</span>(<span class="ident">dst</span>, <span class="ident">reference</span>.<span class="ident">as_bytes</span>());
     }
@@ -5755,14 +5755,14 @@
         }
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">dst</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u16</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Vec::with_capacity</span>(<span class="ident">src</span>.<span class="ident">len</span>());
         <span class="ident">dst</span>.<span class="ident">resize</span>(<span class="ident">src</span>.<span class="ident">len</span>(), <span class="number">0</span>);
-        <span class="ident">convert_latin1_to_utf16</span>(<span class="kw-2">&amp;</span><span class="ident">src</span>[..], <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">dst</span>[..]);
+        <span class="ident">convert_latin1_to_utf16</span>(<span class="kw-2">&amp;</span><span class="ident">src</span>[..], <span class="kw-2">&amp;mut</span> <span class="ident">dst</span>[..]);
         <span class="macro">assert_eq!</span>(<span class="ident">dst</span>, <span class="ident">reference</span>);
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_convert_latin1_to_utf8_partial</span>() {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">dst</span> <span class="op">=</span> [<span class="number">0u8</span>, <span class="number">2</span>];
-        <span class="kw">let</span> (<span class="ident">read</span>, <span class="ident">written</span>) <span class="op">=</span> <span class="ident">convert_latin1_to_utf8_partial</span>(<span class="string">b&quot;a\xFF&quot;</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">dst</span>[..]);
+        <span class="kw">let</span> (<span class="ident">read</span>, <span class="ident">written</span>) <span class="op">=</span> <span class="ident">convert_latin1_to_utf8_partial</span>(<span class="string">b&quot;a\xFF&quot;</span>, <span class="kw-2">&amp;mut</span> <span class="ident">dst</span>[..]);
         <span class="macro">assert_eq!</span>(<span class="ident">read</span>, <span class="number">1</span>);
         <span class="macro">assert_eq!</span>(<span class="ident">written</span>, <span class="number">1</span>);
     }
@@ -5780,7 +5780,7 @@
         <span class="kw">let</span> <span class="ident">s</span> <span class="op">=</span> <span class="ident">String::from_utf16</span>(<span class="kw-2">&amp;</span><span class="ident">reference</span>[..]).<span class="ident">unwrap</span>();
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">dst</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Vec::with_capacity</span>(<span class="ident">src</span>.<span class="ident">len</span>() <span class="op">*</span> <span class="number">2</span>);
         <span class="ident">dst</span>.<span class="ident">resize</span>(<span class="ident">src</span>.<span class="ident">len</span>() <span class="op">*</span> <span class="number">2</span>, <span class="number">0</span>);
-        <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">convert_latin1_to_utf8</span>(<span class="kw-2">&amp;</span><span class="ident">src</span>[..], <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">dst</span>[..]);
+        <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">convert_latin1_to_utf8</span>(<span class="kw-2">&amp;</span><span class="ident">src</span>[..], <span class="kw-2">&amp;mut</span> <span class="ident">dst</span>[..]);
         <span class="ident">dst</span>.<span class="ident">truncate</span>(<span class="ident">len</span>);
         <span class="macro">assert_eq!</span>(<span class="kw-2">&amp;</span><span class="ident">dst</span>[..], <span class="ident">s</span>.<span class="ident">as_bytes</span>());
     }
@@ -5798,7 +5798,7 @@
         <span class="kw">let</span> <span class="ident">src</span> <span class="op">=</span> <span class="ident">String::from_utf16</span>(<span class="kw-2">&amp;</span><span class="ident">src16</span>[..]).<span class="ident">unwrap</span>();
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">dst</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Vec::with_capacity</span>(<span class="ident">src</span>.<span class="ident">len</span>());
         <span class="ident">dst</span>.<span class="ident">resize</span>(<span class="ident">src</span>.<span class="ident">len</span>(), <span class="number">0</span>);
-        <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">convert_utf8_to_latin1_lossy</span>(<span class="ident">src</span>.<span class="ident">as_bytes</span>(), <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">dst</span>[..]);
+        <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">convert_utf8_to_latin1_lossy</span>(<span class="ident">src</span>.<span class="ident">as_bytes</span>(), <span class="kw-2">&amp;mut</span> <span class="ident">dst</span>[..]);
         <span class="ident">dst</span>.<span class="ident">truncate</span>(<span class="ident">len</span>);
         <span class="macro">assert_eq!</span>(<span class="ident">dst</span>, <span class="ident">reference</span>);
     }
@@ -5808,7 +5808,7 @@
     <span class="attribute">#[<span class="ident">should_panic</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_convert_utf8_to_latin1_lossy_panics</span>() {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">dst</span> <span class="op">=</span> [<span class="number">0u8</span>; <span class="number">16</span>];
-        <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">convert_utf8_to_latin1_lossy</span>(<span class="string">&quot;\u{100}&quot;</span>.<span class="ident">as_bytes</span>(), <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">dst</span>[..]);
+        <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">convert_utf8_to_latin1_lossy</span>(<span class="string">&quot;\u{100}&quot;</span>.<span class="ident">as_bytes</span>(), <span class="kw-2">&amp;mut</span> <span class="ident">dst</span>[..]);
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
@@ -5823,7 +5823,7 @@
         }
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">dst</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Vec::with_capacity</span>(<span class="ident">src</span>.<span class="ident">len</span>());
         <span class="ident">dst</span>.<span class="ident">resize</span>(<span class="ident">src</span>.<span class="ident">len</span>(), <span class="number">0</span>);
-        <span class="ident">convert_utf16_to_latin1_lossy</span>(<span class="kw-2">&amp;</span><span class="ident">src</span>[..], <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">dst</span>[..]);
+        <span class="ident">convert_utf16_to_latin1_lossy</span>(<span class="kw-2">&amp;</span><span class="ident">src</span>[..], <span class="kw-2">&amp;mut</span> <span class="ident">dst</span>[..]);
         <span class="macro">assert_eq!</span>(<span class="ident">dst</span>, <span class="ident">reference</span>);
     }
 
@@ -5831,7 +5831,7 @@
     <span class="comment">// #[should_panic]</span>
     <span class="kw">fn</span> <span class="ident">test_convert_utf16_to_latin1_lossy_panics</span>() {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">dst</span> <span class="op">=</span> [<span class="number">0u8</span>; <span class="number">16</span>];
-        <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">convert_utf16_to_latin1_lossy</span>(<span class="kw-2">&amp;</span>[<span class="number">0x0100u16</span>], <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">dst</span>[..]);
+        <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">convert_utf16_to_latin1_lossy</span>(<span class="kw-2">&amp;</span>[<span class="number">0x0100u16</span>], <span class="kw-2">&amp;mut</span> <span class="ident">dst</span>[..]);
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
@@ -5870,7 +5870,7 @@
             <span class="number">0u16</span>, <span class="number">0xFFFDu16</span>, <span class="number">0u16</span>, <span class="number">0u16</span>, <span class="number">0u16</span>, <span class="number">0u16</span>, <span class="number">0u16</span>, <span class="number">0u16</span>, <span class="number">0u16</span>, <span class="number">0u16</span>, <span class="number">0u16</span>, <span class="number">0u16</span>, <span class="number">0u16</span>,
             <span class="number">0u16</span>, <span class="number">0u16</span>, <span class="number">0u16</span>, <span class="number">0u16</span>, <span class="number">0u16</span>, <span class="number">0u16</span>,
         ];
-        <span class="ident">ensure_utf16_validity</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">src</span>[..]);
+        <span class="ident">ensure_utf16_validity</span>(<span class="kw-2">&amp;mut</span> <span class="ident">src</span>[..]);
         <span class="macro">assert_eq!</span>(<span class="ident">src</span>, <span class="ident">reference</span>);
     }
 
@@ -6547,14 +6547,14 @@
         <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="number">0</span>..<span class="number">0xD800u32</span> {
             <span class="kw">let</span> <span class="ident">c</span>: <span class="ident">char</span> <span class="op">=</span> <span class="ident">::core::char::from_u32</span>(<span class="ident">i</span>).<span class="ident">unwrap</span>();
             <span class="macro">assert_eq!</span>(
-                <span class="ident">is_str_bidi</span>(<span class="ident">c</span>.<span class="ident">encode_utf8</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">buf</span>[..])),
+                <span class="ident">is_str_bidi</span>(<span class="ident">c</span>.<span class="ident">encode_utf8</span>(<span class="kw-2">&amp;mut</span> <span class="ident">buf</span>[..])),
                 <span class="ident">reference_is_char_bidi</span>(<span class="ident">c</span>)
             );
         }
         <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="number">0xE000</span>..<span class="number">0x110000u32</span> {
             <span class="kw">let</span> <span class="ident">c</span>: <span class="ident">char</span> <span class="op">=</span> <span class="ident">::core::char::from_u32</span>(<span class="ident">i</span>).<span class="ident">unwrap</span>();
             <span class="macro">assert_eq!</span>(
-                <span class="ident">is_str_bidi</span>(<span class="ident">c</span>.<span class="ident">encode_utf8</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">buf</span>[..])),
+                <span class="ident">is_str_bidi</span>(<span class="ident">c</span>.<span class="ident">encode_utf8</span>(<span class="kw-2">&amp;mut</span> <span class="ident">buf</span>[..])),
                 <span class="ident">reference_is_char_bidi</span>(<span class="ident">c</span>)
             );
         }
@@ -6569,12 +6569,12 @@
             <span class="kw">let</span> <span class="ident">expect</span> <span class="op">=</span> <span class="ident">reference_is_char_bidi</span>(<span class="ident">c</span>);
             {
                 <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> {
-                    <span class="kw">let</span> <span class="ident">bytes</span> <span class="op">=</span> <span class="ident">c</span>.<span class="ident">encode_utf8</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">buf</span>[..]).<span class="ident">as_bytes</span>();
+                    <span class="kw">let</span> <span class="ident">bytes</span> <span class="op">=</span> <span class="ident">c</span>.<span class="ident">encode_utf8</span>(<span class="kw-2">&amp;mut</span> <span class="ident">buf</span>[..]).<span class="ident">as_bytes</span>();
                     <span class="macro">assert_eq!</span>(<span class="ident">is_utf8_bidi</span>(<span class="ident">bytes</span>), <span class="ident">expect</span>);
                     <span class="ident">bytes</span>.<span class="ident">len</span>()
                 };
                 {
-                    <span class="kw">let</span> <span class="ident">tail</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">buf</span>[<span class="ident">len</span>..];
+                    <span class="kw">let</span> <span class="ident">tail</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="ident">buf</span>[<span class="ident">len</span>..];
                     <span class="kw">for</span> <span class="ident">b</span> <span class="kw">in</span> <span class="ident">tail</span>.<span class="ident">iter_mut</span>() {
                         <span class="kw-2">*</span><span class="ident">b</span> <span class="op">=</span> <span class="number">0</span>;
                     }
@@ -6587,12 +6587,12 @@
             <span class="kw">let</span> <span class="ident">expect</span> <span class="op">=</span> <span class="ident">reference_is_char_bidi</span>(<span class="ident">c</span>);
             {
                 <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> {
-                    <span class="kw">let</span> <span class="ident">bytes</span> <span class="op">=</span> <span class="ident">c</span>.<span class="ident">encode_utf8</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">buf</span>[..]).<span class="ident">as_bytes</span>();
+                    <span class="kw">let</span> <span class="ident">bytes</span> <span class="op">=</span> <span class="ident">c</span>.<span class="ident">encode_utf8</span>(<span class="kw-2">&amp;mut</span> <span class="ident">buf</span>[..]).<span class="ident">as_bytes</span>();
                     <span class="macro">assert_eq!</span>(<span class="ident">is_utf8_bidi</span>(<span class="ident">bytes</span>), <span class="ident">expect</span>);
                     <span class="ident">bytes</span>.<span class="ident">len</span>()
                 };
                 {
-                    <span class="kw">let</span> <span class="ident">tail</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">buf</span>[<span class="ident">len</span>..];
+                    <span class="kw">let</span> <span class="ident">tail</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="ident">buf</span>[<span class="ident">len</span>..];
                     <span class="kw">for</span> <span class="ident">b</span> <span class="kw">in</span> <span class="ident">tail</span>.<span class="ident">iter_mut</span>() {
                         <span class="kw-2">*</span><span class="ident">b</span> <span class="op">=</span> <span class="number">0</span>;
                     }
@@ -6656,56 +6656,56 @@
     <span class="kw">fn</span> <span class="ident">test_convert_utf8_to_utf16_without_replacement</span>() {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> [<span class="number">0u16</span>; <span class="number">5</span>];
         <span class="macro">assert_eq!</span>(
-            <span class="ident">convert_utf8_to_utf16_without_replacement</span>(<span class="string">b&quot;ab&quot;</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">buf</span>[..<span class="number">2</span>]),
+            <span class="ident">convert_utf8_to_utf16_without_replacement</span>(<span class="string">b&quot;ab&quot;</span>, <span class="kw-2">&amp;mut</span> <span class="ident">buf</span>[..<span class="number">2</span>]),
             <span class="prelude-val">Some</span>(<span class="number">2</span>)
         );
         <span class="macro">assert_eq!</span>(<span class="ident">buf</span>[<span class="number">0</span>], <span class="ident">u16::from</span>(<span class="string">b&#39;a&#39;</span>));
         <span class="macro">assert_eq!</span>(<span class="ident">buf</span>[<span class="number">1</span>], <span class="ident">u16::from</span>(<span class="string">b&#39;b&#39;</span>));
         <span class="macro">assert_eq!</span>(<span class="ident">buf</span>[<span class="number">2</span>], <span class="number">0</span>);
         <span class="macro">assert_eq!</span>(
-            <span class="ident">convert_utf8_to_utf16_without_replacement</span>(<span class="string">b&quot;\xC3\xA4c&quot;</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">buf</span>[..<span class="number">3</span>]),
+            <span class="ident">convert_utf8_to_utf16_without_replacement</span>(<span class="string">b&quot;\xC3\xA4c&quot;</span>, <span class="kw-2">&amp;mut</span> <span class="ident">buf</span>[..<span class="number">3</span>]),
             <span class="prelude-val">Some</span>(<span class="number">2</span>)
         );
         <span class="macro">assert_eq!</span>(<span class="ident">buf</span>[<span class="number">0</span>], <span class="number">0xE4</span>);
         <span class="macro">assert_eq!</span>(<span class="ident">buf</span>[<span class="number">1</span>], <span class="ident">u16::from</span>(<span class="string">b&#39;c&#39;</span>));
         <span class="macro">assert_eq!</span>(<span class="ident">buf</span>[<span class="number">2</span>], <span class="number">0</span>);
         <span class="macro">assert_eq!</span>(
-            <span class="ident">convert_utf8_to_utf16_without_replacement</span>(<span class="string">b&quot;\xE2\x98\x83&quot;</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">buf</span>[..<span class="number">3</span>]),
+            <span class="ident">convert_utf8_to_utf16_without_replacement</span>(<span class="string">b&quot;\xE2\x98\x83&quot;</span>, <span class="kw-2">&amp;mut</span> <span class="ident">buf</span>[..<span class="number">3</span>]),
             <span class="prelude-val">Some</span>(<span class="number">1</span>)
         );
         <span class="macro">assert_eq!</span>(<span class="ident">buf</span>[<span class="number">0</span>], <span class="number">0x2603</span>);
         <span class="macro">assert_eq!</span>(<span class="ident">buf</span>[<span class="number">1</span>], <span class="ident">u16::from</span>(<span class="string">b&#39;c&#39;</span>));
         <span class="macro">assert_eq!</span>(<span class="ident">buf</span>[<span class="number">2</span>], <span class="number">0</span>);
         <span class="macro">assert_eq!</span>(
-            <span class="ident">convert_utf8_to_utf16_without_replacement</span>(<span class="string">b&quot;\xE2\x98\x83d&quot;</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">buf</span>[..<span class="number">4</span>]),
+            <span class="ident">convert_utf8_to_utf16_without_replacement</span>(<span class="string">b&quot;\xE2\x98\x83d&quot;</span>, <span class="kw-2">&amp;mut</span> <span class="ident">buf</span>[..<span class="number">4</span>]),
             <span class="prelude-val">Some</span>(<span class="number">2</span>)
         );
         <span class="macro">assert_eq!</span>(<span class="ident">buf</span>[<span class="number">0</span>], <span class="number">0x2603</span>);
         <span class="macro">assert_eq!</span>(<span class="ident">buf</span>[<span class="number">1</span>], <span class="ident">u16::from</span>(<span class="string">b&#39;d&#39;</span>));
         <span class="macro">assert_eq!</span>(<span class="ident">buf</span>[<span class="number">2</span>], <span class="number">0</span>);
         <span class="macro">assert_eq!</span>(
-            <span class="ident">convert_utf8_to_utf16_without_replacement</span>(<span class="string">b&quot;\xE2\x98\x83\xC3\xA4&quot;</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">buf</span>[..<span class="number">5</span>]),
+            <span class="ident">convert_utf8_to_utf16_without_replacement</span>(<span class="string">b&quot;\xE2\x98\x83\xC3\xA4&quot;</span>, <span class="kw-2">&amp;mut</span> <span class="ident">buf</span>[..<span class="number">5</span>]),
             <span class="prelude-val">Some</span>(<span class="number">2</span>)
         );
         <span class="macro">assert_eq!</span>(<span class="ident">buf</span>[<span class="number">0</span>], <span class="number">0x2603</span>);
         <span class="macro">assert_eq!</span>(<span class="ident">buf</span>[<span class="number">1</span>], <span class="number">0xE4</span>);
         <span class="macro">assert_eq!</span>(<span class="ident">buf</span>[<span class="number">2</span>], <span class="number">0</span>);
         <span class="macro">assert_eq!</span>(
-            <span class="ident">convert_utf8_to_utf16_without_replacement</span>(<span class="string">b&quot;\xF0\x9F\x93\x8E&quot;</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">buf</span>[..<span class="number">4</span>]),
+            <span class="ident">convert_utf8_to_utf16_without_replacement</span>(<span class="string">b&quot;\xF0\x9F\x93\x8E&quot;</span>, <span class="kw-2">&amp;mut</span> <span class="ident">buf</span>[..<span class="number">4</span>]),
             <span class="prelude-val">Some</span>(<span class="number">2</span>)
         );
         <span class="macro">assert_eq!</span>(<span class="ident">buf</span>[<span class="number">0</span>], <span class="number">0xD83D</span>);
         <span class="macro">assert_eq!</span>(<span class="ident">buf</span>[<span class="number">1</span>], <span class="number">0xDCCE</span>);
         <span class="macro">assert_eq!</span>(<span class="ident">buf</span>[<span class="number">2</span>], <span class="number">0</span>);
         <span class="macro">assert_eq!</span>(
-            <span class="ident">convert_utf8_to_utf16_without_replacement</span>(<span class="string">b&quot;\xF0\x9F\x93\x8Ee&quot;</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">buf</span>[..<span class="number">5</span>]),
+            <span class="ident">convert_utf8_to_utf16_without_replacement</span>(<span class="string">b&quot;\xF0\x9F\x93\x8Ee&quot;</span>, <span class="kw-2">&amp;mut</span> <span class="ident">buf</span>[..<span class="number">5</span>]),
             <span class="prelude-val">Some</span>(<span class="number">3</span>)
         );
         <span class="macro">assert_eq!</span>(<span class="ident">buf</span>[<span class="number">0</span>], <span class="number">0xD83D</span>);
         <span class="macro">assert_eq!</span>(<span class="ident">buf</span>[<span class="number">1</span>], <span class="number">0xDCCE</span>);
         <span class="macro">assert_eq!</span>(<span class="ident">buf</span>[<span class="number">2</span>], <span class="ident">u16::from</span>(<span class="string">b&#39;e&#39;</span>));
         <span class="macro">assert_eq!</span>(
-            <span class="ident">convert_utf8_to_utf16_without_replacement</span>(<span class="string">b&quot;\xF0\x9F\x93&quot;</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">buf</span>[..<span class="number">5</span>]),
+            <span class="ident">convert_utf8_to_utf16_without_replacement</span>(<span class="string">b&quot;\xF0\x9F\x93&quot;</span>, <span class="kw-2">&amp;mut</span> <span class="ident">buf</span>[..<span class="number">5</span>]),
             <span class="prelude-val">None</span>
         );
     }

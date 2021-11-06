@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;bytes-1.1.0&#x2F;src&#x2F;buf&#x2F;buf_impl.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>buf_impl.rs - source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../bytes/index.html'><div class='logo-container rust-logo'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">   1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;bytes-1.1.0&#x2F;src&#x2F;buf&#x2F;buf_impl.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>buf_impl.rs - source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../bytes/index.html'><div class='logo-container rust-logo'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">   1</span>
 <span id="2">   2</span>
 <span id="3">   3</span>
 <span id="4">   4</span>
@@ -1092,7 +1092,7 @@
         <span class="kw">let</span> <span class="ident">ret</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">this</span>
             .<span class="ident">chunk</span>()
             .<span class="ident">get</span>(..<span class="ident">SIZE</span>)
-            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">src</span><span class="op">|</span> <span class="kw">unsafe</span> { <span class="macro-nonterminal">$</span><span class="macro-nonterminal">typ</span>::<span class="macro-nonterminal">$</span><span class="macro-nonterminal">conv</span>(<span class="kw-2">*</span>(<span class="ident">src</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="kw">_</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> [<span class="kw">_</span>; <span class="ident">SIZE</span>])) });
+            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">src</span><span class="op">|</span> <span class="kw">unsafe</span> { <span class="macro-nonterminal">$</span><span class="macro-nonterminal">typ</span>::<span class="macro-nonterminal">$</span><span class="macro-nonterminal">conv</span>(<span class="kw-2">*</span>(<span class="ident">src</span> <span class="kw">as</span> <span class="kw-2">*const</span> <span class="kw">_</span> <span class="kw">as</span> <span class="kw-2">*const</span> [<span class="kw">_</span>; <span class="ident">SIZE</span>])) });
 
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">ret</span>) <span class="op">=</span> <span class="ident">ret</span> {
             <span class="comment">// if the direct conversion was possible, advance and return</span>
@@ -1101,7 +1101,7 @@
         } <span class="kw">else</span> {
             <span class="comment">// if not we copy the bytes in a temp buffer then convert</span>
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> [<span class="number">0</span>; <span class="ident">SIZE</span>];
-            <span class="macro-nonterminal">$</span><span class="macro-nonterminal">this</span>.<span class="ident">copy_to_slice</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">buf</span>); <span class="comment">// (do the advance)</span>
+            <span class="macro-nonterminal">$</span><span class="macro-nonterminal">this</span>.<span class="ident">copy_to_slice</span>(<span class="kw-2">&amp;mut</span> <span class="ident">buf</span>); <span class="comment">// (do the advance)</span>
             <span class="kw">return</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">typ</span>::<span class="macro-nonterminal">$</span><span class="macro-nonterminal">conv</span>(<span class="ident">buf</span>);
         }
     }};
@@ -1111,14 +1111,14 @@
         <span class="comment">// The same trick as above does not improve the best case speed.</span>
         <span class="comment">// It seems to be linked to the way the method is optimised by the compiler</span>
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> [<span class="number">0</span>; (<span class="ident">mem::size_of</span>::<span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">typ</span><span class="op">&gt;</span>())];
-        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">this</span>.<span class="ident">copy_to_slice</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">buf</span>[..(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">len_to_read</span>)]);
+        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">this</span>.<span class="ident">copy_to_slice</span>(<span class="kw-2">&amp;mut</span> <span class="ident">buf</span>[..(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">len_to_read</span>)]);
         <span class="kw">return</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">typ::from_le_bytes</span>(<span class="ident">buf</span>);
     }};
     (<span class="ident">be</span> =&gt; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">this</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">typ</span>:<span class="ident">tt</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">len_to_read</span>:<span class="ident">expr</span>) =&gt; {{
         <span class="macro">debug_assert!</span>(<span class="ident">mem::size_of</span>::<span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">typ</span><span class="op">&gt;</span>() <span class="op">&gt;</span><span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">len_to_read</span>);
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> [<span class="number">0</span>; (<span class="ident">mem::size_of</span>::<span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">typ</span><span class="op">&gt;</span>())];
-        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">this</span>.<span class="ident">copy_to_slice</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">buf</span>[<span class="ident">mem::size_of</span>::<span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">typ</span><span class="op">&gt;</span>() <span class="op">-</span> (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">len_to_read</span>)..]);
+        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">this</span>.<span class="ident">copy_to_slice</span>(<span class="kw-2">&amp;mut</span> <span class="ident">buf</span>[<span class="ident">mem::size_of</span>::<span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">typ</span><span class="op">&gt;</span>() <span class="op">-</span> (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">len_to_read</span>)..]);
         <span class="kw">return</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">typ::from_be_bytes</span>(<span class="ident">buf</span>);
     }};
 }
@@ -1234,7 +1234,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [`writev`]: http://man7.org/linux/man-pages/man2/readv.2.html</span>
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">chunks_vectored</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="self">self</span>, <span class="ident">dst</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">IoSlice</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>]) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
+    <span class="kw">fn</span> <span class="ident">chunks_vectored</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="self">self</span>, <span class="ident">dst</span>: <span class="kw-2">&amp;mut</span> [<span class="ident">IoSlice</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>]) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
         <span class="kw">if</span> <a class="ident" href="../../../src/bytes/buf/buf_impl.rs.html#163">dst</a>.<span class="ident">is_empty</span>() {
             <span class="kw">return</span> <span class="number">0</span>;
         }
@@ -1277,7 +1277,7 @@
     <span class="doccomment">/// behave as if `cnt == self.remaining()`.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// A call with `cnt == 0` should never panic and be a no-op.</span>
-    <span class="kw">fn</span> <span class="ident">advance</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">cnt</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
+    <span class="kw">fn</span> <span class="ident">advance</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">cnt</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
 
     <span class="doccomment">/// Returns true if there are any more bytes to consume</span>
     <span class="doccomment">///</span>
@@ -1321,7 +1321,7 @@
     <span class="doccomment">/// # Panics</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// This function panics if `self.remaining() &lt; dst.len()`</span>
-    <span class="kw">fn</span> <span class="ident">copy_to_slice</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">dst</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) {
+    <span class="kw">fn</span> <span class="ident">copy_to_slice</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">dst</span>: <span class="kw-2">&amp;mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">off</span> <span class="op">=</span> <span class="number">0</span>;
 
         <span class="macro">assert!</span>(<a class="self" href="../../../src/bytes/buf/buf_impl.rs.html#250">self</a>.<a class="ident" href="../../../src/bytes/buf/buf_impl.rs.html#102">remaining</a>() <span class="op">&gt;</span><span class="op">=</span> <a class="ident" href="../../../src/bytes/buf/buf_impl.rs.html#250">dst</a>.<span class="ident">len</span>());
@@ -1358,7 +1358,7 @@
     <span class="doccomment">/// # Panics</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// This function panics if there is no more remaining data in `self`.</span>
-    <span class="kw">fn</span> <span class="ident">get_u8</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a> {
+    <span class="kw">fn</span> <span class="ident">get_u8</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a> {
         <span class="macro">assert!</span>(<a class="self" href="../../../src/bytes/buf/buf_impl.rs.html#287">self</a>.<a class="ident" href="../../../src/bytes/buf/buf_impl.rs.html#102">remaining</a>() <span class="op">&gt;</span><span class="op">=</span> <span class="number">1</span>);
         <span class="kw">let</span> <span class="ident">ret</span> <span class="op">=</span> <a class="self" href="../../../src/bytes/buf/buf_impl.rs.html#287">self</a>.<a class="ident" href="../../../src/bytes/buf/buf_impl.rs.html#133">chunk</a>()[<span class="number">0</span>];
         <a class="self" href="../../../src/bytes/buf/buf_impl.rs.html#287">self</a>.<a class="ident" href="../../../src/bytes/buf/buf_impl.rs.html#206">advance</a>(<span class="number">1</span>);
@@ -1381,7 +1381,7 @@
     <span class="doccomment">/// # Panics</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// This function panics if there is no more remaining data in `self`.</span>
-    <span class="kw">fn</span> <span class="ident">get_i8</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i8.html">i8</a> {
+    <span class="kw">fn</span> <span class="ident">get_i8</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i8.html">i8</a> {
         <span class="macro">assert!</span>(<a class="self" href="../../../src/bytes/buf/buf_impl.rs.html#310">self</a>.<a class="ident" href="../../../src/bytes/buf/buf_impl.rs.html#102">remaining</a>() <span class="op">&gt;</span><span class="op">=</span> <span class="number">1</span>);
         <span class="kw">let</span> <span class="ident">ret</span> <span class="op">=</span> <a class="self" href="../../../src/bytes/buf/buf_impl.rs.html#310">self</a>.<a class="ident" href="../../../src/bytes/buf/buf_impl.rs.html#133">chunk</a>()[<span class="number">0</span>] <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i8.html">i8</a>;
         <a class="self" href="../../../src/bytes/buf/buf_impl.rs.html#310">self</a>.<a class="ident" href="../../../src/bytes/buf/buf_impl.rs.html#206">advance</a>(<span class="number">1</span>);
@@ -1404,7 +1404,7 @@
     <span class="doccomment">/// # Panics</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// This function panics if there is not enough remaining data in `self`.</span>
-    <span class="kw">fn</span> <span class="ident">get_u16</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a> {
+    <span class="kw">fn</span> <span class="ident">get_u16</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a> {
         <span class="macro">buf_get_impl!</span>(<span class="self">self</span>, <span class="ident">u16::from_be_bytes</span>);
     }
 
@@ -1424,7 +1424,7 @@
     <span class="doccomment">/// # Panics</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// This function panics if there is not enough remaining data in `self`.</span>
-    <span class="kw">fn</span> <span class="ident">get_u16_le</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a> {
+    <span class="kw">fn</span> <span class="ident">get_u16_le</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a> {
         <span class="macro">buf_get_impl!</span>(<span class="self">self</span>, <span class="ident">u16::from_le_bytes</span>);
     }
 
@@ -1444,7 +1444,7 @@
     <span class="doccomment">/// # Panics</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// This function panics if there is not enough remaining data in `self`.</span>
-    <span class="kw">fn</span> <span class="ident">get_i16</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i16.html">i16</a> {
+    <span class="kw">fn</span> <span class="ident">get_i16</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i16.html">i16</a> {
         <span class="macro">buf_get_impl!</span>(<span class="self">self</span>, <span class="ident">i16::from_be_bytes</span>);
     }
 
@@ -1464,7 +1464,7 @@
     <span class="doccomment">/// # Panics</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// This function panics if there is not enough remaining data in `self`.</span>
-    <span class="kw">fn</span> <span class="ident">get_i16_le</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i16.html">i16</a> {
+    <span class="kw">fn</span> <span class="ident">get_i16_le</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i16.html">i16</a> {
         <span class="macro">buf_get_impl!</span>(<span class="self">self</span>, <span class="ident">i16::from_le_bytes</span>);
     }
 
@@ -1484,7 +1484,7 @@
     <span class="doccomment">/// # Panics</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// This function panics if there is not enough remaining data in `self`.</span>
-    <span class="kw">fn</span> <span class="ident">get_u32</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
+    <span class="kw">fn</span> <span class="ident">get_u32</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
         <span class="macro">buf_get_impl!</span>(<span class="self">self</span>, <span class="ident">u32::from_be_bytes</span>);
     }
 
@@ -1504,7 +1504,7 @@
     <span class="doccomment">/// # Panics</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// This function panics if there is not enough remaining data in `self`.</span>
-    <span class="kw">fn</span> <span class="ident">get_u32_le</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
+    <span class="kw">fn</span> <span class="ident">get_u32_le</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
         <span class="macro">buf_get_impl!</span>(<span class="self">self</span>, <span class="ident">u32::from_le_bytes</span>);
     }
 
@@ -1524,7 +1524,7 @@
     <span class="doccomment">/// # Panics</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// This function panics if there is not enough remaining data in `self`.</span>
-    <span class="kw">fn</span> <span class="ident">get_i32</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a> {
+    <span class="kw">fn</span> <span class="ident">get_i32</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a> {
         <span class="macro">buf_get_impl!</span>(<span class="self">self</span>, <span class="ident">i32::from_be_bytes</span>);
     }
 
@@ -1544,7 +1544,7 @@
     <span class="doccomment">/// # Panics</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// This function panics if there is not enough remaining data in `self`.</span>
-    <span class="kw">fn</span> <span class="ident">get_i32_le</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a> {
+    <span class="kw">fn</span> <span class="ident">get_i32_le</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a> {
         <span class="macro">buf_get_impl!</span>(<span class="self">self</span>, <span class="ident">i32::from_le_bytes</span>);
     }
 
@@ -1564,7 +1564,7 @@
     <span class="doccomment">/// # Panics</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// This function panics if there is not enough remaining data in `self`.</span>
-    <span class="kw">fn</span> <span class="ident">get_u64</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
+    <span class="kw">fn</span> <span class="ident">get_u64</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
         <span class="macro">buf_get_impl!</span>(<span class="self">self</span>, <span class="ident">u64::from_be_bytes</span>);
     }
 
@@ -1584,7 +1584,7 @@
     <span class="doccomment">/// # Panics</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// This function panics if there is not enough remaining data in `self`.</span>
-    <span class="kw">fn</span> <span class="ident">get_u64_le</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
+    <span class="kw">fn</span> <span class="ident">get_u64_le</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
         <span class="macro">buf_get_impl!</span>(<span class="self">self</span>, <span class="ident">u64::from_le_bytes</span>);
     }
 
@@ -1604,7 +1604,7 @@
     <span class="doccomment">/// # Panics</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// This function panics if there is not enough remaining data in `self`.</span>
-    <span class="kw">fn</span> <span class="ident">get_i64</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a> {
+    <span class="kw">fn</span> <span class="ident">get_i64</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a> {
         <span class="macro">buf_get_impl!</span>(<span class="self">self</span>, <span class="ident">i64::from_be_bytes</span>);
     }
 
@@ -1624,7 +1624,7 @@
     <span class="doccomment">/// # Panics</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// This function panics if there is not enough remaining data in `self`.</span>
-    <span class="kw">fn</span> <span class="ident">get_i64_le</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a> {
+    <span class="kw">fn</span> <span class="ident">get_i64_le</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a> {
         <span class="macro">buf_get_impl!</span>(<span class="self">self</span>, <span class="ident">i64::from_le_bytes</span>);
     }
 
@@ -1644,7 +1644,7 @@
     <span class="doccomment">/// # Panics</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// This function panics if there is not enough remaining data in `self`.</span>
-    <span class="kw">fn</span> <span class="ident">get_u128</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u128.html">u128</a> {
+    <span class="kw">fn</span> <span class="ident">get_u128</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u128.html">u128</a> {
         <span class="macro">buf_get_impl!</span>(<span class="self">self</span>, <span class="ident">u128::from_be_bytes</span>);
     }
 
@@ -1664,7 +1664,7 @@
     <span class="doccomment">/// # Panics</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// This function panics if there is not enough remaining data in `self`.</span>
-    <span class="kw">fn</span> <span class="ident">get_u128_le</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u128.html">u128</a> {
+    <span class="kw">fn</span> <span class="ident">get_u128_le</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u128.html">u128</a> {
         <span class="macro">buf_get_impl!</span>(<span class="self">self</span>, <span class="ident">u128::from_le_bytes</span>);
     }
 
@@ -1684,7 +1684,7 @@
     <span class="doccomment">/// # Panics</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// This function panics if there is not enough remaining data in `self`.</span>
-    <span class="kw">fn</span> <span class="ident">get_i128</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i128.html">i128</a> {
+    <span class="kw">fn</span> <span class="ident">get_i128</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i128.html">i128</a> {
         <span class="macro">buf_get_impl!</span>(<span class="self">self</span>, <span class="ident">i128::from_be_bytes</span>);
     }
 
@@ -1704,7 +1704,7 @@
     <span class="doccomment">/// # Panics</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// This function panics if there is not enough remaining data in `self`.</span>
-    <span class="kw">fn</span> <span class="ident">get_i128_le</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i128.html">i128</a> {
+    <span class="kw">fn</span> <span class="ident">get_i128_le</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i128.html">i128</a> {
         <span class="macro">buf_get_impl!</span>(<span class="self">self</span>, <span class="ident">i128::from_le_bytes</span>);
     }
 
@@ -1724,7 +1724,7 @@
     <span class="doccomment">/// # Panics</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// This function panics if there is not enough remaining data in `self`.</span>
-    <span class="kw">fn</span> <span class="ident">get_uint</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">nbytes</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
+    <span class="kw">fn</span> <span class="ident">get_uint</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">nbytes</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
         <span class="macro">buf_get_impl!</span>(<span class="ident">be</span> =&gt; <span class="self">self</span>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>, <a class="ident" href="../../../src/bytes/buf/buf_impl.rs.html#653">nbytes</a>);
     }
 
@@ -1744,7 +1744,7 @@
     <span class="doccomment">/// # Panics</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// This function panics if there is not enough remaining data in `self`.</span>
-    <span class="kw">fn</span> <span class="ident">get_uint_le</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">nbytes</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
+    <span class="kw">fn</span> <span class="ident">get_uint_le</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">nbytes</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
         <span class="macro">buf_get_impl!</span>(<span class="ident">le</span> =&gt; <span class="self">self</span>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>, <a class="ident" href="../../../src/bytes/buf/buf_impl.rs.html#673">nbytes</a>);
     }
 
@@ -1764,7 +1764,7 @@
     <span class="doccomment">/// # Panics</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// This function panics if there is not enough remaining data in `self`.</span>
-    <span class="kw">fn</span> <span class="ident">get_int</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">nbytes</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a> {
+    <span class="kw">fn</span> <span class="ident">get_int</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">nbytes</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a> {
         <span class="macro">buf_get_impl!</span>(<span class="ident">be</span> =&gt; <span class="self">self</span>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>, <a class="ident" href="../../../src/bytes/buf/buf_impl.rs.html#693">nbytes</a>);
     }
 
@@ -1784,7 +1784,7 @@
     <span class="doccomment">/// # Panics</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// This function panics if there is not enough remaining data in `self`.</span>
-    <span class="kw">fn</span> <span class="ident">get_int_le</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">nbytes</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a> {
+    <span class="kw">fn</span> <span class="ident">get_int_le</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">nbytes</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a> {
         <span class="macro">buf_get_impl!</span>(<span class="ident">le</span> =&gt; <span class="self">self</span>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>, <a class="ident" href="../../../src/bytes/buf/buf_impl.rs.html#713">nbytes</a>);
     }
 
@@ -1805,7 +1805,7 @@
     <span class="doccomment">/// # Panics</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// This function panics if there is not enough remaining data in `self`.</span>
-    <span class="kw">fn</span> <span class="ident">get_f32</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.f32.html">f32</a> {
+    <span class="kw">fn</span> <span class="ident">get_f32</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.f32.html">f32</a> {
         <span class="ident">f32::from_bits</span>(<span class="ident"><span class="self">Self</span>::get_u32</span>(<a class="self" href="../../../src/bytes/buf/buf_impl.rs.html#734">self</a>))
     }
 
@@ -1826,7 +1826,7 @@
     <span class="doccomment">/// # Panics</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// This function panics if there is not enough remaining data in `self`.</span>
-    <span class="kw">fn</span> <span class="ident">get_f32_le</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.f32.html">f32</a> {
+    <span class="kw">fn</span> <span class="ident">get_f32_le</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.f32.html">f32</a> {
         <span class="ident">f32::from_bits</span>(<span class="ident"><span class="self">Self</span>::get_u32_le</span>(<a class="self" href="../../../src/bytes/buf/buf_impl.rs.html#755">self</a>))
     }
 
@@ -1847,7 +1847,7 @@
     <span class="doccomment">/// # Panics</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// This function panics if there is not enough remaining data in `self`.</span>
-    <span class="kw">fn</span> <span class="ident">get_f64</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.f64.html">f64</a> {
+    <span class="kw">fn</span> <span class="ident">get_f64</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.f64.html">f64</a> {
         <span class="ident">f64::from_bits</span>(<span class="ident"><span class="self">Self</span>::get_u64</span>(<a class="self" href="../../../src/bytes/buf/buf_impl.rs.html#776">self</a>))
     }
 
@@ -1868,7 +1868,7 @@
     <span class="doccomment">/// # Panics</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// This function panics if there is not enough remaining data in `self`.</span>
-    <span class="kw">fn</span> <span class="ident">get_f64_le</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.f64.html">f64</a> {
+    <span class="kw">fn</span> <span class="ident">get_f64_le</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.f64.html">f64</a> {
         <span class="ident">f64::from_bits</span>(<span class="ident"><span class="self">Self</span>::get_u64_le</span>(<a class="self" href="../../../src/bytes/buf/buf_impl.rs.html#797">self</a>))
     }
 
@@ -1887,7 +1887,7 @@
     <span class="doccomment">/// let bytes = (&amp;b&quot;hello world&quot;[..]).copy_to_bytes(5);</span>
     <span class="doccomment">/// assert_eq!(&amp;bytes[..], &amp;b&quot;hello&quot;[..]);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">fn</span> <span class="ident">copy_to_bytes</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">len</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a class="ident" href="../../../src/bytes/bytes.rs.html#94-100"><span class="kw">crate</span>::Bytes</a> {
+    <span class="kw">fn</span> <span class="ident">copy_to_bytes</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">len</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a class="ident" href="../../../src/bytes/bytes.rs.html#94-100"><span class="kw">crate</span>::Bytes</a> {
         <span class="kw">use</span> <a class="ident" href="../../../src/bytes/buf/buf_mut.rs.html#29-949"><span class="kw">super</span>::BufMut</a>;
 
         <span class="macro">assert!</span>(<a class="ident" href="../../../src/bytes/buf/buf_impl.rs.html#816">len</a> <span class="op">&lt;</span><span class="op">=</span> <a class="self" href="../../../src/bytes/buf/buf_impl.rs.html#816">self</a>.<a class="ident" href="../../../src/bytes/buf/buf_impl.rs.html#102">remaining</a>(), <span class="string">&quot;`len` greater than remaining&quot;</span>);
@@ -1990,11 +1990,11 @@
         }
 
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)]</span>
-        <span class="kw">fn</span> <span class="ident">chunks_vectored</span><span class="op">&lt;</span><span class="lifetime">&#39;b</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="self">self</span>, <span class="ident">dst</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">IoSlice</span><span class="op">&lt;</span><span class="lifetime">&#39;b</span><span class="op">&gt;</span>]) -&gt; <span class="ident">usize</span> {
+        <span class="kw">fn</span> <span class="ident">chunks_vectored</span><span class="op">&lt;</span><span class="lifetime">&#39;b</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="self">self</span>, <span class="ident">dst</span>: <span class="kw-2">&amp;mut</span> [<span class="ident">IoSlice</span><span class="op">&lt;</span><span class="lifetime">&#39;b</span><span class="op">&gt;</span>]) -&gt; <span class="ident">usize</span> {
             (<span class="kw-2">*</span><span class="kw-2">*</span><span class="self">self</span>).<span class="ident">chunks_vectored</span>(<span class="ident">dst</span>)
         }
 
-        <span class="kw">fn</span> <span class="ident">advance</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">cnt</span>: <span class="ident">usize</span>) {
+        <span class="kw">fn</span> <span class="ident">advance</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">cnt</span>: <span class="ident">usize</span>) {
             (<span class="kw-2">*</span><span class="kw-2">*</span><span class="self">self</span>).<span class="ident">advance</span>(<span class="ident">cnt</span>)
         }
 
@@ -2002,89 +2002,89 @@
             (<span class="kw-2">*</span><span class="kw-2">*</span><span class="self">self</span>).<span class="ident">has_remaining</span>()
         }
 
-        <span class="kw">fn</span> <span class="ident">copy_to_slice</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">dst</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>]) {
+        <span class="kw">fn</span> <span class="ident">copy_to_slice</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">dst</span>: <span class="kw-2">&amp;mut</span> [<span class="ident">u8</span>]) {
             (<span class="kw-2">*</span><span class="kw-2">*</span><span class="self">self</span>).<span class="ident">copy_to_slice</span>(<span class="ident">dst</span>)
         }
 
-        <span class="kw">fn</span> <span class="ident">get_u8</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="ident">u8</span> {
+        <span class="kw">fn</span> <span class="ident">get_u8</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">u8</span> {
             (<span class="kw-2">*</span><span class="kw-2">*</span><span class="self">self</span>).<span class="ident">get_u8</span>()
         }
 
-        <span class="kw">fn</span> <span class="ident">get_i8</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="ident">i8</span> {
+        <span class="kw">fn</span> <span class="ident">get_i8</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">i8</span> {
             (<span class="kw-2">*</span><span class="kw-2">*</span><span class="self">self</span>).<span class="ident">get_i8</span>()
         }
 
-        <span class="kw">fn</span> <span class="ident">get_u16</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="ident">u16</span> {
+        <span class="kw">fn</span> <span class="ident">get_u16</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">u16</span> {
             (<span class="kw-2">*</span><span class="kw-2">*</span><span class="self">self</span>).<span class="ident">get_u16</span>()
         }
 
-        <span class="kw">fn</span> <span class="ident">get_u16_le</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="ident">u16</span> {
+        <span class="kw">fn</span> <span class="ident">get_u16_le</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">u16</span> {
             (<span class="kw-2">*</span><span class="kw-2">*</span><span class="self">self</span>).<span class="ident">get_u16_le</span>()
         }
 
-        <span class="kw">fn</span> <span class="ident">get_i16</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="ident">i16</span> {
+        <span class="kw">fn</span> <span class="ident">get_i16</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">i16</span> {
             (<span class="kw-2">*</span><span class="kw-2">*</span><span class="self">self</span>).<span class="ident">get_i16</span>()
         }
 
-        <span class="kw">fn</span> <span class="ident">get_i16_le</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="ident">i16</span> {
+        <span class="kw">fn</span> <span class="ident">get_i16_le</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">i16</span> {
             (<span class="kw-2">*</span><span class="kw-2">*</span><span class="self">self</span>).<span class="ident">get_i16_le</span>()
         }
 
-        <span class="kw">fn</span> <span class="ident">get_u32</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="ident">u32</span> {
+        <span class="kw">fn</span> <span class="ident">get_u32</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">u32</span> {
             (<span class="kw-2">*</span><span class="kw-2">*</span><span class="self">self</span>).<span class="ident">get_u32</span>()
         }
 
-        <span class="kw">fn</span> <span class="ident">get_u32_le</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="ident">u32</span> {
+        <span class="kw">fn</span> <span class="ident">get_u32_le</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">u32</span> {
             (<span class="kw-2">*</span><span class="kw-2">*</span><span class="self">self</span>).<span class="ident">get_u32_le</span>()
         }
 
-        <span class="kw">fn</span> <span class="ident">get_i32</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="ident">i32</span> {
+        <span class="kw">fn</span> <span class="ident">get_i32</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">i32</span> {
             (<span class="kw-2">*</span><span class="kw-2">*</span><span class="self">self</span>).<span class="ident">get_i32</span>()
         }
 
-        <span class="kw">fn</span> <span class="ident">get_i32_le</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="ident">i32</span> {
+        <span class="kw">fn</span> <span class="ident">get_i32_le</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">i32</span> {
             (<span class="kw-2">*</span><span class="kw-2">*</span><span class="self">self</span>).<span class="ident">get_i32_le</span>()
         }
 
-        <span class="kw">fn</span> <span class="ident">get_u64</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="ident">u64</span> {
+        <span class="kw">fn</span> <span class="ident">get_u64</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">u64</span> {
             (<span class="kw-2">*</span><span class="kw-2">*</span><span class="self">self</span>).<span class="ident">get_u64</span>()
         }
 
-        <span class="kw">fn</span> <span class="ident">get_u64_le</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="ident">u64</span> {
+        <span class="kw">fn</span> <span class="ident">get_u64_le</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">u64</span> {
             (<span class="kw-2">*</span><span class="kw-2">*</span><span class="self">self</span>).<span class="ident">get_u64_le</span>()
         }
 
-        <span class="kw">fn</span> <span class="ident">get_i64</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="ident">i64</span> {
+        <span class="kw">fn</span> <span class="ident">get_i64</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">i64</span> {
             (<span class="kw-2">*</span><span class="kw-2">*</span><span class="self">self</span>).<span class="ident">get_i64</span>()
         }
 
-        <span class="kw">fn</span> <span class="ident">get_i64_le</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="ident">i64</span> {
+        <span class="kw">fn</span> <span class="ident">get_i64_le</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">i64</span> {
             (<span class="kw-2">*</span><span class="kw-2">*</span><span class="self">self</span>).<span class="ident">get_i64_le</span>()
         }
 
-        <span class="kw">fn</span> <span class="ident">get_uint</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">nbytes</span>: <span class="ident">usize</span>) -&gt; <span class="ident">u64</span> {
+        <span class="kw">fn</span> <span class="ident">get_uint</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">nbytes</span>: <span class="ident">usize</span>) -&gt; <span class="ident">u64</span> {
             (<span class="kw-2">*</span><span class="kw-2">*</span><span class="self">self</span>).<span class="ident">get_uint</span>(<span class="ident">nbytes</span>)
         }
 
-        <span class="kw">fn</span> <span class="ident">get_uint_le</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">nbytes</span>: <span class="ident">usize</span>) -&gt; <span class="ident">u64</span> {
+        <span class="kw">fn</span> <span class="ident">get_uint_le</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">nbytes</span>: <span class="ident">usize</span>) -&gt; <span class="ident">u64</span> {
             (<span class="kw-2">*</span><span class="kw-2">*</span><span class="self">self</span>).<span class="ident">get_uint_le</span>(<span class="ident">nbytes</span>)
         }
 
-        <span class="kw">fn</span> <span class="ident">get_int</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">nbytes</span>: <span class="ident">usize</span>) -&gt; <span class="ident">i64</span> {
+        <span class="kw">fn</span> <span class="ident">get_int</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">nbytes</span>: <span class="ident">usize</span>) -&gt; <span class="ident">i64</span> {
             (<span class="kw-2">*</span><span class="kw-2">*</span><span class="self">self</span>).<span class="ident">get_int</span>(<span class="ident">nbytes</span>)
         }
 
-        <span class="kw">fn</span> <span class="ident">get_int_le</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">nbytes</span>: <span class="ident">usize</span>) -&gt; <span class="ident">i64</span> {
+        <span class="kw">fn</span> <span class="ident">get_int_le</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">nbytes</span>: <span class="ident">usize</span>) -&gt; <span class="ident">i64</span> {
             (<span class="kw-2">*</span><span class="kw-2">*</span><span class="self">self</span>).<span class="ident">get_int_le</span>(<span class="ident">nbytes</span>)
         }
 
-        <span class="kw">fn</span> <span class="ident">copy_to_bytes</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">len</span>: <span class="ident">usize</span>) -&gt; <span class="ident"><span class="kw">crate</span>::Bytes</span> {
+        <span class="kw">fn</span> <span class="ident">copy_to_bytes</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">len</span>: <span class="ident">usize</span>) -&gt; <span class="ident"><span class="kw">crate</span>::Bytes</span> {
             (<span class="kw-2">*</span><span class="kw-2">*</span><span class="self">self</span>).<span class="ident">copy_to_bytes</span>(<span class="ident">len</span>)
         }
     };
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="../../../src/bytes/buf/buf_impl.rs.html#76-906">Buf</a> <span class="op">+</span> <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a><span class="op">&gt;</span> <a class="ident" href="../../../src/bytes/buf/buf_impl.rs.html#76-906">Buf</a> <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">T</span> {
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="../../../src/bytes/buf/buf_impl.rs.html#76-906">Buf</a> <span class="op">+</span> <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a><span class="op">&gt;</span> <a class="ident" href="../../../src/bytes/buf/buf_impl.rs.html#76-906">Buf</a> <span class="kw">for</span> <span class="kw-2">&amp;mut</span> <span class="ident">T</span> {
     <span class="macro">deref_forward_buf!</span>();
 }
 
@@ -2104,7 +2104,7 @@
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">advance</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">cnt</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
+    <span class="kw">fn</span> <span class="ident">advance</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">cnt</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
         <span class="kw-2">*</span><a class="self" href="../../../src/bytes/buf/buf_impl.rs.html#1033">self</a> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="self" href="../../../src/bytes/buf/buf_impl.rs.html#1033">self</a>[<a class="ident" href="../../../src/bytes/buf/buf_impl.rs.html#1033">cnt</a>..];
     }
 }
@@ -2133,7 +2133,7 @@
         <span class="kw-2">&amp;</span><a class="self" href="../../../src/bytes/buf/buf_impl.rs.html#1051">self</a>.<span class="ident">get_ref</span>().<span class="ident">as_ref</span>()[<a class="ident" href="../../../src/bytes/buf/buf_impl.rs.html#1053">pos</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>..]
     }
 
-    <span class="kw">fn</span> <span class="ident">advance</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">cnt</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
+    <span class="kw">fn</span> <span class="ident">advance</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">cnt</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
         <span class="kw">let</span> <span class="ident">pos</span> <span class="op">=</span> (<a class="self" href="../../../src/bytes/buf/buf_impl.rs.html#1062">self</a>.<span class="ident">position</span>() <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>)
             .<span class="ident">checked_add</span>(<a class="ident" href="../../../src/bytes/buf/buf_impl.rs.html#1062">cnt</a>)
             .<span class="ident">expect</span>(<span class="string">&quot;overflow&quot;</span>);
