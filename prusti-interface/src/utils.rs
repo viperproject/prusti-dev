@@ -6,12 +6,14 @@
 
 //! Various helper functions for working with `mir::Place`.
 
-use rustc_middle::mir;
-use rustc_middle::ty::{self, TyCtxt};
-use rustc_index::vec::Idx;
-use std::collections::HashSet;
-use rustc_ast::ast;
 use log::trace;
+use rustc_ast::ast;
+use rustc_data_structures::fx::FxHashSet;
+use rustc_index::vec::Idx;
+use rustc_middle::{
+    mir,
+    ty::{self, TyCtxt},
+};
 
 use prusti_utils::force_matches;
 
@@ -21,10 +23,16 @@ use prusti_utils::force_matches;
 /// +   `is_prefix(x.f.g, x.f) == true`
 /// +   `is_prefix(x.f, x.f.g) == false`
 pub fn is_prefix(place: &mir::Place, potential_prefix: &mir::Place) -> bool {
-    if place.local != potential_prefix.local || place.projection.len() < potential_prefix.projection.len() {
+    if place.local != potential_prefix.local
+        || place.projection.len() < potential_prefix.projection.len()
+    {
         false
     } else {
-        place.projection.iter().zip(potential_prefix.projection.iter()).all(|(e1, e2)| e1 == e2)
+        place
+            .projection
+            .iter()
+            .zip(potential_prefix.projection.iter())
+            .all(|(e1, e2)| e1 == e2)
     }
 }
 
@@ -54,7 +62,8 @@ pub fn expand_struct_place<'tcx>(
                 for (index, field_def) in variant.fields.iter().enumerate() {
                     if Some(index) != without_field {
                         let field = mir::Field::from_usize(index);
-                        let field_place = tcx.mk_place_field(*place, field, field_def.ty(tcx, substs));
+                        let field_place =
+                            tcx.mk_place_field(*place, field, field_def.ty(tcx, substs));
                         places.push(field_place);
                     }
                 }
@@ -67,13 +76,10 @@ pub fn expand_struct_place<'tcx>(
                         places.push(field_place);
                     }
                 }
-            },
+            }
             ty::Ref(_region, _ty, _) => match without_field {
                 Some(without_field) => {
-                    assert_eq!(
-                        without_field, 0,
-                        "References have only a single “field”."
-                    );
+                    assert_eq!(without_field, 0, "References have only a single “field”.");
                 }
                 None => {
                     places.push(tcx.mk_place_deref(*place));
@@ -110,12 +116,8 @@ pub fn expand_one_level<'tcx>(
                 (tcx.mk_place_downcast(current_place, adt, variant), Vec::new())
             )
         }
-        mir::ProjectionElem::Deref => {
-            (tcx.mk_place_deref(current_place), Vec::new())
-        }
-        mir::ProjectionElem::Index(idx) => {
-            (tcx.mk_place_index(current_place, idx), Vec::new())
-        }
+        mir::ProjectionElem::Deref => (tcx.mk_place_deref(current_place), Vec::new()),
+        mir::ProjectionElem::Index(idx) => (tcx.mk_place_index(current_place, idx), Vec::new()),
         elem => {
             unimplemented!("elem = {:?}", elem);
         }
@@ -123,9 +125,12 @@ pub fn expand_one_level<'tcx>(
 }
 
 /// Pop the last projection from the place and return the new place with the popped element.
-pub fn try_pop_one_level<'tcx>(tcx: TyCtxt<'tcx>, place: mir::Place<'tcx>) -> Option<(mir::PlaceElem<'tcx>, mir::Place<'tcx>)> {
+pub fn try_pop_one_level<'tcx>(
+    tcx: TyCtxt<'tcx>,
+    place: mir::Place<'tcx>,
+) -> Option<(mir::PlaceElem<'tcx>, mir::Place<'tcx>)> {
     if place.projection.len() > 0 {
-        let last_index = place.projection.len()-1;
+        let last_index = place.projection.len() - 1;
         let new_place = mir::Place {
             local: place.local,
             projection: tcx.intern_place_elems(&place.projection[..last_index]),
@@ -192,20 +197,20 @@ pub fn expand<'tcx>(
 pub fn collapse<'tcx>(
     mir: &mir::Body<'tcx>,
     tcx: TyCtxt<'tcx>,
-    places: &mut HashSet<mir::Place<'tcx>>,
+    places: &mut FxHashSet<mir::Place<'tcx>>,
     guide_place: &mir::Place<'tcx>,
 ) {
     let guide_place = *guide_place;
     fn recurse<'tcx>(
         mir: &mir::Body<'tcx>,
         tcx: TyCtxt<'tcx>,
-        places: &mut HashSet<mir::Place<'tcx>>,
+        places: &mut FxHashSet<mir::Place<'tcx>>,
         current_place: mir::Place<'tcx>,
         guide_place: mir::Place<'tcx>,
     ) {
         if current_place != guide_place {
-            let (new_current_place, mut expansion) = expand_one_level(
-                mir, tcx, current_place, guide_place);
+            let (new_current_place, mut expansion) =
+                expand_one_level(mir, tcx, current_place, guide_place);
             recurse(mir, tcx, places, new_current_place, guide_place);
             expansion.push(new_current_place);
             if expansion.iter().all(|place| places.contains(place)) {
@@ -241,17 +246,21 @@ impl<'tcx> VecPlace<'tcx> {
     pub fn new(
         mir: &mir::Body<'tcx>,
         tcx: TyCtxt<'tcx>,
-        place: &mir::Place<'tcx>
+        place: &mir::Place<'tcx>,
     ) -> VecPlace<'tcx> {
         let mut vec_place = Self {
             components: Vec::new(),
         };
         let mut prefix: mir::Place = place.local.into();
-        vec_place.components.push(VecPlaceComponent { place: prefix });
+        vec_place
+            .components
+            .push(VecPlaceComponent { place: prefix });
         while prefix.projection.len() < place.projection.len() {
             let (new_prefix, _) = expand_one_level(mir, tcx, prefix, *place);
             prefix = new_prefix;
-            vec_place.components.push(VecPlaceComponent { place: prefix });
+            vec_place
+                .components
+                .push(VecPlaceComponent { place: prefix });
         }
         vec_place
     }
@@ -267,11 +276,19 @@ impl<'tcx> VecPlace<'tcx> {
 /// Any arguments of the attribute are ignored.
 pub fn has_prusti_attr(attrs: &[ast::Attribute], name: &str) -> bool {
     attrs.iter().any(|attr| match &attr.kind {
-        ast::AttrKind::Normal(ast::AttrItem {
-                                  path: ast::Path { span: _, segments, tokens: _ },
-                                  args: _,
-                                  tokens: _,
-                              }, _) => {
+        ast::AttrKind::Normal(
+            ast::AttrItem {
+                path:
+                    ast::Path {
+                        span: _,
+                        segments,
+                        tokens: _,
+                    },
+                args: _,
+                tokens: _,
+            },
+            _,
+        ) => {
             segments.len() == 2
                 && segments[0].ident.as_str() == "prusti"
                 && segments[1].ident.as_str() == name
@@ -294,24 +311,31 @@ pub fn has_extern_spec_attr(attrs: &[ast::Attribute]) -> bool {
 pub fn read_prusti_attrs(attr_name: &str, attrs: &[ast::Attribute]) -> Vec<String> {
     let mut strings = vec![];
     for attr in attrs {
-        if let ast::AttrKind::Normal(ast::AttrItem {
-                                         path: ast::Path { span: _, segments, tokens: _ },
-                                         args: ast::MacArgs::Eq(_, token),
-                                         tokens: _,
-                                     }, _) = &attr.kind {
+        if let ast::AttrKind::Normal(
+            ast::AttrItem {
+                path:
+                    ast::Path {
+                        span: _,
+                        segments,
+                        tokens: _,
+                    },
+                args: ast::MacArgs::Eq(_, token),
+                tokens: _,
+            },
+            _,
+        ) = &attr.kind
+        {
             // Skip attributes whose path don't match with "prusti::<attr_name>"
-            if !(
-                segments.len() == 2
-                    && segments[0].ident.as_str() == "prusti"
-                    && segments[1].ident.as_str() == attr_name
-            ) {
+            if !(segments.len() == 2
+                && segments[0].ident.as_str() == "prusti"
+                && segments[1].ident.as_str() == attr_name)
+            {
                 continue;
             }
-            use rustc_ast::token::Lit;
-            use rustc_ast::token::Token;
-            use rustc_ast::token::TokenKind;
-            use rustc_ast::tokenstream::{TokenTree, TokenStream};
-            use rustc_ast::token::DelimToken;
+            use rustc_ast::{
+                token::{DelimToken, Lit, Token, TokenKind},
+                tokenstream::{TokenStream, TokenTree},
+            };
             fn extract_string(token: &Token) -> String {
                 force_matches!(&token.kind, TokenKind::Literal(Lit { symbol, .. }) => {
                         symbol.as_str().replace("\\\"", "\"")

@@ -5,9 +5,8 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use crate::utils::{self, is_prefix};
-use rustc_middle::mir;
-use rustc_middle::ty::TyCtxt;
-use std::collections::HashSet;
+use rustc_data_structures::fx::FxHashSet;
+use rustc_middle::{mir, ty::TyCtxt};
 use std::mem;
 
 /// A set of MIR places.
@@ -17,7 +16,7 @@ use std::mem;
 /// set at the same time is illegal.
 #[derive(Clone, PartialEq, Eq, Debug, Default)]
 pub struct PlaceSet<'tcx> {
-    places: HashSet<mir::Place<'tcx>>,
+    places: FxHashSet<mir::Place<'tcx>>,
 }
 
 impl<'tcx> PlaceSet<'tcx> {
@@ -55,12 +54,7 @@ impl<'tcx> PlaceSet<'tcx> {
         self.places.into_iter()
     }
     /// Insert `place`.
-    pub fn insert(
-        &mut self,
-        place: &mir::Place<'tcx>,
-        mir: &mir::Body<'tcx>,
-        tcx: TyCtxt<'tcx>,
-    ) {
+    pub fn insert(&mut self, place: &mir::Place<'tcx>, mir: &mir::Body<'tcx>, tcx: TyCtxt<'tcx>) {
         self.check_invariant();
         // First, check that the place is not already marked as
         // definitely initialized.
@@ -77,12 +71,7 @@ impl<'tcx> PlaceSet<'tcx> {
         self.check_invariant();
     }
     /// Remove `place`.
-    pub fn remove(
-        &mut self,
-        place: &mir::Place<'tcx>,
-        mir: &mir::Body<'tcx>,
-        tcx: TyCtxt<'tcx>,
-    ) {
+    pub fn remove(&mut self, place: &mir::Place<'tcx>, mir: &mir::Body<'tcx>, tcx: TyCtxt<'tcx>) {
         self.check_invariant();
         let mut places = Vec::new();
         let old_places = std::mem::take(&mut self.places);
@@ -135,7 +124,7 @@ impl<'tcx> PlaceSet<'tcx> {
     pub fn merge(place_set1: &PlaceSet<'tcx>, place_set2: &PlaceSet<'tcx>) -> PlaceSet<'tcx> {
         place_set1.check_invariant();
         place_set2.check_invariant();
-        let mut places = HashSet::new();
+        let mut places = FxHashSet::default();
         let mut propage_places = |place_set1: &PlaceSet<'tcx>, place_set2: &PlaceSet<'tcx>| {
             for place in place_set1.iter() {
                 for potential_prefix in place_set2.iter() {
@@ -156,7 +145,7 @@ impl<'tcx> PlaceSet<'tcx> {
     pub fn deduplicate(&mut self) {
         let old_places = std::mem::take(&mut self.places);
         let places: Vec<_> = old_places.into_iter().collect();
-        let mut to_remove = HashSet::new();
+        let mut to_remove = FxHashSet::default();
         for (i, place) in places.iter().enumerate() {
             for (j, other) in places.iter().enumerate() {
                 if i <= j {
@@ -189,10 +178,8 @@ impl<'tcx> PlaceSet<'tcx> {
     }
 }
 
-impl<'tcx> From<HashSet<mir::Place<'tcx>>> for PlaceSet<'tcx> {
-    fn from(places: HashSet<mir::Place<'tcx>>) -> Self {
-        Self {
-            places
-        }
+impl<'tcx> From<FxHashSet<mir::Place<'tcx>>> for PlaceSet<'tcx> {
+    fn from(places: FxHashSet<mir::Place<'tcx>>) -> Self {
+        Self { places }
     }
 }
