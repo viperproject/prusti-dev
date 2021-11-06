@@ -16,34 +16,32 @@
 //! the set at the same time. For example, having `x.f` and `x.f.g` in
 //! `S` at the same time is illegal.
 
-use prusti_common::Stopwatch;
 use crate::environment::place_set::PlaceSet;
+use analysis::{domains::DefinitelyInitializedAnalysis, AbstractState, Analysis};
 use csv::{ReaderBuilder, WriterBuilder};
-use rustc_middle::ty::TyCtxt;
-use rustc_middle::mir;
+use log::trace;
+use prusti_common::Stopwatch;
+use rustc_data_structures::fx::FxHashMap;
 use rustc_hir as hir;
 use rustc_hir::def_id::DefId;
 use rustc_index::vec::Idx;
-use std::path::Path;
-use log::trace;
-use serde::{Serialize, Deserialize};
-use analysis::domains::DefinitelyInitializedAnalysis;
-use analysis::{Analysis, AbstractState};
-use std::collections::HashMap;
+use rustc_middle::{mir, ty::TyCtxt};
+use serde::{Deserialize, Serialize};
+use std::{collections::HashMap, path::Path};
 
 pub struct AnalysisResult<T> {
     /// The state before the basic block.
-    pub before_block: HashMap<mir::BasicBlock, T>,
+    pub before_block: FxHashMap<mir::BasicBlock, T>,
     /// The state after the statement.
-    pub after_statement: HashMap<mir::Location, T>,
+    pub after_statement: FxHashMap<mir::Location, T>,
 }
 
 impl<T> AnalysisResult<T> {
     #[allow(clippy::new_without_default)]
     pub fn new() -> Self {
         Self {
-            before_block: HashMap::new(),
-            after_statement: HashMap::new(),
+            before_block: FxHashMap::default(),
+            after_statement: FxHashMap::default(),
         }
     }
     /// Get the initialization set before the first statement of the
@@ -57,7 +55,8 @@ impl<T> AnalysisResult<T> {
     /// If `location.statement_index` is equal to the number of statements,
     /// returns the initialization set after the terminator.
     pub fn get_after_statement(&self, location: mir::Location) -> &T {
-        self.after_statement.get(&location)
+        self.after_statement
+            .get(&location)
             .unwrap_or_else(|| panic!("Missing initialization info for location {:?}", location))
     }
 }
@@ -74,7 +73,13 @@ pub fn compute_definitely_initialized<'a, 'tcx: 'a>(
     let analysis = DefinitelyInitializedAnalysis::new(tcx, def_id, body);
     let pointwise_state = analysis
         .run_fwd_analysis()
-        .map_err(|e| panic!("Error while analyzing function at {:?}: {}", body.span, e.to_pretty_str(body)))
+        .map_err(|e| {
+            panic!(
+                "Error while analyzing function at {:?}: {}",
+                body.span,
+                e.to_pretty_str(body)
+            )
+        })
         .unwrap();
 
     // Convert the pointwise_state to analysis_result.
@@ -85,15 +90,19 @@ pub fn compute_definitely_initialized<'a, 'tcx: 'a>(
         let mut location = bb.start_location();
         analysis_result.before_block.insert(
             bb,
-            pointwise_state.lookup_before(location).unwrap().get_def_init_places().clone().into(),
+            pointwise_state
+                .lookup_before(location)
+                .unwrap()
+                .get_def_init_places()
+                .clone()
+                .into(),
         );
         while location.statement_index < num_statements {
             // `location` identifies a statement
             let state = pointwise_state.lookup_after(location).unwrap();
-            analysis_result.after_statement.insert(
-                location,
-                state.get_def_init_places().clone().into(),
-            );
+            analysis_result
+                .after_statement
+                .insert(location, state.get_def_init_places().clone().into());
             location = location.successor_within_block();
         }
         // `location` identifies a terminator
@@ -107,7 +116,7 @@ pub fn compute_definitely_initialized<'a, 'tcx: 'a>(
         let state_after_block = opt_state_after_block.unwrap_or_else(|| analysis.new_bottom());
         analysis_result.after_statement.insert(
             location,
-            state_after_block.get_def_init_places().clone().into()
+            state_after_block.get_def_init_places().clone().into(),
         );
     }
     stopwatch.finish();
