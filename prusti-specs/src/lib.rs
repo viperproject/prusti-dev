@@ -7,6 +7,7 @@ mod extern_spec_rewriter;
 mod rewriter;
 mod parse_closure_macro;
 mod spec_attribute_kind;
+mod export_spec_rewriter;
 pub mod specifications;
 
 use proc_macro2::{Span, TokenStream, TokenTree};
@@ -439,7 +440,50 @@ pub fn refine_trait_spec(_attr: TokenStream, tokens: TokenStream) -> TokenStream
     }
 }
 
+pub fn export_spec(attr: TokenStream, tokens: TokenStream) -> TokenStream {
+    let item: syn::Item = handle_result!(syn::parse2(tokens));
+    let item_span = item.span();
+    let path: syn::Path = handle_result!(export_spec_rewriter::parse_valid_export_path(attr));
+    let macros = handle_result!(export_spec_rewriter::rewrite_export_spec(&path, &item));
+    parse_quote_spanned!(item_span =>
+        #item
+        #macros
+    )
+}
+
+pub fn prusti_use(tokens: TokenStream) -> TokenStream {
+    let path: syn::Path = handle_result!(syn::parse2(tokens));
+    let span = path.span();
+    let macro_path = handle_result!(prusti_use_macro(path));
+    let mut seg_iter = macro_path.segments.into_iter();
+    if let Some(first_seg) = seg_iter.next() {
+        let rest_segs: syn::punctuated::Punctuated<syn::PathSegment, syn::token::Colon2> = seg_iter.collect();
+        return quote_spanned! {span=>
+            #first_seg!(#rest_segs);
+        };
+    }
+    return handle_result!(Err(syn::Error::new(
+        span,
+        "prusti_use! doesn't support empty path"
+    )));
+}
+
+fn prusti_use_macro(mut path: syn::Path) -> syn::Result<syn::Path> {
+    let mut macro_calling_path = syn::Path {
+        leading_colon: None,
+        segments: syn::punctuated::Punctuated::new(),
+    };
+
+    for seg in path.segments.iter_mut() {
+        macro_calling_path.segments.push(seg.clone());
+        seg.ident = export_spec_rewriter::generate_macro_ident(macro_calling_path.clone());
+    }
+
+    Ok(path)
+}
+
 pub fn extern_spec(_attr: TokenStream, tokens:TokenStream) -> TokenStream {
+    let export_ts = export_spec(quote!(::), tokens.clone());
     let item: syn::Item = handle_result!(syn::parse2(tokens));
     let item_span = item.span();
     match item {
@@ -462,6 +506,7 @@ pub fn extern_spec(_attr: TokenStream, tokens:TokenStream) -> TokenStream {
             quote_spanned! {item_span=>
                 #new_struct
                 #rewritten_item
+                #export_ts
             }
         }
         syn::Item::Mod(mut item_mod) => {
@@ -470,7 +515,10 @@ pub fn extern_spec(_attr: TokenStream, tokens:TokenStream) -> TokenStream {
                 segments: syn::punctuated::Punctuated::new(),
             };
             handle_result!(extern_spec_rewriter::rewrite_mod(&mut item_mod, &mut path));
-            quote!(#item_mod)
+            quote!(
+                #item_mod
+                #export_ts
+            )
         }
         _ => { unimplemented!() }
     }

@@ -32,6 +32,12 @@ mod private {
     /// A macro for specifying external functions.
     pub use prusti_contracts_impl::extern_spec;
 
+    /// A macro for specifying export functions.
+    pub use prusti_contracts_impl::export_spec;
+
+    /// A macro for specifying emported specifications.
+    pub use prusti_contracts_impl::prusti_use;
+
     /// A macro for defining a predicate using prusti expression syntax instead
     /// of just Rust expressions.
     pub use prusti_contracts_impl::predicate;
@@ -68,6 +74,12 @@ mod private {
 
     /// A macro for specifying external functions.
     pub use prusti_contracts_internal::extern_spec;
+
+    /// A macro for specifying export functions.
+    pub use prusti_contracts_internal::export_spec;
+
+    /// A macro for specifying emported specifications.
+    pub use prusti_contracts_internal::prusti_use;
 
     /// A macro for defining a predicate using prusti expression syntax instead
     /// of just Rust expressions.
