@@ -22,7 +22,8 @@ pub(super) fn derive(
         match item {
             syn::Item::Macro(macro_item) if macro_item.mac.path.is_ident("derive_lower") => {
                 let DeriveLower {
-                    trait_ident,
+                    user_trait_ident,
+                    deriver_trait_ident,
                     mut source_type,
                     mut target_type,
                 } = syn::parse2::<DeriveLower>(macro_item.mac.tokens.clone())?;
@@ -31,7 +32,8 @@ pub(super) fn derive(
                 source_type.segments.pop();
                 target_type.segments.pop();
                 new_items.extend(derive_lowerer(
-                    trait_ident,
+                    user_trait_ident,
+                    deriver_trait_ident,
                     source_type,
                     source_type_module,
                     source_enum,
@@ -93,16 +95,20 @@ fn find_module<'a>(
 }
 
 fn derive_lowerer(
-    trait_ident: syn::Ident,
+    user_trait_ident: syn::Ident,
+    deriver_trait_ident: syn::Ident,
     source_path: syn::Path,
     source_type_module: &[syn::Item],
     source_enum: &syn::ItemEnum,
     target_path: syn::Path,
     target_type_module: &[syn::Item],
 ) -> Result<Vec<syn::Item>, syn::Error> {
-    let mut prefix = prefixed_method_name_from_camel_raw("", &trait_ident);
+    let mut prefix = prefixed_method_name_from_camel_raw("", &user_trait_ident);
     prefix.push('_');
     let mut deriver = Deriver {
+        deriver_trait_ident: deriver_trait_ident.clone(),
+        user_trait_ident: user_trait_ident.clone(),
+        user_trait_method_name: method_name_from_camel(&user_trait_ident),
         prefix,
         queue: vec![WorkItem::RootItem {
             type_ident: source_enum.ident.clone(),
@@ -113,6 +119,7 @@ fn derive_lowerer(
         target_path,
         target_type_module,
         encoded_methods: Vec::new(),
+        encoded_trait_impls: Vec::new(),
     };
     while let Some(work_item) = deriver.queue.pop() {
         if !deriver.done_work_items.contains(&work_item) {
@@ -137,12 +144,21 @@ fn derive_lowerer(
     let methods = deriver.encoded_methods;
     let mut items = Vec::new();
     let final_trait = parse_quote! {
-        trait #trait_ident {
+        trait #deriver_trait_ident {
             type Error;
             #(#methods)*
         }
     };
     items.push(final_trait);
+    let method_name = &deriver.user_trait_method_name;
+    let user_trait = parse_quote! {
+        trait #user_trait_ident {
+            type Output;
+            fn #method_name(self, lowerer: &impl #deriver_trait_ident) -> Self::Output;
+        }
+    };
+    items.push(user_trait);
+    items.extend(deriver.encoded_trait_impls);
     Ok(items)
 }
 
@@ -162,6 +178,9 @@ enum WorkItem {
 }
 
 struct Deriver<'a> {
+    deriver_trait_ident: syn::Ident,
+    user_trait_ident: syn::Ident,
+    user_trait_method_name: syn::Ident,
     prefix: String,
     queue: Vec<WorkItem>,
     done_work_items: HashSet<WorkItem>,
@@ -170,6 +189,7 @@ struct Deriver<'a> {
     target_path: syn::Path,
     target_type_module: &'a [syn::Item],
     encoded_methods: Vec<syn::Item>,
+    encoded_trait_impls: Vec<syn::Item>,
 }
 
 impl<'a> Deriver<'a> {
@@ -180,6 +200,9 @@ impl<'a> Deriver<'a> {
             self.encode_struct(ident, source_struct)?;
         } else {
             self.encode_stub(ident)?;
+        }
+        if !self.is_builtin_type(ident) {
+            self.encode_user_trait_impl(ident)?;
         }
         Ok(())
     }
@@ -218,11 +241,11 @@ impl<'a> Deriver<'a> {
     fn encode_parameter_type(&self, ident: &syn::Ident) -> syn::Type {
         let path = &self.source_path;
         if self.is_builtin_type(ident) {
-            syn::parse_quote! {
+            parse_quote! {
                 #ident
             }
         } else {
-            syn::parse_quote! {
+            parse_quote! {
                 crate :: #path #ident
             }
         }
@@ -230,11 +253,11 @@ impl<'a> Deriver<'a> {
     fn encode_return_type(&self, ident: &syn::Ident) -> syn::Type {
         let path = &self.target_path;
         if self.is_builtin_type(ident) {
-            syn::parse_quote! {
+            parse_quote! {
                 #ident
             }
         } else {
-            syn::parse_quote! {
+            parse_quote! {
                 crate :: #path #ident
             }
         }
@@ -251,12 +274,12 @@ impl<'a> Deriver<'a> {
                 self.encode_variant_method_name(&source_enum.ident, &source_variant.ident);
             let arg_type = if let Some(source_type) = extract_variant_type(source_variant)? {
                 let arg = method_name_from_camel(source_type);
-                arms.push(syn::parse_quote! {
+                arms.push(parse_quote! {
                     #source_enum_type :: #source_ident (#arg) => { self.#called_method_name(#arg) }
                 });
                 Some(source_type.clone())
             } else {
-                arms.push(syn::parse_quote! {
+                arms.push(parse_quote! {
                     #source_enum_type :: #source_ident => { self.#called_method_name() }
                 });
                 None
@@ -267,7 +290,7 @@ impl<'a> Deriver<'a> {
                 arg_type,
             });
         }
-        let expr = syn::parse_quote! {
+        let expr = parse_quote! {
             match ty {
                 #(#arms)*
             }
@@ -285,13 +308,13 @@ impl<'a> Deriver<'a> {
         let return_type = self.encode_return_type(enum_ident);
         let method = if target_enum.is_some() {
             let body = self.encode_enum_body(&parameter_type, source_enum)?;
-            syn::parse_quote! {
+            parse_quote! {
                 fn #name(&self, ty: #parameter_type) -> #return_type {
                     #body
                 }
             }
         } else {
-            syn::parse_quote! {
+            parse_quote! {
                 fn #name(&self, ty: #parameter_type) -> #return_type;
             }
         };
@@ -315,11 +338,11 @@ impl<'a> Deriver<'a> {
                 self.queue.push(WorkItem::Type {
                     ty: Box::new(field.ty.clone()),
                 });
-                fields.push(syn::parse_quote! {
+                fields.push(parse_quote! {
                     #field_name: self.#called_method_name(ty.#field_name)
                 });
             }
-            syn::parse_quote! {
+            parse_quote! {
                 fn #name(&self, ty: #parameter_type) -> #return_type {
                     #return_type {
                         #(#fields),*
@@ -327,7 +350,7 @@ impl<'a> Deriver<'a> {
                 }
             }
         } else {
-            syn::parse_quote! {
+            parse_quote! {
                 fn #name(&self, ty: #parameter_type) -> #return_type;
             }
         };
@@ -349,18 +372,18 @@ impl<'a> Deriver<'a> {
                 self.queue.push(WorkItem::RootItem {
                     type_ident: arg_type.clone(),
                 });
-                syn::parse_quote! {
+                parse_quote! {
                     fn #method_name(&self, variant: #parameter_type) -> #return_type {
                         #return_type :: #variant_ident (self.#called_method_name(variant))
                     }
                 }
             } else {
-                syn::parse_quote! {
+                parse_quote! {
                     fn #method_name(&self, variant: #parameter_type) -> #return_type;
                 }
             }
         } else {
-            syn::parse_quote! {
+            parse_quote! {
                 fn #method_name(&self) -> #return_type;
             }
         };
@@ -393,7 +416,7 @@ impl<'a> Deriver<'a> {
             let method_name = self.encode_name_nested(container_ident, inner_ident);
             let parameter_type = self.encode_parameter_type(inner_ident);
             let return_type = self.encode_return_type(inner_ident);
-            let method = syn::parse_quote! {
+            let method = parse_quote! {
                 fn #method_name(&self, #container_ident < #parameter_type >) -> #container_ident < #return_type >;
             };
             self.encoded_methods.push(method);
@@ -405,10 +428,29 @@ impl<'a> Deriver<'a> {
         let method_name = self.encode_name(ident);
         let parameter_type = self.encode_parameter_type(ident);
         let return_type = self.encode_return_type(ident);
-        let method = syn::parse_quote! {
+        let method = parse_quote! {
             fn #method_name(&self, ty: #parameter_type) -> #return_type;
         };
         self.encoded_methods.push(method);
+        Ok(())
+    }
+
+    fn encode_user_trait_impl(&mut self, ident: &syn::Ident) -> syn::Result<()> {
+        let user_trait_ident = &self.user_trait_ident;
+        let deriver_trait_ident = &self.deriver_trait_ident;
+        let parameter_type = self.encode_parameter_type(ident);
+        let return_type = self.encode_return_type(ident);
+        let method_name = &self.user_trait_method_name;
+        let called_method_name = self.encode_name(ident);
+        let trait_impl = parse_quote! {
+            impl #user_trait_ident for #parameter_type {
+                type Output = #return_type;
+                fn #method_name(self, lowerer: &impl #deriver_trait_ident) -> Self::Output {
+                    lowerer.#called_method_name(self)
+                }
+            }
+        };
+        self.encoded_trait_impls.push(trait_impl);
         Ok(())
     }
 }
