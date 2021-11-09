@@ -9,7 +9,7 @@ use crate::encoder::{
     errors::{EncodingError, EncodingResult},
     high::types::HighTypeEncoderInterface,
     mir::types::MirTypeEncoderInterface,
-    snapshot::encoder::{SnapshotEncoder, UNIT_DOMAIN_NAME},
+    snapshot::encoder::SnapshotEncoder,
     Encoder,
 };
 use vir_crate::polymorphic::{self as vir, ExprFolder, FallibleExprFolder, FallibleStmtFolder};

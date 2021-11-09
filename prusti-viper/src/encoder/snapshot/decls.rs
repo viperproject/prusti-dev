@@ -15,9 +15,6 @@ use vir_crate::polymorphic::{self as vir, Expr, Type};
 pub(super) enum Snapshot {
     /// Corresponds directly to an existing Viper type.
     Primitive(Type),
-    /// Encodes types with no content; these need not be provided as arguments
-    /// to snapshot constructors.
-    Unit,
     /// Encodes a complex type: tuples, ADTs, or closures.
     Complex {
         predicate_type: Type,
@@ -73,7 +70,6 @@ impl Snapshot {
     pub fn get_type(&self) -> Type {
         match self {
             Self::Primitive(ty) => ty.clone(),
-            Self::Unit => Type::domain(super::encoder::UNIT_DOMAIN_NAME.to_string()),
             Self::Complex { predicate_type, .. }
             | Self::Abstract { predicate_type, .. }
             | Self::Array { predicate_type, .. }
@@ -94,7 +90,7 @@ impl Snapshot {
         use Snapshot::*;
         matches!(
             self,
-            Primitive(_) | Unit | Complex { .. } | Array { .. } | Slice { .. }
+            Primitive(_) | Complex { .. } | Array { .. } | Slice { .. }
         )
     }
 }
