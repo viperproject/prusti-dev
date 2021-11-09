@@ -36,7 +36,7 @@ const SNAP_FUNC_NAME: &str = "snap$";
 
 /// Encodes MIR types into snapshots, and keeps track of which types have
 /// already been encoded.
-pub struct SnapshotEncoder {
+pub(super) struct SnapshotEncoder {
     /// Types that are currently being encoded. Stores the VIR type that will
     /// be the result of the snapshot operation: either a primitive VIR type,
     /// or an instance of [Type::Snapshot].
