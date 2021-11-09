@@ -1,4 +1,4 @@
-use super::{
+pub(crate) use super::{
     field::FieldDecl,
     position::Position,
     ty::{Type, VariantIndex},
