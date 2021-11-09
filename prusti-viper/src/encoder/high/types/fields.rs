@@ -5,7 +5,7 @@ use log::trace;
 use prusti_common::vir::Field;
 use vir_crate::high as vir;
 
-pub(in super::super) fn create_value_field(ty: vir::Type) -> EncodingResult<vir::FieldDecl> {
+pub(crate) fn create_value_field(ty: vir::Type) -> EncodingResult<vir::FieldDecl> {
     trace!("Encode value field for type '{:?}'", ty);
     let field_decl = match ty {
         vir::Type::Bool => vir::FieldDecl::new("val_bool", vir::Type::MBool),

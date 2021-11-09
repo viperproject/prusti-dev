@@ -301,6 +301,17 @@ impl<'tcx> Environment<'tcx> {
         result
     }
 
+    pub fn type_is_allowed_in_pure_functions(&self, ty: ty::Ty<'tcx>) -> bool {
+        match ty.kind() {
+            ty::TyKind::Never => {
+                true
+            }
+            _ => {
+                self.type_is_copy(ty)
+            }
+        }
+    }
+
     pub fn type_is_copy(&self, ty: ty::Ty<'tcx>) -> bool {
         let copy_trait = self.tcx.lang_items().copy_trait();
         if let Some(copy_trait_def_id) = copy_trait {

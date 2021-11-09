@@ -7,4 +7,5 @@
 pub use self::{polymorphic_to_legacy::*, type_substitution::Generic};
 
 pub mod polymorphic_to_legacy;
+pub mod positions;
 pub mod type_substitution;

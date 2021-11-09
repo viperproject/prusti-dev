@@ -30,7 +30,7 @@ pub(super) fn derive(
         for mut deriver in derivers {
             deriver.create_walk_method(&enum_ident, None);
             if deriver.kind.is_folder() {
-                deriver.create_boxed_walk_method(&enum_ident);
+                deriver.create_enum_boxed_walk_method(&enum_ident);
             }
             deriver.create_default_enum_function(&variants)?;
 
@@ -43,7 +43,6 @@ pub(super) fn derive(
                     all_created_methods.insert(ty.clone());
                     if deriver.kind.is_folder() {
                         deriver.create_walk_method(ty, Some(variant));
-                        deriver.create_boxed_walk_method(ty);
                     } else {
                         deriver.create_walk_method(ty, None);
                     }
@@ -150,19 +149,19 @@ impl Deriver {
         };
         self.trait_items.push(method);
     }
-    fn create_boxed_walk_method(&mut self, ty: &syn::Ident) {
+    fn create_enum_boxed_walk_method(&mut self, ty: &syn::Ident) {
         let method_name = append_ident(&self.create_method_name(ty), "_boxed");
         let parameter_name = method_name_from_camel(ty);
-        let default_method_name = self.create_default_method_name(ty);
+        let called_method_name = self.create_method_name(ty);
         let parameter_type = self.create_parameter_type(ty);
         let result_type = self.create_boxed_result_type(ty, false);
         let body: syn::Expr = if self.kind.is_fallible() {
             parse_quote! {
-                #default_method_name(self, *#parameter_name).map(Box::new)
+                self.#called_method_name(*#parameter_name).map(Box::new)
             }
         } else {
             parse_quote! {
-                Box::new(#default_method_name(self, *#parameter_name))
+                Box::new(self.#called_method_name(*#parameter_name))
             }
         };
         let method = parse_quote! {

@@ -194,9 +194,8 @@ impl<'v, 'tcx: 'v> HighTypeEncoderInterface<'tcx> for super::super::super::Encod
     fn encode_value_field(&self, ty: ty::Ty<'tcx>) -> EncodingResult<vir_poly::Field> {
         // FIXME: This should not be needed:
         self.ensure_type_predicate_encoded(ty)?;
-        let encoded_type = self.encode_type_high(ty)?;
-        let field = super::create_value_field(encoded_type)?.lower(self);
-        Ok(field)
+        let field = self.encode_value_field_high(ty)?;
+        Ok(field.lower(self))
     }
     fn encode_type_predicate_def(&self, ty: ty::Ty<'tcx>) -> EncodingResult<vir_poly::Predicate> {
         let predicate_name = self.encode_type(ty)?;
