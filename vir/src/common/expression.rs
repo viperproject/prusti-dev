@@ -15,7 +15,7 @@ pub trait UnaryOperationHelpers {
     fn minus(arg: Self) -> Self;
 }
 
-pub trait BinaryOperationHelpers {
+pub trait BinaryOperationHelpers: Sized + UnaryOperationHelpers {
     type BinaryOperationKind;
     fn binary_operation(kind: Self::BinaryOperationKind, left: Self, right: Self) -> Self;
     fn equals(left: Self, right: Self) -> Self;
@@ -31,6 +31,9 @@ pub trait BinaryOperationHelpers {
     fn module(left: Self, right: Self) -> Self;
     fn and(left: Self, right: Self) -> Self;
     fn or(left: Self, right: Self) -> Self;
+    fn xor(left: Self, right: Self) -> Self {
+        Self::not(Self::equals(left, right))
+    }
     fn implies(left: Self, right: Self) -> Self;
 }
 

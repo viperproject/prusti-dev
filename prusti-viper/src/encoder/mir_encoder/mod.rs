@@ -804,8 +804,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
     }
 
     /// Return the cause of a call to `begin_panic`
-    pub fn encode_panic_cause(&self, source_info: mir::SourceInfo) -> PanicCause {
-        let macro_backtrace: Vec<_> = source_info.span.macro_backtrace().collect();
+    pub fn encode_panic_cause(&self, span: Span) -> PanicCause {
+        let macro_backtrace: Vec<_> = span.macro_backtrace().collect();
         debug!("macro_backtrace: {:?}", macro_backtrace);
 
         // To classify the cause of the panic it's enough to look at the top 3 macro calls

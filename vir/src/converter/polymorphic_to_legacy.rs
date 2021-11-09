@@ -23,12 +23,6 @@ impl From<polymorphic::BodylessMethod> for legacy::BodylessMethod {
 }
 
 // common
-impl From<polymorphic::Position> for legacy::Position {
-    fn from(position: polymorphic::Position) -> legacy::Position {
-        legacy::Position::new(position.line(), position.column(), position.id())
-    }
-}
-
 impl From<polymorphic::PermAmountError> for legacy::PermAmountError {
     fn from(perm_amount_error: polymorphic::PermAmountError) -> legacy::PermAmountError {
         match perm_amount_error {
@@ -341,23 +335,23 @@ impl From<polymorphic::UnaryOpKind> for legacy::UnaryOpKind {
     }
 }
 
-impl From<polymorphic::BinOpKind> for legacy::BinOpKind {
-    fn from(bin_op_kind: polymorphic::BinOpKind) -> legacy::BinOpKind {
+impl From<polymorphic::BinaryOpKind> for legacy::BinaryOpKind {
+    fn from(bin_op_kind: polymorphic::BinaryOpKind) -> legacy::BinaryOpKind {
         match bin_op_kind {
-            polymorphic::BinOpKind::EqCmp => legacy::BinOpKind::EqCmp,
-            polymorphic::BinOpKind::NeCmp => legacy::BinOpKind::NeCmp,
-            polymorphic::BinOpKind::GtCmp => legacy::BinOpKind::GtCmp,
-            polymorphic::BinOpKind::GeCmp => legacy::BinOpKind::GeCmp,
-            polymorphic::BinOpKind::LtCmp => legacy::BinOpKind::LtCmp,
-            polymorphic::BinOpKind::LeCmp => legacy::BinOpKind::LeCmp,
-            polymorphic::BinOpKind::Add => legacy::BinOpKind::Add,
-            polymorphic::BinOpKind::Sub => legacy::BinOpKind::Sub,
-            polymorphic::BinOpKind::Mul => legacy::BinOpKind::Mul,
-            polymorphic::BinOpKind::Div => legacy::BinOpKind::Div,
-            polymorphic::BinOpKind::Mod => legacy::BinOpKind::Mod,
-            polymorphic::BinOpKind::And => legacy::BinOpKind::And,
-            polymorphic::BinOpKind::Or => legacy::BinOpKind::Or,
-            polymorphic::BinOpKind::Implies => legacy::BinOpKind::Implies,
+            polymorphic::BinaryOpKind::EqCmp => legacy::BinaryOpKind::EqCmp,
+            polymorphic::BinaryOpKind::NeCmp => legacy::BinaryOpKind::NeCmp,
+            polymorphic::BinaryOpKind::GtCmp => legacy::BinaryOpKind::GtCmp,
+            polymorphic::BinaryOpKind::GeCmp => legacy::BinaryOpKind::GeCmp,
+            polymorphic::BinaryOpKind::LtCmp => legacy::BinaryOpKind::LtCmp,
+            polymorphic::BinaryOpKind::LeCmp => legacy::BinaryOpKind::LeCmp,
+            polymorphic::BinaryOpKind::Add => legacy::BinaryOpKind::Add,
+            polymorphic::BinaryOpKind::Sub => legacy::BinaryOpKind::Sub,
+            polymorphic::BinaryOpKind::Mul => legacy::BinaryOpKind::Mul,
+            polymorphic::BinaryOpKind::Div => legacy::BinaryOpKind::Div,
+            polymorphic::BinaryOpKind::Mod => legacy::BinaryOpKind::Mod,
+            polymorphic::BinaryOpKind::And => legacy::BinaryOpKind::And,
+            polymorphic::BinaryOpKind::Or => legacy::BinaryOpKind::Or,
+            polymorphic::BinaryOpKind::Implies => legacy::BinaryOpKind::Implies,
         }
     }
 }

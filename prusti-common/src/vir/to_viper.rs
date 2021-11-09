@@ -351,46 +351,46 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for Expr {
                 UnaryOpKind::Minus => ast.minus_with_pos(expr.to_viper(ast), pos.to_viper(ast)),
             },
             Expr::BinOp(op, ref left, ref right, ref pos) => match op {
-                BinOpKind::EqCmp => {
+                BinaryOpKind::EqCmp => {
                     ast.eq_cmp_with_pos(left.to_viper(ast), right.to_viper(ast), pos.to_viper(ast))
                 }
-                BinOpKind::NeCmp => {
+                BinaryOpKind::NeCmp => {
                     ast.ne_cmp_with_pos(left.to_viper(ast), right.to_viper(ast), pos.to_viper(ast))
                 }
-                BinOpKind::GtCmp => {
+                BinaryOpKind::GtCmp => {
                     ast.gt_cmp_with_pos(left.to_viper(ast), right.to_viper(ast), pos.to_viper(ast))
                 }
-                BinOpKind::GeCmp => {
+                BinaryOpKind::GeCmp => {
                     ast.ge_cmp_with_pos(left.to_viper(ast), right.to_viper(ast), pos.to_viper(ast))
                 }
-                BinOpKind::LtCmp => {
+                BinaryOpKind::LtCmp => {
                     ast.lt_cmp_with_pos(left.to_viper(ast), right.to_viper(ast), pos.to_viper(ast))
                 }
-                BinOpKind::LeCmp => {
+                BinaryOpKind::LeCmp => {
                     ast.le_cmp_with_pos(left.to_viper(ast), right.to_viper(ast), pos.to_viper(ast))
                 }
-                BinOpKind::Add => {
+                BinaryOpKind::Add => {
                     ast.add_with_pos(left.to_viper(ast), right.to_viper(ast), pos.to_viper(ast))
                 }
-                BinOpKind::Sub => {
+                BinaryOpKind::Sub => {
                     ast.sub_with_pos(left.to_viper(ast), right.to_viper(ast), pos.to_viper(ast))
                 }
-                BinOpKind::Mul => {
+                BinaryOpKind::Mul => {
                     ast.mul_with_pos(left.to_viper(ast), right.to_viper(ast), pos.to_viper(ast))
                 }
-                BinOpKind::Div => {
+                BinaryOpKind::Div => {
                     ast.div_with_pos(left.to_viper(ast), right.to_viper(ast), pos.to_viper(ast))
                 }
-                BinOpKind::Mod => {
+                BinaryOpKind::Mod => {
                     ast.module_with_pos(left.to_viper(ast), right.to_viper(ast), pos.to_viper(ast))
                 }
-                BinOpKind::And => {
+                BinaryOpKind::And => {
                     ast.and_with_pos(left.to_viper(ast), right.to_viper(ast), pos.to_viper(ast))
                 }
-                BinOpKind::Or => {
+                BinaryOpKind::Or => {
                     ast.or_with_pos(left.to_viper(ast), right.to_viper(ast), pos.to_viper(ast))
                 }
-                BinOpKind::Implies => {
+                BinaryOpKind::Implies => {
                     ast.implies_with_pos(left.to_viper(ast), right.to_viper(ast), pos.to_viper(ast))
                 }
             },

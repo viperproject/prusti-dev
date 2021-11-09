@@ -77,6 +77,8 @@ pub struct Reference {
 #[display(fmt = "{}", name)]
 pub struct Closure {
     pub name: String,
+    /// The tuple of captured arguments.
+    pub arguments: Vec<Type>,
 }
 
 #[display(fmt = "{}", ty)]

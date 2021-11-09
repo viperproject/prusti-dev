@@ -1,7 +1,8 @@
-use super::{super::super::encoder::SubstMap, interface::PureFunctionEncoderInterface};
+use super::interface::PureFunctionEncoderInterface;
 use crate::encoder::{
     borrows::{compute_procedure_contract, ProcedureContract},
     builtin_encoder::BuiltinFunctionKind,
+    encoder::SubstMap,
     errors::{
         EncodingError, EncodingResult, ErrorCtxt, PanicCause, SpannedEncodingError,
         SpannedEncodingResult, WithSpan,
@@ -122,7 +123,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionBackwardInterpreter<'p, 'v, 'tcx> {
         // TODO: De-duplicate with mir_encoder.encode_operand_place.
         //   Maybe returning `None` from mir_encoder.encode_operand_place for arrays in general?
         match operand {
-            mir::Operand::Move(ref place) | &mir::Operand::Copy(ref place) => {
+            mir::Operand::Move(place) | mir::Operand::Copy(place) => {
                 Ok((self.encode_place(place)?.0, false))
             }
             mir::Operand::Constant(constant) => {
@@ -642,8 +643,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                                 // args[0]: message
                                 // args[1]: position of failing assertions
 
-                                let panic_cause =
-                                    self.mir_encoder.encode_panic_cause(term.source_info);
+                                let panic_cause = self.mir_encoder.encode_panic_cause(span);
                                 ErrorCtxt::PanicInPureFunction(panic_cause)
                             }
 

@@ -1,8 +1,25 @@
 use super::super::ast::expression::*;
 use crate::common::expression::*;
 
+impl UnaryOperationHelpers for Expression {
+    type UnaryOperationKind = UnaryOpKind;
+    fn unary_operation(kind: Self::UnaryOperationKind, arg: Self) -> Self {
+        Self::UnaryOp(UnaryOp {
+            op_kind: kind,
+            argument: Box::new(arg),
+            position: Default::default(),
+        })
+    }
+    fn not(arg: Self) -> Self {
+        Self::unary_operation(UnaryOpKind::Not, arg)
+    }
+    fn minus(arg: Self) -> Self {
+        Self::unary_operation(UnaryOpKind::Minus, arg)
+    }
+}
+
 impl BinaryOperationHelpers for Expression {
-    type BinaryOperationKind = BinOpKind;
+    type BinaryOperationKind = BinaryOpKind;
     fn binary_operation(kind: Self::BinaryOperationKind, left: Self, right: Self) -> Self {
         Self::BinOp(BinOp {
             op_kind: kind,
@@ -12,46 +29,74 @@ impl BinaryOperationHelpers for Expression {
         })
     }
     fn equals(left: Self, right: Self) -> Self {
-        Self::binary_operation(BinOpKind::EqCmp, left, right)
+        Self::binary_operation(BinaryOpKind::EqCmp, left, right)
     }
     fn not_equals(left: Self, right: Self) -> Self {
-        Self::binary_operation(BinOpKind::NeCmp, left, right)
+        Self::binary_operation(BinaryOpKind::NeCmp, left, right)
     }
     fn greater_than(left: Self, right: Self) -> Self {
-        Self::binary_operation(BinOpKind::GtCmp, left, right)
+        Self::binary_operation(BinaryOpKind::GtCmp, left, right)
     }
     fn greater_equals(left: Self, right: Self) -> Self {
-        Self::binary_operation(BinOpKind::GeCmp, left, right)
+        Self::binary_operation(BinaryOpKind::GeCmp, left, right)
     }
     fn less_than(left: Self, right: Self) -> Self {
-        Self::binary_operation(BinOpKind::LtCmp, left, right)
+        Self::binary_operation(BinaryOpKind::LtCmp, left, right)
     }
     fn less_equals(left: Self, right: Self) -> Self {
-        Self::binary_operation(BinOpKind::LeCmp, left, right)
+        Self::binary_operation(BinaryOpKind::LeCmp, left, right)
     }
     fn add(left: Self, right: Self) -> Self {
-        Self::binary_operation(BinOpKind::Add, left, right)
+        Self::binary_operation(BinaryOpKind::Add, left, right)
     }
     fn subtract(left: Self, right: Self) -> Self {
-        Self::binary_operation(BinOpKind::Sub, left, right)
+        Self::binary_operation(BinaryOpKind::Sub, left, right)
     }
     fn multiply(left: Self, right: Self) -> Self {
-        Self::binary_operation(BinOpKind::Mul, left, right)
+        Self::binary_operation(BinaryOpKind::Mul, left, right)
     }
     fn divide(left: Self, right: Self) -> Self {
-        Self::binary_operation(BinOpKind::Div, left, right)
+        Self::binary_operation(BinaryOpKind::Div, left, right)
     }
     fn module(left: Self, right: Self) -> Self {
-        Self::binary_operation(BinOpKind::Mod, left, right)
+        Self::binary_operation(BinaryOpKind::Mod, left, right)
     }
     fn and(left: Self, right: Self) -> Self {
-        Self::binary_operation(BinOpKind::And, left, right)
+        Self::binary_operation(BinaryOpKind::And, left, right)
     }
     fn or(left: Self, right: Self) -> Self {
-        Self::binary_operation(BinOpKind::Or, left, right)
+        Self::binary_operation(BinaryOpKind::Or, left, right)
     }
     fn implies(left: Self, right: Self) -> Self {
-        Self::binary_operation(BinOpKind::Implies, left, right)
+        Self::binary_operation(BinaryOpKind::Implies, left, right)
+    }
+}
+
+impl QuantifierHelpers for Expression {
+    type QuantifierKind = QuantifierKind;
+    type BoundedVariableDecl = VariableDecl;
+    type Trigger = Trigger;
+    fn quantifier(
+        kind: Self::QuantifierKind,
+        variables: Vec<Self::BoundedVariableDecl>,
+        triggers: Vec<Self::Trigger>,
+        body: Self,
+    ) -> Self {
+        Self::quantifier_no_pos(kind, variables, triggers, body)
+    }
+    fn forall(
+        variables: Vec<Self::BoundedVariableDecl>,
+        triggers: Vec<Self::Trigger>,
+        body: Self,
+    ) -> Self {
+        Self::quantifier_no_pos(QuantifierKind::ForAll, variables, triggers, body)
+    }
+    fn exists(
+        variables: Vec<Self::BoundedVariableDecl>,
+        triggers: Vec<Self::Trigger>,
+        body: Self,
+    ) -> Self {
+        Self::quantifier_no_pos(QuantifierKind::Exists, variables, triggers, body)
     }
 }
 
