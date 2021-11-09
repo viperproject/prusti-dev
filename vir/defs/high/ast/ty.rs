@@ -2,6 +2,7 @@ use crate::common::display;
 
 #[derive_helpers]
 #[derive_visitors]
+#[derive(derive_more::IsVariant)]
 pub enum Type {
     /// Mathematical boolean that corresponds to Viper's Bool.
     MBool,

@@ -69,7 +69,7 @@ use crate::encoder::errors::EncodingErrorKind;
 use crate::encoder::snapshot;
 use std::convert::TryInto;
 use crate::utils::is_reference;
-use crate::encoder::mir::pure_functions::PureFunctionEncoderInterface;
+use crate::encoder::mir::pure::PureFunctionEncoderInterface;
 use crate::encoder::mir::types::MirTypeEncoderInterface;
 use super::encoder::SubstMap;
 
@@ -2188,7 +2188,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                             let panic_message = format!("{:?}", args[0]);
 
                             let panic_cause = self.mir_encoder.encode_panic_cause(
-                                term.source_info
+                                term.source_info.span
                             );
                             let pos = self
                                 .encoder
@@ -2267,7 +2267,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                                     term.source_info.span,
                                     args,
                                     destination,
-                                    vir::BinOpKind::EqCmp,
+                                    vir::BinaryOpKind::EqCmp,
                                     tymap,
                                 )?
                             );
@@ -2288,7 +2288,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                                     term.source_info.span,
                                     args,
                                     destination,
-                                    vir::BinOpKind::NeCmp,
+                                    vir::BinaryOpKind::NeCmp,
                                     tymap,
                                 )?
                             );
@@ -2733,7 +2733,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         call_site_span: Span,
         args: &[mir::Operand<'tcx>],
         destination: &Option<(mir::Place<'tcx>, BasicBlockIndex)>,
-        bin_op: vir::BinOpKind,
+        bin_op: vir::BinaryOpKind,
         tymap: SubstMap<'tcx>
     ) -> SpannedEncodingResult<Vec<vir::Stmt>> {
         let arg_ty = self.mir_encoder.get_operand_ty(&args[0]);
@@ -2745,11 +2745,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 .with_span(call_site_span)?;
 
             let expr = match bin_op {
-                vir::BinOpKind::EqCmp => vir::Expr::eq_cmp(
+                vir::BinaryOpKind::EqCmp => vir::Expr::eq_cmp(
                     vir::Expr::snap_app(lhs),
                     vir::Expr::snap_app(rhs),
                 ),
-                vir::BinOpKind::NeCmp => vir::Expr::ne_cmp(
+                vir::BinaryOpKind::NeCmp => vir::Expr::ne_cmp(
                     vir::Expr::snap_app(lhs),
                     vir::Expr::snap_app(rhs),
                 ),
@@ -3533,7 +3533,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 override_spans.get(local).copied()
             )?;
             match access {
-                vir::Expr::BinOp( vir::BinOp {op_kind: vir::BinOpKind::And, left: box access1, right: box access2, ..} ) => {
+                vir::Expr::BinOp( vir::BinOp {op_kind: vir::BinaryOpKind::And, left: box access1, right: box access2, ..} ) => {
                     add(access1);
                     add(access2);
                 }
@@ -4561,7 +4561,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
     ) -> vir::Expr {
         let tmp_var = self.get_pure_var_for_preserving_value(loop_head, place);
         vir::Expr::BinOp ( vir::BinOp {
-            op_kind: vir::BinOpKind::EqCmp,
+            op_kind: vir::BinaryOpKind::EqCmp,
             left: box tmp_var.into(),
             right: box place.clone(),
             position: vir::Position::default(),

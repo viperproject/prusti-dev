@@ -131,9 +131,9 @@ impl IntoPredicates for vir_high::type_decl::Enum {
         let discriminant_loc = vir_poly::Expr::from(this.clone()).field(discriminant_field.clone());
 
         let mut variants = Vec::new();
-        for (variant, variant_index) in self.variants.iter().zip(self.discriminant_values.clone()) {
+        for (variant, discriminant) in self.variants.iter().zip(self.discriminant_values.clone()) {
             let guard =
-                vir_poly::Expr::eq_cmp(discriminant_loc.clone(), variant_index.lower(encoder));
+                vir_poly::Expr::eq_cmp(discriminant_loc.clone(), discriminant.lower(encoder));
             let variant_ty = ty.clone().variant(variant.name.clone().into());
             let predicate = lower_struct(variant, &variant_ty, encoder)?;
             variants.push((guard, variant.name.clone(), predicate));

@@ -112,7 +112,7 @@ pub struct UnaryOp {
     pub position: Position,
 }
 
-pub enum BinOpKind {
+pub enum BinaryOpKind {
     EqCmp,
     NeCmp,
     GtCmp,
@@ -131,7 +131,7 @@ pub enum BinOpKind {
 
 #[display(fmt = "{}{}{}", left, op_kind, right)]
 pub struct BinOp {
-    pub op_kind: BinOpKind,
+    pub op_kind: BinaryOpKind,
     pub left: Box<Expression>,
     pub right: Box<Expression>,
     pub position: Position,

@@ -363,18 +363,13 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
             ty::TyKind::Closure(def_id, internal_substs) => {
                 let closure_substs = internal_substs.as_closure();
                 match closure_substs.tupled_upvars_ty().kind() {
-                    ty::TyKind::Tuple(_upvar_substs) => {
-                        // TODO: this should encode the state of a closure, i.e.
-                        // the "self" parameter passed into the implementation
-                        // function generated for every closure. This should
-                        // work using snapshots. For now, the "self" parameter
-                        // is skipped in encoding.
-
-                        // let field_name = "upvars".to_owned();
-                        // let field = self.encoder.encode_raw_ref_field(field_name, cl_upvars);
-                        // let pred = vir::Predicate::new_struct(typ, vec![field.clone()]);
+                    ty::TyKind::Tuple(elems) => {
+                        let arguments = elems
+                            .iter()
+                            .filter_map(|ty| self.encoder.encode_type_high(ty.expect_ty()).ok())
+                            .collect();
                         let name = self.encode_closure_name(*def_id);
-                        vir::TypeDecl::closure(name)
+                        vir::TypeDecl::closure(name, arguments)
                     }
 
                     _ => unreachable!(),

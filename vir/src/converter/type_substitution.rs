@@ -1378,7 +1378,7 @@ mod tests {
 
         // BinOp
         source = Expr::BinOp(BinOp {
-            op_kind: BinOpKind::Mul,
+            op_kind: BinaryOpKind::Mul,
             left: Box::new(Expr::Local(Local {
                 variable: LocalVar {
                     name: String::from("_v1"),
@@ -1396,7 +1396,7 @@ mod tests {
             position,
         });
         expected = Expr::BinOp(BinOp {
-            op_kind: BinOpKind::Mul,
+            op_kind: BinaryOpKind::Mul,
             left: Box::new(Expr::Local(Local {
                 variable: LocalVar {
                     name: String::from("_v1"),

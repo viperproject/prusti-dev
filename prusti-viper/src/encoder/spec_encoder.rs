@@ -7,6 +7,7 @@
 use crate::encoder::errors::{
     ErrorCtxt, SpannedEncodingResult, SpannedEncodingError, EncodingError, WithSpan
 };
+use crate::encoder::high::pure_functions::HighPureFunctionEncoderInterface;
 use crate::encoder::high::types::HighTypeEncoderInterface;
 use crate::encoder::mir_encoder::{MirEncoder, PlaceEncoder, PlaceEncoding};
 use crate::encoder::mir_encoder::PRECONDITION_LABEL;
@@ -14,7 +15,7 @@ use crate::encoder::mir_interpreter::{
     run_backward_interpretation_point_to_point, BackwardMirInterpreter,
     ExprBackwardInterpreterState,
 };
-use crate::encoder::mir::pure_functions::{PureFunctionBackwardInterpreter, PureFunctionEncoderInterface};
+use crate::encoder::mir::pure::{PureFunctionBackwardInterpreter, PureFunctionEncoderInterface};
 use crate::encoder::Encoder;
 use prusti_common::config;
 use crate::encoder::SpecFunctionKind;

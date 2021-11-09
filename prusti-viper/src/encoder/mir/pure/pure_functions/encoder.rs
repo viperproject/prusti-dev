@@ -4,10 +4,11 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use super::{super::super::encoder::SubstMap, interpreter::PureFunctionBackwardInterpreter};
+use super::interpreter::PureFunctionBackwardInterpreter;
 use crate::encoder::{
     borrows::{compute_procedure_contract, ProcedureContract},
     builtin_encoder::BuiltinFunctionKind,
+    encoder::SubstMap,
     errors::{
         EncodingError, EncodingResult, ErrorCtxt, PanicCause, SpannedEncodingError,
         SpannedEncodingResult, WithSpan,
@@ -30,7 +31,10 @@ use rustc_hir::def_id::DefId;
 use rustc_middle::{mir, span_bug, ty};
 use rustc_span::Span;
 use std::{collections::HashMap, mem};
-use vir_crate::polymorphic::{self as vir, ExprIterator};
+use vir_crate::{
+    high as vir_high,
+    polymorphic::{self as vir, ExprIterator},
+};
 
 pub(super) struct PureFunctionEncoder<'p, 'v: 'p, 'tcx: 'v> {
     encoder: &'p Encoder<'v, 'tcx>,
@@ -484,4 +488,11 @@ impl vir::WithIdentifier for FunctionCallInfo {
     fn get_identifier(&self) -> String {
         vir::compute_identifier(&self.name, &self.formal_args, &self.return_type)
     }
+}
+
+pub(super) struct FunctionCallInfoHigh {
+    pub name: String,
+    // Will be needed for computing FunctionIdentifier.
+    pub _parameters: Vec<vir_high::VariableDecl>,
+    pub return_type: vir_high::Type,
 }

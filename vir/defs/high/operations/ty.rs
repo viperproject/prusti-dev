@@ -25,6 +25,48 @@ impl Type {
             }
         }
     }
+    /// Returns type with the type variant dropped if it had one. Otherwise,
+    /// returns None.
+    pub fn forget_variant(&self) -> Option<Self> {
+        match self {
+            Type::Enum(Enum {
+                name,
+                arguments,
+                variant: Some(_),
+            }) => Some(Type::Enum(Enum {
+                name: name.clone(),
+                arguments: arguments.clone(),
+                variant: None,
+            })),
+            _ => None,
+        }
+    }
+}
+
+impl AsRef<str> for VariantIndex {
+    fn as_ref(&self) -> &str {
+        &self.index
+    }
+}
+
+impl super::super::ast::type_decl::Enum {
+    pub fn get_variant(&self, ty: &Type) -> Option<&super::super::ast::type_decl::Struct> {
+        if self.variants.len() == 1 {
+            Some(&self.variants[0])
+        } else {
+            let variant_index = if let Type::Enum(enum_ty) = ty {
+                &enum_ty.variant
+            } else {
+                return None;
+            };
+            self.variants.iter().find(|variant| {
+                variant_index
+                    .as_ref()
+                    .map(|index| index.as_ref() == variant.name)
+                    .unwrap_or(false)
+            })
+        }
+    }
 }
 
 pub trait Generic {
@@ -119,6 +161,7 @@ impl Typed for Expression {
     fn get_type(&self) -> &Type {
         match self {
             Expression::Local(expression) => expression.get_type(),
+            Expression::Constructor(expression) => expression.get_type(),
             Expression::Variant(expression) => expression.get_type(),
             Expression::Field(expression) => expression.get_type(),
             Expression::Deref(expression) => expression.get_type(),
@@ -144,6 +187,11 @@ impl Typed for Local {
     }
 }
 
+impl Typed for Constructor {
+    fn get_type(&self) -> &Type {
+        &self.ty
+    }
+}
 impl Typed for Variant {
     fn get_type(&self) -> &Type {
         &self.ty
@@ -189,16 +237,20 @@ impl Typed for UnaryOp {
 impl Typed for BinOp {
     fn get_type(&self) -> &Type {
         match self.op_kind {
-            BinOpKind::EqCmp
-            | BinOpKind::NeCmp
-            | BinOpKind::GtCmp
-            | BinOpKind::GeCmp
-            | BinOpKind::LtCmp
-            | BinOpKind::LeCmp
-            | BinOpKind::And
-            | BinOpKind::Or
-            | BinOpKind::Implies => &Type::Bool,
-            BinOpKind::Add | BinOpKind::Sub | BinOpKind::Mul | BinOpKind::Div | BinOpKind::Mod => {
+            BinaryOpKind::EqCmp
+            | BinaryOpKind::NeCmp
+            | BinaryOpKind::GtCmp
+            | BinaryOpKind::GeCmp
+            | BinaryOpKind::LtCmp
+            | BinaryOpKind::LeCmp
+            | BinaryOpKind::And
+            | BinaryOpKind::Or
+            | BinaryOpKind::Implies => &Type::Bool,
+            BinaryOpKind::Add
+            | BinaryOpKind::Sub
+            | BinaryOpKind::Mul
+            | BinaryOpKind::Div
+            | BinaryOpKind::Mod => {
                 let ty1 = self.left.get_type();
                 let ty2 = self.right.get_type();
                 assert_eq!(ty1, ty2, "expr: {:?}", self);

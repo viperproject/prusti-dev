@@ -32,7 +32,7 @@ pub enum Expr {
     PredicateAccessPredicate(String, Box<Expr>, PermAmount, Position),
     FieldAccessPredicate(Box<Expr>, PermAmount, Position),
     UnaryOp(UnaryOpKind, Box<Expr>, Position),
-    BinOp(BinOpKind, Box<Expr>, Box<Expr>, Position),
+    BinOp(BinaryOpKind, Box<Expr>, Box<Expr>, Position),
     /// Container Operation on a Viper container (e.g. Seq index)
     ContainerOp(ContainerOpKind, Box<Expr>, Box<Expr>, Position),
     /// Viper Seq
@@ -87,7 +87,7 @@ pub enum UnaryOpKind {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
-pub enum BinOpKind {
+pub enum BinaryOpKind {
     EqCmp,
     NeCmp,
     GtCmp,
@@ -281,23 +281,23 @@ impl fmt::Display for UnaryOpKind {
     }
 }
 
-impl fmt::Display for BinOpKind {
+impl fmt::Display for BinaryOpKind {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            BinOpKind::EqCmp => write!(f, "=="),
-            BinOpKind::NeCmp => write!(f, "!="),
-            BinOpKind::GtCmp => write!(f, ">"),
-            BinOpKind::GeCmp => write!(f, ">="),
-            BinOpKind::LtCmp => write!(f, "<"),
-            BinOpKind::LeCmp => write!(f, "<="),
-            BinOpKind::Add => write!(f, "+"),
-            BinOpKind::Sub => write!(f, "-"),
-            BinOpKind::Mul => write!(f, "*"),
-            BinOpKind::Div => write!(f, "\\"),
-            BinOpKind::Mod => write!(f, "%"),
-            BinOpKind::And => write!(f, "&&"),
-            BinOpKind::Or => write!(f, "||"),
-            BinOpKind::Implies => write!(f, "==>"),
+            BinaryOpKind::EqCmp => write!(f, "=="),
+            BinaryOpKind::NeCmp => write!(f, "!="),
+            BinaryOpKind::GtCmp => write!(f, ">"),
+            BinaryOpKind::GeCmp => write!(f, ">="),
+            BinaryOpKind::LtCmp => write!(f, "<"),
+            BinaryOpKind::LeCmp => write!(f, "<="),
+            BinaryOpKind::Add => write!(f, "+"),
+            BinaryOpKind::Sub => write!(f, "-"),
+            BinaryOpKind::Mul => write!(f, "*"),
+            BinaryOpKind::Div => write!(f, "\\"),
+            BinaryOpKind::Mod => write!(f, "%"),
+            BinaryOpKind::And => write!(f, "&&"),
+            BinaryOpKind::Or => write!(f, "||"),
+            BinaryOpKind::Implies => write!(f, "==>"),
         }
     }
 }
@@ -428,23 +428,48 @@ impl Expr {
     }
 
     pub fn gt_cmp(left: Expr, right: Expr) -> Self {
-        Expr::BinOp(BinOpKind::GtCmp, box left, box right, Position::default())
+        Expr::BinOp(
+            BinaryOpKind::GtCmp,
+            box left,
+            box right,
+            Position::default(),
+        )
     }
 
     pub fn ge_cmp(left: Expr, right: Expr) -> Self {
-        Expr::BinOp(BinOpKind::GeCmp, box left, box right, Position::default())
+        Expr::BinOp(
+            BinaryOpKind::GeCmp,
+            box left,
+            box right,
+            Position::default(),
+        )
     }
 
     pub fn lt_cmp(left: Expr, right: Expr) -> Self {
-        Expr::BinOp(BinOpKind::LtCmp, box left, box right, Position::default())
+        Expr::BinOp(
+            BinaryOpKind::LtCmp,
+            box left,
+            box right,
+            Position::default(),
+        )
     }
 
     pub fn le_cmp(left: Expr, right: Expr) -> Self {
-        Expr::BinOp(BinOpKind::LeCmp, box left, box right, Position::default())
+        Expr::BinOp(
+            BinaryOpKind::LeCmp,
+            box left,
+            box right,
+            Position::default(),
+        )
     }
 
     pub fn eq_cmp(left: Expr, right: Expr) -> Self {
-        Expr::BinOp(BinOpKind::EqCmp, box left, box right, Position::default())
+        Expr::BinOp(
+            BinaryOpKind::EqCmp,
+            box left,
+            box right,
+            Position::default(),
+        )
     }
 
     pub fn ne_cmp(left: Expr, right: Expr) -> Self {
@@ -453,26 +478,26 @@ impl Expr {
 
     #[allow(clippy::should_implement_trait)]
     pub fn add(left: Expr, right: Expr) -> Self {
-        Expr::BinOp(BinOpKind::Add, box left, box right, Position::default())
+        Expr::BinOp(BinaryOpKind::Add, box left, box right, Position::default())
     }
 
     #[allow(clippy::should_implement_trait)]
     pub fn sub(left: Expr, right: Expr) -> Self {
-        Expr::BinOp(BinOpKind::Sub, box left, box right, Position::default())
+        Expr::BinOp(BinaryOpKind::Sub, box left, box right, Position::default())
     }
 
     #[allow(clippy::should_implement_trait)]
     pub fn mul(left: Expr, right: Expr) -> Self {
-        Expr::BinOp(BinOpKind::Mul, box left, box right, Position::default())
+        Expr::BinOp(BinaryOpKind::Mul, box left, box right, Position::default())
     }
 
     #[allow(clippy::should_implement_trait)]
     pub fn div(left: Expr, right: Expr) -> Self {
-        Expr::BinOp(BinOpKind::Div, box left, box right, Position::default())
+        Expr::BinOp(BinaryOpKind::Div, box left, box right, Position::default())
     }
 
     pub fn modulo(left: Expr, right: Expr) -> Self {
-        Expr::BinOp(BinOpKind::Mod, box left, box right, Position::default())
+        Expr::BinOp(BinaryOpKind::Mod, box left, box right, Position::default())
     }
 
     #[allow(clippy::should_implement_trait)]
@@ -496,11 +521,11 @@ impl Expr {
     }
 
     pub fn and(left: Expr, right: Expr) -> Self {
-        Expr::BinOp(BinOpKind::And, box left, box right, Position::default())
+        Expr::BinOp(BinaryOpKind::And, box left, box right, Position::default())
     }
 
     pub fn or(left: Expr, right: Expr) -> Self {
-        Expr::BinOp(BinOpKind::Or, box left, box right, Position::default())
+        Expr::BinOp(BinaryOpKind::Or, box left, box right, Position::default())
     }
 
     pub fn xor(left: Expr, right: Expr) -> Self {
@@ -508,7 +533,12 @@ impl Expr {
     }
 
     pub fn implies(left: Expr, right: Expr) -> Self {
-        Expr::BinOp(BinOpKind::Implies, box left, box right, Position::default())
+        Expr::BinOp(
+            BinaryOpKind::Implies,
+            box left,
+            box right,
+            Position::default(),
+        )
     }
 
     pub fn forall(vars: Vec<LocalVar>, triggers: Vec<Trigger>, body: Expr) -> Self {
@@ -686,7 +716,7 @@ impl Expr {
     pub fn is_only_permissions(&self) -> bool {
         match self {
             Expr::PredicateAccessPredicate(..) | Expr::FieldAccessPredicate(..) => true,
-            Expr::BinOp(BinOpKind::And, box lhs, box rhs, _) => {
+            Expr::BinOp(BinaryOpKind::And, box lhs, box rhs, _) => {
                 lhs.is_only_permissions() && rhs.is_only_permissions()
             }
             _ => false,
@@ -1073,20 +1103,20 @@ impl Expr {
                 Const::FnPtr => &FN_PTR_TYPE,
             },
             Expr::BinOp(ref kind, box ref base1, box ref base2, _pos) => match kind {
-                BinOpKind::EqCmp
-                | BinOpKind::NeCmp
-                | BinOpKind::GtCmp
-                | BinOpKind::GeCmp
-                | BinOpKind::LtCmp
-                | BinOpKind::LeCmp
-                | BinOpKind::And
-                | BinOpKind::Or
-                | BinOpKind::Implies => &Type::Bool,
-                BinOpKind::Add
-                | BinOpKind::Sub
-                | BinOpKind::Mul
-                | BinOpKind::Div
-                | BinOpKind::Mod => {
+                BinaryOpKind::EqCmp
+                | BinaryOpKind::NeCmp
+                | BinaryOpKind::GtCmp
+                | BinaryOpKind::GeCmp
+                | BinaryOpKind::LtCmp
+                | BinaryOpKind::LeCmp
+                | BinaryOpKind::And
+                | BinaryOpKind::Or
+                | BinaryOpKind::Implies => &Type::Bool,
+                BinaryOpKind::Add
+                | BinaryOpKind::Sub
+                | BinaryOpKind::Mul
+                | BinaryOpKind::Div
+                | BinaryOpKind::Mod => {
                     let typ1 = base1.get_type();
                     let typ2 = base2.get_type();
                     assert_eq!(typ1, typ2, "expr: {:?}", self);
@@ -1131,7 +1161,7 @@ impl Expr {
                 | Expr::ForAll(..)
                 | Expr::Exists(..) => true,
                 Expr::BinOp(kind, _, _, _) => {
-                    use self::BinOpKind::*;
+                    use self::BinaryOpKind::*;
                     *kind == EqCmp
                         || *kind == NeCmp
                         || *kind == GtCmp
@@ -1504,8 +1534,8 @@ impl Expr {
                 match e {
                     f @ Expr::PredicateAccessPredicate(..) => f,
                     f @ Expr::FieldAccessPredicate(..) => f,
-                    Expr::BinOp(BinOpKind::And, y, z, p) => {
-                        self.fold_bin_op(BinOpKind::And, y, z, p)
+                    Expr::BinOp(BinaryOpKind::And, y, z, p) => {
+                        self.fold_bin_op(BinaryOpKind::And, y, z, p)
                     }
 
                     Expr::BinOp(..)

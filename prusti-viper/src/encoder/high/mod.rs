@@ -4,4 +4,5 @@
 //! in this module can have the `'tcx` bound.
 
 pub(crate) mod lower;
+pub(crate) mod pure_functions;
 pub(crate) mod types;

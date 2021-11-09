@@ -20,30 +20,14 @@ pub trait WithIdentifier {
 /// The identifier of a statement. Used in error reporting.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct Position {
-    line: i32,
-    column: i32,
-    id: u64,
+    pub(crate) line: i32,
+    pub(crate) column: i32,
+    pub(crate) id: u64,
 }
 
 impl Position {
     pub fn new(line: i32, column: i32, id: u64) -> Self {
         Position { line, column, id }
-    }
-
-    pub fn line(&self) -> i32 {
-        self.line
-    }
-
-    pub fn column(&self) -> i32 {
-        self.column
-    }
-
-    pub fn id(&self) -> u64 {
-        self.id
-    }
-
-    pub fn is_default(&self) -> bool {
-        self.line == 0 && self.column == 0 && self.id == 0
     }
 }
 

@@ -21,6 +21,9 @@ impl IntoPolymorphic<vir_poly::Expr> for vir_high::Expression {
             vir_high::Expression::Local(expression) => {
                 vir_poly::Expr::Local(expression.lower(encoder))
             }
+            vir_high::Expression::Constructor(expression) => {
+                unimplemented!("not supported lowering: {}", expression);
+            }
             vir_high::Expression::Variant(expression) => {
                 vir_poly::Expr::Variant(expression.lower(encoder))
             }
@@ -187,23 +190,23 @@ impl IntoPolymorphic<vir_poly::BinOp> for vir_high::expression::BinOp {
     }
 }
 
-impl IntoPolymorphic<vir_poly::BinOpKind> for vir_high::expression::BinOpKind {
-    fn lower(&self, _encoder: &impl HighTypeEncoderInterfacePrivate) -> vir_poly::BinOpKind {
+impl IntoPolymorphic<vir_poly::BinaryOpKind> for vir_high::expression::BinaryOpKind {
+    fn lower(&self, _encoder: &impl HighTypeEncoderInterfacePrivate) -> vir_poly::BinaryOpKind {
         match self {
-            vir_high::expression::BinOpKind::EqCmp => vir_poly::BinOpKind::EqCmp,
-            vir_high::expression::BinOpKind::NeCmp => vir_poly::BinOpKind::NeCmp,
-            vir_high::expression::BinOpKind::GtCmp => vir_poly::BinOpKind::GtCmp,
-            vir_high::expression::BinOpKind::GeCmp => vir_poly::BinOpKind::GeCmp,
-            vir_high::expression::BinOpKind::LtCmp => vir_poly::BinOpKind::LtCmp,
-            vir_high::expression::BinOpKind::LeCmp => vir_poly::BinOpKind::LeCmp,
-            vir_high::expression::BinOpKind::Add => vir_poly::BinOpKind::Add,
-            vir_high::expression::BinOpKind::Sub => vir_poly::BinOpKind::Sub,
-            vir_high::expression::BinOpKind::Mul => vir_poly::BinOpKind::Mul,
-            vir_high::expression::BinOpKind::Div => vir_poly::BinOpKind::Div,
-            vir_high::expression::BinOpKind::Mod => vir_poly::BinOpKind::Mod,
-            vir_high::expression::BinOpKind::And => vir_poly::BinOpKind::And,
-            vir_high::expression::BinOpKind::Or => vir_poly::BinOpKind::Or,
-            vir_high::expression::BinOpKind::Implies => vir_poly::BinOpKind::Implies,
+            vir_high::expression::BinaryOpKind::EqCmp => vir_poly::BinaryOpKind::EqCmp,
+            vir_high::expression::BinaryOpKind::NeCmp => vir_poly::BinaryOpKind::NeCmp,
+            vir_high::expression::BinaryOpKind::GtCmp => vir_poly::BinaryOpKind::GtCmp,
+            vir_high::expression::BinaryOpKind::GeCmp => vir_poly::BinaryOpKind::GeCmp,
+            vir_high::expression::BinaryOpKind::LtCmp => vir_poly::BinaryOpKind::LtCmp,
+            vir_high::expression::BinaryOpKind::LeCmp => vir_poly::BinaryOpKind::LeCmp,
+            vir_high::expression::BinaryOpKind::Add => vir_poly::BinaryOpKind::Add,
+            vir_high::expression::BinaryOpKind::Sub => vir_poly::BinaryOpKind::Sub,
+            vir_high::expression::BinaryOpKind::Mul => vir_poly::BinaryOpKind::Mul,
+            vir_high::expression::BinaryOpKind::Div => vir_poly::BinaryOpKind::Div,
+            vir_high::expression::BinaryOpKind::Mod => vir_poly::BinaryOpKind::Mod,
+            vir_high::expression::BinaryOpKind::And => vir_poly::BinaryOpKind::And,
+            vir_high::expression::BinaryOpKind::Or => vir_poly::BinaryOpKind::Or,
+            vir_high::expression::BinaryOpKind::Implies => vir_poly::BinaryOpKind::Implies,
         }
     }
 }
