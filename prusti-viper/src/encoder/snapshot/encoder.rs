@@ -32,7 +32,6 @@ use vir_crate::{
 
 type PredicateType = Type;
 
-pub(super) const UNIT_DOMAIN_NAME: &str = "UnitDomain";
 const SNAP_FUNC_NAME: &str = "snap$";
 
 /// Encodes MIR types into snapshots, and keeps track of which types have
@@ -106,20 +105,7 @@ impl Default for SnapshotEncoder {
 
 impl SnapshotEncoder {
     pub fn new() -> Self {
-        let unit_domain = vir::Domain {
-            name: UNIT_DOMAIN_NAME.to_string(),
-            functions: vec![vir::DomainFunc {
-                name: "unit$".to_string(),
-                formal_args: vec![],
-                return_type: Type::domain(UNIT_DOMAIN_NAME.to_string()),
-                unique: false,
-                domain_name: UNIT_DOMAIN_NAME.to_string(),
-            }],
-            axioms: vec![],
-            type_vars: vec![],
-        };
-        let mut domains = HashMap::new();
-        domains.insert(UNIT_DOMAIN_NAME.to_string(), unit_domain);
+        let domains = HashMap::new();
         Self {
             in_progress: HashMap::new(),
             encoded: HashMap::new(),
@@ -245,9 +231,6 @@ impl SnapshotEncoder {
                         expr,
                         vir::Field::new("val_bool", Type::Bool),
                     ),
-                    ty::TyKind::Tuple(substs) if substs.is_empty() => self.snap_unit(),
-                    ty::TyKind::Adt(adt_def, _) if adt_def.variants.is_empty() => self.snap_unit(),
-                    ty::TyKind::Adt(adt_def, _) if adt_def.variants.len() == 1 && adt_def.variants[rustc_target::abi::VariantIdx::from_u32(0)].fields.is_empty() => self.snap_unit(),
 
                     // Param(_) | Adt(_) | Tuple(_), arrays and slices and unsupported types
                     _ => {
@@ -258,7 +241,6 @@ impl SnapshotEncoder {
             }
 
             // handle SnapApp on already patched expressions
-            Type::Domain( vir::DomainType {label, ref arguments, ..} ) if label == UNIT_DOMAIN_NAME && arguments.is_empty() => Ok(expr),
             Type::Snapshot(_)
             | Type::Bool // TODO: restrict to snapshot-produced Bools and Ints
             | Type::Int => Ok(expr),
@@ -377,11 +359,6 @@ impl SnapshotEncoder {
         }
     }
 
-    /// Returns a unit domain expression.
-    fn snap_unit(&mut self) -> Expr {
-        self.domains[UNIT_DOMAIN_NAME].functions[0].apply(vec![])
-    }
-
     /// Returns [true] iff we can encode equality between two instances of the
     /// given type as a direct equality between snapshots of the instances.
     pub fn supports_equality<'p, 'v: 'p, 'tcx: 'v>(
@@ -446,10 +423,6 @@ impl SnapshotEncoder {
             Snapshot::Primitive(..) => {
                 assert_eq!(args.len(), 1);
                 Ok(args.pop().unwrap())
-            }
-            Snapshot::Unit => {
-                assert!(args.is_empty());
-                Ok(self.domains[UNIT_DOMAIN_NAME].functions[0].apply(args))
             }
             Snapshot::Complex { ref variants, .. } => {
                 assert!(variant.is_some() || variants.len() == 1);
@@ -626,18 +599,6 @@ impl SnapshotEncoder {
             ty::TyKind::Uint(_) => Type::Int,
             ty::TyKind::Char => Type::Int,
             ty::TyKind::Bool => Type::Bool,
-            ty::TyKind::Tuple(substs) if substs.is_empty() => self.snap_unit().get_type().clone(),
-            ty::TyKind::Adt(adt_def, _) if adt_def.variants.is_empty() => {
-                self.snap_unit().get_type().clone()
-            }
-            ty::TyKind::Adt(adt_def, _)
-                if adt_def.variants.len() == 1
-                    && adt_def.variants[rustc_target::abi::VariantIdx::from_u32(0)]
-                        .fields
-                        .is_empty() =>
-            {
-                self.snap_unit().get_type().clone()
-            }
 
             // Param(_) | Adt(_) | Tuple(_), arrays and slices and unsupported types
             _ => predicate_type.convert_to_snapshot(),
@@ -687,18 +648,6 @@ impl SnapshotEncoder {
                 Ok(Snapshot::Primitive(Type::Int))
             }
             ty::TyKind::Bool => Ok(Snapshot::Primitive(Type::Bool)),
-
-            // handle types with no data
-            ty::TyKind::Tuple(substs) if substs.is_empty() => Ok(Snapshot::Unit),
-            ty::TyKind::Adt(adt_def, _) if adt_def.variants.is_empty() => Ok(Snapshot::Unit),
-            ty::TyKind::Adt(adt_def, _)
-                if adt_def.variants.len() == 1
-                    && adt_def.variants[rustc_target::abi::VariantIdx::from_u32(0)]
-                        .fields
-                        .is_empty() =>
-            {
-                Ok(Snapshot::Unit)
-            }
 
             // TODO: closures, never type
             ty::TyKind::Tuple(substs) => {
@@ -1682,17 +1631,21 @@ impl SnapshotEncoder {
             //   : ...
 
             // TODO: avoid clone somehow?
-            let mut body = variant_snap_bodies[0].clone();
-            for i in 1..variants.len() {
-                body = Expr::ite(
-                    Expr::eq_cmp(
-                        Expr::field(arg_ref_expr.clone(), encoder.encode_discriminant_field()),
-                        variants[i].discriminant.into(),
-                    ),
-                    variant_snap_bodies[i].clone(),
-                    body,
-                );
-            }
+            let body = if let Some(mut body) = variant_snap_bodies.get(0).cloned() {
+                for i in 1..variants.len() {
+                    body = Expr::ite(
+                        Expr::eq_cmp(
+                            Expr::field(arg_ref_expr.clone(), encoder.encode_discriminant_field()),
+                            variants[i].discriminant.into(),
+                        ),
+                        variant_snap_bodies[i].clone(),
+                        body,
+                    );
+                }
+                Some(body)
+            } else {
+                None
+            };
 
             vir::Function {
                 name: SNAP_FUNC_NAME.to_string(),
@@ -1704,7 +1657,7 @@ impl SnapshotEncoder {
                     PermAmount::Read,
                 )],
                 posts: vec![],
-                body: Some(body),
+                body,
             }
         };
         let snap_func = foldunfold::add_folding_unfolding_to_function(
