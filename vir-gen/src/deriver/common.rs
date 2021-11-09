@@ -96,7 +96,12 @@ pub(super) fn find_variant_struct<'a>(
                 false
             }
         })
-        .ok_or_else(|| syn::Error::new(variant_type.span(), "not found variant"))?;
+        .ok_or_else(|| {
+            syn::Error::new(
+                variant_type.span(),
+                format!("not found variant {}", variant_type),
+            )
+        })?;
     if let syn::Item::Struct(struct_item) = item {
         Ok(struct_item)
     } else {

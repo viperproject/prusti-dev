@@ -33,3 +33,13 @@ pub(crate) struct RawBlock {
 pub(crate) struct PathList {
     pub(crate) paths: syn::punctuated::Punctuated<syn::Path, syn::Token![,]>,
 }
+
+/// derive_lower!(source_type → target_type)
+pub(crate) struct DeriveLower {
+    /// The ident of the trait.
+    pub(crate) trait_ident: syn::Ident,
+    /// Path to the type that we want to lower.
+    pub(crate) source_type: syn::Path,
+    /// Path to the type into which we want to lower.
+    pub(crate) target_type: syn::Path,
+}

@@ -37,14 +37,25 @@ pub fn define_vir(input: TokenStream, source_file: &std::path::Path) -> TokenStr
     for ir in &mut declarations.irs {
         mem::swap(ir, &mut sentinel_item);
         let (new_item, errors) = resolver::expand(sentinel_item, &declarations.components);
-        let (new_item_with_derives, derive_errors) = deriver::expand(new_item);
-        sentinel_item = new_item_with_derives;
-        for error in errors.into_iter().chain(derive_errors.into_iter()) {
+        sentinel_item = new_item;
+        for error in errors {
             eprintln!("error: {}", error);
             error_tokens.extend(error.to_compile_error());
         }
         mem::swap(ir, &mut sentinel_item);
     }
+    let original_irs = declarations.irs.clone();
+    for ir in &mut declarations.irs {
+        mem::swap(ir, &mut sentinel_item);
+        let (new_item_with_derives, derive_errors) = deriver::expand(sentinel_item, &original_irs);
+        sentinel_item = new_item_with_derives;
+        for error in derive_errors {
+            eprintln!("error: {}", error);
+            error_tokens.extend(error.to_compile_error());
+        }
+        mem::swap(ir, &mut sentinel_item);
+    }
+
     if !error_tokens.is_empty() {
         unreachable!();
     }
