@@ -36,6 +36,7 @@ const SNAP_FUNC_NAME: &str = "snap$";
 
 /// Encodes MIR types into snapshots, and keeps track of which types have
 /// already been encoded.
+#[derive(Default)]
 pub(super) struct SnapshotEncoder {
     /// Types that are currently being encoded. Stores the VIR type that will
     /// be the result of the snapshot operation: either a primitive VIR type,
@@ -97,23 +98,7 @@ fn forall_or_body(vars: Vec<vir::LocalVar>, triggers: Vec<vir::Trigger>, body: E
     }
 }
 
-impl Default for SnapshotEncoder {
-    fn default() -> Self {
-        SnapshotEncoder::new()
-    }
-}
-
 impl SnapshotEncoder {
-    pub fn new() -> Self {
-        let domains = HashMap::new();
-        Self {
-            in_progress: HashMap::new(),
-            encoded: HashMap::new(),
-            functions: HashMap::new(),
-            domains,
-        }
-    }
-
     pub fn get_domain(&self, name: &str) -> Option<&vir::Domain> {
         self.domains.get(name)
     }
