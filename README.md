@@ -9,7 +9,7 @@ Prusti
 [![Project chat](https://img.shields.io/badge/Zulip-join_chat-brightgreen.svg)](https://prusti.zulipchat.com/)
 
 [Prusti](http://www.pm.inf.ethz.ch/research/prusti.html) is a prototype verifier for Rust,
-built upon the the [Viper verification infrastructure](http://www.pm.inf.ethz.ch/research/viper.html).
+built upon the [Viper verification infrastructure](http://www.pm.inf.ethz.ch/research/viper.html).
 
 By default Prusti verifies absence of integer overflows and panics by proving that statements such as `unreachable!()` and `panic!()` are unreachable.
 Overflow checking can be disabled with a configuration flag, treating all integers as unbounded.
