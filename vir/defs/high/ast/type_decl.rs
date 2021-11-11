@@ -33,9 +33,14 @@ pub struct Int {
     pub upper_bound: Option<Box<Expression>>,
 }
 
-pub enum Float {
-    F32,
-    F64,
+#[display(
+fmt = "Float({},{})",
+"display::option!(lower_bound, \"{}\", \"\")",
+"display::option!(upper_bound, \" {}\", \"\")"
+)]
+pub struct Float {
+    pub lower_bound: Option<Box<Expression>>,
+    pub upper_bound: Option<Box<Expression>>,
 }
 
 pub struct TypeVar {
