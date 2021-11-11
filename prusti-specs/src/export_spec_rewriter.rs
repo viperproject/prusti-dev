@@ -28,7 +28,6 @@ fn hash_path(path: syn::Path) -> u64 {
 pub fn generate_macro_ident(path: syn::Path) -> syn::Ident {
     let ident = path.segments.last().unwrap().ident.to_owned();
     let span = path.span();
-    println!("path for macro ident: {:?}", &path);
     syn::Ident::new(
         &format!("{}_{}_{}", "prustiexport", ident, hash_path(path)),
         span,
