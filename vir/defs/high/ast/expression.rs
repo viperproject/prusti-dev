@@ -5,6 +5,7 @@ pub(crate) use super::{
     variable::VariableDecl,
 };
 use crate::common::display;
+use crate::polymorphic::FloatConst;
 
 #[derive_helpers]
 #[derive_visitors]

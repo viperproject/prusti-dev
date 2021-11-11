@@ -4,78 +4,77 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use ::log::{info, debug, trace};
-use crate::encoder::borrows::{compute_procedure_contract, ProcedureContract, ProcedureContractMirDef};
-use crate::encoder::builtin_encoder::BuiltinEncoder;
-use crate::encoder::builtin_encoder::BuiltinFunctionKind;
-use crate::encoder::builtin_encoder::BuiltinMethodKind;
-use crate::encoder::builtin_encoder::BuiltinDomainKind;
-use crate::encoder::errors::{ErrorCtxt, ErrorManager, SpannedEncodingError, EncodingError, WithSpan};
-use crate::encoder::foldunfold;
-use crate::encoder::places;
-use crate::encoder::procedure_encoder::ProcedureEncoder;
-use crate::encoder::stub_function_encoder::StubFunctionEncoder;
-use crate::encoder::spec_encoder::encode_spec_assertion;
-use crate::encoder::SpecFunctionKind;
-use crate::encoder::spec_function_encoder::SpecFunctionEncoder;
-use prusti_common::config;
-use prusti_common::report::log;
-use prusti_interface::data::ProcedureDefId;
-use prusti_interface::environment::Environment;
-use prusti_interface::specs::typed;
-use prusti_interface::specs::typed::SpecificationId;
-use prusti_interface::utils::{has_spec_only_attr, read_prusti_attrs};
-use prusti_interface::PrustiError;
+use crate::encoder::{
+    borrows::{compute_procedure_contract, ProcedureContract, ProcedureContractMirDef},
+    builtin_encoder::{BuiltinDomainKind, BuiltinEncoder, BuiltinFunctionKind, BuiltinMethodKind},
+    errors::{EncodingError, ErrorCtxt, ErrorManager, SpannedEncodingError, WithSpan},
+    foldunfold, places,
+    procedure_encoder::ProcedureEncoder,
+    spec_encoder::encode_spec_assertion,
+    spec_function_encoder::SpecFunctionEncoder,
+    stub_function_encoder::StubFunctionEncoder,
+    SpecFunctionKind,
+};
+use ::log::{debug, info, trace};
+use prusti_common::{config, report::log, vir_local};
+use prusti_interface::{
+    data::ProcedureDefId,
+    environment::Environment,
+    specs::{typed, typed::SpecificationId},
+    utils::{has_spec_only_attr, read_prusti_attrs},
+    PrustiError,
+};
 use prusti_specs::specifications::common::SpecIdRef;
-use prusti_common::vir_local;
-use vir_crate::polymorphic::{self as vir, WithIdentifier, ExprIterator};
 use rustc_hir as hir;
 use rustc_hir::def_id::DefId;
+use vir_crate::polymorphic::{self as vir, ExprIterator, WithIdentifier};
 // use rustc::middle::const_val::ConstVal;
 use rustc_middle::mir;
 // use rustc::mir::interpret::GlobalId;
 use rustc_middle::ty;
-use std::cell::{RefCell, RefMut, Ref};
-use std::collections::{HashMap, HashSet};
-use std::io::Write;
-use std::mem;
-use std::rc::Rc;
+use std::{
+    cell::{Ref, RefCell, RefMut},
+    collections::{HashMap, HashSet},
+    io::Write,
+    mem,
+    rc::Rc,
+};
 // use viper;
-use crate::encoder::stub_procedure_encoder::StubProcedureEncoder;
-use std::ops::AddAssign;
-use std::convert::TryInto;
-use std::borrow::{Borrow, BorrowMut};
-use crate::encoder::specs_closures_collector::SpecsClosuresCollector;
-use rustc_span::MultiSpan;
-use crate::encoder::name_interner::NameInterner;
-use crate::encoder::utils::transpose;
-use crate::encoder::errors::EncodingResult;
-use crate::encoder::errors::SpannedEncodingResult;
-use crate::encoder::mirror_function_encoder;
-use crate::encoder::mirror_function_encoder::MirrorEncoder;
-use crate::encoder::snapshot::interface::{SnapshotEncoderInterface, SnapshotEncoderState};
-use crate::encoder::purifier;
-use crate::encoder::array_encoder::{ArrayTypesEncoder, EncodedArrayTypes, EncodedSliceTypes};
-use super::mir::{
-    pure::{PureFunctionEncoderState, PureFunctionEncoderInterface},
-    types::{
-        compute_discriminant_bounds, compute_discriminant_values,
-        MirTypeEncoderState, MirTypeEncoderInterface,
+use super::{
+    high::types::{HighTypeEncoderInterface, HighTypeEncoderState},
+    mir::{
+        pure_functions::{PureFunctionEncoderInterface, PureFunctionEncoderState},
+        types::{
+            compute_discriminant_bounds, compute_discriminant_values, MirTypeEncoderInterface,
+            MirTypeEncoderState,
+        },
     },
 };
-use super::high::{
-    pure_functions::{HighPureFunctionEncoderInterface},
-    types::{HighTypeEncoderState, HighTypeEncoderInterface}
+use crate::encoder::{
+    array_encoder::{ArrayTypesEncoder, EncodedArrayTypes, EncodedSliceTypes},
+    errors::{EncodingResult, SpannedEncodingResult},
+    mirror_function_encoder,
+    mirror_function_encoder::MirrorEncoder,
+    name_interner::NameInterner,
+    purifier,
+    snapshot::interface::{SnapshotEncoderInterface, SnapshotEncoderState},
+    specs_closures_collector::SpecsClosuresCollector,
+    stub_procedure_encoder::StubProcedureEncoder,
+    utils::transpose,
+};
+use rustc_span::MultiSpan;
+use std::{
+    borrow::{Borrow, BorrowMut},
+    convert::TryInto,
+    ops::AddAssign,
 };
 
 pub struct Encoder<'v, 'tcx: 'v> {
     env: &'v Environment<'tcx>,
     def_spec: &'v typed::DefSpecificationMap<'tcx>,
     error_manager: RefCell<ErrorManager<'tcx>>,
-    procedure_contracts: RefCell<HashMap<
-        ProcedureDefId,
-        EncodingResult<ProcedureContractMirDef<'tcx>>
-    >>,
+    procedure_contracts:
+        RefCell<HashMap<ProcedureDefId, EncodingResult<ProcedureContractMirDef<'tcx>>>>,
     /// A map containing all functions: identifier → function definition.
     functions: RefCell<HashMap<vir::FunctionIdentifier, Rc<vir::Function>>>,
     builtin_methods: RefCell<HashMap<BuiltinMethodKind, vir::BodylessMethod>>,
@@ -107,36 +106,34 @@ pub type SubstStack<'tcx> = Vec<SubstMap<'tcx>>;
 
 // If the field name is an identifier, removing the leading prefix r#
 pub fn encode_field_name(field_name: &str) -> String {
-   format!("f${}", field_name.trim_start_matches("r#"))
+    format!("f${}", field_name.trim_start_matches("r#"))
 }
 
 impl<'v, 'tcx> Encoder<'v, 'tcx> {
-    pub fn new(
-        env: &'v Environment<'tcx>,
-        def_spec: &'v typed::DefSpecificationMap<'tcx>,
-    ) -> Self {
+    pub fn new(env: &'v Environment<'tcx>, def_spec: &'v typed::DefSpecificationMap<'tcx>) -> Self {
         let source_path = env.source_path();
         let source_filename = source_path.file_name().unwrap().to_str().unwrap();
-        let vir_program_before_foldunfold_writer = config::dump_debug_info().then_some(()).map(|_|
-            RefCell::new(
-                log::build_writer(
-                    "vir_program_before_foldunfold",
-                    format!("{}.vir", source_filename),
+        let vir_program_before_foldunfold_writer =
+            config::dump_debug_info().then_some(()).map(|_| {
+                RefCell::new(
+                    log::build_writer(
+                        "vir_program_before_foldunfold",
+                        format!("{}.vir", source_filename),
+                    )
+                    .ok()
+                    .unwrap(),
                 )
-                .ok()
-                .unwrap(),
-            )
-        );
-        let vir_program_before_viper_writer = config::dump_debug_info().then_some(()).map(|_|
+            });
+        let vir_program_before_viper_writer = config::dump_debug_info().then_some(()).map(|_| {
             RefCell::new(
                 log::build_writer(
                     "vir_program_before_viper",
                     format!("{}.vir", source_filename),
                 )
-                    .ok()
-                    .unwrap(),
+                .ok()
+                .unwrap(),
             )
-        );
+        });
 
         Encoder {
             env,
@@ -198,7 +195,9 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     }
 
     fn initialize(&mut self) {
-        self.closures_collector.borrow_mut().collect_from_all_spec_items(self.env);
+        self.closures_collector
+            .borrow_mut()
+            .collect_from_all_spec_items(self.env);
         // These are used in optimization passes
         self.encode_builtin_method_def(BuiltinMethodKind::HavocBool);
         self.encode_builtin_method_def(BuiltinMethodKind::HavocInt);
@@ -244,11 +243,18 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
 
     pub(super) fn insert_function(&self, function: vir::Function) -> vir::FunctionIdentifier {
         let identifier: vir::FunctionIdentifier = function.get_identifier().into();
-        assert!(self.functions.borrow_mut().insert(identifier.clone(), Rc::new(function)).is_none());
+        assert!(self
+            .functions
+            .borrow_mut()
+            .insert(identifier.clone(), Rc::new(function))
+            .is_none());
         identifier
     }
 
-    pub(super) fn get_function(&self, identifier: &vir::FunctionIdentifier) -> SpannedEncodingResult<Rc<vir::Function>> {
+    pub(super) fn get_function(
+        &self,
+        identifier: &vir::FunctionIdentifier,
+    ) -> SpannedEncodingResult<Rc<vir::Function>> {
         self.ensure_pure_function_encoded(identifier)?;
         if self.functions.borrow().contains_key(identifier) {
             let map = self.functions.borrow();
@@ -261,13 +267,17 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     }
 
     pub(super) fn get_builtin_methods(
-        &self
+        &self,
     ) -> Ref<'_, HashMap<BuiltinMethodKind, vir::BodylessMethod>> {
         self.builtin_methods.borrow()
     }
 
     fn get_used_viper_methods(&self) -> Vec<vir::CfgMethod> {
-        self.procedures.borrow_mut().drain().map(|(_, value)| value).collect()
+        self.procedures
+            .borrow_mut()
+            .drain()
+            .map(|(_, value)| value)
+            .collect()
     }
 
     /// Return, if there is any, the unique instantiation of the given closure.
@@ -280,7 +290,9 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         Vec<mir::Operand<'tcx>>,
         Vec<ty::Ty<'tcx>>,
     )> {
-        self.closures_collector.borrow().get_single_instantiation(closure_def_id)
+        self.closures_collector
+            .borrow()
+            .get_single_instantiation(closure_def_id)
     }
 
     /// Is the closure specified with the `def_id` is spec only?
@@ -296,7 +308,10 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     }
 
     /// Get the specifications attached to the `def_id` function.
-    pub fn get_procedure_specs(&self, def_id: DefId) -> Option<typed::ProcedureSpecification<'tcx>> {
+    pub fn get_procedure_specs(
+        &self,
+        def_id: DefId,
+    ) -> Option<typed::ProcedureSpecification<'tcx>> {
         let spec = self.def_spec.get(&def_id)?;
         Some(spec.expect_procedure().clone())
     }
@@ -304,17 +319,20 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     /// Get a local wrapper `DefId` for functions that have external specs.
     /// Return the original `DefId` for everything else.
     pub(super) fn get_wrapper_def_id(&self, def_id: DefId) -> DefId {
-        self.def_spec.extern_specs.get(&def_id)
+        self.def_spec
+            .extern_specs
+            .get(&def_id)
             .map(|local_id| local_id.to_def_id())
             .unwrap_or(def_id)
     }
 
-    fn get_procedure_contract(&self, proc_def_id: ProcedureDefId)
-        -> EncodingResult<ProcedureContractMirDef<'tcx>>
-    {
+    fn get_procedure_contract(
+        &self,
+        proc_def_id: ProcedureDefId,
+    ) -> EncodingResult<ProcedureContractMirDef<'tcx>> {
         let spec = typed::SpecificationSet::Procedure(
             self.get_procedure_specs(proc_def_id)
-                .unwrap_or_else(typed::ProcedureSpecification::empty)
+                .unwrap_or_else(typed::ProcedureSpecification::empty),
         );
         compute_procedure_contract(proc_def_id, self.env(), spec, None)
     }
@@ -325,9 +343,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         value: &ty::ConstKind<'tcx>,
     ) -> EncodingResult<mir::interpret::Scalar> {
         let opt_scalar_value = match value {
-            ty::ConstKind::Value(ref const_value) => {
-                const_value.try_to_scalar()
-            }
+            ty::ConstKind::Value(ref const_value) => const_value.try_to_scalar(),
             ty::ConstKind::Unevaluated(ct) => {
                 let tcx = self.env().tcx();
                 let param_env = tcx.param_env(ct.def.did);
@@ -341,9 +357,10 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         if let Some(v) = opt_scalar_value {
             Ok(v)
         } else {
-            Err(EncodingError::unsupported(
-                format!("unsupported constant value: {:?}", value)
-            ))
+            Err(EncodingError::unsupported(format!(
+                "unsupported constant value: {:?}",
+                value
+            )))
         }
     }
 
@@ -365,7 +382,8 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         self.procedure_contracts
             .borrow_mut()
             .entry(proc_def_id)
-            .or_insert_with(|| self.get_procedure_contract(proc_def_id)).as_ref()
+            .or_insert_with(|| self.get_procedure_contract(proc_def_id))
+            .as_ref()
             .map(|contract| contract.to_def_site_contract())
             .map_err(|err| err.clone())
     }
@@ -379,11 +397,10 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         tymap: SubstMap<'tcx>,
     ) -> EncodingResult<ProcedureContract<'tcx>> {
         // get specification on trait declaration method or inherent impl
-        let trait_spec = self.get_procedure_specs(proc_def_id)
-            .unwrap_or_else(|| {
-                debug!("Procedure {:?} has no specification", proc_def_id);
-                typed::ProcedureSpecification::empty()
-            });
+        let trait_spec = self.get_procedure_specs(proc_def_id).unwrap_or_else(|| {
+            debug!("Procedure {:?} has no specification", proc_def_id);
+            typed::ProcedureSpecification::empty()
+        });
 
         // get receiver object base type
         let mut impl_spec = typed::ProcedureSpecification::empty();
@@ -412,7 +429,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             proc_def_id,
             self.env(),
             typed::SpecificationSet::Procedure(final_spec),
-            Some(&tymap)
+            Some(&tymap),
         )?;
         Ok(contract.to_call_site_contract(args, target))
     }
@@ -420,11 +437,13 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     /// Encodes a value in a field if the base expression is a reference or
     /// a primitive types.
     /// For composed data structures, the base expression is returned.
-    pub fn encode_value_expr(&self, base: vir::Expr, ty: ty::Ty<'tcx>) -> EncodingResult<vir::Expr> {
+    pub fn encode_value_expr(
+        &self,
+        base: vir::Expr,
+        ty: ty::Ty<'tcx>,
+    ) -> EncodingResult<vir::Expr> {
         match ty.kind() {
-            ty::TyKind::Adt(_, _)
-            | ty::TyKind::Array(..)
-            | ty::TyKind::Tuple(_) => {
+            ty::TyKind::Adt(_, _) | ty::TyKind::Array(..) | ty::TyKind::Tuple(_) => {
                 Ok(base) // don't use a field for tuples and ADTs
             }
             _ => {
@@ -434,15 +453,15 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         }
     }
 
-    pub fn encode_dereference_field(&self, ty: ty::Ty<'tcx>)
-    -> EncodingResult<vir::Field>
-    {
+    pub fn encode_dereference_field(&self, ty: ty::Ty<'tcx>) -> EncodingResult<vir::Field> {
         self.encode_raw_ref_field("val_ref".to_string(), ty)
     }
 
-    pub fn encode_struct_field(&self, field_name: &str, ty: ty::Ty<'tcx>)
-    -> EncodingResult<vir::Field>
-    {
+    pub fn encode_struct_field(
+        &self,
+        field_name: &str,
+        ty: ty::Ty<'tcx>,
+    ) -> EncodingResult<vir::Field> {
         self.encode_raw_ref_field(encode_field_name(field_name), ty)
     }
 
@@ -455,16 +474,16 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         let typ = place.get_type().clone();
         let mut name = typ.name();
         name.push_str("$$discriminant$$");
-        let self_local_var = vir_local!{ self: {typ.clone()} };
+        let self_local_var = vir_local! { self: {typ.clone()} };
         if !self.type_discriminant_funcs.borrow().contains_key(&name) {
             let precondition = vir::Expr::predicate_access_predicate(
                 typ,
                 self_local_var.clone().into(),
-                vir::PermAmount::Read
+                vir::PermAmount::Read,
             );
-            let result = vir_local!{ __result: Int };
-            let postcondition = compute_discriminant_bounds(
-                adt_def, self.env.tcx(), &result.clone().into());
+            let result = vir_local! { __result: Int };
+            let postcondition =
+                compute_discriminant_bounds(adt_def, self.env.tcx(), &result.clone().into());
 
             let discr_field = self.encode_discriminant_field();
             let self_local_var_expr: vir::Expr = self_local_var.clone().into();
@@ -478,8 +497,9 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
                     self.encode_discriminant_postcondition(
                         self_local_var_expr.clone(),
                         vir::Expr::local(result),
-                        tymap
-                    ).unwrap(), // TODO: no unwrap
+                        tymap,
+                    )
+                    .unwrap(), // TODO: no unwrap
                 ],
                 body: Some(self_local_var_expr.field(discr_field)),
             };
@@ -491,9 +511,11 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
                 self.get_used_viper_predicates_map()?,
             );
             let identifier = self.insert_function(final_function.unwrap());
-            self.type_discriminant_funcs.borrow_mut().insert(name.clone(), identifier);
+            self.type_discriminant_funcs
+                .borrow_mut()
+                .insert(name.clone(), identifier);
         }
-        Ok(vir::Expr::FuncApp( vir::FuncApp {
+        Ok(vir::Expr::FuncApp(vir::FuncApp {
             function_name: name,
             arguments: vec![place],
             formal_arguments: vec![self_local_var],
@@ -545,14 +567,25 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         builtin_encoder.encode_builtin_function_name(&function_kind)
     }
 
-    pub fn encode_cast_function_use(&self, src_ty: ty::Ty<'tcx>, dst_ty: ty::Ty<'tcx>, tymap: &SubstMap<'tcx>)
-        -> EncodingResult<String>
-    {
-        trace!("encode_cast_function_use(src_ty={:?}, dst_ty={:?})", src_ty, dst_ty);
+    pub fn encode_cast_function_use(
+        &self,
+        src_ty: ty::Ty<'tcx>,
+        dst_ty: ty::Ty<'tcx>,
+        tymap: &SubstMap<'tcx>,
+    ) -> EncodingResult<String> {
+        trace!(
+            "encode_cast_function_use(src_ty={:?}, dst_ty={:?})",
+            src_ty,
+            dst_ty
+        );
         let function_name = format!("builtin$cast${}${}", src_ty, dst_ty);
-        if !self.type_cast_functions.borrow().contains_key(&(src_ty, dst_ty)) {
-            let arg = vir_local!{ number: {self.encode_snapshot_type(src_ty, tymap)?} };
-            let result = vir_local!{ __result: {self.encode_snapshot_type(dst_ty, tymap)?} };
+        if !self
+            .type_cast_functions
+            .borrow()
+            .contains_key(&(src_ty, dst_ty))
+        {
+            let arg = vir_local! { number: {self.encode_snapshot_type(src_ty, tymap)?} };
+            let result = vir_local! { __result: {self.encode_snapshot_type(dst_ty, tymap)?} };
             let mut precondition = self.encode_type_bounds(&arg.clone().into(), src_ty);
             precondition.extend(self.encode_type_bounds(&arg.clone().into(), dst_ty));
             let postcondition = self.encode_type_bounds(&result.into(), dst_ty);
@@ -565,7 +598,9 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
                 body: Some(arg.into()),
             };
             let identifier = self.insert_function(function);
-            self.type_cast_functions.borrow_mut().insert((src_ty, dst_ty), identifier);
+            self.type_cast_functions
+                .borrow_mut()
+                .insert((src_ty, dst_ty), identifier);
         }
         Ok(function_name)
     }
@@ -580,7 +615,9 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             def_id
         );
         if !self.procedures.borrow().contains_key(&def_id) {
-            self.closures_collector.borrow_mut().collect(self.env, def_id.expect_local());
+            self.closures_collector
+                .borrow_mut()
+                .collect(self.env, def_id.expect_local());
             let procedure = self.env.get_procedure(def_id);
             let proc_encoder = ProcedureEncoder::new(self, &procedure)?;
             let mut method = match proc_encoder.encode() {
@@ -588,7 +625,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
                 Err(error) => {
                     self.register_encoding_error(error);
                     StubProcedureEncoder::new(self, &procedure).encode()
-                },
+                }
             };
             self.log_vir_program_before_viper(method.to_string());
 
@@ -615,9 +652,10 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     }
 
     /// Encodes the specification functions for the function/closure def_id.
-    pub fn encode_spec_funcs(&self, def_id: ProcedureDefId)
-        -> SpannedEncodingResult<Vec<vir::FunctionIdentifier>>
-    {
+    pub fn encode_spec_funcs(
+        &self,
+        def_id: ProcedureDefId,
+    ) -> SpannedEncodingResult<Vec<vir::FunctionIdentifier>> {
         if !self.env().tcx().is_mir_available(def_id) || self.env().tcx().is_constructor(def_id) {
             return Ok(vec![]);
         }
@@ -626,9 +664,11 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             let procedure = self.env.get_procedure(def_id);
             let tymap = HashMap::new(); // TODO: This is probably wrong.
             let spec_func_encoder = SpecFunctionEncoder::new(self, &procedure, &tymap);
-            let result = spec_func_encoder.encode()?.into_iter().map(|function| {
-                self.insert_function(function)
-            }).collect();
+            let result = spec_func_encoder
+                .encode()?
+                .into_iter()
+                .map(|function| self.insert_function(function))
+                .collect();
             self.spec_functions.borrow_mut().insert(def_id, result);
         }
         Ok(self.spec_functions.borrow()[&def_id].clone())
@@ -661,10 +701,13 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             parent_def_id,
             tymap,
         )?;
-        Ok(encoded_assertion.set_default_pos(
-            self.error_manager()
-                .register(typed::Spanned::get_spans(assertion, mir, self.env().tcx()), error, parent_def_id)
-        ))
+        Ok(
+            encoded_assertion.set_default_pos(self.error_manager().register(
+                typed::Spanned::get_spans(assertion, mir, self.env().tcx()),
+                error,
+                parent_def_id,
+            )),
+        )
     }
 
     /// Checks whether the given type implements structural equality
@@ -681,9 +724,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             | ty::TyKind::Never
             | ty::TyKind::Array(..)
             | ty::TyKind::Param(_) => true,
-            ty::TyKind::Adt(_, _) => {
-                self.env().tcx().has_structural_eq_impls(ty)
-            }
+            ty::TyKind::Adt(_, _) => self.env().tcx().has_structural_eq_impls(ty),
             _ => false,
         }
     }
@@ -691,7 +732,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     pub fn encode_const_expr(
         &self,
         ty: &ty::TyS<'tcx>,
-        value: &ty::ConstKind<'tcx>
+        value: &ty::ConstKind<'tcx>,
     ) -> EncodingResult<vir::Expr> {
         trace!("encode_const_expr {:?}", value);
         let scalar_value = self.const_eval_intlike(value)?;
@@ -704,37 +745,45 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             ty::TyKind::Int(ty::IntTy::I32) => scalar_value.to_i32().unwrap().into(),
             ty::TyKind::Int(ty::IntTy::I64) => scalar_value.to_i64().unwrap().into(),
             ty::TyKind::Int(ty::IntTy::I128) => scalar_value.to_i128().unwrap().into(),
-            ty::TyKind::Int(ty::IntTy::Isize) => scalar_value.to_machine_isize(&self.env().tcx()).unwrap().into(),
+            ty::TyKind::Int(ty::IntTy::Isize) => scalar_value
+                .to_machine_isize(&self.env().tcx())
+                .unwrap()
+                .into(),
             ty::TyKind::Uint(ty::UintTy::U8) => scalar_value.to_u8().unwrap().into(),
             ty::TyKind::Uint(ty::UintTy::U16) => scalar_value.to_u16().unwrap().into(),
             ty::TyKind::Uint(ty::UintTy::U32) => scalar_value.to_u32().unwrap().into(),
             ty::TyKind::Uint(ty::UintTy::U64) => scalar_value.to_u64().unwrap().into(),
             ty::TyKind::Uint(ty::UintTy::U128) => scalar_value.to_u128().unwrap().into(),
-            ty::TyKind::Uint(ty::UintTy::Usize) => scalar_value.to_machine_usize(&self.env().tcx()).unwrap().into(),
+            ty::TyKind::Uint(ty::UintTy::Usize) => scalar_value
+                .to_machine_usize(&self.env().tcx())
+                .unwrap()
+                .into(),
             ty::TyKind::Float(ty::FloatTy::F32) => {
                 let bits = scalar_value.to_u32().unwrap();
-                vir::Expr::Const(
-                    vir::ConstExpr {
-                        value: vir::Const::Float(vir::FloatConst::F32(bits)),
-                        position: vir::Position::default(),
-                    })
-            },
+                vir::Expr::Const(vir::ConstExpr {
+                    value: vir::Const::Float(vir::FloatConst::F32(bits)),
+                    position: vir::Position::default(),
+                })
+            }
             ty::TyKind::Float(ty::FloatTy::F64) => {
                 let bits = scalar_value.to_u64().unwrap();
-                vir::Expr::Const(
-                    vir::ConstExpr {
-                        value: vir::Const::Float(vir::FloatConst::F64(bits)),
-                        position: vir::Position::default(),
-                    })
+                vir::Expr::Const(vir::ConstExpr {
+                    value: vir::Const::Float(vir::FloatConst::F64(bits)),
+                    position: vir::Position::default(),
+                })
             }
             ty::TyKind::FnDef(def_id, _) => {
                 self.encode_spec_funcs(*def_id)?;
-                vir::Expr::Const( vir::ConstExpr {value: vir::Const::FnPtr, position: vir::Position::default()} )
+                vir::Expr::Const(vir::ConstExpr {
+                    value: vir::Const::FnPtr,
+                    position: vir::Position::default(),
+                })
             }
             _ => {
-                return Err(EncodingError::unsupported(
-                    format!("unsupported constant type {:?}", ty.kind())
-                ));
+                return Err(EncodingError::unsupported(format!(
+                    "unsupported constant type {:?}",
+                    ty.kind()
+                )));
             }
         };
         debug!("encode_const_expr {:?} --> {:?}", value, expr);
@@ -766,28 +815,37 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     }
 
     pub fn encode_item_name(&self, def_id: DefId) -> String {
-        let full_name = format!("m_{}", encode_identifier(self.env.get_item_def_path(def_id)));
-        let short_name = format!("m_{}", encode_identifier(
-            self.env.tcx().opt_item_name(def_id)
-                .map(|s| s.name.to_ident_string())
-                .unwrap_or_else(|| self.env.get_item_name(def_id))
-        ));
+        let full_name = format!(
+            "m_{}",
+            encode_identifier(self.env.get_item_def_path(def_id))
+        );
+        let short_name = format!(
+            "m_{}",
+            encode_identifier(
+                self.env
+                    .tcx()
+                    .opt_item_name(def_id)
+                    .map(|s| s.name.to_ident_string())
+                    .unwrap_or_else(|| self.env.get_item_name(def_id))
+            )
+        );
         self.intern_viper_identifier(full_name, short_name)
     }
 
     pub fn encode_invariant_func_app(
         &self,
         ty: ty::Ty<'tcx>,
-        encoded_arg: vir::Expr
+        encoded_arg: vir::Expr,
     ) -> EncodingResult<vir::Expr> {
         trace!("encode_invariant_func_app: {:?}", ty.kind());
-        let type_pred = self.encode_type(ty)
+        let type_pred = self
+            .encode_type(ty)
             .expect("failed to encode unsupported type");
-        Ok(vir::Expr::FuncApp( vir::FuncApp {
+        Ok(vir::Expr::FuncApp(vir::FuncApp {
             function_name: self.encode_type_invariant_use(ty)?,
             arguments: vec![encoded_arg],
             // TODO ?
-            formal_arguments: vec![vir_local!{ self: { type_pred } }],
+            formal_arguments: vec![vir_local! { self: { type_pred } }],
             return_type: vir::Type::Bool,
             // TODO
             position: vir::Position::default(),
@@ -795,7 +853,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     }
 
     pub fn encode_tag_func_app(&self, ty: ty::Ty<'tcx>) -> vir::Expr {
-        vir::Expr::FuncApp( vir::FuncApp {
+        vir::Expr::FuncApp(vir::FuncApp {
             function_name: self.encode_type_tag_use(ty),
             arguments: vec![],
             // TODO ?
@@ -815,7 +873,6 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             .borrow_mut()
             .push((proc_def_id, Vec::new()));
     }
-
 
     pub fn process_encoding_queue(&mut self) {
         self.initialize();
@@ -861,19 +918,28 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     }
 
     pub fn is_trusted(&self, def_id: ProcedureDefId) -> bool {
-        let result = self.def_spec.get(&def_id).map_or(false, |spec| spec.expect_procedure().trusted);
+        let result = self
+            .def_spec
+            .get(&def_id)
+            .map_or(false, |spec| spec.expect_procedure().trusted);
         trace!("is_trusted {:?} = {}", def_id, result);
         result
     }
 
     pub fn is_pure(&self, def_id: ProcedureDefId) -> bool {
-        let result = self.def_spec.get(&def_id).map_or(false, |spec| spec.expect_procedure().pure);
+        let result = self
+            .def_spec
+            .get(&def_id)
+            .map_or(false, |spec| spec.expect_procedure().pure);
         trace!("is_pure {:?} = {}", def_id, result);
         result
     }
 
     pub fn get_predicate_body(&self, def_id: ProcedureDefId) -> Option<&typed::Assertion<'tcx>> {
-        let result = self.def_spec.get(&def_id).and_then(|spec| spec.expect_procedure().predicate_body.as_ref());
+        let result = self
+            .def_spec
+            .get(&def_id)
+            .and_then(|spec| spec.expect_procedure().predicate_body.as_ref());
         trace!("get_predicate_body {:?} = {:?}", def_id, result);
         result
     }
@@ -892,7 +958,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     /// Convert a potential type parameter to a concrete type.
     pub fn resolve_typaram(&self, ty: ty::Ty<'tcx>, tymap: &SubstMap<'tcx>) -> ty::Ty<'tcx> {
         // TODO: better generics ...
-        use rustc_middle::ty::fold::{TypeFolder, TypeFoldable};
+        use rustc_middle::ty::fold::{TypeFoldable, TypeFolder};
         struct Resolver<'a, 'tcx> {
             tcx: ty::TyCtxt<'tcx>,
             tymap: &'a HashMap<ty::Ty<'tcx>, ty::Ty<'tcx>>,
@@ -909,12 +975,12 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         ty.fold_with(&mut Resolver {
             tcx: self.env().tcx(),
             // TODO: creating each time a current_tymap might be slow. This can be optimized.
-            tymap//: self.current_tymap(),
+            tymap, //: self.current_tymap(),
         })
     }
 
     /// Merges the stack of type maps into a single map.
-    #[allow(clippy::needless_collect)]  // Clippy false positive.
+    #[allow(clippy::needless_collect)] // Clippy false positive.
     pub fn merge_tymaps(&self, stack: SubstStack<'tcx>) -> SubstMap<'tcx> {
         let mut map = HashMap::new();
         for map_frame in stack.iter().rev() {
@@ -932,7 +998,6 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         }
         map
     }
-
 
     /// TODO: This is a hack, it generates a String that can be used for uniquely identifying this
     /// type substitution.
@@ -961,7 +1026,9 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             "sf_{}_{}",
             kind_name,
             encode_identifier(
-                self.env.tcx().opt_item_name(def_id)
+                self.env
+                    .tcx()
+                    .opt_item_name(def_id)
                     .map(|s| s.name.to_ident_string())
                     .unwrap_or_else(|| self.env.get_item_name(def_id))
             )
@@ -973,7 +1040,9 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         let result = if config::disable_name_mangling() {
             short_name.as_ref().to_string()
         } else if config::intern_names() {
-            self.name_interner.borrow_mut().intern(full_name, &[short_name])
+            self.name_interner
+                .borrow_mut()
+                .intern(full_name, &[short_name])
         } else {
             full_name.as_ref().to_string()
         };
@@ -1002,14 +1071,20 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         &self,
         strct: vir::Expr,
         field_name: &str,
-        ty: ty::Ty<'tcx>
+        ty: ty::Ty<'tcx>,
     ) -> EncodingResult<vir::Expr> {
         let field = strct.field(self.encode_struct_field(field_name, ty)?);
         self.encode_value_expr(field, ty)
     }
 
-    pub fn add_discriminant_info(&self, enum_id: String, discr_id: String, proc_def_id: ProcedureDefId) {
-        self.discriminants_info.borrow_mut()
+    pub fn add_discriminant_info(
+        &self,
+        enum_id: String,
+        discr_id: String,
+        proc_def_id: ProcedureDefId,
+    ) {
+        self.discriminants_info
+            .borrow_mut()
             .entry((proc_def_id, enum_id))
             .or_default()
             .push(discr_id);
