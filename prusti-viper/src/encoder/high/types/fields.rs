@@ -12,6 +12,8 @@ pub(crate) fn create_value_field(ty: vir::Type) -> EncodingResult<vir::FieldDecl
 
         vir::Type::Int(_) => vir::FieldDecl::new("val_int", vir::Type::MInt),
 
+        vir::Type::Float(_) => vir::FieldDecl::new("val_float", vir::Type::MFloat),
+
         // For composed data structures, we typically use a snapshot rather than a field.
         // To unify how parameters are passed to functions, we treat them like a reference.
         vir::Type::Tuple(_)
@@ -45,7 +47,7 @@ pub(crate) fn create_value_field(ty: vir::Type) -> EncodingResult<vir::FieldDecl
             )));
         }
 
-        vir::Type::MBool | vir::Type::MInt => unreachable!(),
+        vir::Type::MBool | vir::Type::MInt | vir::Type::MFloat => unreachable!(),
     };
     Ok(field_decl)
 }

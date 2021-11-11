@@ -8,10 +8,13 @@ pub enum Type {
     MBool,
     /// Mathematical integer that corresponds to Viper's Int.
     MInt,
+    /// Mathematical float that corresponds to Viper's Float.
+    MFloat,
     /// Rust's Bool allocated on the Viper heap.
     Bool,
     /// Rust's Int allocated on the Viper heap.
     Int(Int),
+    Float(Float),
     TypeVar(TypeVar),
     Tuple(Tuple),
     Struct(Struct),
@@ -46,6 +49,11 @@ pub enum Int {
     Char,
     /// Used for ghost and mathematical integers.
     Unbounded,
+}
+
+pub enum Float {
+    F32,
+    F64
 }
 
 pub struct TypeVar {

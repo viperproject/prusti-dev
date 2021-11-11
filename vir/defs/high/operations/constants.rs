@@ -1,7 +1,7 @@
 use super::super::ast::{
     expression::*,
     position::Position,
-    ty::{Int, Type},
+    ty::{Int, Float, Type},
 };
 
 macro derive_from_into_primitive($ty: ty, $variant: ident) {
@@ -59,6 +59,12 @@ derive_from_into_string!(u64);
 derive_from!(u64, Type::Int(Int::U64));
 derive_from_into_string!(u128);
 derive_from!(u128, Type::Int(Int::U128));
+
+derive_from!(f32, Type::Float(Float::F32));
+derive_from_into_string!(f32);
+derive_from!(f64, Type::Float(Float::F64));
+derive_from_into_string!(f64);
+
 derive_from_into_string!(usize);
 derive_from!(usize, Type::Int(Int::Usize));
 impl From<char> for ConstantValue {
