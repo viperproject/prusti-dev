@@ -6193,6 +6193,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             ty::TyKind::Bool
             | ty::TyKind::Int(_)
             | ty::TyKind::Uint(_)
+            | ty::TyKind::Float(_)
             | ty::TyKind::Char => {
                 self.encode_copy_primitive_value(src, dst, self_ty, location)?
             }

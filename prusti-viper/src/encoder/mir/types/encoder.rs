@@ -112,6 +112,9 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
 
             ty::TyKind::Char => vir::Type::Int(vir::ty::Int::Char),
 
+            ty::TyKind::Float(ty::FloatTy::F32) => vir::Type::Float(vir::ty::Float::F32),
+            ty::TyKind::Float(ty::FloatTy::F64) => vir::Type::Float(vir::ty::Float::F64),
+
             ty::TyKind::RawPtr(ty::TypeAndMut { ty, .. }) => {
                 vir::Type::pointer(self.encoder.encode_type_high(ty)?)
             }
@@ -263,6 +266,19 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
         }
     }
 
+    pub fn get_float_bounds(&self) -> Option<(vir::Expression, vir::Expression)> {
+        match self.ty.kind() {
+            ty::TyKind::Float(float_ty) => {
+                let bounds = match float_ty {
+                    ty::FloatTy::F32 => (std::f32::MIN.into(), std::f32::MAX.into()),
+                    ty::FloatTy::F64 => (std::f64::MIN.into(), std::f64::MAX.into()),
+                };
+                Some(bounds)
+            }
+            _ => None,
+        }
+    }
+
     fn encode_variant(
         &self,
         name: String,
@@ -300,6 +316,17 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
                     }
                 }
                 vir::TypeDecl::int(lower_bound, upper_bound)
+            }
+            ty::TyKind::Float(_) => {
+                let mut lower_bound = None;
+                let mut upper_bound = None;
+                if config::check_overflows() {
+                    if let Some((lower, upper)) = self.get_float_bounds() {
+                        lower_bound = Some(Box::new(lower));
+                        upper_bound = Some(Box::new(upper));
+                    }
+                }
+                vir::TypeDecl::float(lower_bound, upper_bound)
             }
             ty::TyKind::Ref(_, ty, _) => {
                 let target_type = self.encoder.encode_type_high(ty)?;

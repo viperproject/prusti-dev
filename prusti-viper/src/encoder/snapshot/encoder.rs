@@ -26,7 +26,7 @@ use vir_crate::{
     polymorphic as vir,
     polymorphic::{
         ContainerOpKind, EnumVariantIndex, Expr, ExprIterator, FallibleExprFolder,
-        FallibleStmtFolder, PermAmount, Type, WithIdentifier,
+        FallibleStmtFolder, PermAmount, Type, WithIdentifier, Float::F64
     },
 };
 
@@ -212,6 +212,10 @@ impl SnapshotEncoder {
                         expr,
                         vir::Field::new("val_int", Type::Int),
                     ),
+                    ty::TyKind::Float(_) => Expr::field(
+                        expr,
+                        vir::Field::new("val_float", Type::Float(F64)),
+                    ),
                     ty::TyKind::Bool => Expr::field(
                         expr,
                         vir::Field::new("val_bool", Type::Bool),
@@ -228,7 +232,8 @@ impl SnapshotEncoder {
             // handle SnapApp on already patched expressions
             Type::Snapshot(_)
             | Type::Bool // TODO: restrict to snapshot-produced Bools and Ints
-            | Type::Int => Ok(expr),
+            | Type::Int
+            | Type::Float(_) => Ok(expr),
 
             _ => Err(EncodingError::internal(
                 format!("SnapApp applied to expr of invalid type {:?}", expr),

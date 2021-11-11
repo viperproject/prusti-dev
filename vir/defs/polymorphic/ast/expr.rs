@@ -1907,6 +1907,12 @@ pub enum FloatConst {
     F64(u64),
 }
 
+impl fmt::Display for FloatConst {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}", &self)
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum Const {
     Bool(bool),

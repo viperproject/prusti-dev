@@ -108,6 +108,7 @@ pub enum ConstantValue {
     Bool(bool),
     Int(i64),
     BigInt(String),
+    Float(FloatConst),
     /// All function pointers share the same constant, because their function
     /// is determined by the type system.
     FnPtr,
