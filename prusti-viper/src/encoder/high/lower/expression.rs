@@ -2,8 +2,8 @@ use super::super::types::interface::HighTypeEncoderInterfacePrivate;
 
 use super::IntoPolymorphic;
 use vir_crate::{high as vir_high, polymorphic as vir_poly};
-// use vir_crate::legacy::FloatConst;
-use vir_crate::polymorphic::FloatConst;
+use vir_crate::legacy::FloatConst;
+// use vir_crate::polymorphic::FloatConst;
 
 impl IntoPolymorphic<Box<vir_poly::Expr>> for Box<vir_high::Expression> {
     fn lower(&self, encoder: &impl HighTypeEncoderInterfacePrivate) -> Box<vir_poly::Expr> {
