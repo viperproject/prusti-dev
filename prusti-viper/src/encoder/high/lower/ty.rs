@@ -1,6 +1,5 @@
 use super::{super::types::interface::HighTypeEncoderInterfacePrivate, IntoPolymorphic};
-use vir_crate::{high as vir_high, polymorphic as vir_poly};
-use vir_crate::polymorphic::Float::F64;
+use vir_crate::{high as vir_high, polymorphic as vir_poly, polymorphic::Float::F64};
 
 impl IntoPolymorphic<vir_poly::Type> for vir_high::Type {
     fn lower(&self, encoder: &impl HighTypeEncoderInterfacePrivate) -> vir_poly::Type {
@@ -10,7 +9,9 @@ impl IntoPolymorphic<vir_poly::Type> for vir_high::Type {
             vir_high::Type::MFloat => vir_poly::Type::Float(F64),
             vir_high::Type::Bool => vir_poly::Type::typed_ref("bool"),
             vir_high::Type::Int(int) => vir_poly::Type::typed_ref(int.to_string().to_lowercase()),
-            vir_high::Type::Float(float) => vir_poly::Type::typed_ref(float.to_string().to_lowercase()),
+            vir_high::Type::Float(float) => {
+                vir_poly::Type::typed_ref(float.to_string().to_lowercase())
+            }
             vir_high::Type::TypeVar(ty) => vir_poly::Type::TypeVar(ty.lower(encoder)),
             vir_high::Type::Tuple(ty) => vir_poly::Type::TypedRef(ty.lower(encoder)),
             vir_high::Type::Struct(ty) => vir_poly::Type::TypedRef(ty.lower(encoder)),

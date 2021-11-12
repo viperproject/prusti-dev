@@ -53,7 +53,7 @@ pub enum Int {
 
 pub enum Float {
     F32,
-    F64
+    F64,
 }
 
 pub struct TypeVar {

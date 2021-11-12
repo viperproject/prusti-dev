@@ -34,9 +34,9 @@ pub struct Int {
 }
 
 #[display(
-fmt = "Float({},{})",
-"display::option!(lower_bound, \"{}\", \"\")",
-"display::option!(upper_bound, \" {}\", \"\")"
+    fmt = "Float({},{})",
+    "display::option!(lower_bound, \"{}\", \"\")",
+    "display::option!(upper_bound, \" {}\", \"\")"
 )]
 pub struct Float {
     pub lower_bound: Option<Box<Expression>>,

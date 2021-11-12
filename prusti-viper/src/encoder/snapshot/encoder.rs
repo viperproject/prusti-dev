@@ -26,7 +26,9 @@ use vir_crate::{
     polymorphic as vir,
     polymorphic::{
         ContainerOpKind, EnumVariantIndex, Expr, ExprIterator, FallibleExprFolder,
-        FallibleStmtFolder, PermAmount, Type, WithIdentifier, Float::F32, Float::F64
+        FallibleStmtFolder,
+        Float::{F32, F64},
+        PermAmount, Type, WithIdentifier,
     },
 };
 
