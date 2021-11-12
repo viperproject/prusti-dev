@@ -26,7 +26,7 @@ use vir_crate::{
     polymorphic as vir,
     polymorphic::{
         ContainerOpKind, EnumVariantIndex, Expr, ExprIterator, FallibleExprFolder,
-        FallibleStmtFolder, PermAmount, Type, WithIdentifier, Float::F64
+        FallibleStmtFolder, PermAmount, Type, WithIdentifier, Float::F32, Float::F64
     },
 };
 
@@ -212,9 +212,13 @@ impl SnapshotEncoder {
                         expr,
                         vir::Field::new("val_int", Type::Int),
                     ),
-                    ty::TyKind::Float(_) => Expr::field(
+                    ty::TyKind::Float(ty::FloatTy::F32) => Expr::field(
                         expr,
-                        vir::Field::new("val_float", Type::Float(F64)),
+                        vir::Field::new("val_float32", Type::Float(F32)),
+                    ),
+                    ty::TyKind::Float(ty::FloatTy::F64) => Expr::field(
+                        expr,
+                        vir::Field::new("val_float64", Type::Float(F64)),
                     ),
                     ty::TyKind::Bool => Expr::field(
                         expr,
