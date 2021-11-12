@@ -17,6 +17,12 @@ fn requires_sorted(s: &[i32]) {
 }
 
 /*
+#[requires(sorted(s) && s.len() > 2)]
+fn slice_sorted(s: &[i32]) {
+    let ss = &s[..2];
+    assert!(ss[0] <= ss[1]);
+}
+
 #[requires(sorted(&a[0..2]))]
 fn requires_sorted_start(a: [i32; 3]) {
     assert!(a[0] <= a[1]);
