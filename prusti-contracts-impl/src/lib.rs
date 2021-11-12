@@ -55,7 +55,7 @@ pub fn extern_spec(_attr: TokenStream, tokens: TokenStream) -> TokenStream {
     tokens
 }
 
-#[proc_macro_attribute]
-pub fn predicate(_attr: TokenStream, tokens: TokenStream) -> TokenStream {
-    tokens
+#[proc_macro]
+pub fn predicate(_tokens: TokenStream) -> TokenStream {
+    TokenStream::new()
 }
