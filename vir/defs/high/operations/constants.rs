@@ -1,7 +1,7 @@
 use super::super::ast::{
     expression::*,
     position::Position,
-    ty::{Int, Float, Type},
+    ty::{Float, Int, Type},
 };
 
 macro derive_from_into_primitive($ty: ty, $variant: ident) {
