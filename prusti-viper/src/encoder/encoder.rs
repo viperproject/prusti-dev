@@ -968,6 +968,16 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             .encode_slice_types(self, slice_ty)
     }
 
+    pub fn encode_struct_field_value(
+        &self,
+        strct: vir::Expr,
+        field_name: &str,
+        ty: ty::Ty<'tcx>
+    ) -> EncodingResult<vir::Expr> {
+        let field = strct.field(self.encode_struct_field(field_name, ty)?);
+        self.encode_value_expr(field, ty)
+    }
+
     pub fn add_discriminant_info(&self, enum_id: String, discr_id: String, proc_def_id: ProcedureDefId) {
         self.discriminants_info.borrow_mut()
             .entry((proc_def_id, enum_id))

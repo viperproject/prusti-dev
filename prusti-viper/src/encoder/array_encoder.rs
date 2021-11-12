@@ -11,7 +11,7 @@ use std::{
 };
 use crate::encoder::{
     Encoder,
-    errors::EncodingResult,
+    errors::{EncodingResult, EncodingError},
     builtin_encoder::BuiltinFunctionKind,
 };
 use prusti_common::vir_local;
@@ -146,10 +146,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> ArrayTypesEncoder<'tcx> {
         }
 
         let slice_pred_type = encoder.encode_type(slice_ty_rs)?;
-        let elem_ty_rs = if let ty::TyKind::Slice(elem_ty) = slice_ty_rs.kind() {
-            elem_ty
-        } else {
-            unreachable!()
+        let elem_ty_rs = match slice_ty_rs.kind() {
+            ty::TyKind::Slice(elem_ty) => elem_ty,
+            ty::TyKind::Str => return Err(
+                EncodingError::unsupported("Encoding of Str slice type".to_string())
+            ),
+            _ => unreachable!()
         };
 
         let elem_pred_type = encoder.encode_type(elem_ty_rs)?;

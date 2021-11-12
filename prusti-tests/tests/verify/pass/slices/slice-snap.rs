@@ -1,5 +1,3 @@
-// ignore-test: baz cannot be verified as non-pure
-
 use prusti_contracts::*;
 
 fn main() {}
