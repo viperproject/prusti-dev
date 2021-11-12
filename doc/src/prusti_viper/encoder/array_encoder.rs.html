@@ -200,6 +200,8 @@
 <span id="200">200</span>
 <span id="201">201</span>
 <span id="202">202</span>
+<span id="203">203</span>
+<span id="204">204</span>
 </pre><pre class="rust"><code><span class="comment">// © 2021, ETH Zurich</span>
 <span class="comment">//</span>
 <span class="comment">// This Source Code Form is subject to the terms of the Mozilla Public</span>
@@ -213,7 +215,7 @@
 };
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::encoder</span>::{
     <a class="ident" href="../../../src/prusti_viper/encoder/encoder.rs.html#68-99">Encoder</a>,
-    <a class="ident" href="../../../src/prusti_viper/encoder/errors/encoding_error.rs.html#20">errors::EncodingResult</a>,
+    <span class="ident">errors</span>::{<a class="ident" href="../../../src/prusti_viper/encoder/errors/encoding_error.rs.html#20">EncodingResult</a>, <a class="ident" href="../../../src/prusti_viper/encoder/errors/encoding_error.rs.html#15-18">EncodingError</a>},
     <a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#21-44">builtin_encoder::BuiltinFunctionKind</a>,
 };
 <span class="kw">use</span> <span class="ident">prusti_common::vir_local</span>;
@@ -348,22 +350,24 @@
         }
 
         <span class="kw">let</span> <span class="ident">slice_pred_type</span> <span class="op">=</span> <a class="ident" href="../../../src/prusti_viper/encoder/array_encoder.rs.html#141">encoder</a>.<a class="ident" href="../../../src/prusti_viper/encoder/high/types/interface.rs.html#124">encode_type</a>(<a class="ident" href="../../../src/prusti_viper/encoder/array_encoder.rs.html#142">slice_ty_rs</a>)<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">elem_ty_rs</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="ident">ty::TyKind::Slice</span>(<span class="ident">elem_ty</span>) <span class="op">=</span> <a class="ident" href="../../../src/prusti_viper/encoder/array_encoder.rs.html#142">slice_ty_rs</a>.<span class="ident">kind</span>() {
-            <a class="ident" href="../../../src/prusti_viper/encoder/array_encoder.rs.html#149">elem_ty</a>
-        } <span class="kw">else</span> {
-            <span class="macro">unreachable!</span>()
+        <span class="kw">let</span> <span class="ident">elem_ty_rs</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../../src/prusti_viper/encoder/array_encoder.rs.html#142">slice_ty_rs</a>.<span class="ident">kind</span>() {
+            <span class="ident">ty::TyKind::Slice</span>(<span class="ident">elem_ty</span>) =&gt; <a class="ident" href="../../../src/prusti_viper/encoder/array_encoder.rs.html#150">elem_ty</a>,
+            <span class="ident">ty::TyKind::Str</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(
+                <span class="ident">EncodingError::unsupported</span>(<span class="string">&quot;Encoding of Str slice type&quot;</span>.<span class="ident">to_string</span>())
+            ),
+            <span class="kw">_</span> =&gt; <span class="macro">unreachable!</span>()
         };
 
         <span class="kw">let</span> <span class="ident">elem_pred_type</span> <span class="op">=</span> <a class="ident" href="../../../src/prusti_viper/encoder/array_encoder.rs.html#141">encoder</a>.<a class="ident" href="../../../src/prusti_viper/encoder/high/types/interface.rs.html#124">encode_type</a>(<a class="ident" href="../../../src/prusti_viper/encoder/array_encoder.rs.html#149">elem_ty_rs</a>)<span class="question-mark">?</span>;
 
         <span class="kw">let</span> <span class="ident">encoded</span> <span class="op">=</span> <a class="ident" href="../../../src/prusti_viper/encoder/array_encoder.rs.html#66-73">EncodedSliceTypes</a> {
             <a class="ident" href="../../../src/prusti_viper/encoder/array_encoder.rs.html#148">slice_pred_type</a>,
-            <a class="ident" href="../../../src/prusti_viper/encoder/array_encoder.rs.html#155">elem_pred_type</a>,
+            <a class="ident" href="../../../src/prusti_viper/encoder/array_encoder.rs.html#157">elem_pred_type</a>,
             <a class="ident" href="../../../src/prusti_viper/encoder/array_encoder.rs.html#149">elem_ty_rs</a>,
         };
-        <a class="self" href="../../../src/prusti_viper/encoder/array_encoder.rs.html#140">self</a>.<span class="ident">slice_types_cache</span>.<span class="ident">insert</span>(<a class="ident" href="../../../src/prusti_viper/encoder/array_encoder.rs.html#142">slice_ty_rs</a>, <a class="ident" href="../../../src/prusti_viper/encoder/array_encoder.rs.html#157">encoded</a>.<span class="ident">clone</span>());
+        <a class="self" href="../../../src/prusti_viper/encoder/array_encoder.rs.html#140">self</a>.<span class="ident">slice_types_cache</span>.<span class="ident">insert</span>(<a class="ident" href="../../../src/prusti_viper/encoder/array_encoder.rs.html#142">slice_ty_rs</a>, <a class="ident" href="../../../src/prusti_viper/encoder/array_encoder.rs.html#159">encoded</a>.<span class="ident">clone</span>());
 
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/prusti_viper/encoder/array_encoder.rs.html#157">encoded</a>)
+        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/prusti_viper/encoder/array_encoder.rs.html#159">encoded</a>)
     }
 
     <span class="doccomment">/// Encode types, type predicates and builtin lookup functions required for handling arrays of</span>
@@ -373,33 +377,33 @@
         <span class="ident">encoder</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;p</span> <span class="ident">Encoder</span><span class="op">&lt;</span><span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
         <span class="ident">array_ty_rs</span>: <span class="ident">ty::Ty</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
     ) -&gt; <span class="ident">EncodingResult</span><span class="op">&lt;</span><span class="ident">EncodedArrayTypes</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">cached</span>) <span class="op">=</span> <a class="self" href="../../../src/prusti_viper/encoder/array_encoder.rs.html#170">self</a>.<span class="ident">array_types_cache</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/prusti_viper/encoder/array_encoder.rs.html#172">array_ty_rs</a>) {
-            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/prusti_viper/encoder/array_encoder.rs.html#174">cached</a>.<span class="ident">clone</span>());
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">cached</span>) <span class="op">=</span> <a class="self" href="../../../src/prusti_viper/encoder/array_encoder.rs.html#172">self</a>.<span class="ident">array_types_cache</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/prusti_viper/encoder/array_encoder.rs.html#174">array_ty_rs</a>) {
+            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/prusti_viper/encoder/array_encoder.rs.html#176">cached</a>.<span class="ident">clone</span>());
         }
 
         <span class="comment">// type predicates</span>
-        <span class="kw">let</span> (<span class="ident">elem_ty_rs</span>, <span class="ident">len</span>) <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="ident">ty::TyKind::Array</span>(<span class="ident">elem_ty</span>, <span class="ident">len</span>) <span class="op">=</span> <a class="ident" href="../../../src/prusti_viper/encoder/array_encoder.rs.html#172">array_ty_rs</a>.<span class="ident">kind</span>() {
-            (<a class="ident" href="../../../src/prusti_viper/encoder/array_encoder.rs.html#179">elem_ty</a>, <a class="ident" href="../../../src/prusti_viper/encoder/array_encoder.rs.html#179">len</a>)
+        <span class="kw">let</span> (<span class="ident">elem_ty_rs</span>, <span class="ident">len</span>) <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="ident">ty::TyKind::Array</span>(<span class="ident">elem_ty</span>, <span class="ident">len</span>) <span class="op">=</span> <a class="ident" href="../../../src/prusti_viper/encoder/array_encoder.rs.html#174">array_ty_rs</a>.<span class="ident">kind</span>() {
+            (<a class="ident" href="../../../src/prusti_viper/encoder/array_encoder.rs.html#181">elem_ty</a>, <a class="ident" href="../../../src/prusti_viper/encoder/array_encoder.rs.html#181">len</a>)
         } <span class="kw">else</span> {
             <span class="macro">unreachable!</span>()
         };
 
         <span class="comment">// types</span>
-        <span class="kw">let</span> <span class="ident">array_pred_type</span> <span class="op">=</span> <a class="ident" href="../../../src/prusti_viper/encoder/array_encoder.rs.html#171">encoder</a>.<a class="ident" href="../../../src/prusti_viper/encoder/high/types/interface.rs.html#124">encode_type</a>(<a class="ident" href="../../../src/prusti_viper/encoder/array_encoder.rs.html#172">array_ty_rs</a>)<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">elem_pred_type</span> <span class="op">=</span> <a class="ident" href="../../../src/prusti_viper/encoder/array_encoder.rs.html#171">encoder</a>.<a class="ident" href="../../../src/prusti_viper/encoder/high/types/interface.rs.html#124">encode_type</a>(<a class="ident" href="../../../src/prusti_viper/encoder/array_encoder.rs.html#179">elem_ty_rs</a>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">array_pred_type</span> <span class="op">=</span> <a class="ident" href="../../../src/prusti_viper/encoder/array_encoder.rs.html#173">encoder</a>.<a class="ident" href="../../../src/prusti_viper/encoder/high/types/interface.rs.html#124">encode_type</a>(<a class="ident" href="../../../src/prusti_viper/encoder/array_encoder.rs.html#174">array_ty_rs</a>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">elem_pred_type</span> <span class="op">=</span> <a class="ident" href="../../../src/prusti_viper/encoder/array_encoder.rs.html#173">encoder</a>.<a class="ident" href="../../../src/prusti_viper/encoder/high/types/interface.rs.html#124">encode_type</a>(<a class="ident" href="../../../src/prusti_viper/encoder/array_encoder.rs.html#181">elem_ty_rs</a>)<span class="question-mark">?</span>;
 
-        <span class="kw">let</span> <span class="ident">array_len</span> <span class="op">=</span> <a class="ident" href="../../../src/prusti_viper/encoder/array_encoder.rs.html#171">encoder</a>.<a class="ident" href="../../../src/prusti_viper/encoder/encoder.rs.html#320-323">const_eval_intlike</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/prusti_viper/encoder/array_encoder.rs.html#179">len</a>.<span class="ident">val</span>)<span class="question-mark">?</span>
+        <span class="kw">let</span> <span class="ident">array_len</span> <span class="op">=</span> <a class="ident" href="../../../src/prusti_viper/encoder/array_encoder.rs.html#173">encoder</a>.<a class="ident" href="../../../src/prusti_viper/encoder/encoder.rs.html#320-323">const_eval_intlike</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/prusti_viper/encoder/array_encoder.rs.html#181">len</a>.<span class="ident">val</span>)<span class="question-mark">?</span>
             .<span class="ident">to_u64</span>().<span class="ident">unwrap</span>().<span class="ident">try_into</span>().<span class="ident">unwrap</span>();
 
         <span class="kw">let</span> <span class="ident">encoded</span> <span class="op">=</span> <a class="ident" href="../../../src/prusti_viper/encoder/array_encoder.rs.html#26-35">EncodedArrayTypes</a> {
-            <a class="ident" href="../../../src/prusti_viper/encoder/array_encoder.rs.html#186">array_pred_type</a>,
-            <a class="ident" href="../../../src/prusti_viper/encoder/array_encoder.rs.html#187">elem_pred_type</a>,
-            <a class="ident" href="../../../src/prusti_viper/encoder/array_encoder.rs.html#179">elem_ty_rs</a>,
-            <a class="ident" href="../../../src/prusti_viper/encoder/array_encoder.rs.html#189">array_len</a>,
+            <a class="ident" href="../../../src/prusti_viper/encoder/array_encoder.rs.html#188">array_pred_type</a>,
+            <a class="ident" href="../../../src/prusti_viper/encoder/array_encoder.rs.html#189">elem_pred_type</a>,
+            <a class="ident" href="../../../src/prusti_viper/encoder/array_encoder.rs.html#181">elem_ty_rs</a>,
+            <a class="ident" href="../../../src/prusti_viper/encoder/array_encoder.rs.html#191">array_len</a>,
         };
-        <a class="self" href="../../../src/prusti_viper/encoder/array_encoder.rs.html#170">self</a>.<span class="ident">array_types_cache</span>.<span class="ident">insert</span>(<a class="ident" href="../../../src/prusti_viper/encoder/array_encoder.rs.html#172">array_ty_rs</a>, <a class="ident" href="../../../src/prusti_viper/encoder/array_encoder.rs.html#192">encoded</a>.<span class="ident">clone</span>());
+        <a class="self" href="../../../src/prusti_viper/encoder/array_encoder.rs.html#172">self</a>.<span class="ident">array_types_cache</span>.<span class="ident">insert</span>(<a class="ident" href="../../../src/prusti_viper/encoder/array_encoder.rs.html#174">array_ty_rs</a>, <a class="ident" href="../../../src/prusti_viper/encoder/array_encoder.rs.html#194">encoded</a>.<span class="ident">clone</span>());
 
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/prusti_viper/encoder/array_encoder.rs.html#192">encoded</a>)
+        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/prusti_viper/encoder/array_encoder.rs.html#194">encoded</a>)
     }
 }
 </code></pre></div>
