@@ -37,13 +37,15 @@ where
 
     // If the target crate depends on the `prusti-contracts` crate, then enable its `prusti` feature.
     let enable_prusti_contracts = read_to_string("Cargo.toml")
-    .map(|cargo_toml_contents| {
-        cargo_toml_contents.lines()
-        .map(str::trim)
-        .filter(|line| line.starts_with("prusti-contracts ="))
-        .next()
-        .is_some()
-    }).unwrap_or(false);
+        .map(|cargo_toml_contents| {
+            cargo_toml_contents
+                .lines()
+                .map(str::trim)
+                .filter(|line| line.starts_with("prusti-contracts ="))
+                .next()
+                .is_some()
+        })
+        .unwrap_or(false);
 
     let exit_status = Command::new(cargo_path)
         .args(match enable_prusti_contracts {
