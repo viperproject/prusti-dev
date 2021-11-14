@@ -8,8 +8,9 @@ pub enum Type {
     MBool,
     /// Mathematical integer that corresponds to Viper's Int.
     MInt,
-    /// Mathematical float that corresponds to Viper's Float.
-    MFloat,
+    /// Mathematical floats that corresponds to Viper's Float.
+    MFloat32,
+    MFloat64,
     /// Rust's Bool allocated on the Viper heap.
     Bool,
     /// Rust's Int allocated on the Viper heap.
