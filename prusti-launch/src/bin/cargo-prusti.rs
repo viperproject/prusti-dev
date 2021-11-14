@@ -5,7 +5,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use prusti_launch::get_rust_toolchain_channel;
-use std::process::Command;
+use std::{fs::read_to_string, process::Command};
 
 fn main() {
     if let Err(code) = process(std::env::args().skip(1)) {
@@ -35,8 +35,21 @@ where
     let prusti_log_dir =
         std::env::var("PRUSTI_LOG_DIR").unwrap_or_else(|_| format!("{}/log", cargo_target));
 
+    // If the target crate depends on the `prusti-contracts` crate, then enable its `prusti` feature.
+    let enable_prusti_contracts = read_to_string("Cargo.toml")
+    .map(|cargo_toml_contents| {
+        cargo_toml_contents.lines()
+        .map(str::trim)
+        .filter(|line| line.starts_with("prusti-contracts ="))
+        .next()
+        .is_some()
+    }).unwrap_or(false);
+
     let exit_status = Command::new(cargo_path)
-        .arg("check")
+        .args(match enable_prusti_contracts {
+            true => vec!["check", "--features=prusti-contracts/prusti"],
+            false => vec!["check"],
+        })
         .args(clean_args)
         .env("RUST_TOOLCHAIN", get_rust_toolchain_channel())
         .env("RUSTC_WRAPPER", prusti_rustc_path)
