@@ -1,5 +1,4 @@
 //~ ERROR consistency error in B::new: Consistency error: expected the same type, but got Snap$struct$m_A and Ref
-#![no_std]
 extern crate prusti_contracts;
 use prusti_contracts::*;
 
