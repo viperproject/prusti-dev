@@ -1,5 +1,10 @@
 //! This file tests that the programs compile when NOT built by Prusti.
 
+// These feature flags are not needed when executing under Prusti
+// because it generates them for us.
+#![cfg_attr(feature = "prusti", feature(register_tool))]
+#![cfg_attr(feature = "prusti", register_tool(prusti))]
+
 use prusti_contracts::*;
 
 #[requires(true)]
