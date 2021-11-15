@@ -630,7 +630,15 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
                         vir::Expr::lt_cmp(result.clone(), std::isize::MIN.into()),
                         vir::Expr::gt_cmp(result, std::isize::MAX.into()),
                     ),
-
+                    //Floats
+                    ty::TyKind::Float(ty::FloatTy::F32) => vir::Expr::or(
+                        vir::Expr::lt_cmp(result.clone(), std::f32::MIN.into()),
+                        vir::Expr::gt_cmp(result, std::f32::MAX.into()),
+                    ),
+                    ty::TyKind::Float(ty::FloatTy::F64) => vir::Expr::or(
+                        vir::Expr::lt_cmp(result.clone(), std::f64::MIN.into()),
+                        vir::Expr::gt_cmp(result, std::f64::MAX.into()),
+                    ),
                     _ => {
                         return Err(EncodingError::unsupported(format!(
                             "overflow checks are unsupported for operation '{:?}' on type '{:?}'",

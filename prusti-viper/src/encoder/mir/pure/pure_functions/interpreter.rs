@@ -762,6 +762,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                     ty::TyKind::Bool
                     | ty::TyKind::Int(..)
                     | ty::TyKind::Uint(..)
+                    | ty::TyKind::Float(..)
                     | ty::TyKind::RawPtr(..)
                     | ty::TyKind::Ref(..) => Some(
                         self.encoder.encode_value_expr(

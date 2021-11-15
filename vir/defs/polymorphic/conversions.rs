@@ -4,7 +4,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use crate::polymorphic::ast::{Const, ConstExpr, Expr, Local, LocalVar, Position};
+use crate::polymorphic::ast::{Const, ConstExpr, Expr, Local, LocalVar, Position, FloatConst};
 
 impl From<LocalVar> for Expr {
     fn from(local_var: LocalVar) -> Self {
@@ -236,6 +236,36 @@ impl From<u128> for Const {
 
 impl From<char> for Expr {
     fn from(val: char) -> Self {
+        Expr::Const(ConstExpr {
+            value: val.into(),
+            position: Position::default(),
+        })
+    }
+}
+
+impl From<f32> for Const{
+    fn from(val: f32) -> Self {
+        Const::Float(FloatConst::F32(val as u32))
+    }
+}
+
+impl From<f32> for Expr{
+    fn from(val: f32) -> Self {
+        Expr::Const(ConstExpr {
+            value: val.into(),
+            position: Position::default(),
+        })
+    }
+}
+
+impl From<f64> for Const{
+    fn from(val: f64) -> Self {
+        Const::Float(FloatConst::F64(val as u64))
+    }
+}
+
+impl From<f64> for Expr{
+    fn from(val: f64) -> Self {
         Expr::Const(ConstExpr {
             value: val.into(),
             position: Position::default(),

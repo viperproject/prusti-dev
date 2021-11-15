@@ -553,6 +553,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
                 let encoded_arg_value = match local_arg.ty.kind() {
                     ty::TyKind::Uint(_) |
                     ty::TyKind::Int(_) |
+                    ty::TyKind::Float(_) |
                     ty::TyKind::Bool |
                     ty::TyKind::Char => {
                         let span = inner_mir_encoder.get_local_span(local_arg_index);

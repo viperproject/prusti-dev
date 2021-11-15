@@ -719,6 +719,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             ty::TyKind::Bool
             | ty::TyKind::Int(_)
             | ty::TyKind::Uint(_)
+            | ty::TyKind::Float(_)
             | ty::TyKind::Char
             | ty::TyKind::Tuple(_)
             | ty::TyKind::Never
