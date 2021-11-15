@@ -96,6 +96,7 @@ pub enum Entry {
     /// A string is used to be able to represent integers outside the 128-bit
     /// range.
     Int(String),
+    Float(String),
     Bool(bool),
     Char(char),
     Ref(Box<Entry>),
@@ -133,6 +134,7 @@ impl fmt::Debug for Entry {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Entry::Int(value) => write!(f, "{}", value),
+            Entry::Float(value) => write!(f, "{}", value),
             Entry::Bool(value) => write!(f, "{}", value),
             Entry::Char(value) => {
                 if value.is_control() {
