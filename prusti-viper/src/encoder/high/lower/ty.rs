@@ -1,5 +1,8 @@
 use super::{super::types::interface::HighTypeEncoderInterfacePrivate, IntoPolymorphic};
-use vir_crate::{high as vir_high, polymorphic as vir_poly, polymorphic::Float::{F32, F64}};
+use vir_crate::{
+    high as vir_high, polymorphic as vir_poly,
+    polymorphic::Float::{F32, F64},
+};
 
 impl IntoPolymorphic<vir_poly::Type> for vir_high::Type {
     fn lower(&self, encoder: &impl HighTypeEncoderInterfacePrivate) -> vir_poly::Type {
