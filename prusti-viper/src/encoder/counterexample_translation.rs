@@ -227,6 +227,10 @@ impl<'ce, 'tcx> CounterexampleTranslator<'ce, 'tcx> {
             }
             (ty::TyKind::Int(_) | ty::TyKind::Uint(_), _)
                 => Entry::Int(self.translate_int(sil_entry)?),
+            (ty::TyKind::Float(ty::FloatTy::F32), _)
+                => Entry::Float(self.translate_float32(sil_entry)?),
+            (ty::TyKind::Float(ty::FloatTy::F64), _)
+            => Entry::Float(self.translate_float64(sil_entry)?),
             (ty::TyKind::Char, _) => {
                 let value_str = self.translate_int(sil_entry)?;
                 let value = value_str.parse::<u32>().ok()?;
@@ -381,6 +385,36 @@ impl<'ce, 'tcx> CounterexampleTranslator<'ce, 'tcx> {
             Some(ModelEntry::Ref(_, map)) => {
                 let entry = map.get("val_int");
                 if let Some(ModelEntry::LitInt(value)) = entry {
+                    Some(value.to_string())
+                } else {
+                    None
+                }
+            },
+            _ => None,
+        }
+    }
+
+    fn translate_float32(&self, opt_sil_entry: Option<&ModelEntry>) -> Option<String> {
+        match opt_sil_entry {
+            Some(ModelEntry::LitFloat(value)) => Some(value.to_string()),
+            Some(ModelEntry::Ref(_, map)) => {
+                let entry = map.get("val_float32");
+                if let Some(ModelEntry::LitFloat(value)) = entry {
+                    Some(value.to_string())
+                } else {
+                    None
+                }
+            },
+            _ => None,
+        }
+    }
+
+    fn translate_float64(&self, opt_sil_entry: Option<&ModelEntry>) -> Option<String> {
+        match opt_sil_entry {
+            Some(ModelEntry::LitFloat(value)) => Some(value.to_string()),
+            Some(ModelEntry::Ref(_, map)) => {
+                let entry = map.get("val_float64");
+                if let Some(ModelEntry::LitFloat(value)) = entry {
                     Some(value.to_string())
                 } else {
                     None

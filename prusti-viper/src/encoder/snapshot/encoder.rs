@@ -1595,7 +1595,7 @@ impl SnapshotEncoder {
                 // encode type validity axiom for field
                 // TODO: encode type invariants rather than just integer bounds
                 match field.mir_type.kind() {
-                    ty::TyKind::Int(_) | ty::TyKind::Uint(_) | ty::TyKind::Char => domain_axioms
+                    ty::TyKind::Int(_) | ty::TyKind::Uint(_) | ty::TyKind::Float(_) | ty::TyKind::Char => domain_axioms
                         .push({
                             let self_local = vir::LocalVar::new("self", snapshot_type.clone());
                             let self_expr = Expr::local(self_local.clone());

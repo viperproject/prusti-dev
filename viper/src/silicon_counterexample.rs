@@ -61,6 +61,7 @@ pub struct Model {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub enum ModelEntry {
     LitInt(String),
+    LitFloat(String),
     LitBool(bool),
     LitPerm(f64),
     Ref(String, HashMap<String, ModelEntry>),
