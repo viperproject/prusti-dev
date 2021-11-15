@@ -1,0 +1,49 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Calculates whether a function’s ABI can unwind or not."><meta name="keywords" content="rust, rustlang, rust-lang, fn_can_unwind"><title>fn_can_unwind in analysis_driver::ty::layout - Rust</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc fn"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../analysis_driver/index.html'><div class='logo-container rust-logo'><img src='../../../rust-logo.png' alt='logo'></div></a><div class="sidebar-elems"><h2 class="location">Other items in<br><a href="../../index.html">analysis_driver</a>::<wbr><a href="../index.html">ty</a>::<wbr><a href="index.html">layout</a></h2><div id="sidebar-vars" data-name="fn_can_unwind" data-ty="fn" data-relpath=""></div><script defer src="sidebar-items.js"></script></div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../../wheel.svg"></a></div></form></nav><section id="main" class="content"><h1 class="fqn"><span class="in-band">Function <a href="../../index.html">analysis_driver</a>::<wbr><a href="../index.html">ty</a>::<wbr><a href="index.html">layout</a>::<wbr><a class="fn" href="#">fn_can_unwind</a><button id="copy-path" onclick="copy_path(this)" title="Copy item path to clipboard"><img src="../../../clipboard.svg" width="19" height="18" alt="Copy item path"></button></span><span class="out-of-band"><span id="render-detail"><a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">[<span class="inner">&#x2212;</span>]</a></span><a class="srclink" href="https://doc.rust-lang.org/nightly/nightly-rustc/src/rustc_middle/ty/layout.rs.html#2706-2710" title="goto source code">[src]</a></span></h1><div class="docblock item-decl"><pre class="rust fn"><code>pub fn fn_can_unwind(<br>&nbsp;&nbsp;&nbsp;&nbsp;tcx: <a class="struct" href="../struct.TyCtxt.html" title="struct analysis_driver::ty::TyCtxt">TyCtxt</a>&lt;'tcx&gt;, <br>&nbsp;&nbsp;&nbsp;&nbsp;codegen_fn_attr_flags: <a class="struct" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/middle/codegen_fn_attrs/struct.CodegenFnAttrFlags.html" title="struct rustc_middle::middle::codegen_fn_attrs::CodegenFnAttrFlags">CodegenFnAttrFlags</a>, <br>&nbsp;&nbsp;&nbsp;&nbsp;abi: <a class="enum" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_target/spec/abi/enum.Abi.html" title="enum rustc_target::spec::abi::Abi">Abi</a><br>) -&gt; <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a></code></pre></div><details class="rustdoc-toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>Calculates whether a function’s ABI can unwind or not.</p>
+<p>This takes two primary parameters:</p>
+<ul>
+<li>
+<p><code>codegen_fn_attr_flags</code> - these are flags calculated as part of the
+codegen attrs for a defined function. For function pointers this set of
+flags is the empty set. This is only applicable for Rust-defined
+functions, and generally isn’t needed except for small optimizations where
+we try to say a function which otherwise might look like it could unwind
+doesn’t actually unwind (such as for intrinsics and such).</p>
+</li>
+<li>
+<p><code>abi</code> - this is the ABI that the function is defined with. This is the
+primary factor for determining whether a function can unwind or not.</p>
+</li>
+</ul>
+<p>Note that in this case unwinding is not necessarily panicking in Rust. Rust
+panics are implemented with unwinds on most platform (when
+<code>-Cpanic=unwind</code>), but this also accounts for <code>-Cpanic=abort</code> build modes.
+Notably unwinding is disallowed for more non-Rust ABIs unless it’s
+specifically in the name (e.g. <code>&quot;C-unwind&quot;</code>). Unwinding within each ABI is
+defined for each ABI individually, but it always corresponds to some form of
+stack-based unwinding (the exact mechanism of which varies
+platform-by-platform).</p>
+<p>Rust functions are classfied whether or not they can unwind based on the
+active “panic strategy”. In other words Rust functions are considered to
+unwind in <code>-Cpanic=unwind</code> mode and cannot unwind in <code>-Cpanic=abort</code> mode.
+Note that Rust supports intermingling panic=abort and panic=unwind code, but
+only if the final panic mode is panic=abort. In this scenario any code
+previously compiled assuming that a function can unwind is still correct, it
+just never happens to actually unwind at runtime.</p>
+<p>This function’s answer to whether or not a function can unwind is quite
+impactful throughout the compiler. This affects things like:</p>
+<ul>
+<li>Calling a function which can’t unwind means codegen simply ignores any
+associated unwinding cleanup.</li>
+<li>Calling a function which can unwind from a function which can’t unwind
+causes the <code>abort_unwinding_calls</code> MIR pass to insert a landing pad that
+aborts the process.</li>
+<li>This affects whether functions have the LLVM <code>nounwind</code> attribute, which
+affects various optimizations and codegen.</li>
+</ul>
+<p>FIXME: this is actually buggy with respect to Rust functions. Rust functions
+compiled with <code>-Cpanic=unwind</code> and referenced from another crate compiled
+with <code>-Cpanic=abort</code> will look like they can’t unwind when in fact they
+might (from a foreign exception or similar).</p>
+</div></details></section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="analysis_driver" data-search-index-js="../../../search-index.js" data-search-js="../../../search.js"></div>
+    <script src="../../../main.js"></script>
+</body></html>

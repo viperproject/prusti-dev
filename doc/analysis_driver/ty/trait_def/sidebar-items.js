@@ -1,0 +1,1 @@
+initSidebarItems({"enum":[["TraitSpecializationKind","Whether this trait is treated specially by the standard library specialization lint."]],"struct":[["TraitDef","A trait’s definition with type information."],["TraitImpls",""]]});
