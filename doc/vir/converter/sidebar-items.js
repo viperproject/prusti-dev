@@ -1,1 +1,1 @@
-initSidebarItems({"mod":[["polymorphic_to_legacy",""],["type_substitution",""]]});
+initSidebarItems({"mod":[["polymorphic_to_legacy",""],["positions",""],["type_substitution",""]]});

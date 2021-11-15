@@ -1,1 +1,1 @@
-initSidebarItems({"mod":[["ast",""],["operations",""]]});
+initSidebarItems({"mod":[["ast",""],["operations",""]],"struct":[["Position",""]]});

@@ -1,0 +1,1 @@
+initSidebarItems({"enum":[["Int",""],["Type",""]],"mod":[["visitors",""]],"struct":[["Array",""],["Closure",""],["Enum",""],["FunctionDef",""],["Pointer",""],["Projection",""],["Reference",""],["Slice",""],["Struct",""],["Tuple",""],["TypeVar",""],["Union",""],["Unsupported",""],["VariantIndex",""]]});

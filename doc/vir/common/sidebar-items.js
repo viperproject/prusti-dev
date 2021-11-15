@@ -1,1 +1,1 @@
-initSidebarItems({"mod":[["expression",""]]});
+initSidebarItems({"mod":[["expression",""],["positions",""]]});
