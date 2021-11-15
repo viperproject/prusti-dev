@@ -1595,28 +1595,31 @@ impl SnapshotEncoder {
                 // encode type validity axiom for field
                 // TODO: encode type invariants rather than just integer bounds
                 match field.mir_type.kind() {
-                    ty::TyKind::Int(_) | ty::TyKind::Uint(_) | ty::TyKind::Float(_) | ty::TyKind::Char => domain_axioms
-                        .push({
-                            let self_local = vir::LocalVar::new("self", snapshot_type.clone());
-                            let self_expr = Expr::local(self_local.clone());
-                            let field_of_self = field_access_func.apply(vec![self_expr.clone()]);
+                    ty::TyKind::Int(_)
+                    | ty::TyKind::Uint(_)
+                    | ty::TyKind::Float(_)
+                    | ty::TyKind::Char => domain_axioms.push({
+                        let self_local = vir::LocalVar::new("self", snapshot_type.clone());
+                        let self_expr = Expr::local(self_local.clone());
+                        let field_of_self = field_access_func.apply(vec![self_expr.clone()]);
 
-                            vir::DomainAxiom {
-                                name: format!(
-                                    "{}${}$field${}$valid",
-                                    domain_name, variant_idx, field.name
-                                ),
-                                expr: Expr::forall(
-                                    vec![self_local.clone()],
-                                    vec![vir::Trigger::new(vec![field_of_self.clone()])],
-                                    encoder
-                                        .encode_type_bounds(&field_of_self, field.mir_type)
-                                        .into_iter()
-                                        .conjoin(),
-                                ),
-                                domain_name: domain_name.to_string(),
-                            }
-                        }),
+                        vir::DomainAxiom {
+                            name: format!(
+                                "{}${}$field${}$valid",
+                                domain_name, variant_idx, field.name
+                            ),
+                            expr: Expr::forall(
+                                vec![self_local.clone()],
+                                vec![vir::Trigger::new(vec![field_of_self.clone()])],
+                                encoder
+                                    .encode_type_bounds(&field_of_self, field.mir_type)
+                                    .into_iter()
+                                    .conjoin(),
+                            ),
+                            domain_name: domain_name.to_string(),
+                        }
+                    }),
+
                     _ => {}
                 }
             }
