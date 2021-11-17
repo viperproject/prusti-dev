@@ -224,7 +224,7 @@ impl fmt::Display for Expr {
                     .map(|x| x.to_string())
                     .collect::<Vec<String>>()
                     .join(", "),
-                body.to_string()
+                body
             ),
             Expr::Exists(ref vars, ref triggers, ref body, ref _pos) => write!(
                 f,
@@ -238,15 +238,11 @@ impl fmt::Display for Expr {
                     .map(|x| x.to_string())
                     .collect::<Vec<String>>()
                     .join(", "),
-                body.to_string()
+                body
             ),
-            Expr::LetExpr(ref var, ref expr, ref body, ref _pos) => write!(
-                f,
-                "(let {:?} == ({}) in {})",
-                var,
-                expr.to_string(),
-                body.to_string()
-            ),
+            Expr::LetExpr(ref var, ref expr, ref body, ref _pos) => {
+                write!(f, "(let {:?} == ({}) in {})", var, expr, body,)
+            }
             Expr::FuncApp(ref name, ref args, ref params, ref typ, ref _pos) => write!(
                 f,
                 "{}<{},{}>({})",
@@ -256,7 +252,7 @@ impl fmt::Display for Expr {
                     .map(|p| p.typ.to_string())
                     .collect::<Vec<String>>()
                     .join(", "),
-                typ.to_string(),
+                typ,
                 args.iter()
                     .map(|f| f.to_string())
                     .collect::<Vec<String>>()
@@ -294,14 +290,11 @@ impl fmt::Display for Expr {
                 write!(f, "[({}), ({})]", inhale_expr, exhale_expr)
             }
 
-            Expr::Downcast(ref base, ref enum_place, ref field) => write!(
-                f,
-                "(downcast {} to {} in {})",
-                enum_place.to_string(),
-                field,
-                base.to_string(),
-            ),
-            Expr::SnapApp(ref expr, _) => write!(f, "snap({})", expr.to_string()),
+            Expr::Downcast(ref base, ref enum_place, ref field) => {
+                write!(f, "(downcast {} to {} in {})", enum_place, field, base,)
+            }
+
+            Expr::SnapApp(ref expr, _) => write!(f, "snap({})", expr),
         }
     }
 }
