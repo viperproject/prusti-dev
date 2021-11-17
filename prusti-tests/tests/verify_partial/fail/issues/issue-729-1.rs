@@ -1,9 +1,6 @@
 // error-pattern: Precondition of function snap$__$TY$__struct$m_A$Snap$struct$m_A might not hold
-// ^^^^^^^^^^^^^^ this is an actual assertion, see:
-// <https://rustc-dev-guide.rust-lang.org/tests/adding.html#when-error-line-cannot-be-specified>
 // FIXME: https://github.com/viperproject/prusti-dev/issues/729
 #![allow(unused_comparisons)]
-extern crate prusti_contracts;
 use prusti_contracts::*;
 
 pub struct A {
