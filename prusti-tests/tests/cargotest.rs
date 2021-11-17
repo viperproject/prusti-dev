@@ -161,10 +161,11 @@ fn test_local_project<T: Into<PathBuf>>(project_name: T) {
 
     // Set the expected exit status, stdout and stderr
     let mut test_builder = project.process(cargo_prusti_path());
+    test_builder.arg("--quiet");
     let opt_expected_stdout = fs::read_to_string(project_path.join("output.stdout")).ok();
     let opt_expected_stderr = fs::read_to_string(project_path.join("output.stderr")).ok();
     if let Some(ref expected_stdout) = opt_expected_stdout {
-        test_builder.with_stdout(expected_stdout);
+        test_builder.with_stdout_contains(expected_stdout);
     }
     if let Some(ref expected_stderr) = opt_expected_stderr {
         test_builder.with_status(101).with_stderr(expected_stderr);
