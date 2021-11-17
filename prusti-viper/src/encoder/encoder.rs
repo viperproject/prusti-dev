@@ -64,7 +64,6 @@ use super::mir::{
     },
 };
 use super::high::types::{HighTypeEncoderState, HighTypeEncoderInterface};
-use vir_crate::polymorphic::FloatConst;
 
 pub struct Encoder<'v, 'tcx: 'v> {
     env: &'v Environment<'tcx>,
@@ -714,7 +713,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
                 let bits = scalar_value.to_u32().unwrap();
                 vir::Expr::Const(
                     vir::ConstExpr {
-                        value: vir::Const::Float(FloatConst::F32(bits)),
+                        value: vir::Const::Float(vir::FloatConst::F32(bits)),
                         position: vir::Position::default(),
                     })
             },
@@ -722,7 +721,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
                 let bits = scalar_value.to_u64().unwrap();
                 vir::Expr::Const(
                     vir::ConstExpr {
-                        value: vir::Const::Float(FloatConst::F64(bits)),
+                        value: vir::Const::Float(vir::FloatConst::F64(bits)),
                         position: vir::Position::default(),
                     })
             }
