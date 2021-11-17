@@ -41,8 +41,7 @@ where
             cargo_toml_contents
                 .lines()
                 .map(str::trim)
-                .find(|line| line.starts_with("prusti-contracts ="))
-                .is_some()
+                .any(|line| line.starts_with("prusti-contracts ="))
         })
         .unwrap_or(false);
 
