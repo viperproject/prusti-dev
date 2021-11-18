@@ -49,6 +49,15 @@
 <span id="49">49</span>
 <span id="50">50</span>
 <span id="51">51</span>
+<span id="52">52</span>
+<span id="53">53</span>
+<span id="54">54</span>
+<span id="55">55</span>
+<span id="56">56</span>
+<span id="57">57</span>
+<span id="58">58</span>
+<span id="59">59</span>
+<span id="60">60</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Helper functions for creating fields.</span>
 
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::encoder::errors</span>::{<a class="ident" href="../../../../../src/prusti_viper/encoder/errors/encoding_error.rs.html#15-18">EncodingError</a>, <a class="ident" href="../../../../../src/prusti_viper/encoder/errors/encoding_error.rs.html#20">EncodingResult</a>};
@@ -63,6 +72,13 @@
 
         <span class="ident">vir::Type::Int</span>(<span class="kw">_</span>) =&gt; <span class="ident">vir::FieldDecl::new</span>(<span class="string">&quot;val_int&quot;</span>, <span class="ident">vir::Type::MInt</span>),
 
+        <span class="ident">vir::Type::Float</span>(<span class="ident">vir::ty::Float::F32</span>) =&gt; {
+            <span class="ident">vir::FieldDecl::new</span>(<span class="string">&quot;val_float32&quot;</span>, <span class="ident">vir::Type::MFloat32</span>)
+        }
+        <span class="ident">vir::Type::Float</span>(<span class="ident">vir::ty::Float::F64</span>) =&gt; {
+            <span class="ident">vir::FieldDecl::new</span>(<span class="string">&quot;val_float64&quot;</span>, <span class="ident">vir::Type::MFloat64</span>)
+        }
+
         <span class="comment">// For composed data structures, we typically use a snapshot rather than a field.</span>
         <span class="comment">// To unify how parameters are passed to functions, we treat them like a reference.</span>
         <span class="ident">vir::Type::Tuple</span>(<span class="kw">_</span>)
@@ -73,7 +89,7 @@
         <span class="op">|</span> <span class="ident">vir::Type::FnPointer</span> =&gt; <span class="ident">vir::FieldDecl::new</span>(<span class="string">&quot;val_ref&quot;</span>, <a class="ident" href="../../../../../src/prusti_viper/encoder/high/types/fields.rs.html#8">ty</a>),
 
         <span class="ident">vir::Type::Reference</span>(<a class="ident" href="../../../../../vir/gen/high/ast/ty/struct.Reference.html">vir::ty::Reference</a> { <span class="ident">target_type</span>, .. }) =&gt; {
-            <span class="ident">vir::FieldDecl::new</span>(<span class="string">&quot;val_ref&quot;</span>, (<span class="kw-2">*</span><a class="ident" href="../../../../../src/prusti_viper/encoder/high/types/fields.rs.html#24">target_type</a>).<span class="ident">clone</span>())
+            <span class="ident">vir::FieldDecl::new</span>(<span class="string">&quot;val_ref&quot;</span>, (<span class="kw-2">*</span><a class="ident" href="../../../../../src/prusti_viper/encoder/high/types/fields.rs.html#31">target_type</a>).<span class="ident">clone</span>())
         }
 
         <span class="ident">vir::Type::Array</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="ident">vir::Type::Slice</span>(<span class="kw">_</span>) =&gt; {
@@ -96,7 +112,9 @@
             )));
         }
 
-        <span class="ident">vir::Type::MBool</span> <span class="op">|</span> <span class="ident">vir::Type::MInt</span> =&gt; <span class="macro">unreachable!</span>(),
+        <span class="ident">vir::Type::MBool</span> <span class="op">|</span> <span class="ident">vir::Type::MInt</span> <span class="op">|</span> <span class="ident">vir::Type::MFloat32</span> <span class="op">|</span> <span class="ident">vir::Type::MFloat64</span> =&gt; {
+            <span class="macro">unreachable!</span>()
+        }
     };
     <span class="prelude-val">Ok</span>(<a class="ident" href="../../../../../src/prusti_viper/encoder/high/types/fields.rs.html#10">field_decl</a>)
 }

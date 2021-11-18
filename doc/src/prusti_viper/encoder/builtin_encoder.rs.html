@@ -325,6 +325,16 @@
 <span id="325">325</span>
 <span id="326">326</span>
 <span id="327">327</span>
+<span id="328">328</span>
+<span id="329">329</span>
+<span id="330">330</span>
+<span id="331">331</span>
+<span id="332">332</span>
+<span id="333">333</span>
+<span id="334">334</span>
+<span id="335">335</span>
+<span id="336">336</span>
+<span id="337">337</span>
 </pre><pre class="rust"><code><span class="comment">// © 2019, ETH Zurich</span>
 <span class="comment">//</span>
 <span class="comment">// This Source Code Form is subject to the terms of the Mozilla Public</span>
@@ -341,6 +351,8 @@
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">BuiltinMethodKind</span> {
     <span class="ident">HavocBool</span>,
     <span class="ident">HavocInt</span>,
+    <span class="ident">HavocF32</span>,
+    <span class="ident">HavocF64</span>,
     <span class="ident">HavocRef</span>,
 }
 
@@ -380,169 +392,177 @@
 
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">BuiltinEncoder</span> {}
 
-<span class="kw">impl</span> <a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#54">BuiltinEncoder</a> {
+<span class="kw">impl</span> <a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#56">BuiltinEncoder</a> {
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="self">Self</span> {
         <span class="self">Self</span> {}
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">encode_builtin_method_name</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">method</span>: <a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#14-18">BuiltinMethodKind</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> {
-        <span class="kw">match</span> <a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#61">method</a> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">encode_builtin_method_name</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">method</span>: <a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#14-20">BuiltinMethodKind</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> {
+        <span class="kw">match</span> <a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#63">method</a> {
             <a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#15">BuiltinMethodKind::HavocBool</a> =&gt; <span class="string">&quot;builtin$havoc_bool&quot;</span>.<span class="ident">to_string</span>(),
             <a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#16">BuiltinMethodKind::HavocInt</a> =&gt; <span class="string">&quot;builtin$havoc_int&quot;</span>.<span class="ident">to_string</span>(),
-            <a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#17">BuiltinMethodKind::HavocRef</a> =&gt; <span class="string">&quot;builtin$havoc_ref&quot;</span>.<span class="ident">to_string</span>(),
+            <a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#17">BuiltinMethodKind::HavocF32</a> =&gt; <span class="string">&quot;builtin$havoc_f32&quot;</span>.<span class="ident">to_string</span>(),
+            <a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#18">BuiltinMethodKind::HavocF64</a> =&gt; <span class="string">&quot;builtin$havoc_f64&quot;</span>.<span class="ident">to_string</span>(),
+            <a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#19">BuiltinMethodKind::HavocRef</a> =&gt; <span class="string">&quot;builtin$havoc_ref&quot;</span>.<span class="ident">to_string</span>(),
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">encode_builtin_method_def</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">method</span>: <a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#14-18">BuiltinMethodKind</a>) -&gt; <a class="ident" href="../../../vir/gen/polymorphic/ast/bodyless_method/struct.BodylessMethod.html">vir::BodylessMethod</a> {
-        <span class="kw">let</span> <span class="ident">return_type</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#69">method</a> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">encode_builtin_method_def</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">method</span>: <a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#14-20">BuiltinMethodKind</a>) -&gt; <a class="ident" href="../../../vir/gen/polymorphic/ast/bodyless_method/struct.BodylessMethod.html">vir::BodylessMethod</a> {
+        <span class="kw">let</span> <span class="ident">return_type</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#73">method</a> {
             <a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#15">BuiltinMethodKind::HavocBool</a> =&gt; <span class="ident">vir::Type::Bool</span>,
             <a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#16">BuiltinMethodKind::HavocInt</a> =&gt; <span class="ident">vir::Type::Int</span>,
-            <a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#17">BuiltinMethodKind::HavocRef</a> =&gt; <span class="ident">vir::Type::typed_ref</span>(<span class="string">&quot;&quot;</span>),
+            <a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#17">BuiltinMethodKind::HavocF32</a> =&gt; <span class="ident">vir::Type::Float</span>(<span class="ident">vir::Float::F32</span>),
+            <a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#18">BuiltinMethodKind::HavocF64</a> =&gt; <span class="ident">vir::Type::Float</span>(<span class="ident">vir::Float::F64</span>),
+            <a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#19">BuiltinMethodKind::HavocRef</a> =&gt; <span class="ident">vir::Type::typed_ref</span>(<span class="string">&quot;&quot;</span>),
         };
         <a class="ident" href="../../../vir/gen/polymorphic/ast/bodyless_method/struct.BodylessMethod.html">vir::BodylessMethod</a> {
-            <span class="ident">name</span>: <a class="self" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#69">self</a>.<a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#61">encode_builtin_method_name</a>(<a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#69">method</a>),
+            <span class="ident">name</span>: <a class="self" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#73">self</a>.<a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#63">encode_builtin_method_name</a>(<a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#73">method</a>),
             <span class="ident">formal_args</span>: <span class="macro">vec!</span>[],
-            <span class="ident">formal_returns</span>: <span class="macro">vec!</span>[<span class="macro">vir_local!</span>{ <span class="ident">ret</span>: {<a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#70">return_type</a>} }],
+            <span class="ident">formal_returns</span>: <span class="macro">vec!</span>[<span class="macro">vir_local!</span>{ <span class="ident">ret</span>: {<a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#74">return_type</a>} }],
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">encode_builtin_function_name</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">function</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#21-44">BuiltinFunctionKind</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> {
-        <span class="kw">match</span> <a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#82">function</a> {
-            <a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#23">BuiltinFunctionKind::Unreachable</a>(<span class="ident">vir::Type::Int</span>) =&gt; <span class="string">&quot;builtin$unreach_int&quot;</span>.<span class="ident">to_string</span>(),
-            <a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#23">BuiltinFunctionKind::Unreachable</a>(<span class="ident">vir::Type::Bool</span>) =&gt; <span class="string">&quot;builtin$unreach_bool&quot;</span>.<span class="ident">to_string</span>(),
-            <a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#23">BuiltinFunctionKind::Unreachable</a>(<span class="ident">vir::Type::TypedRef</span>(<span class="kw">_</span>)) =&gt; {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">encode_builtin_function_name</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">function</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#23-46">BuiltinFunctionKind</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> {
+        <span class="kw">match</span> <a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#88">function</a> {
+            <a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#25">BuiltinFunctionKind::Unreachable</a>(<span class="ident">vir::Type::Int</span>) =&gt; <span class="string">&quot;builtin$unreach_int&quot;</span>.<span class="ident">to_string</span>(),
+            <a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#25">BuiltinFunctionKind::Unreachable</a>(<span class="ident">vir::Type::Bool</span>) =&gt; <span class="string">&quot;builtin$unreach_bool&quot;</span>.<span class="ident">to_string</span>(),
+            <a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#25">BuiltinFunctionKind::Unreachable</a>(<span class="ident">vir::Type::Float</span>(<span class="ident">vir::Float::F32</span>)) =&gt; <span class="string">&quot;builtin$unreach_f32&quot;</span>.<span class="ident">to_string</span>(),
+            <a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#25">BuiltinFunctionKind::Unreachable</a>(<span class="ident">vir::Type::Float</span>(<span class="ident">vir::Float::F64</span>)) =&gt; <span class="string">&quot;builtin$unreach_f64&quot;</span>.<span class="ident">to_string</span>(),
+            <a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#25">BuiltinFunctionKind::Unreachable</a>(<span class="ident">vir::Type::TypedRef</span>(<span class="kw">_</span>)) =&gt; {
                 <span class="string">&quot;builtin$unreach_ref&quot;</span>.<span class="ident">to_string</span>()
             }
             <span class="comment">// TODO polymorphic: might combine this case with typed_ref</span>
-            <a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#23">BuiltinFunctionKind::Unreachable</a>(<span class="ident">vir::Type::TypeVar</span>(<span class="kw">_</span>)) =&gt; {
+            <a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#25">BuiltinFunctionKind::Unreachable</a>(<span class="ident">vir::Type::TypeVar</span>(<span class="kw">_</span>)) =&gt; {
                 <span class="string">&quot;builtin$unreach_var&quot;</span>.<span class="ident">to_string</span>()
             }
-            <a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#23">BuiltinFunctionKind::Unreachable</a>(<span class="ident">vir::Type::Domain</span>(<span class="kw">_</span>)) =&gt; {
+            <a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#25">BuiltinFunctionKind::Unreachable</a>(<span class="ident">vir::Type::Domain</span>(<span class="kw">_</span>)) =&gt; {
                 <span class="string">&quot;builtin$unreach_domain&quot;</span>.<span class="ident">to_string</span>()
             }
-            <a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#23">BuiltinFunctionKind::Unreachable</a>(<span class="ident">vir::Type::Snapshot</span>(<span class="kw">_</span>)) =&gt; {
+            <a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#25">BuiltinFunctionKind::Unreachable</a>(<span class="ident">vir::Type::Snapshot</span>(<span class="kw">_</span>)) =&gt; {
                 <span class="string">&quot;builtin$unreach_snap&quot;</span>.<span class="ident">to_string</span>()
             }
-            <a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#23">BuiltinFunctionKind::Unreachable</a>(<span class="ident">vir::Type::Seq</span>(<span class="kw">_</span>)) =&gt; {
+            <a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#25">BuiltinFunctionKind::Unreachable</a>(<span class="ident">vir::Type::Seq</span>(<span class="kw">_</span>)) =&gt; {
                 <span class="string">&quot;builtin$unreach_seq&quot;</span>.<span class="ident">to_string</span>()
             }
-            <a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#25">BuiltinFunctionKind::Undefined</a>(<span class="ident">vir::Type::Int</span>) =&gt; <span class="string">&quot;builtin$undef_int&quot;</span>.<span class="ident">to_string</span>(),
-            <a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#25">BuiltinFunctionKind::Undefined</a>(<span class="ident">vir::Type::Bool</span>) =&gt; <span class="string">&quot;builtin$undef_bool&quot;</span>.<span class="ident">to_string</span>(),
-            <a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#25">BuiltinFunctionKind::Undefined</a>(<span class="ident">vir::Type::TypedRef</span>(<span class="kw">_</span>)) =&gt; <span class="string">&quot;builtin$undef_ref&quot;</span>.<span class="ident">to_string</span>(),
+            <a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#27">BuiltinFunctionKind::Undefined</a>(<span class="ident">vir::Type::Int</span>) =&gt; <span class="string">&quot;builtin$undef_int&quot;</span>.<span class="ident">to_string</span>(),
+            <a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#27">BuiltinFunctionKind::Undefined</a>(<span class="ident">vir::Type::Bool</span>) =&gt; <span class="string">&quot;builtin$undef_bool&quot;</span>.<span class="ident">to_string</span>(),
+            <a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#27">BuiltinFunctionKind::Undefined</a>(<span class="ident">vir::Type::Float</span>(<span class="ident">vir::Float::F32</span>)) =&gt; <span class="string">&quot;builtin$undef_f32&quot;</span>.<span class="ident">to_string</span>(),
+            <a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#27">BuiltinFunctionKind::Undefined</a>(<span class="ident">vir::Type::Float</span>(<span class="ident">vir::Float::F64</span>)) =&gt; <span class="string">&quot;builtin$undef_f64&quot;</span>.<span class="ident">to_string</span>(),
+            <a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#27">BuiltinFunctionKind::Undefined</a>(<span class="ident">vir::Type::TypedRef</span>(<span class="kw">_</span>)) =&gt; <span class="string">&quot;builtin$undef_ref&quot;</span>.<span class="ident">to_string</span>(),
             <span class="comment">// TODO polymorphic: might combine this case with typed_ref</span>
-            <a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#25">BuiltinFunctionKind::Undefined</a>(<span class="ident">vir::Type::TypeVar</span>(<span class="kw">_</span>)) =&gt; <span class="string">&quot;builtin$undef_var&quot;</span>.<span class="ident">to_string</span>(),
+            <a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#27">BuiltinFunctionKind::Undefined</a>(<span class="ident">vir::Type::TypeVar</span>(<span class="kw">_</span>)) =&gt; <span class="string">&quot;builtin$undef_var&quot;</span>.<span class="ident">to_string</span>(),
             <span class="comment">// TODO: do Domain and Snapshot make sense here?</span>
-            <a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#25">BuiltinFunctionKind::Undefined</a>(<span class="ident">vir::Type::Domain</span>(<span class="kw">_</span>)) =&gt; <span class="string">&quot;builtin$undef_doman&quot;</span>.<span class="ident">to_string</span>(),
-            <a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#25">BuiltinFunctionKind::Undefined</a>(<span class="ident">vir::Type::Snapshot</span>(<span class="kw">_</span>)) =&gt; <span class="string">&quot;builtin$undef_snap&quot;</span>.<span class="ident">to_string</span>(),
-            <a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#25">BuiltinFunctionKind::Undefined</a>(<span class="ident">vir::Type::Seq</span>(<span class="kw">_</span>)) =&gt; <span class="string">&quot;builtin$undef_seq&quot;</span>.<span class="ident">to_string</span>(),
-            <a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#27-32">BuiltinFunctionKind::ArrayLookupPure</a> { .. }
-            <span class="op">|</span> <a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#34-38">BuiltinFunctionKind::SliceLookupPure</a> { .. } =&gt; <span class="string">&quot;lookup_pure&quot;</span>.<span class="ident">to_string</span>(),
-            <a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#40-43">BuiltinFunctionKind::SliceLen</a> { .. } =&gt; <span class="string">&quot;Slice$len&quot;</span>.<span class="ident">to_string</span>(),
+            <a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#27">BuiltinFunctionKind::Undefined</a>(<span class="ident">vir::Type::Domain</span>(<span class="kw">_</span>)) =&gt; <span class="string">&quot;builtin$undef_doman&quot;</span>.<span class="ident">to_string</span>(),
+            <a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#27">BuiltinFunctionKind::Undefined</a>(<span class="ident">vir::Type::Snapshot</span>(<span class="kw">_</span>)) =&gt; <span class="string">&quot;builtin$undef_snap&quot;</span>.<span class="ident">to_string</span>(),
+            <a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#27">BuiltinFunctionKind::Undefined</a>(<span class="ident">vir::Type::Seq</span>(<span class="kw">_</span>)) =&gt; <span class="string">&quot;builtin$undef_seq&quot;</span>.<span class="ident">to_string</span>(),
+            <a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#29-34">BuiltinFunctionKind::ArrayLookupPure</a> { .. }
+            <span class="op">|</span> <a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#36-40">BuiltinFunctionKind::SliceLookupPure</a> { .. } =&gt; <span class="string">&quot;lookup_pure&quot;</span>.<span class="ident">to_string</span>(),
+            <a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#42-45">BuiltinFunctionKind::SliceLen</a> { .. } =&gt; <span class="string">&quot;Slice$len&quot;</span>.<span class="ident">to_string</span>(),
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">encode_builtin_function_def</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">function</span>: <a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#21-44">BuiltinFunctionKind</a>) -&gt; <a class="ident" href="../../../vir/gen/polymorphic/ast/function/struct.Function.html">vir::Function</a> {
-        <span class="kw">let</span> <span class="ident">fn_name</span> <span class="op">=</span> <a class="self" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#117">self</a>.<a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#82">encode_builtin_function_name</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#117">function</a>);
-        <span class="kw">match</span> <a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#117">function</a> {
-            <a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#23">BuiltinFunctionKind::Unreachable</a>(<span class="ident">typ</span>) =&gt; <a class="ident" href="../../../vir/gen/polymorphic/ast/function/struct.Function.html">vir::Function</a> {
-                <span class="ident">name</span>: <a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#118">fn_name</a>,
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">encode_builtin_function_def</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">function</span>: <a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#23-46">BuiltinFunctionKind</a>) -&gt; <a class="ident" href="../../../vir/gen/polymorphic/ast/function/struct.Function.html">vir::Function</a> {
+        <span class="kw">let</span> <span class="ident">fn_name</span> <span class="op">=</span> <a class="self" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#127">self</a>.<a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#88">encode_builtin_function_name</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#127">function</a>);
+        <span class="kw">match</span> <a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#127">function</a> {
+            <a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#25">BuiltinFunctionKind::Unreachable</a>(<span class="ident">typ</span>) =&gt; <a class="ident" href="../../../vir/gen/polymorphic/ast/function/struct.Function.html">vir::Function</a> {
+                <span class="ident">name</span>: <a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#128">fn_name</a>,
                 <span class="ident">formal_args</span>: <span class="macro">vec!</span>[],
-                <span class="ident">return_type</span>: <a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#120">typ</a>,
+                <span class="ident">return_type</span>: <a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#130">typ</a>,
                 <span class="comment">// Precondition is false, because we want to be sure that this function is never used</span>
                 <span class="ident">pres</span>: <span class="macro">vec!</span>[<span class="bool-val">false</span>.<span class="ident">into</span>()],
                 <span class="ident">posts</span>: <span class="macro">vec!</span>[],
                 <span class="ident">body</span>: <span class="prelude-val">None</span>,
             },
-            <a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#25">BuiltinFunctionKind::Undefined</a>(<span class="ident">typ</span>) =&gt; <a class="ident" href="../../../vir/gen/polymorphic/ast/function/struct.Function.html">vir::Function</a> {
-                <span class="ident">name</span>: <a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#118">fn_name</a>,
+            <a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#27">BuiltinFunctionKind::Undefined</a>(<span class="ident">typ</span>) =&gt; <a class="ident" href="../../../vir/gen/polymorphic/ast/function/struct.Function.html">vir::Function</a> {
+                <span class="ident">name</span>: <a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#128">fn_name</a>,
                 <span class="ident">formal_args</span>: <span class="macro">vec!</span>[],
-                <span class="ident">return_type</span>: <a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#129">typ</a>,
+                <span class="ident">return_type</span>: <a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#139">typ</a>,
                 <span class="ident">pres</span>: <span class="macro">vec!</span>[],
                 <span class="ident">posts</span>: <span class="macro">vec!</span>[],
                 <span class="ident">body</span>: <span class="prelude-val">None</span>,
             },
-            <a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#27-32">BuiltinFunctionKind::ArrayLookupPure</a> { <span class="ident">array_pred_type</span>, <span class="ident">array_len</span>, <span class="ident">return_ty</span>, .. } =&gt; {
-                <span class="kw">let</span> <span class="ident">self_var</span> <span class="op">=</span> <span class="ident">vir::LocalVar::new</span>(<span class="string">&quot;self&quot;</span>, <a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#137">array_pred_type</a>.<span class="ident">clone</span>());
+            <a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#29-34">BuiltinFunctionKind::ArrayLookupPure</a> { <span class="ident">array_pred_type</span>, <span class="ident">array_len</span>, <span class="ident">return_ty</span>, .. } =&gt; {
+                <span class="kw">let</span> <span class="ident">self_var</span> <span class="op">=</span> <span class="ident">vir::LocalVar::new</span>(<span class="string">&quot;self&quot;</span>, <a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#147">array_pred_type</a>.<span class="ident">clone</span>());
                 <span class="kw">let</span> <span class="ident">idx_var</span> <span class="op">=</span> <span class="macro">vir_local!</span>{ <span class="ident">idx</span>: <span class="ident">Int</span> };
 
                 <a class="ident" href="../../../vir/gen/polymorphic/ast/function/struct.Function.html">vir::Function</a> {
-                    <span class="ident">name</span>: <a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#118">fn_name</a>,
+                    <span class="ident">name</span>: <a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#128">fn_name</a>,
                     <span class="ident">formal_args</span>: <span class="macro">vec!</span>[
                         <span class="comment">// self,</span>
-                        <a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#138">self_var</a>.<span class="ident">clone</span>(),
+                        <a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#148">self_var</a>.<span class="ident">clone</span>(),
                         <span class="comment">// idx,</span>
-                        <a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#139">idx_var</a>.<span class="ident">clone</span>(),
+                        <a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#149">idx_var</a>.<span class="ident">clone</span>(),
                     ],
-                    <span class="ident">return_type</span>: <a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#137">return_ty</a>,
+                    <span class="ident">return_type</span>: <a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#147">return_ty</a>,
                     <span class="ident">pres</span>: <span class="macro">vec!</span>[
                         <span class="comment">// acc(self, read$())</span>
                         <span class="ident">vir::Expr::predicate_access_predicate</span>(
-                            <a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#137">array_pred_type</a>,
-                            <span class="ident">vir::Expr::local</span>(<a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#138">self_var</a>),
+                            <a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#147">array_pred_type</a>,
+                            <span class="ident">vir::Expr::local</span>(<a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#148">self_var</a>),
                             <span class="ident">vir::PermAmount::Read</span>,
                         ),
                         <span class="comment">// 0 &lt;= idx &lt; {len}</span>
-                        <span class="macro">vir_expr!</span>{ [<span class="ident">vir::Expr::from</span>(<span class="number">0</span>)] <span class="op">&lt;</span><span class="op">=</span> [<span class="ident">vir::Expr::local</span>(<a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#139">idx_var</a>.<span class="ident">clone</span>())] },
-                        <span class="macro">vir_expr!</span>([<span class="ident">vir::Expr::local</span>(<a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#139">idx_var</a>)]  <span class="op">&lt;</span> [<span class="ident">vir::Expr::from</span>(<a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#137">array_len</a>)]),
+                        <span class="macro">vir_expr!</span>{ [<span class="ident">vir::Expr::from</span>(<span class="number">0</span>)] <span class="op">&lt;</span><span class="op">=</span> [<span class="ident">vir::Expr::local</span>(<a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#149">idx_var</a>.<span class="ident">clone</span>())] },
+                        <span class="macro">vir_expr!</span>([<span class="ident">vir::Expr::local</span>(<a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#149">idx_var</a>)]  <span class="op">&lt;</span> [<span class="ident">vir::Expr::from</span>(<a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#147">array_len</a>)]),
                     ],
                     <span class="ident">posts</span>: <span class="macro">vec!</span>[],
                     <span class="ident">body</span>: <span class="prelude-val">None</span>,
                 }
             },
-            <a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#34-38">BuiltinFunctionKind::SliceLookupPure</a> { <span class="ident">slice_pred_type</span>, <span class="ident">elem_pred_type</span>, <span class="ident">return_ty</span>} =&gt; {
-                <span class="kw">let</span> <span class="ident">slice_len</span> <span class="op">=</span> <a class="self" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#117">self</a>.<a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#82">encode_builtin_function_name</a>(
-                    <span class="kw-2">&amp;</span><a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#40-43">BuiltinFunctionKind::SliceLen</a> { <span class="ident">slice_pred_type</span>: <a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#165">slice_pred_type</a>.<span class="ident">clone</span>(), <a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#165">elem_pred_type</a> }
+            <a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#36-40">BuiltinFunctionKind::SliceLookupPure</a> { <span class="ident">slice_pred_type</span>, <span class="ident">elem_pred_type</span>, <span class="ident">return_ty</span>} =&gt; {
+                <span class="kw">let</span> <span class="ident">slice_len</span> <span class="op">=</span> <a class="self" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#127">self</a>.<a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#88">encode_builtin_function_name</a>(
+                    <span class="kw-2">&amp;</span><a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#42-45">BuiltinFunctionKind::SliceLen</a> { <span class="ident">slice_pred_type</span>: <a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#175">slice_pred_type</a>.<span class="ident">clone</span>(), <a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#175">elem_pred_type</a> }
                 );
-                <span class="kw">let</span> <span class="ident">self_var</span> <span class="op">=</span> <span class="ident">vir::LocalVar::new</span>(<span class="string">&quot;self&quot;</span>, <a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#165">slice_pred_type</a>.<span class="ident">clone</span>());
+                <span class="kw">let</span> <span class="ident">self_var</span> <span class="op">=</span> <span class="ident">vir::LocalVar::new</span>(<span class="string">&quot;self&quot;</span>, <a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#175">slice_pred_type</a>.<span class="ident">clone</span>());
                 <span class="kw">let</span> <span class="ident">idx_var</span> <span class="op">=</span> <span class="macro">vir_local!</span>{ <span class="ident">idx</span>: <span class="ident">Int</span> };
 
                 <span class="kw">let</span> <span class="ident">slice_len_call</span> <span class="op">=</span> <span class="ident">vir::Expr::func_app</span>(
-                    <a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#166">slice_len</a>,
+                    <a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#176">slice_len</a>,
                     <span class="macro">vec!</span>[
-                        <span class="ident">vir::Expr::local</span>(<a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#169">self_var</a>.<span class="ident">clone</span>()),
+                        <span class="ident">vir::Expr::local</span>(<a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#179">self_var</a>.<span class="ident">clone</span>()),
                     ],
                     <span class="macro">vec!</span>[
-                        <a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#169">self_var</a>.<span class="ident">clone</span>(),
+                        <a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#179">self_var</a>.<span class="ident">clone</span>(),
                     ],
                     <span class="ident">vir::Type::Int</span>,
                     <span class="ident">vir::Position::default</span>(),
                 );
 
                 <a class="ident" href="../../../vir/gen/polymorphic/ast/function/struct.Function.html">vir::Function</a> {
-                    <span class="ident">name</span>: <a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#118">fn_name</a>,
+                    <span class="ident">name</span>: <a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#128">fn_name</a>,
                     <span class="ident">formal_args</span>: <span class="macro">vec!</span>[
-                        <a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#169">self_var</a>.<span class="ident">clone</span>(),
-                        <a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#170">idx_var</a>.<span class="ident">clone</span>(),
+                        <a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#179">self_var</a>.<span class="ident">clone</span>(),
+                        <a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#180">idx_var</a>.<span class="ident">clone</span>(),
                     ],
-                    <span class="ident">return_type</span>: <a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#165">return_ty</a>,
+                    <span class="ident">return_type</span>: <a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#175">return_ty</a>,
                     <span class="ident">pres</span>: <span class="macro">vec!</span>[
                         <span class="comment">// acc(self, read$())</span>
                         <span class="ident">vir::Expr::predicate_access_predicate</span>(
-                            <a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#165">slice_pred_type</a>,
-                            <span class="ident">vir::Expr::local</span>(<a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#169">self_var</a>),
+                            <a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#175">slice_pred_type</a>,
+                            <span class="ident">vir::Expr::local</span>(<a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#179">self_var</a>),
                             <span class="ident">vir::PermAmount::Read</span>,
                         ),
                         <span class="comment">// 0 &lt;= idx &lt; Slice${ty}$len(self)</span>
-                        <span class="macro">vir_expr!</span>{ [<span class="ident">vir::Expr::from</span>(<span class="number">0</span>)] <span class="op">&lt;</span><span class="op">=</span> [<span class="ident">vir::Expr::local</span>(<a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#170">idx_var</a>.<span class="ident">clone</span>())] },
-                        <span class="macro">vir_expr!</span>{ [<span class="ident">vir::Expr::local</span>(<a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#170">idx_var</a>)] <span class="op">&lt;</span> [<a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#172">slice_len_call</a>] },
+                        <span class="macro">vir_expr!</span>{ [<span class="ident">vir::Expr::from</span>(<span class="number">0</span>)] <span class="op">&lt;</span><span class="op">=</span> [<span class="ident">vir::Expr::local</span>(<a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#180">idx_var</a>.<span class="ident">clone</span>())] },
+                        <span class="macro">vir_expr!</span>{ [<span class="ident">vir::Expr::local</span>(<a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#180">idx_var</a>)] <span class="op">&lt;</span> [<a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#182">slice_len_call</a>] },
                     ],
                     <span class="ident">posts</span>: <span class="macro">vec!</span>[],
                     <span class="ident">body</span>: <span class="prelude-val">None</span>,
                 }
             },
-            <a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#40-43">BuiltinFunctionKind::SliceLen</a> { <span class="ident">slice_pred_type</span>, .. } =&gt; {
-                <span class="kw">let</span> <span class="ident">self_var</span> <span class="op">=</span> <span class="ident">vir::LocalVar::new</span>(<span class="string">&quot;self&quot;</span>, <a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#206">slice_pred_type</a>.<span class="ident">clone</span>());
+            <a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#42-45">BuiltinFunctionKind::SliceLen</a> { <span class="ident">slice_pred_type</span>, .. } =&gt; {
+                <span class="kw">let</span> <span class="ident">self_var</span> <span class="op">=</span> <span class="ident">vir::LocalVar::new</span>(<span class="string">&quot;self&quot;</span>, <a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#216">slice_pred_type</a>.<span class="ident">clone</span>());
 
                 <a class="ident" href="../../../vir/gen/polymorphic/ast/function/struct.Function.html">vir::Function</a> {
-                    <span class="ident">name</span>: <a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#118">fn_name</a>,
+                    <span class="ident">name</span>: <a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#128">fn_name</a>,
                     <span class="ident">formal_args</span>: <span class="macro">vec!</span>[
-                        <a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#207">self_var</a>.<span class="ident">clone</span>(),
+                        <a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#217">self_var</a>.<span class="ident">clone</span>(),
                     ],
                     <span class="ident">return_type</span>: <span class="ident">vir::Type::Int</span>,
                     <span class="ident">pres</span>: <span class="macro">vec!</span>[
                         <span class="ident">vir::Expr::predicate_access_predicate</span>(
-                            <a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#206">slice_pred_type</a>,
-                            <span class="ident">vir::Expr::local</span>(<a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#207">self_var</a>),
+                            <a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#216">slice_pred_type</a>,
+                            <span class="ident">vir::Expr::local</span>(<a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#217">self_var</a>),
                             <span class="ident">vir::PermAmount::Read</span>,
                         ),
                     ],
@@ -559,10 +579,10 @@
 
     <span class="comment">// This code is currently dead, but we should start using it soon.</span>
     <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">dead_code</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">encode_builtin_domain</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">kind</span>: <a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#49-52">BuiltinDomainKind</a>) -&gt; <a class="ident" href="../../../vir/gen/polymorphic/ast/domain/struct.Domain.html">vir::Domain</a> {
-        <span class="kw">match</span> <a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#235">kind</a> {
-            <a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#50">BuiltinDomainKind::Nat</a> =&gt; <a class="self" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#235">self</a>.<a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#242">encode_nat_builtin_domain</a>(),
-            <a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#51">BuiltinDomainKind::Primitive</a> =&gt; <a class="self" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#235">self</a>.<a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#263">encode_primitive_builtin_domain</a>(),
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">encode_builtin_domain</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">kind</span>: <a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#51-54">BuiltinDomainKind</a>) -&gt; <a class="ident" href="../../../vir/gen/polymorphic/ast/domain/struct.Domain.html">vir::Domain</a> {
+        <span class="kw">match</span> <a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#245">kind</a> {
+            <a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#52">BuiltinDomainKind::Nat</a> =&gt; <a class="self" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#245">self</a>.<a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#252">encode_nat_builtin_domain</a>(),
+            <a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#53">BuiltinDomainKind::Primitive</a> =&gt; <a class="self" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#245">self</a>.<a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#273">encode_primitive_builtin_domain</a>(),
         }
     }
 
@@ -572,16 +592,16 @@
         <span class="kw">let</span> <span class="ident">zero</span> <span class="op">=</span> <a class="ident" href="../../../vir/gen/polymorphic/ast/domain/struct.DomainFunc.html">vir::DomainFunc</a> {
             <span class="ident">name</span>: <span class="string">&quot;zero&quot;</span>.<span class="ident">to_owned</span>(),
             <span class="ident">formal_args</span>: <span class="macro">vec!</span>[],
-            <span class="ident">return_type</span>: <span class="ident">vir::Type::domain</span>(<a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#243">nat_domain_name</a>.<span class="ident">to_owned</span>()),
+            <span class="ident">return_type</span>: <span class="ident">vir::Type::domain</span>(<a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#253">nat_domain_name</a>.<span class="ident">to_owned</span>()),
             <span class="ident">unique</span>: <span class="bool-val">false</span>,
-            <span class="ident">domain_name</span>: <a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#243">nat_domain_name</a>.<span class="ident">to_owned</span>(),
+            <span class="ident">domain_name</span>: <a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#253">nat_domain_name</a>.<span class="ident">to_owned</span>(),
         };
 
-        <span class="kw">let</span> <span class="ident">functions</span> <span class="op">=</span> <span class="macro">vec!</span>[<a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#245">zero</a>]; <span class="comment">// , snapshot::get_succ_func()];</span>
+        <span class="kw">let</span> <span class="ident">functions</span> <span class="op">=</span> <span class="macro">vec!</span>[<a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#255">zero</a>]; <span class="comment">// , snapshot::get_succ_func()];</span>
 
         <a class="ident" href="../../../vir/gen/polymorphic/ast/domain/struct.Domain.html">vir::Domain</a> {
-            <span class="ident">name</span>: <a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#243">nat_domain_name</a>.<span class="ident">to_owned</span>(),
-            <a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#253">functions</a>,
+            <span class="ident">name</span>: <a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#253">nat_domain_name</a>.<span class="ident">to_owned</span>(),
+            <a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#263">functions</a>,
             <span class="ident">axioms</span>: <span class="macro">vec!</span>[],
             <span class="ident">type_vars</span>: <span class="macro">vec!</span>[],
         }
@@ -594,19 +614,19 @@
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">functions</span> <span class="op">=</span> <span class="macro">vec!</span>[];
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">axioms</span> <span class="op">=</span> <span class="macro">vec!</span>[];
 
-        <span class="kw">for</span> <a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#270">t</a> <span class="kw">in</span> <span class="kw-2">&amp;</span>[<span class="ident">vir::Type::Bool</span>, <span class="ident">vir::Type::Int</span>] {
+        <span class="kw">for</span> <a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#280">t</a> <span class="kw">in</span> <span class="kw-2">&amp;</span>[<span class="ident">vir::Type::Bool</span>, <span class="ident">vir::Type::Int</span>] {
             <span class="comment">//let f = snapshot::valid_func_for_type(t);</span>
             <span class="kw">let</span> <span class="ident">f</span> <span class="op">=</span> {
-                <span class="kw">let</span> <span class="ident">domain_name</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#270">t</a> {
+                <span class="kw">let</span> <span class="ident">domain_name</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#280">t</a> {
                     <span class="comment">// vir::Type::Domain(name) =&gt; name.clone(),</span>
-                    <span class="ident">vir::Type::Bool</span> <span class="op">|</span> <span class="ident">vir::Type::Int</span> =&gt; <a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#265">domain_name</a>.<span class="ident">to_string</span>(),
+                    <span class="ident">vir::Type::Bool</span> <span class="op">|</span> <span class="ident">vir::Type::Int</span> =&gt; <a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#275">domain_name</a>.<span class="ident">to_string</span>(),
                     <span class="comment">// vir::Type::TypedRef(_) =&gt; unreachable!(),</span>
                     <span class="comment">// vir::Type::TypeVar(_) =&gt; unreachable!(),</span>
                     <span class="comment">// vir::Type::Snapshot(_) =&gt; unreachable!(),</span>
                     <span class="kw">_</span> =&gt; <span class="macro">unreachable!</span>(),
                 };
 
-                <span class="kw">let</span> <span class="ident">arg_typ</span>: <a class="ident" href="../../../vir/gen/polymorphic/ast/common/enum.Type.html">vir::Type</a> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#270">t</a> {
+                <span class="kw">let</span> <span class="ident">arg_typ</span>: <a class="ident" href="../../../vir/gen/polymorphic/ast/common/enum.Type.html">vir::Type</a> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#280">t</a> {
                     <span class="comment">// vir::Type::Domain(vir::DomainType{label, ..}) =&gt; vir::Type::domain(label.clone()),</span>
                     <span class="ident">vir::Type::Bool</span> =&gt; <span class="ident">vir::Type::Bool</span>,
                     <span class="ident">vir::Type::Int</span> =&gt; <span class="ident">vir::Type::Int</span>,
@@ -616,38 +636,38 @@
                     <span class="kw">_</span> =&gt; <span class="macro">unreachable!</span>(),
                 };
 
-                <span class="kw">let</span> <span class="ident">self_arg</span> <span class="op">=</span> <span class="ident">vir::LocalVar::new</span>(<span class="string">&quot;self&quot;</span>, <a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#282">arg_typ</a>);
+                <span class="kw">let</span> <span class="ident">self_arg</span> <span class="op">=</span> <span class="ident">vir::LocalVar::new</span>(<span class="string">&quot;self&quot;</span>, <a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#292">arg_typ</a>);
                 <span class="kw">let</span> <span class="ident">df</span> <span class="op">=</span> <a class="ident" href="../../../vir/gen/polymorphic/ast/domain/struct.DomainFunc.html">vir::DomainFunc</a> {
-                    <span class="ident">name</span>: <span class="macro">format!</span>(<span class="string">&quot;{}$valid&quot;</span>, <a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#273">domain_name</a>),
-                    <span class="ident">formal_args</span>: <span class="macro">vec!</span>[<a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#292">self_arg</a>],
+                    <span class="ident">name</span>: <span class="macro">format!</span>(<span class="string">&quot;{}$valid&quot;</span>, <a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#283">domain_name</a>),
+                    <span class="ident">formal_args</span>: <span class="macro">vec!</span>[<a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#302">self_arg</a>],
                     <span class="ident">return_type</span>: <span class="ident">vir::Type::Bool</span>,
                     <span class="ident">unique</span>: <span class="bool-val">false</span>,
-                    <a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#273">domain_name</a>,
+                    <a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#283">domain_name</a>,
                 };
 
-                <a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#293">df</a>
+                <a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#303">df</a>
             };
-            <a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#267">functions</a>.<span class="ident">push</span>(<a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#272">f</a>.<span class="ident">clone</span>());
+            <a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#277">functions</a>.<span class="ident">push</span>(<a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#282">f</a>.<span class="ident">clone</span>());
 
-            <span class="kw">let</span> <span class="ident">forall_arg</span> <span class="op">=</span> <span class="macro">vir_local!</span>{ <span class="self">self</span>: {<a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#270">t</a>.<span class="ident">clone</span>()} };
+            <span class="kw">let</span> <span class="ident">forall_arg</span> <span class="op">=</span> <span class="macro">vir_local!</span>{ <span class="self">self</span>: {<a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#280">t</a>.<span class="ident">clone</span>()} };
             <span class="kw">let</span> <span class="ident">function_app</span> <span class="op">=</span>
-                <span class="ident">vir::Expr::domain_func_app</span>(<a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#272">f</a>.<span class="ident">clone</span>(), <span class="macro">vec!</span>[<span class="ident">vir::Expr::local</span>(<a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#305">forall_arg</a>.<span class="ident">clone</span>())]);
+                <span class="ident">vir::Expr::domain_func_app</span>(<a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#282">f</a>.<span class="ident">clone</span>(), <span class="macro">vec!</span>[<span class="ident">vir::Expr::local</span>(<a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#315">forall_arg</a>.<span class="ident">clone</span>())]);
             <span class="kw">let</span> <span class="ident">body</span> <span class="op">=</span> <span class="ident">vir::Expr::forall</span>(
-                <span class="macro">vec!</span>[<a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#305">forall_arg</a>],
-                <span class="macro">vec!</span>[<span class="ident">vir::Trigger::new</span>(<span class="macro">vec!</span>[<a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#306">function_app</a>.<span class="ident">clone</span>()])],
-                <a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#306">function_app</a>);
+                <span class="macro">vec!</span>[<a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#315">forall_arg</a>],
+                <span class="macro">vec!</span>[<span class="ident">vir::Trigger::new</span>(<span class="macro">vec!</span>[<a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#316">function_app</a>.<span class="ident">clone</span>()])],
+                <a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#316">function_app</a>);
             <span class="kw">let</span> <span class="ident">axiom</span> <span class="op">=</span> <a class="ident" href="../../../vir/gen/polymorphic/ast/domain/struct.DomainAxiom.html">vir::DomainAxiom</a> {
-                <span class="ident">name</span>: <span class="macro">format!</span>(<span class="string">&quot;{}$axiom&quot;</span>, <a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#272">f</a>.<span class="ident">get_identifier</span>()),
-                <span class="ident">expr</span>: <a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#308">body</a>,
-                <span class="ident">domain_name</span>: <a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#265">domain_name</a>.<span class="ident">to_string</span>(),
+                <span class="ident">name</span>: <span class="macro">format!</span>(<span class="string">&quot;{}$axiom&quot;</span>, <a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#282">f</a>.<span class="ident">get_identifier</span>()),
+                <span class="ident">expr</span>: <a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#318">body</a>,
+                <span class="ident">domain_name</span>: <a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#275">domain_name</a>.<span class="ident">to_string</span>(),
             };
-            <a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#268">axioms</a>.<span class="ident">push</span>(<a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#312">axiom</a>);
+            <a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#278">axioms</a>.<span class="ident">push</span>(<a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#322">axiom</a>);
         }
 
         <a class="ident" href="../../../vir/gen/polymorphic/ast/domain/struct.Domain.html">vir::Domain</a> {
-            <span class="ident">name</span>: <a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#265">domain_name</a>.<span class="ident">to_owned</span>(),
-            <a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#267">functions</a>,
-            <a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#268">axioms</a>,
+            <span class="ident">name</span>: <a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#275">domain_name</a>.<span class="ident">to_owned</span>(),
+            <a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#277">functions</a>,
+            <a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#278">axioms</a>,
             <span class="ident">type_vars</span>: <span class="macro">vec!</span>[],
         }
     }
