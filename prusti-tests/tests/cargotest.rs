@@ -209,4 +209,9 @@ fn test_prusti_toml_fail() {
     }
 }
 
+#[cargo_test]
+fn test_no_std() {
+    test_local_project("test_no_std");
+}
+
 // TODO: automatically create a test for each folder in `test/cargo_verify`.
