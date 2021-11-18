@@ -129,3 +129,28 @@ impl<'mir, 'tcx: 'mir, S: Serialize> PointwiseState<'mir, 'tcx, S> {
         self.state_before.insert(location, state);
     }
 }
+
+impl<'mir, 'tcx: 'mir, S: Serialize + Default> PointwiseState<'mir, 'tcx, S> {
+    pub fn default(mir: &'mir mir::Body<'tcx>) -> Self {
+        let state_before: FxHashMap<_, _> = mir.basic_blocks().iter_enumerated()
+            .flat_map(|(block, bb_data)| {
+                (0..=bb_data.statements.len()).map(move |statement_index| {
+                    (mir::Location { block, statement_index }, S::default())
+                })
+            })
+            .collect();
+        let state_after_block: FxHashMap<_, _> = mir.basic_blocks().iter_enumerated()
+            .map(|(block, bb_data)| {
+                let successors: FxHashMap<_, _> = bb_data.terminator().successors()
+                    .map(|successor| (*successor, S::default()))
+                    .collect();
+                (block, successors)
+            })
+            .collect();
+        Self {
+            state_before,
+            state_after_block,
+            mir,
+        }
+    }
+}
