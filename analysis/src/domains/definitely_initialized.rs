@@ -189,8 +189,8 @@ impl<'mir, 'tcx: 'mir> DefinitelyInitializedState<'mir, 'tcx> {
     }
 
     pub fn check_invariant(&self) {
-        for place1 in self.def_init_places.iter() {
-            for place2 in self.def_init_places.iter() {
+        for &place1 in self.def_init_places.iter() {
+            for &place2 in self.def_init_places.iter() {
                 if place1 != place2 {
                     debug_assert!(
                         !is_prefix(place1, place2),
@@ -210,7 +210,7 @@ impl<'mir, 'tcx: 'mir> DefinitelyInitializedState<'mir, 'tcx> {
     }
 
     /// Sets `place` as definitely initialized (see place_set/insert()
-    fn set_place_initialised(&mut self, place: &mir::Place<'tcx>) {
+    fn set_place_initialised(&mut self, place: mir::Place<'tcx>) {
         if cfg!(debug_assertions) {
             self.check_invariant();
         }
@@ -220,14 +220,14 @@ impl<'mir, 'tcx: 'mir> DefinitelyInitializedState<'mir, 'tcx> {
         if !self
             .def_init_places
             .iter()
-            .any(|current| is_prefix(place, current))
+            .any(|&current| is_prefix(place, current))
         {
             // To maintain the invariant that we do not have a place and its
             // prefix in the set, we remove all places for which the given
             // one is a prefix.
             self.def_init_places
-                .retain(|current| !is_prefix(current, place));
-            self.def_init_places.insert(*place);
+                .retain(|&current| !is_prefix(current, place));
+            self.def_init_places.insert(place);
             // If all fields of a struct are definitely initialized,
             // just keep info that the struct is definitely initialized.
             collapse(self.mir, self.tcx, &mut self.def_init_places, place);
@@ -239,18 +239,18 @@ impl<'mir, 'tcx: 'mir> DefinitelyInitializedState<'mir, 'tcx> {
     }
 
     /// Sets `place` as (possibly) uninitialised (see place_set/remove())
-    fn set_place_uninitialised(&mut self, place: &mir::Place<'tcx>) {
+    fn set_place_uninitialised(&mut self, place: mir::Place<'tcx>) {
         if cfg!(debug_assertions) {
             self.check_invariant();
         }
 
         let old_places = mem::take(&mut self.def_init_places);
         for old_place in old_places {
-            if is_prefix(place, &old_place) {
+            if is_prefix(place, old_place) {
                 // We are uninitializing a field of the place `old_place`.
                 self.def_init_places
-                    .extend(expand(self.mir, self.tcx, &old_place, place));
-            } else if is_prefix(&old_place, place) {
+                    .extend(expand(self.mir, self.tcx, old_place, place));
+            } else if is_prefix(old_place, place) {
                 // We are uninitializing a place of which only some
                 // fields are initialized. Just remove all initialized
                 // fields.
@@ -262,7 +262,7 @@ impl<'mir, 'tcx: 'mir> DefinitelyInitializedState<'mir, 'tcx> {
         }
 
         // Check that place is properly removed
-        for place1 in self.def_init_places.iter() {
+        for &place1 in self.def_init_places.iter() {
             debug_assert!(
                 !is_prefix(place1, place) && !is_prefix(place, place1),
                 "Bug: failed to ensure that there are no prefixes: place={:?} place1={:?}",
@@ -294,7 +294,7 @@ impl<'mir, 'tcx: 'mir> DefinitelyInitializedState<'mir, 'tcx> {
                 uninitialise = !is_copy;
             }
             if uninitialise {
-                self.set_place_uninitialised(place);
+                self.set_place_uninitialised(*place);
             }
         }
     }
@@ -306,7 +306,7 @@ impl<'mir, 'tcx: 'mir> DefinitelyInitializedState<'mir, 'tcx> {
         move_out_copy_types: bool,
     ) -> Result<(), AnalysisError> {
         let statement = &self.mir[location.block].statements[location.statement_index];
-        if let mir::StatementKind::Assign(box (ref target, ref source)) = statement.kind {
+        if let mir::StatementKind::Assign(box (target, ref source)) = statement.kind {
             match source {
                 mir::Rvalue::Repeat(ref operand, _)
                 | mir::Rvalue::Cast(_, ref operand, _)
@@ -353,7 +353,7 @@ impl<'mir, 'tcx: 'mir> DefinitelyInitializedState<'mir, 'tcx> {
                 }
             }
             mir::TerminatorKind::Drop {
-                ref place,
+                place,
                 target,
                 unwind,
             } => {
@@ -366,7 +366,7 @@ impl<'mir, 'tcx: 'mir> DefinitelyInitializedState<'mir, 'tcx> {
                 }
             }
             mir::TerminatorKind::DropAndReplace {
-                ref place,
+                place,
                 ref value,
                 target,
                 unwind,
@@ -384,7 +384,7 @@ impl<'mir, 'tcx: 'mir> DefinitelyInitializedState<'mir, 'tcx> {
             mir::TerminatorKind::Call {
                 ref func,
                 ref args,
-                ref destination,
+                destination,
                 cleanup,
                 ..
             } => {
@@ -394,7 +394,7 @@ impl<'mir, 'tcx: 'mir> DefinitelyInitializedState<'mir, 'tcx> {
                 new_state.apply_operand_effect(func, location, move_out_copy_types);
                 if let Some((place, bb)) = destination {
                     new_state.set_place_initialised(place);
-                    res_vec.push((*bb, new_state));
+                    res_vec.push((bb, new_state));
                 }
 
                 if let Some(bb) = cleanup {
@@ -470,13 +470,15 @@ impl<'mir, 'tcx: 'mir> AbstractState for DefinitelyInitializedState<'mir, 'tcx> 
         // TODO: make more efficient/modify self directly?
         let mut propagate_places_fn =
             |place_set1: &FxHashSet<mir::Place<'tcx>>, place_set2: &FxHashSet<mir::Place<'tcx>>| {
-                for place in place_set1.iter() {
+                for &place in place_set1.iter() {
+
+
                     // find matching place in place_set2:
                     // if there is a matching place that contains exactly the same or more memory
                     // locations, place can be added to the resulting intersection
-                    for potential_prefix in place_set2.iter() {
+                    for &potential_prefix in place_set2.iter() {
                         if is_prefix(place, potential_prefix) {
-                            intersection.insert(*place);
+                            intersection.insert(place);
                             break;
                         }
                     }
