@@ -1,3 +1,4 @@
+use super::encoder::FunctionCallInfoHigh;
 use crate::encoder::{
     borrows::ProcedureContractMirDef,
     encoder::SubstMap,
@@ -24,7 +25,33 @@ use vir_crate::{
     high::{self as vir_high},
 };
 
-use super::encoder::FunctionCallInfoHigh;
+pub(super) fn encode_bodyless_function_decl<'p, 'v: 'p, 'tcx: 'v>(
+    encoder: &'p Encoder<'v, 'tcx>,
+    proc_def_id: DefId,
+    mir: &'p mir::Body<'tcx>,
+    parent_def_id: DefId,
+    tymap: &'p SubstMap<'tcx>,
+) -> SpannedEncodingResult<vir_high::FunctionDecl> {
+    let interpreter = ExpressionBackwardInterpreter::new(
+        encoder,
+        mir,
+        proc_def_id,
+        false,
+        parent_def_id,
+        tymap.clone(),
+    );
+    let encoder = PureEncoder {
+        encoder,
+        proc_def_id,
+        mir,
+        parent_def_id,
+        tymap,
+        interpreter,
+    };
+    encoder.encode_function_decl_given_body(None)
+    // FIXME: Traverse the encoded function and check that all used types are
+    // Copy. Doing this before encoding causes too many false positives.
+}
 
 pub(super) fn encode_function_decl<'p, 'v: 'p, 'tcx: 'v>(
     encoder: &'p Encoder<'v, 'tcx>,
