@@ -220,6 +220,15 @@ impl<'v, 'tcx: 'v> PureFunctionEncoderInterface<'tcx>
             let maybe_identifier: SpannedEncodingResult<vir_poly::FunctionIdentifier> = (|| {
                 let (mut function, needs_patching) =
                     if let Some(predicate_body) = self.get_predicate_body(proc_def_id) {
+                        // Test the new encoding.
+                        let _ = super::new_encoder::encode_predicate_function_decl(
+                            self,
+                            proc_def_id,
+                            procedure.get_mir(),
+                            proc_def_id,
+                            tymap,
+                            predicate_body,
+                        )?;
                         (
                             pure_function_encoder.encode_predicate_function(predicate_body)?,
                             false,
