@@ -17,6 +17,7 @@ use crate::encoder::{
 };
 use log::{debug, trace};
 use prusti_common::vir_high_local;
+use prusti_interface::specs::typed;
 use rustc_hir::def_id::DefId;
 use rustc_middle::{mir, span_bug, ty};
 use rustc_span::Span;
@@ -77,6 +78,35 @@ pub(super) fn encode_function_decl<'p, 'v: 'p, 'tcx: 'v>(
         interpreter,
     };
     encoder.encode_function_decl()
+    // FIXME: Traverse the encoded function and check that all used types are
+    // Copy. Doing this before encoding causes too many false positives.
+}
+
+pub(super) fn encode_predicate_function_decl<'p, 'v: 'p, 'tcx: 'v>(
+    encoder: &'p Encoder<'v, 'tcx>,
+    proc_def_id: DefId,
+    mir: &'p mir::Body<'tcx>,
+    parent_def_id: DefId,
+    tymap: &'p SubstMap<'tcx>,
+    predicate_body: &typed::Assertion<'tcx>,
+) -> SpannedEncodingResult<vir_high::FunctionDecl> {
+    let interpreter = ExpressionBackwardInterpreter::new(
+        encoder,
+        mir,
+        proc_def_id,
+        false,
+        parent_def_id,
+        tymap.clone(),
+    );
+    let encoder = PureEncoder {
+        encoder,
+        proc_def_id,
+        mir,
+        parent_def_id,
+        tymap,
+        interpreter,
+    };
+    encoder.encode_predicate_function_decl(predicate_body)
     // FIXME: Traverse the encoded function and check that all used types are
     // Copy. Doing this before encoding causes too many false positives.
 }
@@ -177,6 +207,35 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureEncoder<'p, 'v, 'tcx> {
         let body = Some(self.encode_pure_expression()?);
         let function = self.encode_function_decl_given_body(body);
         trace!("[exit] encode_function({:?})", self.proc_def_id);
+        function
+    }
+
+    fn encode_predicate_function_decl(
+        &self,
+        predicate_body: &typed::Assertion<'tcx>,
+    ) -> SpannedEncodingResult<vir_high::FunctionDecl> {
+        trace!(
+            "[enter] encode_predicate_function_decl({:?})",
+            self.proc_def_id
+        );
+        let parameters = self.encode_parameters()?;
+        let parameter_expressions = self.convert_parameters_into_expressions(&parameters);
+        let body = self.encoder.encode_assertion_high(
+            predicate_body,
+            self.mir,
+            None,
+            &parameter_expressions,
+            None,
+            None,
+            ErrorCtxt::GenericExpression,
+            self.parent_def_id,
+            self.tymap,
+        )?;
+        let function = self.encode_function_decl_given_body(Some(body));
+        trace!(
+            "[exit] encode_predicate_function_decl({:?})",
+            self.proc_def_id
+        );
         function
     }
 
