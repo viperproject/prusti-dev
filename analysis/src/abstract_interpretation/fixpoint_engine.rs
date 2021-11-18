@@ -5,8 +5,8 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use crate::{
-    abstract_interpretation::{AbstractState, PointwiseState},
-    analysis_error::AnalysisError::SuccessorWithoutState,
+    abstract_interpretation::AbstractState, analysis_error::AnalysisError::SuccessorWithoutState,
+    PointwiseState,
 };
 pub use crate::{domains::*, AnalysisError};
 use rustc_data_structures::fx::FxHashMap;

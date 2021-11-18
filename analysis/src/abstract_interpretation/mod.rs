@@ -6,8 +6,6 @@
 
 mod abstract_state;
 mod fixpoint_engine;
-mod pointwise_state;
 
 pub use abstract_state::*;
 pub use fixpoint_engine::*;
-pub use pointwise_state::*;
