@@ -225,6 +225,14 @@ impl<'v, 'tcx: 'v> PureFunctionEncoderInterface<'tcx>
                             false,
                         )
                     } else if self.is_trusted(proc_def_id) {
+                        // Test the new encoding.
+                        let _ = super::new_encoder::encode_bodyless_function_decl(
+                            self,
+                            proc_def_id,
+                            procedure.get_mir(),
+                            proc_def_id,
+                            tymap,
+                        )?;
                         (pure_function_encoder.encode_bodyless_function()?, false)
                     } else {
                         let function = pure_function_encoder.encode_function()?;
