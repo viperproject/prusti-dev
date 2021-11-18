@@ -7,6 +7,8 @@
 #![feature(rustc_private)]
 #![feature(box_patterns)]
 
+extern crate polonius_engine;
+extern crate rustc_borrowck;
 extern crate rustc_data_structures;
 extern crate rustc_index;
 extern crate rustc_middle;
@@ -17,5 +19,7 @@ pub mod abstract_interpretation;
 mod analysis_error;
 pub mod domains;
 mod mir_utils;
+mod pointwise_state;
 
 pub use analysis_error::AnalysisError;
+pub use pointwise_state::PointwiseState;
