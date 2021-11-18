@@ -165,6 +165,8 @@ fn test_local_project<T: Into<PathBuf>>(project_name: T) {
     let opt_expected_stdout = fs::read_to_string(project_path.join("output.stdout")).ok();
     let opt_expected_stderr = fs::read_to_string(project_path.join("output.stderr")).ok();
     if let Some(ref expected_stdout) = opt_expected_stdout {
+        // In some cases, Prusti outputs more macro definitions than needed.
+        // See: https://github.com/viperproject/prusti-dev/pull/762
         test_builder.with_stdout_contains(expected_stdout);
     }
     if let Some(ref expected_stderr) = opt_expected_stderr {
