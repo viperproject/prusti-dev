@@ -17,15 +17,14 @@ pub extern fn rust_eh_personality() {}
 
 #[lang = "panic_impl"]
 #[no_mangle]
+#[trusted]
 pub extern fn rust_begin_panic(_info: &core::panic::PanicInfo) -> ! {
-    loop {}
+    // SAFETY: this program has no open streams or active locks, so this is safe.
+    unsafe { libc::abort() }
 }
-
-const HELLO_WORLD: &'static str = "Hello, world!\n\0";
 
 #[no_mangle]
 #[trusted]
 extern "C" fn main(_argc: isize, _argv: *const *const u8) -> isize {
-    unsafe { libc::printf(HELLO_WORLD.as_ptr() as *const _) };
     0
 }

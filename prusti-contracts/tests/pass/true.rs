@@ -1,4 +1,5 @@
 //! This file tests that the programs compile when NOT built by Prusti.
+#![allow(unused_must_use)]
 
 // These feature flags are not needed when executing under Prusti
 // because it generates them for us.
@@ -6,6 +7,20 @@
 #![cfg_attr(feature = "prusti", register_tool(prusti))]
 
 use prusti_contracts::*;
+
+#[extern_spec]
+impl<T> std::option::Option<T> {
+    #[pure]
+    #[ensures(matches!(*self, Some(_)) == result)]
+    pub fn is_some(&self) -> bool;
+
+    #[pure]
+    #[ensures(self.is_some() == !result)]
+    pub fn is_none(&self) -> bool;
+
+    #[requires(self.is_some())]
+    pub fn unwrap(self) -> T;
+}
 
 #[requires(true)]
 fn test1() {}
