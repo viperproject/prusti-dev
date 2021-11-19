@@ -71,7 +71,7 @@ pub fn compute_definitely_initialized<'a, 'tcx: 'a>(
     tcx: TyCtxt<'tcx>,
 ) -> DefinitelyInitializedAnalysisResult<'tcx> {
     let stopwatch = Stopwatch::start_debug("prusti-client", "initialization analysis");
-    let analysis = DefinitelyInitializedAnalysis::new(tcx, def_id, body);
+    let analysis = DefinitelyInitializedAnalysis::new_relaxed(tcx, def_id, body);
     let pointwise_state = analysis
         .run_fwd_analysis()
         .map_err(|e| {
