@@ -16,8 +16,8 @@ use rustc_middle::ty;
 use rustc_session::Attribute;
 
 use analysis::{
+    abstract_interpretation::FixpointEngine,
     domains::{DefinitelyInitializedAnalysis, ReachingDefsAnalysis},
-    Analysis,
 };
 
 struct OurCompilerCalls {

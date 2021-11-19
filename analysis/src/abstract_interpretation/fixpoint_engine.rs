@@ -4,8 +4,11 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use crate::{analysis_error::AnalysisError::SuccessorWithoutState, AbstractState};
-pub use crate::{domains::*, AnalysisError, PointwiseState};
+use crate::{
+    abstract_interpretation::AbstractState, analysis_error::AnalysisError::SuccessorWithoutState,
+    PointwiseState,
+};
+pub use crate::{domains::*, AnalysisError};
 use rustc_data_structures::fx::FxHashMap;
 use rustc_middle::mir;
 use rustc_span::def_id::DefId;
@@ -13,8 +16,8 @@ use std::{collections::BTreeSet, iter::FromIterator};
 
 pub type AnalysisResult<T> = std::result::Result<T, AnalysisError>;
 
-/// Trait to be used to define the static analysis of a MIR body.
-pub trait Analysis<'mir, 'tcx: 'mir> {
+/// Trait to be used to define an abstract-interpreation-based static analysis of a MIR body.
+pub trait FixpointEngine<'mir, 'tcx: 'mir> {
     type State: AbstractState;
 
     /// Return the DefId of the MIR body to be analyzed.

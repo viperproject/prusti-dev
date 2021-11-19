@@ -17,7 +17,7 @@
 //! `S` at the same time is illegal.
 
 use crate::environment::place_set::PlaceSet;
-use analysis::{domains::DefinitelyInitializedAnalysis, AbstractState, Analysis};
+use analysis::{domains::DefinitelyInitializedAnalysis};
 use csv::{ReaderBuilder, WriterBuilder};
 use log::trace;
 use prusti_common::Stopwatch;
@@ -28,6 +28,7 @@ use rustc_index::vec::Idx;
 use rustc_middle::{mir, ty::TyCtxt};
 use serde::{Deserialize, Serialize};
 use std::{collections::HashMap, path::Path};
+use analysis::abstract_interpretation::{FixpointEngine, AbstractState};
 
 pub struct AnalysisResult<T> {
     /// The state before the basic block.

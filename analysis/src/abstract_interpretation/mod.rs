@@ -4,8 +4,8 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-mod definitely_initialized;
-mod reaching_definitions;
+mod abstract_state;
+mod fixpoint_engine;
 
-pub use definitely_initialized::*;
-pub use reaching_definitions::*;
+pub use abstract_state::*;
+pub use fixpoint_engine::*;
