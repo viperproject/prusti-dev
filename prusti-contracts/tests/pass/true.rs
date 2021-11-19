@@ -1,4 +1,5 @@
 //! This file tests that the programs compile when NOT built by Prusti.
+#![allow(dead_code)]
 
 // These feature flags are not needed when executing under Prusti
 // because it generates them for us.
