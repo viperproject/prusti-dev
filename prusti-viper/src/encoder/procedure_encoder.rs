@@ -1435,12 +1435,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 assert_eq!(expiring.get_type(), restored.get_type());
                 (expiring, Some(restored), is_mut, stmts)
             }
-            mir::Rvalue::Use(mir::Operand::Move(ref rhs_place)) => {
-                let (expiring, restored_base, ref_field) = encode(rhs_place, &mut stmts, ArrayAccessKind::Shared)?;
-                let restored = restored_base.field(ref_field);
-                assert_eq!(expiring.get_type(), restored.get_type());
-                (expiring, Some(restored), true, stmts)
-            }
+            mir::Rvalue::Use(mir::Operand::Move(ref rhs_place)) |
             mir::Rvalue::Use(mir::Operand::Copy(ref rhs_place)) => {
                 let (expiring, restored_base, ref_field) = encode(rhs_place, &mut stmts, ArrayAccessKind::Shared)?;
                 let restored = restored_base.field(ref_field);
@@ -1451,7 +1446,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             mir::Rvalue::Cast(mir::CastKind::Pointer(ty::adjustment::PointerCast::Unsize), ref operand, ty) => {
                 trace!("cast: operand={:?}, ty={:?}", operand, ty);
                 let place = match operand {
-                    mir::Operand::Move(ref place) => place,
+                    mir::Operand::Move(ref place) |
                     mir::Operand::Copy(ref place) => place,
                     _ => unreachable!("operand: {:?}", operand),
                 };
@@ -5284,76 +5279,65 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         );
         let span = self.mir_encoder.get_span_of_location(location);
         let stmts = match operand {
-            mir::Operand::Move(ref place) => {
+            mir::Operand::Move(ref place) |
+            mir::Operand::Copy(ref place) => {
                 let (src, mut stmts, ty, _) = self.encode_place(place, ArrayAccessKind::Shared, location)?;
-                let encode_stmts = match ty.kind() {
-                    ty::TyKind::RawPtr(..) | ty::TyKind::Ref(..) => {
+                let encode_stmts = match (operand, ty.kind()) {
+                    (mir::Operand::Move(..), ty::TyKind::Ref(..)) => {
                         // Reborrow.
                         let field = self.encoder.encode_value_field(ty).with_span(span)?;
-                        let mut alloc_stmts = self.prepare_assign_target(
+                        let mut move_stmts = self.prepare_assign_target(
                             lhs.clone(),
                             field.clone(),
                             location,
                             vir::AssignKind::Move,
                             false
                         )?;
-                        alloc_stmts.push(vir::Stmt::Assign( vir::Assign {
+                        move_stmts.push(vir::Stmt::Assign( vir::Assign {
                             target: lhs.clone().field(field.clone()),
                             source: src.field(field),
                             kind: vir::AssignKind::Move,
                         }));
-                        alloc_stmts
+                        move_stmts
                     }
-                    _ => {
-                        // Just move.
-                        let move_assign =
-                            vir::Stmt::Assign( vir::Assign {
-                                target: lhs.clone(),
-                                source: src,
-                                kind: vir::AssignKind::Move
-                        });
-                        vec![move_assign]
+                    (mir::Operand::Copy(..), ty::TyKind::Ref(..)) => {
+                        let loan = self.polonius_info().get_loan_at_location(location);
+                        let field = self.encoder.encode_value_field(ty).with_span(span)?;
+                        let mut copy_stmts = self.prepare_assign_target(
+                            lhs.clone(),
+                            field.clone(),
+                            location,
+                            vir::AssignKind::SharedBorrow(loan.index().into()),
+                            false
+                        )?;
+                        copy_stmts.push(vir::Stmt::Assign( vir::Assign {
+                            target: lhs.clone().field(field.clone()),
+                            source: src.field(field),
+                            kind: vir::AssignKind::SharedBorrow(loan.index().into()),
+                        }));
+                        copy_stmts
                     }
-                };
-
-                stmts.extend(encode_stmts);
-
-                // Store a label for this state
-                let label = self.cfg_method.get_fresh_label_name();
-                debug!("Current loc {:?} has label {}", location, label);
-                self.label_after_location.insert(location, label.clone());
-                stmts.push(vir::Stmt::label(label));
-
-                stmts
-            }
-
-            mir::Operand::Copy(ref place) => {
-                let (src, mut stmts, ty, _) = self.encode_place(place, ArrayAccessKind::Shared, location)?;
-                let encode_stmts = match ty.kind() {
-                    ty::TyKind::RawPtr(..) => {
+                    (mir::Operand::Copy(..), ty::TyKind::RawPtr(..)) => {
                         return Err(SpannedEncodingError::unsupported(
                             "raw pointers are not supported",
                             span,
                         ));
                     }
-                    ty::TyKind::Ref(..) => {
-                        let loan = self.polonius_info().get_loan_at_location(location);
-                        let ref_field = self.encoder.encode_value_field(ty).with_span(span)?;
-                        let mut stmts = self.prepare_assign_target(
-                            lhs.clone(),
-                            ref_field.clone(),
-                            location,
-                            vir::AssignKind::SharedBorrow(loan.index().into()),
-                            false
-                        )?;
-                        stmts.push(vir::Stmt::Assign( vir::Assign {
-                            target: lhs.clone().field(ref_field.clone()),
-                            source: src.field(ref_field),
-                            kind: vir::AssignKind::SharedBorrow(loan.index().into()),
-                        }));
-                        stmts
+                    _ => {
+                        if self.encoder.env().type_is_copy(ty) {
+                            // Encode even the *move* of a copy type as a copy.
+                            self.encode_copy2(src, lhs.clone(), ty, location)?
+                        } else {
+                            // Just move.
+                            let move_assign =
+                                vir::Stmt::Assign(vir::Assign {
+                                    target: lhs.clone(),
+                                    source: src,
+                                    kind: vir::AssignKind::Move
+                                });
+                            vec![move_assign]
+                        }
                     }
-                    _ => self.encode_copy2(src, lhs.clone(), ty, location)?,
                 };
 
                 stmts.extend(encode_stmts);
