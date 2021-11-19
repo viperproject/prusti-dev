@@ -1,9 +1,9 @@
 use syn::fold::Fold;
 
 mod common;
-mod constructors;
 mod helpers;
 mod lower;
+mod singles;
 mod visitors;
 
 pub(crate) fn expand(
@@ -39,7 +39,7 @@ impl<'a> Fold for Expander<'a> {
                 Ok(content) => content,
                 Err(error) => unimplemented!("error: {:?}", error),
             };
-            match self::constructors::derive(&mut content) {
+            match self::singles::derive(&mut content) {
                 Ok(()) => {}
                 Err(error) => unimplemented!("error: {:?}", error),
             };

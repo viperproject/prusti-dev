@@ -1,4 +1,4 @@
-use crate::ast::{Include, PathList, RawBlock};
+use crate::ast::{CustomDerive, CustomDeriveList, Include, RawBlock};
 use proc_macro2::TokenStream;
 use quote::quote;
 use syn::{fold::Fold, parse_quote, spanned::Spanned};
@@ -21,9 +21,9 @@ struct Expander<'a> {
     components: &'a syn::ItemMod,
     errors: Vec<syn::Error>,
     /// A list of things to derive for each type.
-    new_derives: Vec<Vec<syn::Path>>,
+    new_derives: Vec<Vec<CustomDerive>>,
     /// A list of things to derive for each struct.
-    new_struct_derives: Vec<Vec<syn::Path>>,
+    new_struct_derives: Vec<Vec<CustomDerive>>,
 }
 
 impl<'a> Expander<'a> {
@@ -183,12 +183,12 @@ impl<'a> Fold for Expander<'a> {
                     } if path.is_ident("derive_for_all")
                         || path.is_ident("derive_for_all_structs") =>
                     {
-                        match syn::parse2::<PathList>(tokens) {
+                        match syn::parse2::<CustomDeriveList>(tokens) {
                             Ok(list) => {
                                 if path.is_ident("derive_for_all") {
-                                    new_derives.extend(list.paths);
+                                    new_derives.extend(list.derives);
                                 } else {
-                                    new_struct_derives.extend(list.paths);
+                                    new_struct_derives.extend(list.derives);
                                 }
                             }
                             Err(error) => {

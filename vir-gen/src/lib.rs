@@ -19,7 +19,7 @@ pub fn define_vir(input: TokenStream, source_file: &std::path::Path) -> TokenStr
         let (expanded_components, errors) =
             parser::expand(declarations.components, source_file.to_owned());
         for error in errors {
-            eprintln!("error: {}", error);
+            eprintln!("error in parsing declarations: {}", error);
             error_tokens.extend(error.to_compile_error());
         }
         expanded_components
@@ -29,7 +29,7 @@ pub fn define_vir(input: TokenStream, source_file: &std::path::Path) -> TokenStr
         let (new_item, errors) = parser::expand(sentinel_item, source_file.to_owned());
         sentinel_item = new_item;
         for error in errors {
-            eprintln!("error: {}", error);
+            eprintln!("error in expanding declarations: {}", error);
             error_tokens.extend(error.to_compile_error());
         }
         mem::swap(ir, &mut sentinel_item);
@@ -39,7 +39,7 @@ pub fn define_vir(input: TokenStream, source_file: &std::path::Path) -> TokenStr
         let (new_item, errors) = resolver::expand(sentinel_item, &declarations.components);
         sentinel_item = new_item;
         for error in errors {
-            eprintln!("error: {}", error);
+            eprintln!("error in resolving declarations: {}", error);
             error_tokens.extend(error.to_compile_error());
         }
         mem::swap(ir, &mut sentinel_item);
@@ -50,7 +50,7 @@ pub fn define_vir(input: TokenStream, source_file: &std::path::Path) -> TokenStr
         let (new_item_with_derives, derive_errors) = deriver::expand(sentinel_item, &original_irs);
         sentinel_item = new_item_with_derives;
         for error in derive_errors {
-            eprintln!("error: {}", error);
+            eprintln!("error in deriving types: {}", error);
             error_tokens.extend(error.to_compile_error());
         }
         mem::swap(ir, &mut sentinel_item);
