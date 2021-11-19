@@ -29,11 +29,6 @@ pub(crate) struct RawBlock {
     pub(crate) content: Vec<syn::Item>,
 }
 
-/// A list of identifiers
-pub(crate) struct PathList {
-    pub(crate) paths: syn::punctuated::Punctuated<syn::Path, syn::Token![,]>,
-}
-
 /// derive_lower!(source_type → target_type)
 pub(crate) struct DeriveLower {
     /// The trait that the user can use for lowering.
@@ -44,4 +39,23 @@ pub(crate) struct DeriveLower {
     pub(crate) source_type: syn::Path,
     /// Path to the type into which we want to lower.
     pub(crate) target_type: syn::Path,
+}
+
+pub(crate) struct CustomDeriveOptions {
+    /// The fields that should be ignored when deriving.
+    pub(crate) ignored_fields: Vec<syn::Ident>,
+}
+
+/// The contents of our custom Derive.
+pub(crate) enum CustomDerive {
+    New,
+    NewWithPos,
+    PartialEq(CustomDeriveOptions),
+    Hash(CustomDeriveOptions),
+    Other(syn::Path),
+}
+
+/// A list of identifiers
+pub(crate) struct CustomDeriveList {
+    pub(crate) derives: syn::punctuated::Punctuated<CustomDerive, syn::Token![,]>,
 }
