@@ -44,8 +44,8 @@ pub fn refine_trait_spec(_attr: TokenStream, tokens: TokenStream) -> TokenStream
 }
 
 #[proc_macro_attribute]
-pub fn extern_spec(_attr: TokenStream, tokens: TokenStream) -> TokenStream {
-    tokens
+pub fn extern_spec(_attr: TokenStream, _tokens: TokenStream) -> TokenStream {
+    TokenStream::new()
 }
 
 #[proc_macro]
