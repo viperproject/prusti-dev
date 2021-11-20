@@ -3,6 +3,18 @@
 #![no_main]
 #![cfg_attr(target_env = "msvc", windows_subsystem = "console")]
 
+#[cfg(target_env = "msvc")]
+#[link(name = "vcruntime")]
+extern {}
+
+#[cfg(target_env = "msvc")]
+#[link(name = "msvcrt")]
+extern {}
+
+#[cfg(target_env = "msvc")]
+#[link(name = "ucrt")]
+extern {}
+
 extern crate libc;
 extern crate prusti_contracts;
 
