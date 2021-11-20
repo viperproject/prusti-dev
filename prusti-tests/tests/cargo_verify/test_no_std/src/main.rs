@@ -1,6 +1,7 @@
 #![feature(lang_items)]
 #![no_std]
 #![no_main]
+#![cfg_attr(target_env = "msvc", feature(link_cfg))]
 #![cfg_attr(target_env = "msvc", windows_subsystem = "console")]
 
 #[cfg(target_env = "msvc")]
