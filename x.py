@@ -225,10 +225,6 @@ def cargo(args):
     """Run cargo with the given arguments."""
     run_command(['cargo'] + args)
 
-def cargo_test(args):
-    """Run cargo test with the given arguments."""
-    cargo(['test', '--features', 'prusti-contracts/prusti'] + args)
-
 
 def viper_version():
     with open("viper-toolchain", "r") as file:
@@ -536,9 +532,6 @@ def main(argv):
             break
         elif arg == 'fmt-all':
             fmt_all(*argv[i+1:])
-            break
-        elif arg == 'test':
-            cargo_test(argv[i+1:])
             break
         else:
             cargo(argv[i:])

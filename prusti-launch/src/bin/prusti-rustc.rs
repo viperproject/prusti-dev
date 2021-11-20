@@ -84,6 +84,19 @@ fn process(mut args: Vec<String>) -> Result<(), i32> {
         args.remove(0);
     }
 
+    // filter out the `prusti-contracts` dependency (if present), because we will
+    // replace it below with a version that is distributed with Prusti.
+    if let Some(remove_index) =
+        args.windows(2)
+            .flat_map(<&[_; 2]>::try_from)
+            .position(|[extern_flag, dependency]| {
+                extern_flag == "--extern" && dependency.starts_with("prusti_contracts=")
+            })
+    {
+        args.remove(remove_index);
+        args.remove(remove_index);
+    }
+
     cmd.args(&args);
 
     let has_no_sysroot_arg = !args.iter().any(|s| s == "--sysroot");
