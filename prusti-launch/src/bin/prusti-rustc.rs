@@ -78,16 +78,15 @@ fn process(mut args: Vec<String>) -> Result<(), i32> {
         }
     };
 
-    let has_no_sysroot_arg = !args.iter().any(|s| s == "--sysroot");
-
     // Setting RUSTC_WRAPPER causes Cargo to pass 'rustc' as the first argument.
     // We're invoking the compiler programmatically, so we ignore this
     if !args.is_empty() && Path::new(&args[0]).file_stem() == Some("rustc".as_ref()) {
         args.remove(0);
     }
 
-    cmd.args(args);
+    cmd.args(&args);
 
+    let has_no_sysroot_arg = !args.iter().any(|s| s == "--sysroot");
     if has_no_sysroot_arg {
         cmd.arg("--sysroot".to_string());
         cmd.arg(
@@ -98,28 +97,34 @@ fn process(mut args: Vec<String>) -> Result<(), i32> {
         );
     };
 
-    cmd.arg("-L");
-    cmd.arg(format!(
-        "dependency={}",
-        prusti_home
-            .join("deps")
-            .as_os_str()
-            .to_str()
-            .expect("the Prusti HOME path contains invalid UTF-8")
-    ));
+    // only do the following if we're not compiling the `prusti-contracts` dependency:
+    if !args
+        .windows(2)
+        .any(|p| p == &["--crate-name", "prusti_contracts"])
+    {
+        cmd.arg("-L");
+        cmd.arg(format!(
+            "dependency={}",
+            prusti_home
+                .join("deps")
+                .as_os_str()
+                .to_str()
+                .expect("the Prusti HOME path contains invalid UTF-8")
+        ));
 
-    cmd.arg("--extern");
-    let prusti_contracts_path = prusti_home.join("libprusti_contracts.rlib");
-    cmd.arg(format!(
-        "prusti_contracts={}",
-        prusti_contracts_path
-            .as_os_str()
-            .to_str()
-            .expect("the Prusti contracts path contains invalid UTF-8")
-    ));
+        cmd.arg("--extern");
+        let prusti_contracts_path = prusti_home.join("libprusti_contracts.rlib");
+        cmd.arg(format!(
+            "prusti_contracts={}",
+            prusti_contracts_path
+                .as_os_str()
+                .to_str()
+                .expect("the Prusti contracts path contains invalid UTF-8")
+        ));
 
-    // Set the `prusti` compilation flag, used to enable `prusti_contract`'s macros.
-    cmd.arg("--cfg=feature=\"prusti\"");
+        // Set the `prusti` compilation flag, used to enable `prusti_contract`'s macros.
+        cmd.arg("--cfg=feature=\"prusti\"");
+    }
 
     // cmd.arg("-Zreport-delayed-bugs");
     // cmd.arg("-Ztreat-err-as-bug=1");
