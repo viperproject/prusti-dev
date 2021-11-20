@@ -9,8 +9,18 @@
 #[link(name = "libcmt", cfg(target_feature = "crt-static"))]
 extern "C" {}
 
+#[cfg(target_env = "msvc")]
+#[link(name = "vcruntime")]
+extern "C" {}
+
+#[cfg(target_env = "msvc")]
+#[link(name = "ucrt")]
+extern "C" {}
+
 #[cfg(not(target_env = "msvc"))]
 extern crate libc;
+#[cfg(target_env = "msvc")]
+extern crate compiler_builtins;
 extern crate prusti_contracts;
 
 use prusti_contracts::*;
@@ -31,7 +41,7 @@ pub extern fn rust_begin_panic(_info: &core::panic::PanicInfo) -> ! {
     #[cfg(not(target_env = "msvc"))]
     unsafe { libc::abort() }
     #[cfg(target_env = "msvc")]
-    unsafe { winapi::um::processthreadsapi::ExitProcess(1); loop {} }
+    loop {}
 }
 
 #[no_mangle]
