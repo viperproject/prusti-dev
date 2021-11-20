@@ -4,17 +4,11 @@
 #![cfg_attr(target_env = "msvc", windows_subsystem = "console")]
 
 #[cfg(target_env = "msvc")]
-#[link(name = "vcruntime")]
-extern {}
+#[link(name = "msvcrt", cfg(not(target_feature = "crt-static")))]
+#[link(name = "libcmt", cfg(target_feature = "crt-static"))]
+extern "C" {}
 
-#[cfg(target_env = "msvc")]
-#[link(name = "msvcrt")]
-extern {}
-
-#[cfg(target_env = "msvc")]
-#[link(name = "ucrt")]
-extern {}
-
+#[cfg(not(target_env = "msvc"))]
 extern crate libc;
 extern crate prusti_contracts;
 
@@ -33,7 +27,10 @@ pub extern fn rust_eh_personality() {}
 #[trusted]
 pub extern fn rust_begin_panic(_info: &core::panic::PanicInfo) -> ! {
     // SAFETY: this program has no open streams or active locks, so this is safe.
+    #[cfg(not(target_env = "msvc"))]
     unsafe { libc::abort() }
+    #[cfg(target_env = "msvc")]
+    unsafe { winapi::um::processthreadsapi::ExitProcess(1); loop {} }
 }
 
 #[no_mangle]

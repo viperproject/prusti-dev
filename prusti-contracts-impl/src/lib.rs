@@ -3,6 +3,11 @@ extern crate proc_macro;
 
 use proc_macro::TokenStream;
 
+#[cfg(target_env = "msvc")]
+#[link(name = "msvcrt", cfg(not(target_feature = "crt-static")))]
+#[link(name = "libcmt", cfg(target_feature = "crt-static"))]
+extern "C" {}
+
 #[proc_macro_attribute]
 pub fn requires(_attr: TokenStream, tokens: TokenStream) -> TokenStream {
     tokens
