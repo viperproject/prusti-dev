@@ -100,7 +100,7 @@ fn process(mut args: Vec<String>) -> Result<(), i32> {
     // only do the following if we're not compiling the `prusti-contracts` dependency:
     if !args
         .windows(2)
-        .any(|p| p == &["--crate-name", "prusti_contracts"])
+        .any(|p| p == ["--crate-name", "prusti_contracts"])
     {
         cmd.arg("-L");
         cmd.arg(format!(
