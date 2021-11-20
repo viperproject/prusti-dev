@@ -209,6 +209,9 @@ fn test_prusti_toml_fail() {
     }
 }
 
+// `#![no_std]` binaries on Windows are not a thing yet,
+// see <https://github.com/viperproject/prusti-dev/pull/762>.
+#[cfg_attr(windows, ignore)]
 #[cargo_test]
 fn test_no_std() {
     test_local_project("test_no_std");
