@@ -1,6 +1,7 @@
 #![feature(lang_items)]
 #![no_std]
 #![no_main]
+#![cfg_attr(target_env = "msvc", windows_subsystem = "console")]
 
 extern crate libc;
 extern crate prusti_contracts;
