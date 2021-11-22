@@ -186,6 +186,11 @@ fn test_failing_crate() {
 }
 
 #[cargo_test]
+fn test_no_deps() {
+    test_local_project("no_deps");
+}
+
+#[cargo_test]
 fn test_prusti_toml() {
     test_local_project("prusti_toml");
 }

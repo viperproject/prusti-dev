@@ -131,8 +131,11 @@ fn main() {
     // If the environment asks us to actually be rustc, or if lints have been disabled (which
     // indicates that an upstream dependency is being compiled), then run `rustc` instead of Prusti.
     let prusti_be_rustc = config::be_rustc();
-    let are_lints_disabled =
-        arg_value(&original_rustc_args, "--cap-lints", |val| val == "allow").is_some();
+    // This environment variable will not be set when building dependencies.
+    let is_primary_package = env::var("CARGO_PRIMARY_PACKAGE").is_ok();
+    let are_lints_disabled = arg_value(&original_rustc_args, "--cap-lints", |val| val == "allow")
+        .is_some()
+        || (!is_primary_package && config::no_verify_deps());
     let is_prusti_package = env::var("CARGO_PKG_NAME")
         .map(|name| PRUSTI_PACKAGES.contains(&name.as_str()))
         .unwrap_or(false);

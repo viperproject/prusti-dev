@@ -88,6 +88,7 @@ lazy_static! {
         settings.set_default("skip_unsupported_features", false).unwrap();
         settings.set_default("allow_unreachable_unsupported_code", false).unwrap();
         settings.set_default("no_verify", false).unwrap();
+        settings.set_default("no_verify_deps", false).unwrap();
         settings.set_default("full_compilation", false).unwrap();
         settings.set_default("json_communication", false).unwrap();
         settings.set_default("optimizations","all").unwrap();
@@ -449,6 +450,11 @@ pub fn allow_unreachable_unsupported_code() -> bool {
 /// Skip the verification
 pub fn no_verify() -> bool {
     read_setting("no_verify")
+}
+
+/// Skip the verification of dependencies
+pub fn no_verify_deps() -> bool {
+    read_setting("no_verify_deps")
 }
 
 /// Continue the compilation and generate the binary after Prusti terminates
