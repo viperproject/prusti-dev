@@ -9,7 +9,7 @@ use rustc_data_structures::fx::FxHashSet;
 use rustc_middle::mir;
 use serde::{ser::SerializeMap, Serialize, Serializer};
 
-#[derive(Default)]
+#[derive(Clone, Default, Eq, PartialEq)]
 pub struct MaybeBorrowedState<'tcx> {
     pub(super) maybe_shared_borrowed: FxHashSet<mir::PlaceRef<'tcx>>,
     pub(super) maybe_mut_borrowed: FxHashSet<mir::PlaceRef<'tcx>>,
