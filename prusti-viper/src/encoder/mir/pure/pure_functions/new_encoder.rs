@@ -195,7 +195,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureEncoder<'p, 'v, 'tcx> {
         let mut parameters = Vec::new();
         for local in self.mir.args_iter() {
             let ty = self.encoder.get_local_type(self.mir, local)?;
-            if !self.encoder.env().type_is_allowed_in_pure_functions(ty) {
+            let param_env = self.encoder.env().tcx().param_env(self.proc_def_id);
+            if !self
+                .encoder
+                .env()
+                .type_is_allowed_in_pure_functions(ty, param_env)
+            {
                 return Err(SpannedEncodingError::incorrect(
                     "all types used in pure functions must be Copy",
                     self.encoder.get_local_span(self.mir, local)?,
@@ -221,7 +226,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureEncoder<'p, 'v, 'tcx> {
     fn encode_return_type(&self) -> SpannedEncodingResult<vir_high::Type> {
         let ty = self.mir.return_ty();
         let span = self.get_local_span(mir::RETURN_PLACE);
-        if !self.encoder.env().type_is_allowed_in_pure_functions(ty) {
+        let param_env = self.encoder.env().tcx().param_env(self.proc_def_id);
+        if !self
+            .encoder
+            .env()
+            .type_is_allowed_in_pure_functions(ty, param_env)
+        {
             return Err(SpannedEncodingError::incorrect(
                 "return type of pure function does not implement Copy",
                 span,
@@ -231,7 +241,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureEncoder<'p, 'v, 'tcx> {
     }
 
     fn encode_mir_local(&self, local: mir::Local) -> SpannedEncodingResult<vir_high::VariableDecl> {
-        if !self.encoder.is_local_copy(self.mir, local)? {
+        let param_env = self.encoder.env().tcx().param_env(self.proc_def_id);
+        if !self.encoder.is_local_copy(self.mir, local, param_env)? {
             return Err(SpannedEncodingError::incorrect(
                 "pure function parameters must be Copy",
                 self.encoder.get_local_span(self.mir, local)?,
