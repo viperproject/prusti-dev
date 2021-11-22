@@ -259,7 +259,6 @@ fn main() {
         }
     }
 
-    std::env::set_var("POLONIUS_ALGORITHM", "Naive"); // FIXME: Necessary?
     compiler_args.push("-Zpolonius".to_owned());
     compiler_args.push("-Zalways-encode-mir".to_owned());
     compiler_args.push("-Zcrate-attr=feature(register_tool)".to_owned());
