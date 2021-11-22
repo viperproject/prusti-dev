@@ -9,10 +9,12 @@
 
 use log::trace;
 use rustc_data_structures::fx::FxHashSet;
+use rustc_infer::infer::TyCtxtInferExt;
 use rustc_middle::{
     mir,
     ty::{self, TyCtxt},
 };
+use rustc_trait_selection::infer::InferCtxtExt;
 
 /// Convert a `location` to a string representing the statement or terminator at that `location`
 pub fn location_to_stmt_str(location: mir::Location, mir: &mir::Body) -> String {
@@ -292,5 +294,28 @@ impl std::fmt::Display for DisplayPlaceRef<'_> {
         }
 
         Ok(())
+    }
+}
+
+pub fn is_copy<'tcx>(
+    tcx: ty::TyCtxt<'tcx>,
+    ty: ty::Ty<'tcx>,
+    param_env: ty::ParamEnv<'tcx>,
+) -> bool {
+    if let Some(copy_trait) = tcx.lang_items().copy_trait() {
+        // We need this check because `type_implements_trait`
+        // panics when called on reference types.
+        if let ty::TyKind::Ref(_, _, mutability) = ty.kind() {
+            // Shared references are copy, mutable references are not.
+            matches!(mutability, mir::Mutability::Not)
+        } else {
+            tcx.infer_ctxt().enter(|infcx| {
+                infcx
+                    .type_implements_trait(copy_trait, ty, ty::List::empty(), param_env)
+                    .must_apply_considering_regions()
+            })
+        }
+    } else {
+        false
     }
 }
