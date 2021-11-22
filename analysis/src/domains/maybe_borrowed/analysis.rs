@@ -93,7 +93,7 @@ impl<'mir, 'tcx: 'mir> MaybeBorrowedAnalysis<'mir, 'tcx> {
     }
 }
 
-fn get_blocked_place<'tcx>(borrowed: mir::Place<'tcx>) -> mir::PlaceRef<'tcx> {
+fn get_blocked_place(borrowed: mir::Place) -> mir::PlaceRef {
     for (place_ref, place_elem) in borrowed.iter_projections() {
         match place_elem {
             mir::ProjectionElem::Deref

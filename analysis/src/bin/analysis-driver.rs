@@ -103,6 +103,7 @@ mod mir_storage {
     }
 }
 
+#[allow(clippy::needless_lifetimes)]
 fn mir_borrowck<'tcx>(tcx: ty::TyCtxt<'tcx>, def_id: LocalDefId) -> mir_borrowck<'tcx> {
     let body_with_facts = rustc_borrowck::consumers::get_body_with_borrowck_facts(
         tcx,
