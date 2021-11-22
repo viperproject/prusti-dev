@@ -127,7 +127,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
                 .resolve_typaram(self.mir.return_ty(), self.tymap);
             let return_span = self.get_local_span(mir::RETURN_PLACE);
 
-            if !self.encoder.env().type_is_copy(ty) {
+            let param_env = self.encoder.env().tcx().param_env(self.proc_def_id);
+            if !self.encoder.env().type_is_copy(ty, param_env) {
                 return Err(SpannedEncodingError::unsupported(
                     "return type of pure function does not implement Copy",
                     return_span,
@@ -221,7 +222,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
         let pure_fn_return_variable = vir_local! { __result: {return_type.clone()} };
         // Add value range of the arguments and return value to the pre/postconditions
         if config::check_overflows() {
-            debug_assert!(self.encoder.env().type_is_copy(self.mir.return_ty()));
+            debug_assert!(self.encoder.env().type_is_copy(
+                self.mir.return_ty(),
+                self.encoder.env().tcx().param_env(self.proc_def_id)
+            ));
             let return_bounds: Vec<_> = self
                 .encoder
                 .encode_type_bounds(
@@ -235,7 +239,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
 
             for (formal_arg, local) in formal_args.iter().zip(self.mir.args_iter()) {
                 let typ = self.interpreter.mir_encoder().get_local_ty(local);
-                debug_assert!(self.encoder.env().type_is_copy(typ));
+                debug_assert!(self
+                    .encoder
+                    .env()
+                    .type_is_copy(typ, self.encoder.env().tcx().param_env(self.proc_def_id)));
                 let bounds = self
                     .encoder
                     .encode_type_bounds(&vir::Expr::local(formal_arg.clone()), typ);
@@ -425,7 +432,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
         let return_span = self.get_local_span(mir::RETURN_PLACE);
 
         // Return an error for unsupported return types
-        if !self.encoder.env().type_is_copy(ty) {
+        let param_env = self.encoder.env().tcx().param_env(self.proc_def_id);
+        if !self.encoder.env().type_is_copy(ty, param_env) {
             return Err(SpannedEncodingError::incorrect(
                 "return type of pure function does not implement Copy",
                 return_span,
@@ -453,7 +461,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
             let var_name = mir_encoder.encode_local_var_name(local);
             let var_span = mir_encoder.get_local_span(local);
             let mir_type = mir_encoder.get_local_ty(local);
-            if !self.encoder.env().type_is_copy(mir_type) {
+            let param_env = self.encoder.env().tcx().param_env(self.proc_def_id);
+            if !self.encoder.env().type_is_copy(mir_type, param_env) {
                 return Err(SpannedEncodingError::incorrect(
                     "pure function parameters must be Copy",
                     var_span,

@@ -301,35 +301,27 @@ impl<'tcx> Environment<'tcx> {
         result
     }
 
-    pub fn type_is_allowed_in_pure_functions(&self, ty: ty::Ty<'tcx>) -> bool {
+    pub fn type_is_allowed_in_pure_functions(&self, ty: ty::Ty<'tcx>, param_env: ty::ParamEnv<'tcx>) -> bool {
         match ty.kind() {
             ty::TyKind::Never => {
                 true
             }
             _ => {
-                self.type_is_copy(ty)
+                self.type_is_copy(ty, param_env)
             }
         }
     }
 
-    pub fn type_is_copy(&self, ty: ty::Ty<'tcx>) -> bool {
+    pub fn type_is_copy(&self, ty: ty::Ty<'tcx>, param_env: ty::ParamEnv<'tcx>) -> bool {
         let copy_trait = self.tcx.lang_items().copy_trait();
         if let Some(copy_trait_def_id) = copy_trait {
-            // FIXME: We need this match because type_implements_trait
-            // does not handle all cases correctly. For example, it
-            // treats shared references as non-copy.
-            match ty.kind() {
-                ty::TyKind::Ref(_, _, mir::Mutability::Not) => {
-                    // Shared references are copy.
-                    true
-                }
-                ty::TyKind::Array(_, _) | ty::TyKind::Slice(_) => {
-                    // Arrays and slices are not copy.
-                    false
-                }
-                _ => {
-                    self.type_implements_trait(ty, copy_trait_def_id)
-                }
+            // We need this check because `type_implements_trait`
+            // panics when called on reference types.
+            if let ty::TyKind::Ref(_, _, mutability) = ty.kind() {
+                // Shared references are copy, mutable references are not.
+                matches!(mutability, mir::Mutability::Not)
+            } else {
+                self.type_implements_trait(ty, copy_trait_def_id, param_env)
             }
         } else {
             false
@@ -337,100 +329,11 @@ impl<'tcx> Environment<'tcx> {
     }
 
     /// Checks whether the given type implements the trait with the given DefId.
-    pub fn type_implements_trait(&self, ty: ty::Ty<'tcx>, trait_def_id: DefId) -> bool {
+    pub fn type_implements_trait(&self, ty: ty::Ty<'tcx>, trait_def_id: DefId, param_env: ty::ParamEnv<'tcx>) -> bool {
         assert!(self.tcx.is_trait(trait_def_id));
-        match &ty.kind() {
-            ty::TyKind::Adt(_, subst)
-            | ty::TyKind::FnDef(_, subst)
-            | ty::TyKind::Closure(_, subst)
-            | ty::TyKind::Opaque(_, subst)
-            | ty::TyKind::Generator(_, subst, _)
-            | ty::TyKind::Tuple(subst) => {
-                self.tcx.infer_ctxt().enter(|infcx|
-                    infcx
-                        .type_implements_trait(trait_def_id, ty, subst, ParamEnv::empty())
-                        .must_apply_considering_regions()
-                )
-            }
-            ty::TyKind::Bool => {
-                self.primitive_type_implements_trait(
-                    ty,
-                    self.tcx.lang_items().bool_impl(),
-                    trait_def_id
-                )
-            }
-            ty::TyKind::Char => {
-                self.primitive_type_implements_trait(
-                    ty,
-                    self.tcx.lang_items().char_impl(),
-                    trait_def_id
-                )
-            }
-            ty::TyKind::Int(int_ty) => {
-                let lang_items = self.tcx.lang_items();
-                let impl_def = match int_ty {
-                    ty::IntTy::Isize => lang_items.isize_impl(),
-                    ty::IntTy::I8 => lang_items.i8_impl(),
-                    ty::IntTy::I16 => lang_items.i16_impl(),
-                    ty::IntTy::I32 => lang_items.i32_impl(),
-                    ty::IntTy::I64 => lang_items.i64_impl(),
-                    ty::IntTy::I128 => lang_items.i128_impl(),
-                };
-                self.primitive_type_implements_trait(
-                    ty,
-                    impl_def,
-                    trait_def_id
-                )
-            }
-            ty::TyKind::Uint(uint_ty) => {
-                let lang_items = self.tcx.lang_items();
-                let impl_def = match uint_ty {
-                    ty::UintTy::Usize => lang_items.usize_impl(),
-                    ty::UintTy::U8 => lang_items.u8_impl(),
-                    ty::UintTy::U16 => lang_items.u16_impl(),
-                    ty::UintTy::U32 => lang_items.u32_impl(),
-                    ty::UintTy::U64 => lang_items.u64_impl(),
-                    ty::UintTy::U128 => lang_items.u128_impl(),
-                };
-                self.primitive_type_implements_trait(
-                    ty,
-                    impl_def,
-                    trait_def_id
-                )
-            }
-            ty::TyKind::Float(float_ty) => {
-                let lang_items = self.tcx.lang_items();
-                let impl_def = match float_ty {
-                    ty::FloatTy::F32 => lang_items.f32_impl(),
-                    ty::FloatTy::F64 => lang_items.f64_impl(),
-                };
-                self.primitive_type_implements_trait(
-                    ty,
-                    impl_def,
-                    trait_def_id
-                )
-            }
-            ty::TyKind::Ref(_, ref_ty, _) => {
-                // FIXME: This is incorrect. Whether some X implements
-                // T, says nothing about whether &X implements T.
-                self.type_implements_trait(ref_ty, trait_def_id)
-            }
-            _ => {
-                unimplemented!("ty: {:?}", ty) // none of the remaining types should be supported yet
-            }
-        }
-    }
-
-    fn primitive_type_implements_trait(
-        &self,
-        ty: ty::Ty<'tcx>,
-        impl_def: Option<DefId>,
-        trait_def_id: DefId
-    ) -> bool {
-        assert!(impl_def.is_some());
         self.tcx.infer_ctxt().enter(|infcx|
             infcx
-                .type_implements_trait(trait_def_id, ty, ty::List::empty(), ParamEnv::empty())
+                .type_implements_trait(trait_def_id, ty, ty::List::empty(), param_env)
                 .must_apply_considering_regions()
         )
     }
