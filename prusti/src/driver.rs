@@ -186,7 +186,6 @@ fn main() {
         ));
         info!("Prusti version: {}", get_prusti_version_info());
 
-        env::set_var("POLONIUS_ALGORITHM", "Naive");
         rustc_args.push("-Zpolonius".to_owned());
         rustc_args.push("-Zalways-encode-mir".to_owned());
         rustc_args.push("-Zcrate-attr=feature(register_tool)".to_owned());
