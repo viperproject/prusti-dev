@@ -381,7 +381,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecificationEncoder<'p, 'v, 'tcx> {
                 .encode_quantifier_arg(*arg, ty, &format!("{}_{}", vars.spec_id, vars.id))
                 .unwrap();
             if config::check_overflows() {
-                debug_assert!(self.encoder.env().type_is_copy(ty));
+                debug_assert!(self.encoder.env().type_is_copy(ty, ty::ParamEnv::empty()));
                 // FIXME: the type bounds should be part of the type invariant.
                 if let Some((lower_bound, upper_bound)) = self.encoder.get_integer_type_bounds(ty) {
                     bounds.push(vir_high::Expression::less_equals(
