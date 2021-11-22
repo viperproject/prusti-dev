@@ -182,20 +182,13 @@ impl<'mir, 'tcx: 'mir> DefinitelyInitializedState<'mir, 'tcx> {
 
     /// If the operand is move, make the place uninitialised
     /// If the place is a Copy type, uninitialise the place iif `move_out_copy_types` is true.
-    fn apply_operand_effect(
-        &mut self,
-        operand: &mir::Operand<'tcx>,
-        location: mir::Location,
-        move_out_copy_types: bool,
-    ) {
+    fn apply_operand_effect(&mut self, operand: &mir::Operand<'tcx>, move_out_copy_types: bool) {
         if let mir::Operand::Move(place) = operand {
             let mut uninitialise = true;
             if !move_out_copy_types {
                 let ty = place.ty(&self.mir.local_decls, self.tcx).ty;
-                let span = self.mir.source_info(location).span;
                 let param_env = self.tcx.param_env(self.def_id);
-                let is_copy = ty.is_copy_modulo_regions(self.tcx.at(span), param_env);
-                uninitialise = !is_copy;
+                uninitialise = !is_copy(self.tcx, ty, param_env);
             }
             if uninitialise {
                 self.set_place_uninitialised(*place);
@@ -217,16 +210,16 @@ impl<'mir, 'tcx: 'mir> DefinitelyInitializedState<'mir, 'tcx> {
                     | mir::Rvalue::Cast(_, ref operand, _)
                     | mir::Rvalue::UnaryOp(_, ref operand)
                     | mir::Rvalue::Use(ref operand) => {
-                        self.apply_operand_effect(operand, location, move_out_copy_types);
+                        self.apply_operand_effect(operand, move_out_copy_types);
                     }
                     mir::Rvalue::BinaryOp(_, box (ref operand1, ref operand2))
                     | mir::Rvalue::CheckedBinaryOp(_, box (ref operand1, ref operand2)) => {
-                        self.apply_operand_effect(operand1, location, move_out_copy_types);
-                        self.apply_operand_effect(operand2, location, move_out_copy_types);
+                        self.apply_operand_effect(operand1, move_out_copy_types);
+                        self.apply_operand_effect(operand2, move_out_copy_types);
                     }
                     mir::Rvalue::Aggregate(_, ref operands) => {
                         for operand in operands.iter() {
-                            self.apply_operand_effect(operand, location, move_out_copy_types);
+                            self.apply_operand_effect(operand, move_out_copy_types);
                         }
                     }
                     _ => {}
@@ -260,7 +253,7 @@ impl<'mir, 'tcx: 'mir> DefinitelyInitializedState<'mir, 'tcx> {
             mir::TerminatorKind::SwitchInt { ref discr, .. } => {
                 // only operand has an effect on definitely initialized places, all successors
                 // get the same state
-                new_state.apply_operand_effect(discr, location, move_out_copy_types);
+                new_state.apply_operand_effect(discr, move_out_copy_types);
 
                 for &bb in terminator.successors() {
                     res_vec.push((bb, new_state.clone()));
@@ -286,7 +279,7 @@ impl<'mir, 'tcx: 'mir> DefinitelyInitializedState<'mir, 'tcx> {
                 unwind,
             } => {
                 new_state.set_place_uninitialised(place);
-                new_state.apply_operand_effect(value, location, move_out_copy_types);
+                new_state.apply_operand_effect(value, move_out_copy_types);
                 new_state.set_place_initialised(place);
                 res_vec.push((target, new_state));
 
@@ -303,9 +296,9 @@ impl<'mir, 'tcx: 'mir> DefinitelyInitializedState<'mir, 'tcx> {
                 ..
             } => {
                 for arg in args.iter() {
-                    new_state.apply_operand_effect(arg, location, move_out_copy_types);
+                    new_state.apply_operand_effect(arg, move_out_copy_types);
                 }
-                new_state.apply_operand_effect(func, location, move_out_copy_types);
+                new_state.apply_operand_effect(func, move_out_copy_types);
                 if let Some((place, bb)) = destination {
                     new_state.set_place_initialised(place);
                     res_vec.push((bb, new_state));
@@ -322,7 +315,7 @@ impl<'mir, 'tcx: 'mir> DefinitelyInitializedState<'mir, 'tcx> {
                 cleanup,
                 ..
             } => {
-                new_state.apply_operand_effect(cond, location, move_out_copy_types);
+                new_state.apply_operand_effect(cond, move_out_copy_types);
                 res_vec.push((target, new_state));
 
                 if let Some(bb) = cleanup {
@@ -337,7 +330,7 @@ impl<'mir, 'tcx: 'mir> DefinitelyInitializedState<'mir, 'tcx> {
                 ..
             } => {
                 // TODO: resume_arg?
-                new_state.apply_operand_effect(value, location, move_out_copy_types);
+                new_state.apply_operand_effect(value, move_out_copy_types);
                 res_vec.push((resume, new_state));
 
                 if let Some(bb) = drop {
