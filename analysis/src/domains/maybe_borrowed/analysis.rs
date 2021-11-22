@@ -18,12 +18,8 @@ pub struct MaybeBorrowedAnalysis<'mir, 'tcx: 'mir> {
 }
 
 impl<'mir, 'tcx: 'mir> MaybeBorrowedAnalysis<'mir, 'tcx> {
-    pub fn new(
-        body_with_facts: &'mir BodyWithBorrowckFacts<'tcx>,
-    ) -> Self {
-        MaybeBorrowedAnalysis {
-            body_with_facts,
-        }
+    pub fn new(body_with_facts: &'mir BodyWithBorrowckFacts<'tcx>) -> Self {
+        MaybeBorrowedAnalysis { body_with_facts }
     }
 
     pub fn run_analysis(&self) -> AnalysisResult<PointwiseState<'mir, 'tcx, MaybeBorrowedState>> {
@@ -69,7 +65,7 @@ impl<'mir, 'tcx: 'mir> MaybeBorrowedAnalysis<'mir, 'tcx> {
                                 mir::BorrowKind::Shared => {
                                     state.maybe_shared_borrowed.insert(blocked_place);
                                 }
-                                mir::BorrowKind::Mut {..} => {
+                                mir::BorrowKind::Mut { .. } => {
                                     state.maybe_mut_borrowed.insert(blocked_place);
                                 }
                                 _ => {
@@ -100,14 +96,13 @@ impl<'mir, 'tcx: 'mir> MaybeBorrowedAnalysis<'mir, 'tcx> {
 fn get_blocked_place<'tcx>(borrowed: mir::Place<'tcx>) -> mir::PlaceRef<'tcx> {
     for (place_ref, place_elem) in borrowed.iter_projections() {
         match place_elem {
-            mir::ProjectionElem::Deref |
-            mir::ProjectionElem::Index(..) |
-            mir::ProjectionElem::ConstantIndex {..} |
-            mir::ProjectionElem::Subslice {..} => {
+            mir::ProjectionElem::Deref
+            | mir::ProjectionElem::Index(..)
+            | mir::ProjectionElem::ConstantIndex { .. }
+            | mir::ProjectionElem::Subslice { .. } => {
                 return place_ref;
             }
-            mir::ProjectionElem::Field(..) |
-            mir::ProjectionElem::Downcast(..) => {
+            mir::ProjectionElem::Field(..) | mir::ProjectionElem::Downcast(..) => {
                 // Continue
             }
         }

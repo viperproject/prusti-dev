@@ -1,5 +1,6 @@
 #![feature(rustc_private)]
 
+extern crate polonius_engine;
 /// Sources:
 /// https://github.com/rust-lang/miri/blob/master/benches/helpers/miri_helper.rs
 /// https://github.com/rust-lang/rust/blob/master/src/test/run-make-fulldeps/obtain-borrowck/driver.rs
@@ -10,12 +11,12 @@ extern crate rustc_hir;
 extern crate rustc_interface;
 extern crate rustc_middle;
 extern crate rustc_session;
-extern crate polonius_engine;
 
 use analysis::{
     abstract_interpretation::FixpointEngine,
     domains::{DefinitelyInitializedAnalysis, MaybeBorrowedAnalysis, ReachingDefsAnalysis},
 };
+use polonius_engine::{Algorithm, Output};
 use rustc_ast::ast;
 use rustc_borrowck::BodyWithBorrowckFacts;
 use rustc_driver::Compilation;
@@ -26,9 +27,7 @@ use rustc_middle::{
     ty::query::{query_values::mir_borrowck, ExternProviders, Providers},
 };
 use rustc_session::{Attribute, Session};
-use std::{cell::RefCell, collections::HashMap};
-use polonius_engine::{Algorithm, Output};
-use std::rc::Rc;
+use std::{cell::RefCell, collections::HashMap, rc::Rc};
 
 struct OurCompilerCalls {
     args: Vec<String>,
@@ -180,17 +179,15 @@ impl rustc_driver::Callbacks for OurCompilerCalls {
                 body_with_facts.output_facts = Rc::new(Output::compute(
                     &body_with_facts.input_facts,
                     Algorithm::Naive,
-                    true
+                    true,
                 ));
                 assert!(!body_with_facts.input_facts.cfg_edge.is_empty());
                 let body = &body_with_facts.body;
 
-
                 match abstract_domain {
                     "ReachingDefsAnalysis" => {
-                        let result =
-                            ReachingDefsAnalysis::new(tcx, local_def_id.to_def_id(), body)
-                                .run_fwd_analysis();
+                        let result = ReachingDefsAnalysis::new(tcx, local_def_id.to_def_id(), body)
+                            .run_fwd_analysis();
                         match result {
                             Ok(state) => {
                                 println!("{}", serde_json::to_string_pretty(&state).unwrap())
@@ -199,12 +196,9 @@ impl rustc_driver::Callbacks for OurCompilerCalls {
                         }
                     }
                     "DefinitelyInitializedAnalysis" => {
-                        let result = DefinitelyInitializedAnalysis::new(
-                            tcx,
-                            local_def_id.to_def_id(),
-                            body,
-                        )
-                        .run_fwd_analysis();
+                        let result =
+                            DefinitelyInitializedAnalysis::new(tcx, local_def_id.to_def_id(), body)
+                                .run_fwd_analysis();
                         match result {
                             Ok(state) => {
                                 println!("{}", serde_json::to_string_pretty(&state).unwrap())
@@ -227,9 +221,7 @@ impl rustc_driver::Callbacks for OurCompilerCalls {
                         }
                     }
                     "MaybeBorrowedAnalysis" => {
-                        let analyzer = MaybeBorrowedAnalysis::new(
-                            &body_with_facts,
-                        );
+                        let analyzer = MaybeBorrowedAnalysis::new(&body_with_facts);
                         match analyzer.run_analysis() {
                             Ok(state) => {
                                 println!("{}", serde_json::to_string_pretty(&state).unwrap())

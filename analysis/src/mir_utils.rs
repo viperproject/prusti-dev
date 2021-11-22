@@ -246,22 +246,46 @@ impl std::fmt::Display for DisplayPlaceRef<'_> {
                 mir::ProjectionElem::Index(ref index) => {
                     write!(fmt, "[{:?}]", index)?;
                 }
-                mir::ProjectionElem::ConstantIndex { offset, min_length, from_end: false } => {
+                mir::ProjectionElem::ConstantIndex {
+                    offset,
+                    min_length,
+                    from_end: false,
+                } => {
                     write!(fmt, "[{:?} of {:?}]", offset, min_length)?;
                 }
-                mir::ProjectionElem::ConstantIndex { offset, min_length, from_end: true } => {
+                mir::ProjectionElem::ConstantIndex {
+                    offset,
+                    min_length,
+                    from_end: true,
+                } => {
                     write!(fmt, "[-{:?} of {:?}]", offset, min_length)?;
                 }
-                mir::ProjectionElem::Subslice { from, to, from_end: true } if *to == 0 => {
+                mir::ProjectionElem::Subslice {
+                    from,
+                    to,
+                    from_end: true,
+                } if *to == 0 => {
                     write!(fmt, "[{:?}:]", from)?;
                 }
-                mir::ProjectionElem::Subslice { from, to, from_end: true } if *from == 0 => {
+                mir::ProjectionElem::Subslice {
+                    from,
+                    to,
+                    from_end: true,
+                } if *from == 0 => {
                     write!(fmt, "[:-{:?}]", to)?;
                 }
-                mir::ProjectionElem::Subslice { from, to, from_end: true } => {
+                mir::ProjectionElem::Subslice {
+                    from,
+                    to,
+                    from_end: true,
+                } => {
                     write!(fmt, "[{:?}:-{:?}]", from, to)?;
                 }
-                mir::ProjectionElem::Subslice { from, to, from_end: false } => {
+                mir::ProjectionElem::Subslice {
+                    from,
+                    to,
+                    from_end: false,
+                } => {
                     write!(fmt, "[{:?}..{:?}]", from, to)?;
                 }
             }
