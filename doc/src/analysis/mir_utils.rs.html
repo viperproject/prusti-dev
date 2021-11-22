@@ -294,6 +294,31 @@
 <span id="294">294</span>
 <span id="295">295</span>
 <span id="296">296</span>
+<span id="297">297</span>
+<span id="298">298</span>
+<span id="299">299</span>
+<span id="300">300</span>
+<span id="301">301</span>
+<span id="302">302</span>
+<span id="303">303</span>
+<span id="304">304</span>
+<span id="305">305</span>
+<span id="306">306</span>
+<span id="307">307</span>
+<span id="308">308</span>
+<span id="309">309</span>
+<span id="310">310</span>
+<span id="311">311</span>
+<span id="312">312</span>
+<span id="313">313</span>
+<span id="314">314</span>
+<span id="315">315</span>
+<span id="316">316</span>
+<span id="317">317</span>
+<span id="318">318</span>
+<span id="319">319</span>
+<span id="320">320</span>
+<span id="321">321</span>
 </pre><pre class="rust"><code><span class="comment">// © 2021, ETH Zurich</span>
 <span class="comment">//</span>
 <span class="comment">// This Source Code Form is subject to the terms of the Mozilla Public</span>
@@ -305,21 +330,23 @@
 
 <span class="kw">use</span> <span class="ident">log::trace</span>;
 <span class="kw">use</span> <a class="ident" href="../../rustc_hash/type.FxHashSet.html">rustc_data_structures::fx::FxHashSet</a>;
+<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_infer/infer/trait.TyCtxtInferExt.html">rustc_infer::infer::TyCtxtInferExt</a>;
 <span class="kw">use</span> <span class="ident">rustc_middle</span>::{
     <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/index.html">mir</a>,
     <span class="ident">ty</span>::{<a class="self" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/index.html">self</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/context/struct.TyCtxt.html">TyCtxt</a>},
 };
+<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_trait_selection/infer/trait.InferCtxtExt.html">rustc_trait_selection::infer::InferCtxtExt</a>;
 
 <span class="doccomment">/// Convert a `location` to a string representing the statement or terminator at that `location`</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">location_to_stmt_str</span>(<span class="ident">location</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Location.html">mir::Location</a>, <span class="ident">mir</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Body.html">mir::Body</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> {
-    <span class="kw">let</span> <span class="ident">bb_mir</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="ident" href="../../src/analysis/mir_utils.rs.html#18">mir</a>[<a class="ident" href="../../src/analysis/mir_utils.rs.html#18">location</a>.<span class="ident">block</span>];
-    <span class="kw">if</span> <a class="ident" href="../../src/analysis/mir_utils.rs.html#18">location</a>.<span class="ident">statement_index</span> <span class="op">&lt;</span> <a class="ident" href="../../src/analysis/mir_utils.rs.html#19">bb_mir</a>.<span class="ident">statements</span>.<span class="ident">len</span>() {
-        <span class="kw">let</span> <span class="ident">stmt</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="ident" href="../../src/analysis/mir_utils.rs.html#19">bb_mir</a>.<span class="ident">statements</span>[<a class="ident" href="../../src/analysis/mir_utils.rs.html#18">location</a>.<span class="ident">statement_index</span>];
-        <span class="macro">format!</span>(<span class="string">&quot;{:?}&quot;</span>, <a class="ident" href="../../src/analysis/mir_utils.rs.html#21">stmt</a>)
+    <span class="kw">let</span> <span class="ident">bb_mir</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="ident" href="../../src/analysis/mir_utils.rs.html#20">mir</a>[<a class="ident" href="../../src/analysis/mir_utils.rs.html#20">location</a>.<span class="ident">block</span>];
+    <span class="kw">if</span> <a class="ident" href="../../src/analysis/mir_utils.rs.html#20">location</a>.<span class="ident">statement_index</span> <span class="op">&lt;</span> <a class="ident" href="../../src/analysis/mir_utils.rs.html#21">bb_mir</a>.<span class="ident">statements</span>.<span class="ident">len</span>() {
+        <span class="kw">let</span> <span class="ident">stmt</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="ident" href="../../src/analysis/mir_utils.rs.html#21">bb_mir</a>.<span class="ident">statements</span>[<a class="ident" href="../../src/analysis/mir_utils.rs.html#20">location</a>.<span class="ident">statement_index</span>];
+        <span class="macro">format!</span>(<span class="string">&quot;{:?}&quot;</span>, <a class="ident" href="../../src/analysis/mir_utils.rs.html#23">stmt</a>)
     } <span class="kw">else</span> {
         <span class="comment">// location = terminator</span>
-        <span class="kw">let</span> <span class="ident">terminator</span> <span class="op">=</span> <a class="ident" href="../../src/analysis/mir_utils.rs.html#19">bb_mir</a>.<span class="ident">terminator</span>();
-        <span class="macro">format!</span>(<span class="string">&quot;{:?}&quot;</span>, <a class="ident" href="../../src/analysis/mir_utils.rs.html#25">terminator</a>.<span class="ident">kind</span>)
+        <span class="kw">let</span> <span class="ident">terminator</span> <span class="op">=</span> <a class="ident" href="../../src/analysis/mir_utils.rs.html#21">bb_mir</a>.<span class="ident">terminator</span>();
+        <span class="macro">format!</span>(<span class="string">&quot;{:?}&quot;</span>, <a class="ident" href="../../src/analysis/mir_utils.rs.html#27">terminator</a>.<span class="ident">kind</span>)
     }
 }
 
@@ -329,16 +356,16 @@
 <span class="doccomment">/// +   `is_prefix(x.f.g, x.f) == true`</span>
 <span class="doccomment">/// +   `is_prefix(x.f, x.f.g) == false`</span>
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">is_prefix</span>(<span class="ident">place</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Place.html">mir::Place</a>, <span class="ident">potential_prefix</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Place.html">mir::Place</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <span class="kw">if</span> <a class="ident" href="../../src/analysis/mir_utils.rs.html#35">place</a>.<span class="ident">local</span> <span class="op">!</span><span class="op">=</span> <a class="ident" href="../../src/analysis/mir_utils.rs.html#35">potential_prefix</a>.<span class="ident">local</span>
-        <span class="op">|</span><span class="op">|</span> <a class="ident" href="../../src/analysis/mir_utils.rs.html#35">place</a>.<span class="ident">projection</span>.<span class="ident">len</span>() <span class="op">&lt;</span> <a class="ident" href="../../src/analysis/mir_utils.rs.html#35">potential_prefix</a>.<span class="ident">projection</span>.<span class="ident">len</span>()
+    <span class="kw">if</span> <a class="ident" href="../../src/analysis/mir_utils.rs.html#37">place</a>.<span class="ident">local</span> <span class="op">!</span><span class="op">=</span> <a class="ident" href="../../src/analysis/mir_utils.rs.html#37">potential_prefix</a>.<span class="ident">local</span>
+        <span class="op">|</span><span class="op">|</span> <a class="ident" href="../../src/analysis/mir_utils.rs.html#37">place</a>.<span class="ident">projection</span>.<span class="ident">len</span>() <span class="op">&lt;</span> <a class="ident" href="../../src/analysis/mir_utils.rs.html#37">potential_prefix</a>.<span class="ident">projection</span>.<span class="ident">len</span>()
     {
         <span class="bool-val">false</span>
     } <span class="kw">else</span> {
-        <a class="ident" href="../../src/analysis/mir_utils.rs.html#35">place</a>
+        <a class="ident" href="../../src/analysis/mir_utils.rs.html#37">place</a>
             .<span class="ident">projection</span>
             .<span class="ident">iter</span>()
-            .<span class="ident">zip</span>(<a class="ident" href="../../src/analysis/mir_utils.rs.html#35">potential_prefix</a>.<span class="ident">projection</span>.<span class="ident">iter</span>())
-            .<span class="ident">all</span>(<span class="op">|</span>(<span class="ident">e1</span>, <span class="ident">e2</span>)<span class="op">|</span> <a class="ident" href="../../src/analysis/mir_utils.rs.html#45">e1</a> <span class="op">==</span> <a class="ident" href="../../src/analysis/mir_utils.rs.html#45">e2</a>)
+            .<span class="ident">zip</span>(<a class="ident" href="../../src/analysis/mir_utils.rs.html#37">potential_prefix</a>.<span class="ident">projection</span>.<span class="ident">iter</span>())
+            .<span class="ident">all</span>(<span class="op">|</span>(<span class="ident">e1</span>, <span class="ident">e2</span>)<span class="op">|</span> <a class="ident" href="../../src/analysis/mir_utils.rs.html#47">e1</a> <span class="op">==</span> <a class="ident" href="../../src/analysis/mir_utils.rs.html#47">e2</a>)
     }
 }
 
@@ -353,50 +380,50 @@
     <span class="ident">without_field</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span>,
 ) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">mir::Place</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">places</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
-    <span class="kw">let</span> <span class="ident">typ</span> <span class="op">=</span> <a class="ident" href="../../src/analysis/mir_utils.rs.html#54">place</a>.<span class="ident">ty</span>(<a class="ident" href="../../src/analysis/mir_utils.rs.html#55">mir</a>, <a class="ident" href="../../src/analysis/mir_utils.rs.html#56">tcx</a>);
-    <span class="kw">if</span> <a class="ident" href="../../src/analysis/mir_utils.rs.html#60">typ</a>.<span class="ident">variant_index</span>.<span class="ident">is_some</span>() {
+    <span class="kw">let</span> <span class="ident">typ</span> <span class="op">=</span> <a class="ident" href="../../src/analysis/mir_utils.rs.html#56">place</a>.<span class="ident">ty</span>(<a class="ident" href="../../src/analysis/mir_utils.rs.html#57">mir</a>, <a class="ident" href="../../src/analysis/mir_utils.rs.html#58">tcx</a>);
+    <span class="kw">if</span> <a class="ident" href="../../src/analysis/mir_utils.rs.html#62">typ</a>.<span class="ident">variant_index</span>.<span class="ident">is_some</span>() {
         <span class="comment">// Downcast is a no-op.</span>
     } <span class="kw">else</span> {
-        <span class="kw">match</span> <a class="ident" href="../../src/analysis/mir_utils.rs.html#60">typ</a>.<span class="ident">ty</span>.<span class="ident">kind</span>() {
+        <span class="kw">match</span> <a class="ident" href="../../src/analysis/mir_utils.rs.html#62">typ</a>.<span class="ident">ty</span>.<span class="ident">kind</span>() {
             <span class="ident">ty::Adt</span>(<span class="ident">def</span>, <span class="ident">substs</span>) =&gt; {
                 <span class="macro">assert!</span>(
-                    <a class="ident" href="../../src/analysis/mir_utils.rs.html#65">def</a>.<span class="ident">is_struct</span>(),
+                    <a class="ident" href="../../src/analysis/mir_utils.rs.html#67">def</a>.<span class="ident">is_struct</span>(),
                     <span class="string">&quot;Only structs can be expanded. Got def={:?}.&quot;</span>,
-                    <a class="ident" href="../../src/analysis/mir_utils.rs.html#65">def</a>
+                    <a class="ident" href="../../src/analysis/mir_utils.rs.html#67">def</a>
                 );
-                <span class="kw">let</span> <span class="ident">variant</span> <span class="op">=</span> <a class="ident" href="../../src/analysis/mir_utils.rs.html#65">def</a>.<span class="ident">non_enum_variant</span>();
-                <span class="kw">for</span> (<span class="ident">index</span>, <span class="ident">field_def</span>) <span class="kw">in</span> <a class="ident" href="../../src/analysis/mir_utils.rs.html#71">variant</a>.<span class="ident">fields</span>.<span class="ident">iter</span>().<span class="ident">enumerate</span>() {
-                    <span class="kw">if</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../src/analysis/mir_utils.rs.html#72">index</a>) <span class="op">!</span><span class="op">=</span> <a class="ident" href="../../src/analysis/mir_utils.rs.html#57">without_field</a> {
-                        <span class="kw">let</span> <span class="ident">field</span> <span class="op">=</span> <span class="ident">mir::Field::from_usize</span>(<a class="ident" href="../../src/analysis/mir_utils.rs.html#72">index</a>);
+                <span class="kw">let</span> <span class="ident">variant</span> <span class="op">=</span> <a class="ident" href="../../src/analysis/mir_utils.rs.html#67">def</a>.<span class="ident">non_enum_variant</span>();
+                <span class="kw">for</span> (<span class="ident">index</span>, <span class="ident">field_def</span>) <span class="kw">in</span> <a class="ident" href="../../src/analysis/mir_utils.rs.html#73">variant</a>.<span class="ident">fields</span>.<span class="ident">iter</span>().<span class="ident">enumerate</span>() {
+                    <span class="kw">if</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../src/analysis/mir_utils.rs.html#74">index</a>) <span class="op">!</span><span class="op">=</span> <a class="ident" href="../../src/analysis/mir_utils.rs.html#59">without_field</a> {
+                        <span class="kw">let</span> <span class="ident">field</span> <span class="op">=</span> <span class="ident">mir::Field::from_usize</span>(<a class="ident" href="../../src/analysis/mir_utils.rs.html#74">index</a>);
                         <span class="kw">let</span> <span class="ident">field_place</span> <span class="op">=</span>
-                            <a class="ident" href="../../src/analysis/mir_utils.rs.html#56">tcx</a>.<span class="ident">mk_place_field</span>(<a class="ident" href="../../src/analysis/mir_utils.rs.html#54">place</a>, <a class="ident" href="../../src/analysis/mir_utils.rs.html#74">field</a>, <a class="ident" href="../../src/analysis/mir_utils.rs.html#72">field_def</a>.<span class="ident">ty</span>(<a class="ident" href="../../src/analysis/mir_utils.rs.html#56">tcx</a>, <a class="ident" href="../../src/analysis/mir_utils.rs.html#65">substs</a>));
-                        <a class="ident" href="../../src/analysis/mir_utils.rs.html#59">places</a>.<span class="ident">push</span>(<a class="ident" href="../../src/analysis/mir_utils.rs.html#75">field_place</a>);
+                            <a class="ident" href="../../src/analysis/mir_utils.rs.html#58">tcx</a>.<span class="ident">mk_place_field</span>(<a class="ident" href="../../src/analysis/mir_utils.rs.html#56">place</a>, <a class="ident" href="../../src/analysis/mir_utils.rs.html#76">field</a>, <a class="ident" href="../../src/analysis/mir_utils.rs.html#74">field_def</a>.<span class="ident">ty</span>(<a class="ident" href="../../src/analysis/mir_utils.rs.html#58">tcx</a>, <a class="ident" href="../../src/analysis/mir_utils.rs.html#67">substs</a>));
+                        <a class="ident" href="../../src/analysis/mir_utils.rs.html#61">places</a>.<span class="ident">push</span>(<a class="ident" href="../../src/analysis/mir_utils.rs.html#77">field_place</a>);
                     }
                 }
             }
             <span class="ident">ty::Tuple</span>(<span class="ident">slice</span>) =&gt; {
-                <span class="kw">for</span> (<span class="ident">index</span>, <span class="ident">arg</span>) <span class="kw">in</span> <a class="ident" href="../../src/analysis/mir_utils.rs.html#81">slice</a>.<span class="ident">iter</span>().<span class="ident">enumerate</span>() {
-                    <span class="kw">if</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../src/analysis/mir_utils.rs.html#82">index</a>) <span class="op">!</span><span class="op">=</span> <a class="ident" href="../../src/analysis/mir_utils.rs.html#57">without_field</a> {
-                        <span class="kw">let</span> <span class="ident">field</span> <span class="op">=</span> <span class="ident">mir::Field::from_usize</span>(<a class="ident" href="../../src/analysis/mir_utils.rs.html#82">index</a>);
-                        <span class="kw">let</span> <span class="ident">field_place</span> <span class="op">=</span> <a class="ident" href="../../src/analysis/mir_utils.rs.html#56">tcx</a>.<span class="ident">mk_place_field</span>(<a class="ident" href="../../src/analysis/mir_utils.rs.html#54">place</a>, <a class="ident" href="../../src/analysis/mir_utils.rs.html#84">field</a>, <a class="ident" href="../../src/analysis/mir_utils.rs.html#82">arg</a>.<span class="ident">expect_ty</span>());
-                        <a class="ident" href="../../src/analysis/mir_utils.rs.html#59">places</a>.<span class="ident">push</span>(<a class="ident" href="../../src/analysis/mir_utils.rs.html#85">field_place</a>);
+                <span class="kw">for</span> (<span class="ident">index</span>, <span class="ident">arg</span>) <span class="kw">in</span> <a class="ident" href="../../src/analysis/mir_utils.rs.html#83">slice</a>.<span class="ident">iter</span>().<span class="ident">enumerate</span>() {
+                    <span class="kw">if</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../src/analysis/mir_utils.rs.html#84">index</a>) <span class="op">!</span><span class="op">=</span> <a class="ident" href="../../src/analysis/mir_utils.rs.html#59">without_field</a> {
+                        <span class="kw">let</span> <span class="ident">field</span> <span class="op">=</span> <span class="ident">mir::Field::from_usize</span>(<a class="ident" href="../../src/analysis/mir_utils.rs.html#84">index</a>);
+                        <span class="kw">let</span> <span class="ident">field_place</span> <span class="op">=</span> <a class="ident" href="../../src/analysis/mir_utils.rs.html#58">tcx</a>.<span class="ident">mk_place_field</span>(<a class="ident" href="../../src/analysis/mir_utils.rs.html#56">place</a>, <a class="ident" href="../../src/analysis/mir_utils.rs.html#86">field</a>, <a class="ident" href="../../src/analysis/mir_utils.rs.html#84">arg</a>.<span class="ident">expect_ty</span>());
+                        <a class="ident" href="../../src/analysis/mir_utils.rs.html#61">places</a>.<span class="ident">push</span>(<a class="ident" href="../../src/analysis/mir_utils.rs.html#87">field_place</a>);
                     }
                 }
             }
-            <span class="ident">ty::Ref</span>(<span class="ident">_region</span>, <span class="ident">_ty</span>, <span class="kw">_</span>) =&gt; <span class="kw">match</span> <a class="ident" href="../../src/analysis/mir_utils.rs.html#57">without_field</a> {
+            <span class="ident">ty::Ref</span>(<span class="ident">_region</span>, <span class="ident">_ty</span>, <span class="kw">_</span>) =&gt; <span class="kw">match</span> <a class="ident" href="../../src/analysis/mir_utils.rs.html#59">without_field</a> {
                 <span class="prelude-val">Some</span>(<span class="ident">without_field</span>) =&gt; {
-                    <span class="macro">assert_eq!</span>(<a class="ident" href="../../src/analysis/mir_utils.rs.html#91">without_field</a>, <span class="number">0</span>, <span class="string">&quot;References have only a single “field”.&quot;</span>);
+                    <span class="macro">assert_eq!</span>(<a class="ident" href="../../src/analysis/mir_utils.rs.html#93">without_field</a>, <span class="number">0</span>, <span class="string">&quot;References have only a single “field”.&quot;</span>);
                 }
                 <span class="prelude-val">None</span> =&gt; {
-                    <a class="ident" href="../../src/analysis/mir_utils.rs.html#59">places</a>.<span class="ident">push</span>(<a class="ident" href="../../src/analysis/mir_utils.rs.html#56">tcx</a>.<span class="ident">mk_place_deref</span>(<a class="ident" href="../../src/analysis/mir_utils.rs.html#54">place</a>));
+                    <a class="ident" href="../../src/analysis/mir_utils.rs.html#61">places</a>.<span class="ident">push</span>(<a class="ident" href="../../src/analysis/mir_utils.rs.html#58">tcx</a>.<span class="ident">mk_place_deref</span>(<a class="ident" href="../../src/analysis/mir_utils.rs.html#56">place</a>));
                 }
             },
             <span class="kw-2">ref</span> <span class="ident">ty</span> =&gt; {
-                <span class="macro">unimplemented!</span>(<span class="string">&quot;ty={:?}&quot;</span>, <a class="ident" href="../../src/analysis/mir_utils.rs.html#98">ty</a>);
+                <span class="macro">unimplemented!</span>(<span class="string">&quot;ty={:?}&quot;</span>, <a class="ident" href="../../src/analysis/mir_utils.rs.html#100">ty</a>);
             }
         }
     }
-    <a class="ident" href="../../src/analysis/mir_utils.rs.html#59">places</a>
+    <a class="ident" href="../../src/analysis/mir_utils.rs.html#61">places</a>
 }
 
 <span class="doccomment">/// Expand `current_place` one level down by following the `guide_place`.</span>
@@ -408,29 +435,29 @@
     <span class="ident">current_place</span>: <span class="ident">mir::Place</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
     <span class="ident">guide_place</span>: <span class="ident">mir::Place</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
 ) -&gt; (<span class="ident">mir::Place</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">mir::Place</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span><span class="op">&gt;</span>) {
-    <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <a class="ident" href="../../src/analysis/mir_utils.rs.html#112">current_place</a>.<span class="ident">projection</span>.<span class="ident">len</span>();
-    <span class="kw">match</span> <a class="ident" href="../../src/analysis/mir_utils.rs.html#113">guide_place</a>.<span class="ident">projection</span>[<a class="ident" href="../../src/analysis/mir_utils.rs.html#115">index</a>] {
+    <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <a class="ident" href="../../src/analysis/mir_utils.rs.html#114">current_place</a>.<span class="ident">projection</span>.<span class="ident">len</span>();
+    <span class="kw">match</span> <a class="ident" href="../../src/analysis/mir_utils.rs.html#115">guide_place</a>.<span class="ident">projection</span>[<a class="ident" href="../../src/analysis/mir_utils.rs.html#117">index</a>] {
         <span class="ident">mir::ProjectionElem::Field</span>(<span class="ident">projected_field</span>, <span class="ident">field_ty</span>) =&gt; {
             <span class="kw">let</span> <span class="ident">places</span> <span class="op">=</span>
-                <a class="ident" href="../../src/analysis/mir_utils.rs.html#53-58">expand_struct_place</a>(<a class="ident" href="../../src/analysis/mir_utils.rs.html#112">current_place</a>, <a class="ident" href="../../src/analysis/mir_utils.rs.html#110">mir</a>, <a class="ident" href="../../src/analysis/mir_utils.rs.html#111">tcx</a>, <span class="prelude-val">Some</span>(<a class="ident" href="../../src/analysis/mir_utils.rs.html#117">projected_field</a>.<span class="ident">index</span>()));
-            <span class="kw">let</span> <span class="ident">new_current_place</span> <span class="op">=</span> <a class="ident" href="../../src/analysis/mir_utils.rs.html#111">tcx</a>.<span class="ident">mk_place_field</span>(<a class="ident" href="../../src/analysis/mir_utils.rs.html#112">current_place</a>, <a class="ident" href="../../src/analysis/mir_utils.rs.html#117">projected_field</a>, <a class="ident" href="../../src/analysis/mir_utils.rs.html#117">field_ty</a>);
-            (<a class="ident" href="../../src/analysis/mir_utils.rs.html#120">new_current_place</a>, <a class="ident" href="../../src/analysis/mir_utils.rs.html#118">places</a>)
+                <a class="ident" href="../../src/analysis/mir_utils.rs.html#55-60">expand_struct_place</a>(<a class="ident" href="../../src/analysis/mir_utils.rs.html#114">current_place</a>, <a class="ident" href="../../src/analysis/mir_utils.rs.html#112">mir</a>, <a class="ident" href="../../src/analysis/mir_utils.rs.html#113">tcx</a>, <span class="prelude-val">Some</span>(<a class="ident" href="../../src/analysis/mir_utils.rs.html#119">projected_field</a>.<span class="ident">index</span>()));
+            <span class="kw">let</span> <span class="ident">new_current_place</span> <span class="op">=</span> <a class="ident" href="../../src/analysis/mir_utils.rs.html#113">tcx</a>.<span class="ident">mk_place_field</span>(<a class="ident" href="../../src/analysis/mir_utils.rs.html#114">current_place</a>, <a class="ident" href="../../src/analysis/mir_utils.rs.html#119">projected_field</a>, <a class="ident" href="../../src/analysis/mir_utils.rs.html#119">field_ty</a>);
+            (<a class="ident" href="../../src/analysis/mir_utils.rs.html#122">new_current_place</a>, <a class="ident" href="../../src/analysis/mir_utils.rs.html#120">places</a>)
         }
         <span class="ident">mir::ProjectionElem::Downcast</span>(<span class="ident">_symbol</span>, <span class="ident">variant</span>) =&gt; {
-            <span class="kw">let</span> <span class="ident">kind</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="ident" href="../../src/analysis/mir_utils.rs.html#112">current_place</a>.<span class="ident">ty</span>(<a class="ident" href="../../src/analysis/mir_utils.rs.html#110">mir</a>, <a class="ident" href="../../src/analysis/mir_utils.rs.html#111">tcx</a>).<span class="ident">ty</span>.<span class="ident">kind</span>();
-            <span class="kw">if</span> <span class="kw">let</span> <span class="ident">ty::TyKind::Adt</span>(<span class="ident">adt</span>, <span class="kw">_</span>) <span class="op">=</span> <a class="ident" href="../../src/analysis/mir_utils.rs.html#124">kind</a> {
+            <span class="kw">let</span> <span class="ident">kind</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="ident" href="../../src/analysis/mir_utils.rs.html#114">current_place</a>.<span class="ident">ty</span>(<a class="ident" href="../../src/analysis/mir_utils.rs.html#112">mir</a>, <a class="ident" href="../../src/analysis/mir_utils.rs.html#113">tcx</a>).<span class="ident">ty</span>.<span class="ident">kind</span>();
+            <span class="kw">if</span> <span class="kw">let</span> <span class="ident">ty::TyKind::Adt</span>(<span class="ident">adt</span>, <span class="kw">_</span>) <span class="op">=</span> <a class="ident" href="../../src/analysis/mir_utils.rs.html#126">kind</a> {
                 (
-                    <a class="ident" href="../../src/analysis/mir_utils.rs.html#111">tcx</a>.<span class="ident">mk_place_downcast</span>(<a class="ident" href="../../src/analysis/mir_utils.rs.html#112">current_place</a>, <a class="ident" href="../../src/analysis/mir_utils.rs.html#125">adt</a>, <a class="ident" href="../../src/analysis/mir_utils.rs.html#123">variant</a>),
+                    <a class="ident" href="../../src/analysis/mir_utils.rs.html#113">tcx</a>.<span class="ident">mk_place_downcast</span>(<a class="ident" href="../../src/analysis/mir_utils.rs.html#114">current_place</a>, <a class="ident" href="../../src/analysis/mir_utils.rs.html#127">adt</a>, <a class="ident" href="../../src/analysis/mir_utils.rs.html#125">variant</a>),
                     <span class="ident">Vec::new</span>(),
                 )
             } <span class="kw">else</span> {
                 <span class="macro">unreachable!</span>();
             }
         }
-        <span class="ident">mir::ProjectionElem::Deref</span> =&gt; (<a class="ident" href="../../src/analysis/mir_utils.rs.html#111">tcx</a>.<span class="ident">mk_place_deref</span>(<a class="ident" href="../../src/analysis/mir_utils.rs.html#112">current_place</a>), <span class="ident">Vec::new</span>()),
-        <span class="ident">mir::ProjectionElem::Index</span>(<span class="ident">idx</span>) =&gt; (<a class="ident" href="../../src/analysis/mir_utils.rs.html#111">tcx</a>.<span class="ident">mk_place_index</span>(<a class="ident" href="../../src/analysis/mir_utils.rs.html#112">current_place</a>, <a class="ident" href="../../src/analysis/mir_utils.rs.html#135">idx</a>), <span class="ident">Vec::new</span>()),
+        <span class="ident">mir::ProjectionElem::Deref</span> =&gt; (<a class="ident" href="../../src/analysis/mir_utils.rs.html#113">tcx</a>.<span class="ident">mk_place_deref</span>(<a class="ident" href="../../src/analysis/mir_utils.rs.html#114">current_place</a>), <span class="ident">Vec::new</span>()),
+        <span class="ident">mir::ProjectionElem::Index</span>(<span class="ident">idx</span>) =&gt; (<a class="ident" href="../../src/analysis/mir_utils.rs.html#113">tcx</a>.<span class="ident">mk_place_index</span>(<a class="ident" href="../../src/analysis/mir_utils.rs.html#114">current_place</a>, <a class="ident" href="../../src/analysis/mir_utils.rs.html#137">idx</a>), <span class="ident">Vec::new</span>()),
         <span class="ident">elem</span> =&gt; {
-            <span class="macro">unimplemented!</span>(<span class="string">&quot;elem = {:?}&quot;</span>, <a class="ident" href="../../src/analysis/mir_utils.rs.html#136">elem</a>);
+            <span class="macro">unimplemented!</span>(<span class="string">&quot;elem = {:?}&quot;</span>, <a class="ident" href="../../src/analysis/mir_utils.rs.html#138">elem</a>);
         }
     }
 }
@@ -450,27 +477,27 @@
     <span class="ident">subtrahend</span>: <span class="ident">mir::Place</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
 ) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">mir::Place</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span><span class="op">&gt;</span> {
     <span class="macro">assert!</span>(
-        <a class="ident" href="../../src/analysis/mir_utils.rs.html#35">is_prefix</a>(<a class="ident" href="../../src/analysis/mir_utils.rs.html#154">subtrahend</a>, <a class="ident" href="../../src/analysis/mir_utils.rs.html#153">minuend</a>),
+        <a class="ident" href="../../src/analysis/mir_utils.rs.html#37">is_prefix</a>(<a class="ident" href="../../src/analysis/mir_utils.rs.html#156">subtrahend</a>, <a class="ident" href="../../src/analysis/mir_utils.rs.html#155">minuend</a>),
         <span class="string">&quot;The minuend must be the prefix of the subtrahend.&quot;</span>
     );
     <span class="macro">trace!</span>(
         <span class="string">&quot;[enter] expand minuend={:?} subtrahend={:?}&quot;</span>,
-        <a class="ident" href="../../src/analysis/mir_utils.rs.html#153">minuend</a>,
-        <a class="ident" href="../../src/analysis/mir_utils.rs.html#154">subtrahend</a>
+        <a class="ident" href="../../src/analysis/mir_utils.rs.html#155">minuend</a>,
+        <a class="ident" href="../../src/analysis/mir_utils.rs.html#156">subtrahend</a>
     );
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">place_set</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
-    <span class="kw">while</span> <a class="ident" href="../../src/analysis/mir_utils.rs.html#153">minuend</a>.<span class="ident">projection</span>.<span class="ident">len</span>() <span class="op">&lt;</span> <a class="ident" href="../../src/analysis/mir_utils.rs.html#154">subtrahend</a>.<span class="ident">projection</span>.<span class="ident">len</span>() {
-        <span class="kw">let</span> (<span class="ident">new_minuend</span>, <span class="ident">places</span>) <span class="op">=</span> <a class="ident" href="../../src/analysis/mir_utils.rs.html#109-114">expand_one_level</a>(<a class="ident" href="../../src/analysis/mir_utils.rs.html#151">mir</a>, <a class="ident" href="../../src/analysis/mir_utils.rs.html#152">tcx</a>, <a class="ident" href="../../src/analysis/mir_utils.rs.html#153">minuend</a>, <a class="ident" href="../../src/analysis/mir_utils.rs.html#154">subtrahend</a>);
-        <a class="ident" href="../../src/analysis/mir_utils.rs.html#153">minuend</a> <span class="op">=</span> <a class="ident" href="../../src/analysis/mir_utils.rs.html#167">new_minuend</a>;
-        <a class="ident" href="../../src/analysis/mir_utils.rs.html#165">place_set</a>.<span class="ident">extend</span>(<a class="ident" href="../../src/analysis/mir_utils.rs.html#167">places</a>);
+    <span class="kw">while</span> <a class="ident" href="../../src/analysis/mir_utils.rs.html#155">minuend</a>.<span class="ident">projection</span>.<span class="ident">len</span>() <span class="op">&lt;</span> <a class="ident" href="../../src/analysis/mir_utils.rs.html#156">subtrahend</a>.<span class="ident">projection</span>.<span class="ident">len</span>() {
+        <span class="kw">let</span> (<span class="ident">new_minuend</span>, <span class="ident">places</span>) <span class="op">=</span> <a class="ident" href="../../src/analysis/mir_utils.rs.html#111-116">expand_one_level</a>(<a class="ident" href="../../src/analysis/mir_utils.rs.html#153">mir</a>, <a class="ident" href="../../src/analysis/mir_utils.rs.html#154">tcx</a>, <a class="ident" href="../../src/analysis/mir_utils.rs.html#155">minuend</a>, <a class="ident" href="../../src/analysis/mir_utils.rs.html#156">subtrahend</a>);
+        <a class="ident" href="../../src/analysis/mir_utils.rs.html#155">minuend</a> <span class="op">=</span> <a class="ident" href="../../src/analysis/mir_utils.rs.html#169">new_minuend</a>;
+        <a class="ident" href="../../src/analysis/mir_utils.rs.html#167">place_set</a>.<span class="ident">extend</span>(<a class="ident" href="../../src/analysis/mir_utils.rs.html#169">places</a>);
     }
     <span class="macro">trace!</span>(
         <span class="string">&quot;[exit] expand minuend={:?} subtrahend={:?} place_set={:?}&quot;</span>,
-        <a class="ident" href="../../src/analysis/mir_utils.rs.html#153">minuend</a>,
-        <a class="ident" href="../../src/analysis/mir_utils.rs.html#154">subtrahend</a>,
-        <a class="ident" href="../../src/analysis/mir_utils.rs.html#165">place_set</a>
+        <a class="ident" href="../../src/analysis/mir_utils.rs.html#155">minuend</a>,
+        <a class="ident" href="../../src/analysis/mir_utils.rs.html#156">subtrahend</a>,
+        <a class="ident" href="../../src/analysis/mir_utils.rs.html#167">place_set</a>
     );
-    <a class="ident" href="../../src/analysis/mir_utils.rs.html#165">place_set</a>
+    <a class="ident" href="../../src/analysis/mir_utils.rs.html#167">place_set</a>
 }
 
 <span class="doccomment">/// Try to collapse all places in `places` by following the</span>
@@ -489,33 +516,33 @@
         <span class="ident">current_place</span>: <span class="ident">mir::Place</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
         <span class="ident">guide_place</span>: <span class="ident">mir::Place</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
     ) {
-        <span class="kw">if</span> <a class="ident" href="../../src/analysis/mir_utils.rs.html#193">current_place</a> <span class="op">!</span><span class="op">=</span> <a class="ident" href="../../src/analysis/mir_utils.rs.html#194">guide_place</a> {
+        <span class="kw">if</span> <a class="ident" href="../../src/analysis/mir_utils.rs.html#195">current_place</a> <span class="op">!</span><span class="op">=</span> <a class="ident" href="../../src/analysis/mir_utils.rs.html#196">guide_place</a> {
             <span class="kw">let</span> (<span class="ident">new_current_place</span>, <span class="kw-2">mut</span> <span class="ident">expansion</span>) <span class="op">=</span>
-                <a class="ident" href="../../src/analysis/mir_utils.rs.html#109-114">expand_one_level</a>(<a class="ident" href="../../src/analysis/mir_utils.rs.html#190">mir</a>, <a class="ident" href="../../src/analysis/mir_utils.rs.html#191">tcx</a>, <a class="ident" href="../../src/analysis/mir_utils.rs.html#193">current_place</a>, <a class="ident" href="../../src/analysis/mir_utils.rs.html#194">guide_place</a>);
-            <a class="ident" href="../../src/analysis/mir_utils.rs.html#189-195">recurse</a>(<a class="ident" href="../../src/analysis/mir_utils.rs.html#190">mir</a>, <a class="ident" href="../../src/analysis/mir_utils.rs.html#191">tcx</a>, <a class="ident" href="../../src/analysis/mir_utils.rs.html#192">places</a>, <a class="ident" href="../../src/analysis/mir_utils.rs.html#197">new_current_place</a>, <a class="ident" href="../../src/analysis/mir_utils.rs.html#194">guide_place</a>);
-            <a class="ident" href="../../src/analysis/mir_utils.rs.html#197">expansion</a>.<span class="ident">push</span>(<a class="ident" href="../../src/analysis/mir_utils.rs.html#197">new_current_place</a>);
-            <span class="kw">if</span> <a class="ident" href="../../src/analysis/mir_utils.rs.html#197">expansion</a>.<span class="ident">iter</span>().<span class="ident">all</span>(<span class="op">|</span><span class="ident">place</span><span class="op">|</span> <a class="ident" href="../../src/analysis/mir_utils.rs.html#192">places</a>.<span class="ident">contains</span>(<a class="ident" href="../../src/analysis/mir_utils.rs.html#201">place</a>)) {
-                <span class="kw">for</span> <a class="ident" href="../../src/analysis/mir_utils.rs.html#202">place</a> <span class="kw">in</span> <a class="ident" href="../../src/analysis/mir_utils.rs.html#197">expansion</a> {
-                    <a class="ident" href="../../src/analysis/mir_utils.rs.html#192">places</a>.<span class="ident">remove</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/analysis/mir_utils.rs.html#202">place</a>);
+                <a class="ident" href="../../src/analysis/mir_utils.rs.html#111-116">expand_one_level</a>(<a class="ident" href="../../src/analysis/mir_utils.rs.html#192">mir</a>, <a class="ident" href="../../src/analysis/mir_utils.rs.html#193">tcx</a>, <a class="ident" href="../../src/analysis/mir_utils.rs.html#195">current_place</a>, <a class="ident" href="../../src/analysis/mir_utils.rs.html#196">guide_place</a>);
+            <a class="ident" href="../../src/analysis/mir_utils.rs.html#191-197">recurse</a>(<a class="ident" href="../../src/analysis/mir_utils.rs.html#192">mir</a>, <a class="ident" href="../../src/analysis/mir_utils.rs.html#193">tcx</a>, <a class="ident" href="../../src/analysis/mir_utils.rs.html#194">places</a>, <a class="ident" href="../../src/analysis/mir_utils.rs.html#199">new_current_place</a>, <a class="ident" href="../../src/analysis/mir_utils.rs.html#196">guide_place</a>);
+            <a class="ident" href="../../src/analysis/mir_utils.rs.html#199">expansion</a>.<span class="ident">push</span>(<a class="ident" href="../../src/analysis/mir_utils.rs.html#199">new_current_place</a>);
+            <span class="kw">if</span> <a class="ident" href="../../src/analysis/mir_utils.rs.html#199">expansion</a>.<span class="ident">iter</span>().<span class="ident">all</span>(<span class="op">|</span><span class="ident">place</span><span class="op">|</span> <a class="ident" href="../../src/analysis/mir_utils.rs.html#194">places</a>.<span class="ident">contains</span>(<a class="ident" href="../../src/analysis/mir_utils.rs.html#203">place</a>)) {
+                <span class="kw">for</span> <a class="ident" href="../../src/analysis/mir_utils.rs.html#204">place</a> <span class="kw">in</span> <a class="ident" href="../../src/analysis/mir_utils.rs.html#199">expansion</a> {
+                    <a class="ident" href="../../src/analysis/mir_utils.rs.html#194">places</a>.<span class="ident">remove</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/analysis/mir_utils.rs.html#204">place</a>);
                 }
-                <a class="ident" href="../../src/analysis/mir_utils.rs.html#192">places</a>.<span class="ident">insert</span>(<a class="ident" href="../../src/analysis/mir_utils.rs.html#193">current_place</a>);
+                <a class="ident" href="../../src/analysis/mir_utils.rs.html#194">places</a>.<span class="ident">insert</span>(<a class="ident" href="../../src/analysis/mir_utils.rs.html#195">current_place</a>);
             }
         }
     }
-    <a class="ident" href="../../src/analysis/mir_utils.rs.html#189-195">recurse</a>(<a class="ident" href="../../src/analysis/mir_utils.rs.html#184">mir</a>, <a class="ident" href="../../src/analysis/mir_utils.rs.html#185">tcx</a>, <a class="ident" href="../../src/analysis/mir_utils.rs.html#186">places</a>, <a class="ident" href="../../src/analysis/mir_utils.rs.html#187">guide_place</a>.<span class="ident">local</span>.<span class="ident">into</span>(), <a class="ident" href="../../src/analysis/mir_utils.rs.html#187">guide_place</a>);
+    <a class="ident" href="../../src/analysis/mir_utils.rs.html#191-197">recurse</a>(<a class="ident" href="../../src/analysis/mir_utils.rs.html#186">mir</a>, <a class="ident" href="../../src/analysis/mir_utils.rs.html#187">tcx</a>, <a class="ident" href="../../src/analysis/mir_utils.rs.html#188">places</a>, <a class="ident" href="../../src/analysis/mir_utils.rs.html#189">guide_place</a>.<span class="ident">local</span>.<span class="ident">into</span>(), <a class="ident" href="../../src/analysis/mir_utils.rs.html#189">guide_place</a>);
 }
 
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">DisplayPlaceRef</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw">pub</span> <span class="ident">mir::PlaceRef</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>);
 
 <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">std::fmt::Display</a> <span class="kw">for</span> <span class="ident">DisplayPlaceRef</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">fmt</span>: <span class="kw-2">&amp;mut</span> <span class="ident">std::fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">std::fmt::Result</a> {
-        <span class="kw">for</span> <a class="ident" href="../../src/analysis/mir_utils.rs.html#216">elem</a> <span class="kw">in</span> <a class="self" href="../../src/analysis/mir_utils.rs.html#215">self</a>.<span class="number">0</span>.<span class="ident">projection</span>.<span class="ident">iter</span>().<span class="ident">rev</span>() {
-            <span class="kw">match</span> <a class="ident" href="../../src/analysis/mir_utils.rs.html#216">elem</a> {
+        <span class="kw">for</span> <a class="ident" href="../../src/analysis/mir_utils.rs.html#218">elem</a> <span class="kw">in</span> <a class="self" href="../../src/analysis/mir_utils.rs.html#217">self</a>.<span class="number">0</span>.<span class="ident">projection</span>.<span class="ident">iter</span>().<span class="ident">rev</span>() {
+            <span class="kw">match</span> <a class="ident" href="../../src/analysis/mir_utils.rs.html#218">elem</a> {
                 <span class="ident">mir::ProjectionElem::Downcast</span>(<span class="kw">_</span>, <span class="kw">_</span>) <span class="op">|</span> <span class="ident">mir::ProjectionElem::Field</span>(<span class="kw">_</span>, <span class="kw">_</span>) =&gt; {
-                    <span class="macro">write!</span>(<a class="ident" href="../../src/analysis/mir_utils.rs.html#215">fmt</a>, <span class="string">&quot;(&quot;</span>).<span class="ident">unwrap</span>();
+                    <span class="macro">write!</span>(<a class="ident" href="../../src/analysis/mir_utils.rs.html#217">fmt</a>, <span class="string">&quot;(&quot;</span>).<span class="ident">unwrap</span>();
                 }
                 <span class="ident">mir::ProjectionElem::Deref</span> =&gt; {
-                    <span class="macro">write!</span>(<a class="ident" href="../../src/analysis/mir_utils.rs.html#215">fmt</a>, <span class="string">&quot;(*&quot;</span>).<span class="ident">unwrap</span>();
+                    <span class="macro">write!</span>(<a class="ident" href="../../src/analysis/mir_utils.rs.html#217">fmt</a>, <span class="string">&quot;(*&quot;</span>).<span class="ident">unwrap</span>();
                 }
                 <span class="ident">mir::ProjectionElem::Index</span>(<span class="kw">_</span>)
                 <span class="op">|</span> <span class="ident">mir::ProjectionElem::ConstantIndex</span> { .. }
@@ -523,71 +550,94 @@
             }
         }
 
-        <span class="macro">write!</span>(<a class="ident" href="../../src/analysis/mir_utils.rs.html#215">fmt</a>, <span class="string">&quot;{:?}&quot;</span>, <a class="self" href="../../src/analysis/mir_utils.rs.html#215">self</a>.<span class="number">0</span>.<span class="ident">local</span>)<span class="question-mark">?</span>;
+        <span class="macro">write!</span>(<a class="ident" href="../../src/analysis/mir_utils.rs.html#217">fmt</a>, <span class="string">&quot;{:?}&quot;</span>, <a class="self" href="../../src/analysis/mir_utils.rs.html#217">self</a>.<span class="number">0</span>.<span class="ident">local</span>)<span class="question-mark">?</span>;
 
-        <span class="kw">for</span> <a class="ident" href="../../src/analysis/mir_utils.rs.html#232">elem</a> <span class="kw">in</span> <a class="self" href="../../src/analysis/mir_utils.rs.html#215">self</a>.<span class="number">0</span>.<span class="ident">projection</span>.<span class="ident">iter</span>() {
-            <span class="kw">match</span> <a class="ident" href="../../src/analysis/mir_utils.rs.html#232">elem</a> {
+        <span class="kw">for</span> <a class="ident" href="../../src/analysis/mir_utils.rs.html#234">elem</a> <span class="kw">in</span> <a class="self" href="../../src/analysis/mir_utils.rs.html#217">self</a>.<span class="number">0</span>.<span class="ident">projection</span>.<span class="ident">iter</span>() {
+            <span class="kw">match</span> <a class="ident" href="../../src/analysis/mir_utils.rs.html#234">elem</a> {
                 <span class="ident">mir::ProjectionElem::Downcast</span>(<span class="prelude-val">Some</span>(<span class="ident">name</span>), <span class="ident">_index</span>) =&gt; {
-                    <span class="macro">write!</span>(<a class="ident" href="../../src/analysis/mir_utils.rs.html#215">fmt</a>, <span class="string">&quot; as {})&quot;</span>, <a class="ident" href="../../src/analysis/mir_utils.rs.html#234">name</a>)<span class="question-mark">?</span>;
+                    <span class="macro">write!</span>(<a class="ident" href="../../src/analysis/mir_utils.rs.html#217">fmt</a>, <span class="string">&quot; as {})&quot;</span>, <a class="ident" href="../../src/analysis/mir_utils.rs.html#236">name</a>)<span class="question-mark">?</span>;
                 }
                 <span class="ident">mir::ProjectionElem::Downcast</span>(<span class="prelude-val">None</span>, <span class="ident">index</span>) =&gt; {
-                    <span class="macro">write!</span>(<a class="ident" href="../../src/analysis/mir_utils.rs.html#215">fmt</a>, <span class="string">&quot; as variant#{:?})&quot;</span>, <a class="ident" href="../../src/analysis/mir_utils.rs.html#237">index</a>)<span class="question-mark">?</span>;
+                    <span class="macro">write!</span>(<a class="ident" href="../../src/analysis/mir_utils.rs.html#217">fmt</a>, <span class="string">&quot; as variant#{:?})&quot;</span>, <a class="ident" href="../../src/analysis/mir_utils.rs.html#239">index</a>)<span class="question-mark">?</span>;
                 }
                 <span class="ident">mir::ProjectionElem::Deref</span> =&gt; {
-                    <span class="macro">write!</span>(<a class="ident" href="../../src/analysis/mir_utils.rs.html#215">fmt</a>, <span class="string">&quot;)&quot;</span>)<span class="question-mark">?</span>;
+                    <span class="macro">write!</span>(<a class="ident" href="../../src/analysis/mir_utils.rs.html#217">fmt</a>, <span class="string">&quot;)&quot;</span>)<span class="question-mark">?</span>;
                 }
                 <span class="ident">mir::ProjectionElem::Field</span>(<span class="ident">field</span>, <span class="ident">ty</span>) =&gt; {
-                    <span class="macro">write!</span>(<a class="ident" href="../../src/analysis/mir_utils.rs.html#215">fmt</a>, <span class="string">&quot;.{:?}: {:?})&quot;</span>, <a class="ident" href="../../src/analysis/mir_utils.rs.html#243">field</a>.<span class="ident">index</span>(), <a class="ident" href="../../src/analysis/mir_utils.rs.html#243">ty</a>)<span class="question-mark">?</span>;
+                    <span class="macro">write!</span>(<a class="ident" href="../../src/analysis/mir_utils.rs.html#217">fmt</a>, <span class="string">&quot;.{:?}: {:?})&quot;</span>, <a class="ident" href="../../src/analysis/mir_utils.rs.html#245">field</a>.<span class="ident">index</span>(), <a class="ident" href="../../src/analysis/mir_utils.rs.html#245">ty</a>)<span class="question-mark">?</span>;
                 }
                 <span class="ident">mir::ProjectionElem::Index</span>(<span class="kw-2">ref</span> <span class="ident">index</span>) =&gt; {
-                    <span class="macro">write!</span>(<a class="ident" href="../../src/analysis/mir_utils.rs.html#215">fmt</a>, <span class="string">&quot;[{:?}]&quot;</span>, <a class="ident" href="../../src/analysis/mir_utils.rs.html#246">index</a>)<span class="question-mark">?</span>;
+                    <span class="macro">write!</span>(<a class="ident" href="../../src/analysis/mir_utils.rs.html#217">fmt</a>, <span class="string">&quot;[{:?}]&quot;</span>, <a class="ident" href="../../src/analysis/mir_utils.rs.html#248">index</a>)<span class="question-mark">?</span>;
                 }
                 <span class="ident">mir::ProjectionElem::ConstantIndex</span> {
                     <span class="ident">offset</span>,
                     <span class="ident">min_length</span>,
                     <span class="ident">from_end</span>: <span class="bool-val">false</span>,
                 } =&gt; {
-                    <span class="macro">write!</span>(<a class="ident" href="../../src/analysis/mir_utils.rs.html#215">fmt</a>, <span class="string">&quot;[{:?} of {:?}]&quot;</span>, <a class="ident" href="../../src/analysis/mir_utils.rs.html#250">offset</a>, <a class="ident" href="../../src/analysis/mir_utils.rs.html#251">min_length</a>)<span class="question-mark">?</span>;
+                    <span class="macro">write!</span>(<a class="ident" href="../../src/analysis/mir_utils.rs.html#217">fmt</a>, <span class="string">&quot;[{:?} of {:?}]&quot;</span>, <a class="ident" href="../../src/analysis/mir_utils.rs.html#252">offset</a>, <a class="ident" href="../../src/analysis/mir_utils.rs.html#253">min_length</a>)<span class="question-mark">?</span>;
                 }
                 <span class="ident">mir::ProjectionElem::ConstantIndex</span> {
                     <span class="ident">offset</span>,
                     <span class="ident">min_length</span>,
                     <span class="ident">from_end</span>: <span class="bool-val">true</span>,
                 } =&gt; {
-                    <span class="macro">write!</span>(<a class="ident" href="../../src/analysis/mir_utils.rs.html#215">fmt</a>, <span class="string">&quot;[-{:?} of {:?}]&quot;</span>, <a class="ident" href="../../src/analysis/mir_utils.rs.html#257">offset</a>, <a class="ident" href="../../src/analysis/mir_utils.rs.html#258">min_length</a>)<span class="question-mark">?</span>;
+                    <span class="macro">write!</span>(<a class="ident" href="../../src/analysis/mir_utils.rs.html#217">fmt</a>, <span class="string">&quot;[-{:?} of {:?}]&quot;</span>, <a class="ident" href="../../src/analysis/mir_utils.rs.html#259">offset</a>, <a class="ident" href="../../src/analysis/mir_utils.rs.html#260">min_length</a>)<span class="question-mark">?</span>;
                 }
                 <span class="ident">mir::ProjectionElem::Subslice</span> {
                     <span class="ident">from</span>,
                     <span class="ident">to</span>,
                     <span class="ident">from_end</span>: <span class="bool-val">true</span>,
-                } <span class="kw">if</span> <span class="kw-2">*</span><a class="ident" href="../../src/analysis/mir_utils.rs.html#265">to</a> <span class="op">==</span> <span class="number">0</span> =&gt; {
-                    <span class="macro">write!</span>(<a class="ident" href="../../src/analysis/mir_utils.rs.html#215">fmt</a>, <span class="string">&quot;[{:?}:]&quot;</span>, <a class="ident" href="../../src/analysis/mir_utils.rs.html#264">from</a>)<span class="question-mark">?</span>;
+                } <span class="kw">if</span> <span class="kw-2">*</span><a class="ident" href="../../src/analysis/mir_utils.rs.html#267">to</a> <span class="op">==</span> <span class="number">0</span> =&gt; {
+                    <span class="macro">write!</span>(<a class="ident" href="../../src/analysis/mir_utils.rs.html#217">fmt</a>, <span class="string">&quot;[{:?}:]&quot;</span>, <a class="ident" href="../../src/analysis/mir_utils.rs.html#266">from</a>)<span class="question-mark">?</span>;
                 }
                 <span class="ident">mir::ProjectionElem::Subslice</span> {
                     <span class="ident">from</span>,
                     <span class="ident">to</span>,
                     <span class="ident">from_end</span>: <span class="bool-val">true</span>,
-                } <span class="kw">if</span> <span class="kw-2">*</span><a class="ident" href="../../src/analysis/mir_utils.rs.html#271">from</a> <span class="op">==</span> <span class="number">0</span> =&gt; {
-                    <span class="macro">write!</span>(<a class="ident" href="../../src/analysis/mir_utils.rs.html#215">fmt</a>, <span class="string">&quot;[:-{:?}]&quot;</span>, <a class="ident" href="../../src/analysis/mir_utils.rs.html#272">to</a>)<span class="question-mark">?</span>;
+                } <span class="kw">if</span> <span class="kw-2">*</span><a class="ident" href="../../src/analysis/mir_utils.rs.html#273">from</a> <span class="op">==</span> <span class="number">0</span> =&gt; {
+                    <span class="macro">write!</span>(<a class="ident" href="../../src/analysis/mir_utils.rs.html#217">fmt</a>, <span class="string">&quot;[:-{:?}]&quot;</span>, <a class="ident" href="../../src/analysis/mir_utils.rs.html#274">to</a>)<span class="question-mark">?</span>;
                 }
                 <span class="ident">mir::ProjectionElem::Subslice</span> {
                     <span class="ident">from</span>,
                     <span class="ident">to</span>,
                     <span class="ident">from_end</span>: <span class="bool-val">true</span>,
                 } =&gt; {
-                    <span class="macro">write!</span>(<a class="ident" href="../../src/analysis/mir_utils.rs.html#215">fmt</a>, <span class="string">&quot;[{:?}:-{:?}]&quot;</span>, <a class="ident" href="../../src/analysis/mir_utils.rs.html#278">from</a>, <a class="ident" href="../../src/analysis/mir_utils.rs.html#279">to</a>)<span class="question-mark">?</span>;
+                    <span class="macro">write!</span>(<a class="ident" href="../../src/analysis/mir_utils.rs.html#217">fmt</a>, <span class="string">&quot;[{:?}:-{:?}]&quot;</span>, <a class="ident" href="../../src/analysis/mir_utils.rs.html#280">from</a>, <a class="ident" href="../../src/analysis/mir_utils.rs.html#281">to</a>)<span class="question-mark">?</span>;
                 }
                 <span class="ident">mir::ProjectionElem::Subslice</span> {
                     <span class="ident">from</span>,
                     <span class="ident">to</span>,
                     <span class="ident">from_end</span>: <span class="bool-val">false</span>,
                 } =&gt; {
-                    <span class="macro">write!</span>(<a class="ident" href="../../src/analysis/mir_utils.rs.html#215">fmt</a>, <span class="string">&quot;[{:?}..{:?}]&quot;</span>, <a class="ident" href="../../src/analysis/mir_utils.rs.html#285">from</a>, <a class="ident" href="../../src/analysis/mir_utils.rs.html#286">to</a>)<span class="question-mark">?</span>;
+                    <span class="macro">write!</span>(<a class="ident" href="../../src/analysis/mir_utils.rs.html#217">fmt</a>, <span class="string">&quot;[{:?}..{:?}]&quot;</span>, <a class="ident" href="../../src/analysis/mir_utils.rs.html#287">from</a>, <a class="ident" href="../../src/analysis/mir_utils.rs.html#288">to</a>)<span class="question-mark">?</span>;
                 }
             }
         }
 
         <span class="prelude-val">Ok</span>(())
+    }
+}
+
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_copy</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>(
+    <span class="ident">tcx</span>: <span class="ident">ty::TyCtxt</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
+    <span class="ident">ty</span>: <span class="ident">ty::Ty</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
+    <span class="ident">param_env</span>: <span class="ident">ty::ParamEnv</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
+) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">copy_trait</span>) <span class="op">=</span> <a class="ident" href="../../src/analysis/mir_utils.rs.html#301">tcx</a>.<span class="ident">lang_items</span>().<span class="ident">copy_trait</span>() {
+        <span class="comment">// We need this check because `type_implements_trait`</span>
+        <span class="comment">// panics when called on reference types.</span>
+        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">ty::TyKind::Ref</span>(<span class="kw">_</span>, <span class="kw">_</span>, <span class="ident">mutability</span>) <span class="op">=</span> <a class="ident" href="../../src/analysis/mir_utils.rs.html#302">ty</a>.<span class="ident">kind</span>() {
+            <span class="comment">// Shared references are copy, mutable references are not.</span>
+            <span class="macro">matches!</span>(<a class="ident" href="../../src/analysis/mir_utils.rs.html#308">mutability</a>, <span class="ident">mir::Mutability::Not</span>)
+        } <span class="kw">else</span> {
+            <a class="ident" href="../../src/analysis/mir_utils.rs.html#301">tcx</a>.<span class="ident">infer_ctxt</span>().<span class="ident">enter</span>(<span class="op">|</span><span class="ident">infcx</span><span class="op">|</span> {
+                <a class="ident" href="../../src/analysis/mir_utils.rs.html#312">infcx</a>
+                    .<span class="ident">type_implements_trait</span>(<a class="ident" href="../../src/analysis/mir_utils.rs.html#305">copy_trait</a>, <a class="ident" href="../../src/analysis/mir_utils.rs.html#302">ty</a>, <span class="ident">ty::List::empty</span>(), <a class="ident" href="../../src/analysis/mir_utils.rs.html#303">param_env</a>)
+                    .<span class="ident">must_apply_considering_regions</span>()
+            })
+        }
+    } <span class="kw">else</span> {
+        <span class="bool-val">false</span>
     }
 }
 </code></pre></div>
