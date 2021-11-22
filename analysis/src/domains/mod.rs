@@ -5,7 +5,9 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 mod definitely_initialized;
+mod maybe_borrowed;
 mod reaching_definitions;
 
 pub use definitely_initialized::*;
+pub use maybe_borrowed::*;
 pub use reaching_definitions::*;

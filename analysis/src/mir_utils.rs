@@ -208,3 +208,89 @@ pub(crate) fn collapse<'tcx>(
     }
     recurse(mir, tcx, places, guide_place.local.into(), guide_place);
 }
+
+pub struct DisplayPlaceRef<'a>(pub mir::PlaceRef<'a>);
+
+impl std::fmt::Display for DisplayPlaceRef<'_> {
+    fn fmt(&self, fmt: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        for elem in self.0.projection.iter().rev() {
+            match elem {
+                mir::ProjectionElem::Downcast(_, _) | mir::ProjectionElem::Field(_, _) => {
+                    write!(fmt, "(").unwrap();
+                }
+                mir::ProjectionElem::Deref => {
+                    write!(fmt, "(*").unwrap();
+                }
+                mir::ProjectionElem::Index(_)
+                | mir::ProjectionElem::ConstantIndex { .. }
+                | mir::ProjectionElem::Subslice { .. } => {}
+            }
+        }
+
+        write!(fmt, "{:?}", self.0.local)?;
+
+        for elem in self.0.projection.iter() {
+            match elem {
+                mir::ProjectionElem::Downcast(Some(name), _index) => {
+                    write!(fmt, " as {})", name)?;
+                }
+                mir::ProjectionElem::Downcast(None, index) => {
+                    write!(fmt, " as variant#{:?})", index)?;
+                }
+                mir::ProjectionElem::Deref => {
+                    write!(fmt, ")")?;
+                }
+                mir::ProjectionElem::Field(field, ty) => {
+                    write!(fmt, ".{:?}: {:?})", field.index(), ty)?;
+                }
+                mir::ProjectionElem::Index(ref index) => {
+                    write!(fmt, "[{:?}]", index)?;
+                }
+                mir::ProjectionElem::ConstantIndex {
+                    offset,
+                    min_length,
+                    from_end: false,
+                } => {
+                    write!(fmt, "[{:?} of {:?}]", offset, min_length)?;
+                }
+                mir::ProjectionElem::ConstantIndex {
+                    offset,
+                    min_length,
+                    from_end: true,
+                } => {
+                    write!(fmt, "[-{:?} of {:?}]", offset, min_length)?;
+                }
+                mir::ProjectionElem::Subslice {
+                    from,
+                    to,
+                    from_end: true,
+                } if *to == 0 => {
+                    write!(fmt, "[{:?}:]", from)?;
+                }
+                mir::ProjectionElem::Subslice {
+                    from,
+                    to,
+                    from_end: true,
+                } if *from == 0 => {
+                    write!(fmt, "[:-{:?}]", to)?;
+                }
+                mir::ProjectionElem::Subslice {
+                    from,
+                    to,
+                    from_end: true,
+                } => {
+                    write!(fmt, "[{:?}:-{:?}]", from, to)?;
+                }
+                mir::ProjectionElem::Subslice {
+                    from,
+                    to,
+                    from_end: false,
+                } => {
+                    write!(fmt, "[{:?}..{:?}]", from, to)?;
+                }
+            }
+        }
+
+        Ok(())
+    }
+}
