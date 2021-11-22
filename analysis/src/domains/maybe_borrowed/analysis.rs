@@ -89,6 +89,29 @@ impl<'mir, 'tcx: 'mir> MaybeBorrowedAnalysis<'mir, 'tcx> {
             }
         }
 
+        // Set state_after_block
+        for (block, block_data) in body.basic_blocks().iter_enumerated() {
+            for &successor in block_data.terminator().successors() {
+                let state = analysis_state
+                    .lookup_before(mir::Location {
+                        block: successor,
+                        statement_index: 0,
+                    })
+                    .unwrap()
+                    .to_owned();
+                let state_after = analysis_state
+                    .lookup_mut_after_block(block)
+                    .get_mut(&successor)
+                    .unwrap();
+                debug_assert!(
+                    (state_after.maybe_shared_borrowed.is_empty()
+                        && state_after.maybe_mut_borrowed.is_empty())
+                        || state_after == &state
+                );
+                *state_after = state;
+            }
+        }
+
         Ok(analysis_state)
     }
 }
