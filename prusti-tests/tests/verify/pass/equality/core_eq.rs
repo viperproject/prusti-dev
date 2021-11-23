@@ -2,8 +2,6 @@
 //! [Prusti: invalid specification] use of impure function "core::cmp::PartialEq::eq" in pure code is not allowed
 //! [Prusti: invalid specification] use of impure function "core::cmp::PartialEq::ne" in pure code is not allowed
 
-#![no_std]
-
 use prusti_contracts::*;
 
 #[derive(Clone, Copy, PartialEq, Eq)]
@@ -12,13 +10,13 @@ struct A(usize);
 #[pure]
 #[requires(left == right)]
 fn eq(left: A, right: A) -> bool {
-    left == right
+    core::cmp::PartialEq::eq(&left, &right)
 }
 
 #[pure]
 #[requires(left != right)]
 fn ne(left: A, right: A) -> bool{
-    left != right
+    core::cmp::PartialEq::ne(&left, &right)
 }
 
 fn main() {
