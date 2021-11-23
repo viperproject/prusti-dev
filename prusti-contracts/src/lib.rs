@@ -1,4 +1,4 @@
-extern crate proc_macro;
+#![no_std]
 
 #[cfg(not(feature = "prusti"))]
 mod private {
@@ -24,7 +24,19 @@ mod private {
     pub use prusti_contracts_impl::body_invariant;
 
     /// A macro for defining a closure with a specification.
-    pub use prusti_contracts_impl::closure;
+    /// Note: this is a declarative macro defined in this crate
+    /// because declarative macros can't be exported from
+    /// the `prusti-contracts-impl` proc-macro crate.
+    /// See <https://github.com/rust-lang/rust/issues/40090>.
+    #[macro_export]
+    macro_rules! closure {
+        ($condition:ident ($($args:tt)*), $($tail:tt)*) => {
+            $crate::closure!($($tail)*)
+        };
+        ($($tail:tt)*) => {
+            $($tail)*
+        };
+    }
 
     /// A macro for impl blocks that refine trait specifications.
     pub use prusti_contracts_impl::refine_trait_spec;

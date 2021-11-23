@@ -1,8 +1,7 @@
+#![no_std]
 extern crate proc_macro;
 
 use proc_macro::TokenStream;
-use proc_macro2::Span;
-use quote::quote_spanned;
 
 #[proc_macro_attribute]
 pub fn requires(_attr: TokenStream, tokens: TokenStream) -> TokenStream {
@@ -36,13 +35,7 @@ pub fn trusted(_attr: TokenStream, tokens: TokenStream) -> TokenStream {
 
 #[proc_macro]
 pub fn body_invariant(_tokens: TokenStream) -> TokenStream {
-    let callsite_span = Span::call_site();
-    (quote_spanned!(callsite_span=> ())).into()
-}
-
-#[proc_macro]
-pub fn closure(tokens: TokenStream) -> TokenStream {
-    prusti_specs::closure(tokens.into(), true).into()
+    TokenStream::new()
 }
 
 #[proc_macro_attribute]
@@ -51,8 +44,8 @@ pub fn refine_trait_spec(_attr: TokenStream, tokens: TokenStream) -> TokenStream
 }
 
 #[proc_macro_attribute]
-pub fn extern_spec(_attr: TokenStream, tokens: TokenStream) -> TokenStream {
-    tokens
+pub fn extern_spec(_attr: TokenStream, _tokens: TokenStream) -> TokenStream {
+    TokenStream::new()
 }
 
 #[proc_macro]

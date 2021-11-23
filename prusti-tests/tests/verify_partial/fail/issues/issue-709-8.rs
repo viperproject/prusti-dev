@@ -1,4 +1,3 @@
-#![no_std]
 extern crate prusti_contracts;
 use prusti_contracts::*;
 

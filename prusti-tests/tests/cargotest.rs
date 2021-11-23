@@ -161,10 +161,13 @@ fn test_local_project<T: Into<PathBuf>>(project_name: T) {
 
     // Set the expected exit status, stdout and stderr
     let mut test_builder = project.process(cargo_prusti_path());
+    test_builder.arg("--quiet");
     let opt_expected_stdout = fs::read_to_string(project_path.join("output.stdout")).ok();
     let opt_expected_stderr = fs::read_to_string(project_path.join("output.stderr")).ok();
     if let Some(ref expected_stdout) = opt_expected_stdout {
-        test_builder.with_stdout(expected_stdout);
+        // In some cases, Prusti outputs more macro definitions than needed.
+        // See: https://github.com/viperproject/prusti-dev/pull/762
+        test_builder.with_stdout_contains(expected_stdout);
     }
     if let Some(ref expected_stderr) = opt_expected_stderr {
         test_builder.with_status(101).with_stderr(expected_stderr);
@@ -209,6 +212,14 @@ fn test_prusti_toml_fail() {
     if let Some(value) = old_value {
         std::env::set_var("RUST_BACKTRACE", value)
     }
+}
+
+// `#![no_std]` binaries on Windows are not a thing yet,
+// see <https://github.com/viperproject/prusti-dev/pull/762>.
+#[cfg_attr(windows, ignore)]
+#[cargo_test]
+fn test_no_std() {
+    test_local_project("test_no_std");
 }
 
 // TODO: automatically create a test for each folder in `test/cargo_verify`.
