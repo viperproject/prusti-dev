@@ -348,13 +348,20 @@ impl<'v, 'tcx: 'v> PureFunctionEncoderInterface<'tcx>
                 .pure_function_encoder_state
                 .function_descriptions
                 .borrow_mut();
-            let description = FunctionDescription {
-                proc_def_id,
-                substs: substs.clone(),
-            };
-            assert!(function_descriptions
-                .insert(function_identifier, description)
-                .is_none());
+            // Then `function_identifier` may be the same with a different `key`.
+            // This is because the substitution map `substs` context may differ,
+            // but the pure function call does not use these generics.
+            // For instance a pure function call in a trait and then a trait impl;
+            // in the former `substs` is empty, but in the latter the generic `Self` is mapped.
+            if function_descriptions.get(&function_identifier).is_none() {
+                let description = FunctionDescription {
+                    proc_def_id,
+                    substs: substs.clone(),
+                };
+                assert!(function_descriptions
+                    .insert(function_identifier, description)
+                    .is_none());
+            }
 
             call_infos.insert(key.clone(), function_call_info);
         }
