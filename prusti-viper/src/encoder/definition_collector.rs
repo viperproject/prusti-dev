@@ -5,6 +5,7 @@ use super::{
 };
 use crate::encoder::{high::types::HighTypeEncoderInterface, mir::types::MirTypeEncoderInterface};
 use prusti_common::vir_local;
+use rustc_span::Span;
 use std::{
     collections::{HashMap, HashSet},
     hash::Hash,
@@ -31,6 +32,7 @@ use vir_crate::polymorphic::{
 /// We include bodies of all predicates which we observed unfolded at any step
 /// of the process.
 pub(super) fn collect_definitions(
+    error_span: Span,
     encoder: &Encoder,
     name: String,
     methods: Vec<vir::CfgMethod>,
@@ -40,6 +42,7 @@ pub(super) fn collect_definitions(
     };
     vir::utils::walk_methods(&methods, &mut unfolded_predicate_collector);
     let mut collector = Collector {
+        error_span,
         encoder,
         method_names: methods.iter().map(|method| method.name()).collect(),
         unfolded_predicates: unfolded_predicate_collector.unfolded_predicates,
@@ -49,6 +52,7 @@ pub(super) fn collect_definitions(
         used_domains: Default::default(),
         used_snap_domain_functions: Default::default(),
         used_functions: Default::default(),
+        checked_function_contracts: Default::default(),
         used_mirror_functions: Default::default(),
         unfolded_functions: Default::default(),
         directly_called_functions: Default::default(),
@@ -59,6 +63,7 @@ pub(super) fn collect_definitions(
 }
 
 struct Collector<'p, 'v: 'p, 'tcx: 'v> {
+    error_span: Span,
     encoder: &'p Encoder<'v, 'tcx>,
     /// The list of encoded methods for checking that they do not clash with
     /// functions.
@@ -74,6 +79,8 @@ struct Collector<'p, 'v: 'p, 'tcx: 'v> {
     used_snap_domain_functions: HashSet<vir::FunctionIdentifier>,
     /// The set of all functions that are mentioned in the method.
     used_functions: HashSet<vir::FunctionIdentifier>,
+    /// The set of functions whose contracts were already checked.
+    checked_function_contracts: HashSet<vir::FunctionIdentifier>,
     /// The set of all mirror functions that are mentioned in the method.
     used_mirror_functions: HashSet<vir::FunctionIdentifier>,
     /// The set of functions whose bodies have to be included because predicates
@@ -202,10 +209,15 @@ impl<'p, 'v: 'p, 'tcx: 'v> Collector<'p, 'v, 'tcx> {
                     function.body = None;
                 }
             }
-            assert!(
-                !self.method_names.contains(&function.name),
-                "same Rust function encoded as both Viper method and function"
-            );
+            if self.method_names.contains(&function.name) {
+                return Err(SpannedEncodingError::internal(
+                    format!(
+                        "Rust function {} encoded both as a Viper method and function",
+                        function.name
+                    ),
+                    self.error_span,
+                ));
+            }
             functions.push(function);
         }
         functions.sort_by_cached_key(|f| f.get_identifier());
@@ -355,8 +367,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> FallibleExprWalker for Collector<'p, 'v, 'tcx> {
         if have_visited || have_visited_in_directly_calling_state {
             let function = self.encoder.get_function(&identifier)?;
             self.used_functions.insert(identifier.clone());
-            for expr in function.pres.iter().chain(&function.posts) {
-                self.fallible_walk_expr(expr)?;
+            if !self.checked_function_contracts.contains(&identifier) {
+                self.checked_function_contracts.insert(identifier.clone());
+                for expr in function.pres.iter().chain(&function.posts) {
+                    self.fallible_walk_expr(expr)?;
+                }
             }
             let is_unfoldable = self.contains_unfolded_predicates(&function.pres)
                 || self.contains_unfolded_parameters(&function.formal_args);
