@@ -353,7 +353,7 @@ impl<'v, 'tcx: 'v> PureFunctionEncoderInterface<'tcx>
             // but the pure function call does not use these generics.
             // For instance a pure function call in a trait and then a trait impl;
             // in the former `substs` is empty, but in the latter the generic `Self` is mapped.
-            if function_descriptions.get(&function_identifier).is_none() {
+            if !function_descriptions.contains_key(&function_identifier) {
                 let description = FunctionDescription {
                     proc_def_id,
                     substs: substs.clone(),
