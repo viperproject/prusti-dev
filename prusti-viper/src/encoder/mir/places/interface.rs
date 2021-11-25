@@ -202,7 +202,7 @@ impl<'v, 'tcx: 'v> PlacesEncoderInterface<'tcx> for super::super::super::Encoder
                         .encode_place_type_high(parent_mir_type)
                         .with_span(span)?;
                     let encoded_field = self.encode_field(&parent_type, field).with_span(span)?;
-                    vir_high::Expression::field_no_pos(expr, encoded_field)
+                    expr.field_no_pos(encoded_field)
                 }
                 mir::ProjectionElem::Index(index) => {
                     debug!("index: {:?}[{:?}]", expr, index);
