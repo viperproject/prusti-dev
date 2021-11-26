@@ -322,6 +322,40 @@
 <span id="322">322</span>
 <span id="323">323</span>
 <span id="324">324</span>
+<span id="325">325</span>
+<span id="326">326</span>
+<span id="327">327</span>
+<span id="328">328</span>
+<span id="329">329</span>
+<span id="330">330</span>
+<span id="331">331</span>
+<span id="332">332</span>
+<span id="333">333</span>
+<span id="334">334</span>
+<span id="335">335</span>
+<span id="336">336</span>
+<span id="337">337</span>
+<span id="338">338</span>
+<span id="339">339</span>
+<span id="340">340</span>
+<span id="341">341</span>
+<span id="342">342</span>
+<span id="343">343</span>
+<span id="344">344</span>
+<span id="345">345</span>
+<span id="346">346</span>
+<span id="347">347</span>
+<span id="348">348</span>
+<span id="349">349</span>
+<span id="350">350</span>
+<span id="351">351</span>
+<span id="352">352</span>
+<span id="353">353</span>
+<span id="354">354</span>
+<span id="355">355</span>
+<span id="356">356</span>
+<span id="357">357</span>
+<span id="358">358</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::encoder</span>::{
     <a class="ident" href="../../../../../../src/prusti_viper/encoder/borrows.rs.html#131">borrows::ProcedureContractMirDef</a>,
     <a class="ident" href="../../../../../../src/prusti_viper/encoder/encoder.rs.html#102">encoder::SubstMap</a>,
@@ -365,7 +399,7 @@
         <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#33">parent_def_id</a>,
         <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#34">tymap</a>.<span class="ident">clone</span>(),
     );
-    <span class="kw">let</span> <span class="ident">encoder</span> <span class="op">=</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#117-124">PureEncoder</a> {
+    <span class="kw">let</span> <span class="ident">pure_encoder</span> <span class="op">=</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#151-158">PureEncoder</a> {
         <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#30">encoder</a>,
         <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#31">proc_def_id</a>,
         <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#32">mir</a>,
@@ -373,9 +407,43 @@
         <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#34">tymap</a>,
         <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#36">interpreter</a>,
     };
-    <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#44">encoder</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#148">encode_function_decl</a>()
+    <span class="kw">let</span> <span class="ident">function_decl</span> <span class="op">=</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#44">pure_encoder</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#182">encode_function_decl</a>()<span class="question-mark">?</span>;
+    <span class="kw">if</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#52">function_decl</a>.<span class="ident">body</span>.<span class="ident">is_some</span>() {
+        <span class="comment">// Check that function does not call itself in its contract.</span>
+        <span class="kw">let</span> <span class="ident">span</span> <span class="op">=</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#30">encoder</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/encoder.rs.html#205">env</a>().<span class="ident">get_def_span</span>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#31">proc_def_id</a>);
+        <span class="kw">struct</span> <span class="ident">CallFinder</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
+            <span class="ident">function_name</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>,
+            <span class="ident">span</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/span_encoding/struct.Span.html">Span</a>,
+        }
+        <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <a class="ident" href="../../../../../../vir/gen/high/ast/expression/visitors/trait.ExpressionFallibleWalker.html">vir_high::visitors::ExpressionFallibleWalker</a> <span class="kw">for</span> <span class="ident">CallFinder</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
+            <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/errors/spanned_encoding_error.rs.html#16-19">SpannedEncodingError</a>;
+            <span class="kw">fn</span> <span class="ident">fallible_walk_func_app</span>(
+                <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
+                <span class="ident">func_app</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../../../vir/gen/high/ast/expression/struct.FuncApp.html">vir_high::FuncApp</a>,
+            ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
+                <span class="kw">if</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#64">func_app</a>.<span class="ident">function_name</span> <span class="op">==</span> <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#63">self</a>.<span class="ident">function_name</span> {
+                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">SpannedEncodingError::incorrect</span>(
+                        <span class="string">&quot;only trusted functions can call themselves in their contracts&quot;</span>.<span class="ident">to_string</span>(),
+                        <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#63">self</a>.<span class="ident">span</span>,
+                    ));
+                }
+                <span class="ident">vir_high::visitors::default_fallible_walk_func_app</span>(<a class="self" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#63">self</a>, <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#64">func_app</a>)
+            }
+        }
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">finder</span> <span class="op">=</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#56-59">CallFinder</a> {
+            <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#55">span</a>,
+            <span class="ident">function_name</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#52">function_decl</a>.<span class="ident">name</span>,
+        };
+        <span class="kw">for</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#79">expr</a> <span class="kw">in</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#52">function_decl</a>.<span class="ident">pres</span>.<span class="ident">iter</span>().<span class="ident">chain</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#52">function_decl</a>.<span class="ident">posts</span>) {
+            <span class="ident">vir_high::visitors::ExpressionFallibleWalker::fallible_walk_expression</span>(
+                <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#75">finder</a>,
+                <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#79">expr</a>,
+            )<span class="question-mark">?</span>;
+        }
+    }
     <span class="comment">// FIXME: Traverse the encoded function and check that all used types are</span>
     <span class="comment">// Copy. Doing this before encoding causes too many false positives.</span>
+    <span class="prelude-val">Ok</span>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#52">function_decl</a>)
 }
 
 <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">encode_pure_expression</span><span class="op">&lt;</span><span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;v</span>: <span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;v</span><span class="op">&gt;</span>(
@@ -386,22 +454,22 @@
     <span class="ident">tymap</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;p</span> <span class="ident">SubstMap</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
 ) -&gt; <span class="ident">SpannedEncodingResult</span><span class="op">&lt;</span><a class="ident" href="../../../../../../vir/gen/high/ast/expression/enum.Expression.html">vir_high::Expression</a><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">interpreter</span> <span class="op">=</span> <span class="ident">ExpressionBackwardInterpreter::new</span>(
-        <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#58">encoder</a>,
-        <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#60">mir</a>,
-        <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#59">proc_def_id</a>,
+        <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#92">encoder</a>,
+        <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#94">mir</a>,
+        <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#93">proc_def_id</a>,
         <span class="bool-val">false</span>,
-        <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#61">parent_def_id</a>,
-        <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#62">tymap</a>.<span class="ident">clone</span>(),
+        <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#95">parent_def_id</a>,
+        <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#96">tymap</a>.<span class="ident">clone</span>(),
     );
-    <span class="kw">let</span> <span class="ident">encoder</span> <span class="op">=</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#117-124">PureEncoder</a> {
-        <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#58">encoder</a>,
-        <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#59">proc_def_id</a>,
-        <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#60">mir</a>,
-        <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#61">parent_def_id</a>,
-        <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#62">tymap</a>,
-        <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#64">interpreter</a>,
+    <span class="kw">let</span> <span class="ident">encoder</span> <span class="op">=</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#151-158">PureEncoder</a> {
+        <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#92">encoder</a>,
+        <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#93">proc_def_id</a>,
+        <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#94">mir</a>,
+        <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#95">parent_def_id</a>,
+        <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#96">tymap</a>,
+        <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#98">interpreter</a>,
     };
-    <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#72">encoder</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#127">encode_pure_expression</a>()
+    <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#106">encoder</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#161">encode_pure_expression</a>()
     <span class="comment">// FIXME: Traverse the encoded function and check that all used types are</span>
     <span class="comment">// Copy. Doing this before encoding causes too many false positives.</span>
 }
@@ -415,25 +483,25 @@
 ) -&gt; <span class="ident">SpannedEncodingResult</span><span class="op">&lt;</span><a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/encoder.rs.html#502-507">FunctionCallInfoHigh</a><span class="op">&gt;</span> {
     <span class="comment">// FIXME: Refactor code to avoid creating the interpreter because it is unnecessary.</span>
     <span class="kw">let</span> <span class="ident">interpreter</span> <span class="op">=</span> <span class="ident">ExpressionBackwardInterpreter::new</span>(
-        <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#86">encoder</a>,
-        <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#88">mir</a>,
-        <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#87">proc_def_id</a>,
+        <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#120">encoder</a>,
+        <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#122">mir</a>,
+        <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#121">proc_def_id</a>,
         <span class="bool-val">false</span>,
-        <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#89">parent_def_id</a>,
-        <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#90">tymap</a>.<span class="ident">clone</span>(),
+        <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#123">parent_def_id</a>,
+        <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#124">tymap</a>.<span class="ident">clone</span>(),
     );
-    <span class="kw">let</span> <span class="ident">encoder</span> <span class="op">=</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#117-124">PureEncoder</a> {
-        <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#86">encoder</a>,
-        <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#87">proc_def_id</a>,
-        <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#88">mir</a>,
-        <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#89">parent_def_id</a>,
-        <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#90">tymap</a>,
-        <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#93">interpreter</a>,
+    <span class="kw">let</span> <span class="ident">encoder</span> <span class="op">=</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#151-158">PureEncoder</a> {
+        <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#120">encoder</a>,
+        <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#121">proc_def_id</a>,
+        <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#122">mir</a>,
+        <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#123">parent_def_id</a>,
+        <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#124">tymap</a>,
+        <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#127">interpreter</a>,
     };
     <span class="prelude-val">Ok</span>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/encoder.rs.html#502-507">FunctionCallInfoHigh</a> {
-        <span class="ident">name</span>: <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#101">encoder</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#156">encode_function_name</a>(),
-        <span class="ident">_parameters</span>: <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#101">encoder</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#194">encode_parameters</a>()<span class="question-mark">?</span>,
-        <span class="ident">return_type</span>: <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#101">encoder</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#226">encode_return_type</a>()<span class="question-mark">?</span>,
+        <span class="ident">name</span>: <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#135">encoder</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#190">encode_function_name</a>(),
+        <span class="ident">_parameters</span>: <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#135">encoder</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#228">encode_parameters</a>()<span class="question-mark">?</span>,
+        <span class="ident">return_type</span>: <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#135">encoder</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#260">encode_return_type</a>()<span class="question-mark">?</span>,
     })
 }
 
@@ -449,36 +517,36 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;v</span>: <span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;v</span><span class="op">&gt;</span> <span class="ident">PureEncoder</span><span class="op">&lt;</span><span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">encode_pure_expression</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">SpannedEncodingResult</span><span class="op">&lt;</span><a class="ident" href="../../../../../../vir/gen/high/ast/expression/enum.Expression.html">vir_high::Expression</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">state</span> <span class="op">=</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir_interpreter.rs.html#38-44">run_backward_interpretation</a>(<a class="self" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#127">self</a>.<span class="ident">mir</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#127">self</a>.<span class="ident">interpreter</span>)<span class="question-mark">?</span>.<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
+        <span class="kw">let</span> <span class="ident">state</span> <span class="op">=</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir_interpreter.rs.html#38-44">run_backward_interpretation</a>(<a class="self" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#161">self</a>.<span class="ident">mir</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#161">self</a>.<span class="ident">interpreter</span>)<span class="question-mark">?</span>.<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
             <span class="ident">SpannedEncodingError::incorrect</span>(
-                <span class="macro">format!</span>(<span class="string">&quot;procedure {:?} contains a loop&quot;</span>, <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#127">self</a>.<span class="ident">proc_def_id</span>),
-                <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#127">self</a>.<span class="ident">encoder</span>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/encoder.rs.html#205">env</a>().<span class="ident">get_def_span</span>(<a class="self" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#127">self</a>.<span class="ident">proc_def_id</span>),
+                <span class="macro">format!</span>(<span class="string">&quot;procedure {:?} contains a loop&quot;</span>, <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#161">self</a>.<span class="ident">proc_def_id</span>),
+                <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#161">self</a>.<span class="ident">encoder</span>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/encoder.rs.html#205">env</a>().<span class="ident">get_def_span</span>(<a class="self" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#161">self</a>.<span class="ident">proc_def_id</span>),
             )
         })<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">body</span> <span class="op">=</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#128">state</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/interpreter/state.rs.html#65">into_expr</a>().<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
+        <span class="kw">let</span> <span class="ident">body</span> <span class="op">=</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#162">state</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/interpreter/state.rs.html#65">into_expr</a>().<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
             <span class="ident">SpannedEncodingError::internal</span>(
-                <span class="macro">format!</span>(<span class="string">&quot;failed to encode function&#39;s body: {:?}&quot;</span>, <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#127">self</a>.<span class="ident">proc_def_id</span>),
-                <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#127">self</a>.<span class="ident">encoder</span>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/encoder.rs.html#205">env</a>().<span class="ident">get_def_span</span>(<a class="self" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#127">self</a>.<span class="ident">proc_def_id</span>),
+                <span class="macro">format!</span>(<span class="string">&quot;failed to encode function&#39;s body: {:?}&quot;</span>, <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#161">self</a>.<span class="ident">proc_def_id</span>),
+                <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#161">self</a>.<span class="ident">encoder</span>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/encoder.rs.html#205">env</a>().<span class="ident">get_def_span</span>(<a class="self" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#161">self</a>.<span class="ident">proc_def_id</span>),
             )
         })<span class="question-mark">?</span>;
         <span class="macro">debug!</span>(
             <span class="string">&quot;Pure function {:?} has been encoded with expr: {}&quot;</span>,
-            <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#127">self</a>.<span class="ident">proc_def_id</span>, <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#134">body</a>
+            <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#161">self</a>.<span class="ident">proc_def_id</span>, <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#168">body</a>
         );
         <span class="comment">// FIXME: Apply type substitutions.</span>
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#134">body</a>)
+        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#168">body</a>)
     }
 
     <span class="kw">fn</span> <span class="ident">encode_function_decl</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">SpannedEncodingResult</span><span class="op">&lt;</span><a class="ident" href="../../../../../../vir/gen/high/ast/function/struct.FunctionDecl.html">vir_high::FunctionDecl</a><span class="op">&gt;</span> {
-        <span class="macro">trace!</span>(<span class="string">&quot;[enter] encode_function({:?})&quot;</span>, <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#148">self</a>.<span class="ident">proc_def_id</span>);
-        <span class="kw">let</span> <span class="ident">body</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="self" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#148">self</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#127">encode_pure_expression</a>()<span class="question-mark">?</span>);
-        <span class="kw">let</span> <span class="ident">function</span> <span class="op">=</span> <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#148">self</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#160-163">encode_function_decl_given_body</a>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#150">body</a>);
-        <span class="macro">trace!</span>(<span class="string">&quot;[exit] encode_function({:?})&quot;</span>, <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#148">self</a>.<span class="ident">proc_def_id</span>);
-        <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#151">function</a>
+        <span class="macro">trace!</span>(<span class="string">&quot;[enter] encode_function({:?})&quot;</span>, <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#182">self</a>.<span class="ident">proc_def_id</span>);
+        <span class="kw">let</span> <span class="ident">body</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="self" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#182">self</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#161">encode_pure_expression</a>()<span class="question-mark">?</span>);
+        <span class="kw">let</span> <span class="ident">function</span> <span class="op">=</span> <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#182">self</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#194-197">encode_function_decl_given_body</a>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#184">body</a>);
+        <span class="macro">trace!</span>(<span class="string">&quot;[exit] encode_function({:?})&quot;</span>, <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#182">self</a>.<span class="ident">proc_def_id</span>);
+        <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#185">function</a>
     }
 
     <span class="kw">fn</span> <span class="ident">encode_function_name</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> {
-        <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#156">self</a>.<span class="ident">encoder</span>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/encoder.rs.html#766">encode_item_name</a>(<a class="self" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#156">self</a>.<span class="ident">proc_def_id</span>)
+        <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#190">self</a>.<span class="ident">encoder</span>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/encoder.rs.html#767">encode_item_name</a>(<a class="self" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#190">self</a>.<span class="ident">proc_def_id</span>)
     }
 
     <span class="kw">fn</span> <span class="ident">encode_function_decl_given_body</span>(
@@ -487,92 +555,92 @@
     ) -&gt; <span class="ident">SpannedEncodingResult</span><span class="op">&lt;</span><a class="ident" href="../../../../../../vir/gen/high/ast/function/struct.FunctionDecl.html">vir_high::FunctionDecl</a><span class="op">&gt;</span> {
         <span class="macro">trace!</span>(
             <span class="string">&quot;[enter] encode_function_decl_given_body({:?})&quot;</span>,
-            <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#161">self</a>.<span class="ident">proc_def_id</span>
+            <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#195">self</a>.<span class="ident">proc_def_id</span>
         );
-        <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#161">self</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#156">encode_function_name</a>();
-        <span class="kw">let</span> <span class="ident">parameters</span> <span class="op">=</span> <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#161">self</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#194">encode_parameters</a>()<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">return_type</span> <span class="op">=</span> <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#161">self</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#226">encode_return_type</a>()<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#195">self</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#190">encode_function_name</a>();
+        <span class="kw">let</span> <span class="ident">parameters</span> <span class="op">=</span> <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#195">self</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#228">encode_parameters</a>()<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">return_type</span> <span class="op">=</span> <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#195">self</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#260">encode_return_type</a>()<span class="question-mark">?</span>;
 
-        <span class="kw">let</span> <span class="ident">contract</span> <span class="op">=</span> <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#161">self</a>
+        <span class="kw">let</span> <span class="ident">contract</span> <span class="op">=</span> <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#195">self</a>
             .<span class="ident">encoder</span>
-            .<a class="ident" href="../../../../../../src/prusti_viper/encoder/encoder.rs.html#347-350">get_mir_procedure_contract_for_def</a>(<a class="self" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#161">self</a>.<span class="ident">proc_def_id</span>)
-            .<a class="ident" href="../../../../../../src/prusti_viper/encoder/errors/with_span.rs.html#14">with_span</a>(<a class="self" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#161">self</a>.<span class="ident">mir</span>.<span class="ident">span</span>)<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">func_precondition</span> <span class="op">=</span> <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#161">self</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#254-258">encode_precondition_expr</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#169">parameters</a>, <span class="kw-2">&amp;</span><a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#172">contract</a>)<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">func_postcondition</span> <span class="op">=</span> <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#161">self</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#277-281">encode_postcondition_expr</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#169">parameters</a>, <span class="kw-2">&amp;</span><a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#172">contract</a>)<span class="question-mark">?</span>;
+            .<a class="ident" href="../../../../../../src/prusti_viper/encoder/encoder.rs.html#348-351">get_mir_procedure_contract_for_def</a>(<a class="self" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#195">self</a>.<span class="ident">proc_def_id</span>)
+            .<a class="ident" href="../../../../../../src/prusti_viper/encoder/errors/with_span.rs.html#14">with_span</a>(<a class="self" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#195">self</a>.<span class="ident">mir</span>.<span class="ident">span</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">func_precondition</span> <span class="op">=</span> <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#195">self</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#288-292">encode_precondition_expr</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#203">parameters</a>, <span class="kw-2">&amp;</span><a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#206">contract</a>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">func_postcondition</span> <span class="op">=</span> <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#195">self</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#311-315">encode_postcondition_expr</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#203">parameters</a>, <span class="kw-2">&amp;</span><a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#206">contract</a>)<span class="question-mark">?</span>;
 
         <span class="kw">let</span> <span class="ident">function</span> <span class="op">=</span> <a class="ident" href="../../../../../../vir/gen/high/ast/function/struct.FunctionDecl.html">vir_high::FunctionDecl</a> {
-            <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#168">name</a>,
-            <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#169">parameters</a>,
-            <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#170">return_type</a>,
-            <span class="ident">pres</span>: <span class="macro">vec!</span>[<a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#176">func_precondition</a>],
-            <span class="ident">posts</span>: <span class="macro">vec!</span>[<a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#177">func_postcondition</a>],
-            <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#162">body</a>,
+            <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#202">name</a>,
+            <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#203">parameters</a>,
+            <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#204">return_type</a>,
+            <span class="ident">pres</span>: <span class="macro">vec!</span>[<a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#210">func_precondition</a>],
+            <span class="ident">posts</span>: <span class="macro">vec!</span>[<a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#211">func_postcondition</a>],
+            <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#196">body</a>,
         };
         <span class="macro">trace!</span>(
             <span class="string">&quot;[exit] encode_function_decl_given_body({:?})&quot;</span>,
-            <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#161">self</a>.<span class="ident">proc_def_id</span>
+            <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#195">self</a>.<span class="ident">proc_def_id</span>
         );
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#179">function</a>)
+        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#213">function</a>)
     }
 
     <span class="kw">fn</span> <span class="ident">encode_parameters</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">SpannedEncodingResult</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../../../../../vir/gen/high/ast/variable/struct.VariableDecl.html">vir_high::VariableDecl</a><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">parameters</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
-        <span class="kw">for</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#196">local</a> <span class="kw">in</span> <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#194">self</a>.<span class="ident">mir</span>.<span class="ident">args_iter</span>() {
-            <span class="kw">let</span> <span class="ident">ty</span> <span class="op">=</span> <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#194">self</a>.<span class="ident">encoder</span>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/places/interface.rs.html#37-41">get_local_type</a>(<a class="self" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#194">self</a>.<span class="ident">mir</span>, <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#196">local</a>)<span class="question-mark">?</span>;
-            <span class="kw">let</span> <span class="ident">param_env</span> <span class="op">=</span> <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#194">self</a>.<span class="ident">encoder</span>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/encoder.rs.html#205">env</a>().<span class="ident">tcx</span>().<span class="ident">param_env</span>(<a class="self" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#194">self</a>.<span class="ident">proc_def_id</span>);
-            <span class="kw">if</span> <span class="op">!</span><a class="self" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#194">self</a>
+        <span class="kw">for</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#230">local</a> <span class="kw">in</span> <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#228">self</a>.<span class="ident">mir</span>.<span class="ident">args_iter</span>() {
+            <span class="kw">let</span> <span class="ident">ty</span> <span class="op">=</span> <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#228">self</a>.<span class="ident">encoder</span>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/places/interface.rs.html#37-41">get_local_type</a>(<a class="self" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#228">self</a>.<span class="ident">mir</span>, <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#230">local</a>)<span class="question-mark">?</span>;
+            <span class="kw">let</span> <span class="ident">param_env</span> <span class="op">=</span> <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#228">self</a>.<span class="ident">encoder</span>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/encoder.rs.html#205">env</a>().<span class="ident">tcx</span>().<span class="ident">param_env</span>(<a class="self" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#228">self</a>.<span class="ident">proc_def_id</span>);
+            <span class="kw">if</span> <span class="op">!</span><a class="self" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#228">self</a>
                 .<span class="ident">encoder</span>
                 .<a class="ident" href="../../../../../../src/prusti_viper/encoder/encoder.rs.html#205">env</a>()
-                .<span class="ident">type_is_allowed_in_pure_functions</span>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#197">ty</a>, <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#198">param_env</a>)
+                .<span class="ident">type_is_allowed_in_pure_functions</span>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#231">ty</a>, <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#232">param_env</a>)
             {
                 <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">SpannedEncodingError::incorrect</span>(
                     <span class="string">&quot;all types used in pure functions must be Copy&quot;</span>,
-                    <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#194">self</a>.<span class="ident">encoder</span>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/places/interface.rs.html#31-35">get_local_span</a>(<a class="self" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#194">self</a>.<span class="ident">mir</span>, <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#196">local</a>)<span class="question-mark">?</span>,
+                    <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#228">self</a>.<span class="ident">encoder</span>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/places/interface.rs.html#31-35">get_local_span</a>(<a class="self" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#228">self</a>.<span class="ident">mir</span>, <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#230">local</a>)<span class="question-mark">?</span>,
                 ));
             }
-            <span class="kw">let</span> <span class="ident">variable_decl</span> <span class="op">=</span> <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#194">self</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#243">encode_mir_local</a>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#196">local</a>)<span class="question-mark">?</span>;
-            <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#195">parameters</a>.<span class="ident">push</span>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#209">variable_decl</a>);
+            <span class="kw">let</span> <span class="ident">variable_decl</span> <span class="op">=</span> <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#228">self</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#277">encode_mir_local</a>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#230">local</a>)<span class="question-mark">?</span>;
+            <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#229">parameters</a>.<span class="ident">push</span>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#243">variable_decl</a>);
         }
 
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#195">parameters</a>)
+        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#229">parameters</a>)
     }
 
     <span class="kw">fn</span> <span class="ident">convert_parameters_into_expressions</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">parameters</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="../../../../../../vir/gen/high/ast/variable/struct.VariableDecl.html">vir_high::VariableDecl</a>],
     ) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../../../../../vir/gen/high/ast/expression/enum.Expression.html">vir_high::Expression</a><span class="op">&gt;</span> {
-        <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#218">parameters</a>
+        <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#252">parameters</a>
             .<span class="ident">iter</span>()
-            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">parameter</span><span class="op">|</span> <span class="ident">vir_high::Expression::local_no_pos</span>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#222">parameter</a>.<span class="ident">clone</span>()))
+            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">parameter</span><span class="op">|</span> <span class="ident">vir_high::Expression::local_no_pos</span>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#256">parameter</a>.<span class="ident">clone</span>()))
             .<span class="ident">collect</span>()
     }
 
     <span class="kw">fn</span> <span class="ident">encode_return_type</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">SpannedEncodingResult</span><span class="op">&lt;</span><a class="ident" href="../../../../../../vir/gen/high/ast/ty/enum.Type.html">vir_high::Type</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">ty</span> <span class="op">=</span> <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#226">self</a>.<span class="ident">mir</span>.<span class="ident">return_ty</span>();
-        <span class="kw">let</span> <span class="ident">span</span> <span class="op">=</span> <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#226">self</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#317">get_local_span</a>(<span class="ident">mir::RETURN_PLACE</span>);
-        <span class="kw">let</span> <span class="ident">param_env</span> <span class="op">=</span> <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#226">self</a>.<span class="ident">encoder</span>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/encoder.rs.html#205">env</a>().<span class="ident">tcx</span>().<span class="ident">param_env</span>(<a class="self" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#226">self</a>.<span class="ident">proc_def_id</span>);
-        <span class="kw">if</span> <span class="op">!</span><a class="self" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#226">self</a>
+        <span class="kw">let</span> <span class="ident">ty</span> <span class="op">=</span> <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#260">self</a>.<span class="ident">mir</span>.<span class="ident">return_ty</span>();
+        <span class="kw">let</span> <span class="ident">span</span> <span class="op">=</span> <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#260">self</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#351">get_local_span</a>(<span class="ident">mir::RETURN_PLACE</span>);
+        <span class="kw">let</span> <span class="ident">param_env</span> <span class="op">=</span> <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#260">self</a>.<span class="ident">encoder</span>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/encoder.rs.html#205">env</a>().<span class="ident">tcx</span>().<span class="ident">param_env</span>(<a class="self" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#260">self</a>.<span class="ident">proc_def_id</span>);
+        <span class="kw">if</span> <span class="op">!</span><a class="self" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#260">self</a>
             .<span class="ident">encoder</span>
             .<a class="ident" href="../../../../../../src/prusti_viper/encoder/encoder.rs.html#205">env</a>()
-            .<span class="ident">type_is_allowed_in_pure_functions</span>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#227">ty</a>, <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#229">param_env</a>)
+            .<span class="ident">type_is_allowed_in_pure_functions</span>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#261">ty</a>, <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#263">param_env</a>)
         {
             <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">SpannedEncodingError::incorrect</span>(
                 <span class="string">&quot;return type of pure function does not implement Copy&quot;</span>,
-                <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#228">span</a>,
+                <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#262">span</a>,
             ));
         }
-        <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#226">self</a>.<span class="ident">encoder</span>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/types/interface.rs.html#43">encode_type_high</a>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#227">ty</a>)
+        <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#260">self</a>.<span class="ident">encoder</span>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/types/interface.rs.html#43">encode_type_high</a>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#261">ty</a>)
     }
 
     <span class="kw">fn</span> <span class="ident">encode_mir_local</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">local</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Local.html">mir::Local</a>) -&gt; <span class="ident">SpannedEncodingResult</span><span class="op">&lt;</span><a class="ident" href="../../../../../../vir/gen/high/ast/variable/struct.VariableDecl.html">vir_high::VariableDecl</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">param_env</span> <span class="op">=</span> <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#243">self</a>.<span class="ident">encoder</span>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/encoder.rs.html#205">env</a>().<span class="ident">tcx</span>().<span class="ident">param_env</span>(<a class="self" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#243">self</a>.<span class="ident">proc_def_id</span>);
-        <span class="kw">if</span> <span class="op">!</span><a class="self" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#243">self</a>.<span class="ident">encoder</span>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/places/interface.rs.html#24-29">is_local_copy</a>(<a class="self" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#243">self</a>.<span class="ident">mir</span>, <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#243">local</a>, <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#244">param_env</a>)<span class="question-mark">?</span> {
+        <span class="kw">let</span> <span class="ident">param_env</span> <span class="op">=</span> <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#277">self</a>.<span class="ident">encoder</span>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/encoder.rs.html#205">env</a>().<span class="ident">tcx</span>().<span class="ident">param_env</span>(<a class="self" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#277">self</a>.<span class="ident">proc_def_id</span>);
+        <span class="kw">if</span> <span class="op">!</span><a class="self" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#277">self</a>.<span class="ident">encoder</span>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/places/interface.rs.html#24-29">is_local_copy</a>(<a class="self" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#277">self</a>.<span class="ident">mir</span>, <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#277">local</a>, <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#278">param_env</a>)<span class="question-mark">?</span> {
             <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">SpannedEncodingError::incorrect</span>(
                 <span class="string">&quot;pure function parameters must be Copy&quot;</span>,
-                <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#243">self</a>.<span class="ident">encoder</span>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/places/interface.rs.html#31-35">get_local_span</a>(<a class="self" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#243">self</a>.<span class="ident">mir</span>, <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#243">local</a>)<span class="question-mark">?</span>,
+                <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#277">self</a>.<span class="ident">encoder</span>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/places/interface.rs.html#31-35">get_local_span</a>(<a class="self" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#277">self</a>.<span class="ident">mir</span>, <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#277">local</a>)<span class="question-mark">?</span>,
             ));
         }
-        <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#243">self</a>.<span class="ident">encoder</span>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/places/interface.rs.html#55-59">encode_local_high</a>(<a class="self" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#243">self</a>.<span class="ident">mir</span>, <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#243">local</a>)
+        <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#277">self</a>.<span class="ident">encoder</span>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/places/interface.rs.html#55-59">encode_local_high</a>(<a class="self" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#277">self</a>.<span class="ident">mir</span>, <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#277">local</a>)
     }
 
     <span class="kw">fn</span> <span class="ident">encode_precondition_expr</span>(
@@ -580,22 +648,22 @@
         <span class="ident">parameters</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="../../../../../../vir/gen/high/ast/variable/struct.VariableDecl.html">vir_high::VariableDecl</a>],
         <span class="ident">contract</span>: <span class="kw-2">&amp;</span><span class="ident">ProcedureContractMirDef</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
     ) -&gt; <span class="ident">SpannedEncodingResult</span><span class="op">&lt;</span><a class="ident" href="../../../../../../vir/gen/high/ast/expression/enum.Expression.html">vir_high::Expression</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">parameter_expressions</span> <span class="op">=</span> <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#255">self</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#216-219">convert_parameters_into_expressions</a>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#256">parameters</a>);
+        <span class="kw">let</span> <span class="ident">parameter_expressions</span> <span class="op">=</span> <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#289">self</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#250-253">convert_parameters_into_expressions</a>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#290">parameters</a>);
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">conjuncts</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
-        <span class="kw">for</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#261">item</a> <span class="kw">in</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#257">contract</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/borrows.rs.html#105">functional_precondition</a>() {
-            <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#260">conjuncts</a>.<span class="ident">push</span>(<a class="self" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#255">self</a>.<span class="ident">encoder</span>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/interface.rs.html#81-92">encode_assertion_high</a>(
-                <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#261">item</a>,
-                <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#255">self</a>.<span class="ident">mir</span>,
+        <span class="kw">for</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#295">item</a> <span class="kw">in</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#291">contract</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/borrows.rs.html#105">functional_precondition</a>() {
+            <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#294">conjuncts</a>.<span class="ident">push</span>(<a class="self" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#289">self</a>.<span class="ident">encoder</span>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/interface.rs.html#81-92">encode_assertion_high</a>(
+                <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#295">item</a>,
+                <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#289">self</a>.<span class="ident">mir</span>,
                 <span class="prelude-val">None</span>,
-                <span class="kw-2">&amp;</span><a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#259">parameter_expressions</a>,
+                <span class="kw-2">&amp;</span><a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#293">parameter_expressions</a>,
                 <span class="prelude-val">None</span>,
                 <span class="prelude-val">None</span>,
                 <a class="ident" href="../../../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#78">ErrorCtxt::GenericExpression</a>,
-                <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#255">self</a>.<span class="ident">parent_def_id</span>,
-                <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#255">self</a>.<span class="ident">tymap</span>,
+                <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#289">self</a>.<span class="ident">parent_def_id</span>,
+                <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#289">self</a>.<span class="ident">tymap</span>,
             )<span class="question-mark">?</span>);
         }
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#260">conjuncts</a>.<span class="ident">into_iter</span>().<span class="ident">conjoin</span>())
+        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#294">conjuncts</a>.<span class="ident">into_iter</span>().<span class="ident">conjoin</span>())
     }
 
     <span class="kw">fn</span> <span class="ident">encode_postcondition_expr</span>(
@@ -603,47 +671,47 @@
         <span class="ident">parameters</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="../../../../../../vir/gen/high/ast/variable/struct.VariableDecl.html">vir_high::VariableDecl</a>],
         <span class="ident">contract</span>: <span class="kw-2">&amp;</span><span class="ident">ProcedureContractMirDef</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
     ) -&gt; <span class="ident">SpannedEncodingResult</span><span class="op">&lt;</span><a class="ident" href="../../../../../../vir/gen/high/ast/expression/enum.Expression.html">vir_high::Expression</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">parameter_expressions</span> <span class="op">=</span> <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#278">self</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#216-219">convert_parameters_into_expressions</a>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#279">parameters</a>);
+        <span class="kw">let</span> <span class="ident">parameter_expressions</span> <span class="op">=</span> <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#312">self</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#250-253">convert_parameters_into_expressions</a>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#313">parameters</a>);
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">conjuncts</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
-        <span class="kw">let</span> <span class="ident">encoded_return</span> <span class="op">=</span> <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#278">self</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#243">encode_mir_local</a>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#280">contract</a>.<span class="ident">returned_value</span>)<span class="question-mark">?</span>;
-        <span class="kw">for</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#285">item</a> <span class="kw">in</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#280">contract</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/borrows.rs.html#113">functional_postcondition</a>() {
-            <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#283">conjuncts</a>.<span class="ident">push</span>(<a class="self" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#278">self</a>.<span class="ident">encoder</span>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/interface.rs.html#81-92">encode_assertion_high</a>(
-                <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#285">item</a>,
-                <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#278">self</a>.<span class="ident">mir</span>,
+        <span class="kw">let</span> <span class="ident">encoded_return</span> <span class="op">=</span> <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#312">self</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#277">encode_mir_local</a>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#314">contract</a>.<span class="ident">returned_value</span>)<span class="question-mark">?</span>;
+        <span class="kw">for</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#319">item</a> <span class="kw">in</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#314">contract</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/borrows.rs.html#113">functional_postcondition</a>() {
+            <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#317">conjuncts</a>.<span class="ident">push</span>(<a class="self" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#312">self</a>.<span class="ident">encoder</span>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/interface.rs.html#81-92">encode_assertion_high</a>(
+                <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#319">item</a>,
+                <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#312">self</a>.<span class="ident">mir</span>,
                 <span class="prelude-val">None</span>,
-                <span class="kw-2">&amp;</span><a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#282">parameter_expressions</a>,
-                <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="ident">vir_high::Expression::local_no_pos</span>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#284">encoded_return</a>.<span class="ident">clone</span>())),
+                <span class="kw-2">&amp;</span><a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#316">parameter_expressions</a>,
+                <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="ident">vir_high::Expression::local_no_pos</span>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#318">encoded_return</a>.<span class="ident">clone</span>())),
                 <span class="prelude-val">None</span>,
                 <a class="ident" href="../../../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#78">ErrorCtxt::GenericExpression</a>,
-                <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#278">self</a>.<span class="ident">parent_def_id</span>,
-                <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#278">self</a>.<span class="ident">tymap</span>,
+                <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#312">self</a>.<span class="ident">parent_def_id</span>,
+                <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#312">self</a>.<span class="ident">tymap</span>,
             )<span class="question-mark">?</span>);
         }
-        <span class="kw">let</span> <span class="ident">post</span> <span class="op">=</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#283">conjuncts</a>.<span class="ident">into_iter</span>().<span class="ident">conjoin</span>();
+        <span class="kw">let</span> <span class="ident">post</span> <span class="op">=</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#317">conjuncts</a>.<span class="ident">into_iter</span>().<span class="ident">conjoin</span>();
 
         <span class="comment">// TODO: use a better span</span>
-        <span class="kw">let</span> <span class="ident">postcondition_pos</span> <span class="op">=</span> <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#278">self</a>.<span class="ident">encoder</span>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/encoder.rs.html#213">error_manager</a>().<a class="ident" href="../../../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#121">register</a>(
-            <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#278">self</a>.<span class="ident">mir</span>.<span class="ident">span</span>,
+        <span class="kw">let</span> <span class="ident">postcondition_pos</span> <span class="op">=</span> <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#312">self</a>.<span class="ident">encoder</span>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/encoder.rs.html#213">error_manager</a>().<a class="ident" href="../../../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#121">register</a>(
+            <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#312">self</a>.<span class="ident">mir</span>.<span class="ident">span</span>,
             <a class="ident" href="../../../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#78">ErrorCtxt::GenericExpression</a>,
-            <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#278">self</a>.<span class="ident">parent_def_id</span>,
+            <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#312">self</a>.<span class="ident">parent_def_id</span>,
         );
 
         <span class="comment">// Fix return variable</span>
-        <span class="kw">let</span> <span class="ident">pure_fn_return_variable</span> <span class="op">=</span> <span class="macro">vir_high_local!</span> { <span class="ident">__result</span>: {<a class="self" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#278">self</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#226">encode_return_type</a>()<span class="question-mark">?</span>} };
+        <span class="kw">let</span> <span class="ident">pure_fn_return_variable</span> <span class="op">=</span> <span class="macro">vir_high_local!</span> { <span class="ident">__result</span>: {<a class="self" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#312">self</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#260">encode_return_type</a>()<span class="question-mark">?</span>} };
 
-        <span class="kw">let</span> <span class="ident">post</span> <span class="op">=</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#298">post</a>
-            .<span class="ident">replace_place</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#284">encoded_return</a>.<span class="ident">into</span>(), <span class="kw-2">&amp;</span><a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#308">pure_fn_return_variable</a>.<span class="ident">into</span>())
-            .<span class="ident">set_default_pos</span>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#301">postcondition_pos</a>.<span class="ident">into</span>());
+        <span class="kw">let</span> <span class="ident">post</span> <span class="op">=</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#332">post</a>
+            .<span class="ident">replace_place</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#318">encoded_return</a>.<span class="ident">into</span>(), <span class="kw-2">&amp;</span><a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#342">pure_fn_return_variable</a>.<span class="ident">into</span>())
+            .<span class="ident">set_default_pos</span>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#335">postcondition_pos</a>.<span class="ident">into</span>());
 
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#310">post</a>)
+        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#344">post</a>)
     }
 
     <span class="kw">fn</span> <span class="ident">get_local_span</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">local</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Local.html">mir::Local</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/span_encoding/struct.Span.html">Span</a> {
-        <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#317">self</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#321">mir_encoder</a>().<a class="ident" href="../../../../../../src/prusti_viper/encoder/mir_encoder/mod.rs.html#49">get_local_span</a>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#317">local</a>)
+        <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#351">self</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#355">mir_encoder</a>().<a class="ident" href="../../../../../../src/prusti_viper/encoder/mir_encoder/mod.rs.html#49">get_local_span</a>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#351">local</a>)
     }
 
     <span class="kw">fn</span> <span class="ident">mir_encoder</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">MirEncoder</span><span class="op">&lt;</span><span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> {
-        <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#321">self</a>.<span class="ident">interpreter</span>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/interpreter/mod.rs.html#76">mir_encoder</a>()
+        <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/new_encoder.rs.html#355">self</a>.<span class="ident">interpreter</span>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/interpreter/mod.rs.html#76">mir_encoder</a>()
     }
 }
 </code></pre></div>

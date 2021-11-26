@@ -517,6 +517,21 @@
 <span id="517">517</span>
 <span id="518">518</span>
 <span id="519">519</span>
+<span id="520">520</span>
+<span id="521">521</span>
+<span id="522">522</span>
+<span id="523">523</span>
+<span id="524">524</span>
+<span id="525">525</span>
+<span id="526">526</span>
+<span id="527">527</span>
+<span id="528">528</span>
+<span id="529">529</span>
+<span id="530">530</span>
+<span id="531">531</span>
+<span id="532">532</span>
+<span id="533">533</span>
+<span id="534">534</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">super</span>::{
     <span class="ident">errors</span>::{<a class="ident" href="../../../src/prusti_viper/encoder/errors/spanned_encoding_error.rs.html#16-19">SpannedEncodingError</a>, <a class="ident" href="../../../src/prusti_viper/encoder/errors/spanned_encoding_error.rs.html#21">SpannedEncodingResult</a>},
     <a class="ident" href="../../../src/prusti_viper/encoder/snapshot/interface.rs.html#12-90">snapshot::interface::SnapshotEncoderInterface</a>,
@@ -524,6 +539,7 @@
 };
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::encoder</span>::{<a class="ident" href="../../../src/prusti_viper/encoder/high/types/interface.rs.html#114-142">high::types::HighTypeEncoderInterface</a>, <a class="ident" href="../../../src/prusti_viper/encoder/mir/types/interface.rs.html#27-64">mir::types::MirTypeEncoderInterface</a>};
 <span class="kw">use</span> <span class="ident">prusti_common::vir_local</span>;
+<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/span_encoding/struct.Span.html">rustc_span::Span</a>;
 <span class="kw">use</span> <span class="ident">std</span>::{
     <span class="ident">collections</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/std/collections/hash/map/struct.HashMap.html">HashMap</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/collections/hash/set/struct.HashSet.html">HashSet</a>},
     <a class="ident" href="https://doc.rust-lang.org/nightly/core/hash/trait.Hash.html">hash::Hash</a>,
@@ -550,34 +566,38 @@
 <span class="doccomment">/// We include bodies of all predicates which we observed unfolded at any step</span>
 <span class="doccomment">/// of the process.</span>
 <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">collect_definitions</span>(
+    <span class="ident">error_span</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/span_encoding/struct.Span.html">Span</a>,
     <span class="ident">encoder</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/prusti_viper/encoder/encoder.rs.html#68-99">Encoder</a>,
     <span class="ident">name</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>,
     <span class="ident">methods</span>: <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../../vir/gen/polymorphic/cfg/method/struct.CfgMethod.html">vir::CfgMethod</a><span class="op">&gt;</span>,
 ) -&gt; <span class="ident">SpannedEncodingResult</span><span class="op">&lt;</span><a class="ident" href="../../../vir/gen/polymorphic/program/struct.Program.html">vir::Program</a><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">unfolded_predicate_collector</span> <span class="op">=</span> <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#448-451">UnfoldedPredicateCollector</a> {
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">unfolded_predicate_collector</span> <span class="op">=</span> <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#463-466">UnfoldedPredicateCollector</a> {
         <span class="ident">unfolded_predicates</span>: <span class="ident">Default::default</span>(),
     };
-    <span class="ident">vir::utils::walk_methods</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#36">methods</a>, <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#38">unfolded_predicate_collector</a>);
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">collector</span> <span class="op">=</span> <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#61-85">Collector</a> {
-        <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#34">encoder</a>,
-        <span class="ident">method_names</span>: <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#36">methods</a>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">method</span><span class="op">|</span> <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#44">method</a>.<span class="ident">name</span>()).<span class="ident">collect</span>(),
-        <span class="ident">unfolded_predicates</span>: <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#38">unfolded_predicate_collector</a>.<span class="ident">unfolded_predicates</span>,
+    <span class="ident">vir::utils::walk_methods</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#38">methods</a>, <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#40">unfolded_predicate_collector</a>);
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">collector</span> <span class="op">=</span> <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#65-92">Collector</a> {
+        <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#35">error_span</a>,
+        <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#36">encoder</a>,
+        <span class="ident">method_names</span>: <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#38">methods</a>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">method</span><span class="op">|</span> <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#47">method</a>.<span class="ident">name</span>()).<span class="ident">collect</span>(),
+        <span class="ident">unfolded_predicates</span>: <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#40">unfolded_predicate_collector</a>.<span class="ident">unfolded_predicates</span>,
         <span class="ident">new_unfolded_predicates</span>: <span class="ident">Default::default</span>(),
         <span class="ident">used_predicates</span>: <span class="ident">Default::default</span>(),
         <span class="ident">used_fields</span>: <span class="ident">Default::default</span>(),
         <span class="ident">used_domains</span>: <span class="ident">Default::default</span>(),
         <span class="ident">used_snap_domain_functions</span>: <span class="ident">Default::default</span>(),
         <span class="ident">used_functions</span>: <span class="ident">Default::default</span>(),
+        <span class="ident">checked_function_contracts</span>: <span class="ident">Default::default</span>(),
         <span class="ident">used_mirror_functions</span>: <span class="ident">Default::default</span>(),
         <span class="ident">unfolded_functions</span>: <span class="ident">Default::default</span>(),
         <span class="ident">directly_called_functions</span>: <span class="ident">Default::default</span>(),
         <span class="ident">in_directly_calling_state</span>: <span class="bool-val">true</span>,
     };
-    <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#42">collector</a>.<a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#107">walk_methods</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#36">methods</a>)<span class="question-mark">?</span>;
-    <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#42">collector</a>.<a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#88-92">into_program</a>(<a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#35">name</a>, <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#36">methods</a>)
+    <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#44">collector</a>.<a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#114">walk_methods</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#38">methods</a>)<span class="question-mark">?</span>;
+    <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#44">collector</a>.<a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#95-99">into_program</a>(<a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#37">name</a>, <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#38">methods</a>)
 }
 
 <span class="kw">struct</span> <span class="ident">Collector</span><span class="op">&lt;</span><span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;v</span>: <span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;v</span><span class="op">&gt;</span> {
+    <span class="ident">error_span</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/span_encoding/struct.Span.html">Span</a>,
     <span class="ident">encoder</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;p</span> <span class="ident">Encoder</span><span class="op">&lt;</span><span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
     <span class="doccomment">/// The list of encoded methods for checking that they do not clash with</span>
     <span class="doccomment">/// functions.</span>
@@ -593,6 +613,8 @@
     <span class="ident">used_snap_domain_functions</span>: <span class="ident">HashSet</span><span class="op">&lt;</span><a class="ident" href="../../../vir/gen/polymorphic/ast/function/struct.FunctionIdentifier.html">vir::FunctionIdentifier</a><span class="op">&gt;</span>,
     <span class="doccomment">/// The set of all functions that are mentioned in the method.</span>
     <span class="ident">used_functions</span>: <span class="ident">HashSet</span><span class="op">&lt;</span><a class="ident" href="../../../vir/gen/polymorphic/ast/function/struct.FunctionIdentifier.html">vir::FunctionIdentifier</a><span class="op">&gt;</span>,
+    <span class="doccomment">/// The set of functions whose contracts were already checked.</span>
+    <span class="ident">checked_function_contracts</span>: <span class="ident">HashSet</span><span class="op">&lt;</span><a class="ident" href="../../../vir/gen/polymorphic/ast/function/struct.FunctionIdentifier.html">vir::FunctionIdentifier</a><span class="op">&gt;</span>,
     <span class="doccomment">/// The set of all mirror functions that are mentioned in the method.</span>
     <span class="ident">used_mirror_functions</span>: <span class="ident">HashSet</span><span class="op">&lt;</span><a class="ident" href="../../../vir/gen/polymorphic/ast/function/struct.FunctionIdentifier.html">vir::FunctionIdentifier</a><span class="op">&gt;</span>,
     <span class="doccomment">/// The set of functions whose bodies have to be included because predicates</span>
@@ -609,178 +631,183 @@
         <span class="ident">name</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>,
         <span class="ident">methods</span>: <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../../vir/gen/polymorphic/cfg/method/struct.CfgMethod.html">vir::CfgMethod</a><span class="op">&gt;</span>,
     ) -&gt; <span class="ident">SpannedEncodingResult</span><span class="op">&lt;</span><a class="ident" href="../../../vir/gen/polymorphic/program/struct.Program.html">vir::Program</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">functions</span> <span class="op">=</span> <a class="self" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#89">self</a>.<a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#189">get_used_functions</a>()<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">viper_predicates</span> <span class="op">=</span> <a class="self" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#89">self</a>.<a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#150">get_used_predicates</a>()<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">domains</span> <span class="op">=</span> <a class="self" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#89">self</a>.<a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#214">get_used_domains</a>();
-        <span class="kw">let</span> <span class="ident">fields</span> <span class="op">=</span> <a class="self" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#89">self</a>.<a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#125">get_used_fields</a>();
+        <span class="kw">let</span> <span class="ident">functions</span> <span class="op">=</span> <a class="self" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#96">self</a>.<a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#196">get_used_functions</a>()<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">viper_predicates</span> <span class="op">=</span> <a class="self" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#96">self</a>.<a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#157">get_used_predicates</a>()<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">domains</span> <span class="op">=</span> <a class="self" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#96">self</a>.<a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#226">get_used_domains</a>();
+        <span class="kw">let</span> <span class="ident">fields</span> <span class="op">=</span> <a class="self" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#96">self</a>.<a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#132">get_used_fields</a>();
         <span class="prelude-val">Ok</span>(<a class="ident" href="../../../vir/gen/polymorphic/program/struct.Program.html">vir::Program</a> {
-            <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#90">name</a>,
-            <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#95">domains</a>,
-            <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#96">fields</a>,
-            <span class="ident">builtin_methods</span>: <a class="self" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#89">self</a>.<a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#140">get_all_methods</a>(),
-            <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#91">methods</a>,
-            <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#93">functions</a>,
-            <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#94">viper_predicates</a>,
+            <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#97">name</a>,
+            <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#102">domains</a>,
+            <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#103">fields</a>,
+            <span class="ident">builtin_methods</span>: <a class="self" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#96">self</a>.<a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#147">get_all_methods</a>(),
+            <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#98">methods</a>,
+            <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#100">functions</a>,
+            <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#101">viper_predicates</a>,
         })
     }
     <span class="kw">fn</span> <span class="ident">walk_methods</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">methods</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="../../../vir/gen/polymorphic/cfg/method/struct.CfgMethod.html">vir::CfgMethod</a>]) -&gt; <span class="ident">SpannedEncodingResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">predicates</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
-        <span class="kw">for</span> <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#109">name</a> <span class="kw">in</span> <span class="kw-2">&amp;</span><a class="self" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#107">self</a>.<span class="ident">unfolded_predicates</span> {
-            <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#108">predicates</a>.<span class="ident">push</span>(<a class="self" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#107">self</a>.<span class="ident">encoder</span>.<a class="ident" href="../../../src/prusti_viper/encoder/high/types/interface.rs.html#118-121">get_viper_predicate</a>(<a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#109">name</a>)<span class="question-mark">?</span>);
+        <span class="kw">for</span> <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#116">name</a> <span class="kw">in</span> <span class="kw-2">&amp;</span><a class="self" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#114">self</a>.<span class="ident">unfolded_predicates</span> {
+            <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#115">predicates</a>.<span class="ident">push</span>(<a class="self" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#114">self</a>.<span class="ident">encoder</span>.<a class="ident" href="../../../src/prusti_viper/encoder/high/types/interface.rs.html#118-121">get_viper_predicate</a>(<a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#116">name</a>)<span class="question-mark">?</span>);
         }
-        <span class="kw">for</span> <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#112">predicate</a> <span class="kw">in</span> <span class="kw-2">&amp;</span><a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#108">predicates</a> {
+        <span class="kw">for</span> <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#119">predicate</a> <span class="kw">in</span> <span class="kw-2">&amp;</span><a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#115">predicates</a> {
             <span class="comment">// make sure we include all the fields</span>
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">body</span>) <span class="op">=</span> <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#112">predicate</a>.<span class="ident">body</span>().<span class="ident">as_ref</span>() {
-                <a class="self" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#107">self</a>.<span class="ident">fallible_walk_expr</span>(<a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#114">body</a>)<span class="question-mark">?</span>;
+            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">body</span>) <span class="op">=</span> <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#119">predicate</a>.<span class="ident">body</span>().<span class="ident">as_ref</span>() {
+                <a class="self" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#114">self</a>.<span class="ident">fallible_walk_expr</span>(<a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#121">body</a>)<span class="question-mark">?</span>;
             }
         }
-        <span class="ident">vir::utils::fallible_walk_methods</span>(<a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#107">methods</a>, <a class="self" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#107">self</a>)<span class="question-mark">?</span>;
-        <a class="self" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#107">self</a>.<span class="ident">used_predicates</span>
-            .<span class="ident">extend</span>(<a class="self" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#107">self</a>.<span class="ident">unfolded_predicates</span>.<span class="ident">iter</span>().<span class="ident">cloned</span>());
-        <a class="self" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#107">self</a>.<span class="ident">used_functions</span>
-            .<span class="ident">extend</span>(<a class="self" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#107">self</a>.<span class="ident">unfolded_functions</span>.<span class="ident">iter</span>().<span class="ident">cloned</span>());
+        <span class="ident">vir::utils::fallible_walk_methods</span>(<a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#114">methods</a>, <a class="self" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#114">self</a>)<span class="question-mark">?</span>;
+        <a class="self" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#114">self</a>.<span class="ident">used_predicates</span>
+            .<span class="ident">extend</span>(<a class="self" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#114">self</a>.<span class="ident">unfolded_predicates</span>.<span class="ident">iter</span>().<span class="ident">cloned</span>());
+        <a class="self" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#114">self</a>.<span class="ident">used_functions</span>
+            .<span class="ident">extend</span>(<a class="self" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#114">self</a>.<span class="ident">unfolded_functions</span>.<span class="ident">iter</span>().<span class="ident">cloned</span>());
         <span class="prelude-val">Ok</span>(())
     }
     <span class="kw">fn</span> <span class="ident">get_used_fields</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../../vir/gen/polymorphic/ast/common/struct.Field.html">vir::Field</a><span class="op">&gt;</span> {
         <span class="comment">// TODO: Remove the deduplication once we switch to the offset-based</span>
         <span class="comment">// fields.</span>
-        <span class="kw">let</span> <span class="ident">used_fields</span>: <span class="ident">HashMap</span><span class="op">&lt;</span><span class="kw">_</span>, <span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <a class="self" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#125">self</a>
+        <span class="kw">let</span> <span class="ident">used_fields</span>: <span class="ident">HashMap</span><span class="op">&lt;</span><span class="kw">_</span>, <span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <a class="self" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#132">self</a>
             .<span class="ident">used_fields</span>
             .<span class="ident">iter</span>()
-            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">field</span><span class="op">|</span> (<span class="kw-2">&amp;</span><a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#131">field</a>.<span class="ident">name</span>, <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#131">field</a>))
+            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">field</span><span class="op">|</span> (<span class="kw-2">&amp;</span><a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#138">field</a>.<span class="ident">name</span>, <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#138">field</a>))
             .<span class="ident">collect</span>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">used_fields</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#128">used_fields</a>.<span class="ident">values</span>().<span class="ident">map</span>(<span class="op">|</span><span class="kw-2">&amp;</span><span class="ident">field</span><span class="op">|</span> <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#133">field</a>.<span class="ident">clone</span>()).<span class="ident">collect</span>();
-        <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#133">used_fields</a>.<span class="ident">sort_by_cached_key</span>(<span class="op">|</span><span class="ident">f</span><span class="op">|</span> <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#134">f</a>.<span class="ident">get_identifier</span>());
-        <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#133">used_fields</a>
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">used_fields</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#135">used_fields</a>.<span class="ident">values</span>().<span class="ident">map</span>(<span class="op">|</span><span class="kw-2">&amp;</span><span class="ident">field</span><span class="op">|</span> <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#140">field</a>.<span class="ident">clone</span>()).<span class="ident">collect</span>();
+        <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#140">used_fields</a>.<span class="ident">sort_by_cached_key</span>(<span class="op">|</span><span class="ident">f</span><span class="op">|</span> <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#141">f</a>.<span class="ident">get_identifier</span>());
+        <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#140">used_fields</a>
     }
     <span class="doccomment">/// The purification optimization that is executed after this assumes that</span>
     <span class="doccomment">/// all bodyless methods are present. That is why we are returning all</span>
     <span class="doccomment">/// methods here.</span>
     <span class="kw">fn</span> <span class="ident">get_all_methods</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../../vir/gen/polymorphic/ast/bodyless_method/struct.BodylessMethod.html">vir::BodylessMethod</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">methods</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <a class="self" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#140">self</a>
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">methods</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <a class="self" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#147">self</a>
             .<span class="ident">encoder</span>
-            .<a class="ident" href="../../../src/prusti_viper/encoder/encoder.rs.html#260-262">get_builtin_methods</a>()
+            .<a class="ident" href="../../../src/prusti_viper/encoder/encoder.rs.html#261-263">get_builtin_methods</a>()
             .<span class="ident">values</span>()
             .<span class="ident">cloned</span>()
             .<span class="ident">collect</span>();
-        <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#141">methods</a>.<span class="ident">sort_by_cached_key</span>(<span class="op">|</span><span class="ident">method</span><span class="op">|</span> <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#147">method</a>.<span class="ident">name</span>.<span class="ident">clone</span>());
-        <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#141">methods</a>
+        <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#148">methods</a>.<span class="ident">sort_by_cached_key</span>(<span class="op">|</span><span class="ident">method</span><span class="op">|</span> <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#154">method</a>.<span class="ident">name</span>.<span class="ident">clone</span>());
+        <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#148">methods</a>
     }
     <span class="kw">fn</span> <span class="ident">get_used_predicates</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">SpannedEncodingResult</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../../vir/gen/polymorphic/ast/predicate/enum.Predicate.html">vir::Predicate</a><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">predicates</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
         <span class="kw">let</span> <span class="ident">aux_ref</span> <span class="op">=</span> <span class="ident">vir::Type::typed_ref</span>(<span class="string">&quot;AuxRef&quot;</span>);
-        <span class="kw">for</span> <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#153">name</a> <span class="kw">in</span> <span class="kw-2">&amp;</span><a class="self" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#150">self</a>.<span class="ident">used_predicates</span> {
-            <span class="kw">if</span> <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#153">name</a> <span class="op">==</span> <span class="kw-2">&amp;</span><a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#152">aux_ref</a> {
+        <span class="kw">for</span> <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#160">name</a> <span class="kw">in</span> <span class="kw-2">&amp;</span><a class="self" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#157">self</a>.<span class="ident">used_predicates</span> {
+            <span class="kw">if</span> <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#160">name</a> <span class="op">==</span> <span class="kw-2">&amp;</span><a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#159">aux_ref</a> {
                 <span class="comment">// This is not a real type</span>
                 <span class="kw">continue</span>;
             }
-            <span class="kw">let</span> <span class="ident">predicate</span> <span class="op">=</span> <a class="self" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#150">self</a>.<span class="ident">encoder</span>.<a class="ident" href="../../../src/prusti_viper/encoder/high/types/interface.rs.html#118-121">get_viper_predicate</a>(<a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#153">name</a>)<span class="question-mark">?</span>;
-            <span class="kw">let</span> <span class="ident">predicate</span> <span class="op">=</span> <span class="kw">if</span> <span class="op">!</span><a class="self" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#150">self</a>.<span class="ident">unfolded_predicates</span>.<span class="ident">contains</span>(<a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#153">name</a>)
-                <span class="op">&amp;&amp;</span> <span class="op">!</span><a class="self" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#150">self</a>.<span class="ident">new_unfolded_predicates</span>.<span class="ident">contains</span>(<a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#153">name</a>)
+            <span class="kw">let</span> <span class="ident">predicate</span> <span class="op">=</span> <a class="self" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#157">self</a>.<span class="ident">encoder</span>.<a class="ident" href="../../../src/prusti_viper/encoder/high/types/interface.rs.html#118-121">get_viper_predicate</a>(<a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#160">name</a>)<span class="question-mark">?</span>;
+            <span class="kw">let</span> <span class="ident">predicate</span> <span class="op">=</span> <span class="kw">if</span> <span class="op">!</span><a class="self" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#157">self</a>.<span class="ident">unfolded_predicates</span>.<span class="ident">contains</span>(<a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#160">name</a>)
+                <span class="op">&amp;&amp;</span> <span class="op">!</span><a class="self" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#157">self</a>.<span class="ident">new_unfolded_predicates</span>.<span class="ident">contains</span>(<a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#160">name</a>)
             {
                 <span class="comment">// The predicate is never unfolded. Make it abstract.</span>
-                <span class="kw">match</span> <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#158">predicate</a> {
+                <span class="kw">match</span> <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#165">predicate</a> {
                     <span class="ident">vir::Predicate::Struct</span>(<span class="kw-2">mut</span> <span class="ident">predicate</span>) =&gt; {
-                        <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#164">predicate</a>.<span class="ident">body</span> <span class="op">=</span> <span class="prelude-val">None</span>;
-                        <span class="ident">vir::Predicate::Struct</span>(<a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#164">predicate</a>)
+                        <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#171">predicate</a>.<span class="ident">body</span> <span class="op">=</span> <span class="prelude-val">None</span>;
+                        <span class="ident">vir::Predicate::Struct</span>(<a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#171">predicate</a>)
                     }
                     <span class="ident">vir::Predicate::Enum</span>(<span class="ident">predicate</span>) =&gt; {
                         <span class="ident">vir::Predicate::Struct</span>(<a class="ident" href="../../../vir/gen/polymorphic/ast/predicate/struct.StructPredicate.html">vir::StructPredicate</a> {
-                            <span class="ident">typ</span>: <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#168">predicate</a>.<span class="ident">typ</span>,
-                            <span class="ident">this</span>: <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#168">predicate</a>.<span class="ident">this</span>,
+                            <span class="ident">typ</span>: <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#175">predicate</a>.<span class="ident">typ</span>,
+                            <span class="ident">this</span>: <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#175">predicate</a>.<span class="ident">this</span>,
                             <span class="ident">body</span>: <span class="prelude-val">None</span>,
                         })
                     }
-                    <span class="ident">predicate</span> =&gt; <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#175">predicate</a>,
+                    <span class="ident">predicate</span> =&gt; <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#182">predicate</a>,
                 }
             } <span class="kw">else</span> {
-                <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#158">predicate</a>
+                <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#165">predicate</a>
             };
-            <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#151">predicates</a>.<span class="ident">push</span>(<a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#159">predicate</a>);
+            <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#158">predicates</a>.<span class="ident">push</span>(<a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#166">predicate</a>);
         }
-        <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#151">predicates</a>.<span class="ident">push</span>(<span class="ident">vir::Predicate::Bodyless</span>(
+        <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#158">predicates</a>.<span class="ident">push</span>(<span class="ident">vir::Predicate::Bodyless</span>(
             <span class="ident">vir::Type::typed_ref</span>(<span class="string">&quot;DeadBorrowToken$&quot;</span>),
             <span class="macro">vir_local!</span> { <span class="ident">borrow</span>: <span class="ident">Int</span> },
         ));
-        <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#151">predicates</a>.<span class="ident">sort_by_key</span>(<span class="op">|</span><span class="ident">f</span><span class="op">|</span> <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#186">f</a>.<span class="ident">get_identifier</span>());
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#151">predicates</a>)
+        <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#158">predicates</a>.<span class="ident">sort_by_key</span>(<span class="op">|</span><span class="ident">f</span><span class="op">|</span> <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#193">f</a>.<span class="ident">get_identifier</span>());
+        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#158">predicates</a>)
     }
     <span class="kw">fn</span> <span class="ident">get_used_functions</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">SpannedEncodingResult</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../../vir/gen/polymorphic/ast/function/struct.Function.html">vir::Function</a><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">functions</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
-        <span class="kw">for</span> <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#191">identifier</a> <span class="kw">in</span> <span class="kw-2">&amp;</span><a class="self" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#189">self</a>.<span class="ident">used_functions</span> {
-            <span class="kw">let</span> <span class="ident">function</span> <span class="op">=</span> <a class="self" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#189">self</a>.<span class="ident">encoder</span>.<a class="ident" href="../../../src/prusti_viper/encoder/encoder.rs.html#248">get_function</a>(<a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#191">identifier</a>)<span class="question-mark">?</span>;
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">function</span> <span class="op">=</span> (<span class="kw-2">*</span><a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#192">function</a>).<span class="ident">clone</span>();
-            <span class="kw">if</span> <span class="op">!</span><a class="self" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#189">self</a>.<span class="ident">unfolded_functions</span>.<span class="ident">contains</span>(<a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#191">identifier</a>)
-                <span class="op">&amp;&amp;</span> <span class="op">!</span><a class="self" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#189">self</a>.<span class="ident">directly_called_functions</span>.<span class="ident">contains</span>(<a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#191">identifier</a>)
+        <span class="kw">for</span> <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#198">identifier</a> <span class="kw">in</span> <span class="kw-2">&amp;</span><a class="self" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#196">self</a>.<span class="ident">used_functions</span> {
+            <span class="kw">let</span> <span class="ident">function</span> <span class="op">=</span> <a class="self" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#196">self</a>.<span class="ident">encoder</span>.<a class="ident" href="../../../src/prusti_viper/encoder/encoder.rs.html#249">get_function</a>(<a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#198">identifier</a>)<span class="question-mark">?</span>;
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">function</span> <span class="op">=</span> (<span class="kw-2">*</span><a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#199">function</a>).<span class="ident">clone</span>();
+            <span class="kw">if</span> <span class="op">!</span><a class="self" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#196">self</a>.<span class="ident">unfolded_functions</span>.<span class="ident">contains</span>(<a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#198">identifier</a>)
+                <span class="op">&amp;&amp;</span> <span class="op">!</span><a class="self" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#196">self</a>.<span class="ident">directly_called_functions</span>.<span class="ident">contains</span>(<a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#198">identifier</a>)
             {
                 <span class="comment">// The function body is not needed.</span>
-                <span class="kw">if</span> <span class="op">!</span><a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#193">function</a>.<span class="ident">has_constant_body</span>() {
+                <span class="kw">if</span> <span class="op">!</span><a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#200">function</a>.<span class="ident">has_constant_body</span>() {
                     <span class="comment">// The function body is non-constant, make the function</span>
                     <span class="comment">// abstract. (We leave the constant bodies so that they</span>
                     <span class="comment">// could be inlined by one of the optimizations.)</span>
-                    <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#193">function</a>.<span class="ident">body</span> <span class="op">=</span> <span class="prelude-val">None</span>;
+                    <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#200">function</a>.<span class="ident">body</span> <span class="op">=</span> <span class="prelude-val">None</span>;
                 }
             }
-            <span class="macro">assert!</span>(
-                <span class="op">!</span><a class="self" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#189">self</a>.<span class="ident">method_names</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#193">function</a>.<span class="ident">name</span>),
-                <span class="string">&quot;same Rust function encoded as both Viper method and function&quot;</span>
-            );
-            <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#190">functions</a>.<span class="ident">push</span>(<a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#193">function</a>);
+            <span class="kw">if</span> <a class="self" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#196">self</a>.<span class="ident">method_names</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#200">function</a>.<span class="ident">name</span>) {
+                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">SpannedEncodingError::internal</span>(
+                    <span class="macro">format!</span>(
+                        <span class="string">&quot;Rust function {} encoded both as a Viper method and function&quot;</span>,
+                        <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#200">function</a>.<span class="ident">name</span>
+                    ),
+                    <a class="self" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#196">self</a>.<span class="ident">error_span</span>,
+                ));
+            }
+            <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#197">functions</a>.<span class="ident">push</span>(<a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#200">function</a>);
         }
-        <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#190">functions</a>.<span class="ident">sort_by_cached_key</span>(<span class="op">|</span><span class="ident">f</span><span class="op">|</span> <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#211">f</a>.<span class="ident">get_identifier</span>());
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#190">functions</a>)
+        <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#197">functions</a>.<span class="ident">sort_by_cached_key</span>(<span class="op">|</span><span class="ident">f</span><span class="op">|</span> <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#223">f</a>.<span class="ident">get_identifier</span>());
+        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#197">functions</a>)
     }
     <span class="kw">fn</span> <span class="ident">get_used_domains</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../../vir/gen/polymorphic/ast/domain/struct.Domain.html">vir::Domain</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">domains</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <a class="self" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#214">self</a>
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">domains</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <a class="self" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#226">self</a>
             .<span class="ident">used_domains</span>
             .<span class="ident">iter</span>()
             .<span class="ident">map</span>(<span class="op">|</span><span class="ident">snapshot_name</span><span class="op">|</span> {
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">domain</span> <span class="op">=</span> <a class="self" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#214">self</a>.<span class="ident">encoder</span>.<a class="ident" href="../../../src/prusti_viper/encoder/snapshot/interface.rs.html#13">get_domain</a>(<a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#218">snapshot_name</a>);
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">predicate_name</span>) <span class="op">=</span> <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#218">snapshot_name</a>.<span class="ident">strip_prefix</span>(<span class="string">&quot;Snap$&quot;</span>) {
+                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">domain</span> <span class="op">=</span> <a class="self" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#226">self</a>.<span class="ident">encoder</span>.<a class="ident" href="../../../src/prusti_viper/encoder/snapshot/interface.rs.html#13">get_domain</a>(<a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#230">snapshot_name</a>);
+                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">predicate_name</span>) <span class="op">=</span> <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#230">snapshot_name</a>.<span class="ident">strip_prefix</span>(<span class="string">&quot;Snap$&quot;</span>) {
                     <span class="comment">// We have a snapshot for some type</span>
-                    <span class="kw">if</span> <span class="op">!</span><a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#272">contains</a>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#214">self</a>.<span class="ident">unfolded_predicates</span>, <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#220">predicate_name</a>)
-                        <span class="op">&amp;&amp;</span> <span class="op">!</span><a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#272">contains</a>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#214">self</a>.<span class="ident">new_unfolded_predicates</span>, <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#220">predicate_name</a>)
-                        <span class="op">&amp;&amp;</span> <span class="op">!</span><a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#220">predicate_name</a>.<span class="ident">starts_with</span>(<span class="string">&quot;Slice$&quot;</span>)
-                        <span class="op">&amp;&amp;</span> <span class="op">!</span><a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#220">predicate_name</a>.<span class="ident">starts_with</span>(<span class="string">&quot;Array$&quot;</span>)
+                    <span class="kw">if</span> <span class="op">!</span><a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#284">contains</a>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#226">self</a>.<span class="ident">unfolded_predicates</span>, <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#232">predicate_name</a>)
+                        <span class="op">&amp;&amp;</span> <span class="op">!</span><a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#284">contains</a>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#226">self</a>.<span class="ident">new_unfolded_predicates</span>, <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#232">predicate_name</a>)
+                        <span class="op">&amp;&amp;</span> <span class="op">!</span><a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#232">predicate_name</a>.<span class="ident">starts_with</span>(<span class="string">&quot;Slice$&quot;</span>)
+                        <span class="op">&amp;&amp;</span> <span class="op">!</span><a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#232">predicate_name</a>.<span class="ident">starts_with</span>(<span class="string">&quot;Array$&quot;</span>)
                     {
                         <span class="comment">// The type is never unfolded, so the snapshot should be</span>
                         <span class="comment">// abstract. The only exception is the discriminant function</span>
                         <span class="comment">// because it can be called on a folded type.</span>
-                        <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#219">domain</a>.<span class="ident">axioms</span>.<span class="ident">clear</span>();
-                        <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#219">domain</a>.<span class="ident">functions</span>.<span class="ident">retain</span>(<span class="op">|</span><span class="ident">function</span><span class="op">|</span> {
-                            <a class="self" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#214">self</a>.<span class="ident">used_snap_domain_functions</span>
-                                .<span class="ident">contains</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#231">function</a>.<span class="ident">get_identifier</span>().<span class="ident">into</span>())
+                        <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#231">domain</a>.<span class="ident">axioms</span>.<span class="ident">clear</span>();
+                        <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#231">domain</a>.<span class="ident">functions</span>.<span class="ident">retain</span>(<span class="op">|</span><span class="ident">function</span><span class="op">|</span> {
+                            <a class="self" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#226">self</a>.<span class="ident">used_snap_domain_functions</span>
+                                .<span class="ident">contains</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#243">function</a>.<span class="ident">get_identifier</span>().<span class="ident">into</span>())
                         });
                     }
                 }
-                <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#219">domain</a>
+                <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#231">domain</a>
             })
             .<span class="ident">collect</span>();
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">mut</span> <span class="ident">mirror_domain</span>) <span class="op">=</span> <a class="self" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#214">self</a>.<span class="ident">encoder</span>.<a class="ident" href="../../../src/prusti_viper/encoder/encoder.rs.html#238">get_mirror_domain</a>() {
-            <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#240">mirror_domain</a>.<span class="ident">functions</span>.<span class="ident">retain</span>(<span class="op">|</span><span class="ident">function</span><span class="op">|</span> {
-                <a class="self" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#214">self</a>.<span class="ident">used_mirror_functions</span>
-                    .<span class="ident">contains</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#241">function</a>.<span class="ident">get_identifier</span>().<span class="ident">into</span>())
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">mut</span> <span class="ident">mirror_domain</span>) <span class="op">=</span> <a class="self" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#226">self</a>.<span class="ident">encoder</span>.<a class="ident" href="../../../src/prusti_viper/encoder/encoder.rs.html#239">get_mirror_domain</a>() {
+            <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#252">mirror_domain</a>.<span class="ident">functions</span>.<span class="ident">retain</span>(<span class="op">|</span><span class="ident">function</span><span class="op">|</span> {
+                <a class="self" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#226">self</a>.<span class="ident">used_mirror_functions</span>
+                    .<span class="ident">contains</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#253">function</a>.<span class="ident">get_identifier</span>().<span class="ident">into</span>())
             });
-            <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#215">domains</a>.<span class="ident">push</span>(<a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#240">mirror_domain</a>);
+            <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#227">domains</a>.<span class="ident">push</span>(<a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#252">mirror_domain</a>);
         }
-        <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#215">domains</a>.<span class="ident">sort_by_cached_key</span>(<span class="op">|</span><span class="ident">domain</span><span class="op">|</span> <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#247">domain</a>.<span class="ident">name</span>.<span class="ident">clone</span>());
-        <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#215">domains</a>
+        <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#227">domains</a>.<span class="ident">sort_by_cached_key</span>(<span class="op">|</span><span class="ident">domain</span><span class="op">|</span> <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#259">domain</a>.<span class="ident">name</span>.<span class="ident">clone</span>());
+        <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#227">domains</a>
     }
     <span class="kw">fn</span> <span class="ident">contains_unfolded_predicates</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">exprs</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>]) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">let</span> <span class="ident">unfolded_predicate_checker</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#505-508">UnfoldedPredicateChecker</a> {
-            <span class="ident">unfolded_predicates</span>: <span class="kw-2">&amp;</span><a class="self" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#250">self</a>.<span class="ident">unfolded_predicates</span>,
+        <span class="kw">let</span> <span class="ident">unfolded_predicate_checker</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#520-523">UnfoldedPredicateChecker</a> {
+            <span class="ident">unfolded_predicates</span>: <span class="kw-2">&amp;</span><a class="self" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#262">self</a>.<span class="ident">unfolded_predicates</span>,
             <span class="ident">found</span>: <span class="bool-val">false</span>,
         };
-        <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#250">exprs</a>.<span class="ident">iter</span>().<span class="ident">any</span>(<span class="op">|</span><span class="ident">expr</span><span class="op">|</span> {
-            <span class="ident">ExprWalker::walk</span>(<a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#251">unfolded_predicate_checker</a>, <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#255">expr</a>);
-            <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#251">unfolded_predicate_checker</a>.<span class="ident">found</span>
+        <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#262">exprs</a>.<span class="ident">iter</span>().<span class="ident">any</span>(<span class="op">|</span><span class="ident">expr</span><span class="op">|</span> {
+            <span class="ident">ExprWalker::walk</span>(<a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#263">unfolded_predicate_checker</a>, <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#267">expr</a>);
+            <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#263">unfolded_predicate_checker</a>.<span class="ident">found</span>
         })
     }
     <span class="kw">fn</span> <span class="ident">contains_unfolded_parameters</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">formal_args</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="../../../vir/gen/polymorphic/ast/common/struct.LocalVar.html">vir::LocalVar</a>]) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#260">formal_args</a>.<span class="ident">iter</span>().<span class="ident">any</span>(<span class="op">|</span><span class="ident">parameter</span><span class="op">|</span> {
-            <span class="kw">if</span> <span class="kw">let</span> <span class="ident">vir::Type::Snapshot</span>(<span class="ident">snapshot_type</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#261">parameter</a>.<span class="ident">typ</span> {
-                <span class="kw">let</span> <span class="ident">typ</span> <span class="op">=</span> <span class="ident">vir::Type::TypedRef</span>(<a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#262">snapshot_type</a>.<span class="ident">clone</span>().<span class="ident">into</span>());
-                <a class="self" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#260">self</a>.<span class="ident">unfolded_predicates</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#263">typ</a>)
+        <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#272">formal_args</a>.<span class="ident">iter</span>().<span class="ident">any</span>(<span class="op">|</span><span class="ident">parameter</span><span class="op">|</span> {
+            <span class="kw">if</span> <span class="kw">let</span> <span class="ident">vir::Type::Snapshot</span>(<span class="ident">snapshot_type</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#273">parameter</a>.<span class="ident">typ</span> {
+                <span class="kw">let</span> <span class="ident">typ</span> <span class="op">=</span> <span class="ident">vir::Type::TypedRef</span>(<a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#274">snapshot_type</a>.<span class="ident">clone</span>().<span class="ident">into</span>());
+                <a class="self" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#272">self</a>.<span class="ident">unfolded_predicates</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#275">typ</a>)
             } <span class="kw">else</span> {
                 <span class="bool-val">false</span>
             }
@@ -789,13 +816,13 @@
 }
 
 <span class="kw">fn</span> <span class="ident">contains</span>(<span class="ident">container</span>: <span class="kw-2">&amp;</span><span class="ident">HashSet</span><span class="op">&lt;</span><a class="ident" href="../../../vir/gen/polymorphic/ast/common/enum.Type.html">vir::Type</a><span class="op">&gt;</span>, <span class="ident">predicate_name</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#272">container</a>.<span class="ident">iter</span>().<span class="ident">any</span>(<span class="op">|</span><span class="ident">typ</span><span class="op">|</span> <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#273">typ</a>.<span class="ident">name</span>() <span class="op">==</span> <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#272">predicate_name</a>)
+    <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#284">container</a>.<span class="ident">iter</span>().<span class="ident">any</span>(<span class="op">|</span><span class="ident">typ</span><span class="op">|</span> <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#285">typ</a>.<span class="ident">name</span>() <span class="op">==</span> <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#284">predicate_name</a>)
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;v</span>: <span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;v</span><span class="op">&gt;</span> <a class="ident" href="../../../vir/gen/polymorphic/ast/stmt/trait.FallibleStmtWalker.html">FallibleStmtWalker</a> <span class="kw">for</span> <span class="ident">Collector</span><span class="op">&lt;</span><span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> {
     <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <a class="ident" href="../../../src/prusti_viper/encoder/errors/spanned_encoding_error.rs.html#16-19">SpannedEncodingError</a>;
     <span class="kw">fn</span> <span class="ident">fallible_walk_expr</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">expr</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>) -&gt; <span class="ident">SpannedEncodingResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="ident">FallibleExprWalker::fallible_walk</span>(<a class="self" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#278">self</a>, <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#278">expr</a>)
+        <span class="ident">FallibleExprWalker::fallible_walk</span>(<a class="self" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#290">self</a>, <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#290">expr</a>)
     }
 }
 
@@ -809,18 +836,18 @@
             ..
         }: <span class="kw-2">&amp;</span><a class="ident" href="../../../vir/gen/polymorphic/ast/expr/struct.Variant.html">vir::Variant</a>,
     ) -&gt; <span class="ident">SpannedEncodingResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <a class="self" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#286">self</a>.<span class="ident">used_fields</span>.<span class="ident">insert</span>(<a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#289">variant_index</a>.<span class="ident">clone</span>());
-        <span class="ident">FallibleExprWalker::fallible_walk</span>(<a class="self" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#286">self</a>, <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#288">base</a>)<span class="question-mark">?</span>;
-        <span class="ident">FallibleExprWalker::fallible_walk_type</span>(<a class="self" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#286">self</a>, <span class="kw-2">&amp;</span><a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#289">variant_index</a>.<span class="ident">typ</span>)<span class="question-mark">?</span>;
+        <a class="self" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#298">self</a>.<span class="ident">used_fields</span>.<span class="ident">insert</span>(<a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#301">variant_index</a>.<span class="ident">clone</span>());
+        <span class="ident">FallibleExprWalker::fallible_walk</span>(<a class="self" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#298">self</a>, <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#300">base</a>)<span class="question-mark">?</span>;
+        <span class="ident">FallibleExprWalker::fallible_walk_type</span>(<a class="self" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#298">self</a>, <span class="kw-2">&amp;</span><a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#301">variant_index</a>.<span class="ident">typ</span>)<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(())
     }
     <span class="kw">fn</span> <span class="ident">fallible_walk_field</span>(
         <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
         <a class="ident" href="../../../vir/gen/polymorphic/ast/expr/struct.FieldExpr.html">vir::FieldExpr</a> { <span class="ident">base</span>, <span class="ident">field</span>, .. }: <span class="kw-2">&amp;</span><a class="ident" href="../../../vir/gen/polymorphic/ast/expr/struct.FieldExpr.html">vir::FieldExpr</a>,
     ) -&gt; <span class="ident">SpannedEncodingResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <a class="self" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#299">self</a>.<span class="ident">used_fields</span>.<span class="ident">insert</span>(<a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#300">field</a>.<span class="ident">clone</span>());
-        <span class="ident">FallibleExprWalker::fallible_walk</span>(<a class="self" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#299">self</a>, <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#300">base</a>)<span class="question-mark">?</span>;
-        <span class="ident">FallibleExprWalker::fallible_walk_type</span>(<a class="self" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#299">self</a>, <span class="kw-2">&amp;</span><a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#300">field</a>.<span class="ident">typ</span>)<span class="question-mark">?</span>;
+        <a class="self" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#311">self</a>.<span class="ident">used_fields</span>.<span class="ident">insert</span>(<a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#312">field</a>.<span class="ident">clone</span>());
+        <span class="ident">FallibleExprWalker::fallible_walk</span>(<a class="self" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#311">self</a>, <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#312">base</a>)<span class="question-mark">?</span>;
+        <span class="ident">FallibleExprWalker::fallible_walk_type</span>(<a class="self" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#311">self</a>, <span class="kw-2">&amp;</span><a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#312">field</a>.<span class="ident">typ</span>)<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(())
     }
     <span class="kw">fn</span> <span class="ident">fallible_walk_predicate_access_predicate</span>(
@@ -831,8 +858,8 @@
             ..
         }: <span class="kw-2">&amp;</span><a class="ident" href="../../../vir/gen/polymorphic/ast/expr/struct.PredicateAccessPredicate.html">vir::PredicateAccessPredicate</a>,
     ) -&gt; <span class="ident">SpannedEncodingResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <a class="self" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#308">self</a>.<span class="ident">used_predicates</span>.<span class="ident">insert</span>(<a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#310">predicate_type</a>.<span class="ident">clone</span>());
-        <span class="ident">FallibleExprWalker::fallible_walk</span>(<a class="self" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#308">self</a>, <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#311">argument</a>)
+        <a class="self" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#320">self</a>.<span class="ident">used_predicates</span>.<span class="ident">insert</span>(<a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#322">predicate_type</a>.<span class="ident">clone</span>());
+        <span class="ident">FallibleExprWalker::fallible_walk</span>(<a class="self" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#320">self</a>, <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#323">argument</a>)
     }
     <span class="kw">fn</span> <span class="ident">fallible_walk_unfolding</span>(
         <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
@@ -843,17 +870,17 @@
             ..
         }: <span class="kw-2">&amp;</span><a class="ident" href="../../../vir/gen/polymorphic/ast/expr/struct.Unfolding.html">vir::Unfolding</a>,
     ) -&gt; <span class="ident">SpannedEncodingResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="kw">if</span> <a class="self" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#319">self</a>.<span class="ident">new_unfolded_predicates</span>.<span class="ident">insert</span>(<a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#321">predicate_type</a>.<span class="ident">clone</span>()) {
-            <span class="kw">let</span> <span class="ident">predicate</span> <span class="op">=</span> <a class="self" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#319">self</a>.<span class="ident">encoder</span>.<a class="ident" href="../../../src/prusti_viper/encoder/high/types/interface.rs.html#118-121">get_viper_predicate</a>(<a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#321">predicate_type</a>)<span class="question-mark">?</span>;
+        <span class="kw">if</span> <a class="self" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#331">self</a>.<span class="ident">new_unfolded_predicates</span>.<span class="ident">insert</span>(<a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#333">predicate_type</a>.<span class="ident">clone</span>()) {
+            <span class="kw">let</span> <span class="ident">predicate</span> <span class="op">=</span> <a class="self" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#331">self</a>.<span class="ident">encoder</span>.<a class="ident" href="../../../src/prusti_viper/encoder/high/types/interface.rs.html#118-121">get_viper_predicate</a>(<a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#333">predicate_type</a>)<span class="question-mark">?</span>;
             <span class="comment">// make sure we include all the fields</span>
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">body</span>) <span class="op">=</span> <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#328">predicate</a>.<span class="ident">body</span>().<span class="ident">as_ref</span>() {
-                <a class="self" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#319">self</a>.<span class="ident">fallible_walk_expr</span>(<a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#330">body</a>)<span class="question-mark">?</span>;
+            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">body</span>) <span class="op">=</span> <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#340">predicate</a>.<span class="ident">body</span>().<span class="ident">as_ref</span>() {
+                <a class="self" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#331">self</a>.<span class="ident">fallible_walk_expr</span>(<a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#342">body</a>)<span class="question-mark">?</span>;
             }
         }
-        <span class="kw">for</span> <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#334">arg</a> <span class="kw">in</span> <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#322">arguments</a> {
-            <span class="ident">FallibleExprWalker::fallible_walk</span>(<a class="self" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#319">self</a>, <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#334">arg</a>)<span class="question-mark">?</span>;
+        <span class="kw">for</span> <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#346">arg</a> <span class="kw">in</span> <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#334">arguments</a> {
+            <span class="ident">FallibleExprWalker::fallible_walk</span>(<a class="self" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#331">self</a>, <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#346">arg</a>)<span class="question-mark">?</span>;
         }
-        <span class="ident">FallibleExprWalker::fallible_walk</span>(<a class="self" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#319">self</a>, <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#323">base</a>)<span class="question-mark">?</span>;
+        <span class="ident">FallibleExprWalker::fallible_walk</span>(<a class="self" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#331">self</a>, <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#335">base</a>)<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(())
     }
     <span class="kw">fn</span> <span class="ident">fallible_walk_func_app</span>(
@@ -867,40 +894,43 @@
         }: <span class="kw-2">&amp;</span><a class="ident" href="../../../vir/gen/polymorphic/ast/expr/struct.FuncApp.html">vir::FuncApp</a>,
     ) -&gt; <span class="ident">SpannedEncodingResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">identifier</span>: <a class="ident" href="../../../vir/gen/polymorphic/ast/function/struct.FunctionIdentifier.html">vir::FunctionIdentifier</a> <span class="op">=</span>
-            <a class="ident" href="../../../vir/gen/polymorphic/ast/function/fn.compute_identifier.html">compute_identifier</a>(<a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#343">function_name</a>, <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#345">formal_arguments</a>, <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#346">return_type</a>).<span class="ident">into</span>();
-        <span class="kw">let</span> <span class="ident">have_visited</span> <span class="op">=</span> <span class="op">!</span><a class="self" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#341">self</a>.<span class="ident">used_functions</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#350">identifier</a>);
+            <a class="ident" href="../../../vir/gen/polymorphic/ast/function/fn.compute_identifier.html">compute_identifier</a>(<a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#355">function_name</a>, <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#357">formal_arguments</a>, <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#358">return_type</a>).<span class="ident">into</span>();
+        <span class="kw">let</span> <span class="ident">have_visited</span> <span class="op">=</span> <span class="op">!</span><a class="self" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#353">self</a>.<span class="ident">used_functions</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#362">identifier</a>);
         <span class="kw">let</span> <span class="ident">have_visited_in_directly_calling_state</span> <span class="op">=</span>
-            <a class="self" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#341">self</a>.<span class="ident">in_directly_calling_state</span> <span class="op">&amp;&amp;</span> <span class="op">!</span><a class="self" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#341">self</a>.<span class="ident">directly_called_functions</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#350">identifier</a>);
-        <span class="kw">if</span> <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#352">have_visited</a> <span class="op">|</span><span class="op">|</span> <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#353">have_visited_in_directly_calling_state</a> {
-            <span class="kw">let</span> <span class="ident">function</span> <span class="op">=</span> <a class="self" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#341">self</a>.<span class="ident">encoder</span>.<a class="ident" href="../../../src/prusti_viper/encoder/encoder.rs.html#248">get_function</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#350">identifier</a>)<span class="question-mark">?</span>;
-            <a class="self" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#341">self</a>.<span class="ident">used_functions</span>.<span class="ident">insert</span>(<a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#350">identifier</a>.<span class="ident">clone</span>());
-            <span class="kw">for</span> <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#358">expr</a> <span class="kw">in</span> <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#356">function</a>.<span class="ident">pres</span>.<span class="ident">iter</span>().<span class="ident">chain</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#356">function</a>.<span class="ident">posts</span>) {
-                <a class="self" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#341">self</a>.<span class="ident">fallible_walk_expr</span>(<a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#358">expr</a>)<span class="question-mark">?</span>;
+            <a class="self" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#353">self</a>.<span class="ident">in_directly_calling_state</span> <span class="op">&amp;&amp;</span> <span class="op">!</span><a class="self" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#353">self</a>.<span class="ident">directly_called_functions</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#362">identifier</a>);
+        <span class="kw">if</span> <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#364">have_visited</a> <span class="op">|</span><span class="op">|</span> <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#365">have_visited_in_directly_calling_state</a> {
+            <span class="kw">let</span> <span class="ident">function</span> <span class="op">=</span> <a class="self" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#353">self</a>.<span class="ident">encoder</span>.<a class="ident" href="../../../src/prusti_viper/encoder/encoder.rs.html#249">get_function</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#362">identifier</a>)<span class="question-mark">?</span>;
+            <a class="self" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#353">self</a>.<span class="ident">used_functions</span>.<span class="ident">insert</span>(<a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#362">identifier</a>.<span class="ident">clone</span>());
+            <span class="kw">if</span> <span class="op">!</span><a class="self" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#353">self</a>.<span class="ident">checked_function_contracts</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#362">identifier</a>) {
+                <a class="self" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#353">self</a>.<span class="ident">checked_function_contracts</span>.<span class="ident">insert</span>(<a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#362">identifier</a>.<span class="ident">clone</span>());
+                <span class="kw">for</span> <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#372">expr</a> <span class="kw">in</span> <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#368">function</a>.<span class="ident">pres</span>.<span class="ident">iter</span>().<span class="ident">chain</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#368">function</a>.<span class="ident">posts</span>) {
+                    <a class="self" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#353">self</a>.<span class="ident">fallible_walk_expr</span>(<a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#372">expr</a>)<span class="question-mark">?</span>;
+                }
             }
-            <span class="kw">let</span> <span class="ident">is_unfoldable</span> <span class="op">=</span> <a class="self" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#341">self</a>.<a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#250">contains_unfolded_predicates</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#356">function</a>.<span class="ident">pres</span>)
-                <span class="op">|</span><span class="op">|</span> <a class="self" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#341">self</a>.<a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#260">contains_unfolded_parameters</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#356">function</a>.<span class="ident">formal_args</span>);
-            <span class="kw">if</span> <a class="self" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#341">self</a>.<span class="ident">in_directly_calling_state</span> <span class="op">|</span><span class="op">|</span> <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#361">is_unfoldable</a> {
-                <a class="self" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#341">self</a>.<span class="ident">directly_called_functions</span>.<span class="ident">insert</span>(<a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#350">identifier</a>.<span class="ident">clone</span>());
-                <a class="self" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#341">self</a>.<span class="ident">unfolded_functions</span>.<span class="ident">insert</span>(<a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#350">identifier</a>);
-                <span class="kw">let</span> <span class="ident">old_in_directly_calling_state</span> <span class="op">=</span> <a class="self" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#341">self</a>.<span class="ident">in_directly_calling_state</span>;
-                <span class="kw">if</span> <span class="op">!</span><a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#361">is_unfoldable</a> {
+            <span class="kw">let</span> <span class="ident">is_unfoldable</span> <span class="op">=</span> <a class="self" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#353">self</a>.<a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#262">contains_unfolded_predicates</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#368">function</a>.<span class="ident">pres</span>)
+                <span class="op">|</span><span class="op">|</span> <a class="self" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#353">self</a>.<a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#272">contains_unfolded_parameters</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#368">function</a>.<span class="ident">formal_args</span>);
+            <span class="kw">if</span> <a class="self" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#353">self</a>.<span class="ident">in_directly_calling_state</span> <span class="op">|</span><span class="op">|</span> <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#376">is_unfoldable</a> {
+                <a class="self" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#353">self</a>.<span class="ident">directly_called_functions</span>.<span class="ident">insert</span>(<a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#362">identifier</a>.<span class="ident">clone</span>());
+                <a class="self" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#353">self</a>.<span class="ident">unfolded_functions</span>.<span class="ident">insert</span>(<a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#362">identifier</a>);
+                <span class="kw">let</span> <span class="ident">old_in_directly_calling_state</span> <span class="op">=</span> <a class="self" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#353">self</a>.<span class="ident">in_directly_calling_state</span>;
+                <span class="kw">if</span> <span class="op">!</span><a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#376">is_unfoldable</a> {
                     <span class="comment">// The functions called in the body of this function are</span>
                     <span class="comment">// directly callable only if this function is unfoldable.</span>
-                    <a class="self" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#341">self</a>.<span class="ident">in_directly_calling_state</span> <span class="op">=</span> <span class="bool-val">false</span>;
+                    <a class="self" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#353">self</a>.<span class="ident">in_directly_calling_state</span> <span class="op">=</span> <span class="bool-val">false</span>;
                 }
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">body</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#356">function</a>.<span class="ident">body</span> {
-                    <a class="self" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#341">self</a>.<span class="ident">fallible_walk_expr</span>(<a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#372">body</a>)<span class="question-mark">?</span>;
+                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">body</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#368">function</a>.<span class="ident">body</span> {
+                    <a class="self" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#353">self</a>.<span class="ident">fallible_walk_expr</span>(<a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#387">body</a>)<span class="question-mark">?</span>;
                 }
-                <a class="self" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#341">self</a>.<span class="ident">in_directly_calling_state</span> <span class="op">=</span> <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#366">old_in_directly_calling_state</a>;
+                <a class="self" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#353">self</a>.<span class="ident">in_directly_calling_state</span> <span class="op">=</span> <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#381">old_in_directly_calling_state</a>;
             }
         }
-        <span class="kw">for</span> <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#378">arg</a> <span class="kw">in</span> <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#344">arguments</a> {
-            <span class="ident">FallibleExprWalker::fallible_walk</span>(<a class="self" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#341">self</a>, <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#378">arg</a>)<span class="question-mark">?</span>;
+        <span class="kw">for</span> <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#393">arg</a> <span class="kw">in</span> <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#356">arguments</a> {
+            <span class="ident">FallibleExprWalker::fallible_walk</span>(<a class="self" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#353">self</a>, <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#393">arg</a>)<span class="question-mark">?</span>;
         }
-        <span class="kw">for</span> <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#381">arg</a> <span class="kw">in</span> <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#345">formal_arguments</a> {
-            <span class="ident">FallibleExprWalker::fallible_walk_local_var</span>(<a class="self" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#341">self</a>, <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#381">arg</a>)<span class="question-mark">?</span>;
+        <span class="kw">for</span> <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#396">arg</a> <span class="kw">in</span> <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#357">formal_arguments</a> {
+            <span class="ident">FallibleExprWalker::fallible_walk_local_var</span>(<a class="self" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#353">self</a>, <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#396">arg</a>)<span class="question-mark">?</span>;
         }
-        <span class="ident">FallibleExprWalker::fallible_walk_type</span>(<a class="self" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#341">self</a>, <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#346">return_type</a>)<span class="question-mark">?</span>;
+        <span class="ident">FallibleExprWalker::fallible_walk_type</span>(<a class="self" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#353">self</a>, <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#358">return_type</a>)<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(())
     }
     <span class="kw">fn</span> <span class="ident">fallible_walk_domain_func_app</span>(
@@ -911,51 +941,51 @@
             ..
         }: <span class="kw-2">&amp;</span><a class="ident" href="../../../vir/gen/polymorphic/ast/expr/struct.DomainFuncApp.html">vir::DomainFuncApp</a>,
     ) -&gt; <span class="ident">SpannedEncodingResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="kw">if</span> <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#390">domain_function</a>.<span class="ident">domain_name</span>.<span class="ident">starts_with</span>(<span class="string">&quot;Snap$&quot;</span>) {
-            <a class="self" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#388">self</a>.<span class="ident">used_snap_domain_functions</span>
-                .<span class="ident">insert</span>(<a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#390">domain_function</a>.<span class="ident">get_identifier</span>().<span class="ident">into</span>());
-            <a class="self" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#388">self</a>.<span class="ident">used_domains</span>
-                .<span class="ident">insert</span>(<a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#390">domain_function</a>.<span class="ident">domain_name</span>.<span class="ident">clone</span>());
+        <span class="kw">if</span> <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#405">domain_function</a>.<span class="ident">domain_name</span>.<span class="ident">starts_with</span>(<span class="string">&quot;Snap$&quot;</span>) {
+            <a class="self" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#403">self</a>.<span class="ident">used_snap_domain_functions</span>
+                .<span class="ident">insert</span>(<a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#405">domain_function</a>.<span class="ident">get_identifier</span>().<span class="ident">into</span>());
+            <a class="self" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#403">self</a>.<span class="ident">used_domains</span>
+                .<span class="ident">insert</span>(<a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#405">domain_function</a>.<span class="ident">domain_name</span>.<span class="ident">clone</span>());
         } <span class="kw">else</span> {
-            <span class="kw">match</span> <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#390">domain_function</a>.<span class="ident">domain_name</span>.<span class="ident">as_str</span>() {
+            <span class="kw">match</span> <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#405">domain_function</a>.<span class="ident">domain_name</span>.<span class="ident">as_str</span>() {
                 <span class="string">&quot;MirrorDomain&quot;</span> =&gt; {
                     <span class="comment">// Always included when encoded, do nothing.</span>
-                    <a class="self" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#388">self</a>.<span class="ident">used_mirror_functions</span>
-                        .<span class="ident">insert</span>(<a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#390">domain_function</a>.<span class="ident">get_identifier</span>().<span class="ident">into</span>());
+                    <a class="self" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#403">self</a>.<span class="ident">used_mirror_functions</span>
+                        .<span class="ident">insert</span>(<a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#405">domain_function</a>.<span class="ident">get_identifier</span>().<span class="ident">into</span>());
                 }
                 <span class="string">&quot;UnitDomain&quot;</span> =&gt; {
-                    <a class="self" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#388">self</a>.<span class="ident">used_domains</span>
-                        .<span class="ident">insert</span>(<a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#390">domain_function</a>.<span class="ident">domain_name</span>.<span class="ident">clone</span>());
+                    <a class="self" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#403">self</a>.<span class="ident">used_domains</span>
+                        .<span class="ident">insert</span>(<a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#405">domain_function</a>.<span class="ident">domain_name</span>.<span class="ident">clone</span>());
                 }
                 <span class="ident">name</span> =&gt; {
-                    <span class="macro">unreachable!</span>(<span class="string">&quot;Unexpected domain: {}&quot;</span>, <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#411">name</a>);
+                    <span class="macro">unreachable!</span>(<span class="string">&quot;Unexpected domain: {}&quot;</span>, <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#426">name</a>);
                 }
             }
         }
-        <span class="kw">for</span> <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#416">arg</a> <span class="kw">in</span> <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#391">arguments</a> {
-            <span class="ident">FallibleExprWalker::fallible_walk</span>(<a class="self" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#388">self</a>, <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#416">arg</a>)<span class="question-mark">?</span>;
+        <span class="kw">for</span> <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#431">arg</a> <span class="kw">in</span> <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#406">arguments</a> {
+            <span class="ident">FallibleExprWalker::fallible_walk</span>(<a class="self" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#403">self</a>, <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#431">arg</a>)<span class="question-mark">?</span>;
         }
-        <span class="kw">for</span> <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#419">arg</a> <span class="kw">in</span> <span class="kw-2">&amp;</span><a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#390">domain_function</a>.<span class="ident">formal_args</span> {
-            <span class="ident">FallibleExprWalker::fallible_walk_local_var</span>(<a class="self" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#388">self</a>, <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#419">arg</a>)<span class="question-mark">?</span>;
+        <span class="kw">for</span> <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#434">arg</a> <span class="kw">in</span> <span class="kw-2">&amp;</span><a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#405">domain_function</a>.<span class="ident">formal_args</span> {
+            <span class="ident">FallibleExprWalker::fallible_walk_local_var</span>(<a class="self" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#403">self</a>, <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#434">arg</a>)<span class="question-mark">?</span>;
         }
         <span class="prelude-val">Ok</span>(())
     }
     <span class="kw">fn</span> <span class="ident">fallible_walk_type</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">typ</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../vir/gen/polymorphic/ast/common/enum.Type.html">vir::Type</a>) -&gt; <span class="ident">SpannedEncodingResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="kw">match</span> <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#424">typ</a> {
+        <span class="kw">match</span> <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#439">typ</a> {
             <span class="ident">vir::Type::Seq</span>(<a class="ident" href="../../../vir/gen/polymorphic/ast/common/struct.SeqType.html">vir::SeqType</a> { <span class="kw">box</span> <span class="ident">typ</span> }) =&gt; {
-                <a class="self" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#424">self</a>.<span class="ident">fallible_walk_type</span>(<a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#426">typ</a>)<span class="question-mark">?</span>;
+                <a class="self" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#439">self</a>.<span class="ident">fallible_walk_type</span>(<a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#441">typ</a>)<span class="question-mark">?</span>;
             }
             <span class="ident">vir::Type::TypedRef</span>(..) <span class="op">|</span> <span class="ident">vir::Type::TypeVar</span>(..) =&gt; {
-                <a class="self" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#424">self</a>.<span class="ident">used_predicates</span>.<span class="ident">insert</span>(<a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#424">typ</a>.<span class="ident">clone</span>());
+                <a class="self" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#439">self</a>.<span class="ident">used_predicates</span>.<span class="ident">insert</span>(<a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#439">typ</a>.<span class="ident">clone</span>());
             }
             <span class="ident">vir::Type::Domain</span>(..) =&gt; {
-                <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#424">typ</a>.<span class="ident">name</span>();
-                <span class="kw">if</span> <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#433">name</a> <span class="op">!</span><span class="op">=</span> <span class="string">&quot;UnitDomain&quot;</span> {
-                    <span class="macro">unreachable!</span>(<span class="string">&quot;Unexpected type that is not snapshot: {}&quot;</span>, <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#433">name</a>);
+                <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#439">typ</a>.<span class="ident">name</span>();
+                <span class="kw">if</span> <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#448">name</a> <span class="op">!</span><span class="op">=</span> <span class="string">&quot;UnitDomain&quot;</span> {
+                    <span class="macro">unreachable!</span>(<span class="string">&quot;Unexpected type that is not snapshot: {}&quot;</span>, <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#448">name</a>);
                 }
             }
             <span class="ident">vir::Type::Snapshot</span>(..) =&gt; {
-                <a class="self" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#424">self</a>.<span class="ident">used_domains</span>.<span class="ident">insert</span>(<span class="macro">format!</span>(<span class="string">&quot;Snap${}&quot;</span>, <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#424">typ</a>.<span class="ident">name</span>()));
+                <a class="self" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#439">self</a>.<span class="ident">used_domains</span>.<span class="ident">insert</span>(<span class="macro">format!</span>(<span class="string">&quot;Snap${}&quot;</span>, <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#439">typ</a>.<span class="ident">name</span>()));
             }
             <span class="kw">_</span> =&gt; {}
         }
@@ -969,9 +999,9 @@
     <span class="ident">unfolded_predicates</span>: <span class="ident">HashSet</span><span class="op">&lt;</span><a class="ident" href="../../../vir/gen/polymorphic/ast/common/enum.Type.html">vir::Type</a><span class="op">&gt;</span>,
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../vir/gen/polymorphic/ast/stmt/trait.StmtWalker.html">StmtWalker</a> <span class="kw">for</span> <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#448-451">UnfoldedPredicateCollector</a> {
+<span class="kw">impl</span> <a class="ident" href="../../../vir/gen/polymorphic/ast/stmt/trait.StmtWalker.html">StmtWalker</a> <span class="kw">for</span> <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#463-466">UnfoldedPredicateCollector</a> {
     <span class="kw">fn</span> <span class="ident">walk_expr</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">expr</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>) {
-        <span class="ident">ExprWalker::walk</span>(<a class="self" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#454">self</a>, <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#454">expr</a>);
+        <span class="ident">ExprWalker::walk</span>(<a class="self" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#469">self</a>, <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#469">expr</a>);
     }
 
     <span class="kw">fn</span> <span class="ident">walk_fold</span>(
@@ -982,9 +1012,9 @@
             ..
         }: <span class="kw-2">&amp;</span><a class="ident" href="../../../vir/gen/polymorphic/ast/stmt/struct.Fold.html">vir::Fold</a>,
     ) {
-        <a class="self" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#459">self</a>.<span class="ident">unfolded_predicates</span>.<span class="ident">insert</span>(<a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#461">predicate</a>.<span class="ident">clone</span>());
-        <span class="kw">for</span> <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#467">arg</a> <span class="kw">in</span> <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#462">arguments</a> {
-            <a class="self" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#459">self</a>.<span class="ident">walk_expr</span>(<a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#467">arg</a>);
+        <a class="self" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#474">self</a>.<span class="ident">unfolded_predicates</span>.<span class="ident">insert</span>(<a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#476">predicate</a>.<span class="ident">clone</span>());
+        <span class="kw">for</span> <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#482">arg</a> <span class="kw">in</span> <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#477">arguments</a> {
+            <a class="self" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#474">self</a>.<span class="ident">walk_expr</span>(<a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#482">arg</a>);
         }
     }
 
@@ -996,14 +1026,14 @@
             ..
         }: <span class="kw-2">&amp;</span><a class="ident" href="../../../vir/gen/polymorphic/ast/stmt/struct.Unfold.html">vir::Unfold</a>,
     ) {
-        <a class="self" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#473">self</a>.<span class="ident">unfolded_predicates</span>.<span class="ident">insert</span>(<a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#475">predicate</a>.<span class="ident">clone</span>());
-        <span class="kw">for</span> <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#481">arg</a> <span class="kw">in</span> <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#476">arguments</a> {
-            <a class="self" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#473">self</a>.<span class="ident">walk_expr</span>(<a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#481">arg</a>);
+        <a class="self" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#488">self</a>.<span class="ident">unfolded_predicates</span>.<span class="ident">insert</span>(<a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#490">predicate</a>.<span class="ident">clone</span>());
+        <span class="kw">for</span> <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#496">arg</a> <span class="kw">in</span> <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#491">arguments</a> {
+            <a class="self" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#488">self</a>.<span class="ident">walk_expr</span>(<a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#496">arg</a>);
         }
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../vir/gen/polymorphic/ast/expr_transformers/trait.ExprWalker.html">ExprWalker</a> <span class="kw">for</span> <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#448-451">UnfoldedPredicateCollector</a> {
+<span class="kw">impl</span> <a class="ident" href="../../../vir/gen/polymorphic/ast/expr_transformers/trait.ExprWalker.html">ExprWalker</a> <span class="kw">for</span> <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#463-466">UnfoldedPredicateCollector</a> {
     <span class="kw">fn</span> <span class="ident">walk_unfolding</span>(
         <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
         <a class="ident" href="../../../vir/gen/polymorphic/ast/expr/struct.Unfolding.html">vir::Unfolding</a> {
@@ -1013,11 +1043,11 @@
             ..
         }: <span class="kw-2">&amp;</span><a class="ident" href="../../../vir/gen/polymorphic/ast/expr/struct.Unfolding.html">vir::Unfolding</a>,
     ) {
-        <a class="self" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#489">self</a>.<span class="ident">unfolded_predicates</span>.<span class="ident">insert</span>(<a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#491">predicate</a>.<span class="ident">clone</span>());
-        <span class="kw">for</span> <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#498">arg</a> <span class="kw">in</span> <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#492">arguments</a> {
-            <span class="ident">ExprWalker::walk</span>(<a class="self" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#489">self</a>, <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#498">arg</a>);
+        <a class="self" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#504">self</a>.<span class="ident">unfolded_predicates</span>.<span class="ident">insert</span>(<a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#506">predicate</a>.<span class="ident">clone</span>());
+        <span class="kw">for</span> <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#513">arg</a> <span class="kw">in</span> <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#507">arguments</a> {
+            <span class="ident">ExprWalker::walk</span>(<a class="self" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#504">self</a>, <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#513">arg</a>);
         }
-        <span class="ident">ExprWalker::walk</span>(<a class="self" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#489">self</a>, <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#493">base</a>);
+        <span class="ident">ExprWalker::walk</span>(<a class="self" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#504">self</a>, <a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#508">base</a>);
     }
 }
 
@@ -1031,8 +1061,8 @@
         <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
         <a class="ident" href="../../../vir/gen/polymorphic/ast/expr/struct.PredicateAccessPredicate.html">vir::PredicateAccessPredicate</a> { <span class="ident">predicate_type</span>, .. }: <span class="kw-2">&amp;</span><a class="ident" href="../../../vir/gen/polymorphic/ast/expr/struct.PredicateAccessPredicate.html">vir::PredicateAccessPredicate</a>,
     ) {
-        <span class="kw">if</span> <a class="self" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#512">self</a>.<span class="ident">unfolded_predicates</span>.<span class="ident">contains</span>(<a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#513">predicate_type</a>) {
-            <a class="self" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#512">self</a>.<span class="ident">found</span> <span class="op">=</span> <span class="bool-val">true</span>;
+        <span class="kw">if</span> <a class="self" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#527">self</a>.<span class="ident">unfolded_predicates</span>.<span class="ident">contains</span>(<a class="ident" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#528">predicate_type</a>) {
+            <a class="self" href="../../../src/prusti_viper/encoder/definition_collector.rs.html#527">self</a>.<span class="ident">found</span> <span class="op">=</span> <span class="bool-val">true</span>;
         }
     }
 }
