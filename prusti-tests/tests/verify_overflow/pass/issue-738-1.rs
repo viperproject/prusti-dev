@@ -13,8 +13,6 @@ impl A {
             ((1_isize + self.count) + isize::MAX) as usize
         } else {
             self.count as usize
-            //~^ ERROR value might not fit into the target type.
-            // FIXME: https://github.com/viperproject/prusti-dev/issues/738
         }
     }
 }
