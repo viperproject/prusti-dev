@@ -237,12 +237,29 @@ impl<'p, 'v: 'p, 'tcx: 'v> Collector<'p, 'v, 'tcx> {
                         && !predicate_name.starts_with("Array$")
                     {
                         // The type is never unfolded, so the snapshot should be
-                        // abstract. The only exception is the discriminant function
+                        // abstract. An exception is the discriminant function
                         // because it can be called on a folded type.
-                        domain.axioms.clear();
+                        // Another exception is when a snap domain function depends
+                        // on an axiom, then we should also retain the axiom.
+                        let mut used_snap_domain_function_prefixes = vec![];
                         domain.functions.retain(|function| {
-                            self.used_snap_domain_functions
-                                .contains(&function.get_identifier().into())
+                            let function_name = function.get_identifier();
+                            let prefix = function_name.split("__").next().map(String::from);
+                            if self
+                                .used_snap_domain_functions
+                                .contains(&function_name.into())
+                            {
+                                used_snap_domain_function_prefixes.extend(prefix);
+                                true
+                            } else {
+                                false
+                            }
+                        });
+                        domain.axioms.retain(|axiom| {
+                            axiom.name.ends_with("$valid")
+                                && used_snap_domain_function_prefixes
+                                    .iter()
+                                    .any(|prefix| axiom.name.starts_with(prefix))
                         });
                     }
                 }
