@@ -934,15 +934,13 @@ impl SnapshotEncoder {
                             name: format!("{}$valid", domain_name),
                             expr: Expr::forall(
                                 vec![self_local, idx],
-                                vec![
-                                    vir::Trigger::new(vec![read_call.clone()]),
-                                ],
+                                vec![vir::Trigger::new(vec![read_call.clone()])],
                                 encoder
                                     .encode_type_bounds(&read_call, elem_ty)
                                     .into_iter()
                                     .conjoin(),
                             ),
-                            domain_name: domain_name,
+                            domain_name,
                         }
                     }),
 
@@ -1277,15 +1275,13 @@ impl SnapshotEncoder {
                             name: format!("{}$valid", domain_name),
                             expr: Expr::forall(
                                 vec![self_local, idx],
-                                vec![
-                                    vir::Trigger::new(vec![read_call.clone()]),
-                                ],
+                                vec![vir::Trigger::new(vec![read_call.clone()])],
                                 encoder
                                     .encode_type_bounds(&read_call, elem_ty)
                                     .into_iter()
                                     .conjoin(),
                             ),
-                            domain_name: domain_name,
+                            domain_name,
                         }
                     }),
 
