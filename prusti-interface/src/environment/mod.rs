@@ -18,7 +18,7 @@ use std::path::PathBuf;
 use std::cell::Ref;
 use rustc_span::{Span, MultiSpan, symbol::Symbol};
 use std::collections::HashSet;
-use log::{debug, warn};
+use log::{debug, warn, trace};
 use std::rc::Rc;
 use std::collections::HashMap;
 use std::cell::RefCell;
@@ -35,6 +35,7 @@ pub mod mir_utils;
 pub mod place_set;
 pub mod polonius_info;
 mod procedure;
+mod mir_dump;
 
 use self::collect_prusti_spec_visitor::CollectPrustiSpecVisitor;
 use self::collect_closure_defs_visitor::CollectClosureDefsVisitor;
@@ -260,8 +261,13 @@ impl<'tcx> Environment<'tcx> {
 
     /// Get Polonius facts of a local procedure.
     pub fn local_mir_borrowck_facts(&self, def_id: LocalDefId) -> Rc<BorrowckFacts> {
+        self.try_get_local_mir_borrowck_facts(def_id).unwrap()
+    }
+
+    pub fn try_get_local_mir_borrowck_facts(&self, def_id: LocalDefId) -> Option<Rc<BorrowckFacts>> {
+        trace!("try_get_local_mir_borrowck_facts: {:?}", def_id);
         let borrowck_facts = self.borrowck_facts.borrow();
-        borrowck_facts.get(&def_id).unwrap().clone()
+        borrowck_facts.get(&def_id).cloned()
     }
 
     /// Get the MIR body of an external procedure.
