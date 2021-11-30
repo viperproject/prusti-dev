@@ -378,13 +378,15 @@ impl<'p, 'v: 'p, 'tcx: 'v> FallibleExprWalker for Collector<'p, 'v, 'tcx> {
     ) -> SpannedEncodingResult<()> {
         let identifier: vir::FunctionIdentifier =
             compute_identifier(function_name, formal_arguments, return_type).into();
-        let have_visited = !self.used_functions.contains(&identifier);
-        let have_visited_in_directly_calling_state =
+        let should_visit = !self.used_functions.contains(&identifier);
+        let should_visit_in_directly_calling_state =
             self.in_directly_calling_state && !self.directly_called_functions.contains(&identifier);
-        if have_visited || have_visited_in_directly_calling_state {
+        if should_visit || should_visit_in_directly_calling_state {
             let function = self.encoder.get_function(&identifier)?;
             self.used_functions.insert(identifier.clone());
-            if !self.checked_function_contracts.contains(&identifier) {
+            if !self.checked_function_contracts.contains(&identifier)
+                || should_visit_in_directly_calling_state
+            {
                 self.checked_function_contracts.insert(identifier.clone());
                 for expr in function.pres.iter().chain(&function.posts) {
                     self.fallible_walk_expr(expr)?;
