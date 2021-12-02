@@ -18,7 +18,7 @@ use rustc_middle::mir;
 use std::{
     self,
     collections::{HashMap, HashSet},
-    mem,
+    fmt, mem,
     ops::Deref,
 };
 use vir_crate::{
@@ -28,7 +28,6 @@ use vir_crate::{
         FallibleExprFolder, PermAmount, PermAmountError,
     },
 };
-use std::fmt;
 
 mod action;
 mod borrows;
@@ -79,13 +78,7 @@ impl fmt::Display for FoldUnfoldError {
             FoldUnfoldError::FailedToObtain(perm) => {
                 writeln!(f, "The required permission {} cannot be obtained.", perm)
             }
-            FoldUnfoldError::RequiresFolding(
-                _pred,
-                args,
-                frac,
-                _variant,
-                _pos,
-            ) => {
+            FoldUnfoldError::RequiresFolding(_pred, args, frac, _variant, _pos) => {
                 writeln!(f,
                     "A pure expression needs to fold Pred({}, {}), but Viper doesn't support 'folding .. in ..' expressions.",
                     args[0],
@@ -102,14 +95,15 @@ impl fmt::Display for FoldUnfoldError {
                 writeln!(f, "The predicate definition of {} is not available.", pred)
             }
             FoldUnfoldError::FailedToRemovePred(expr, frac) => {
-                writeln!(f,
+                writeln!(
+                    f,
                     "Tried to exhale a Pred({}, {}) permission that is not available.",
-                    expr,
-                    frac
+                    expr, frac
                 )
             }
             FoldUnfoldError::MissingLabel(label) => {
-                writeln!(f,
+                writeln!(
+                    f,
                     "An old[{}](..) expression has a label that has not been declared.",
                     label
                 )
