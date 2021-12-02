@@ -478,7 +478,7 @@ impl State {
     ) -> Result<(), FoldUnfoldError> {
         trace!("remove_pred {}, {}", place, perm);
         if !self.pred.contains_key(place) {
-            return Err(FoldUnfoldError::FailedToRemovePred(place.clone()));
+            return Err(FoldUnfoldError::FailedToRemovePred(place.clone(), perm));
         }
         if self.pred[place] == perm {
             self.pred.remove(place).unwrap();

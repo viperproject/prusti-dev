@@ -28,6 +28,7 @@ use vir_crate::{
         FallibleExprFolder, PermAmount, PermAmountError,
     },
 };
+use std::fmt;
 
 mod action;
 mod borrows;
@@ -63,13 +64,64 @@ pub enum FoldUnfoldError {
     MissingPredicate(vir::Type),
     /// The algorithms tried to remove a predicate that is not in the
     /// fold-unfold state.
-    FailedToRemovePred(vir::Expr),
+    FailedToRemovePred(vir::Expr, PermAmount),
     /// The algorithm tried to lookup a never-seen-before label
     MissingLabel(String),
     /// Other encoding error.
     SpannedEncodingError(SpannedEncodingError),
     /// Unsupported feature
     Unsupported(String),
+}
+
+impl fmt::Display for FoldUnfoldError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            FoldUnfoldError::FailedToObtain(perm) => {
+                writeln!(f, "The required permission {} cannot be obtained.", perm)
+            }
+            FoldUnfoldError::RequiresFolding(
+                _pred,
+                args,
+                frac,
+                _variant,
+                _pos,
+            ) => {
+                writeln!(f,
+                    "A pure expression needs to fold Pred({}, {}), but Viper doesn't support 'folding .. in ..' expressions.",
+                    args[0],
+                    frac
+                )
+            }
+            FoldUnfoldError::InvalidPermAmountAdd(error) => {
+                writeln!(f, "Failed to add fractional permissions: {}.", error)
+            }
+            FoldUnfoldError::InvalidPermAmountSub(error) => {
+                writeln!(f, "Failed to subtract fractional permissions: {}.", error)
+            }
+            FoldUnfoldError::MissingPredicate(pred) => {
+                writeln!(f, "The predicate definition of {} is not available.", pred)
+            }
+            FoldUnfoldError::FailedToRemovePred(expr, frac) => {
+                writeln!(f,
+                    "Tried to exhale a Pred({}, {}) permission that is not available.",
+                    expr,
+                    frac
+                )
+            }
+            FoldUnfoldError::MissingLabel(label) => {
+                writeln!(f,
+                    "An old[{}](..) expression has a label that has not been declared.",
+                    label
+                )
+            }
+            FoldUnfoldError::SpannedEncodingError(error) => {
+                writeln!(f, "Encoding error: {:?}", error)
+            }
+            FoldUnfoldError::Unsupported(error) => {
+                writeln!(f, "Unsupported feature: {}.", error)
+            }
+        }
+    }
 }
 
 impl From<PermAmountError> for FoldUnfoldError {
