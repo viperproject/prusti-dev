@@ -104,7 +104,7 @@ impl fmt::Display for FoldUnfoldError {
             FoldUnfoldError::MissingLabel(label) => {
                 writeln!(
                     f,
-                    "An old[{}](..) expression has a label that has not been declared.",
+                    "An old[{}](..) expression uses a label that has not been declared.",
                     label
                 )
             }
