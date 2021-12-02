@@ -17,7 +17,7 @@ impl B {
     /// Assign an ADT to a slice element directly
     #[requires(index < self.len())]
     pub fn set(&mut self, index: usize, a: A) {
-        //~^ ERROR generating fold-unfold Viper statements failed
+        //~^ ERROR cannot generate fold-unfold Viper statements
         self.inner[index] = a;
     }
 }
