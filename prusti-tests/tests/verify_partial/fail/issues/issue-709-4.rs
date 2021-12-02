@@ -11,7 +11,7 @@ impl B {
     /// Mutably reference an ADT within an array
     #[requires(index < self.0.len())]
     pub fn get_mut(&mut self, index: usize) -> &mut A {
-        //~^ ERROR generating fold-unfold Viper statements failed
+        //~^ ERROR cannot generate fold-unfold Viper statements
         &mut self.0[index]
     }
 }

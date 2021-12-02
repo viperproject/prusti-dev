@@ -498,7 +498,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
 
                 _ => SpannedEncodingError::internal(
                     format!(
-                        "cannot generate fold-unfold statements. {}",
+                        "cannot generate fold-unfold Viper statements. {}",
                         foldunfold_error,
                     ),
                     mir_span,
