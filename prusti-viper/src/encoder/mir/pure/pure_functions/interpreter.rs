@@ -758,13 +758,20 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                     return Ok(());
                 }
 
-                let opt_lhs_value_place = match ty.kind() {
+                // The "is value"/"is not value" distinction should disappear as soon as
+                // pure expressions use snapshots (= values) only.
+                let can_lhs_be_value = match ty.kind() {
                     ty::TyKind::Bool
                     | ty::TyKind::Int(..)
                     | ty::TyKind::Uint(..)
                     | ty::TyKind::Float(..)
                     | ty::TyKind::RawPtr(..)
-                    | ty::TyKind::Ref(..) => Some(
+                    | ty::TyKind::Ref(..) => true,
+                    ty::TyKind::Tuple(substs) if substs.is_empty() => true,
+                    _ => false
+                };
+                let opt_lhs_value_place = if can_lhs_be_value {
+                    Some(
                         self.encoder.encode_value_expr(
                             encoded_lhs.clone(),
                             ty
@@ -772,8 +779,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                         // encoded_lhs
                         //     .clone()
                         //     .field(self.encoder.encode_value_field(ty)),
-                    ),
-                    _ => None,
+                    )
+                } else {
+                    None
                 };
 
                 match rhs {
