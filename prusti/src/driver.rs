@@ -194,12 +194,6 @@ fn main() {
         rustc_args.push("-Zcrate-attr=feature(register_tool)".to_owned());
         rustc_args.push("-Zcrate-attr=register_tool(prusti)".to_owned());
 
-        if config::check_overflows() {
-            // Some crates might have a `overflow-checks = false` in their `Cargo.toml` to
-            // disable integer overflow checks, but we want to ignore that.
-            rustc_args.push("-Zforce-overflow-checks=yes".to_owned());
-        }
-
         if config::dump_debug_info() {
             rustc_args.push(format!(
                 "-Zdump-mir-dir={}",
