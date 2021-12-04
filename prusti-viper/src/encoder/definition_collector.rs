@@ -394,7 +394,14 @@ impl<'p, 'v: 'p, 'tcx: 'v> FallibleExprWalker for Collector<'p, 'v, 'tcx> {
             }
             let is_unfoldable = self.contains_unfolded_predicates(&function.pres)
                 || self.contains_unfolded_parameters(&function.formal_args);
-            if self.in_directly_calling_state || is_unfoldable {
+            // TODO: this post-condition check can be removed once verification of Viper functions is disabled,
+            // TODO: this is just a temporary fix for https://github.com/viperproject/prusti-dev/issues/770
+            let post_conditions_depend_on_result = function.posts.iter().any(|postcondition| {
+                postcondition.find(&vir::Expr::from(
+                    vir_local! { __result: { function.return_type.clone() } },
+                ))
+            });
+            if self.in_directly_calling_state || is_unfoldable || post_conditions_depend_on_result {
                 self.directly_called_functions.insert(identifier.clone());
                 self.unfolded_functions.insert(identifier);
                 let old_in_directly_calling_state = self.in_directly_calling_state;
