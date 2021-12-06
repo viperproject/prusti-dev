@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["Hasher","Represents an in-progress CRC32 computation."]]});
+initSidebarItems({"fn":[["hash","Computes the CRC32 hash of a byte slice."]],"struct":[["Hasher","Represents an in-progress CRC32 computation."]]});

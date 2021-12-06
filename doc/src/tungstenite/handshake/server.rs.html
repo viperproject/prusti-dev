@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;tungstenite-0.11.1&#x2F;src&#x2F;handshake&#x2F;server.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>server.rs - source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../tungstenite/index.html'><div class='logo-container rust-logo'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;tungstenite-0.11.1&#x2F;src&#x2F;handshake&#x2F;server.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>server.rs - source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css"disabled><link rel="stylesheet" type="text/css" href="../../../dark.css"disabled><link rel="stylesheet" type="text/css" href="../../../light.css"id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
+    <noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../tungstenite/index.html'><div class='logo-container rust-logo'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -347,12 +348,12 @@
 <span class="doccomment">/// Create a response for the request.</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">create_response</span>(<span class="ident">request</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/tungstenite/handshake/server.rs.html#18">Request</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../../src/tungstenite/handshake/server.rs.html#21">Response</a><span class="op">&gt;</span> {
     <span class="kw">if</span> <a class="ident" href="../../../src/tungstenite/handshake/server.rs.html#27">request</a>.<span class="ident">method</span>() <span class="op">!</span><span class="op">=</span> <span class="ident">http::Method::GET</span> {
-        <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/tungstenite/error.rs.html#59">Error::Protocol</a>(<span class="string">&quot;Method is not GET&quot;</span>.<span class="ident">into</span>()));
+        <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/tungstenite/error.rs.html#59">Error::Protocol</a>(<span class="string">&quot;Method is not GET&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()));
     }
 
     <span class="kw">if</span> <a class="ident" href="../../../src/tungstenite/handshake/server.rs.html#27">request</a>.<span class="ident">version</span>() <span class="op">&lt;</span> <span class="ident">http::Version::HTTP_11</span> {
         <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/tungstenite/error.rs.html#59">Error::Protocol</a>(
-            <span class="string">&quot;HTTP version should be 1.1 or higher&quot;</span>.<span class="ident">into</span>(),
+            <span class="string">&quot;HTTP version should be 1.1 or higher&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
         ));
     }
 
@@ -360,11 +361,11 @@
         .<span class="ident">headers</span>()
         .<span class="ident">get</span>(<span class="string">&quot;Connection&quot;</span>)
         .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">h</span><span class="op">|</span> <a class="ident" href="../../../src/tungstenite/handshake/server.rs.html#41">h</a>.<span class="ident">to_str</span>().<span class="ident">ok</span>())
-        .<span class="ident">map</span>(<span class="op">|</span><span class="ident">h</span><span class="op">|</span> <a class="ident" href="../../../src/tungstenite/handshake/server.rs.html#42">h</a>.<span class="ident">split</span>(<span class="op">|</span><span class="ident">c</span><span class="op">|</span> <a class="ident" href="../../../src/tungstenite/handshake/server.rs.html#42">c</a> <span class="op">==</span> <span class="string">&#39; &#39;</span> <span class="op">|</span><span class="op">|</span> <a class="ident" href="../../../src/tungstenite/handshake/server.rs.html#42">c</a> <span class="op">==</span> <span class="string">&#39;,&#39;</span>).<span class="ident">any</span>(<span class="op">|</span><span class="ident">p</span><span class="op">|</span> <a class="ident" href="../../../src/tungstenite/handshake/server.rs.html#42">p</a>.<span class="ident">eq_ignore_ascii_case</span>(<span class="string">&quot;Upgrade&quot;</span>)))
+        .<span class="ident">map</span>(<span class="op">|</span><span class="ident">h</span><span class="op">|</span> <a class="ident" href="../../../src/tungstenite/handshake/server.rs.html#42">h</a>.<span class="ident">split</span>(<span class="op">|</span><span class="ident">c</span><span class="op">|</span> <a class="ident" href="../../../src/tungstenite/handshake/server.rs.html#42">c</a> <span class="op">==</span> <span class="string">&#39; &#39;</span> <span class="op">|</span><span class="op">|</span> <a class="ident" href="../../../src/tungstenite/handshake/server.rs.html#42">c</a> <span class="op">==</span> <span class="string">&#39;,&#39;</span>).<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">any</a>(<span class="op">|</span><span class="ident">p</span><span class="op">|</span> <a class="ident" href="../../../src/tungstenite/handshake/server.rs.html#42">p</a>.<span class="ident">eq_ignore_ascii_case</span>(<span class="string">&quot;Upgrade&quot;</span>)))
         .<span class="ident">unwrap_or</span>(<span class="bool-val">false</span>)
     {
         <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/tungstenite/error.rs.html#59">Error::Protocol</a>(
-            <span class="string">&quot;No \&quot;Connection: upgrade\&quot; in client request&quot;</span>.<span class="ident">into</span>(),
+            <span class="string">&quot;No \&quot;Connection: upgrade\&quot; in client request&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
         ));
     }
 
@@ -376,7 +377,7 @@
         .<span class="ident">unwrap_or</span>(<span class="bool-val">false</span>)
     {
         <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/tungstenite/error.rs.html#59">Error::Protocol</a>(
-            <span class="string">&quot;No \&quot;Upgrade: websocket\&quot; in client request&quot;</span>.<span class="ident">into</span>(),
+            <span class="string">&quot;No \&quot;Upgrade: websocket\&quot; in client request&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
         ));
     }
 
@@ -387,14 +388,14 @@
         .<span class="ident">unwrap_or</span>(<span class="bool-val">false</span>)
     {
         <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/tungstenite/error.rs.html#59">Error::Protocol</a>(
-            <span class="string">&quot;No \&quot;Sec-WebSocket-Version: 13\&quot; in client request&quot;</span>.<span class="ident">into</span>(),
+            <span class="string">&quot;No \&quot;Sec-WebSocket-Version: 13\&quot; in client request&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
         ));
     }
 
     <span class="kw">let</span> <span class="ident">key</span> <span class="op">=</span> <a class="ident" href="../../../src/tungstenite/handshake/server.rs.html#27">request</a>
         .<span class="ident">headers</span>()
         .<span class="ident">get</span>(<span class="string">&quot;Sec-WebSocket-Key&quot;</span>)
-        .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <a class="ident" href="../../../src/tungstenite/error.rs.html#59">Error::Protocol</a>(<span class="string">&quot;Missing Sec-WebSocket-Key&quot;</span>.<span class="ident">into</span>()))<span class="question-mark">?</span>;
+        .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <a class="ident" href="../../../src/tungstenite/error.rs.html#59">Error::Protocol</a>(<span class="string">&quot;Missing Sec-WebSocket-Key&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()))<span class="question-mark">?</span>;
 
     <span class="kw">let</span> <span class="ident">builder</span> <span class="op">=</span> <span class="ident">Response::builder</span>()
         .<span class="ident">status</span>(<span class="ident">StatusCode::SWITCHING_PROTOCOLS</span>)
@@ -439,12 +440,12 @@
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;h</span>, <span class="lifetime">&#39;b</span>: <span class="lifetime">&#39;h</span><span class="op">&gt;</span> <span class="ident">FromHttparse</span><span class="op">&lt;</span><span class="ident">httparse::Request</span><span class="op">&lt;</span><span class="lifetime">&#39;h</span>, <span class="lifetime">&#39;b</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../../src/tungstenite/handshake/server.rs.html#18">Request</a> {
     <span class="kw">fn</span> <span class="ident">from_httparse</span>(<span class="ident">raw</span>: <span class="ident">httparse::Request</span><span class="op">&lt;</span><span class="lifetime">&#39;h</span>, <span class="lifetime">&#39;b</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <a class="ident" href="../../../src/tungstenite/handshake/server.rs.html#119">raw</a>.<span class="ident">method</span>.<span class="ident">expect</span>(<span class="string">&quot;Bug: no method in header&quot;</span>) <span class="op">!</span><span class="op">=</span> <span class="string">&quot;GET&quot;</span> {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/tungstenite/error.rs.html#59">Error::Protocol</a>(<span class="string">&quot;Method is not GET&quot;</span>.<span class="ident">into</span>()));
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/tungstenite/error.rs.html#59">Error::Protocol</a>(<span class="string">&quot;Method is not GET&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()));
         }
 
         <span class="kw">if</span> <a class="ident" href="../../../src/tungstenite/handshake/server.rs.html#119">raw</a>.<span class="ident">version</span>.<span class="ident">expect</span>(<span class="string">&quot;Bug: no HTTP version&quot;</span>) <span class="op">&lt;</span> <span class="comment">/*1.*/</span><span class="number">1</span> {
             <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/tungstenite/error.rs.html#59">Error::Protocol</a>(
-                <span class="string">&quot;HTTP version should be 1.1 or higher&quot;</span>.<span class="ident">into</span>(),
+                <span class="string">&quot;HTTP version should be 1.1 or higher&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
             ));
         }
 
@@ -557,7 +558,7 @@
                 <span class="ident">tail</span>,
             } =&gt; {
                 <span class="kw">if</span> <span class="op">!</span><a class="ident" href="../../../src/tungstenite/handshake/server.rs.html#236">tail</a>.<span class="ident">is_empty</span>() {
-                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/tungstenite/error.rs.html#59">Error::Protocol</a>(<span class="string">&quot;Junk after client request&quot;</span>.<span class="ident">into</span>()));
+                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/tungstenite/error.rs.html#59">Error::Protocol</a>(<span class="string">&quot;Junk after client request&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()));
                 }
 
                 <span class="kw">let</span> <span class="ident">response</span> <span class="op">=</span> <a class="ident" href="../../../src/tungstenite/handshake/server.rs.html#27">create_response</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/tungstenite/handshake/server.rs.html#235">result</a>)<span class="question-mark">?</span>;
@@ -577,7 +578,7 @@
                     <span class="prelude-val">Err</span>(<span class="ident">resp</span>) =&gt; {
                         <span class="kw">if</span> <a class="ident" href="../../../src/tungstenite/handshake/server.rs.html#256">resp</a>.<span class="ident">status</span>().<span class="ident">is_success</span>() {
                             <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/tungstenite/error.rs.html#59">Error::Protocol</a>(
-                                <span class="string">&quot;Custom response must not be successful&quot;</span>.<span class="ident">into</span>(),
+                                <span class="string">&quot;Custom response must not be successful&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
                             ));
                         }
 
@@ -641,6 +642,5 @@
     }
 }
 </code></pre></div>
-</section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="tungstenite" data-search-index-js="../../../search-index.js" data-search-js="../../../search.js"></div>
-    <script src="../../../main.js"></script><script src="../../../source-script.js"></script><script src="../../../source-files.js"></script>
+</section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="tungstenite" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.59.0-nightly (207c80f10 2021-11-30)" ></div>
 </body></html>

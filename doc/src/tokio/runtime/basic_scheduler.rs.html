@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;tokio-1.13.0&#x2F;src&#x2F;runtime&#x2F;basic_scheduler.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>basic_scheduler.rs - source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../tokio/index.html'><div class='logo-container rust-logo'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;tokio-1.14.0&#x2F;src&#x2F;runtime&#x2F;basic_scheduler.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>basic_scheduler.rs - source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css"disabled><link rel="stylesheet" type="text/css" href="../../../dark.css"disabled><link rel="stylesheet" type="text/css" href="../../../light.css"id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
+    <noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../tokio/index.html'><div class='logo-container rust-logo'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -505,14 +506,27 @@
 <span id="505">505</span>
 <span id="506">506</span>
 <span id="507">507</span>
+<span id="508">508</span>
+<span id="509">509</span>
+<span id="510">510</span>
+<span id="511">511</span>
+<span id="512">512</span>
+<span id="513">513</span>
+<span id="514">514</span>
+<span id="515">515</span>
+<span id="516">516</span>
+<span id="517">517</span>
+<span id="518">518</span>
+<span id="519">519</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <a class="ident" href="../../../src/tokio/future/poll_fn.rs.html#18-20"><span class="kw">crate</span>::future::poll_fn</a>;
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicBool.html"><span class="kw">crate</span>::loom::sync::atomic::AtomicBool</a>;
 <span class="kw">use</span> <a class="ident" href="../../../src/tokio/loom/std/mutex.rs.html#6"><span class="kw">crate</span>::loom::sync::Mutex</a>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::park</span>::{<a class="ident" href="../../../src/tokio/park/mod.rs.html#49-90">Park</a>, <a class="ident" href="../../../src/tokio/park/mod.rs.html#93-105">Unpark</a>};
+<span class="kw">use</span> <a class="ident" href="../../../src/tokio/runtime/context.rs.html#103"><span class="kw">crate</span>::runtime::context::EnterGuard</a>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::runtime::stats</span>::{<a class="ident" href="../../../src/tokio/runtime/stats/mock.rs.html#3">RuntimeStats</a>, <a class="ident" href="../../../src/tokio/runtime/stats/mock.rs.html#11">WorkerStatsBatcher</a>};
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::runtime::task</span>::{<a class="self" href="../../../src/tokio/runtime/mod.rs.html#182">self</a>, <a class="ident" href="../../../src/tokio/runtime/task/join.rs.html#144-147">JoinHandle</a>, <a class="ident" href="../../../src/tokio/runtime/task/list.rs.html#56-59">OwnedTasks</a>, <a class="ident" href="../../../src/tokio/runtime/task/mod.rs.html#217-233">Schedule</a>, <a class="ident" href="../../../src/tokio/runtime/task/mod.rs.html#178-181">Task</a>};
 <span class="kw">use</span> <a class="ident" href="../../../src/tokio/runtime/mod.rs.html#294"><span class="kw">crate</span>::runtime::Callback</a>;
-<span class="kw">use</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#112-119"><span class="kw">crate</span>::sync::notify::Notify</a>;
+<span class="kw">use</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#115-122"><span class="kw">crate</span>::sync::notify::Notify</a>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::util</span>::{<a class="ident" href="../../../src/tokio/util/wake.rs.html#32">waker_ref</a>, <a class="ident" href="../../../src/tokio/util/wake.rs.html#8-14">Wake</a>, <a class="ident" href="../../../src/tokio/util/wake.rs.html#18-21">WakerRef</a>};
 
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/cell/struct.RefCell.html">std::cell::RefCell</a>;
@@ -532,10 +546,16 @@
 
     <span class="doccomment">/// Notifier for waking up other threads to steal the</span>
     <span class="doccomment">/// parker.</span>
-    <span class="ident">notify</span>: <a class="ident" href="../../../src/tokio/sync/notify.rs.html#112-119">Notify</a>,
+    <span class="ident">notify</span>: <a class="ident" href="../../../src/tokio/sync/notify.rs.html#115-122">Notify</a>,
 
     <span class="doccomment">/// Sendable task spawner</span>
-    <span class="ident">spawner</span>: <a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#63-65">Spawner</a>,
+    <span class="ident">spawner</span>: <a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#70-72">Spawner</a>,
+
+    <span class="doccomment">/// This is usually None, but right before dropping the BasicScheduler, it</span>
+    <span class="doccomment">/// is changed to `Some` with the context being the runtime&#39;s own context.</span>
+    <span class="doccomment">/// This ensures that any tasks dropped in the `BasicScheduler`s destructor</span>
+    <span class="doccomment">/// run in that runtime&#39;s context.</span>
+    <span class="ident">context_guard</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio/runtime/context.rs.html#103">EnterGuard</a><span class="op">&gt;</span>,
 }
 
 <span class="doccomment">/// The inner scheduler that owns the task queue and the main parker P.</span>
@@ -546,10 +566,10 @@
     <span class="doccomment">/// moved into `Context`.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// This indirection is to allow `BasicScheduler` to be `Send`.</span>
-    <span class="ident">tasks</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#67-72">Tasks</a><span class="op">&gt;</span>,
+    <span class="ident">tasks</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#74-79">Tasks</a><span class="op">&gt;</span>,
 
     <span class="doccomment">/// Sendable task spawner</span>
-    <span class="ident">spawner</span>: <a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#63-65">Spawner</a>,
+    <span class="ident">spawner</span>: <a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#70-72">Spawner</a>,
 
     <span class="doccomment">/// Current tick</span>
     <span class="ident">tick</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>,
@@ -568,14 +588,14 @@
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>)]</span>
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">Spawner</span> {
-    <span class="ident">shared</span>: <span class="ident">Arc</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#88-103">Shared</a><span class="op">&gt;</span>,
+    <span class="ident">shared</span>: <span class="ident">Arc</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#95-110">Shared</a><span class="op">&gt;</span>,
 }
 
 <span class="kw">struct</span> <span class="ident">Tasks</span> {
     <span class="doccomment">/// Local run queue.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Tasks notified from the current thread are pushed into this queue.</span>
-    <span class="ident">queue</span>: <span class="ident">VecDeque</span><span class="op">&lt;</span><span class="ident">task::Notified</span><span class="op">&lt;</span><span class="ident">Arc</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#88-103">Shared</a><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="ident">queue</span>: <span class="ident">VecDeque</span><span class="op">&lt;</span><span class="ident">task::Notified</span><span class="op">&lt;</span><span class="ident">Arc</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#95-110">Shared</a><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 }
 
 <span class="doccomment">/// A remote scheduler entry.</span>
@@ -583,21 +603,21 @@
 <span class="doccomment">/// These are filled in by remote threads sending instructions to the scheduler.</span>
 <span class="kw">enum</span> <span class="ident">RemoteMsg</span> {
     <span class="doccomment">/// A remote thread wants to spawn a task.</span>
-    <span class="ident">Schedule</span>(<span class="ident">task::Notified</span><span class="op">&lt;</span><span class="ident">Arc</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#88-103">Shared</a><span class="op">&gt;</span><span class="op">&gt;</span>),
+    <span class="ident">Schedule</span>(<span class="ident">task::Notified</span><span class="op">&lt;</span><span class="ident">Arc</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#95-110">Shared</a><span class="op">&gt;</span><span class="op">&gt;</span>),
 }
 
 <span class="comment">// Safety: Used correctly, the task header is &quot;thread safe&quot;. Ultimately the task</span>
 <span class="comment">// is owned by the current thread executor, for which this instruction is being</span>
 <span class="comment">// sent.</span>
-<span class="kw">unsafe</span> <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="kw">for</span> <a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#77-80">RemoteMsg</a> {}
+<span class="kw">unsafe</span> <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="kw">for</span> <a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#84-87">RemoteMsg</a> {}
 
 <span class="doccomment">/// Scheduler state shared between threads.</span>
 <span class="kw">struct</span> <span class="ident">Shared</span> {
     <span class="doccomment">/// Remote run queue. None if the `Runtime` has been dropped.</span>
-    <span class="ident">queue</span>: <span class="ident">Mutex</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">VecDeque</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#77-80">RemoteMsg</a><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="ident">queue</span>: <span class="ident">Mutex</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">VecDeque</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#84-87">RemoteMsg</a><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 
     <span class="doccomment">/// Collection of all active tasks spawned onto this executor.</span>
-    <span class="ident">owned</span>: <span class="ident">OwnedTasks</span><span class="op">&lt;</span><span class="ident">Arc</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#88-103">Shared</a><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="ident">owned</span>: <span class="ident">OwnedTasks</span><span class="op">&lt;</span><span class="ident">Arc</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#95-110">Shared</a><span class="op">&gt;</span><span class="op">&gt;</span>,
 
     <span class="doccomment">/// Unpark the blocked thread.</span>
     <span class="ident">unpark</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <a class="ident" href="../../../src/tokio/park/mod.rs.html#93-105">Unpark</a><span class="op">&gt;</span>,
@@ -612,10 +632,10 @@
 <span class="doccomment">/// Thread-local context.</span>
 <span class="kw">struct</span> <span class="ident">Context</span> {
     <span class="doccomment">/// Shared scheduler state</span>
-    <span class="ident">shared</span>: <span class="ident">Arc</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#88-103">Shared</a><span class="op">&gt;</span>,
+    <span class="ident">shared</span>: <span class="ident">Arc</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#95-110">Shared</a><span class="op">&gt;</span>,
 
     <span class="doccomment">/// Local queue</span>
-    <span class="ident">tasks</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#67-72">Tasks</a><span class="op">&gt;</span>,
+    <span class="ident">tasks</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#74-79">Tasks</a><span class="op">&gt;</span>,
 }
 
 <span class="doccomment">/// Initial queue capacity.</span>
@@ -631,7 +651,7 @@
 <span class="kw">const</span> <span class="ident">REMOTE_FIRST_INTERVAL</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a> <span class="op">=</span> <span class="number">31</span>;
 
 <span class="comment">// Tracks the current BasicScheduler.</span>
-<span class="macro">scoped_thread_local!</span>(<span class="kw">static</span> <span class="ident">CURRENT</span>: <a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#106-112">Context</a>);
+<span class="macro">scoped_thread_local!</span>(<span class="kw">static</span> <span class="ident">CURRENT</span>: <a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#113-119">Context</a>);
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">P</span>: <a class="ident" href="../../../src/tokio/park/mod.rs.html#49-90">Park</a><span class="op">&gt;</span> <span class="ident">BasicScheduler</span><span class="op">&lt;</span><span class="ident">P</span><span class="op">&gt;</span> {
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new</span>(
@@ -639,39 +659,40 @@
         <span class="ident">before_park</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio/runtime/mod.rs.html#294">Callback</a><span class="op">&gt;</span>,
         <span class="ident">after_unpark</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio/runtime/mod.rs.html#294">Callback</a><span class="op">&gt;</span>,
     ) -&gt; <span class="ident">BasicScheduler</span><span class="op">&lt;</span><span class="ident">P</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">unpark</span> <span class="op">=</span> <span class="ident">Box::new</span>(<a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#131">park</a>.<a class="ident" href="../../../src/tokio/park/mod.rs.html#57">unpark</a>());
+        <span class="kw">let</span> <span class="ident">unpark</span> <span class="op">=</span> <span class="ident">Box::new</span>(<a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#138">park</a>.<a class="ident" href="../../../src/tokio/park/mod.rs.html#57">unpark</a>());
 
-        <span class="kw">let</span> <span class="ident">spawner</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#63-65">Spawner</a> {
-            <span class="ident">shared</span>: <span class="ident">Arc::new</span>(<a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#88-103">Shared</a> {
-                <span class="ident">queue</span>: <span class="ident">Mutex::new</span>(<span class="prelude-val">Some</span>(<span class="ident">VecDeque::with_capacity</span>(<a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#115">INITIAL_CAPACITY</a>))),
+        <span class="kw">let</span> <span class="ident">spawner</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#70-72">Spawner</a> {
+            <span class="ident">shared</span>: <span class="ident">Arc::new</span>(<a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#95-110">Shared</a> {
+                <span class="ident">queue</span>: <span class="ident">Mutex::new</span>(<span class="prelude-val">Some</span>(<span class="ident">VecDeque::with_capacity</span>(<a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#122">INITIAL_CAPACITY</a>))),
                 <span class="ident">owned</span>: <span class="ident">OwnedTasks::new</span>(),
-                <span class="ident">unpark</span>: <a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#135">unpark</a> <span class="kw">as</span> <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <a class="ident" href="../../../src/tokio/park/mod.rs.html#93-105">Unpark</a><span class="op">&gt;</span>,
+                <span class="ident">unpark</span>: <a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#142">unpark</a> <span class="kw">as</span> <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <a class="ident" href="../../../src/tokio/park/mod.rs.html#93-105">Unpark</a><span class="op">&gt;</span>,
                 <span class="ident">woken</span>: <span class="ident">AtomicBool::new</span>(<span class="bool-val">false</span>),
                 <span class="ident">stats</span>: <span class="ident">RuntimeStats::new</span>(<span class="number">1</span>),
             }),
         };
 
-        <span class="kw">let</span> <span class="ident">inner</span> <span class="op">=</span> <span class="ident">Mutex::new</span>(<span class="prelude-val">Some</span>(<a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#35-60">Inner</a> {
-            <span class="ident">tasks</span>: <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#67-72">Tasks</a> {
-                <span class="ident">queue</span>: <span class="ident">VecDeque::with_capacity</span>(<a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#115">INITIAL_CAPACITY</a>),
+        <span class="kw">let</span> <span class="ident">inner</span> <span class="op">=</span> <span class="ident">Mutex::new</span>(<span class="prelude-val">Some</span>(<a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#42-67">Inner</a> {
+            <span class="ident">tasks</span>: <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#74-79">Tasks</a> {
+                <span class="ident">queue</span>: <span class="ident">VecDeque::with_capacity</span>(<a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#122">INITIAL_CAPACITY</a>),
             }),
-            <span class="ident">spawner</span>: <a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#137">spawner</a>.<span class="ident">clone</span>(),
+            <span class="ident">spawner</span>: <a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#144">spawner</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
             <span class="ident">tick</span>: <span class="number">0</span>,
-            <a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#131">park</a>,
-            <a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#132">before_park</a>,
-            <a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#133">after_unpark</a>,
+            <a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#138">park</a>,
+            <a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#139">before_park</a>,
+            <a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#140">after_unpark</a>,
             <span class="ident">stats</span>: <span class="ident">WorkerStatsBatcher::new</span>(<span class="number">0</span>),
         }));
 
-        <a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#21-32">BasicScheduler</a> {
-            <a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#147">inner</a>,
+        <a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#22-39">BasicScheduler</a> {
+            <a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#154">inner</a>,
             <span class="ident">notify</span>: <span class="ident">Notify::new</span>(),
-            <a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#137">spawner</a>,
+            <a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#144">spawner</a>,
+            <span class="ident">context_guard</span>: <span class="prelude-val">None</span>,
         }
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">spawner</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#63-65">Spawner</a> {
-        <span class="kw-2">&amp;</span><a class="self" href="../../../src/tokio/runtime/basic_scheduler.rs.html#166">self</a>.<span class="ident">spawner</span>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">spawner</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#70-72">Spawner</a> {
+        <span class="kw-2">&amp;</span><a class="self" href="../../../src/tokio/runtime/basic_scheduler.rs.html#174">self</a>.<span class="ident">spawner</span>
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">block_on</span><span class="op">&lt;</span><span class="ident">F</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">future</span>: <span class="ident">F</span>) -&gt; <span class="ident">F::Output</span> {
@@ -681,103 +702,107 @@
         <span class="comment">// otherwise, lets select on a notification that the parker is available</span>
         <span class="comment">// or the future is complete.</span>
         <span class="kw">loop</span> {
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">inner</span>) <span class="op">=</span> <span class="kw-2">&amp;mut</span> <a class="self" href="../../../src/tokio/runtime/basic_scheduler.rs.html#170">self</a>.<a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#205">take_inner</a>() {
-                <span class="kw">return</span> <a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#177">inner</a>.<a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#486">block_on</a>(<a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#171">future</a>);
+            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">inner</span>) <span class="op">=</span> <span class="kw-2">&amp;mut</span> <a class="self" href="../../../src/tokio/runtime/basic_scheduler.rs.html#178">self</a>.<a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#213">take_inner</a>() {
+                <span class="kw">return</span> <a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#185">inner</a>.<a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#498">block_on</a>(<a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#179">future</a>);
             } <span class="kw">else</span> {
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">enter</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/runtime/enter.rs.html#34"><span class="kw">crate</span>::runtime::enter</a>(<span class="bool-val">false</span>);
 
-                <span class="kw">let</span> <span class="ident">notified</span> <span class="op">=</span> <a class="self" href="../../../src/tokio/runtime/basic_scheduler.rs.html#170">self</a>.<span class="ident">notify</span>.<a class="ident" href="../../../src/tokio/sync/notify.rs.html#276">notified</a>();
+                <span class="kw">let</span> <span class="ident">notified</span> <span class="op">=</span> <a class="self" href="../../../src/tokio/runtime/basic_scheduler.rs.html#178">self</a>.<span class="ident">notify</span>.<a class="ident" href="../../../src/tokio/sync/notify.rs.html#279">notified</a>();
                 <span class="macro">pin!</span>(<span class="ident">notified</span>);
 
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">out</span>) <span class="op">=</span> <a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#180">enter</a>
+                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">out</span>) <span class="op">=</span> <a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#188">enter</a>
                     .<a class="ident" href="../../../src/tokio/runtime/enter.rs.html#144-146">block_on</a>(<a class="ident" href="../../../src/tokio/future/poll_fn.rs.html#18-20">poll_fn</a>(<span class="op">|</span><span class="ident">cx</span><span class="op">|</span> {
-                        <span class="kw">if</span> <a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#183">notified</a>.<span class="ident">as_mut</span>().<span class="ident">poll</span>(<a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#186">cx</a>).<span class="ident">is_ready</span>() {
+                        <span class="kw">if</span> <a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#191">notified</a>.<span class="ident">as_mut</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">poll</a>(<a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#194">cx</a>).<span class="ident">is_ready</span>() {
                             <span class="kw">return</span> <span class="ident">Ready</span>(<span class="prelude-val">None</span>);
                         }
 
-                        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Ready</span>(<span class="ident">out</span>) <span class="op">=</span> <a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#171">future</a>.<span class="ident">as_mut</span>().<span class="ident">poll</span>(<a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#186">cx</a>) {
-                            <span class="kw">return</span> <span class="ident">Ready</span>(<span class="prelude-val">Some</span>(<a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#191">out</a>));
+                        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Ready</span>(<span class="ident">out</span>) <span class="op">=</span> <a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#179">future</a>.<span class="ident">as_mut</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">poll</a>(<a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#194">cx</a>) {
+                            <span class="kw">return</span> <span class="ident">Ready</span>(<span class="prelude-val">Some</span>(<a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#199">out</a>));
                         }
 
                         <span class="ident">Pending</span>
                     }))
                     .<span class="ident">expect</span>(<span class="string">&quot;Failed to `Enter::block_on`&quot;</span>)
                 {
-                    <span class="kw">return</span> <a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#185">out</a>;
+                    <span class="kw">return</span> <a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#193">out</a>;
                 }
             }
         }
     }
 
     <span class="kw">fn</span> <span class="ident">take_inner</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">InnerGuard</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">P</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">inner</span> <span class="op">=</span> <a class="self" href="../../../src/tokio/runtime/basic_scheduler.rs.html#205">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../src/tokio/loom/std/mutex.rs.html#16">lock</a>().<span class="ident">take</span>()<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">inner</span> <span class="op">=</span> <a class="self" href="../../../src/tokio/runtime/basic_scheduler.rs.html#213">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../src/tokio/loom/std/mutex.rs.html#16">lock</a>().<span class="ident">take</span>()<span class="question-mark">?</span>;
 
-        <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#480-483">InnerGuard</a> {
-            <span class="ident">inner</span>: <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#206">inner</a>),
-            <span class="ident">basic_scheduler</span>: <a class="self" href="../../../src/tokio/runtime/basic_scheduler.rs.html#205">self</a>,
+        <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#492-495">InnerGuard</a> {
+            <span class="ident">inner</span>: <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#214">inner</a>),
+            <span class="ident">basic_scheduler</span>: <a class="self" href="../../../src/tokio/runtime/basic_scheduler.rs.html#213">self</a>,
         })
+    }
+
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">set_context_guard</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">guard</span>: <a class="ident" href="../../../src/tokio/runtime/context.rs.html#103">EnterGuard</a>) {
+        <a class="self" href="../../../src/tokio/runtime/basic_scheduler.rs.html#222">self</a>.<span class="ident">context_guard</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#222">guard</a>);
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">P</span>: <a class="ident" href="../../../src/tokio/park/mod.rs.html#49-90">Park</a><span class="op">&gt;</span> <span class="ident">Inner</span><span class="op">&lt;</span><span class="ident">P</span><span class="op">&gt;</span> {
     <span class="doccomment">/// Blocks on the provided future and drives the runtime&#39;s driver.</span>
     <span class="kw">fn</span> <span class="ident">block_on</span><span class="op">&lt;</span><span class="ident">F</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">future</span>: <span class="ident">F</span>) -&gt; <span class="ident">F::Output</span> {
-        <a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#304-307">enter</a>(<a class="self" href="../../../src/tokio/runtime/basic_scheduler.rs.html#217">self</a>, <span class="op">|</span><span class="ident">scheduler</span>, <span class="ident">context</span><span class="op">|</span> {
+        <a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#316-319">enter</a>(<a class="self" href="../../../src/tokio/runtime/basic_scheduler.rs.html#229">self</a>, <span class="op">|</span><span class="ident">scheduler</span>, <span class="ident">context</span><span class="op">|</span> {
             <span class="kw">let</span> <span class="ident">_enter</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/runtime/enter.rs.html#34"><span class="kw">crate</span>::runtime::enter</a>(<span class="bool-val">false</span>);
-            <span class="kw">let</span> <span class="ident">waker</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#218">scheduler</a>.<span class="ident">spawner</span>.<a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#418">waker_ref</a>();
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">cx</span> <span class="op">=</span> <span class="ident">std::task::Context::from_waker</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#220">waker</a>);
+            <span class="kw">let</span> <span class="ident">waker</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#230">scheduler</a>.<span class="ident">spawner</span>.<a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#430">waker_ref</a>();
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">cx</span> <span class="op">=</span> <span class="ident">std::task::Context::from_waker</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#232">waker</a>);
 
             <span class="macro">pin!</span>(<span class="ident">future</span>);
 
             <span class="lifetime">&#39;outer</span>: <span class="kw">loop</span> {
-                <span class="kw">if</span> <a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#218">scheduler</a>.<span class="ident">spawner</span>.<a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#426">reset_woken</a>() {
-                    <a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#218">scheduler</a>.<span class="ident">stats</span>.<a class="ident" href="../../../src/tokio/runtime/stats/mock.rs.html#26">incr_poll_count</a>();
-                    <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Ready</span>(<span class="ident">v</span>) <span class="op">=</span> <a class="ident" href="../../../src/tokio/coop.rs.html#75"><span class="kw">crate</span>::coop::budget</a>(<span class="op">|</span><span class="op">|</span> <a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#223">future</a>.<span class="ident">as_mut</span>().<span class="ident">poll</span>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#221">cx</a>)) {
-                        <span class="kw">return</span> <a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#228">v</a>;
+                <span class="kw">if</span> <a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#230">scheduler</a>.<span class="ident">spawner</span>.<a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#438">reset_woken</a>() {
+                    <a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#230">scheduler</a>.<span class="ident">stats</span>.<a class="ident" href="../../../src/tokio/runtime/stats/mock.rs.html#26">incr_poll_count</a>();
+                    <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Ready</span>(<span class="ident">v</span>) <span class="op">=</span> <a class="ident" href="../../../src/tokio/coop.rs.html#75"><span class="kw">crate</span>::coop::budget</a>(<span class="op">|</span><span class="op">|</span> <a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#235">future</a>.<span class="ident">as_mut</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">poll</a>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#233">cx</a>)) {
+                        <span class="kw">return</span> <a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#240">v</a>;
                     }
                 }
 
-                <span class="kw">for</span> <span class="kw">_</span> <span class="kw">in</span> <span class="number">0</span>..<a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#121">MAX_TASKS_PER_TICK</a> {
+                <span class="kw">for</span> <span class="kw">_</span> <span class="kw">in</span> <span class="number">0</span>..<a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#128">MAX_TASKS_PER_TICK</a> {
                     <span class="comment">// Get and increment the current tick</span>
-                    <span class="kw">let</span> <span class="ident">tick</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#218">scheduler</a>.<span class="ident">tick</span>;
-                    <a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#218">scheduler</a>.<span class="ident">tick</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#218">scheduler</a>.<span class="ident">tick</span>.<span class="ident">wrapping_add</span>(<span class="number">1</span>);
+                    <span class="kw">let</span> <span class="ident">tick</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#230">scheduler</a>.<span class="ident">tick</span>;
+                    <a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#230">scheduler</a>.<span class="ident">tick</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#230">scheduler</a>.<span class="ident">tick</span>.<span class="ident">wrapping_add</span>(<span class="number">1</span>);
 
-                    <span class="kw">let</span> <span class="ident">entry</span> <span class="op">=</span> <span class="kw">if</span> <a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#235">tick</a> <span class="op">%</span> <a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#124">REMOTE_FIRST_INTERVAL</a> <span class="op">==</span> <span class="number">0</span> {
-                        <a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#218">scheduler</a>.<span class="ident">spawner</span>.<a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#411">pop</a>().<span class="ident">or_else</span>(<span class="op">|</span><span class="op">|</span> {
-                            <a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#218">context</a>
+                    <span class="kw">let</span> <span class="ident">entry</span> <span class="op">=</span> <span class="kw">if</span> <a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#247">tick</a> <span class="op">%</span> <a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#131">REMOTE_FIRST_INTERVAL</a> <span class="op">==</span> <span class="number">0</span> {
+                        <a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#230">scheduler</a>.<span class="ident">spawner</span>.<a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#423">pop</a>().<span class="ident">or_else</span>(<span class="op">|</span><span class="op">|</span> {
+                            <a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#230">context</a>
                                 .<span class="ident">tasks</span>
                                 .<span class="ident">borrow_mut</span>()
                                 .<span class="ident">queue</span>
                                 .<span class="ident">pop_front</span>()
-                                .<span class="ident">map</span>(<a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#79">RemoteMsg::Schedule</a>)
+                                .<span class="ident">map</span>(<a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#86">RemoteMsg::Schedule</a>)
                         })
                     } <span class="kw">else</span> {
-                        <a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#218">context</a>
+                        <a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#230">context</a>
                             .<span class="ident">tasks</span>
                             .<span class="ident">borrow_mut</span>()
                             .<span class="ident">queue</span>
                             .<span class="ident">pop_front</span>()
-                            .<span class="ident">map</span>(<a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#79">RemoteMsg::Schedule</a>)
-                            .<span class="ident">or_else</span>(<span class="op">|</span><span class="op">|</span> <a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#218">scheduler</a>.<span class="ident">spawner</span>.<a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#411">pop</a>())
+                            .<span class="ident">map</span>(<a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#86">RemoteMsg::Schedule</a>)
+                            .<span class="ident">or_else</span>(<span class="op">|</span><span class="op">|</span> <a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#230">scheduler</a>.<span class="ident">spawner</span>.<a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#423">pop</a>())
                     };
 
-                    <span class="kw">let</span> <span class="ident">entry</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#238">entry</a> {
-                        <span class="prelude-val">Some</span>(<span class="ident">entry</span>) =&gt; <a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#258">entry</a>,
+                    <span class="kw">let</span> <span class="ident">entry</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#250">entry</a> {
+                        <span class="prelude-val">Some</span>(<span class="ident">entry</span>) =&gt; <a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#270">entry</a>,
                         <span class="prelude-val">None</span> =&gt; {
-                            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">f</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#218">scheduler</a>.<span class="ident">before_park</span> {
-                                <a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#260">f</a>();
+                            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">f</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#230">scheduler</a>.<span class="ident">before_park</span> {
+                                <a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#272">f</a>();
                             }
                             <span class="comment">// This check will fail if `before_park` spawns a task for us to run</span>
                             <span class="comment">// instead of parking the thread</span>
-                            <span class="kw">if</span> <a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#218">context</a>.<span class="ident">tasks</span>.<span class="ident">borrow_mut</span>().<span class="ident">queue</span>.<span class="ident">is_empty</span>() {
+                            <span class="kw">if</span> <a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#230">context</a>.<span class="ident">tasks</span>.<span class="ident">borrow_mut</span>().<span class="ident">queue</span>.<span class="ident">is_empty</span>() {
                                 <span class="comment">// Park until the thread is signaled</span>
-                                <a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#218">scheduler</a>.<span class="ident">stats</span>.<a class="ident" href="../../../src/tokio/runtime/stats/mock.rs.html#20">about_to_park</a>();
-                                <a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#218">scheduler</a>.<span class="ident">stats</span>.<a class="ident" href="../../../src/tokio/runtime/stats/mock.rs.html#18">submit</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#218">scheduler</a>.<span class="ident">spawner</span>.<span class="ident">shared</span>.<span class="ident">stats</span>);
-                                <a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#218">scheduler</a>.<span class="ident">park</span>.<a class="ident" href="../../../src/tokio/park/mod.rs.html#70">park</a>().<span class="ident">expect</span>(<span class="string">&quot;failed to park&quot;</span>);
-                                <a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#218">scheduler</a>.<span class="ident">stats</span>.<a class="ident" href="../../../src/tokio/runtime/stats/mock.rs.html#21">returned_from_park</a>();
+                                <a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#230">scheduler</a>.<span class="ident">stats</span>.<a class="ident" href="../../../src/tokio/runtime/stats/mock.rs.html#20">about_to_park</a>();
+                                <a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#230">scheduler</a>.<span class="ident">stats</span>.<a class="ident" href="../../../src/tokio/runtime/stats/mock.rs.html#18">submit</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#230">scheduler</a>.<span class="ident">spawner</span>.<span class="ident">shared</span>.<span class="ident">stats</span>);
+                                <a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#230">scheduler</a>.<span class="ident">park</span>.<a class="ident" href="../../../src/tokio/park/mod.rs.html#70">park</a>().<span class="ident">expect</span>(<span class="string">&quot;failed to park&quot;</span>);
+                                <a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#230">scheduler</a>.<span class="ident">stats</span>.<a class="ident" href="../../../src/tokio/runtime/stats/mock.rs.html#21">returned_from_park</a>();
                             }
-                            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">f</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#218">scheduler</a>.<span class="ident">after_unpark</span> {
-                                <a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#272">f</a>();
+                            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">f</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#230">scheduler</a>.<span class="ident">after_unpark</span> {
+                                <a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#284">f</a>();
                             }
 
                             <span class="comment">// Try polling the `block_on` future next</span>
@@ -785,19 +810,19 @@
                         }
                     };
 
-                    <span class="kw">match</span> <a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#257">entry</a> {
-                        <a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#79">RemoteMsg::Schedule</a>(<span class="ident">task</span>) =&gt; {
-                            <a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#218">scheduler</a>.<span class="ident">stats</span>.<a class="ident" href="../../../src/tokio/runtime/stats/mock.rs.html#26">incr_poll_count</a>();
-                            <span class="kw">let</span> <span class="ident">task</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#218">context</a>.<span class="ident">shared</span>.<span class="ident">owned</span>.<a class="ident" href="../../../src/tokio/runtime/task/list.rs.html#116">assert_owner</a>(<a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#282">task</a>);
-                            <a class="ident" href="../../../src/tokio/coop.rs.html#75"><span class="kw">crate</span>::coop::budget</a>(<span class="op">|</span><span class="op">|</span> <a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#284">task</a>.<a class="ident" href="../../../src/tokio/runtime/task/mod.rs.html#340">run</a>())
+                    <span class="kw">match</span> <a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#269">entry</a> {
+                        <a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#86">RemoteMsg::Schedule</a>(<span class="ident">task</span>) =&gt; {
+                            <a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#230">scheduler</a>.<span class="ident">stats</span>.<a class="ident" href="../../../src/tokio/runtime/stats/mock.rs.html#26">incr_poll_count</a>();
+                            <span class="kw">let</span> <span class="ident">task</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#230">context</a>.<span class="ident">shared</span>.<span class="ident">owned</span>.<a class="ident" href="../../../src/tokio/runtime/task/list.rs.html#116">assert_owner</a>(<a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#294">task</a>);
+                            <a class="ident" href="../../../src/tokio/coop.rs.html#75"><span class="kw">crate</span>::coop::budget</a>(<span class="op">|</span><span class="op">|</span> <a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#296">task</a>.<a class="ident" href="../../../src/tokio/runtime/task/mod.rs.html#340">run</a>())
                         }
                     }
                 }
 
                 <span class="comment">// Yield to the park, this drives the timer and pulls any pending</span>
                 <span class="comment">// I/O events.</span>
-                <a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#218">scheduler</a>.<span class="ident">stats</span>.<a class="ident" href="../../../src/tokio/runtime/stats/mock.rs.html#18">submit</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#218">scheduler</a>.<span class="ident">spawner</span>.<span class="ident">shared</span>.<span class="ident">stats</span>);
-                <a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#218">scheduler</a>
+                <a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#230">scheduler</a>.<span class="ident">stats</span>.<a class="ident" href="../../../src/tokio/runtime/stats/mock.rs.html#18">submit</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#230">scheduler</a>.<span class="ident">spawner</span>.<span class="ident">shared</span>.<span class="ident">stats</span>);
+                <a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#230">scheduler</a>
                     .<span class="ident">park</span>
                     .<a class="ident" href="../../../src/tokio/park/mod.rs.html#86">park_timeout</a>(<span class="ident">Duration::from_millis</span>(<span class="number">0</span>))
                     .<span class="ident">expect</span>(<span class="string">&quot;failed to park&quot;</span>);
@@ -810,38 +835,38 @@
 <span class="doccomment">/// scheduler state in the thread-local.</span>
 <span class="kw">fn</span> <span class="ident">enter</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">R</span>, <span class="ident">P</span><span class="op">&gt;</span>(<span class="ident">scheduler</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Inner</span><span class="op">&lt;</span><span class="ident">P</span><span class="op">&gt;</span>, <span class="ident">f</span>: <span class="ident">F</span>) -&gt; <span class="ident">R</span>
 <span class="kw">where</span>
-    <span class="ident">F</span>: <span class="ident">FnOnce</span>(<span class="kw-2">&amp;mut</span> <span class="ident">Inner</span><span class="op">&lt;</span><span class="ident">P</span><span class="op">&gt;</span>, <span class="kw-2">&amp;</span><a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#106-112">Context</a>) -&gt; <span class="ident">R</span>,
+    <span class="ident">F</span>: <span class="ident">FnOnce</span>(<span class="kw-2">&amp;mut</span> <span class="ident">Inner</span><span class="op">&lt;</span><span class="ident">P</span><span class="op">&gt;</span>, <span class="kw-2">&amp;</span><a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#113-119">Context</a>) -&gt; <span class="ident">R</span>,
     <span class="ident">P</span>: <a class="ident" href="../../../src/tokio/park/mod.rs.html#49-90">Park</a>,
 {
     <span class="comment">// Ensures the run queue is placed back in the `BasicScheduler` instance</span>
     <span class="comment">// once `block_on` returns.`</span>
     <span class="kw">struct</span> <span class="ident">Guard</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">P</span>: <a class="ident" href="../../../src/tokio/park/mod.rs.html#49-90">Park</a><span class="op">&gt;</span> {
-        <span class="ident">context</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#106-112">Context</a><span class="op">&gt;</span>,
+        <span class="ident">context</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#113-119">Context</a><span class="op">&gt;</span>,
         <span class="ident">scheduler</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">Inner</span><span class="op">&lt;</span><span class="ident">P</span><span class="op">&gt;</span>,
     }
 
     <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">P</span>: <a class="ident" href="../../../src/tokio/park/mod.rs.html#49-90">Park</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for</span> <span class="ident">Guard</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">P</span><span class="op">&gt;</span> {
         <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-            <span class="kw">let</span> <a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#106-112">Context</a> { <span class="ident">tasks</span>, .. } <span class="op">=</span> <a class="self" href="../../../src/tokio/runtime/basic_scheduler.rs.html#317">self</a>.<span class="ident">context</span>.<span class="ident">take</span>().<span class="ident">expect</span>(<span class="string">&quot;context missing&quot;</span>);
-            <a class="self" href="../../../src/tokio/runtime/basic_scheduler.rs.html#317">self</a>.<span class="ident">scheduler</span>.<span class="ident">tasks</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#318">tasks</a>.<span class="ident">into_inner</span>());
+            <span class="kw">let</span> <a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#113-119">Context</a> { <span class="ident">tasks</span>, .. } <span class="op">=</span> <a class="self" href="../../../src/tokio/runtime/basic_scheduler.rs.html#329">self</a>.<span class="ident">context</span>.<span class="ident">take</span>().<span class="ident">expect</span>(<span class="string">&quot;context missing&quot;</span>);
+            <a class="self" href="../../../src/tokio/runtime/basic_scheduler.rs.html#329">self</a>.<span class="ident">scheduler</span>.<span class="ident">tasks</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#330">tasks</a>.<span class="ident">into_inner</span>());
         }
     }
 
     <span class="comment">// Remove `tasks` from `self` and place it in a `Context`.</span>
-    <span class="kw">let</span> <span class="ident">tasks</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#304">scheduler</a>.<span class="ident">tasks</span>.<span class="ident">take</span>().<span class="ident">expect</span>(<span class="string">&quot;invalid state&quot;</span>);
+    <span class="kw">let</span> <span class="ident">tasks</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#316">scheduler</a>.<span class="ident">tasks</span>.<span class="ident">take</span>().<span class="ident">expect</span>(<span class="string">&quot;invalid state&quot;</span>);
 
-    <span class="kw">let</span> <span class="ident">guard</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#311-314">Guard</a> {
-        <span class="ident">context</span>: <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#106-112">Context</a> {
-            <span class="ident">shared</span>: <a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#304">scheduler</a>.<span class="ident">spawner</span>.<span class="ident">shared</span>.<span class="ident">clone</span>(),
-            <span class="ident">tasks</span>: <span class="ident">RefCell::new</span>(<a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#324">tasks</a>),
+    <span class="kw">let</span> <span class="ident">guard</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#323-326">Guard</a> {
+        <span class="ident">context</span>: <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#113-119">Context</a> {
+            <span class="ident">shared</span>: <a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#316">scheduler</a>.<span class="ident">spawner</span>.<span class="ident">shared</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+            <span class="ident">tasks</span>: <span class="ident">RefCell::new</span>(<a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#336">tasks</a>),
         }),
-        <a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#304">scheduler</a>,
+        <a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#316">scheduler</a>,
     };
 
-    <span class="kw">let</span> <span class="ident">context</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#326">guard</a>.<span class="ident">context</span>.<span class="ident">as_ref</span>().<span class="ident">unwrap</span>();
-    <span class="kw">let</span> <span class="ident">scheduler</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="kw-2">*</span><a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#326">guard</a>.<span class="ident">scheduler</span>;
+    <span class="kw">let</span> <span class="ident">context</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#338">guard</a>.<span class="ident">context</span>.<span class="ident">as_ref</span>().<span class="ident">unwrap</span>();
+    <span class="kw">let</span> <span class="ident">scheduler</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="kw-2">*</span><a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#338">guard</a>.<span class="ident">scheduler</span>;
 
-    <a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#127">CURRENT</a>.<a class="ident" href="../../../src/tokio/macros/scoped_tls.rs.html#35-37">set</a>(<a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#334">context</a>, <span class="op">|</span><span class="op">|</span> <a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#304">f</a>(<a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#335">scheduler</a>, <a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#334">context</a>))
+    <a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#134">CURRENT</a>.<a class="ident" href="../../../src/tokio/macros/scoped_tls.rs.html#35-37">set</a>(<a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#346">context</a>, <span class="op">|</span><span class="op">|</span> <a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#316">f</a>(<a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#347">scheduler</a>, <a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#346">context</a>))
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">P</span>: <a class="ident" href="../../../src/tokio/park/mod.rs.html#49-90">Park</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for</span> <span class="ident">BasicScheduler</span><span class="op">&lt;</span><span class="ident">P</span><span class="op">&gt;</span> {
@@ -849,75 +874,75 @@
         <span class="comment">// Avoid a double panic if we are currently panicking and</span>
         <span class="comment">// the lock may be poisoned.</span>
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">inner</span> <span class="op">=</span> <span class="kw">match</span> <a class="self" href="../../../src/tokio/runtime/basic_scheduler.rs.html#341">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../src/tokio/loom/std/mutex.rs.html#16">lock</a>().<span class="ident">take</span>() {
-            <span class="prelude-val">Some</span>(<span class="ident">inner</span>) =&gt; <a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#346">inner</a>,
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">inner</span> <span class="op">=</span> <span class="kw">match</span> <a class="self" href="../../../src/tokio/runtime/basic_scheduler.rs.html#353">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../src/tokio/loom/std/mutex.rs.html#16">lock</a>().<span class="ident">take</span>() {
+            <span class="prelude-val">Some</span>(<span class="ident">inner</span>) =&gt; <a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#358">inner</a>,
             <span class="prelude-val">None</span> <span class="kw">if</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/thread/fn.panicking.html">std::thread::panicking</a>() =&gt; <span class="kw">return</span>,
             <span class="prelude-val">None</span> =&gt; <span class="macro">panic!</span>(<span class="string">&quot;Oh no! We never placed the Inner state back, this is a bug!&quot;</span>),
         };
 
-        <a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#304-307">enter</a>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#345">inner</a>, <span class="op">|</span><span class="ident">scheduler</span>, <span class="ident">context</span><span class="op">|</span> {
+        <a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#316-319">enter</a>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#357">inner</a>, <span class="op">|</span><span class="ident">scheduler</span>, <span class="ident">context</span><span class="op">|</span> {
             <span class="comment">// Drain the OwnedTasks collection. This call also closes the</span>
             <span class="comment">// collection, ensuring that no tasks are ever pushed after this</span>
             <span class="comment">// call returns.</span>
-            <a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#351">context</a>.<span class="ident">shared</span>.<span class="ident">owned</span>.<a class="ident" href="../../../src/tokio/runtime/task/list.rs.html#129-131">close_and_shutdown_all</a>();
+            <a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#363">context</a>.<span class="ident">shared</span>.<span class="ident">owned</span>.<a class="ident" href="../../../src/tokio/runtime/task/list.rs.html#129-131">close_and_shutdown_all</a>();
 
             <span class="comment">// Drain local queue</span>
             <span class="comment">// We already shut down every task, so we just need to drop the task.</span>
-            <span class="kw">for</span> <a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#359">task</a> <span class="kw">in</span> <a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#351">context</a>.<span class="ident">tasks</span>.<span class="ident">borrow_mut</span>().<span class="ident">queue</span>.<span class="ident">drain</span>(..) {
-                <a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#359">task</a>);
+            <span class="kw">for</span> <span class="ident">task</span> <span class="kw">in</span> <a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#363">context</a>.<span class="ident">tasks</span>.<span class="ident">borrow_mut</span>().<span class="ident">queue</span>.<span class="ident">drain</span>(..) {
+                <a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#371">task</a>);
             }
 
             <span class="comment">// Drain remote queue and set it to None</span>
-            <span class="kw">let</span> <span class="ident">remote_queue</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#351">scheduler</a>.<span class="ident">spawner</span>.<span class="ident">shared</span>.<span class="ident">queue</span>.<a class="ident" href="../../../src/tokio/loom/std/mutex.rs.html#16">lock</a>().<span class="ident">take</span>();
+            <span class="kw">let</span> <span class="ident">remote_queue</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#363">scheduler</a>.<span class="ident">spawner</span>.<span class="ident">shared</span>.<span class="ident">queue</span>.<a class="ident" href="../../../src/tokio/loom/std/mutex.rs.html#16">lock</a>().<span class="ident">take</span>();
 
             <span class="comment">// Using `Option::take` to replace the shared queue with `None`.</span>
             <span class="comment">// We already shut down every task, so we just need to drop the task.</span>
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">remote_queue</span>) <span class="op">=</span> <a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#364">remote_queue</a> {
-                <span class="kw">for</span> <a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#369">entry</a> <span class="kw">in</span> <a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#368">remote_queue</a> {
-                    <span class="kw">match</span> <a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#369">entry</a> {
-                        <a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#79">RemoteMsg::Schedule</a>(<span class="ident">task</span>) =&gt; {
-                            <a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#371">task</a>);
+            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">remote_queue</span>) <span class="op">=</span> <a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#376">remote_queue</a> {
+                <span class="kw">for</span> <span class="ident">entry</span> <span class="kw">in</span> <a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#380">remote_queue</a> {
+                    <span class="kw">match</span> <a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#381">entry</a> {
+                        <a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#86">RemoteMsg::Schedule</a>(<span class="ident">task</span>) =&gt; {
+                            <a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#383">task</a>);
                         }
                     }
                 }
             }
 
-            <span class="macro">assert!</span>(<a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#351">context</a>.<span class="ident">shared</span>.<span class="ident">owned</span>.<a class="ident" href="../../../src/tokio/runtime/task/list.rs.html#169">is_empty</a>());
+            <span class="macro">assert!</span>(<a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#363">context</a>.<span class="ident">shared</span>.<span class="ident">owned</span>.<a class="ident" href="../../../src/tokio/runtime/task/list.rs.html#169">is_empty</a>());
         });
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">P</span>: <a class="ident" href="../../../src/tokio/park/mod.rs.html#49-90">Park</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <span class="ident">BasicScheduler</span><span class="op">&lt;</span><span class="ident">P</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">fmt</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#384">fmt</a>.<span class="ident">debug_struct</span>(<span class="string">&quot;BasicScheduler&quot;</span>).<span class="ident">finish</span>()
+        <a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#396">fmt</a>.<span class="ident">debug_struct</span>(<span class="string">&quot;BasicScheduler&quot;</span>).<span class="ident">finish</span>()
     }
 }
 
 <span class="comment">// ===== impl Spawner =====</span>
 
-<span class="kw">impl</span> <a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#63-65">Spawner</a> {
+<span class="kw">impl</span> <a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#70-72">Spawner</a> {
     <span class="doccomment">/// Spawns a future onto the basic scheduler</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">spawn</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">future</span>: <span class="ident">F</span>) -&gt; <span class="ident">JoinHandle</span><span class="op">&lt;</span><span class="ident">F::Output</span><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">F</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html"><span class="kw">crate</span>::future::Future</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
         <span class="ident">F::Output</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
     {
-        <span class="kw">let</span> (<span class="ident">handle</span>, <span class="ident">notified</span>) <span class="op">=</span> <a class="self" href="../../../src/tokio/runtime/basic_scheduler.rs.html#393">self</a>.<span class="ident">shared</span>.<span class="ident">owned</span>.<a class="ident" href="../../../src/tokio/runtime/task/list.rs.html#83-91">bind</a>(<a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#393">future</a>, <a class="self" href="../../../src/tokio/runtime/basic_scheduler.rs.html#393">self</a>.<span class="ident">shared</span>.<span class="ident">clone</span>());
+        <span class="kw">let</span> (<span class="ident">handle</span>, <span class="ident">notified</span>) <span class="op">=</span> <a class="self" href="../../../src/tokio/runtime/basic_scheduler.rs.html#405">self</a>.<span class="ident">shared</span>.<span class="ident">owned</span>.<a class="ident" href="../../../src/tokio/runtime/task/list.rs.html#83-91">bind</a>(<a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#405">future</a>, <a class="self" href="../../../src/tokio/runtime/basic_scheduler.rs.html#405">self</a>.<span class="ident">shared</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
 
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">notified</span>) <span class="op">=</span> <a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#398">notified</a> {
-            <a class="self" href="../../../src/tokio/runtime/basic_scheduler.rs.html#393">self</a>.<span class="ident">shared</span>.<a class="ident" href="../../../src/tokio/runtime/task/mod.rs.html#226">schedule</a>(<a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#400">notified</a>);
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">notified</span>) <span class="op">=</span> <a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#410">notified</a> {
+            <a class="self" href="../../../src/tokio/runtime/basic_scheduler.rs.html#405">self</a>.<span class="ident">shared</span>.<a class="ident" href="../../../src/tokio/runtime/task/mod.rs.html#226">schedule</a>(<a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#412">notified</a>);
         }
 
-        <a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#398">handle</a>
+        <a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#410">handle</a>
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">stats</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a class="ident" href="../../../src/tokio/runtime/stats/mock.rs.html#3">RuntimeStats</a> {
-        <span class="kw-2">&amp;</span><a class="self" href="../../../src/tokio/runtime/basic_scheduler.rs.html#407">self</a>.<span class="ident">shared</span>.<span class="ident">stats</span>
+        <span class="kw-2">&amp;</span><a class="self" href="../../../src/tokio/runtime/basic_scheduler.rs.html#419">self</a>.<span class="ident">shared</span>.<span class="ident">stats</span>
     }
 
-    <span class="kw">fn</span> <span class="ident">pop</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#77-80">RemoteMsg</a><span class="op">&gt;</span> {
-        <span class="kw">match</span> <a class="self" href="../../../src/tokio/runtime/basic_scheduler.rs.html#411">self</a>.<span class="ident">shared</span>.<span class="ident">queue</span>.<a class="ident" href="../../../src/tokio/loom/std/mutex.rs.html#16">lock</a>().<span class="ident">as_mut</span>() {
-            <span class="prelude-val">Some</span>(<span class="ident">queue</span>) =&gt; <a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#413">queue</a>.<span class="ident">pop_front</span>(),
+    <span class="kw">fn</span> <span class="ident">pop</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#84-87">RemoteMsg</a><span class="op">&gt;</span> {
+        <span class="kw">match</span> <a class="self" href="../../../src/tokio/runtime/basic_scheduler.rs.html#423">self</a>.<span class="ident">shared</span>.<span class="ident">queue</span>.<a class="ident" href="../../../src/tokio/loom/std/mutex.rs.html#16">lock</a>().<span class="ident">as_mut</span>() {
+            <span class="prelude-val">Some</span>(<span class="ident">queue</span>) =&gt; <a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#425">queue</a>.<span class="ident">pop_front</span>(),
             <span class="prelude-val">None</span> =&gt; <span class="prelude-val">None</span>,
         }
     }
@@ -925,57 +950,57 @@
     <span class="kw">fn</span> <span class="ident">waker_ref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">WakerRef</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
         <span class="comment">// Set woken to true when enter block_on, ensure outer future</span>
         <span class="comment">// be polled for the first time when enter loop</span>
-        <a class="self" href="../../../src/tokio/runtime/basic_scheduler.rs.html#418">self</a>.<span class="ident">shared</span>.<span class="ident">woken</span>.<span class="ident">store</span>(<span class="bool-val">true</span>, <span class="ident">Release</span>);
-        <a class="ident" href="../../../src/tokio/util/wake.rs.html#32">waker_ref</a>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/tokio/runtime/basic_scheduler.rs.html#418">self</a>.<span class="ident">shared</span>)
+        <a class="self" href="../../../src/tokio/runtime/basic_scheduler.rs.html#430">self</a>.<span class="ident">shared</span>.<span class="ident">woken</span>.<span class="ident">store</span>(<span class="bool-val">true</span>, <span class="ident">Release</span>);
+        <a class="ident" href="../../../src/tokio/util/wake.rs.html#32">waker_ref</a>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/tokio/runtime/basic_scheduler.rs.html#430">self</a>.<span class="ident">shared</span>)
     }
 
     <span class="comment">// reset woken to false and return original value</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">reset_woken</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../src/tokio/runtime/basic_scheduler.rs.html#426">self</a>.<span class="ident">shared</span>.<span class="ident">woken</span>.<span class="ident">swap</span>(<span class="bool-val">false</span>, <span class="ident">AcqRel</span>)
+        <a class="self" href="../../../src/tokio/runtime/basic_scheduler.rs.html#438">self</a>.<span class="ident">shared</span>.<span class="ident">woken</span>.<span class="ident">swap</span>(<span class="bool-val">false</span>, <span class="ident">AcqRel</span>)
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#63-65">Spawner</a> {
+<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#70-72">Spawner</a> {
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">fmt</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#432">fmt</a>.<span class="ident">debug_struct</span>(<span class="string">&quot;Spawner&quot;</span>).<span class="ident">finish</span>()
+        <a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#444">fmt</a>.<span class="ident">debug_struct</span>(<span class="string">&quot;Spawner&quot;</span>).<span class="ident">finish</span>()
     }
 }
 
 <span class="comment">// ===== impl Shared =====</span>
 
-<span class="kw">impl</span> <a class="ident" href="../../../src/tokio/runtime/task/mod.rs.html#217-233">Schedule</a> <span class="kw">for</span> <span class="ident">Arc</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#88-103">Shared</a><span class="op">&gt;</span> {
+<span class="kw">impl</span> <a class="ident" href="../../../src/tokio/runtime/task/mod.rs.html#217-233">Schedule</a> <span class="kw">for</span> <span class="ident">Arc</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#95-110">Shared</a><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">release</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">task</span>: <span class="kw-2">&amp;</span><span class="ident">Task</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Task</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <a class="self" href="../../../src/tokio/runtime/basic_scheduler.rs.html#440">self</a>.<span class="ident">owned</span>.<a class="ident" href="../../../src/tokio/runtime/task/list.rs.html#155">remove</a>(<a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#440">task</a>)
+        <a class="self" href="../../../src/tokio/runtime/basic_scheduler.rs.html#452">self</a>.<span class="ident">owned</span>.<a class="ident" href="../../../src/tokio/runtime/task/list.rs.html#155">remove</a>(<a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#452">task</a>)
     }
 
     <span class="kw">fn</span> <span class="ident">schedule</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">task</span>: <span class="ident">task::Notified</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>) {
-        <a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#127">CURRENT</a>.<a class="ident" href="../../../src/tokio/macros/scoped_tls.rs.html#65-67">with</a>(<span class="op">|</span><span class="ident">maybe_cx</span><span class="op">|</span> <span class="kw">match</span> <a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#445">maybe_cx</a> {
-            <span class="prelude-val">Some</span>(<span class="ident">cx</span>) <span class="kw">if</span> <span class="ident">Arc::ptr_eq</span>(<a class="self" href="../../../src/tokio/runtime/basic_scheduler.rs.html#444">self</a>, <span class="kw-2">&amp;</span><a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#446">cx</a>.<span class="ident">shared</span>) =&gt; {
-                <a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#446">cx</a>.<span class="ident">tasks</span>.<span class="ident">borrow_mut</span>().<span class="ident">queue</span>.<span class="ident">push_back</span>(<a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#444">task</a>);
+        <a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#134">CURRENT</a>.<a class="ident" href="../../../src/tokio/macros/scoped_tls.rs.html#65-67">with</a>(<span class="op">|</span><span class="ident">maybe_cx</span><span class="op">|</span> <span class="kw">match</span> <a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#457">maybe_cx</a> {
+            <span class="prelude-val">Some</span>(<span class="ident">cx</span>) <span class="kw">if</span> <span class="ident">Arc::ptr_eq</span>(<a class="self" href="../../../src/tokio/runtime/basic_scheduler.rs.html#456">self</a>, <span class="kw-2">&amp;</span><a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#458">cx</a>.<span class="ident">shared</span>) =&gt; {
+                <a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#458">cx</a>.<span class="ident">tasks</span>.<span class="ident">borrow_mut</span>().<span class="ident">queue</span>.<span class="ident">push_back</span>(<a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#456">task</a>);
             }
             <span class="kw">_</span> =&gt; {
                 <span class="comment">// If the queue is None, then the runtime has shut down. We</span>
                 <span class="comment">// don&#39;t need to do anything with the notification in that case.</span>
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">guard</span> <span class="op">=</span> <a class="self" href="../../../src/tokio/runtime/basic_scheduler.rs.html#444">self</a>.<span class="ident">queue</span>.<a class="ident" href="../../../src/tokio/loom/std/mutex.rs.html#16">lock</a>();
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">queue</span>) <span class="op">=</span> <a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#452">guard</a>.<span class="ident">as_mut</span>() {
-                    <a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#453">queue</a>.<span class="ident">push_back</span>(<a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#79">RemoteMsg::Schedule</a>(<a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#444">task</a>));
-                    <a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#452">guard</a>);
-                    <a class="self" href="../../../src/tokio/runtime/basic_scheduler.rs.html#444">self</a>.<span class="ident">unpark</span>.<a class="ident" href="../../../src/tokio/park/mod.rs.html#104">unpark</a>();
+                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">guard</span> <span class="op">=</span> <a class="self" href="../../../src/tokio/runtime/basic_scheduler.rs.html#456">self</a>.<span class="ident">queue</span>.<a class="ident" href="../../../src/tokio/loom/std/mutex.rs.html#16">lock</a>();
+                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">queue</span>) <span class="op">=</span> <a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#464">guard</a>.<span class="ident">as_mut</span>() {
+                    <a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#465">queue</a>.<span class="ident">push_back</span>(<a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#86">RemoteMsg::Schedule</a>(<a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#456">task</a>));
+                    <a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#464">guard</a>);
+                    <a class="self" href="../../../src/tokio/runtime/basic_scheduler.rs.html#456">self</a>.<span class="ident">unpark</span>.<a class="ident" href="../../../src/tokio/park/mod.rs.html#104">unpark</a>();
                 }
             }
         });
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../src/tokio/util/wake.rs.html#8-14">Wake</a> <span class="kw">for</span> <a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#88-103">Shared</a> {
+<span class="kw">impl</span> <a class="ident" href="../../../src/tokio/util/wake.rs.html#8-14">Wake</a> <span class="kw">for</span> <a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#95-110">Shared</a> {
     <span class="kw">fn</span> <span class="ident">wake</span>(<span class="self">self</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>) {
-        <a class="ident" href="../../../src/tokio/util/wake.rs.html#13">Wake::wake_by_ref</a>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/tokio/runtime/basic_scheduler.rs.html#464">self</a>)
+        <a class="ident" href="../../../src/tokio/util/wake.rs.html#13">Wake::wake_by_ref</a>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/tokio/runtime/basic_scheduler.rs.html#476">self</a>)
     }
 
     <span class="doccomment">/// Wake by reference</span>
     <span class="kw">fn</span> <span class="ident">wake_by_ref</span>(<span class="ident">arc_self</span>: <span class="kw-2">&amp;</span><span class="ident">Arc</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>) {
-        <a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#469">arc_self</a>.<span class="ident">woken</span>.<span class="ident">store</span>(<span class="bool-val">true</span>, <span class="ident">Release</span>);
-        <a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#469">arc_self</a>.<span class="ident">unpark</span>.<a class="ident" href="../../../src/tokio/park/mod.rs.html#104">unpark</a>();
+        <a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#481">arc_self</a>.<span class="ident">woken</span>.<span class="ident">store</span>(<span class="bool-val">true</span>, <span class="ident">Release</span>);
+        <a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#481">arc_self</a>.<span class="ident">unpark</span>.<a class="ident" href="../../../src/tokio/park/mod.rs.html#104">unpark</a>();
     }
 }
 
@@ -993,26 +1018,25 @@
     <span class="kw">fn</span> <span class="ident">block_on</span><span class="op">&lt;</span><span class="ident">F</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">future</span>: <span class="ident">F</span>) -&gt; <span class="ident">F::Output</span> {
         <span class="comment">// The only time inner gets set to `None` is if we have dropped</span>
         <span class="comment">// already so this unwrap is safe.</span>
-        <a class="self" href="../../../src/tokio/runtime/basic_scheduler.rs.html#486">self</a>.<span class="ident">inner</span>.<span class="ident">as_mut</span>().<span class="ident">unwrap</span>().<a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#217">block_on</a>(<a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#486">future</a>)
+        <a class="self" href="../../../src/tokio/runtime/basic_scheduler.rs.html#498">self</a>.<span class="ident">inner</span>.<span class="ident">as_mut</span>().<span class="ident">unwrap</span>().<a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#229">block_on</a>(<a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#498">future</a>)
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">P</span>: <a class="ident" href="../../../src/tokio/park/mod.rs.html#49-90">Park</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for</span> <span class="ident">InnerGuard</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">P</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">scheduler</span>) <span class="op">=</span> <a class="self" href="../../../src/tokio/runtime/basic_scheduler.rs.html#494">self</a>.<span class="ident">inner</span>.<span class="ident">take</span>() {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">lock</span> <span class="op">=</span> <a class="self" href="../../../src/tokio/runtime/basic_scheduler.rs.html#494">self</a>.<span class="ident">basic_scheduler</span>.<span class="ident">inner</span>.<a class="ident" href="../../../src/tokio/loom/std/mutex.rs.html#16">lock</a>();
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">scheduler</span>) <span class="op">=</span> <a class="self" href="../../../src/tokio/runtime/basic_scheduler.rs.html#506">self</a>.<span class="ident">inner</span>.<span class="ident">take</span>() {
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">lock</span> <span class="op">=</span> <a class="self" href="../../../src/tokio/runtime/basic_scheduler.rs.html#506">self</a>.<span class="ident">basic_scheduler</span>.<span class="ident">inner</span>.<a class="ident" href="../../../src/tokio/loom/std/mutex.rs.html#16">lock</a>();
 
             <span class="comment">// Replace old scheduler back into the state to allow</span>
             <span class="comment">// other threads to pick it up and drive it.</span>
-            <a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#496">lock</a>.<span class="ident">replace</span>(<a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#495">scheduler</a>);
+            <a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#508">lock</a>.<span class="ident">replace</span>(<a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#507">scheduler</a>);
 
             <span class="comment">// Wake up other possible threads that could steal</span>
             <span class="comment">// the dedicated parker P.</span>
-            <a class="self" href="../../../src/tokio/runtime/basic_scheduler.rs.html#494">self</a>.<span class="ident">basic_scheduler</span>.<span class="ident">notify</span>.<a class="ident" href="../../../src/tokio/sync/notify.rs.html#328">notify_one</a>()
+            <a class="self" href="../../../src/tokio/runtime/basic_scheduler.rs.html#506">self</a>.<span class="ident">basic_scheduler</span>.<span class="ident">notify</span>.<a class="ident" href="../../../src/tokio/sync/notify.rs.html#331">notify_one</a>()
         }
     }
 }
 </code></pre></div>
-</section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="tokio" data-search-index-js="../../../search-index.js" data-search-js="../../../search.js"></div>
-    <script src="../../../main.js"></script><script src="../../../source-script.js"></script><script src="../../../source-files.js"></script>
+</section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.59.0-nightly (207c80f10 2021-11-30)" ></div>
 </body></html>

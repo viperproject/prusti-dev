@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;clap-2.33.3&#x2F;src&#x2F;usage_parser.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>usage_parser.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../clap/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">   1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;clap-2.34.0&#x2F;src&#x2F;usage_parser.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>usage_parser.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css"disabled><link rel="stylesheet" type="text/css" href="../../dark.css"disabled><link rel="stylesheet" type="text/css" href="../../light.css"id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
+    <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../clap/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">   1</span>
 <span id="2">   2</span>
 <span id="3">   3</span>
 <span id="4">   4</span>
@@ -1354,13 +1355,12 @@
 <span id="1354">1354</span>
 <span id="1355">1355</span>
 <span id="1356">1356</span>
-<span id="1357">1357</span>
-<span id="1358">1358</span>
 </pre><pre class="rust"><code><span class="comment">// Internal</span>
-<span class="kw">use</span> <a class="ident" href="../../src/clap/args/settings.rs.html#77-121">args::settings::ArgSettings</a>;
-<span class="kw">use</span> <a class="ident" href="../../src/clap/args/arg.rs.html#43-57">args::Arg</a>;
-<span class="kw">use</span> <a class="ident" href="../../vec_map/struct.VecMap.html">map::VecMap</a>;
-<span class="kw">use</span> <a class="ident" href="../../src/clap/lib.rs.html#582-583">INTERNAL_ERROR_MSG</a>;
+<span class="kw">use</span> <span class="kw">crate</span>::{
+    <span class="ident">args</span>::{<a class="ident" href="../../src/clap/args/settings.rs.html#77-121">settings::ArgSettings</a>, <a class="ident" href="../../src/clap/args/arg.rs.html#49-63">Arg</a>},
+    <a class="ident" href="../../vec_map/struct.VecMap.html">map::VecMap</a>,
+    <a class="ident" href="../../src/clap/lib.rs.html#581-582">INTERNAL_ERROR_MSG</a>,
+};
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">PartialEq</span>, <span class="ident">Debug</span>)]</span>
 <span class="kw">enum</span> <span class="ident">UsageToken</span> {
@@ -1379,25 +1379,25 @@
     <span class="ident">usage</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>,
     <span class="ident">pos</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
     <span class="ident">start</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-    <span class="ident">prev</span>: <a class="ident" href="../../src/clap/usage_parser.rs.html#8-16">UsageToken</a>,
+    <span class="ident">prev</span>: <a class="ident" href="../../src/clap/usage_parser.rs.html#9-17">UsageToken</a>,
     <span class="ident">explicit_name_set</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">UsageParser</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">usage</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="self">Self</span> {
         <span class="macro">debugln!</span>(<span class="string">&quot;UsageParser::new: usage={:?}&quot;</span>, <span class="ident">usage</span>);
-        <a class="ident" href="../../src/clap/usage_parser.rs.html#20-26">UsageParser</a> {
-            <span class="ident">usage</span>: <a class="ident" href="../../src/clap/usage_parser.rs.html#29">usage</a>,
+        <a class="ident" href="../../src/clap/usage_parser.rs.html#21-27">UsageParser</a> {
+            <a class="ident" href="../../src/clap/usage_parser.rs.html#30">usage</a>,
             <span class="ident">pos</span>: <span class="number">0</span>,
             <span class="ident">start</span>: <span class="number">0</span>,
-            <span class="ident">prev</span>: <a class="ident" href="../../src/clap/usage_parser.rs.html#15">UsageToken::Unknown</a>,
+            <span class="ident">prev</span>: <a class="ident" href="../../src/clap/usage_parser.rs.html#16">UsageToken::Unknown</a>,
             <span class="ident">explicit_name_set</span>: <span class="bool-val">false</span>,
         }
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_usage</span>(<span class="ident">usage</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="self">Self</span> {
         <span class="macro">debugln!</span>(<span class="string">&quot;UsageParser::from_usage;&quot;</span>);
-        <span class="ident">UsageParser::new</span>(<a class="ident" href="../../src/clap/usage_parser.rs.html#40">usage</a>)
+        <span class="ident">UsageParser::new</span>(<a class="ident" href="../../src/clap/usage_parser.rs.html#41">usage</a>)
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">parse</span>(<span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="ident">Arg</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
@@ -1405,68 +1405,66 @@
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">arg</span> <span class="op">=</span> <span class="ident">Arg::default</span>();
         <span class="kw">loop</span> {
             <span class="macro">debugln!</span>(<span class="string">&quot;UsageParser::parse:iter: pos={};&quot;</span>, <span class="self">self</span>.<span class="ident">pos</span>);
-            <a class="self" href="../../src/clap/usage_parser.rs.html#45">self</a>.<a class="ident" href="../../src/clap/usage_parser.rs.html#115-117">stop_at</a>(<a class="ident" href="../../src/clap/usage_parser.rs.html#219">token</a>);
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="ident">c</span>) <span class="op">=</span> <a class="self" href="../../src/clap/usage_parser.rs.html#45">self</a>.<span class="ident">usage</span>.<span class="ident">as_bytes</span>().<span class="ident">get</span>(<a class="self" href="../../src/clap/usage_parser.rs.html#45">self</a>.<span class="ident">pos</span>) {
-                <span class="kw">match</span> <a class="ident" href="../../src/clap/usage_parser.rs.html#51">c</a> {
-                    <span class="string">b&#39;-&#39;</span> =&gt; <a class="self" href="../../src/clap/usage_parser.rs.html#45">self</a>.<a class="ident" href="../../src/clap/usage_parser.rs.html#127">short_or_long</a>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/clap/usage_parser.rs.html#47">arg</a>),
-                    <span class="string">b&#39;.&#39;</span> =&gt; <a class="self" href="../../src/clap/usage_parser.rs.html#45">self</a>.<a class="ident" href="../../src/clap/usage_parser.rs.html#173">multiple</a>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/clap/usage_parser.rs.html#47">arg</a>),
-                    <span class="string">b&#39;\&#39;&#39;</span> =&gt; <a class="self" href="../../src/clap/usage_parser.rs.html#45">self</a>.<a class="ident" href="../../src/clap/usage_parser.rs.html#198">help</a>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/clap/usage_parser.rs.html#47">arg</a>),
-                    <span class="kw">_</span> =&gt; <a class="self" href="../../src/clap/usage_parser.rs.html#45">self</a>.<a class="ident" href="../../src/clap/usage_parser.rs.html#77">name</a>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/clap/usage_parser.rs.html#47">arg</a>),
+            <a class="self" href="../../src/clap/usage_parser.rs.html#46">self</a>.<a class="ident" href="../../src/clap/usage_parser.rs.html#114-116">stop_at</a>(<a class="ident" href="../../src/clap/usage_parser.rs.html#218">token</a>);
+            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="ident">c</span>) <span class="op">=</span> <a class="self" href="../../src/clap/usage_parser.rs.html#46">self</a>.<span class="ident">usage</span>.<span class="ident">as_bytes</span>().<span class="ident">get</span>(<a class="self" href="../../src/clap/usage_parser.rs.html#46">self</a>.<span class="ident">pos</span>) {
+                <span class="kw">match</span> <a class="ident" href="../../src/clap/usage_parser.rs.html#52">c</a> {
+                    <span class="string">b&#39;-&#39;</span> =&gt; <a class="self" href="../../src/clap/usage_parser.rs.html#46">self</a>.<a class="ident" href="../../src/clap/usage_parser.rs.html#126">short_or_long</a>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/clap/usage_parser.rs.html#48">arg</a>),
+                    <span class="string">b&#39;.&#39;</span> =&gt; <a class="self" href="../../src/clap/usage_parser.rs.html#46">self</a>.<a class="ident" href="../../src/clap/usage_parser.rs.html#172">multiple</a>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/clap/usage_parser.rs.html#48">arg</a>),
+                    <span class="string">b&#39;\&#39;&#39;</span> =&gt; <a class="self" href="../../src/clap/usage_parser.rs.html#46">self</a>.<a class="ident" href="../../src/clap/usage_parser.rs.html#197">help</a>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/clap/usage_parser.rs.html#48">arg</a>),
+                    <span class="kw">_</span> =&gt; <a class="self" href="../../src/clap/usage_parser.rs.html#46">self</a>.<a class="ident" href="../../src/clap/usage_parser.rs.html#76">name</a>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/clap/usage_parser.rs.html#48">arg</a>),
                 }
             } <span class="kw">else</span> {
                 <span class="kw">break</span>;
             }
         }
         <span class="macro">debug_assert!</span>(
-            <span class="op">!</span><a class="ident" href="../../src/clap/usage_parser.rs.html#47">arg</a>.<span class="ident">b</span>.<span class="ident">name</span>.<span class="ident">is_empty</span>(),
-            <span class="macro">format!</span>(
-                <span class="string">&quot;No name found for Arg when parsing usage string: {}&quot;</span>,
-                <a class="self" href="../../src/clap/usage_parser.rs.html#45">self</a>.<span class="ident">usage</span>
-            )
+            <span class="op">!</span><a class="ident" href="../../src/clap/usage_parser.rs.html#48">arg</a>.<span class="ident">b</span>.<span class="ident">name</span>.<span class="ident">is_empty</span>(),
+            <span class="string">&quot;No name found for Arg when parsing usage string: {}&quot;</span>,
+            <a class="self" href="../../src/clap/usage_parser.rs.html#46">self</a>.<span class="ident">usage</span>
         );
-        <a class="ident" href="../../src/clap/usage_parser.rs.html#47">arg</a>.<span class="ident">v</span>.<span class="ident">num_vals</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../src/clap/usage_parser.rs.html#47">arg</a>.<span class="ident">v</span>.<span class="ident">val_names</span> {
-            <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">v</span>) <span class="kw">if</span> <a class="ident" href="../../src/clap/usage_parser.rs.html#70">v</a>.<span class="ident">len</span>() <span class="op">&gt;</span><span class="op">=</span> <span class="number">2</span> =&gt; <span class="prelude-val">Some</span>(<a class="ident" href="../../src/clap/usage_parser.rs.html#70">v</a>.<span class="ident">len</span>() <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>),
+        <a class="ident" href="../../src/clap/usage_parser.rs.html#48">arg</a>.<span class="ident">v</span>.<span class="ident">num_vals</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../src/clap/usage_parser.rs.html#48">arg</a>.<span class="ident">v</span>.<span class="ident">val_names</span> {
+            <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">v</span>) <span class="kw">if</span> <a class="ident" href="../../src/clap/usage_parser.rs.html#69">v</a>.<span class="ident">len</span>() <span class="op">&gt;</span><span class="op">=</span> <span class="number">2</span> =&gt; <span class="prelude-val">Some</span>(<a class="ident" href="../../src/clap/usage_parser.rs.html#69">v</a>.<span class="ident">len</span>() <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>),
             <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
         };
         <span class="macro">debugln!</span>(<span class="string">&quot;UsageParser::parse: vals...{:?}&quot;</span>, <span class="ident">arg</span>.<span class="ident">v</span>.<span class="ident">val_names</span>);
-        <a class="ident" href="../../src/clap/usage_parser.rs.html#47">arg</a>
+        <a class="ident" href="../../src/clap/usage_parser.rs.html#48">arg</a>
     }
 
     <span class="kw">fn</span> <span class="ident">name</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">arg</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Arg</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;a</span><span class="op">&gt;</span>) {
         <span class="macro">debugln!</span>(<span class="string">&quot;UsageParser::name;&quot;</span>);
-        <span class="kw">if</span> <span class="kw-2">*</span><a class="self" href="../../src/clap/usage_parser.rs.html#77">self</a>
+        <span class="kw">if</span> <span class="kw-2">*</span><a class="self" href="../../src/clap/usage_parser.rs.html#76">self</a>
             .<span class="ident">usage</span>
             .<span class="ident">as_bytes</span>()
-            .<span class="ident">get</span>(<a class="self" href="../../src/clap/usage_parser.rs.html#77">self</a>.<span class="ident">pos</span>)
-            .<span class="ident">expect</span>(<a class="ident" href="../../src/clap/lib.rs.html#582-583">INTERNAL_ERROR_MSG</a>)
+            .<span class="ident">get</span>(<a class="self" href="../../src/clap/usage_parser.rs.html#76">self</a>.<span class="ident">pos</span>)
+            .<span class="ident">expect</span>(<a class="ident" href="../../src/clap/lib.rs.html#581-582">INTERNAL_ERROR_MSG</a>)
             <span class="op">==</span> <span class="string">b&#39;&lt;&#39;</span>
-            <span class="op">&amp;&amp;</span> <span class="op">!</span><a class="self" href="../../src/clap/usage_parser.rs.html#77">self</a>.<span class="ident">explicit_name_set</span>
+            <span class="op">&amp;&amp;</span> <span class="op">!</span><a class="self" href="../../src/clap/usage_parser.rs.html#76">self</a>.<span class="ident">explicit_name_set</span>
         {
-            <a class="ident" href="../../src/clap/usage_parser.rs.html#77">arg</a>.<a class="ident" href="../../src/clap/args/arg.rs.html#3933">setb</a>(<a class="ident" href="../../src/clap/args/settings.rs.html#79">ArgSettings::Required</a>);
+            <a class="ident" href="../../src/clap/usage_parser.rs.html#76">arg</a>.<a class="ident" href="../../src/clap/args/arg.rs.html#3935">setb</a>(<a class="ident" href="../../src/clap/args/settings.rs.html#79">ArgSettings::Required</a>);
         }
-        <a class="self" href="../../src/clap/usage_parser.rs.html#77">self</a>.<span class="ident">pos</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
-        <a class="self" href="../../src/clap/usage_parser.rs.html#77">self</a>.<a class="ident" href="../../src/clap/usage_parser.rs.html#115-117">stop_at</a>(<a class="ident" href="../../src/clap/usage_parser.rs.html#214">name_end</a>);
-        <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="self" href="../../src/clap/usage_parser.rs.html#77">self</a>.<span class="ident">usage</span>[<a class="self" href="../../src/clap/usage_parser.rs.html#77">self</a>.<span class="ident">start</span>..<a class="self" href="../../src/clap/usage_parser.rs.html#77">self</a>.<span class="ident">pos</span>];
-        <span class="kw">if</span> <a class="self" href="../../src/clap/usage_parser.rs.html#77">self</a>.<span class="ident">prev</span> <span class="op">==</span> <a class="ident" href="../../src/clap/usage_parser.rs.html#15">UsageToken::Unknown</a> {
+        <a class="self" href="../../src/clap/usage_parser.rs.html#76">self</a>.<span class="ident">pos</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+        <a class="self" href="../../src/clap/usage_parser.rs.html#76">self</a>.<a class="ident" href="../../src/clap/usage_parser.rs.html#114-116">stop_at</a>(<a class="ident" href="../../src/clap/usage_parser.rs.html#213">name_end</a>);
+        <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="self" href="../../src/clap/usage_parser.rs.html#76">self</a>.<span class="ident">usage</span>[<a class="self" href="../../src/clap/usage_parser.rs.html#76">self</a>.<span class="ident">start</span>..<a class="self" href="../../src/clap/usage_parser.rs.html#76">self</a>.<span class="ident">pos</span>];
+        <span class="kw">if</span> <a class="self" href="../../src/clap/usage_parser.rs.html#76">self</a>.<span class="ident">prev</span> <span class="op">==</span> <a class="ident" href="../../src/clap/usage_parser.rs.html#16">UsageToken::Unknown</a> {
             <span class="macro">debugln!</span>(<span class="string">&quot;UsageParser::name: setting name...{}&quot;</span>, <span class="ident">name</span>);
-            <a class="ident" href="../../src/clap/usage_parser.rs.html#77">arg</a>.<span class="ident">b</span>.<span class="ident">name</span> <span class="op">=</span> <a class="ident" href="../../src/clap/usage_parser.rs.html#91">name</a>;
-            <span class="kw">if</span> <a class="ident" href="../../src/clap/usage_parser.rs.html#77">arg</a>.<span class="ident">s</span>.<span class="ident">long</span>.<span class="ident">is_none</span>() <span class="op">&amp;&amp;</span> <a class="ident" href="../../src/clap/usage_parser.rs.html#77">arg</a>.<span class="ident">s</span>.<span class="ident">short</span>.<span class="ident">is_none</span>() {
+            <a class="ident" href="../../src/clap/usage_parser.rs.html#76">arg</a>.<span class="ident">b</span>.<span class="ident">name</span> <span class="op">=</span> <a class="ident" href="../../src/clap/usage_parser.rs.html#90">name</a>;
+            <span class="kw">if</span> <a class="ident" href="../../src/clap/usage_parser.rs.html#76">arg</a>.<span class="ident">s</span>.<span class="ident">long</span>.<span class="ident">is_none</span>() <span class="op">&amp;&amp;</span> <a class="ident" href="../../src/clap/usage_parser.rs.html#76">arg</a>.<span class="ident">s</span>.<span class="ident">short</span>.<span class="ident">is_none</span>() {
                 <span class="macro">debugln!</span>(<span class="string">&quot;UsageParser::name: explicit name set...&quot;</span>);
-                <a class="self" href="../../src/clap/usage_parser.rs.html#77">self</a>.<span class="ident">explicit_name_set</span> <span class="op">=</span> <span class="bool-val">true</span>;
-                <a class="self" href="../../src/clap/usage_parser.rs.html#77">self</a>.<span class="ident">prev</span> <span class="op">=</span> <a class="ident" href="../../src/clap/usage_parser.rs.html#9">UsageToken::Name</a>;
+                <a class="self" href="../../src/clap/usage_parser.rs.html#76">self</a>.<span class="ident">explicit_name_set</span> <span class="op">=</span> <span class="bool-val">true</span>;
+                <a class="self" href="../../src/clap/usage_parser.rs.html#76">self</a>.<span class="ident">prev</span> <span class="op">=</span> <a class="ident" href="../../src/clap/usage_parser.rs.html#10">UsageToken::Name</a>;
             }
         } <span class="kw">else</span> {
             <span class="macro">debugln!</span>(<span class="string">&quot;UsageParser::name: setting val name...{}&quot;</span>, <span class="ident">name</span>);
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">v</span>) <span class="op">=</span> <a class="ident" href="../../src/clap/usage_parser.rs.html#77">arg</a>.<span class="ident">v</span>.<span class="ident">val_names</span> {
-                <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <a class="ident" href="../../src/clap/usage_parser.rs.html#102">v</a>.<span class="ident">len</span>();
-                <a class="ident" href="../../src/clap/usage_parser.rs.html#102">v</a>.<span class="ident">insert</span>(<a class="ident" href="../../src/clap/usage_parser.rs.html#103">len</a>, <a class="ident" href="../../src/clap/usage_parser.rs.html#91">name</a>);
+            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">v</span>) <span class="op">=</span> <a class="ident" href="../../src/clap/usage_parser.rs.html#76">arg</a>.<span class="ident">v</span>.<span class="ident">val_names</span> {
+                <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <a class="ident" href="../../src/clap/usage_parser.rs.html#101">v</a>.<span class="ident">len</span>();
+                <a class="ident" href="../../src/clap/usage_parser.rs.html#101">v</a>.<span class="ident">insert</span>(<a class="ident" href="../../src/clap/usage_parser.rs.html#102">len</a>, <a class="ident" href="../../src/clap/usage_parser.rs.html#90">name</a>);
             } <span class="kw">else</span> {
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">v</span> <span class="op">=</span> <span class="ident">VecMap::new</span>();
-                <a class="ident" href="../../src/clap/usage_parser.rs.html#106">v</a>.<span class="ident">insert</span>(<span class="number">0</span>, <a class="ident" href="../../src/clap/usage_parser.rs.html#91">name</a>);
-                <a class="ident" href="../../src/clap/usage_parser.rs.html#77">arg</a>.<span class="ident">v</span>.<span class="ident">val_names</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../src/clap/usage_parser.rs.html#106">v</a>);
-                <a class="ident" href="../../src/clap/usage_parser.rs.html#77">arg</a>.<a class="ident" href="../../src/clap/args/arg.rs.html#3933">setb</a>(<a class="ident" href="../../src/clap/args/settings.rs.html#91">ArgSettings::TakesValue</a>);
+                <a class="ident" href="../../src/clap/usage_parser.rs.html#105">v</a>.<span class="ident">insert</span>(<span class="number">0</span>, <a class="ident" href="../../src/clap/usage_parser.rs.html#90">name</a>);
+                <a class="ident" href="../../src/clap/usage_parser.rs.html#76">arg</a>.<span class="ident">v</span>.<span class="ident">val_names</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../src/clap/usage_parser.rs.html#105">v</a>);
+                <a class="ident" href="../../src/clap/usage_parser.rs.html#76">arg</a>.<a class="ident" href="../../src/clap/args/arg.rs.html#3935">setb</a>(<a class="ident" href="../../src/clap/args/settings.rs.html#91">ArgSettings::TakesValue</a>);
             }
-            <a class="self" href="../../src/clap/usage_parser.rs.html#77">self</a>.<span class="ident">prev</span> <span class="op">=</span> <a class="ident" href="../../src/clap/usage_parser.rs.html#10">UsageToken::ValName</a>;
+            <a class="self" href="../../src/clap/usage_parser.rs.html#76">self</a>.<span class="ident">prev</span> <span class="op">=</span> <a class="ident" href="../../src/clap/usage_parser.rs.html#11">UsageToken::ValName</a>;
         }
     }
 
@@ -1475,79 +1473,79 @@
         <span class="ident">F</span>: <span class="ident">Fn</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
     {
         <span class="macro">debugln!</span>(<span class="string">&quot;UsageParser::stop_at;&quot;</span>);
-        <a class="self" href="../../src/clap/usage_parser.rs.html#115">self</a>.<span class="ident">start</span> <span class="op">=</span> <a class="self" href="../../src/clap/usage_parser.rs.html#115">self</a>.<span class="ident">pos</span>;
-        <a class="self" href="../../src/clap/usage_parser.rs.html#115">self</a>.<span class="ident">pos</span> <span class="op">+</span><span class="op">=</span> <a class="self" href="../../src/clap/usage_parser.rs.html#115">self</a>.<span class="ident">usage</span>[<a class="self" href="../../src/clap/usage_parser.rs.html#115">self</a>.<span class="ident">start</span>..]
+        <a class="self" href="../../src/clap/usage_parser.rs.html#114">self</a>.<span class="ident">start</span> <span class="op">=</span> <a class="self" href="../../src/clap/usage_parser.rs.html#114">self</a>.<span class="ident">pos</span>;
+        <a class="self" href="../../src/clap/usage_parser.rs.html#114">self</a>.<span class="ident">pos</span> <span class="op">+</span><span class="op">=</span> <a class="self" href="../../src/clap/usage_parser.rs.html#114">self</a>.<span class="ident">usage</span>[<a class="self" href="../../src/clap/usage_parser.rs.html#114">self</a>.<span class="ident">start</span>..]
             .<span class="ident">bytes</span>()
-            .<span class="ident">take_while</span>(<span class="op">|</span><span class="kw-2">&amp;</span><span class="ident">b</span><span class="op">|</span> <a class="ident" href="../../src/clap/usage_parser.rs.html#115">f</a>(<a class="ident" href="../../src/clap/usage_parser.rs.html#123">b</a>))
-            .<span class="ident">count</span>();
+            .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">take_while</a>(<span class="op">|</span><span class="kw-2">&amp;</span><span class="ident">b</span><span class="op">|</span> <a class="ident" href="../../src/clap/usage_parser.rs.html#114">f</a>(<a class="ident" href="../../src/clap/usage_parser.rs.html#122">b</a>))
+            .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">count</a>();
     }
 
     <span class="kw">fn</span> <span class="ident">short_or_long</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">arg</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Arg</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;a</span><span class="op">&gt;</span>) {
         <span class="macro">debugln!</span>(<span class="string">&quot;UsageParser::short_or_long;&quot;</span>);
-        <a class="self" href="../../src/clap/usage_parser.rs.html#127">self</a>.<span class="ident">pos</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
-        <span class="kw">if</span> <span class="kw-2">*</span><a class="self" href="../../src/clap/usage_parser.rs.html#127">self</a>
+        <a class="self" href="../../src/clap/usage_parser.rs.html#126">self</a>.<span class="ident">pos</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+        <span class="kw">if</span> <span class="kw-2">*</span><a class="self" href="../../src/clap/usage_parser.rs.html#126">self</a>
             .<span class="ident">usage</span>
             .<span class="ident">as_bytes</span>()
-            .<span class="ident">get</span>(<a class="self" href="../../src/clap/usage_parser.rs.html#127">self</a>.<span class="ident">pos</span>)
-            .<span class="ident">expect</span>(<a class="ident" href="../../src/clap/lib.rs.html#582-583">INTERNAL_ERROR_MSG</a>)
+            .<span class="ident">get</span>(<a class="self" href="../../src/clap/usage_parser.rs.html#126">self</a>.<span class="ident">pos</span>)
+            .<span class="ident">expect</span>(<a class="ident" href="../../src/clap/lib.rs.html#581-582">INTERNAL_ERROR_MSG</a>)
             <span class="op">==</span> <span class="string">b&#39;-&#39;</span>
         {
-            <a class="self" href="../../src/clap/usage_parser.rs.html#127">self</a>.<span class="ident">pos</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
-            <a class="self" href="../../src/clap/usage_parser.rs.html#127">self</a>.<a class="ident" href="../../src/clap/usage_parser.rs.html#144">long</a>(<a class="ident" href="../../src/clap/usage_parser.rs.html#127">arg</a>);
+            <a class="self" href="../../src/clap/usage_parser.rs.html#126">self</a>.<span class="ident">pos</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+            <a class="self" href="../../src/clap/usage_parser.rs.html#126">self</a>.<a class="ident" href="../../src/clap/usage_parser.rs.html#143">long</a>(<a class="ident" href="../../src/clap/usage_parser.rs.html#126">arg</a>);
             <span class="kw">return</span>;
         }
-        <a class="self" href="../../src/clap/usage_parser.rs.html#127">self</a>.<a class="ident" href="../../src/clap/usage_parser.rs.html#157">short</a>(<a class="ident" href="../../src/clap/usage_parser.rs.html#127">arg</a>)
+        <a class="self" href="../../src/clap/usage_parser.rs.html#126">self</a>.<a class="ident" href="../../src/clap/usage_parser.rs.html#156">short</a>(<a class="ident" href="../../src/clap/usage_parser.rs.html#126">arg</a>)
     }
 
     <span class="kw">fn</span> <span class="ident">long</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">arg</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Arg</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;a</span><span class="op">&gt;</span>) {
         <span class="macro">debugln!</span>(<span class="string">&quot;UsageParser::long;&quot;</span>);
-        <a class="self" href="../../src/clap/usage_parser.rs.html#144">self</a>.<a class="ident" href="../../src/clap/usage_parser.rs.html#115-117">stop_at</a>(<a class="ident" href="../../src/clap/usage_parser.rs.html#224">long_end</a>);
-        <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="self" href="../../src/clap/usage_parser.rs.html#144">self</a>.<span class="ident">usage</span>[<a class="self" href="../../src/clap/usage_parser.rs.html#144">self</a>.<span class="ident">start</span>..<a class="self" href="../../src/clap/usage_parser.rs.html#144">self</a>.<span class="ident">pos</span>];
-        <span class="kw">if</span> <span class="op">!</span><a class="self" href="../../src/clap/usage_parser.rs.html#144">self</a>.<span class="ident">explicit_name_set</span> {
+        <a class="self" href="../../src/clap/usage_parser.rs.html#143">self</a>.<a class="ident" href="../../src/clap/usage_parser.rs.html#114-116">stop_at</a>(<a class="ident" href="../../src/clap/usage_parser.rs.html#223">long_end</a>);
+        <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="self" href="../../src/clap/usage_parser.rs.html#143">self</a>.<span class="ident">usage</span>[<a class="self" href="../../src/clap/usage_parser.rs.html#143">self</a>.<span class="ident">start</span>..<a class="self" href="../../src/clap/usage_parser.rs.html#143">self</a>.<span class="ident">pos</span>];
+        <span class="kw">if</span> <span class="op">!</span><a class="self" href="../../src/clap/usage_parser.rs.html#143">self</a>.<span class="ident">explicit_name_set</span> {
             <span class="macro">debugln!</span>(<span class="string">&quot;UsageParser::long: setting name...{}&quot;</span>, <span class="ident">name</span>);
-            <a class="ident" href="../../src/clap/usage_parser.rs.html#144">arg</a>.<span class="ident">b</span>.<span class="ident">name</span> <span class="op">=</span> <a class="ident" href="../../src/clap/usage_parser.rs.html#147">name</a>;
+            <a class="ident" href="../../src/clap/usage_parser.rs.html#143">arg</a>.<span class="ident">b</span>.<span class="ident">name</span> <span class="op">=</span> <a class="ident" href="../../src/clap/usage_parser.rs.html#146">name</a>;
         }
         <span class="macro">debugln!</span>(<span class="string">&quot;UsageParser::long: setting long...{}&quot;</span>, <span class="ident">name</span>);
-        <a class="ident" href="../../src/clap/usage_parser.rs.html#144">arg</a>.<span class="ident">s</span>.<span class="ident">long</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../src/clap/usage_parser.rs.html#147">name</a>);
-        <a class="self" href="../../src/clap/usage_parser.rs.html#144">self</a>.<span class="ident">prev</span> <span class="op">=</span> <a class="ident" href="../../src/clap/usage_parser.rs.html#12">UsageToken::Long</a>;
+        <a class="ident" href="../../src/clap/usage_parser.rs.html#143">arg</a>.<span class="ident">s</span>.<span class="ident">long</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../src/clap/usage_parser.rs.html#146">name</a>);
+        <a class="self" href="../../src/clap/usage_parser.rs.html#143">self</a>.<span class="ident">prev</span> <span class="op">=</span> <a class="ident" href="../../src/clap/usage_parser.rs.html#13">UsageToken::Long</a>;
     }
 
     <span class="kw">fn</span> <span class="ident">short</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">arg</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Arg</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;a</span><span class="op">&gt;</span>) {
         <span class="macro">debugln!</span>(<span class="string">&quot;UsageParser::short;&quot;</span>);
-        <span class="kw">let</span> <span class="ident">start</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="self" href="../../src/clap/usage_parser.rs.html#157">self</a>.<span class="ident">usage</span>[<a class="self" href="../../src/clap/usage_parser.rs.html#157">self</a>.<span class="ident">pos</span>..];
-        <span class="kw">let</span> <span class="ident">short</span> <span class="op">=</span> <a class="ident" href="../../src/clap/usage_parser.rs.html#159">start</a>.<span class="ident">chars</span>().<span class="ident">nth</span>(<span class="number">0</span>).<span class="ident">expect</span>(<a class="ident" href="../../src/clap/lib.rs.html#582-583">INTERNAL_ERROR_MSG</a>);
+        <span class="kw">let</span> <span class="ident">start</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="self" href="../../src/clap/usage_parser.rs.html#156">self</a>.<span class="ident">usage</span>[<a class="self" href="../../src/clap/usage_parser.rs.html#156">self</a>.<span class="ident">pos</span>..];
+        <span class="kw">let</span> <span class="ident">short</span> <span class="op">=</span> <a class="ident" href="../../src/clap/usage_parser.rs.html#158">start</a>.<span class="ident">chars</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>().<span class="ident">expect</span>(<a class="ident" href="../../src/clap/lib.rs.html#581-582">INTERNAL_ERROR_MSG</a>);
         <span class="macro">debugln!</span>(<span class="string">&quot;UsageParser::short: setting short...{}&quot;</span>, <span class="ident">short</span>);
-        <a class="ident" href="../../src/clap/usage_parser.rs.html#157">arg</a>.<span class="ident">s</span>.<span class="ident">short</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../src/clap/usage_parser.rs.html#160">short</a>);
-        <span class="kw">if</span> <a class="ident" href="../../src/clap/usage_parser.rs.html#157">arg</a>.<span class="ident">b</span>.<span class="ident">name</span>.<span class="ident">is_empty</span>() {
+        <a class="ident" href="../../src/clap/usage_parser.rs.html#156">arg</a>.<span class="ident">s</span>.<span class="ident">short</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../src/clap/usage_parser.rs.html#159">short</a>);
+        <span class="kw">if</span> <a class="ident" href="../../src/clap/usage_parser.rs.html#156">arg</a>.<span class="ident">b</span>.<span class="ident">name</span>.<span class="ident">is_empty</span>() {
             <span class="comment">// --long takes precedence but doesn&#39;t set self.explicit_name_set</span>
-            <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="ident" href="../../src/clap/usage_parser.rs.html#159">start</a>[..<a class="ident" href="../../src/clap/usage_parser.rs.html#160">short</a>.<span class="ident">len_utf8</span>()];
+            <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="ident" href="../../src/clap/usage_parser.rs.html#158">start</a>[..<a class="ident" href="../../src/clap/usage_parser.rs.html#159">short</a>.<span class="ident">len_utf8</span>()];
             <span class="macro">debugln!</span>(<span class="string">&quot;UsageParser::short: setting name...{}&quot;</span>, <span class="ident">name</span>);
-            <a class="ident" href="../../src/clap/usage_parser.rs.html#157">arg</a>.<span class="ident">b</span>.<span class="ident">name</span> <span class="op">=</span> <a class="ident" href="../../src/clap/usage_parser.rs.html#165">name</a>;
+            <a class="ident" href="../../src/clap/usage_parser.rs.html#156">arg</a>.<span class="ident">b</span>.<span class="ident">name</span> <span class="op">=</span> <a class="ident" href="../../src/clap/usage_parser.rs.html#164">name</a>;
         }
-        <a class="self" href="../../src/clap/usage_parser.rs.html#157">self</a>.<span class="ident">prev</span> <span class="op">=</span> <a class="ident" href="../../src/clap/usage_parser.rs.html#11">UsageToken::Short</a>;
+        <a class="self" href="../../src/clap/usage_parser.rs.html#156">self</a>.<span class="ident">prev</span> <span class="op">=</span> <a class="ident" href="../../src/clap/usage_parser.rs.html#12">UsageToken::Short</a>;
     }
 
     <span class="comment">// &quot;something...&quot;</span>
-    <span class="kw">fn</span> <span class="ident">multiple</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">arg</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/clap/args/arg.rs.html#43-57">Arg</a>) {
+    <span class="kw">fn</span> <span class="ident">multiple</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">arg</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/clap/args/arg.rs.html#49-63">Arg</a>) {
         <span class="macro">debugln!</span>(<span class="string">&quot;UsageParser::multiple;&quot;</span>);
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">dot_counter</span> <span class="op">=</span> <span class="number">1</span>;
-        <span class="kw">let</span> <span class="ident">start</span> <span class="op">=</span> <a class="self" href="../../src/clap/usage_parser.rs.html#173">self</a>.<span class="ident">pos</span>;
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">bytes</span> <span class="op">=</span> <a class="self" href="../../src/clap/usage_parser.rs.html#173">self</a>.<span class="ident">usage</span>[<a class="ident" href="../../src/clap/usage_parser.rs.html#176">start</a>..].<span class="ident">bytes</span>();
-        <span class="kw">while</span> <a class="ident" href="../../src/clap/usage_parser.rs.html#177">bytes</a>.<span class="ident">next</span>() <span class="op">==</span> <span class="prelude-val">Some</span>(<span class="string">b&#39;.&#39;</span>) {
-            <a class="ident" href="../../src/clap/usage_parser.rs.html#175">dot_counter</a> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
-            <a class="self" href="../../src/clap/usage_parser.rs.html#173">self</a>.<span class="ident">pos</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
-            <span class="kw">if</span> <a class="ident" href="../../src/clap/usage_parser.rs.html#175">dot_counter</a> <span class="op">==</span> <span class="number">3</span> {
+        <span class="kw">let</span> <span class="ident">start</span> <span class="op">=</span> <a class="self" href="../../src/clap/usage_parser.rs.html#172">self</a>.<span class="ident">pos</span>;
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">bytes</span> <span class="op">=</span> <a class="self" href="../../src/clap/usage_parser.rs.html#172">self</a>.<span class="ident">usage</span>[<a class="ident" href="../../src/clap/usage_parser.rs.html#175">start</a>..].<span class="ident">bytes</span>();
+        <span class="kw">while</span> <a class="ident" href="../../src/clap/usage_parser.rs.html#176">bytes</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>() <span class="op">==</span> <span class="prelude-val">Some</span>(<span class="string">b&#39;.&#39;</span>) {
+            <a class="ident" href="../../src/clap/usage_parser.rs.html#174">dot_counter</a> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+            <a class="self" href="../../src/clap/usage_parser.rs.html#172">self</a>.<span class="ident">pos</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+            <span class="kw">if</span> <a class="ident" href="../../src/clap/usage_parser.rs.html#174">dot_counter</a> <span class="op">==</span> <span class="number">3</span> {
                 <span class="macro">debugln!</span>(<span class="string">&quot;UsageParser::multiple: setting multiple&quot;</span>);
-                <a class="ident" href="../../src/clap/usage_parser.rs.html#173">arg</a>.<a class="ident" href="../../src/clap/args/arg.rs.html#3933">setb</a>(<a class="ident" href="../../src/clap/args/settings.rs.html#81">ArgSettings::Multiple</a>);
-                <span class="kw">if</span> <a class="ident" href="../../src/clap/usage_parser.rs.html#173">arg</a>.<a class="ident" href="../../src/clap/args/arg.rs.html#3912">is_set</a>(<a class="ident" href="../../src/clap/args/settings.rs.html#91">ArgSettings::TakesValue</a>) {
-                    <a class="ident" href="../../src/clap/usage_parser.rs.html#173">arg</a>.<a class="ident" href="../../src/clap/args/arg.rs.html#3933">setb</a>(<a class="ident" href="../../src/clap/args/settings.rs.html#93">ArgSettings::UseValueDelimiter</a>);
-                    <a class="ident" href="../../src/clap/usage_parser.rs.html#173">arg</a>.<a class="ident" href="../../src/clap/args/arg.rs.html#3938">unsetb</a>(<a class="ident" href="../../src/clap/args/settings.rs.html#120">ArgSettings::ValueDelimiterNotSet</a>);
-                    <span class="kw">if</span> <a class="ident" href="../../src/clap/usage_parser.rs.html#173">arg</a>.<span class="ident">v</span>.<span class="ident">val_delim</span>.<span class="ident">is_none</span>() {
-                        <a class="ident" href="../../src/clap/usage_parser.rs.html#173">arg</a>.<span class="ident">v</span>.<span class="ident">val_delim</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="string">&#39;,&#39;</span>);
+                <a class="ident" href="../../src/clap/usage_parser.rs.html#172">arg</a>.<a class="ident" href="../../src/clap/args/arg.rs.html#3935">setb</a>(<a class="ident" href="../../src/clap/args/settings.rs.html#81">ArgSettings::Multiple</a>);
+                <span class="kw">if</span> <a class="ident" href="../../src/clap/usage_parser.rs.html#172">arg</a>.<a class="ident" href="../../src/clap/args/arg.rs.html#3914">is_set</a>(<a class="ident" href="../../src/clap/args/settings.rs.html#91">ArgSettings::TakesValue</a>) {
+                    <a class="ident" href="../../src/clap/usage_parser.rs.html#172">arg</a>.<a class="ident" href="../../src/clap/args/arg.rs.html#3935">setb</a>(<a class="ident" href="../../src/clap/args/settings.rs.html#93">ArgSettings::UseValueDelimiter</a>);
+                    <a class="ident" href="../../src/clap/usage_parser.rs.html#172">arg</a>.<a class="ident" href="../../src/clap/args/arg.rs.html#3940">unsetb</a>(<a class="ident" href="../../src/clap/args/settings.rs.html#120">ArgSettings::ValueDelimiterNotSet</a>);
+                    <span class="kw">if</span> <a class="ident" href="../../src/clap/usage_parser.rs.html#172">arg</a>.<span class="ident">v</span>.<span class="ident">val_delim</span>.<span class="ident">is_none</span>() {
+                        <a class="ident" href="../../src/clap/usage_parser.rs.html#172">arg</a>.<span class="ident">v</span>.<span class="ident">val_delim</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="string">&#39;,&#39;</span>);
                     }
                 }
-                <a class="self" href="../../src/clap/usage_parser.rs.html#173">self</a>.<span class="ident">prev</span> <span class="op">=</span> <a class="ident" href="../../src/clap/usage_parser.rs.html#14">UsageToken::Multiple</a>;
-                <a class="self" href="../../src/clap/usage_parser.rs.html#173">self</a>.<span class="ident">pos</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+                <a class="self" href="../../src/clap/usage_parser.rs.html#172">self</a>.<span class="ident">prev</span> <span class="op">=</span> <a class="ident" href="../../src/clap/usage_parser.rs.html#15">UsageToken::Multiple</a>;
+                <a class="self" href="../../src/clap/usage_parser.rs.html#172">self</a>.<span class="ident">pos</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
                 <span class="kw">break</span>;
             }
         }
@@ -1555,43 +1553,42 @@
 
     <span class="kw">fn</span> <span class="ident">help</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">arg</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Arg</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;a</span><span class="op">&gt;</span>) {
         <span class="macro">debugln!</span>(<span class="string">&quot;UsageParser::help;&quot;</span>);
-        <a class="self" href="../../src/clap/usage_parser.rs.html#198">self</a>.<a class="ident" href="../../src/clap/usage_parser.rs.html#115-117">stop_at</a>(<a class="ident" href="../../src/clap/usage_parser.rs.html#229">help_start</a>);
-        <a class="self" href="../../src/clap/usage_parser.rs.html#198">self</a>.<span class="ident">start</span> <span class="op">=</span> <a class="self" href="../../src/clap/usage_parser.rs.html#198">self</a>.<span class="ident">pos</span> <span class="op">+</span> <span class="number">1</span>;
-        <a class="self" href="../../src/clap/usage_parser.rs.html#198">self</a>.<span class="ident">pos</span> <span class="op">=</span> <a class="self" href="../../src/clap/usage_parser.rs.html#198">self</a>.<span class="ident">usage</span>.<span class="ident">len</span>() <span class="op">-</span> <span class="number">1</span>;
+        <a class="self" href="../../src/clap/usage_parser.rs.html#197">self</a>.<a class="ident" href="../../src/clap/usage_parser.rs.html#114-116">stop_at</a>(<a class="ident" href="../../src/clap/usage_parser.rs.html#228">help_start</a>);
+        <a class="self" href="../../src/clap/usage_parser.rs.html#197">self</a>.<span class="ident">start</span> <span class="op">=</span> <a class="self" href="../../src/clap/usage_parser.rs.html#197">self</a>.<span class="ident">pos</span> <span class="op">+</span> <span class="number">1</span>;
+        <a class="self" href="../../src/clap/usage_parser.rs.html#197">self</a>.<span class="ident">pos</span> <span class="op">=</span> <a class="self" href="../../src/clap/usage_parser.rs.html#197">self</a>.<span class="ident">usage</span>.<span class="ident">len</span>() <span class="op">-</span> <span class="number">1</span>;
         <span class="macro">debugln!</span>(
             <span class="string">&quot;UsageParser::help: setting help...{}&quot;</span>,
             <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">usage</span>[<span class="self">self</span>.<span class="ident">start</span>..<span class="self">self</span>.<span class="ident">pos</span>]
         );
-        <a class="ident" href="../../src/clap/usage_parser.rs.html#198">arg</a>.<span class="ident">b</span>.<span class="ident">help</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><a class="self" href="../../src/clap/usage_parser.rs.html#198">self</a>.<span class="ident">usage</span>[<a class="self" href="../../src/clap/usage_parser.rs.html#198">self</a>.<span class="ident">start</span>..<a class="self" href="../../src/clap/usage_parser.rs.html#198">self</a>.<span class="ident">pos</span>]);
-        <a class="self" href="../../src/clap/usage_parser.rs.html#198">self</a>.<span class="ident">pos</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>; <span class="comment">// Move to next byte to keep from thinking ending &#39; is a start</span>
-        <a class="self" href="../../src/clap/usage_parser.rs.html#198">self</a>.<span class="ident">prev</span> <span class="op">=</span> <a class="ident" href="../../src/clap/usage_parser.rs.html#13">UsageToken::Help</a>;
+        <a class="ident" href="../../src/clap/usage_parser.rs.html#197">arg</a>.<span class="ident">b</span>.<span class="ident">help</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><a class="self" href="../../src/clap/usage_parser.rs.html#197">self</a>.<span class="ident">usage</span>[<a class="self" href="../../src/clap/usage_parser.rs.html#197">self</a>.<span class="ident">start</span>..<a class="self" href="../../src/clap/usage_parser.rs.html#197">self</a>.<span class="ident">pos</span>]);
+        <a class="self" href="../../src/clap/usage_parser.rs.html#197">self</a>.<span class="ident">pos</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>; <span class="comment">// Move to next byte to keep from thinking ending &#39; is a start</span>
+        <a class="self" href="../../src/clap/usage_parser.rs.html#197">self</a>.<span class="ident">prev</span> <span class="op">=</span> <a class="ident" href="../../src/clap/usage_parser.rs.html#14">UsageToken::Help</a>;
     }
 }
 
 <span class="attribute">#[<span class="ident">inline</span>]</span>
 <span class="kw">fn</span> <span class="ident">name_end</span>(<span class="ident">b</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <a class="ident" href="../../src/clap/usage_parser.rs.html#214">b</a> <span class="op">!</span><span class="op">=</span> <span class="string">b&#39;]&#39;</span> <span class="op">&amp;&amp;</span> <a class="ident" href="../../src/clap/usage_parser.rs.html#214">b</a> <span class="op">!</span><span class="op">=</span> <span class="string">b&#39;&gt;&#39;</span>
+    <a class="ident" href="../../src/clap/usage_parser.rs.html#213">b</a> <span class="op">!</span><span class="op">=</span> <span class="string">b&#39;]&#39;</span> <span class="op">&amp;&amp;</span> <a class="ident" href="../../src/clap/usage_parser.rs.html#213">b</a> <span class="op">!</span><span class="op">=</span> <span class="string">b&#39;&gt;&#39;</span>
 }
 
 <span class="attribute">#[<span class="ident">inline</span>]</span>
 <span class="kw">fn</span> <span class="ident">token</span>(<span class="ident">b</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <a class="ident" href="../../src/clap/usage_parser.rs.html#219">b</a> <span class="op">!</span><span class="op">=</span> <span class="string">b&#39;\&#39;&#39;</span> <span class="op">&amp;&amp;</span> <a class="ident" href="../../src/clap/usage_parser.rs.html#219">b</a> <span class="op">!</span><span class="op">=</span> <span class="string">b&#39;.&#39;</span> <span class="op">&amp;&amp;</span> <a class="ident" href="../../src/clap/usage_parser.rs.html#219">b</a> <span class="op">!</span><span class="op">=</span> <span class="string">b&#39;&lt;&#39;</span> <span class="op">&amp;&amp;</span> <a class="ident" href="../../src/clap/usage_parser.rs.html#219">b</a> <span class="op">!</span><span class="op">=</span> <span class="string">b&#39;[&#39;</span> <span class="op">&amp;&amp;</span> <a class="ident" href="../../src/clap/usage_parser.rs.html#219">b</a> <span class="op">!</span><span class="op">=</span> <span class="string">b&#39;-&#39;</span>
+    <a class="ident" href="../../src/clap/usage_parser.rs.html#218">b</a> <span class="op">!</span><span class="op">=</span> <span class="string">b&#39;\&#39;&#39;</span> <span class="op">&amp;&amp;</span> <a class="ident" href="../../src/clap/usage_parser.rs.html#218">b</a> <span class="op">!</span><span class="op">=</span> <span class="string">b&#39;.&#39;</span> <span class="op">&amp;&amp;</span> <a class="ident" href="../../src/clap/usage_parser.rs.html#218">b</a> <span class="op">!</span><span class="op">=</span> <span class="string">b&#39;&lt;&#39;</span> <span class="op">&amp;&amp;</span> <a class="ident" href="../../src/clap/usage_parser.rs.html#218">b</a> <span class="op">!</span><span class="op">=</span> <span class="string">b&#39;[&#39;</span> <span class="op">&amp;&amp;</span> <a class="ident" href="../../src/clap/usage_parser.rs.html#218">b</a> <span class="op">!</span><span class="op">=</span> <span class="string">b&#39;-&#39;</span>
 }
 
 <span class="attribute">#[<span class="ident">inline</span>]</span>
 <span class="kw">fn</span> <span class="ident">long_end</span>(<span class="ident">b</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <a class="ident" href="../../src/clap/usage_parser.rs.html#224">b</a> <span class="op">!</span><span class="op">=</span> <span class="string">b&#39;\&#39;&#39;</span> <span class="op">&amp;&amp;</span> <a class="ident" href="../../src/clap/usage_parser.rs.html#224">b</a> <span class="op">!</span><span class="op">=</span> <span class="string">b&#39;.&#39;</span> <span class="op">&amp;&amp;</span> <a class="ident" href="../../src/clap/usage_parser.rs.html#224">b</a> <span class="op">!</span><span class="op">=</span> <span class="string">b&#39;&lt;&#39;</span> <span class="op">&amp;&amp;</span> <a class="ident" href="../../src/clap/usage_parser.rs.html#224">b</a> <span class="op">!</span><span class="op">=</span> <span class="string">b&#39;[&#39;</span> <span class="op">&amp;&amp;</span> <a class="ident" href="../../src/clap/usage_parser.rs.html#224">b</a> <span class="op">!</span><span class="op">=</span> <span class="string">b&#39;=&#39;</span> <span class="op">&amp;&amp;</span> <a class="ident" href="../../src/clap/usage_parser.rs.html#224">b</a> <span class="op">!</span><span class="op">=</span> <span class="string">b&#39; &#39;</span>
+    <a class="ident" href="../../src/clap/usage_parser.rs.html#223">b</a> <span class="op">!</span><span class="op">=</span> <span class="string">b&#39;\&#39;&#39;</span> <span class="op">&amp;&amp;</span> <a class="ident" href="../../src/clap/usage_parser.rs.html#223">b</a> <span class="op">!</span><span class="op">=</span> <span class="string">b&#39;.&#39;</span> <span class="op">&amp;&amp;</span> <a class="ident" href="../../src/clap/usage_parser.rs.html#223">b</a> <span class="op">!</span><span class="op">=</span> <span class="string">b&#39;&lt;&#39;</span> <span class="op">&amp;&amp;</span> <a class="ident" href="../../src/clap/usage_parser.rs.html#223">b</a> <span class="op">!</span><span class="op">=</span> <span class="string">b&#39;[&#39;</span> <span class="op">&amp;&amp;</span> <a class="ident" href="../../src/clap/usage_parser.rs.html#223">b</a> <span class="op">!</span><span class="op">=</span> <span class="string">b&#39;=&#39;</span> <span class="op">&amp;&amp;</span> <a class="ident" href="../../src/clap/usage_parser.rs.html#223">b</a> <span class="op">!</span><span class="op">=</span> <span class="string">b&#39; &#39;</span>
 }
 
 <span class="attribute">#[<span class="ident">inline</span>]</span>
 <span class="kw">fn</span> <span class="ident">help_start</span>(<span class="ident">b</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <a class="ident" href="../../src/clap/usage_parser.rs.html#229">b</a> <span class="op">!</span><span class="op">=</span> <span class="string">b&#39;\&#39;&#39;</span>
+    <a class="ident" href="../../src/clap/usage_parser.rs.html#228">b</a> <span class="op">!</span><span class="op">=</span> <span class="string">b&#39;\&#39;&#39;</span>
 }
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">mod</span> <span class="ident">test</span> {
-    <span class="kw">use</span> <span class="ident">args::Arg</span>;
-    <span class="kw">use</span> <span class="ident">args::ArgSettings</span>;
+    <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::args</span>::{<span class="ident">Arg</span>, <span class="ident">ArgSettings</span>};
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">create_flag_usage</span>() {
@@ -2715,6 +2712,5 @@
     }
 }
 </code></pre></div>
-</section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="clap" data-search-index-js="../../search-index.js" data-search-js="../../search.js"></div>
-    <script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script>
+</section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="clap" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.59.0-nightly (207c80f10 2021-11-30)" ></div>
 </body></html>

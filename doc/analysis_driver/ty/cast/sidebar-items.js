@@ -1,1 +1,0 @@
-initSidebarItems({"enum":[["CastKind","Cast Kind. See RFC 401 (or librustc_typeck/check/cast.rs)."],["CastTy",""],["IntTy","Types that are represented as ints."]]});

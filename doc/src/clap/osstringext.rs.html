@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;clap-2.33.3&#x2F;src&#x2F;osstringext.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>osstringext.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../clap/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;clap-2.34.0&#x2F;src&#x2F;osstringext.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>osstringext.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css"disabled><link rel="stylesheet" type="text/css" href="../../dark.css"disabled><link rel="stylesheet" type="text/css" href="../../light.css"id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
+    <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../clap/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -198,11 +199,14 @@
 <span id="198">198</span>
 <span id="199">199</span>
 <span id="200">200</span>
+<span id="201">201</span>
+<span id="202">202</span>
+<span id="203">203</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsStr.html">std::ffi::OsStr</a>;
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;windows&quot;</span>, <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;wasm32&quot;</span>)))]</span>
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/unix/ffi/os_str/trait.OsStrExt.html">std::os::unix::ffi::OsStrExt</a>;
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;windows&quot;</span>, <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;wasm32&quot;</span>))]</span>
-<span class="kw">use</span> <span class="ident">INVALID_UTF8</span>;
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::INVALID_UTF8</span>;
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;windows&quot;</span>, <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;wasm32&quot;</span>))]</span>
 <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">OsStrExt3</span> {
@@ -217,7 +221,7 @@
     <span class="kw">fn</span> <span class="ident">split_at</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">i</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; (<span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsStr.html">OsStr</a>, <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsStr.html">OsStr</a>);
     <span class="kw">fn</span> <span class="ident">trim_left_matches</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">b</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) -&gt; <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsStr.html">OsStr</a>;
     <span class="kw">fn</span> <span class="ident">contains_byte</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">b</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>;
-    <span class="kw">fn</span> <span class="ident">split</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">b</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) -&gt; <a class="ident" href="../../src/clap/osstringext.rs.html#177-181">OsSplit</a>;
+    <span class="kw">fn</span> <span class="ident">split</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">b</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) -&gt; <a class="ident" href="../../src/clap/osstringext.rs.html#180-184">OsSplit</a>;
 }
 
 <span class="comment">// A starts-with implementation that does not panic when the OsStr contains</span>
@@ -277,7 +281,7 @@
     <span class="comment">// UTF-16 surrogate characters are only valid in pairs. Including one on</span>
     <span class="comment">// the end by itself makes this invalid UTF-16.</span>
     <span class="kw">let</span> <span class="ident">surrogate_char</span>: <span class="ident">u16</span> <span class="op">=</span> <span class="number">0xDC00</span>;
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">invalid_unicode</span> <span class="op">=</span>
+    <span class="kw">let</span> <span class="ident">invalid_unicode</span> <span class="op">=</span>
         <span class="ident">OsString::from_wide</span>(<span class="kw-2">&amp;</span>[<span class="string">&#39;a&#39;</span> <span class="kw">as</span> <span class="ident">u16</span>, <span class="string">&#39;b&#39;</span> <span class="kw">as</span> <span class="ident">u16</span>, <span class="string">&#39;c&#39;</span> <span class="kw">as</span> <span class="ident">u16</span>, <span class="ident">surrogate_char</span>]);
     <span class="macro">assert!</span>(
         <span class="ident">invalid_unicode</span>.<span class="ident">to_str</span>().<span class="ident">is_none</span>(),
@@ -312,14 +316,17 @@
             <span class="comment">// `clap.exe --arg=[invalid]`. Note that this entire module is</span>
             <span class="comment">// replaced in Clap 3.x, so this workaround is specific to the 2.x</span>
             <span class="comment">// branch.</span>
-            <span class="kw">return</span> <span class="ident">windows_osstr_starts_with</span>(<span class="self">self</span>, <span class="ident">s</span>);
+            <span class="ident">windows_osstr_starts_with</span>(<span class="self">self</span>, <span class="ident">s</span>)
         }
-        <a class="self" href="../../src/clap/osstringext.rs.html#102">self</a>.<span class="ident">as_bytes</span>().<span class="ident">starts_with</span>(<a class="ident" href="../../src/clap/osstringext.rs.html#102">s</a>)
+        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;windows&quot;</span>))]</span>
+        {
+            <a class="self" href="../../src/clap/osstringext.rs.html#102">self</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/std/os/unix/ffi/os_str/trait.OsStrExt.html">as_bytes</a>().<span class="ident">starts_with</span>(<a class="ident" href="../../src/clap/osstringext.rs.html#102">s</a>)
+        }
     }
 
     <span class="kw">fn</span> <span class="ident">contains_byte</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">byte</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">for</span> <a class="ident" href="../../src/clap/osstringext.rs.html#121">b</a> <span class="kw">in</span> <a class="self" href="../../src/clap/osstringext.rs.html#120">self</a>.<span class="ident">as_bytes</span>() {
-            <span class="kw">if</span> <a class="ident" href="../../src/clap/osstringext.rs.html#121">b</a> <span class="op">==</span> <span class="kw-2">&amp;</span><a class="ident" href="../../src/clap/osstringext.rs.html#120">byte</a> {
+        <span class="kw">for</span> <span class="ident">b</span> <span class="kw">in</span> <a class="self" href="../../src/clap/osstringext.rs.html#123">self</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/std/os/unix/ffi/os_str/trait.OsStrExt.html">as_bytes</a>() {
+            <span class="kw">if</span> <a class="ident" href="../../src/clap/osstringext.rs.html#124">b</a> <span class="op">==</span> <span class="kw-2">&amp;</span><a class="ident" href="../../src/clap/osstringext.rs.html#123">byte</a> {
                 <span class="kw">return</span> <span class="bool-val">true</span>;
             }
         }
@@ -327,46 +334,46 @@
     }
 
     <span class="kw">fn</span> <span class="ident">split_at_byte</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">byte</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) -&gt; (<span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsStr.html">OsStr</a>, <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsStr.html">OsStr</a>) {
-        <span class="kw">for</span> (<span class="ident">i</span>, <span class="ident">b</span>) <span class="kw">in</span> <a class="self" href="../../src/clap/osstringext.rs.html#129">self</a>.<span class="ident">as_bytes</span>().<span class="ident">iter</span>().<span class="ident">enumerate</span>() {
-            <span class="kw">if</span> <a class="ident" href="../../src/clap/osstringext.rs.html#130">b</a> <span class="op">==</span> <span class="kw-2">&amp;</span><a class="ident" href="../../src/clap/osstringext.rs.html#129">byte</a> {
+        <span class="kw">for</span> (<span class="ident">i</span>, <span class="ident">b</span>) <span class="kw">in</span> <a class="self" href="../../src/clap/osstringext.rs.html#132">self</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/std/os/unix/ffi/os_str/trait.OsStrExt.html">as_bytes</a>().<span class="ident">iter</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">enumerate</a>() {
+            <span class="kw">if</span> <a class="ident" href="../../src/clap/osstringext.rs.html#133">b</a> <span class="op">==</span> <span class="kw-2">&amp;</span><a class="ident" href="../../src/clap/osstringext.rs.html#132">byte</a> {
                 <span class="kw">return</span> (
-                    <span class="ident">OsStr::from_bytes</span>(<span class="kw-2">&amp;</span><a class="self" href="../../src/clap/osstringext.rs.html#129">self</a>.<span class="ident">as_bytes</span>()[..<a class="ident" href="../../src/clap/osstringext.rs.html#130">i</a>]),
-                    <span class="ident">OsStr::from_bytes</span>(<span class="kw-2">&amp;</span><a class="self" href="../../src/clap/osstringext.rs.html#129">self</a>.<span class="ident">as_bytes</span>()[<a class="ident" href="../../src/clap/osstringext.rs.html#130">i</a> <span class="op">+</span> <span class="number">1</span>..]),
+                    <span class="ident">OsStr::from_bytes</span>(<span class="kw-2">&amp;</span><a class="self" href="../../src/clap/osstringext.rs.html#132">self</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/std/os/unix/ffi/os_str/trait.OsStrExt.html">as_bytes</a>()[..<a class="ident" href="../../src/clap/osstringext.rs.html#133">i</a>]),
+                    <span class="ident">OsStr::from_bytes</span>(<span class="kw-2">&amp;</span><a class="self" href="../../src/clap/osstringext.rs.html#132">self</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/std/os/unix/ffi/os_str/trait.OsStrExt.html">as_bytes</a>()[<a class="ident" href="../../src/clap/osstringext.rs.html#133">i</a> <span class="op">+</span> <span class="number">1</span>..]),
                 );
             }
         }
         (
-            <span class="kw-2">&amp;</span><span class="kw-2">*</span><a class="self" href="../../src/clap/osstringext.rs.html#129">self</a>,
-            <span class="ident">OsStr::from_bytes</span>(<span class="kw-2">&amp;</span><a class="self" href="../../src/clap/osstringext.rs.html#129">self</a>.<span class="ident">as_bytes</span>()[<a class="self" href="../../src/clap/osstringext.rs.html#129">self</a>.<span class="ident">len</span>()..<a class="self" href="../../src/clap/osstringext.rs.html#129">self</a>.<span class="ident">len</span>()]),
+            <span class="kw-2">&amp;</span><span class="kw-2">*</span><a class="self" href="../../src/clap/osstringext.rs.html#132">self</a>,
+            <span class="ident">OsStr::from_bytes</span>(<span class="kw-2">&amp;</span><a class="self" href="../../src/clap/osstringext.rs.html#132">self</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/std/os/unix/ffi/os_str/trait.OsStrExt.html">as_bytes</a>()[<a class="self" href="../../src/clap/osstringext.rs.html#132">self</a>.<span class="ident">len</span>()..<a class="self" href="../../src/clap/osstringext.rs.html#132">self</a>.<span class="ident">len</span>()]),
         )
     }
 
     <span class="kw">fn</span> <span class="ident">trim_left_matches</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">byte</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) -&gt; <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsStr.html">OsStr</a> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">found</span> <span class="op">=</span> <span class="bool-val">false</span>;
-        <span class="kw">for</span> (<span class="ident">i</span>, <span class="ident">b</span>) <span class="kw">in</span> <a class="self" href="../../src/clap/osstringext.rs.html#144">self</a>.<span class="ident">as_bytes</span>().<span class="ident">iter</span>().<span class="ident">enumerate</span>() {
-            <span class="kw">if</span> <a class="ident" href="../../src/clap/osstringext.rs.html#146">b</a> <span class="op">!</span><span class="op">=</span> <span class="kw-2">&amp;</span><a class="ident" href="../../src/clap/osstringext.rs.html#144">byte</a> {
-                <span class="kw">return</span> <span class="ident">OsStr::from_bytes</span>(<span class="kw-2">&amp;</span><a class="self" href="../../src/clap/osstringext.rs.html#144">self</a>.<span class="ident">as_bytes</span>()[<a class="ident" href="../../src/clap/osstringext.rs.html#146">i</a>..]);
+        <span class="kw">for</span> (<span class="ident">i</span>, <span class="ident">b</span>) <span class="kw">in</span> <a class="self" href="../../src/clap/osstringext.rs.html#147">self</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/std/os/unix/ffi/os_str/trait.OsStrExt.html">as_bytes</a>().<span class="ident">iter</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">enumerate</a>() {
+            <span class="kw">if</span> <a class="ident" href="../../src/clap/osstringext.rs.html#149">b</a> <span class="op">!</span><span class="op">=</span> <span class="kw-2">&amp;</span><a class="ident" href="../../src/clap/osstringext.rs.html#147">byte</a> {
+                <span class="kw">return</span> <span class="ident">OsStr::from_bytes</span>(<span class="kw-2">&amp;</span><a class="self" href="../../src/clap/osstringext.rs.html#147">self</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/std/os/unix/ffi/os_str/trait.OsStrExt.html">as_bytes</a>()[<a class="ident" href="../../src/clap/osstringext.rs.html#149">i</a>..]);
             } <span class="kw">else</span> {
-                <a class="ident" href="../../src/clap/osstringext.rs.html#145">found</a> <span class="op">=</span> <span class="bool-val">true</span>;
+                <a class="ident" href="../../src/clap/osstringext.rs.html#148">found</a> <span class="op">=</span> <span class="bool-val">true</span>;
             }
         }
-        <span class="kw">if</span> <a class="ident" href="../../src/clap/osstringext.rs.html#145">found</a> {
-            <span class="kw">return</span> <span class="ident">OsStr::from_bytes</span>(<span class="kw-2">&amp;</span><a class="self" href="../../src/clap/osstringext.rs.html#144">self</a>.<span class="ident">as_bytes</span>()[<a class="self" href="../../src/clap/osstringext.rs.html#144">self</a>.<span class="ident">len</span>()..]);
+        <span class="kw">if</span> <a class="ident" href="../../src/clap/osstringext.rs.html#148">found</a> {
+            <span class="kw">return</span> <span class="ident">OsStr::from_bytes</span>(<span class="kw-2">&amp;</span><a class="self" href="../../src/clap/osstringext.rs.html#147">self</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/std/os/unix/ffi/os_str/trait.OsStrExt.html">as_bytes</a>()[<a class="self" href="../../src/clap/osstringext.rs.html#147">self</a>.<span class="ident">len</span>()..]);
         }
-        <span class="kw-2">&amp;</span><span class="kw-2">*</span><a class="self" href="../../src/clap/osstringext.rs.html#144">self</a>
+        <span class="kw-2">&amp;</span><span class="kw-2">*</span><a class="self" href="../../src/clap/osstringext.rs.html#147">self</a>
     }
 
     <span class="kw">fn</span> <span class="ident">split_at</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">i</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; (<span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsStr.html">OsStr</a>, <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsStr.html">OsStr</a>) {
         (
-            <span class="ident">OsStr::from_bytes</span>(<span class="kw-2">&amp;</span><a class="self" href="../../src/clap/osstringext.rs.html#159">self</a>.<span class="ident">as_bytes</span>()[..<a class="ident" href="../../src/clap/osstringext.rs.html#159">i</a>]),
-            <span class="ident">OsStr::from_bytes</span>(<span class="kw-2">&amp;</span><a class="self" href="../../src/clap/osstringext.rs.html#159">self</a>.<span class="ident">as_bytes</span>()[<a class="ident" href="../../src/clap/osstringext.rs.html#159">i</a>..]),
+            <span class="ident">OsStr::from_bytes</span>(<span class="kw-2">&amp;</span><a class="self" href="../../src/clap/osstringext.rs.html#162">self</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/std/os/unix/ffi/os_str/trait.OsStrExt.html">as_bytes</a>()[..<a class="ident" href="../../src/clap/osstringext.rs.html#162">i</a>]),
+            <span class="ident">OsStr::from_bytes</span>(<span class="kw-2">&amp;</span><a class="self" href="../../src/clap/osstringext.rs.html#162">self</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/std/os/unix/ffi/os_str/trait.OsStrExt.html">as_bytes</a>()[<a class="ident" href="../../src/clap/osstringext.rs.html#162">i</a>..]),
         )
     }
 
-    <span class="kw">fn</span> <span class="ident">split</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">b</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) -&gt; <a class="ident" href="../../src/clap/osstringext.rs.html#177-181">OsSplit</a> {
-        <a class="ident" href="../../src/clap/osstringext.rs.html#177-181">OsSplit</a> {
-            <span class="ident">sep</span>: <a class="ident" href="../../src/clap/osstringext.rs.html#166">b</a>,
-            <span class="ident">val</span>: <a class="self" href="../../src/clap/osstringext.rs.html#166">self</a>.<span class="ident">as_bytes</span>(),
+    <span class="kw">fn</span> <span class="ident">split</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">b</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) -&gt; <a class="ident" href="../../src/clap/osstringext.rs.html#180-184">OsSplit</a> {
+        <a class="ident" href="../../src/clap/osstringext.rs.html#180-184">OsSplit</a> {
+            <span class="ident">sep</span>: <a class="ident" href="../../src/clap/osstringext.rs.html#169">b</a>,
+            <span class="ident">val</span>: <a class="self" href="../../src/clap/osstringext.rs.html#169">self</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/std/os/unix/ffi/os_str/trait.OsStrExt.html">as_bytes</a>(),
             <span class="ident">pos</span>: <span class="number">0</span>,
         }
     }
@@ -385,20 +392,19 @@
 
     <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsStr.html">OsStr</a><span class="op">&gt;</span> {
         <span class="macro">debugln!</span>(<span class="string">&quot;OsSplit::next: self={:?}&quot;</span>, <span class="self">self</span>);
-        <span class="kw">if</span> <a class="self" href="../../src/clap/osstringext.rs.html#186">self</a>.<span class="ident">pos</span> <span class="op">==</span> <a class="self" href="../../src/clap/osstringext.rs.html#186">self</a>.<span class="ident">val</span>.<span class="ident">len</span>() {
+        <span class="kw">if</span> <a class="self" href="../../src/clap/osstringext.rs.html#189">self</a>.<span class="ident">pos</span> <span class="op">==</span> <a class="self" href="../../src/clap/osstringext.rs.html#189">self</a>.<span class="ident">val</span>.<span class="ident">len</span>() {
             <span class="kw">return</span> <span class="prelude-val">None</span>;
         }
-        <span class="kw">let</span> <span class="ident">start</span> <span class="op">=</span> <a class="self" href="../../src/clap/osstringext.rs.html#186">self</a>.<span class="ident">pos</span>;
-        <span class="kw">for</span> <a class="ident" href="../../src/clap/osstringext.rs.html#192">b</a> <span class="kw">in</span> <span class="kw-2">&amp;</span><a class="self" href="../../src/clap/osstringext.rs.html#186">self</a>.<span class="ident">val</span>[<a class="ident" href="../../src/clap/osstringext.rs.html#191">start</a>..] {
-            <a class="self" href="../../src/clap/osstringext.rs.html#186">self</a>.<span class="ident">pos</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
-            <span class="kw">if</span> <span class="kw-2">*</span><a class="ident" href="../../src/clap/osstringext.rs.html#192">b</a> <span class="op">==</span> <a class="self" href="../../src/clap/osstringext.rs.html#186">self</a>.<span class="ident">sep</span> {
-                <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="ident">OsStr::from_bytes</span>(<span class="kw-2">&amp;</span><a class="self" href="../../src/clap/osstringext.rs.html#186">self</a>.<span class="ident">val</span>[<a class="ident" href="../../src/clap/osstringext.rs.html#191">start</a>..<a class="self" href="../../src/clap/osstringext.rs.html#186">self</a>.<span class="ident">pos</span> <span class="op">-</span> <span class="number">1</span>]));
+        <span class="kw">let</span> <span class="ident">start</span> <span class="op">=</span> <a class="self" href="../../src/clap/osstringext.rs.html#189">self</a>.<span class="ident">pos</span>;
+        <span class="kw">for</span> <span class="ident">b</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><a class="self" href="../../src/clap/osstringext.rs.html#189">self</a>.<span class="ident">val</span>[<a class="ident" href="../../src/clap/osstringext.rs.html#194">start</a>..] {
+            <a class="self" href="../../src/clap/osstringext.rs.html#189">self</a>.<span class="ident">pos</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+            <span class="kw">if</span> <span class="kw-2">*</span><a class="ident" href="../../src/clap/osstringext.rs.html#195">b</a> <span class="op">==</span> <a class="self" href="../../src/clap/osstringext.rs.html#189">self</a>.<span class="ident">sep</span> {
+                <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="ident">OsStr::from_bytes</span>(<span class="kw-2">&amp;</span><a class="self" href="../../src/clap/osstringext.rs.html#189">self</a>.<span class="ident">val</span>[<a class="ident" href="../../src/clap/osstringext.rs.html#194">start</a>..<a class="self" href="../../src/clap/osstringext.rs.html#189">self</a>.<span class="ident">pos</span> <span class="op">-</span> <span class="number">1</span>]));
             }
         }
-        <span class="prelude-val">Some</span>(<span class="ident">OsStr::from_bytes</span>(<span class="kw-2">&amp;</span><a class="self" href="../../src/clap/osstringext.rs.html#186">self</a>.<span class="ident">val</span>[<a class="ident" href="../../src/clap/osstringext.rs.html#191">start</a>..]))
+        <span class="prelude-val">Some</span>(<span class="ident">OsStr::from_bytes</span>(<span class="kw-2">&amp;</span><a class="self" href="../../src/clap/osstringext.rs.html#189">self</a>.<span class="ident">val</span>[<a class="ident" href="../../src/clap/osstringext.rs.html#194">start</a>..]))
     }
 }
 </code></pre></div>
-</section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="clap" data-search-index-js="../../search-index.js" data-search-js="../../search.js"></div>
-    <script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script>
+</section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="clap" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.59.0-nightly (207c80f10 2021-11-30)" ></div>
 </body></html>

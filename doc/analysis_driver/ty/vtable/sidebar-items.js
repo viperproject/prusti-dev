@@ -1,1 +1,0 @@
-initSidebarItems({"constant":[["COMMON_VTABLE_ENTRIES",""],["COMMON_VTABLE_ENTRIES_ALIGN",""],["COMMON_VTABLE_ENTRIES_DROPINPLACE",""],["COMMON_VTABLE_ENTRIES_SIZE",""]],"enum":[["VtblEntry",""]]});

@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;ansi_term-0.11.0&#x2F;src&#x2F;display.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>display.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../ansi_term/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;ansi_term-0.12.1&#x2F;src&#x2F;display.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>display.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css"disabled><link rel="stylesheet" type="text/css" href="../../dark.css"disabled><link rel="stylesheet" type="text/css" href="../../light.css"id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
+    <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../ansi_term/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -277,31 +278,48 @@
 <span id="277">277</span>
 <span id="278">278</span>
 <span id="279">279</span>
+<span id="280">280</span>
+<span id="281">281</span>
+<span id="282">282</span>
+<span id="283">283</span>
+<span id="284">284</span>
+<span id="285">285</span>
+<span id="286">286</span>
+<span id="287">287</span>
+<span id="288">288</span>
+<span id="289">289</span>
+<span id="290">290</span>
+<span id="291">291</span>
+<span id="292">292</span>
+<span id="293">293</span>
+<span id="294">294</span>
+<span id="295">295</span>
+<span id="296">296</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/borrow/enum.Cow.html">std::borrow::Cow</a>;
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/index.html">std::io</a>;
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.Deref.html">std::ops::Deref</a>;
 
-<span class="kw">use</span> <a class="ident" href="../../src/ansi_term/ansi.rs.html#80">ansi::RESET</a>;
+<span class="kw">use</span> <a class="ident" href="../../src/ansi_term/ansi.rs.html#78">ansi::RESET</a>;
 <span class="kw">use</span> <a class="ident" href="../../src/ansi_term/difference.rs.html#7-20">difference::Difference</a>;
-<span class="kw">use</span> <span class="ident">style</span>::{<a class="ident" href="../../src/ansi_term/style.rs.html#4-35">Style</a>, <a class="ident" href="../../src/ansi_term/style.rs.html#137-189">Colour</a>};
+<span class="kw">use</span> <span class="ident">style</span>::{<a class="ident" href="../../src/ansi_term/style.rs.html#14-45">Style</a>, <a class="ident" href="../../src/ansi_term/style.rs.html#256-308">Colour</a>};
 <span class="kw">use</span> <a class="ident" href="../../src/ansi_term/write.rs.html#5-12">write::AnyWrite</a>;
 
 
 <span class="doccomment">/// An `ANSIGenericString` includes a generic string type and a `Style` to</span>
 <span class="doccomment">/// display that string.  `ANSIString` and `ANSIByteString` are aliases for</span>
-<span class="doccomment">/// this type on `str` and `[u8]`, respectively.</span>
+<span class="doccomment">/// this type on `str` and `\[u8]`, respectively.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">PartialEq</span>, <span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ANSIGenericString</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">S</span>: <span class="lifetime">&#39;a</span> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">ToOwned</a> <span class="op">+</span> <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a><span class="op">&gt;</span>
 <span class="kw">where</span> <span class="op">&lt;</span><span class="ident">S</span> <span class="kw">as</span> <span class="ident">ToOwned</span><span class="op">&gt;</span><span class="ident">::Owned</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> {
-    <span class="ident">style</span>: <a class="ident" href="../../src/ansi_term/style.rs.html#4-35">Style</a>,
+    <span class="ident">style</span>: <a class="ident" href="../../src/ansi_term/style.rs.html#14-45">Style</a>,
     <span class="ident">string</span>: <span class="ident">Cow</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">S</span><span class="op">&gt;</span>,
 }
 
 
 <span class="doccomment">/// Cloning an `ANSIGenericString` will clone its underlying string.</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// ### Examples</span>
+<span class="doccomment">/// # Examples</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// ```</span>
 <span class="doccomment">/// use ansi_term::ANSIString;</span>
@@ -315,7 +333,7 @@
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">ANSIGenericString</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">S</span><span class="op">&gt;</span> {
         <a class="ident" href="../../src/ansi_term/display.rs.html#16-20">ANSIGenericString</a> {
             <span class="ident">style</span>: <a class="self" href="../../src/ansi_term/display.rs.html#36">self</a>.<span class="ident">style</span>,
-            <span class="ident">string</span>: <a class="self" href="../../src/ansi_term/display.rs.html#36">self</a>.<span class="ident">string</span>.<span class="ident">clone</span>(),
+            <span class="ident">string</span>: <a class="self" href="../../src/ansi_term/display.rs.html#36">self</a>.<span class="ident">string</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
         }
     }
 }
@@ -349,9 +367,9 @@
 <span class="doccomment">/// Although not technically a string itself, it can be turned into</span>
 <span class="doccomment">/// one with the `to_string` method.</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// ### Examples</span>
+<span class="doccomment">/// # Examples</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// ```no_run</span>
+<span class="doccomment">/// ```</span>
 <span class="doccomment">/// use ansi_term::ANSIString;</span>
 <span class="doccomment">/// use ansi_term::Colour::Red;</span>
 <span class="doccomment">///</span>
@@ -376,9 +394,23 @@
       <span class="op">&lt;</span><span class="ident">S</span> <span class="kw">as</span> <span class="ident">ToOwned</span><span class="op">&gt;</span><span class="ident">::Owned</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> {
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">input</span>: <span class="ident">I</span>) -&gt; <span class="ident">ANSIGenericString</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">S</span><span class="op">&gt;</span> {
         <a class="ident" href="../../src/ansi_term/display.rs.html#16-20">ANSIGenericString</a> {
-            <span class="ident">string</span>: <a class="ident" href="../../src/ansi_term/display.rs.html#98">input</a>.<span class="ident">into</span>(),
+            <span class="ident">string</span>: <a class="ident" href="../../src/ansi_term/display.rs.html#98">input</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
             <span class="ident">style</span>:  <span class="ident">Style::default</span>(),
         }
+    }
+}
+
+<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">S</span>: <span class="lifetime">&#39;a</span> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">ToOwned</a> <span class="op">+</span> <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a><span class="op">&gt;</span> <span class="ident">ANSIGenericString</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">S</span><span class="op">&gt;</span>
+    <span class="kw">where</span> <span class="op">&lt;</span><span class="ident">S</span> <span class="kw">as</span> <span class="ident">ToOwned</span><span class="op">&gt;</span><span class="ident">::Owned</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> {
+
+    <span class="doccomment">/// Directly access the style</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">style_ref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a class="ident" href="../../src/ansi_term/style.rs.html#14-45">Style</a> {
+        <span class="kw-2">&amp;</span><a class="self" href="../../src/ansi_term/display.rs.html#110">self</a>.<span class="ident">style</span>
+    }
+
+    <span class="doccomment">/// Directly access the style mutably</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">style_ref_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/ansi_term/style.rs.html#14-45">Style</a> {
+        <span class="kw-2">&amp;mut</span> <a class="self" href="../../src/ansi_term/display.rs.html#115">self</a>.<span class="ident">style</span>
     }
 }
 
@@ -387,16 +419,17 @@
     <span class="kw">type</span> <span class="ident">Target</span> <span class="op">=</span> <span class="ident">S</span>;
 
     <span class="kw">fn</span> <span class="ident">deref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">S</span> {
-        <a class="self" href="../../src/ansi_term/display.rs.html#110">self</a>.<span class="ident">string</span>.<span class="ident">deref</span>()
+        <a class="self" href="../../src/ansi_term/display.rs.html#124">self</a>.<span class="ident">string</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.Deref.html">deref</a>()
     }
 }
 
 
 <span class="doccomment">/// A set of `ANSIGenericString`s collected together, in order to be</span>
 <span class="doccomment">/// written with a minimum of control characters.</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ANSIGenericStrings</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">S</span>: <span class="lifetime">&#39;a</span> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">ToOwned</a> <span class="op">+</span> <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a><span class="op">&gt;</span>
     (<span class="kw">pub</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<span class="ident">ANSIGenericString</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">S</span><span class="op">&gt;</span>])
-    <span class="kw">where</span> <span class="op">&lt;</span><span class="ident">S</span> <span class="kw">as</span> <span class="ident">ToOwned</span><span class="op">&gt;</span><span class="ident">::Owned</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a>;
+    <span class="kw">where</span> <span class="op">&lt;</span><span class="ident">S</span> <span class="kw">as</span> <span class="ident">ToOwned</span><span class="op">&gt;</span><span class="ident">::Owned</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a>, <span class="ident">S</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/cmp/trait.PartialEq.html">PartialEq</a>;
 
 <span class="doccomment">/// A set of `ANSIString`s collected together, in order to be written with a</span>
 <span class="doccomment">/// minimum of control characters.</span>
@@ -405,7 +438,7 @@
 <span class="doccomment">/// A function to construct an `ANSIStrings` instance.</span>
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">non_snake_case</span>)]</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ANSIStrings</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="ident">arg</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<span class="ident">ANSIString</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>]) -&gt; <span class="ident">ANSIStrings</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <a class="ident" href="../../src/ansi_term/display.rs.html#118-120">ANSIGenericStrings</a>(<a class="ident" href="../../src/ansi_term/display.rs.html#128">arg</a>)
+    <a class="ident" href="../../src/ansi_term/display.rs.html#133-135">ANSIGenericStrings</a>(<a class="ident" href="../../src/ansi_term/display.rs.html#143">arg</a>)
 }
 
 <span class="doccomment">/// A set of `ANSIByteString`s collected together, in order to be</span>
@@ -415,27 +448,28 @@
 <span class="doccomment">/// A function to construct an `ANSIByteStrings` instance.</span>
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">non_snake_case</span>)]</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ANSIByteStrings</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="ident">arg</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<span class="ident">ANSIByteString</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>]) -&gt; <span class="ident">ANSIByteStrings</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <a class="ident" href="../../src/ansi_term/display.rs.html#118-120">ANSIGenericStrings</a>(<a class="ident" href="../../src/ansi_term/display.rs.html#138">arg</a>)
+    <a class="ident" href="../../src/ansi_term/display.rs.html#133-135">ANSIGenericStrings</a>(<a class="ident" href="../../src/ansi_term/display.rs.html#153">arg</a>)
 }
 
 
 <span class="comment">// ---- paint functions ----</span>
 
-<span class="kw">impl</span> <a class="ident" href="../../src/ansi_term/style.rs.html#4-35">Style</a> {
+<span class="kw">impl</span> <a class="ident" href="../../src/ansi_term/style.rs.html#14-45">Style</a> {
 
     <span class="doccomment">/// Paints the given text with this colour, returning an ANSI string.</span>
+    <span class="attribute">#[<span class="ident">must_use</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">paint</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">I</span>, <span class="ident">S</span>: <span class="lifetime">&#39;a</span> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">ToOwned</a> <span class="op">+</span> <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">input</span>: <span class="ident">I</span>) -&gt; <span class="ident">ANSIGenericString</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">S</span><span class="op">&gt;</span>
     <span class="kw">where</span> <span class="ident">I</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Cow</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">S</span><span class="op">&gt;</span><span class="op">&gt;</span>,
           <span class="op">&lt;</span><span class="ident">S</span> <span class="kw">as</span> <span class="ident">ToOwned</span><span class="op">&gt;</span><span class="ident">::Owned</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> {
         <a class="ident" href="../../src/ansi_term/display.rs.html#16-20">ANSIGenericString</a> {
-            <span class="ident">string</span>: <a class="ident" href="../../src/ansi_term/display.rs.html#148">input</a>.<span class="ident">into</span>(),
-            <span class="ident">style</span>:  <a class="self" href="../../src/ansi_term/display.rs.html#148">self</a>,
+            <span class="ident">string</span>: <a class="ident" href="../../src/ansi_term/display.rs.html#164">input</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
+            <span class="ident">style</span>:  <a class="self" href="../../src/ansi_term/display.rs.html#164">self</a>,
         }
     }
 }
 
 
-<span class="kw">impl</span> <a class="ident" href="../../src/ansi_term/style.rs.html#137-189">Colour</a> {
+<span class="kw">impl</span> <a class="ident" href="../../src/ansi_term/style.rs.html#256-308">Colour</a> {
 
     <span class="doccomment">/// Paints the given text with this colour, returning an ANSI string.</span>
     <span class="doccomment">/// This is a short-cut so you don’t have to use `Blue.normal()` just</span>
@@ -445,12 +479,13 @@
     <span class="doccomment">/// use ansi_term::Colour::Blue;</span>
     <span class="doccomment">/// println!(&quot;{}&quot;, Blue.paint(&quot;da ba dee&quot;));</span>
     <span class="doccomment">/// ```</span>
+    <span class="attribute">#[<span class="ident">must_use</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">paint</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">I</span>, <span class="ident">S</span>: <span class="lifetime">&#39;a</span> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">ToOwned</a> <span class="op">+</span> <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">input</span>: <span class="ident">I</span>) -&gt; <span class="ident">ANSIGenericString</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">S</span><span class="op">&gt;</span>
     <span class="kw">where</span> <span class="ident">I</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Cow</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">S</span><span class="op">&gt;</span><span class="op">&gt;</span>,
           <span class="op">&lt;</span><span class="ident">S</span> <span class="kw">as</span> <span class="ident">ToOwned</span><span class="op">&gt;</span><span class="ident">::Owned</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> {
         <a class="ident" href="../../src/ansi_term/display.rs.html#16-20">ANSIGenericString</a> {
-            <span class="ident">string</span>: <a class="ident" href="../../src/ansi_term/display.rs.html#169">input</a>.<span class="ident">into</span>(),
-            <span class="ident">style</span>:  <a class="self" href="../../src/ansi_term/display.rs.html#169">self</a>.<a class="ident" href="../../src/ansi_term/style.rs.html#194">normal</a>(),
+            <span class="ident">string</span>: <a class="ident" href="../../src/ansi_term/display.rs.html#186">input</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
+            <span class="ident">style</span>:  <a class="self" href="../../src/ansi_term/display.rs.html#186">self</a>.<a class="ident" href="../../src/ansi_term/style.rs.html#323">normal</a>(),
         }
     }
 }
@@ -460,8 +495,8 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for</span> <span class="ident">ANSIString</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <span class="kw">let</span> <span class="ident">w</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Write.html">fmt::Write</a> <span class="op">=</span> <a class="ident" href="../../src/ansi_term/display.rs.html#183">f</a>;
-        <a class="self" href="../../src/ansi_term/display.rs.html#183">self</a>.<a class="ident" href="../../src/ansi_term/display.rs.html#200">write_to_any</a>(<a class="ident" href="../../src/ansi_term/display.rs.html#184">w</a>)
+        <span class="kw">let</span> <span class="ident">w</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Write.html">fmt::Write</a> <span class="op">=</span> <a class="ident" href="../../src/ansi_term/display.rs.html#200">f</a>;
+        <a class="self" href="../../src/ansi_term/display.rs.html#200">self</a>.<a class="ident" href="../../src/ansi_term/display.rs.html#217">write_to_any</a>(<a class="ident" href="../../src/ansi_term/display.rs.html#201">w</a>)
     }
 }
 
@@ -469,17 +504,17 @@
     <span class="doccomment">/// Write an `ANSIByteString` to an `io::Write`.  This writes the escape</span>
     <span class="doccomment">/// sequences for the associated `Style` around the bytes.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">write_to</span><span class="op">&lt;</span><span class="ident">W</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">io::Write</a><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">w</span>: <span class="kw-2">&amp;mut</span> <span class="ident">W</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">w</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">io::Write</a> <span class="op">=</span> <a class="ident" href="../../src/ansi_term/display.rs.html#192">w</a>;
-        <a class="self" href="../../src/ansi_term/display.rs.html#192">self</a>.<a class="ident" href="../../src/ansi_term/display.rs.html#200">write_to_any</a>(<a class="ident" href="../../src/ansi_term/display.rs.html#193">w</a>)
+        <span class="kw">let</span> <span class="ident">w</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">io::Write</a> <span class="op">=</span> <a class="ident" href="../../src/ansi_term/display.rs.html#209">w</a>;
+        <a class="self" href="../../src/ansi_term/display.rs.html#209">self</a>.<a class="ident" href="../../src/ansi_term/display.rs.html#217">write_to_any</a>(<a class="ident" href="../../src/ansi_term/display.rs.html#210">w</a>)
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">S</span>: <span class="lifetime">&#39;a</span> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">ToOwned</a> <span class="op">+</span> <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a><span class="op">&gt;</span> <span class="ident">ANSIGenericString</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">S</span><span class="op">&gt;</span>
 <span class="kw">where</span> <span class="op">&lt;</span><span class="ident">S</span> <span class="kw">as</span> <span class="ident">ToOwned</span><span class="op">&gt;</span><span class="ident">::Owned</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">S</span>: <span class="ident">AsRef</span><span class="op">&lt;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]<span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">write_to_any</span><span class="op">&lt;</span><span class="ident">W</span>: <span class="ident">AnyWrite</span><span class="op">&lt;</span><span class="ident">wstr</span><span class="op">=</span><span class="ident">S</span><span class="op">&gt;</span> <span class="op">+</span> <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">w</span>: <span class="kw-2">&amp;mut</span> <span class="ident">W</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">W::Error</span><span class="op">&gt;</span> {
-        <span class="macro">write!</span>(<a class="ident" href="../../src/ansi_term/display.rs.html#200">w</a>, <span class="string">&quot;{}&quot;</span>, <a class="self" href="../../src/ansi_term/display.rs.html#200">self</a>.<span class="ident">style</span>.<a class="ident" href="../../src/ansi_term/ansi.rs.html#134">prefix</a>())<span class="question-mark">?</span>;
-        <a class="ident" href="../../src/ansi_term/display.rs.html#200">w</a>.<a class="ident" href="../../src/ansi_term/write.rs.html#11">write_str</a>(<a class="self" href="../../src/ansi_term/display.rs.html#200">self</a>.<span class="ident">string</span>.<span class="ident">as_ref</span>())<span class="question-mark">?</span>;
-        <span class="macro">write!</span>(<a class="ident" href="../../src/ansi_term/display.rs.html#200">w</a>, <span class="string">&quot;{}&quot;</span>, <a class="self" href="../../src/ansi_term/display.rs.html#200">self</a>.<span class="ident">style</span>.<a class="ident" href="../../src/ansi_term/ansi.rs.html#144">suffix</a>())
+        <span class="macro">write!</span>(<a class="ident" href="../../src/ansi_term/display.rs.html#217">w</a>, <span class="string">&quot;{}&quot;</span>, <a class="self" href="../../src/ansi_term/display.rs.html#217">self</a>.<span class="ident">style</span>.<a class="ident" href="../../src/ansi_term/ansi.rs.html#166">prefix</a>())<span class="question-mark">?</span>;
+        <a class="ident" href="../../src/ansi_term/display.rs.html#217">w</a>.<a class="ident" href="../../src/ansi_term/write.rs.html#11">write_str</a>(<a class="self" href="../../src/ansi_term/display.rs.html#217">self</a>.<span class="ident">string</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>())<span class="question-mark">?</span>;
+        <span class="macro">write!</span>(<a class="ident" href="../../src/ansi_term/display.rs.html#217">w</a>, <span class="string">&quot;{}&quot;</span>, <a class="self" href="../../src/ansi_term/display.rs.html#217">self</a>.<span class="ident">style</span>.<a class="ident" href="../../src/ansi_term/ansi.rs.html#215">suffix</a>())
     }
 }
 
@@ -488,8 +523,8 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for</span> <span class="ident">ANSIStrings</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <span class="kw">let</span> <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Write.html">fmt::Write</a> <span class="op">=</span> <a class="ident" href="../../src/ansi_term/display.rs.html#211">f</a>;
-        <a class="self" href="../../src/ansi_term/display.rs.html#211">self</a>.<a class="ident" href="../../src/ansi_term/display.rs.html#229">write_to_any</a>(<a class="ident" href="../../src/ansi_term/display.rs.html#212">f</a>)
+        <span class="kw">let</span> <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Write.html">fmt::Write</a> <span class="op">=</span> <a class="ident" href="../../src/ansi_term/display.rs.html#228">f</a>;
+        <a class="self" href="../../src/ansi_term/display.rs.html#228">self</a>.<a class="ident" href="../../src/ansi_term/display.rs.html#246">write_to_any</a>(<a class="ident" href="../../src/ansi_term/display.rs.html#229">f</a>)
     }
 }
 
@@ -498,40 +533,40 @@
     <span class="doccomment">/// escape sequences for the associated `Style`s around each set of</span>
     <span class="doccomment">/// bytes.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">write_to</span><span class="op">&lt;</span><span class="ident">W</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">io::Write</a><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">w</span>: <span class="kw-2">&amp;mut</span> <span class="ident">W</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">w</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">io::Write</a> <span class="op">=</span> <a class="ident" href="../../src/ansi_term/display.rs.html#221">w</a>;
-        <a class="self" href="../../src/ansi_term/display.rs.html#221">self</a>.<a class="ident" href="../../src/ansi_term/display.rs.html#229">write_to_any</a>(<a class="ident" href="../../src/ansi_term/display.rs.html#222">w</a>)
+        <span class="kw">let</span> <span class="ident">w</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">io::Write</a> <span class="op">=</span> <a class="ident" href="../../src/ansi_term/display.rs.html#238">w</a>;
+        <a class="self" href="../../src/ansi_term/display.rs.html#238">self</a>.<a class="ident" href="../../src/ansi_term/display.rs.html#246">write_to_any</a>(<a class="ident" href="../../src/ansi_term/display.rs.html#239">w</a>)
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">S</span>: <span class="lifetime">&#39;a</span> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">ToOwned</a> <span class="op">+</span> <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a><span class="op">&gt;</span> <span class="ident">ANSIGenericStrings</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">S</span><span class="op">&gt;</span>
+<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">S</span>: <span class="lifetime">&#39;a</span> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">ToOwned</a> <span class="op">+</span> <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/cmp/trait.PartialEq.html">PartialEq</a><span class="op">&gt;</span> <span class="ident">ANSIGenericStrings</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">S</span><span class="op">&gt;</span>
 <span class="kw">where</span> <span class="op">&lt;</span><span class="ident">S</span> <span class="kw">as</span> <span class="ident">ToOwned</span><span class="op">&gt;</span><span class="ident">::Owned</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">S</span>: <span class="ident">AsRef</span><span class="op">&lt;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]<span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">write_to_any</span><span class="op">&lt;</span><span class="ident">W</span>: <span class="ident">AnyWrite</span><span class="op">&lt;</span><span class="ident">wstr</span><span class="op">=</span><span class="ident">S</span><span class="op">&gt;</span> <span class="op">+</span> <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">w</span>: <span class="kw-2">&amp;mut</span> <span class="ident">W</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">W::Error</span><span class="op">&gt;</span> {
         <span class="kw">use</span> <a class="ident" href="../../src/ansi_term/difference.rs.html#7-20"><span class="self">self</span>::Difference</a>::<span class="kw-2">*</span>;
 
-        <span class="kw">let</span> <span class="ident">first</span> <span class="op">=</span> <span class="kw">match</span> <a class="self" href="../../src/ansi_term/display.rs.html#229">self</a>.<span class="number">0</span>.<span class="ident">first</span>() {
+        <span class="kw">let</span> <span class="ident">first</span> <span class="op">=</span> <span class="kw">match</span> <a class="self" href="../../src/ansi_term/display.rs.html#246">self</a>.<span class="number">0</span>.<span class="ident">first</span>() {
             <span class="prelude-val">None</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Ok</span>(()),
-            <span class="prelude-val">Some</span>(<span class="ident">f</span>) =&gt; <a class="ident" href="../../src/ansi_term/display.rs.html#234">f</a>,
+            <span class="prelude-val">Some</span>(<span class="ident">f</span>) =&gt; <a class="ident" href="../../src/ansi_term/display.rs.html#251">f</a>,
         };
 
-        <span class="macro">write!</span>(<a class="ident" href="../../src/ansi_term/display.rs.html#229">w</a>, <span class="string">&quot;{}&quot;</span>, <a class="ident" href="../../src/ansi_term/display.rs.html#232">first</a>.<span class="ident">style</span>.<a class="ident" href="../../src/ansi_term/ansi.rs.html#134">prefix</a>())<span class="question-mark">?</span>;
-        <a class="ident" href="../../src/ansi_term/display.rs.html#229">w</a>.<a class="ident" href="../../src/ansi_term/write.rs.html#11">write_str</a>(<a class="ident" href="../../src/ansi_term/display.rs.html#232">first</a>.<span class="ident">string</span>.<span class="ident">as_ref</span>())<span class="question-mark">?</span>;
+        <span class="macro">write!</span>(<a class="ident" href="../../src/ansi_term/display.rs.html#246">w</a>, <span class="string">&quot;{}&quot;</span>, <a class="ident" href="../../src/ansi_term/display.rs.html#249">first</a>.<span class="ident">style</span>.<a class="ident" href="../../src/ansi_term/ansi.rs.html#166">prefix</a>())<span class="question-mark">?</span>;
+        <a class="ident" href="../../src/ansi_term/display.rs.html#246">w</a>.<a class="ident" href="../../src/ansi_term/write.rs.html#11">write_str</a>(<a class="ident" href="../../src/ansi_term/display.rs.html#249">first</a>.<span class="ident">string</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>())<span class="question-mark">?</span>;
 
-        <span class="kw">for</span> <a class="ident" href="../../src/ansi_term/display.rs.html#240">window</a> <span class="kw">in</span> <a class="self" href="../../src/ansi_term/display.rs.html#229">self</a>.<span class="number">0</span>.<span class="ident">windows</span>(<span class="number">2</span>) {
-            <span class="kw">match</span> <span class="ident">Difference::between</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/ansi_term/display.rs.html#240">window</a>[<span class="number">0</span>].<span class="ident">style</span>, <span class="kw-2">&amp;</span><a class="ident" href="../../src/ansi_term/display.rs.html#240">window</a>[<span class="number">1</span>].<span class="ident">style</span>) {
-                <a class="ident" href="../../src/ansi_term/difference.rs.html#11">ExtraStyles</a>(<span class="ident">style</span>) =&gt; <span class="macro">write!</span>(<a class="ident" href="../../src/ansi_term/display.rs.html#229">w</a>, <span class="string">&quot;{}&quot;</span>, <a class="ident" href="../../src/ansi_term/display.rs.html#242">style</a>.<a class="ident" href="../../src/ansi_term/ansi.rs.html#134">prefix</a>())<span class="question-mark">?</span>,
-                <a class="ident" href="../../src/ansi_term/difference.rs.html#15">Reset</a>              =&gt; <span class="macro">write!</span>(<a class="ident" href="../../src/ansi_term/display.rs.html#229">w</a>, <span class="string">&quot;{}{}&quot;</span>, <a class="ident" href="../../src/ansi_term/ansi.rs.html#80">RESET</a>, <a class="ident" href="../../src/ansi_term/display.rs.html#240">window</a>[<span class="number">1</span>].<span class="ident">style</span>.<a class="ident" href="../../src/ansi_term/ansi.rs.html#134">prefix</a>())<span class="question-mark">?</span>,
+        <span class="kw">for</span> <span class="ident">window</span> <span class="kw">in</span> <a class="self" href="../../src/ansi_term/display.rs.html#246">self</a>.<span class="number">0</span>.<span class="ident">windows</span>(<span class="number">2</span>) {
+            <span class="kw">match</span> <span class="ident">Difference::between</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/ansi_term/display.rs.html#257">window</a>[<span class="number">0</span>].<span class="ident">style</span>, <span class="kw-2">&amp;</span><a class="ident" href="../../src/ansi_term/display.rs.html#257">window</a>[<span class="number">1</span>].<span class="ident">style</span>) {
+                <a class="ident" href="../../src/ansi_term/difference.rs.html#11">ExtraStyles</a>(<span class="ident">style</span>) =&gt; <span class="macro">write!</span>(<a class="ident" href="../../src/ansi_term/display.rs.html#246">w</a>, <span class="string">&quot;{}&quot;</span>, <a class="ident" href="../../src/ansi_term/display.rs.html#259">style</a>.<a class="ident" href="../../src/ansi_term/ansi.rs.html#166">prefix</a>())<span class="question-mark">?</span>,
+                <a class="ident" href="../../src/ansi_term/difference.rs.html#15">Reset</a>              =&gt; <span class="macro">write!</span>(<a class="ident" href="../../src/ansi_term/display.rs.html#246">w</a>, <span class="string">&quot;{}{}&quot;</span>, <a class="ident" href="../../src/ansi_term/ansi.rs.html#78">RESET</a>, <a class="ident" href="../../src/ansi_term/display.rs.html#257">window</a>[<span class="number">1</span>].<span class="ident">style</span>.<a class="ident" href="../../src/ansi_term/ansi.rs.html#166">prefix</a>())<span class="question-mark">?</span>,
                 <a class="ident" href="../../src/ansi_term/difference.rs.html#19">NoDifference</a>       =&gt; {<span class="comment">/* Do nothing! */</span>},
             }
 
-            <a class="ident" href="../../src/ansi_term/display.rs.html#229">w</a>.<a class="ident" href="../../src/ansi_term/write.rs.html#11">write_str</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/ansi_term/display.rs.html#240">window</a>[<span class="number">1</span>].<span class="ident">string</span>)<span class="question-mark">?</span>;
+            <a class="ident" href="../../src/ansi_term/display.rs.html#246">w</a>.<a class="ident" href="../../src/ansi_term/write.rs.html#11">write_str</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/ansi_term/display.rs.html#257">window</a>[<span class="number">1</span>].<span class="ident">string</span>)<span class="question-mark">?</span>;
         }
 
         <span class="comment">// Write the final reset string after all of the ANSIStrings have been</span>
         <span class="comment">// written, *except* if the last one has no styles, because it would</span>
         <span class="comment">// have already been written by this point.</span>
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">last</span>) <span class="op">=</span> <a class="self" href="../../src/ansi_term/display.rs.html#229">self</a>.<span class="number">0</span>.<span class="ident">last</span>() {
-            <span class="kw">if</span> <span class="op">!</span><a class="ident" href="../../src/ansi_term/display.rs.html#253">last</a>.<span class="ident">style</span>.<a class="ident" href="../../src/ansi_term/style.rs.html#95">is_plain</a>() {
-                <span class="macro">write!</span>(<a class="ident" href="../../src/ansi_term/display.rs.html#229">w</a>, <span class="string">&quot;{}&quot;</span>, <a class="ident" href="../../src/ansi_term/ansi.rs.html#80">RESET</a>)<span class="question-mark">?</span>;
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">last</span>) <span class="op">=</span> <a class="self" href="../../src/ansi_term/display.rs.html#246">self</a>.<span class="number">0</span>.<span class="ident">last</span>() {
+            <span class="kw">if</span> <span class="op">!</span><a class="ident" href="../../src/ansi_term/display.rs.html#270">last</a>.<span class="ident">style</span>.<a class="ident" href="../../src/ansi_term/style.rs.html#213">is_plain</a>() {
+                <span class="macro">write!</span>(<a class="ident" href="../../src/ansi_term/display.rs.html#246">w</a>, <span class="string">&quot;{}&quot;</span>, <a class="ident" href="../../src/ansi_term/ansi.rs.html#78">RESET</a>)<span class="question-mark">?</span>;
             }
         }
 
@@ -557,6 +592,5 @@
     }
 }
 </code></pre></div>
-</section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="ansi_term" data-search-index-js="../../search-index.js" data-search-js="../../search.js"></div>
-    <script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script>
+</section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="ansi_term" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.59.0-nightly (207c80f10 2021-11-30)" ></div>
 </body></html>

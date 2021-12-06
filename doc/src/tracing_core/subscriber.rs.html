@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;tracing-core-0.1.21&#x2F;src&#x2F;subscriber.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>subscriber.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../tracing_core/index.html'><div class='logo-container rust-logo'><img src='https:&#x2F;&#x2F;raw.githubusercontent.com&#x2F;tokio-rs&#x2F;tracing&#x2F;master&#x2F;assets&#x2F;logo-type.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;tracing-core-0.1.21&#x2F;src&#x2F;subscriber.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>subscriber.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css"disabled><link rel="stylesheet" type="text/css" href="../../dark.css"disabled><link rel="stylesheet" type="text/css" href="../../light.css"id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
+    <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../tracing_core/index.html'><div class='logo-container rust-logo'><img src='https:&#x2F;&#x2F;raw.githubusercontent.com&#x2F;tokio-rs&#x2F;tracing&#x2F;master&#x2F;assets&#x2F;logo-type.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -1105,7 +1106,7 @@
     <span class="doccomment">/// [span ID]: ../span/struct.Id.html</span>
     <span class="doccomment">/// [`try_close`]: trait.Subscriber.html#method.try_close</span>
     <span class="kw">fn</span> <span class="ident">clone_span</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">id</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing_core/span.rs.html#16">span::Id</a>) -&gt; <a class="ident" href="../../src/tracing_core/span.rs.html#16">span::Id</a> {
-        <a class="ident" href="../../src/tracing_core/subscriber.rs.html#350">id</a>.<span class="ident">clone</span>()
+        <a class="ident" href="../../src/tracing_core/subscriber.rs.html#350">id</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()
     }
 
     <span class="doccomment">/// **This method is deprecated.**</span>
@@ -1362,68 +1363,68 @@
 <span class="kw">impl</span> <a class="ident" href="../../src/tracing_core/subscriber.rs.html#74-459">Subscriber</a> <span class="kw">for</span> <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <a class="ident" href="../../src/tracing_core/subscriber.rs.html#74-459">Subscriber</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="op">+</span> <span class="lifetime">&#39;static</span><span class="op">&gt;</span> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">register_callsite</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">metadata</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">Metadata</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="../../src/tracing_core/subscriber.rs.html#489">Interest</a> {
-        <a class="self" href="../../src/tracing_core/subscriber.rs.html#607">self</a>.<span class="ident">as_ref</span>().<a class="ident" href="../../src/tracing_core/subscriber.rs.html#144">register_callsite</a>(<a class="ident" href="../../src/tracing_core/subscriber.rs.html#607">metadata</a>)
+        <a class="self" href="../../src/tracing_core/subscriber.rs.html#607">self</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().<a class="ident" href="../../src/tracing_core/subscriber.rs.html#144">register_callsite</a>(<a class="ident" href="../../src/tracing_core/subscriber.rs.html#607">metadata</a>)
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">enabled</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">metadata</span>: <span class="kw-2">&amp;</span><span class="ident">Metadata</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../src/tracing_core/subscriber.rs.html#612">self</a>.<span class="ident">as_ref</span>().<a class="ident" href="../../src/tracing_core/subscriber.rs.html#172">enabled</a>(<a class="ident" href="../../src/tracing_core/subscriber.rs.html#612">metadata</a>)
+        <a class="self" href="../../src/tracing_core/subscriber.rs.html#612">self</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().<a class="ident" href="../../src/tracing_core/subscriber.rs.html#172">enabled</a>(<a class="ident" href="../../src/tracing_core/subscriber.rs.html#612">metadata</a>)
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">max_level_hint</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../src/tracing_core/metadata.rs.html#240">LevelFilter</a><span class="op">&gt;</span> {
-        <a class="self" href="../../src/tracing_core/subscriber.rs.html#617">self</a>.<span class="ident">as_ref</span>().<a class="ident" href="../../src/tracing_core/subscriber.rs.html#197">max_level_hint</a>()
+        <a class="self" href="../../src/tracing_core/subscriber.rs.html#617">self</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().<a class="ident" href="../../src/tracing_core/subscriber.rs.html#197">max_level_hint</a>()
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">new_span</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">span</span>: <span class="kw-2">&amp;</span><span class="ident">span::Attributes</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="../../src/tracing_core/span.rs.html#16">span::Id</a> {
-        <a class="self" href="../../src/tracing_core/subscriber.rs.html#622">self</a>.<span class="ident">as_ref</span>().<a class="ident" href="../../src/tracing_core/subscriber.rs.html#225">new_span</a>(<a class="ident" href="../../src/tracing_core/subscriber.rs.html#622">span</a>)
+        <a class="self" href="../../src/tracing_core/subscriber.rs.html#622">self</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().<a class="ident" href="../../src/tracing_core/subscriber.rs.html#225">new_span</a>(<a class="ident" href="../../src/tracing_core/subscriber.rs.html#622">span</a>)
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">record</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">span</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing_core/span.rs.html#16">span::Id</a>, <span class="ident">values</span>: <span class="kw-2">&amp;</span><span class="ident">span::Record</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) {
-        <a class="self" href="../../src/tracing_core/subscriber.rs.html#627">self</a>.<span class="ident">as_ref</span>().<a class="ident" href="../../src/tracing_core/subscriber.rs.html#266">record</a>(<a class="ident" href="../../src/tracing_core/subscriber.rs.html#627">span</a>, <a class="ident" href="../../src/tracing_core/subscriber.rs.html#627">values</a>)
+        <a class="self" href="../../src/tracing_core/subscriber.rs.html#627">self</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().<a class="ident" href="../../src/tracing_core/subscriber.rs.html#266">record</a>(<a class="ident" href="../../src/tracing_core/subscriber.rs.html#627">span</a>, <a class="ident" href="../../src/tracing_core/subscriber.rs.html#627">values</a>)
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">record_follows_from</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">span</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing_core/span.rs.html#16">span::Id</a>, <span class="ident">follows</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing_core/span.rs.html#16">span::Id</a>) {
-        <a class="self" href="../../src/tracing_core/subscriber.rs.html#632">self</a>.<span class="ident">as_ref</span>().<a class="ident" href="../../src/tracing_core/subscriber.rs.html#286">record_follows_from</a>(<a class="ident" href="../../src/tracing_core/subscriber.rs.html#632">span</a>, <a class="ident" href="../../src/tracing_core/subscriber.rs.html#632">follows</a>)
+        <a class="self" href="../../src/tracing_core/subscriber.rs.html#632">self</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().<a class="ident" href="../../src/tracing_core/subscriber.rs.html#286">record_follows_from</a>(<a class="ident" href="../../src/tracing_core/subscriber.rs.html#632">span</a>, <a class="ident" href="../../src/tracing_core/subscriber.rs.html#632">follows</a>)
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">event</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">event</span>: <span class="kw-2">&amp;</span><span class="ident">Event</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) {
-        <a class="self" href="../../src/tracing_core/subscriber.rs.html#637">self</a>.<span class="ident">as_ref</span>().<a class="ident" href="../../src/tracing_core/subscriber.rs.html#306">event</a>(<a class="ident" href="../../src/tracing_core/subscriber.rs.html#637">event</a>)
+        <a class="self" href="../../src/tracing_core/subscriber.rs.html#637">self</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().<a class="ident" href="../../src/tracing_core/subscriber.rs.html#306">event</a>(<a class="ident" href="../../src/tracing_core/subscriber.rs.html#637">event</a>)
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">enter</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">span</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing_core/span.rs.html#16">span::Id</a>) {
-        <a class="self" href="../../src/tracing_core/subscriber.rs.html#642">self</a>.<span class="ident">as_ref</span>().<a class="ident" href="../../src/tracing_core/subscriber.rs.html#316">enter</a>(<a class="ident" href="../../src/tracing_core/subscriber.rs.html#642">span</a>)
+        <a class="self" href="../../src/tracing_core/subscriber.rs.html#642">self</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().<a class="ident" href="../../src/tracing_core/subscriber.rs.html#316">enter</a>(<a class="ident" href="../../src/tracing_core/subscriber.rs.html#642">span</a>)
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">exit</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">span</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing_core/span.rs.html#16">span::Id</a>) {
-        <a class="self" href="../../src/tracing_core/subscriber.rs.html#647">self</a>.<span class="ident">as_ref</span>().<a class="ident" href="../../src/tracing_core/subscriber.rs.html#328">exit</a>(<a class="ident" href="../../src/tracing_core/subscriber.rs.html#647">span</a>)
+        <a class="self" href="../../src/tracing_core/subscriber.rs.html#647">self</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().<a class="ident" href="../../src/tracing_core/subscriber.rs.html#328">exit</a>(<a class="ident" href="../../src/tracing_core/subscriber.rs.html#647">span</a>)
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">clone_span</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">id</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing_core/span.rs.html#16">span::Id</a>) -&gt; <a class="ident" href="../../src/tracing_core/span.rs.html#16">span::Id</a> {
-        <a class="self" href="../../src/tracing_core/subscriber.rs.html#652">self</a>.<span class="ident">as_ref</span>().<a class="ident" href="../../src/tracing_core/subscriber.rs.html#350">clone_span</a>(<a class="ident" href="../../src/tracing_core/subscriber.rs.html#652">id</a>)
+        <a class="self" href="../../src/tracing_core/subscriber.rs.html#652">self</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().<a class="ident" href="../../src/tracing_core/subscriber.rs.html#350">clone_span</a>(<a class="ident" href="../../src/tracing_core/subscriber.rs.html#652">id</a>)
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">try_close</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">id</span>: <a class="ident" href="../../src/tracing_core/span.rs.html#16">span::Id</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../src/tracing_core/subscriber.rs.html#657">self</a>.<span class="ident">as_ref</span>().<a class="ident" href="../../src/tracing_core/subscriber.rs.html#402">try_close</a>(<a class="ident" href="../../src/tracing_core/subscriber.rs.html#657">id</a>)
+        <a class="self" href="../../src/tracing_core/subscriber.rs.html#657">self</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().<a class="ident" href="../../src/tracing_core/subscriber.rs.html#402">try_close</a>(<a class="ident" href="../../src/tracing_core/subscriber.rs.html#657">id</a>)
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">deprecated</span>)]</span>
     <span class="kw">fn</span> <span class="ident">drop_span</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">id</span>: <a class="ident" href="../../src/tracing_core/span.rs.html#16">span::Id</a>) {
-        <a class="self" href="../../src/tracing_core/subscriber.rs.html#663">self</a>.<span class="ident">as_ref</span>().<a class="ident" href="../../src/tracing_core/subscriber.rs.html#402">try_close</a>(<a class="ident" href="../../src/tracing_core/subscriber.rs.html#663">id</a>);
+        <a class="self" href="../../src/tracing_core/subscriber.rs.html#663">self</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().<a class="ident" href="../../src/tracing_core/subscriber.rs.html#402">try_close</a>(<a class="ident" href="../../src/tracing_core/subscriber.rs.html#663">id</a>);
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">current_span</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="../../src/tracing_core/span.rs.html#45-47">span::Current</a> {
-        <a class="self" href="../../src/tracing_core/subscriber.rs.html#668">self</a>.<span class="ident">as_ref</span>().<a class="ident" href="../../src/tracing_core/subscriber.rs.html#421">current_span</a>()
+        <a class="self" href="../../src/tracing_core/subscriber.rs.html#668">self</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().<a class="ident" href="../../src/tracing_core/subscriber.rs.html#421">current_span</a>()
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
@@ -1432,75 +1433,75 @@
             <span class="kw">return</span> <span class="prelude-val">Some</span>(<a class="self" href="../../src/tracing_core/subscriber.rs.html#673">self</a> <span class="kw">as</span> <span class="kw-2">*const</span> <span class="self">Self</span> <span class="kw">as</span> <span class="kw-2">*const</span> <span class="kw">_</span>);
         }
 
-        <a class="self" href="../../src/tracing_core/subscriber.rs.html#673">self</a>.<span class="ident">as_ref</span>().<a class="ident" href="../../src/tracing_core/subscriber.rs.html#452">downcast_raw</a>(<a class="ident" href="../../src/tracing_core/subscriber.rs.html#673">id</a>)
+        <a class="self" href="../../src/tracing_core/subscriber.rs.html#673">self</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().<a class="ident" href="../../src/tracing_core/subscriber.rs.html#452">downcast_raw</a>(<a class="ident" href="../../src/tracing_core/subscriber.rs.html#673">id</a>)
     }
 }
 
 <span class="kw">impl</span> <a class="ident" href="../../src/tracing_core/subscriber.rs.html#74-459">Subscriber</a> <span class="kw">for</span> <span class="ident">Arc</span><span class="op">&lt;</span><span class="kw">dyn</span> <a class="ident" href="../../src/tracing_core/subscriber.rs.html#74-459">Subscriber</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="op">+</span> <span class="lifetime">&#39;static</span><span class="op">&gt;</span> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">register_callsite</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">metadata</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">Metadata</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="../../src/tracing_core/subscriber.rs.html#489">Interest</a> {
-        <a class="self" href="../../src/tracing_core/subscriber.rs.html#684">self</a>.<span class="ident">as_ref</span>().<a class="ident" href="../../src/tracing_core/subscriber.rs.html#144">register_callsite</a>(<a class="ident" href="../../src/tracing_core/subscriber.rs.html#684">metadata</a>)
+        <a class="self" href="../../src/tracing_core/subscriber.rs.html#684">self</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().<a class="ident" href="../../src/tracing_core/subscriber.rs.html#144">register_callsite</a>(<a class="ident" href="../../src/tracing_core/subscriber.rs.html#684">metadata</a>)
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">enabled</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">metadata</span>: <span class="kw-2">&amp;</span><span class="ident">Metadata</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../src/tracing_core/subscriber.rs.html#689">self</a>.<span class="ident">as_ref</span>().<a class="ident" href="../../src/tracing_core/subscriber.rs.html#172">enabled</a>(<a class="ident" href="../../src/tracing_core/subscriber.rs.html#689">metadata</a>)
+        <a class="self" href="../../src/tracing_core/subscriber.rs.html#689">self</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().<a class="ident" href="../../src/tracing_core/subscriber.rs.html#172">enabled</a>(<a class="ident" href="../../src/tracing_core/subscriber.rs.html#689">metadata</a>)
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">max_level_hint</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../src/tracing_core/metadata.rs.html#240">LevelFilter</a><span class="op">&gt;</span> {
-        <a class="self" href="../../src/tracing_core/subscriber.rs.html#694">self</a>.<span class="ident">as_ref</span>().<a class="ident" href="../../src/tracing_core/subscriber.rs.html#197">max_level_hint</a>()
+        <a class="self" href="../../src/tracing_core/subscriber.rs.html#694">self</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().<a class="ident" href="../../src/tracing_core/subscriber.rs.html#197">max_level_hint</a>()
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">new_span</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">span</span>: <span class="kw-2">&amp;</span><span class="ident">span::Attributes</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="../../src/tracing_core/span.rs.html#16">span::Id</a> {
-        <a class="self" href="../../src/tracing_core/subscriber.rs.html#699">self</a>.<span class="ident">as_ref</span>().<a class="ident" href="../../src/tracing_core/subscriber.rs.html#225">new_span</a>(<a class="ident" href="../../src/tracing_core/subscriber.rs.html#699">span</a>)
+        <a class="self" href="../../src/tracing_core/subscriber.rs.html#699">self</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().<a class="ident" href="../../src/tracing_core/subscriber.rs.html#225">new_span</a>(<a class="ident" href="../../src/tracing_core/subscriber.rs.html#699">span</a>)
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">record</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">span</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing_core/span.rs.html#16">span::Id</a>, <span class="ident">values</span>: <span class="kw-2">&amp;</span><span class="ident">span::Record</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) {
-        <a class="self" href="../../src/tracing_core/subscriber.rs.html#704">self</a>.<span class="ident">as_ref</span>().<a class="ident" href="../../src/tracing_core/subscriber.rs.html#266">record</a>(<a class="ident" href="../../src/tracing_core/subscriber.rs.html#704">span</a>, <a class="ident" href="../../src/tracing_core/subscriber.rs.html#704">values</a>)
+        <a class="self" href="../../src/tracing_core/subscriber.rs.html#704">self</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().<a class="ident" href="../../src/tracing_core/subscriber.rs.html#266">record</a>(<a class="ident" href="../../src/tracing_core/subscriber.rs.html#704">span</a>, <a class="ident" href="../../src/tracing_core/subscriber.rs.html#704">values</a>)
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">record_follows_from</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">span</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing_core/span.rs.html#16">span::Id</a>, <span class="ident">follows</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing_core/span.rs.html#16">span::Id</a>) {
-        <a class="self" href="../../src/tracing_core/subscriber.rs.html#709">self</a>.<span class="ident">as_ref</span>().<a class="ident" href="../../src/tracing_core/subscriber.rs.html#286">record_follows_from</a>(<a class="ident" href="../../src/tracing_core/subscriber.rs.html#709">span</a>, <a class="ident" href="../../src/tracing_core/subscriber.rs.html#709">follows</a>)
+        <a class="self" href="../../src/tracing_core/subscriber.rs.html#709">self</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().<a class="ident" href="../../src/tracing_core/subscriber.rs.html#286">record_follows_from</a>(<a class="ident" href="../../src/tracing_core/subscriber.rs.html#709">span</a>, <a class="ident" href="../../src/tracing_core/subscriber.rs.html#709">follows</a>)
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">event</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">event</span>: <span class="kw-2">&amp;</span><span class="ident">Event</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) {
-        <a class="self" href="../../src/tracing_core/subscriber.rs.html#714">self</a>.<span class="ident">as_ref</span>().<a class="ident" href="../../src/tracing_core/subscriber.rs.html#306">event</a>(<a class="ident" href="../../src/tracing_core/subscriber.rs.html#714">event</a>)
+        <a class="self" href="../../src/tracing_core/subscriber.rs.html#714">self</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().<a class="ident" href="../../src/tracing_core/subscriber.rs.html#306">event</a>(<a class="ident" href="../../src/tracing_core/subscriber.rs.html#714">event</a>)
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">enter</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">span</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing_core/span.rs.html#16">span::Id</a>) {
-        <a class="self" href="../../src/tracing_core/subscriber.rs.html#719">self</a>.<span class="ident">as_ref</span>().<a class="ident" href="../../src/tracing_core/subscriber.rs.html#316">enter</a>(<a class="ident" href="../../src/tracing_core/subscriber.rs.html#719">span</a>)
+        <a class="self" href="../../src/tracing_core/subscriber.rs.html#719">self</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().<a class="ident" href="../../src/tracing_core/subscriber.rs.html#316">enter</a>(<a class="ident" href="../../src/tracing_core/subscriber.rs.html#719">span</a>)
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">exit</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">span</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing_core/span.rs.html#16">span::Id</a>) {
-        <a class="self" href="../../src/tracing_core/subscriber.rs.html#724">self</a>.<span class="ident">as_ref</span>().<a class="ident" href="../../src/tracing_core/subscriber.rs.html#328">exit</a>(<a class="ident" href="../../src/tracing_core/subscriber.rs.html#724">span</a>)
+        <a class="self" href="../../src/tracing_core/subscriber.rs.html#724">self</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().<a class="ident" href="../../src/tracing_core/subscriber.rs.html#328">exit</a>(<a class="ident" href="../../src/tracing_core/subscriber.rs.html#724">span</a>)
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">clone_span</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">id</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing_core/span.rs.html#16">span::Id</a>) -&gt; <a class="ident" href="../../src/tracing_core/span.rs.html#16">span::Id</a> {
-        <a class="self" href="../../src/tracing_core/subscriber.rs.html#729">self</a>.<span class="ident">as_ref</span>().<a class="ident" href="../../src/tracing_core/subscriber.rs.html#350">clone_span</a>(<a class="ident" href="../../src/tracing_core/subscriber.rs.html#729">id</a>)
+        <a class="self" href="../../src/tracing_core/subscriber.rs.html#729">self</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().<a class="ident" href="../../src/tracing_core/subscriber.rs.html#350">clone_span</a>(<a class="ident" href="../../src/tracing_core/subscriber.rs.html#729">id</a>)
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">try_close</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">id</span>: <a class="ident" href="../../src/tracing_core/span.rs.html#16">span::Id</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../src/tracing_core/subscriber.rs.html#734">self</a>.<span class="ident">as_ref</span>().<a class="ident" href="../../src/tracing_core/subscriber.rs.html#402">try_close</a>(<a class="ident" href="../../src/tracing_core/subscriber.rs.html#734">id</a>)
+        <a class="self" href="../../src/tracing_core/subscriber.rs.html#734">self</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().<a class="ident" href="../../src/tracing_core/subscriber.rs.html#402">try_close</a>(<a class="ident" href="../../src/tracing_core/subscriber.rs.html#734">id</a>)
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">deprecated</span>)]</span>
     <span class="kw">fn</span> <span class="ident">drop_span</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">id</span>: <a class="ident" href="../../src/tracing_core/span.rs.html#16">span::Id</a>) {
-        <a class="self" href="../../src/tracing_core/subscriber.rs.html#740">self</a>.<span class="ident">as_ref</span>().<a class="ident" href="../../src/tracing_core/subscriber.rs.html#402">try_close</a>(<a class="ident" href="../../src/tracing_core/subscriber.rs.html#740">id</a>);
+        <a class="self" href="../../src/tracing_core/subscriber.rs.html#740">self</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().<a class="ident" href="../../src/tracing_core/subscriber.rs.html#402">try_close</a>(<a class="ident" href="../../src/tracing_core/subscriber.rs.html#740">id</a>);
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">current_span</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="../../src/tracing_core/span.rs.html#45-47">span::Current</a> {
-        <a class="self" href="../../src/tracing_core/subscriber.rs.html#745">self</a>.<span class="ident">as_ref</span>().<a class="ident" href="../../src/tracing_core/subscriber.rs.html#421">current_span</a>()
+        <a class="self" href="../../src/tracing_core/subscriber.rs.html#745">self</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().<a class="ident" href="../../src/tracing_core/subscriber.rs.html#421">current_span</a>()
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
@@ -1509,10 +1510,9 @@
             <span class="kw">return</span> <span class="prelude-val">Some</span>(<a class="self" href="../../src/tracing_core/subscriber.rs.html#750">self</a> <span class="kw">as</span> <span class="kw-2">*const</span> <span class="self">Self</span> <span class="kw">as</span> <span class="kw-2">*const</span> <span class="kw">_</span>);
         }
 
-        <a class="self" href="../../src/tracing_core/subscriber.rs.html#750">self</a>.<span class="ident">as_ref</span>().<a class="ident" href="../../src/tracing_core/subscriber.rs.html#452">downcast_raw</a>(<a class="ident" href="../../src/tracing_core/subscriber.rs.html#750">id</a>)
+        <a class="self" href="../../src/tracing_core/subscriber.rs.html#750">self</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().<a class="ident" href="../../src/tracing_core/subscriber.rs.html#452">downcast_raw</a>(<a class="ident" href="../../src/tracing_core/subscriber.rs.html#750">id</a>)
     }
 }
 </code></pre></div>
-</section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="tracing_core" data-search-index-js="../../search-index.js" data-search-js="../../search.js"></div>
-    <script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script>
+</section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="tracing_core" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.59.0-nightly (207c80f10 2021-11-30)" ></div>
 </body></html>

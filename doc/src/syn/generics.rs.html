@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;syn-1.0.81&#x2F;src&#x2F;generics.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>generics.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../syn/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">   1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;syn-1.0.82&#x2F;src&#x2F;generics.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>generics.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css"disabled><link rel="stylesheet" type="text/css" href="../../dark.css"disabled><link rel="stylesheet" type="text/css" href="../../light.css"id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
+    <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../syn/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">   1</span>
 <span id="2">   2</span>
 <span id="3">   3</span>
 <span id="4">   4</span>
@@ -1331,6 +1332,10 @@
 <span id="1331">1331</span>
 <span id="1332">1332</span>
 <span id="1333">1333</span>
+<span id="1334">1334</span>
+<span id="1335">1335</span>
+<span id="1336">1336</span>
+<span id="1337">1337</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::punctuated</span>::{<a class="ident" href="../../src/syn/punctuated.rs.html#720-725">Iter</a>, <a class="ident" href="../../src/syn/punctuated.rs.html#827-829">IterMut</a>, <a class="ident" href="../../src/syn/punctuated.rs.html#46-49">Punctuated</a>};
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;printing&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>))]</span>
@@ -1518,14 +1523,14 @@
     <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="../../src/syn/generics.rs.html#48-62">TypeParam</a>;
 
     <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">next</span> <span class="op">=</span> <span class="kw">match</span> <a class="self" href="../../src/syn/generics.rs.html#187">self</a>.<span class="number">0</span>.<span class="ident">next</span>() {
+        <span class="kw">let</span> <span class="ident">next</span> <span class="op">=</span> <span class="kw">match</span> <a class="self" href="../../src/syn/generics.rs.html#187">self</a>.<span class="number">0</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>() {
             <span class="prelude-val">Some</span>(<span class="ident">item</span>) =&gt; <a class="ident" href="../../src/syn/generics.rs.html#189">item</a>,
             <span class="prelude-val">None</span> =&gt; <span class="kw">return</span> <span class="prelude-val">None</span>,
         };
         <span class="kw">if</span> <span class="kw">let</span> <a class="ident" href="../../src/syn/generics.rs.html#38">GenericParam::Type</a>(<span class="ident">type_param</span>) <span class="op">=</span> <a class="ident" href="../../src/syn/generics.rs.html#188">next</a> {
             <span class="prelude-val">Some</span>(<a class="ident" href="../../src/syn/generics.rs.html#192">type_param</a>)
         } <span class="kw">else</span> {
-            <a class="self" href="../../src/syn/generics.rs.html#187">self</a>.<span class="ident">next</span>()
+            <a class="self" href="../../src/syn/generics.rs.html#187">self</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>()
         }
     }
 }
@@ -1536,14 +1541,14 @@
     <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <a class="ident" href="../../src/syn/generics.rs.html#48-62">TypeParam</a>;
 
     <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">next</span> <span class="op">=</span> <span class="kw">match</span> <a class="self" href="../../src/syn/generics.rs.html#205">self</a>.<span class="number">0</span>.<span class="ident">next</span>() {
+        <span class="kw">let</span> <span class="ident">next</span> <span class="op">=</span> <span class="kw">match</span> <a class="self" href="../../src/syn/generics.rs.html#205">self</a>.<span class="number">0</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>() {
             <span class="prelude-val">Some</span>(<span class="ident">item</span>) =&gt; <a class="ident" href="../../src/syn/generics.rs.html#207">item</a>,
             <span class="prelude-val">None</span> =&gt; <span class="kw">return</span> <span class="prelude-val">None</span>,
         };
         <span class="kw">if</span> <span class="kw">let</span> <a class="ident" href="../../src/syn/generics.rs.html#38">GenericParam::Type</a>(<span class="ident">type_param</span>) <span class="op">=</span> <a class="ident" href="../../src/syn/generics.rs.html#206">next</a> {
             <span class="prelude-val">Some</span>(<a class="ident" href="../../src/syn/generics.rs.html#210">type_param</a>)
         } <span class="kw">else</span> {
-            <a class="self" href="../../src/syn/generics.rs.html#205">self</a>.<span class="ident">next</span>()
+            <a class="self" href="../../src/syn/generics.rs.html#205">self</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>()
         }
     }
 }
@@ -1554,14 +1559,14 @@
     <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="../../src/syn/generics.rs.html#64-76">LifetimeDef</a>;
 
     <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">next</span> <span class="op">=</span> <span class="kw">match</span> <a class="self" href="../../src/syn/generics.rs.html#223">self</a>.<span class="number">0</span>.<span class="ident">next</span>() {
+        <span class="kw">let</span> <span class="ident">next</span> <span class="op">=</span> <span class="kw">match</span> <a class="self" href="../../src/syn/generics.rs.html#223">self</a>.<span class="number">0</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>() {
             <span class="prelude-val">Some</span>(<span class="ident">item</span>) =&gt; <a class="ident" href="../../src/syn/generics.rs.html#225">item</a>,
             <span class="prelude-val">None</span> =&gt; <span class="kw">return</span> <span class="prelude-val">None</span>,
         };
         <span class="kw">if</span> <span class="kw">let</span> <a class="ident" href="../../src/syn/generics.rs.html#41">GenericParam::Lifetime</a>(<span class="ident">lifetime</span>) <span class="op">=</span> <a class="ident" href="../../src/syn/generics.rs.html#224">next</a> {
             <span class="prelude-val">Some</span>(<a class="ident" href="../../src/syn/generics.rs.html#228">lifetime</a>)
         } <span class="kw">else</span> {
-            <a class="self" href="../../src/syn/generics.rs.html#223">self</a>.<span class="ident">next</span>()
+            <a class="self" href="../../src/syn/generics.rs.html#223">self</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>()
         }
     }
 }
@@ -1572,14 +1577,14 @@
     <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <a class="ident" href="../../src/syn/generics.rs.html#64-76">LifetimeDef</a>;
 
     <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">next</span> <span class="op">=</span> <span class="kw">match</span> <a class="self" href="../../src/syn/generics.rs.html#241">self</a>.<span class="number">0</span>.<span class="ident">next</span>() {
+        <span class="kw">let</span> <span class="ident">next</span> <span class="op">=</span> <span class="kw">match</span> <a class="self" href="../../src/syn/generics.rs.html#241">self</a>.<span class="number">0</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>() {
             <span class="prelude-val">Some</span>(<span class="ident">item</span>) =&gt; <a class="ident" href="../../src/syn/generics.rs.html#243">item</a>,
             <span class="prelude-val">None</span> =&gt; <span class="kw">return</span> <span class="prelude-val">None</span>,
         };
         <span class="kw">if</span> <span class="kw">let</span> <a class="ident" href="../../src/syn/generics.rs.html#41">GenericParam::Lifetime</a>(<span class="ident">lifetime</span>) <span class="op">=</span> <a class="ident" href="../../src/syn/generics.rs.html#242">next</a> {
             <span class="prelude-val">Some</span>(<a class="ident" href="../../src/syn/generics.rs.html#246">lifetime</a>)
         } <span class="kw">else</span> {
-            <a class="self" href="../../src/syn/generics.rs.html#241">self</a>.<span class="ident">next</span>()
+            <a class="self" href="../../src/syn/generics.rs.html#241">self</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>()
         }
     }
 }
@@ -1590,14 +1595,14 @@
     <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="../../src/syn/generics.rs.html#78-93">ConstParam</a>;
 
     <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">next</span> <span class="op">=</span> <span class="kw">match</span> <a class="self" href="../../src/syn/generics.rs.html#259">self</a>.<span class="number">0</span>.<span class="ident">next</span>() {
+        <span class="kw">let</span> <span class="ident">next</span> <span class="op">=</span> <span class="kw">match</span> <a class="self" href="../../src/syn/generics.rs.html#259">self</a>.<span class="number">0</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>() {
             <span class="prelude-val">Some</span>(<span class="ident">item</span>) =&gt; <a class="ident" href="../../src/syn/generics.rs.html#261">item</a>,
             <span class="prelude-val">None</span> =&gt; <span class="kw">return</span> <span class="prelude-val">None</span>,
         };
         <span class="kw">if</span> <span class="kw">let</span> <a class="ident" href="../../src/syn/generics.rs.html#44">GenericParam::Const</a>(<span class="ident">const_param</span>) <span class="op">=</span> <a class="ident" href="../../src/syn/generics.rs.html#260">next</a> {
             <span class="prelude-val">Some</span>(<a class="ident" href="../../src/syn/generics.rs.html#264">const_param</a>)
         } <span class="kw">else</span> {
-            <a class="self" href="../../src/syn/generics.rs.html#259">self</a>.<span class="ident">next</span>()
+            <a class="self" href="../../src/syn/generics.rs.html#259">self</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>()
         }
     }
 }
@@ -1608,14 +1613,14 @@
     <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <a class="ident" href="../../src/syn/generics.rs.html#78-93">ConstParam</a>;
 
     <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">next</span> <span class="op">=</span> <span class="kw">match</span> <a class="self" href="../../src/syn/generics.rs.html#277">self</a>.<span class="number">0</span>.<span class="ident">next</span>() {
+        <span class="kw">let</span> <span class="ident">next</span> <span class="op">=</span> <span class="kw">match</span> <a class="self" href="../../src/syn/generics.rs.html#277">self</a>.<span class="number">0</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>() {
             <span class="prelude-val">Some</span>(<span class="ident">item</span>) =&gt; <a class="ident" href="../../src/syn/generics.rs.html#279">item</a>,
             <span class="prelude-val">None</span> =&gt; <span class="kw">return</span> <span class="prelude-val">None</span>,
         };
         <span class="kw">if</span> <span class="kw">let</span> <a class="ident" href="../../src/syn/generics.rs.html#44">GenericParam::Const</a>(<span class="ident">const_param</span>) <span class="op">=</span> <a class="ident" href="../../src/syn/generics.rs.html#278">next</a> {
             <span class="prelude-val">Some</span>(<a class="ident" href="../../src/syn/generics.rs.html#282">const_param</a>)
         } <span class="kw">else</span> {
-            <a class="self" href="../../src/syn/generics.rs.html#277">self</a>.<span class="ident">next</span>()
+            <a class="self" href="../../src/syn/generics.rs.html#277">self</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>()
         }
     }
 }
@@ -1768,10 +1773,10 @@
 <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for</span> <a class="ident" href="../../src/syn/generics.rs.html#421-433">BoundLifetimes</a> {
     <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="self">Self</span> {
         <a class="ident" href="../../src/syn/generics.rs.html#421-433">BoundLifetimes</a> {
-            <span class="ident">for_token</span>: <span class="ident">Default::default</span>(),
-            <span class="ident">lt_token</span>: <span class="ident">Default::default</span>(),
+            <span class="ident">for_token</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default::default</a>(),
+            <span class="ident">lt_token</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default::default</a>(),
             <span class="ident">lifetimes</span>: <span class="ident">Punctuated::new</span>(),
-            <span class="ident">gt_token</span>: <span class="ident">Default::default</span>(),
+            <span class="ident">gt_token</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default::default</a>(),
         }
     }
 }
@@ -2177,9 +2182,13 @@
             <span class="kw">let</span> <span class="ident">lifetimes</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../src/syn/generics.rs.html#421-433">BoundLifetimes</a><span class="op">&gt;</span> <span class="op">=</span> <a class="ident" href="../../src/syn/generics.rs.html#833">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#464">parse</a>()<span class="question-mark">?</span>;
 
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">path</span>: <a class="ident" href="../../src/syn/path.rs.html#4-14">Path</a> <span class="op">=</span> <a class="ident" href="../../src/syn/generics.rs.html#833">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#464">parse</a>()<span class="question-mark">?</span>;
-            <span class="kw">if</span> <a class="ident" href="../../src/syn/generics.rs.html#846">path</a>.<span class="ident">segments</span>.<a class="ident" href="../../src/syn/punctuated.rs.html#95">last</a>().<span class="ident">unwrap</span>().<span class="ident">arguments</span>.<a class="ident" href="../../src/syn/path.rs.html#84">is_empty</a>() <span class="op">&amp;&amp;</span> <a class="ident" href="../../src/syn/generics.rs.html#833">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#580">peek</a>(<a class="ident" href="../../src/syn/token.rs.html#756-761">token::Paren</a>) {
-                <span class="kw">let</span> <span class="ident">parenthesized</span> <span class="op">=</span> <a class="ident" href="../../src/syn/path.rs.html#73">PathArguments::Parenthesized</a>(<a class="ident" href="../../src/syn/generics.rs.html#833">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#464">parse</a>()<span class="question-mark">?</span>);
-                <a class="ident" href="../../src/syn/generics.rs.html#846">path</a>.<span class="ident">segments</span>.<a class="ident" href="../../src/syn/punctuated.rs.html#100">last_mut</a>().<span class="ident">unwrap</span>().<span class="ident">arguments</span> <span class="op">=</span> <a class="ident" href="../../src/syn/generics.rs.html#848">parenthesized</a>;
+            <span class="kw">if</span> <a class="ident" href="../../src/syn/generics.rs.html#846">path</a>.<span class="ident">segments</span>.<a class="ident" href="../../src/syn/punctuated.rs.html#95">last</a>().<span class="ident">unwrap</span>().<span class="ident">arguments</span>.<a class="ident" href="../../src/syn/path.rs.html#84">is_empty</a>()
+                <span class="op">&amp;&amp;</span> (<a class="ident" href="../../src/syn/generics.rs.html#833">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#580">peek</a>(<a class="ident" href="../../src/syn/token.rs.html#756-761">token::Paren</a>) <span class="op">|</span><span class="op">|</span> <a class="ident" href="../../src/syn/generics.rs.html#833">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#580">peek</a>(<span class="macro">Token!</span>[::]) <span class="op">&amp;&amp;</span> <a class="ident" href="../../src/syn/generics.rs.html#833">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#634">peek3</a>(<a class="ident" href="../../src/syn/token.rs.html#756-761">token::Paren</a>))
+            {
+                <a class="ident" href="../../src/syn/generics.rs.html#833">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#464">parse</a>::<span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="macro">Token!</span>[::]<span class="op">&gt;</span><span class="op">&gt;</span>()<span class="question-mark">?</span>;
+                <span class="kw">let</span> <span class="ident">args</span>: <a class="ident" href="../../src/syn/path.rs.html#166-180">ParenthesizedGenericArguments</a> <span class="op">=</span> <a class="ident" href="../../src/syn/generics.rs.html#833">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#464">parse</a>()<span class="question-mark">?</span>;
+                <span class="kw">let</span> <span class="ident">parenthesized</span> <span class="op">=</span> <a class="ident" href="../../src/syn/path.rs.html#73">PathArguments::Parenthesized</a>(<a class="ident" href="../../src/syn/generics.rs.html#851">args</a>);
+                <a class="ident" href="../../src/syn/generics.rs.html#846">path</a>.<span class="ident">segments</span>.<a class="ident" href="../../src/syn/punctuated.rs.html#100">last_mut</a>().<span class="ident">unwrap</span>().<span class="ident">arguments</span> <span class="op">=</span> <a class="ident" href="../../src/syn/generics.rs.html#852">parenthesized</a>;
             }
 
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
@@ -2188,12 +2197,12 @@
                     <a class="ident" href="../../src/syn/generics.rs.html#846">path</a>.<span class="ident">segments</span>.<a class="ident" href="../../src/syn/punctuated.rs.html#235-237">insert</a>(
                         <span class="number">0</span>,
                         <a class="ident" href="../../src/syn/path.rs.html#30-40">PathSegment</a> {
-                            <span class="ident">ident</span>: <span class="ident">Ident::new</span>(<span class="string">&quot;const&quot;</span>, <a class="ident" href="../../src/syn/generics.rs.html#854">const_token</a>.<span class="ident">span</span>),
+                            <span class="ident">ident</span>: <span class="ident">Ident::new</span>(<span class="string">&quot;const&quot;</span>, <a class="ident" href="../../src/syn/generics.rs.html#858">const_token</a>.<span class="ident">span</span>),
                             <span class="ident">arguments</span>: <a class="ident" href="../../src/syn/path.rs.html#69">PathArguments::None</a>,
                         },
                     );
-                    <span class="kw">let</span> (<span class="ident">_const</span>, <span class="ident">punct</span>) <span class="op">=</span> <a class="ident" href="../../src/syn/generics.rs.html#846">path</a>.<span class="ident">segments</span>.<a class="ident" href="../../src/syn/punctuated.rs.html#136">pairs_mut</a>().<span class="ident">next</span>().<span class="ident">unwrap</span>().<a class="ident" href="../../src/syn/punctuated.rs.html#956">into_tuple</a>();
-                    <span class="kw-2">*</span><a class="ident" href="../../src/syn/generics.rs.html#862">punct</a>.<span class="ident">unwrap</span>() <span class="op">=</span> <span class="macro">Token!</span>[::](<a class="ident" href="../../src/syn/generics.rs.html#854">tilde_token</a>.<span class="ident">span</span>);
+                    <span class="kw">let</span> (<span class="ident">_const</span>, <span class="ident">punct</span>) <span class="op">=</span> <a class="ident" href="../../src/syn/generics.rs.html#846">path</a>.<span class="ident">segments</span>.<a class="ident" href="../../src/syn/punctuated.rs.html#136">pairs_mut</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>().<span class="ident">unwrap</span>().<a class="ident" href="../../src/syn/punctuated.rs.html#956">into_tuple</a>();
+                    <span class="kw-2">*</span><a class="ident" href="../../src/syn/generics.rs.html#866">punct</a>.<span class="ident">unwrap</span>() <span class="op">=</span> <span class="macro">Token!</span>[::](<a class="ident" href="../../src/syn/generics.rs.html#858">tilde_token</a>.<span class="ident">span</span>);
                 }
             }
 
@@ -2209,8 +2218,8 @@
     <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;parsing&quot;</span>)))]</span>
     <span class="kw">impl</span> <a class="ident" href="../../src/syn/parse.rs.html#218-220">Parse</a> <span class="kw">for</span> <a class="ident" href="../../src/syn/generics.rs.html#498-509">TraitBoundModifier</a> {
         <span class="kw">fn</span> <span class="ident">parse</span>(<span class="ident">input</span>: <a class="ident" href="../../src/syn/parse.rs.html#228">ParseStream</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-            <span class="kw">if</span> <a class="ident" href="../../src/syn/generics.rs.html#878">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#580">peek</a>(<span class="macro">Token!</span>[<span class="question-mark">?</span>]) {
-                <a class="ident" href="../../src/syn/generics.rs.html#878">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#464">parse</a>().<span class="ident">map</span>(<a class="ident" href="../../src/syn/generics.rs.html#507">TraitBoundModifier::Maybe</a>)
+            <span class="kw">if</span> <a class="ident" href="../../src/syn/generics.rs.html#882">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#580">peek</a>(<span class="macro">Token!</span>[<span class="question-mark">?</span>]) {
+                <a class="ident" href="../../src/syn/generics.rs.html#882">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#464">parse</a>().<span class="ident">map</span>(<a class="ident" href="../../src/syn/generics.rs.html#507">TraitBoundModifier::Maybe</a>)
             } <span class="kw">else</span> {
                 <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/syn/generics.rs.html#506">TraitBoundModifier::None</a>)
             }
@@ -2222,21 +2231,21 @@
         <span class="kw">fn</span> <span class="ident">parse</span>(<span class="ident">input</span>: <a class="ident" href="../../src/syn/parse.rs.html#228">ParseStream</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">default</span> <span class="op">=</span> <span class="prelude-val">None</span>;
             <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/syn/generics.rs.html#78-93">ConstParam</a> {
-                <span class="ident">attrs</span>: <a class="ident" href="../../src/syn/generics.rs.html#889">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#504">call</a>(<span class="ident">Attribute::parse_outer</span>)<span class="question-mark">?</span>,
-                <span class="ident">const_token</span>: <a class="ident" href="../../src/syn/generics.rs.html#889">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#464">parse</a>()<span class="question-mark">?</span>,
-                <span class="ident">ident</span>: <a class="ident" href="../../src/syn/generics.rs.html#889">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#464">parse</a>()<span class="question-mark">?</span>,
-                <span class="ident">colon_token</span>: <a class="ident" href="../../src/syn/generics.rs.html#889">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#464">parse</a>()<span class="question-mark">?</span>,
-                <span class="ident">ty</span>: <a class="ident" href="../../src/syn/generics.rs.html#889">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#464">parse</a>()<span class="question-mark">?</span>,
+                <span class="ident">attrs</span>: <a class="ident" href="../../src/syn/generics.rs.html#893">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#504">call</a>(<span class="ident">Attribute::parse_outer</span>)<span class="question-mark">?</span>,
+                <span class="ident">const_token</span>: <a class="ident" href="../../src/syn/generics.rs.html#893">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#464">parse</a>()<span class="question-mark">?</span>,
+                <span class="ident">ident</span>: <a class="ident" href="../../src/syn/generics.rs.html#893">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#464">parse</a>()<span class="question-mark">?</span>,
+                <span class="ident">colon_token</span>: <a class="ident" href="../../src/syn/generics.rs.html#893">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#464">parse</a>()<span class="question-mark">?</span>,
+                <span class="ident">ty</span>: <a class="ident" href="../../src/syn/generics.rs.html#893">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#464">parse</a>()<span class="question-mark">?</span>,
                 <span class="ident">eq_token</span>: {
-                    <span class="kw">if</span> <a class="ident" href="../../src/syn/generics.rs.html#889">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#580">peek</a>(<span class="macro">Token!</span>[<span class="op">=</span>]) {
-                        <span class="kw">let</span> <span class="ident">eq_token</span> <span class="op">=</span> <a class="ident" href="../../src/syn/generics.rs.html#889">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#464">parse</a>()<span class="question-mark">?</span>;
-                        <a class="ident" href="../../src/syn/generics.rs.html#890">default</a> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../src/syn/path.rs.html#287">path::parsing::const_argument</a>(<a class="ident" href="../../src/syn/generics.rs.html#889">input</a>)<span class="question-mark">?</span>);
-                        <span class="prelude-val">Some</span>(<a class="ident" href="../../src/syn/generics.rs.html#899">eq_token</a>)
+                    <span class="kw">if</span> <a class="ident" href="../../src/syn/generics.rs.html#893">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#580">peek</a>(<span class="macro">Token!</span>[<span class="op">=</span>]) {
+                        <span class="kw">let</span> <span class="ident">eq_token</span> <span class="op">=</span> <a class="ident" href="../../src/syn/generics.rs.html#893">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#464">parse</a>()<span class="question-mark">?</span>;
+                        <a class="ident" href="../../src/syn/generics.rs.html#894">default</a> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../src/syn/path.rs.html#287">path::parsing::const_argument</a>(<a class="ident" href="../../src/syn/generics.rs.html#893">input</a>)<span class="question-mark">?</span>);
+                        <span class="prelude-val">Some</span>(<a class="ident" href="../../src/syn/generics.rs.html#903">eq_token</a>)
                     } <span class="kw">else</span> {
                         <span class="prelude-val">None</span>
                     }
                 },
-                <a class="ident" href="../../src/syn/generics.rs.html#890">default</a>,
+                <a class="ident" href="../../src/syn/generics.rs.html#894">default</a>,
             })
         }
     }
@@ -2245,28 +2254,28 @@
     <span class="kw">impl</span> <a class="ident" href="../../src/syn/parse.rs.html#218-220">Parse</a> <span class="kw">for</span> <a class="ident" href="../../src/syn/generics.rs.html#511-522">WhereClause</a> {
         <span class="kw">fn</span> <span class="ident">parse</span>(<span class="ident">input</span>: <a class="ident" href="../../src/syn/parse.rs.html#228">ParseStream</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
             <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/syn/generics.rs.html#511-522">WhereClause</a> {
-                <span class="ident">where_token</span>: <a class="ident" href="../../src/syn/generics.rs.html#913">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#464">parse</a>()<span class="question-mark">?</span>,
+                <span class="ident">where_token</span>: <a class="ident" href="../../src/syn/generics.rs.html#917">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#464">parse</a>()<span class="question-mark">?</span>,
                 <span class="ident">predicates</span>: {
                     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">predicates</span> <span class="op">=</span> <span class="ident">Punctuated::new</span>();
                     <span class="kw">loop</span> {
-                        <span class="kw">if</span> <a class="ident" href="../../src/syn/generics.rs.html#913">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#740">is_empty</a>()
-                            <span class="op">|</span><span class="op">|</span> <a class="ident" href="../../src/syn/generics.rs.html#913">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#580">peek</a>(<a class="ident" href="../../src/syn/token.rs.html#756-761">token::Brace</a>)
-                            <span class="op">|</span><span class="op">|</span> <a class="ident" href="../../src/syn/generics.rs.html#913">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#580">peek</a>(<span class="macro">Token!</span>[,])
-                            <span class="op">|</span><span class="op">|</span> <a class="ident" href="../../src/syn/generics.rs.html#913">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#580">peek</a>(<span class="macro">Token!</span>[;])
-                            <span class="op">|</span><span class="op">|</span> <a class="ident" href="../../src/syn/generics.rs.html#913">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#580">peek</a>(<span class="macro">Token!</span>[:]) <span class="op">&amp;&amp;</span> <span class="op">!</span><a class="ident" href="../../src/syn/generics.rs.html#913">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#580">peek</a>(<span class="macro">Token!</span>[::])
-                            <span class="op">|</span><span class="op">|</span> <a class="ident" href="../../src/syn/generics.rs.html#913">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#580">peek</a>(<span class="macro">Token!</span>[<span class="op">=</span>])
+                        <span class="kw">if</span> <a class="ident" href="../../src/syn/generics.rs.html#917">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#740">is_empty</a>()
+                            <span class="op">|</span><span class="op">|</span> <a class="ident" href="../../src/syn/generics.rs.html#917">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#580">peek</a>(<a class="ident" href="../../src/syn/token.rs.html#756-761">token::Brace</a>)
+                            <span class="op">|</span><span class="op">|</span> <a class="ident" href="../../src/syn/generics.rs.html#917">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#580">peek</a>(<span class="macro">Token!</span>[,])
+                            <span class="op">|</span><span class="op">|</span> <a class="ident" href="../../src/syn/generics.rs.html#917">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#580">peek</a>(<span class="macro">Token!</span>[;])
+                            <span class="op">|</span><span class="op">|</span> <a class="ident" href="../../src/syn/generics.rs.html#917">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#580">peek</a>(<span class="macro">Token!</span>[:]) <span class="op">&amp;&amp;</span> <span class="op">!</span><a class="ident" href="../../src/syn/generics.rs.html#917">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#580">peek</a>(<span class="macro">Token!</span>[::])
+                            <span class="op">|</span><span class="op">|</span> <a class="ident" href="../../src/syn/generics.rs.html#917">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#580">peek</a>(<span class="macro">Token!</span>[<span class="op">=</span>])
                         {
                             <span class="kw">break</span>;
                         }
-                        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <a class="ident" href="../../src/syn/generics.rs.html#913">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#464">parse</a>()<span class="question-mark">?</span>;
-                        <a class="ident" href="../../src/syn/generics.rs.html#917">predicates</a>.<a class="ident" href="../../src/syn/punctuated.rs.html#164">push_value</a>(<a class="ident" href="../../src/syn/generics.rs.html#928">value</a>);
-                        <span class="kw">if</span> <span class="op">!</span><a class="ident" href="../../src/syn/generics.rs.html#913">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#580">peek</a>(<span class="macro">Token!</span>[,]) {
+                        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <a class="ident" href="../../src/syn/generics.rs.html#917">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#464">parse</a>()<span class="question-mark">?</span>;
+                        <a class="ident" href="../../src/syn/generics.rs.html#921">predicates</a>.<a class="ident" href="../../src/syn/punctuated.rs.html#164">push_value</a>(<a class="ident" href="../../src/syn/generics.rs.html#932">value</a>);
+                        <span class="kw">if</span> <span class="op">!</span><a class="ident" href="../../src/syn/generics.rs.html#917">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#580">peek</a>(<span class="macro">Token!</span>[,]) {
                             <span class="kw">break</span>;
                         }
-                        <span class="kw">let</span> <span class="ident">punct</span> <span class="op">=</span> <a class="ident" href="../../src/syn/generics.rs.html#913">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#464">parse</a>()<span class="question-mark">?</span>;
-                        <a class="ident" href="../../src/syn/generics.rs.html#917">predicates</a>.<a class="ident" href="../../src/syn/punctuated.rs.html#180">push_punct</a>(<a class="ident" href="../../src/syn/generics.rs.html#933">punct</a>);
+                        <span class="kw">let</span> <span class="ident">punct</span> <span class="op">=</span> <a class="ident" href="../../src/syn/generics.rs.html#917">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#464">parse</a>()<span class="question-mark">?</span>;
+                        <a class="ident" href="../../src/syn/generics.rs.html#921">predicates</a>.<a class="ident" href="../../src/syn/punctuated.rs.html#180">push_punct</a>(<a class="ident" href="../../src/syn/generics.rs.html#937">punct</a>);
                     }
-                    <a class="ident" href="../../src/syn/generics.rs.html#917">predicates</a>
+                    <a class="ident" href="../../src/syn/generics.rs.html#921">predicates</a>
                 },
             })
         }
@@ -2275,8 +2284,8 @@
     <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;parsing&quot;</span>)))]</span>
     <span class="kw">impl</span> <a class="ident" href="../../src/syn/parse.rs.html#218-220">Parse</a> <span class="kw">for</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../src/syn/generics.rs.html#511-522">WhereClause</a><span class="op">&gt;</span> {
         <span class="kw">fn</span> <span class="ident">parse</span>(<span class="ident">input</span>: <a class="ident" href="../../src/syn/parse.rs.html#228">ParseStream</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-            <span class="kw">if</span> <a class="ident" href="../../src/syn/generics.rs.html#944">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#580">peek</a>(<span class="macro">Token!</span>[<span class="kw">where</span>]) {
-                <a class="ident" href="../../src/syn/generics.rs.html#944">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#464">parse</a>().<span class="ident">map</span>(<span class="prelude-val">Some</span>)
+            <span class="kw">if</span> <a class="ident" href="../../src/syn/generics.rs.html#948">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#580">peek</a>(<span class="macro">Token!</span>[<span class="kw">where</span>]) {
+                <a class="ident" href="../../src/syn/generics.rs.html#948">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#464">parse</a>().<span class="ident">map</span>(<span class="prelude-val">Some</span>)
             } <span class="kw">else</span> {
                 <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>)
             }
@@ -2286,59 +2295,59 @@
     <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;parsing&quot;</span>)))]</span>
     <span class="kw">impl</span> <a class="ident" href="../../src/syn/parse.rs.html#218-220">Parse</a> <span class="kw">for</span> <a class="ident" href="../../src/syn/generics.rs.html#524-546">WherePredicate</a> {
         <span class="kw">fn</span> <span class="ident">parse</span>(<span class="ident">input</span>: <a class="ident" href="../../src/syn/parse.rs.html#228">ParseStream</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-            <span class="kw">if</span> <a class="ident" href="../../src/syn/generics.rs.html#955">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#580">peek</a>(<a class="ident" href="../../src/syn/lifetime.rs.html#118">Lifetime</a>) <span class="op">&amp;&amp;</span> <a class="ident" href="../../src/syn/generics.rs.html#955">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#619">peek2</a>(<span class="macro">Token!</span>[:]) {
+            <span class="kw">if</span> <a class="ident" href="../../src/syn/generics.rs.html#959">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#580">peek</a>(<a class="ident" href="../../src/syn/lifetime.rs.html#118">Lifetime</a>) <span class="op">&amp;&amp;</span> <a class="ident" href="../../src/syn/generics.rs.html#959">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#619">peek2</a>(<span class="macro">Token!</span>[:]) {
                 <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/syn/generics.rs.html#541">WherePredicate::Lifetime</a>(<a class="ident" href="../../src/syn/generics.rs.html#565-576">PredicateLifetime</a> {
-                    <span class="ident">lifetime</span>: <a class="ident" href="../../src/syn/generics.rs.html#955">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#464">parse</a>()<span class="question-mark">?</span>,
-                    <span class="ident">colon_token</span>: <a class="ident" href="../../src/syn/generics.rs.html#955">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#464">parse</a>()<span class="question-mark">?</span>,
+                    <span class="ident">lifetime</span>: <a class="ident" href="../../src/syn/generics.rs.html#959">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#464">parse</a>()<span class="question-mark">?</span>,
+                    <span class="ident">colon_token</span>: <a class="ident" href="../../src/syn/generics.rs.html#959">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#464">parse</a>()<span class="question-mark">?</span>,
                     <span class="ident">bounds</span>: {
                         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">bounds</span> <span class="op">=</span> <span class="ident">Punctuated::new</span>();
                         <span class="kw">loop</span> {
-                            <span class="kw">if</span> <a class="ident" href="../../src/syn/generics.rs.html#955">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#740">is_empty</a>()
-                                <span class="op">|</span><span class="op">|</span> <a class="ident" href="../../src/syn/generics.rs.html#955">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#580">peek</a>(<a class="ident" href="../../src/syn/token.rs.html#756-761">token::Brace</a>)
-                                <span class="op">|</span><span class="op">|</span> <a class="ident" href="../../src/syn/generics.rs.html#955">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#580">peek</a>(<span class="macro">Token!</span>[,])
-                                <span class="op">|</span><span class="op">|</span> <a class="ident" href="../../src/syn/generics.rs.html#955">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#580">peek</a>(<span class="macro">Token!</span>[;])
-                                <span class="op">|</span><span class="op">|</span> <a class="ident" href="../../src/syn/generics.rs.html#955">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#580">peek</a>(<span class="macro">Token!</span>[:])
-                                <span class="op">|</span><span class="op">|</span> <a class="ident" href="../../src/syn/generics.rs.html#955">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#580">peek</a>(<span class="macro">Token!</span>[<span class="op">=</span>])
+                            <span class="kw">if</span> <a class="ident" href="../../src/syn/generics.rs.html#959">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#740">is_empty</a>()
+                                <span class="op">|</span><span class="op">|</span> <a class="ident" href="../../src/syn/generics.rs.html#959">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#580">peek</a>(<a class="ident" href="../../src/syn/token.rs.html#756-761">token::Brace</a>)
+                                <span class="op">|</span><span class="op">|</span> <a class="ident" href="../../src/syn/generics.rs.html#959">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#580">peek</a>(<span class="macro">Token!</span>[,])
+                                <span class="op">|</span><span class="op">|</span> <a class="ident" href="../../src/syn/generics.rs.html#959">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#580">peek</a>(<span class="macro">Token!</span>[;])
+                                <span class="op">|</span><span class="op">|</span> <a class="ident" href="../../src/syn/generics.rs.html#959">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#580">peek</a>(<span class="macro">Token!</span>[:])
+                                <span class="op">|</span><span class="op">|</span> <a class="ident" href="../../src/syn/generics.rs.html#959">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#580">peek</a>(<span class="macro">Token!</span>[<span class="op">=</span>])
                             {
                                 <span class="kw">break</span>;
                             }
-                            <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <a class="ident" href="../../src/syn/generics.rs.html#955">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#464">parse</a>()<span class="question-mark">?</span>;
-                            <a class="ident" href="../../src/syn/generics.rs.html#961">bounds</a>.<a class="ident" href="../../src/syn/punctuated.rs.html#164">push_value</a>(<a class="ident" href="../../src/syn/generics.rs.html#972">value</a>);
-                            <span class="kw">if</span> <span class="op">!</span><a class="ident" href="../../src/syn/generics.rs.html#955">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#580">peek</a>(<span class="macro">Token!</span>[<span class="op">+</span>]) {
+                            <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <a class="ident" href="../../src/syn/generics.rs.html#959">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#464">parse</a>()<span class="question-mark">?</span>;
+                            <a class="ident" href="../../src/syn/generics.rs.html#965">bounds</a>.<a class="ident" href="../../src/syn/punctuated.rs.html#164">push_value</a>(<a class="ident" href="../../src/syn/generics.rs.html#976">value</a>);
+                            <span class="kw">if</span> <span class="op">!</span><a class="ident" href="../../src/syn/generics.rs.html#959">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#580">peek</a>(<span class="macro">Token!</span>[<span class="op">+</span>]) {
                                 <span class="kw">break</span>;
                             }
-                            <span class="kw">let</span> <span class="ident">punct</span> <span class="op">=</span> <a class="ident" href="../../src/syn/generics.rs.html#955">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#464">parse</a>()<span class="question-mark">?</span>;
-                            <a class="ident" href="../../src/syn/generics.rs.html#961">bounds</a>.<a class="ident" href="../../src/syn/punctuated.rs.html#180">push_punct</a>(<a class="ident" href="../../src/syn/generics.rs.html#977">punct</a>);
+                            <span class="kw">let</span> <span class="ident">punct</span> <span class="op">=</span> <a class="ident" href="../../src/syn/generics.rs.html#959">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#464">parse</a>()<span class="question-mark">?</span>;
+                            <a class="ident" href="../../src/syn/generics.rs.html#965">bounds</a>.<a class="ident" href="../../src/syn/punctuated.rs.html#180">push_punct</a>(<a class="ident" href="../../src/syn/generics.rs.html#981">punct</a>);
                         }
-                        <a class="ident" href="../../src/syn/generics.rs.html#961">bounds</a>
+                        <a class="ident" href="../../src/syn/generics.rs.html#965">bounds</a>
                     },
                 }))
             } <span class="kw">else</span> {
                 <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/syn/generics.rs.html#538">WherePredicate::Type</a>(<a class="ident" href="../../src/syn/generics.rs.html#548-563">PredicateType</a> {
-                    <span class="ident">lifetimes</span>: <a class="ident" href="../../src/syn/generics.rs.html#955">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#464">parse</a>()<span class="question-mark">?</span>,
-                    <span class="ident">bounded_ty</span>: <a class="ident" href="../../src/syn/generics.rs.html#955">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#464">parse</a>()<span class="question-mark">?</span>,
-                    <span class="ident">colon_token</span>: <a class="ident" href="../../src/syn/generics.rs.html#955">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#464">parse</a>()<span class="question-mark">?</span>,
+                    <span class="ident">lifetimes</span>: <a class="ident" href="../../src/syn/generics.rs.html#959">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#464">parse</a>()<span class="question-mark">?</span>,
+                    <span class="ident">bounded_ty</span>: <a class="ident" href="../../src/syn/generics.rs.html#959">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#464">parse</a>()<span class="question-mark">?</span>,
+                    <span class="ident">colon_token</span>: <a class="ident" href="../../src/syn/generics.rs.html#959">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#464">parse</a>()<span class="question-mark">?</span>,
                     <span class="ident">bounds</span>: {
                         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">bounds</span> <span class="op">=</span> <span class="ident">Punctuated::new</span>();
                         <span class="kw">loop</span> {
-                            <span class="kw">if</span> <a class="ident" href="../../src/syn/generics.rs.html#955">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#740">is_empty</a>()
-                                <span class="op">|</span><span class="op">|</span> <a class="ident" href="../../src/syn/generics.rs.html#955">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#580">peek</a>(<a class="ident" href="../../src/syn/token.rs.html#756-761">token::Brace</a>)
-                                <span class="op">|</span><span class="op">|</span> <a class="ident" href="../../src/syn/generics.rs.html#955">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#580">peek</a>(<span class="macro">Token!</span>[,])
-                                <span class="op">|</span><span class="op">|</span> <a class="ident" href="../../src/syn/generics.rs.html#955">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#580">peek</a>(<span class="macro">Token!</span>[;])
-                                <span class="op">|</span><span class="op">|</span> <a class="ident" href="../../src/syn/generics.rs.html#955">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#580">peek</a>(<span class="macro">Token!</span>[:]) <span class="op">&amp;&amp;</span> <span class="op">!</span><a class="ident" href="../../src/syn/generics.rs.html#955">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#580">peek</a>(<span class="macro">Token!</span>[::])
-                                <span class="op">|</span><span class="op">|</span> <a class="ident" href="../../src/syn/generics.rs.html#955">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#580">peek</a>(<span class="macro">Token!</span>[<span class="op">=</span>])
+                            <span class="kw">if</span> <a class="ident" href="../../src/syn/generics.rs.html#959">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#740">is_empty</a>()
+                                <span class="op">|</span><span class="op">|</span> <a class="ident" href="../../src/syn/generics.rs.html#959">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#580">peek</a>(<a class="ident" href="../../src/syn/token.rs.html#756-761">token::Brace</a>)
+                                <span class="op">|</span><span class="op">|</span> <a class="ident" href="../../src/syn/generics.rs.html#959">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#580">peek</a>(<span class="macro">Token!</span>[,])
+                                <span class="op">|</span><span class="op">|</span> <a class="ident" href="../../src/syn/generics.rs.html#959">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#580">peek</a>(<span class="macro">Token!</span>[;])
+                                <span class="op">|</span><span class="op">|</span> <a class="ident" href="../../src/syn/generics.rs.html#959">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#580">peek</a>(<span class="macro">Token!</span>[:]) <span class="op">&amp;&amp;</span> <span class="op">!</span><a class="ident" href="../../src/syn/generics.rs.html#959">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#580">peek</a>(<span class="macro">Token!</span>[::])
+                                <span class="op">|</span><span class="op">|</span> <a class="ident" href="../../src/syn/generics.rs.html#959">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#580">peek</a>(<span class="macro">Token!</span>[<span class="op">=</span>])
                             {
                                 <span class="kw">break</span>;
                             }
-                            <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <a class="ident" href="../../src/syn/generics.rs.html#955">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#464">parse</a>()<span class="question-mark">?</span>;
-                            <a class="ident" href="../../src/syn/generics.rs.html#989">bounds</a>.<a class="ident" href="../../src/syn/punctuated.rs.html#164">push_value</a>(<a class="ident" href="../../src/syn/generics.rs.html#1000">value</a>);
-                            <span class="kw">if</span> <span class="op">!</span><a class="ident" href="../../src/syn/generics.rs.html#955">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#580">peek</a>(<span class="macro">Token!</span>[<span class="op">+</span>]) {
+                            <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <a class="ident" href="../../src/syn/generics.rs.html#959">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#464">parse</a>()<span class="question-mark">?</span>;
+                            <a class="ident" href="../../src/syn/generics.rs.html#993">bounds</a>.<a class="ident" href="../../src/syn/punctuated.rs.html#164">push_value</a>(<a class="ident" href="../../src/syn/generics.rs.html#1004">value</a>);
+                            <span class="kw">if</span> <span class="op">!</span><a class="ident" href="../../src/syn/generics.rs.html#959">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#580">peek</a>(<span class="macro">Token!</span>[<span class="op">+</span>]) {
                                 <span class="kw">break</span>;
                             }
-                            <span class="kw">let</span> <span class="ident">punct</span> <span class="op">=</span> <a class="ident" href="../../src/syn/generics.rs.html#955">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#464">parse</a>()<span class="question-mark">?</span>;
-                            <a class="ident" href="../../src/syn/generics.rs.html#989">bounds</a>.<a class="ident" href="../../src/syn/punctuated.rs.html#180">push_punct</a>(<a class="ident" href="../../src/syn/generics.rs.html#1005">punct</a>);
+                            <span class="kw">let</span> <span class="ident">punct</span> <span class="op">=</span> <a class="ident" href="../../src/syn/generics.rs.html#959">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#464">parse</a>()<span class="question-mark">?</span>;
+                            <a class="ident" href="../../src/syn/generics.rs.html#993">bounds</a>.<a class="ident" href="../../src/syn/punctuated.rs.html#180">push_punct</a>(<a class="ident" href="../../src/syn/generics.rs.html#1009">punct</a>);
                         }
-                        <a class="ident" href="../../src/syn/generics.rs.html#989">bounds</a>
+                        <a class="ident" href="../../src/syn/generics.rs.html#993">bounds</a>
                     },
                 }))
             }
@@ -2361,11 +2370,11 @@
     <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;printing&quot;</span>)))]</span>
     <span class="kw">impl</span> <a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">ToTokens</a> <span class="kw">for</span> <a class="ident" href="../../src/syn/generics.rs.html#8-21">Generics</a> {
         <span class="kw">fn</span> <span class="ident">to_tokens</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">tokens</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>) {
-            <span class="kw">if</span> <a class="self" href="../../src/syn/generics.rs.html#1030">self</a>.<span class="ident">params</span>.<a class="ident" href="../../src/syn/punctuated.rs.html#72">is_empty</a>() {
+            <span class="kw">if</span> <a class="self" href="../../src/syn/generics.rs.html#1034">self</a>.<span class="ident">params</span>.<a class="ident" href="../../src/syn/punctuated.rs.html#72">is_empty</a>() {
                 <span class="kw">return</span>;
             }
 
-            <a class="ident" href="../../src/syn/print.rs.html#4">TokensOrDefault</a>(<span class="kw-2">&amp;</span><a class="self" href="../../src/syn/generics.rs.html#1030">self</a>.<span class="ident">lt_token</span>).<span class="ident">to_tokens</span>(<a class="ident" href="../../src/syn/generics.rs.html#1030">tokens</a>);
+            <a class="ident" href="../../src/syn/print.rs.html#4">TokensOrDefault</a>(<span class="kw-2">&amp;</span><a class="self" href="../../src/syn/generics.rs.html#1034">self</a>.<span class="ident">lt_token</span>).<a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a class="ident" href="../../src/syn/generics.rs.html#1034">tokens</a>);
 
             <span class="comment">// Print lifetimes before types and consts, regardless of their</span>
             <span class="comment">// order in self.params.</span>
@@ -2373,36 +2382,36 @@
             <span class="comment">// TODO: ordering rules for const parameters vs type parameters have</span>
             <span class="comment">// not been settled yet. https://github.com/rust-lang/rust/issues/44580</span>
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">trailing_or_empty</span> <span class="op">=</span> <span class="bool-val">true</span>;
-            <span class="kw">for</span> <a class="ident" href="../../src/syn/generics.rs.html#1043">param</a> <span class="kw">in</span> <a class="self" href="../../src/syn/generics.rs.html#1030">self</a>.<span class="ident">params</span>.<a class="ident" href="../../src/syn/punctuated.rs.html#127">pairs</a>() {
-                <span class="kw">if</span> <span class="kw">let</span> <a class="ident" href="../../src/syn/generics.rs.html#41">GenericParam::Lifetime</a>(<span class="kw">_</span>) <span class="op">=</span> <span class="kw-2">*</span><span class="kw-2">*</span><a class="ident" href="../../src/syn/generics.rs.html#1043">param</a>.<a class="ident" href="../../src/syn/punctuated.rs.html#923">value</a>() {
-                    <a class="ident" href="../../src/syn/generics.rs.html#1043">param</a>.<span class="ident">to_tokens</span>(<a class="ident" href="../../src/syn/generics.rs.html#1030">tokens</a>);
-                    <a class="ident" href="../../src/syn/generics.rs.html#1042">trailing_or_empty</a> <span class="op">=</span> <a class="ident" href="../../src/syn/generics.rs.html#1043">param</a>.<a class="ident" href="../../src/syn/punctuated.rs.html#938">punct</a>().<span class="ident">is_some</span>();
+            <span class="kw">for</span> <span class="ident">param</span> <span class="kw">in</span> <a class="self" href="../../src/syn/generics.rs.html#1034">self</a>.<span class="ident">params</span>.<a class="ident" href="../../src/syn/punctuated.rs.html#127">pairs</a>() {
+                <span class="kw">if</span> <span class="kw">let</span> <a class="ident" href="../../src/syn/generics.rs.html#41">GenericParam::Lifetime</a>(<span class="kw">_</span>) <span class="op">=</span> <span class="kw-2">*</span><span class="kw-2">*</span><a class="ident" href="../../src/syn/generics.rs.html#1047">param</a>.<a class="ident" href="../../src/syn/punctuated.rs.html#923">value</a>() {
+                    <a class="ident" href="../../src/syn/generics.rs.html#1047">param</a>.<a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a class="ident" href="../../src/syn/generics.rs.html#1034">tokens</a>);
+                    <a class="ident" href="../../src/syn/generics.rs.html#1046">trailing_or_empty</a> <span class="op">=</span> <a class="ident" href="../../src/syn/generics.rs.html#1047">param</a>.<a class="ident" href="../../src/syn/punctuated.rs.html#938">punct</a>().<span class="ident">is_some</span>();
                 }
             }
-            <span class="kw">for</span> <a class="ident" href="../../src/syn/generics.rs.html#1049">param</a> <span class="kw">in</span> <a class="self" href="../../src/syn/generics.rs.html#1030">self</a>.<span class="ident">params</span>.<a class="ident" href="../../src/syn/punctuated.rs.html#127">pairs</a>() {
-                <span class="kw">match</span> <span class="kw-2">*</span><span class="kw-2">*</span><a class="ident" href="../../src/syn/generics.rs.html#1049">param</a>.<a class="ident" href="../../src/syn/punctuated.rs.html#923">value</a>() {
+            <span class="kw">for</span> <span class="ident">param</span> <span class="kw">in</span> <a class="self" href="../../src/syn/generics.rs.html#1034">self</a>.<span class="ident">params</span>.<a class="ident" href="../../src/syn/punctuated.rs.html#127">pairs</a>() {
+                <span class="kw">match</span> <span class="kw-2">*</span><span class="kw-2">*</span><a class="ident" href="../../src/syn/generics.rs.html#1053">param</a>.<a class="ident" href="../../src/syn/punctuated.rs.html#923">value</a>() {
                     <a class="ident" href="../../src/syn/generics.rs.html#38">GenericParam::Type</a>(<span class="kw">_</span>) <span class="op">|</span> <a class="ident" href="../../src/syn/generics.rs.html#44">GenericParam::Const</a>(<span class="kw">_</span>) =&gt; {
-                        <span class="kw">if</span> <span class="op">!</span><a class="ident" href="../../src/syn/generics.rs.html#1042">trailing_or_empty</a> {
-                            <span class="op">&lt;</span><span class="macro">Token!</span>[,]<span class="op">&gt;</span><span class="ident">::default</span>().<span class="ident">to_tokens</span>(<a class="ident" href="../../src/syn/generics.rs.html#1030">tokens</a>);
-                            <a class="ident" href="../../src/syn/generics.rs.html#1042">trailing_or_empty</a> <span class="op">=</span> <span class="bool-val">true</span>;
+                        <span class="kw">if</span> <span class="op">!</span><a class="ident" href="../../src/syn/generics.rs.html#1046">trailing_or_empty</a> {
+                            <span class="op">&lt;</span><span class="macro">Token!</span>[,]<span class="op">&gt;</span><span class="ident">::default</span>().<a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a class="ident" href="../../src/syn/generics.rs.html#1034">tokens</a>);
+                            <a class="ident" href="../../src/syn/generics.rs.html#1046">trailing_or_empty</a> <span class="op">=</span> <span class="bool-val">true</span>;
                         }
-                        <a class="ident" href="../../src/syn/generics.rs.html#1049">param</a>.<span class="ident">to_tokens</span>(<a class="ident" href="../../src/syn/generics.rs.html#1030">tokens</a>);
+                        <a class="ident" href="../../src/syn/generics.rs.html#1053">param</a>.<a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a class="ident" href="../../src/syn/generics.rs.html#1034">tokens</a>);
                     }
                     <a class="ident" href="../../src/syn/generics.rs.html#41">GenericParam::Lifetime</a>(<span class="kw">_</span>) =&gt; {}
                 }
             }
 
-            <a class="ident" href="../../src/syn/print.rs.html#4">TokensOrDefault</a>(<span class="kw-2">&amp;</span><a class="self" href="../../src/syn/generics.rs.html#1030">self</a>.<span class="ident">gt_token</span>).<span class="ident">to_tokens</span>(<a class="ident" href="../../src/syn/generics.rs.html#1030">tokens</a>);
+            <a class="ident" href="../../src/syn/print.rs.html#4">TokensOrDefault</a>(<span class="kw-2">&amp;</span><a class="self" href="../../src/syn/generics.rs.html#1034">self</a>.<span class="ident">gt_token</span>).<a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a class="ident" href="../../src/syn/generics.rs.html#1034">tokens</a>);
         }
     }
 
     <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">ToTokens</a> <span class="kw">for</span> <span class="ident">ImplGenerics</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
         <span class="kw">fn</span> <span class="ident">to_tokens</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">tokens</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>) {
-            <span class="kw">if</span> <a class="self" href="../../src/syn/generics.rs.html#1067">self</a>.<span class="number">0</span>.<span class="ident">params</span>.<a class="ident" href="../../src/syn/punctuated.rs.html#72">is_empty</a>() {
+            <span class="kw">if</span> <a class="self" href="../../src/syn/generics.rs.html#1071">self</a>.<span class="number">0</span>.<span class="ident">params</span>.<a class="ident" href="../../src/syn/punctuated.rs.html#72">is_empty</a>() {
                 <span class="kw">return</span>;
             }
 
-            <a class="ident" href="../../src/syn/print.rs.html#4">TokensOrDefault</a>(<span class="kw-2">&amp;</span><a class="self" href="../../src/syn/generics.rs.html#1067">self</a>.<span class="number">0</span>.<span class="ident">lt_token</span>).<span class="ident">to_tokens</span>(<a class="ident" href="../../src/syn/generics.rs.html#1067">tokens</a>);
+            <a class="ident" href="../../src/syn/print.rs.html#4">TokensOrDefault</a>(<span class="kw-2">&amp;</span><a class="self" href="../../src/syn/generics.rs.html#1071">self</a>.<span class="number">0</span>.<span class="ident">lt_token</span>).<a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a class="ident" href="../../src/syn/generics.rs.html#1071">tokens</a>);
 
             <span class="comment">// Print lifetimes before types and consts, regardless of their</span>
             <span class="comment">// order in self.params.</span>
@@ -2410,54 +2419,54 @@
             <span class="comment">// TODO: ordering rules for const parameters vs type parameters have</span>
             <span class="comment">// not been settled yet. https://github.com/rust-lang/rust/issues/44580</span>
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">trailing_or_empty</span> <span class="op">=</span> <span class="bool-val">true</span>;
-            <span class="kw">for</span> <a class="ident" href="../../src/syn/generics.rs.html#1080">param</a> <span class="kw">in</span> <a class="self" href="../../src/syn/generics.rs.html#1067">self</a>.<span class="number">0</span>.<span class="ident">params</span>.<a class="ident" href="../../src/syn/punctuated.rs.html#127">pairs</a>() {
-                <span class="kw">if</span> <span class="kw">let</span> <a class="ident" href="../../src/syn/generics.rs.html#41">GenericParam::Lifetime</a>(<span class="kw">_</span>) <span class="op">=</span> <span class="kw-2">*</span><span class="kw-2">*</span><a class="ident" href="../../src/syn/generics.rs.html#1080">param</a>.<a class="ident" href="../../src/syn/punctuated.rs.html#923">value</a>() {
-                    <a class="ident" href="../../src/syn/generics.rs.html#1080">param</a>.<span class="ident">to_tokens</span>(<a class="ident" href="../../src/syn/generics.rs.html#1067">tokens</a>);
-                    <a class="ident" href="../../src/syn/generics.rs.html#1079">trailing_or_empty</a> <span class="op">=</span> <a class="ident" href="../../src/syn/generics.rs.html#1080">param</a>.<a class="ident" href="../../src/syn/punctuated.rs.html#938">punct</a>().<span class="ident">is_some</span>();
+            <span class="kw">for</span> <span class="ident">param</span> <span class="kw">in</span> <a class="self" href="../../src/syn/generics.rs.html#1071">self</a>.<span class="number">0</span>.<span class="ident">params</span>.<a class="ident" href="../../src/syn/punctuated.rs.html#127">pairs</a>() {
+                <span class="kw">if</span> <span class="kw">let</span> <a class="ident" href="../../src/syn/generics.rs.html#41">GenericParam::Lifetime</a>(<span class="kw">_</span>) <span class="op">=</span> <span class="kw-2">*</span><span class="kw-2">*</span><a class="ident" href="../../src/syn/generics.rs.html#1084">param</a>.<a class="ident" href="../../src/syn/punctuated.rs.html#923">value</a>() {
+                    <a class="ident" href="../../src/syn/generics.rs.html#1084">param</a>.<a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a class="ident" href="../../src/syn/generics.rs.html#1071">tokens</a>);
+                    <a class="ident" href="../../src/syn/generics.rs.html#1083">trailing_or_empty</a> <span class="op">=</span> <a class="ident" href="../../src/syn/generics.rs.html#1084">param</a>.<a class="ident" href="../../src/syn/punctuated.rs.html#938">punct</a>().<span class="ident">is_some</span>();
                 }
             }
-            <span class="kw">for</span> <a class="ident" href="../../src/syn/generics.rs.html#1086">param</a> <span class="kw">in</span> <a class="self" href="../../src/syn/generics.rs.html#1067">self</a>.<span class="number">0</span>.<span class="ident">params</span>.<a class="ident" href="../../src/syn/punctuated.rs.html#127">pairs</a>() {
-                <span class="kw">if</span> <span class="kw">let</span> <a class="ident" href="../../src/syn/generics.rs.html#41">GenericParam::Lifetime</a>(<span class="kw">_</span>) <span class="op">=</span> <span class="kw-2">*</span><span class="kw-2">*</span><a class="ident" href="../../src/syn/generics.rs.html#1086">param</a>.<a class="ident" href="../../src/syn/punctuated.rs.html#923">value</a>() {
+            <span class="kw">for</span> <span class="ident">param</span> <span class="kw">in</span> <a class="self" href="../../src/syn/generics.rs.html#1071">self</a>.<span class="number">0</span>.<span class="ident">params</span>.<a class="ident" href="../../src/syn/punctuated.rs.html#127">pairs</a>() {
+                <span class="kw">if</span> <span class="kw">let</span> <a class="ident" href="../../src/syn/generics.rs.html#41">GenericParam::Lifetime</a>(<span class="kw">_</span>) <span class="op">=</span> <span class="kw-2">*</span><span class="kw-2">*</span><a class="ident" href="../../src/syn/generics.rs.html#1090">param</a>.<a class="ident" href="../../src/syn/punctuated.rs.html#923">value</a>() {
                     <span class="kw">continue</span>;
                 }
-                <span class="kw">if</span> <span class="op">!</span><a class="ident" href="../../src/syn/generics.rs.html#1079">trailing_or_empty</a> {
-                    <span class="op">&lt;</span><span class="macro">Token!</span>[,]<span class="op">&gt;</span><span class="ident">::default</span>().<span class="ident">to_tokens</span>(<a class="ident" href="../../src/syn/generics.rs.html#1067">tokens</a>);
-                    <a class="ident" href="../../src/syn/generics.rs.html#1079">trailing_or_empty</a> <span class="op">=</span> <span class="bool-val">true</span>;
+                <span class="kw">if</span> <span class="op">!</span><a class="ident" href="../../src/syn/generics.rs.html#1083">trailing_or_empty</a> {
+                    <span class="op">&lt;</span><span class="macro">Token!</span>[,]<span class="op">&gt;</span><span class="ident">::default</span>().<a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a class="ident" href="../../src/syn/generics.rs.html#1071">tokens</a>);
+                    <a class="ident" href="../../src/syn/generics.rs.html#1083">trailing_or_empty</a> <span class="op">=</span> <span class="bool-val">true</span>;
                 }
-                <span class="kw">match</span> <span class="kw-2">*</span><a class="ident" href="../../src/syn/generics.rs.html#1086">param</a>.<a class="ident" href="../../src/syn/punctuated.rs.html#923">value</a>() {
+                <span class="kw">match</span> <span class="kw-2">*</span><a class="ident" href="../../src/syn/generics.rs.html#1090">param</a>.<a class="ident" href="../../src/syn/punctuated.rs.html#923">value</a>() {
                     <a class="ident" href="../../src/syn/generics.rs.html#41">GenericParam::Lifetime</a>(<span class="kw">_</span>) =&gt; <span class="macro">unreachable!</span>(),
                     <a class="ident" href="../../src/syn/generics.rs.html#38">GenericParam::Type</a>(<span class="ident">param</span>) =&gt; {
                         <span class="comment">// Leave off the type parameter defaults</span>
-                        <a class="ident" href="../../src/syn/generics.rs.html#1067">tokens</a>.<span class="ident">append_all</span>(<a class="ident" href="../../src/syn/generics.rs.html#1096">param</a>.<span class="ident">attrs</span>.<a class="ident" href="../../src/syn/attr.rs.html#469">outer</a>());
-                        <a class="ident" href="../../src/syn/generics.rs.html#1096">param</a>.<span class="ident">ident</span>.<span class="ident">to_tokens</span>(<a class="ident" href="../../src/syn/generics.rs.html#1067">tokens</a>);
-                        <span class="kw">if</span> <span class="op">!</span><a class="ident" href="../../src/syn/generics.rs.html#1096">param</a>.<span class="ident">bounds</span>.<a class="ident" href="../../src/syn/punctuated.rs.html#72">is_empty</a>() {
-                            <a class="ident" href="../../src/syn/print.rs.html#4">TokensOrDefault</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/syn/generics.rs.html#1096">param</a>.<span class="ident">colon_token</span>).<span class="ident">to_tokens</span>(<a class="ident" href="../../src/syn/generics.rs.html#1067">tokens</a>);
-                            <a class="ident" href="../../src/syn/generics.rs.html#1096">param</a>.<span class="ident">bounds</span>.<span class="ident">to_tokens</span>(<a class="ident" href="../../src/syn/generics.rs.html#1067">tokens</a>);
+                        <a class="ident" href="../../src/syn/generics.rs.html#1071">tokens</a>.<a class="ident" href="../../quote/ext/trait.TokenStreamExt.html">append_all</a>(<a class="ident" href="../../src/syn/generics.rs.html#1100">param</a>.<span class="ident">attrs</span>.<a class="ident" href="../../src/syn/attr.rs.html#469">outer</a>());
+                        <a class="ident" href="../../src/syn/generics.rs.html#1100">param</a>.<span class="ident">ident</span>.<a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a class="ident" href="../../src/syn/generics.rs.html#1071">tokens</a>);
+                        <span class="kw">if</span> <span class="op">!</span><a class="ident" href="../../src/syn/generics.rs.html#1100">param</a>.<span class="ident">bounds</span>.<a class="ident" href="../../src/syn/punctuated.rs.html#72">is_empty</a>() {
+                            <a class="ident" href="../../src/syn/print.rs.html#4">TokensOrDefault</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/syn/generics.rs.html#1100">param</a>.<span class="ident">colon_token</span>).<a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a class="ident" href="../../src/syn/generics.rs.html#1071">tokens</a>);
+                            <a class="ident" href="../../src/syn/generics.rs.html#1100">param</a>.<span class="ident">bounds</span>.<a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a class="ident" href="../../src/syn/generics.rs.html#1071">tokens</a>);
                         }
                     }
                     <a class="ident" href="../../src/syn/generics.rs.html#44">GenericParam::Const</a>(<span class="ident">param</span>) =&gt; {
                         <span class="comment">// Leave off the const parameter defaults</span>
-                        <a class="ident" href="../../src/syn/generics.rs.html#1067">tokens</a>.<span class="ident">append_all</span>(<a class="ident" href="../../src/syn/generics.rs.html#1105">param</a>.<span class="ident">attrs</span>.<a class="ident" href="../../src/syn/attr.rs.html#469">outer</a>());
-                        <a class="ident" href="../../src/syn/generics.rs.html#1105">param</a>.<span class="ident">const_token</span>.<span class="ident">to_tokens</span>(<a class="ident" href="../../src/syn/generics.rs.html#1067">tokens</a>);
-                        <a class="ident" href="../../src/syn/generics.rs.html#1105">param</a>.<span class="ident">ident</span>.<span class="ident">to_tokens</span>(<a class="ident" href="../../src/syn/generics.rs.html#1067">tokens</a>);
-                        <a class="ident" href="../../src/syn/generics.rs.html#1105">param</a>.<span class="ident">colon_token</span>.<span class="ident">to_tokens</span>(<a class="ident" href="../../src/syn/generics.rs.html#1067">tokens</a>);
-                        <a class="ident" href="../../src/syn/generics.rs.html#1105">param</a>.<span class="ident">ty</span>.<span class="ident">to_tokens</span>(<a class="ident" href="../../src/syn/generics.rs.html#1067">tokens</a>);
+                        <a class="ident" href="../../src/syn/generics.rs.html#1071">tokens</a>.<a class="ident" href="../../quote/ext/trait.TokenStreamExt.html">append_all</a>(<a class="ident" href="../../src/syn/generics.rs.html#1109">param</a>.<span class="ident">attrs</span>.<a class="ident" href="../../src/syn/attr.rs.html#469">outer</a>());
+                        <a class="ident" href="../../src/syn/generics.rs.html#1109">param</a>.<span class="ident">const_token</span>.<a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a class="ident" href="../../src/syn/generics.rs.html#1071">tokens</a>);
+                        <a class="ident" href="../../src/syn/generics.rs.html#1109">param</a>.<span class="ident">ident</span>.<a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a class="ident" href="../../src/syn/generics.rs.html#1071">tokens</a>);
+                        <a class="ident" href="../../src/syn/generics.rs.html#1109">param</a>.<span class="ident">colon_token</span>.<a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a class="ident" href="../../src/syn/generics.rs.html#1071">tokens</a>);
+                        <a class="ident" href="../../src/syn/generics.rs.html#1109">param</a>.<span class="ident">ty</span>.<a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a class="ident" href="../../src/syn/generics.rs.html#1071">tokens</a>);
                     }
                 }
-                <a class="ident" href="../../src/syn/generics.rs.html#1086">param</a>.<a class="ident" href="../../src/syn/punctuated.rs.html#938">punct</a>().<span class="ident">to_tokens</span>(<a class="ident" href="../../src/syn/generics.rs.html#1067">tokens</a>);
+                <a class="ident" href="../../src/syn/generics.rs.html#1090">param</a>.<a class="ident" href="../../src/syn/punctuated.rs.html#938">punct</a>().<a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a class="ident" href="../../src/syn/generics.rs.html#1071">tokens</a>);
             }
 
-            <a class="ident" href="../../src/syn/print.rs.html#4">TokensOrDefault</a>(<span class="kw-2">&amp;</span><a class="self" href="../../src/syn/generics.rs.html#1067">self</a>.<span class="number">0</span>.<span class="ident">gt_token</span>).<span class="ident">to_tokens</span>(<a class="ident" href="../../src/syn/generics.rs.html#1067">tokens</a>);
+            <a class="ident" href="../../src/syn/print.rs.html#4">TokensOrDefault</a>(<span class="kw-2">&amp;</span><a class="self" href="../../src/syn/generics.rs.html#1071">self</a>.<span class="number">0</span>.<span class="ident">gt_token</span>).<a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a class="ident" href="../../src/syn/generics.rs.html#1071">tokens</a>);
         }
     }
 
     <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">ToTokens</a> <span class="kw">for</span> <span class="ident">TypeGenerics</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
         <span class="kw">fn</span> <span class="ident">to_tokens</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">tokens</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>) {
-            <span class="kw">if</span> <a class="self" href="../../src/syn/generics.rs.html#1122">self</a>.<span class="number">0</span>.<span class="ident">params</span>.<a class="ident" href="../../src/syn/punctuated.rs.html#72">is_empty</a>() {
+            <span class="kw">if</span> <a class="self" href="../../src/syn/generics.rs.html#1126">self</a>.<span class="number">0</span>.<span class="ident">params</span>.<a class="ident" href="../../src/syn/punctuated.rs.html#72">is_empty</a>() {
                 <span class="kw">return</span>;
             }
 
-            <a class="ident" href="../../src/syn/print.rs.html#4">TokensOrDefault</a>(<span class="kw-2">&amp;</span><a class="self" href="../../src/syn/generics.rs.html#1122">self</a>.<span class="number">0</span>.<span class="ident">lt_token</span>).<span class="ident">to_tokens</span>(<a class="ident" href="../../src/syn/generics.rs.html#1122">tokens</a>);
+            <a class="ident" href="../../src/syn/print.rs.html#4">TokensOrDefault</a>(<span class="kw-2">&amp;</span><a class="self" href="../../src/syn/generics.rs.html#1126">self</a>.<span class="number">0</span>.<span class="ident">lt_token</span>).<a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a class="ident" href="../../src/syn/generics.rs.html#1126">tokens</a>);
 
             <span class="comment">// Print lifetimes before types and consts, regardless of their</span>
             <span class="comment">// order in self.params.</span>
@@ -2465,45 +2474,45 @@
             <span class="comment">// TODO: ordering rules for const parameters vs type parameters have</span>
             <span class="comment">// not been settled yet. https://github.com/rust-lang/rust/issues/44580</span>
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">trailing_or_empty</span> <span class="op">=</span> <span class="bool-val">true</span>;
-            <span class="kw">for</span> <a class="ident" href="../../src/syn/generics.rs.html#1135">param</a> <span class="kw">in</span> <a class="self" href="../../src/syn/generics.rs.html#1122">self</a>.<span class="number">0</span>.<span class="ident">params</span>.<a class="ident" href="../../src/syn/punctuated.rs.html#127">pairs</a>() {
-                <span class="kw">if</span> <span class="kw">let</span> <a class="ident" href="../../src/syn/generics.rs.html#41">GenericParam::Lifetime</a>(<span class="ident">def</span>) <span class="op">=</span> <span class="kw-2">*</span><a class="ident" href="../../src/syn/generics.rs.html#1135">param</a>.<a class="ident" href="../../src/syn/punctuated.rs.html#923">value</a>() {
+            <span class="kw">for</span> <span class="ident">param</span> <span class="kw">in</span> <a class="self" href="../../src/syn/generics.rs.html#1126">self</a>.<span class="number">0</span>.<span class="ident">params</span>.<a class="ident" href="../../src/syn/punctuated.rs.html#127">pairs</a>() {
+                <span class="kw">if</span> <span class="kw">let</span> <a class="ident" href="../../src/syn/generics.rs.html#41">GenericParam::Lifetime</a>(<span class="ident">def</span>) <span class="op">=</span> <span class="kw-2">*</span><a class="ident" href="../../src/syn/generics.rs.html#1139">param</a>.<a class="ident" href="../../src/syn/punctuated.rs.html#923">value</a>() {
                     <span class="comment">// Leave off the lifetime bounds and attributes</span>
-                    <a class="ident" href="../../src/syn/generics.rs.html#1136">def</a>.<span class="ident">lifetime</span>.<span class="ident">to_tokens</span>(<a class="ident" href="../../src/syn/generics.rs.html#1122">tokens</a>);
-                    <a class="ident" href="../../src/syn/generics.rs.html#1135">param</a>.<a class="ident" href="../../src/syn/punctuated.rs.html#938">punct</a>().<span class="ident">to_tokens</span>(<a class="ident" href="../../src/syn/generics.rs.html#1122">tokens</a>);
-                    <a class="ident" href="../../src/syn/generics.rs.html#1134">trailing_or_empty</a> <span class="op">=</span> <a class="ident" href="../../src/syn/generics.rs.html#1135">param</a>.<a class="ident" href="../../src/syn/punctuated.rs.html#938">punct</a>().<span class="ident">is_some</span>();
+                    <a class="ident" href="../../src/syn/generics.rs.html#1140">def</a>.<span class="ident">lifetime</span>.<a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a class="ident" href="../../src/syn/generics.rs.html#1126">tokens</a>);
+                    <a class="ident" href="../../src/syn/generics.rs.html#1139">param</a>.<a class="ident" href="../../src/syn/punctuated.rs.html#938">punct</a>().<a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a class="ident" href="../../src/syn/generics.rs.html#1126">tokens</a>);
+                    <a class="ident" href="../../src/syn/generics.rs.html#1138">trailing_or_empty</a> <span class="op">=</span> <a class="ident" href="../../src/syn/generics.rs.html#1139">param</a>.<a class="ident" href="../../src/syn/punctuated.rs.html#938">punct</a>().<span class="ident">is_some</span>();
                 }
             }
-            <span class="kw">for</span> <a class="ident" href="../../src/syn/generics.rs.html#1143">param</a> <span class="kw">in</span> <a class="self" href="../../src/syn/generics.rs.html#1122">self</a>.<span class="number">0</span>.<span class="ident">params</span>.<a class="ident" href="../../src/syn/punctuated.rs.html#127">pairs</a>() {
-                <span class="kw">if</span> <span class="kw">let</span> <a class="ident" href="../../src/syn/generics.rs.html#41">GenericParam::Lifetime</a>(<span class="kw">_</span>) <span class="op">=</span> <span class="kw-2">*</span><span class="kw-2">*</span><a class="ident" href="../../src/syn/generics.rs.html#1143">param</a>.<a class="ident" href="../../src/syn/punctuated.rs.html#923">value</a>() {
+            <span class="kw">for</span> <span class="ident">param</span> <span class="kw">in</span> <a class="self" href="../../src/syn/generics.rs.html#1126">self</a>.<span class="number">0</span>.<span class="ident">params</span>.<a class="ident" href="../../src/syn/punctuated.rs.html#127">pairs</a>() {
+                <span class="kw">if</span> <span class="kw">let</span> <a class="ident" href="../../src/syn/generics.rs.html#41">GenericParam::Lifetime</a>(<span class="kw">_</span>) <span class="op">=</span> <span class="kw-2">*</span><span class="kw-2">*</span><a class="ident" href="../../src/syn/generics.rs.html#1147">param</a>.<a class="ident" href="../../src/syn/punctuated.rs.html#923">value</a>() {
                     <span class="kw">continue</span>;
                 }
-                <span class="kw">if</span> <span class="op">!</span><a class="ident" href="../../src/syn/generics.rs.html#1134">trailing_or_empty</a> {
-                    <span class="op">&lt;</span><span class="macro">Token!</span>[,]<span class="op">&gt;</span><span class="ident">::default</span>().<span class="ident">to_tokens</span>(<a class="ident" href="../../src/syn/generics.rs.html#1122">tokens</a>);
-                    <a class="ident" href="../../src/syn/generics.rs.html#1134">trailing_or_empty</a> <span class="op">=</span> <span class="bool-val">true</span>;
+                <span class="kw">if</span> <span class="op">!</span><a class="ident" href="../../src/syn/generics.rs.html#1138">trailing_or_empty</a> {
+                    <span class="op">&lt;</span><span class="macro">Token!</span>[,]<span class="op">&gt;</span><span class="ident">::default</span>().<a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a class="ident" href="../../src/syn/generics.rs.html#1126">tokens</a>);
+                    <a class="ident" href="../../src/syn/generics.rs.html#1138">trailing_or_empty</a> <span class="op">=</span> <span class="bool-val">true</span>;
                 }
-                <span class="kw">match</span> <span class="kw-2">*</span><a class="ident" href="../../src/syn/generics.rs.html#1143">param</a>.<a class="ident" href="../../src/syn/punctuated.rs.html#923">value</a>() {
+                <span class="kw">match</span> <span class="kw-2">*</span><a class="ident" href="../../src/syn/generics.rs.html#1147">param</a>.<a class="ident" href="../../src/syn/punctuated.rs.html#923">value</a>() {
                     <a class="ident" href="../../src/syn/generics.rs.html#41">GenericParam::Lifetime</a>(<span class="kw">_</span>) =&gt; <span class="macro">unreachable!</span>(),
                     <a class="ident" href="../../src/syn/generics.rs.html#38">GenericParam::Type</a>(<span class="ident">param</span>) =&gt; {
                         <span class="comment">// Leave off the type parameter defaults</span>
-                        <a class="ident" href="../../src/syn/generics.rs.html#1153">param</a>.<span class="ident">ident</span>.<span class="ident">to_tokens</span>(<a class="ident" href="../../src/syn/generics.rs.html#1122">tokens</a>);
+                        <a class="ident" href="../../src/syn/generics.rs.html#1157">param</a>.<span class="ident">ident</span>.<a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a class="ident" href="../../src/syn/generics.rs.html#1126">tokens</a>);
                     }
                     <a class="ident" href="../../src/syn/generics.rs.html#44">GenericParam::Const</a>(<span class="ident">param</span>) =&gt; {
                         <span class="comment">// Leave off the const parameter defaults</span>
-                        <a class="ident" href="../../src/syn/generics.rs.html#1157">param</a>.<span class="ident">ident</span>.<span class="ident">to_tokens</span>(<a class="ident" href="../../src/syn/generics.rs.html#1122">tokens</a>);
+                        <a class="ident" href="../../src/syn/generics.rs.html#1161">param</a>.<span class="ident">ident</span>.<a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a class="ident" href="../../src/syn/generics.rs.html#1126">tokens</a>);
                     }
                 }
-                <a class="ident" href="../../src/syn/generics.rs.html#1143">param</a>.<a class="ident" href="../../src/syn/punctuated.rs.html#938">punct</a>().<span class="ident">to_tokens</span>(<a class="ident" href="../../src/syn/generics.rs.html#1122">tokens</a>);
+                <a class="ident" href="../../src/syn/generics.rs.html#1147">param</a>.<a class="ident" href="../../src/syn/punctuated.rs.html#938">punct</a>().<a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a class="ident" href="../../src/syn/generics.rs.html#1126">tokens</a>);
             }
 
-            <a class="ident" href="../../src/syn/print.rs.html#4">TokensOrDefault</a>(<span class="kw-2">&amp;</span><a class="self" href="../../src/syn/generics.rs.html#1122">self</a>.<span class="number">0</span>.<span class="ident">gt_token</span>).<span class="ident">to_tokens</span>(<a class="ident" href="../../src/syn/generics.rs.html#1122">tokens</a>);
+            <a class="ident" href="../../src/syn/print.rs.html#4">TokensOrDefault</a>(<span class="kw-2">&amp;</span><a class="self" href="../../src/syn/generics.rs.html#1126">self</a>.<span class="number">0</span>.<span class="ident">gt_token</span>).<a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a class="ident" href="../../src/syn/generics.rs.html#1126">tokens</a>);
         }
     }
 
     <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">ToTokens</a> <span class="kw">for</span> <span class="ident">Turbofish</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
         <span class="kw">fn</span> <span class="ident">to_tokens</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">tokens</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>) {
-            <span class="kw">if</span> <span class="op">!</span><a class="self" href="../../src/syn/generics.rs.html#1170">self</a>.<span class="number">0</span>.<span class="ident">params</span>.<a class="ident" href="../../src/syn/punctuated.rs.html#72">is_empty</a>() {
-                <span class="op">&lt;</span><span class="macro">Token!</span>[::]<span class="op">&gt;</span><span class="ident">::default</span>().<span class="ident">to_tokens</span>(<a class="ident" href="../../src/syn/generics.rs.html#1170">tokens</a>);
-                <a class="ident" href="../../src/syn/generics.rs.html#310">TypeGenerics</a>(<a class="self" href="../../src/syn/generics.rs.html#1170">self</a>.<span class="number">0</span>).<span class="ident">to_tokens</span>(<a class="ident" href="../../src/syn/generics.rs.html#1170">tokens</a>);
+            <span class="kw">if</span> <span class="op">!</span><a class="self" href="../../src/syn/generics.rs.html#1174">self</a>.<span class="number">0</span>.<span class="ident">params</span>.<a class="ident" href="../../src/syn/punctuated.rs.html#72">is_empty</a>() {
+                <span class="op">&lt;</span><span class="macro">Token!</span>[::]<span class="op">&gt;</span><span class="ident">::default</span>().<a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a class="ident" href="../../src/syn/generics.rs.html#1174">tokens</a>);
+                <a class="ident" href="../../src/syn/generics.rs.html#310">TypeGenerics</a>(<a class="self" href="../../src/syn/generics.rs.html#1174">self</a>.<span class="number">0</span>).<a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a class="ident" href="../../src/syn/generics.rs.html#1174">tokens</a>);
             }
         }
     }
@@ -2511,21 +2520,21 @@
     <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;printing&quot;</span>)))]</span>
     <span class="kw">impl</span> <a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">ToTokens</a> <span class="kw">for</span> <a class="ident" href="../../src/syn/generics.rs.html#421-433">BoundLifetimes</a> {
         <span class="kw">fn</span> <span class="ident">to_tokens</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">tokens</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>) {
-            <a class="self" href="../../src/syn/generics.rs.html#1180">self</a>.<span class="ident">for_token</span>.<span class="ident">to_tokens</span>(<a class="ident" href="../../src/syn/generics.rs.html#1180">tokens</a>);
-            <a class="self" href="../../src/syn/generics.rs.html#1180">self</a>.<span class="ident">lt_token</span>.<span class="ident">to_tokens</span>(<a class="ident" href="../../src/syn/generics.rs.html#1180">tokens</a>);
-            <a class="self" href="../../src/syn/generics.rs.html#1180">self</a>.<span class="ident">lifetimes</span>.<span class="ident">to_tokens</span>(<a class="ident" href="../../src/syn/generics.rs.html#1180">tokens</a>);
-            <a class="self" href="../../src/syn/generics.rs.html#1180">self</a>.<span class="ident">gt_token</span>.<span class="ident">to_tokens</span>(<a class="ident" href="../../src/syn/generics.rs.html#1180">tokens</a>);
+            <a class="self" href="../../src/syn/generics.rs.html#1184">self</a>.<span class="ident">for_token</span>.<a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a class="ident" href="../../src/syn/generics.rs.html#1184">tokens</a>);
+            <a class="self" href="../../src/syn/generics.rs.html#1184">self</a>.<span class="ident">lt_token</span>.<a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a class="ident" href="../../src/syn/generics.rs.html#1184">tokens</a>);
+            <a class="self" href="../../src/syn/generics.rs.html#1184">self</a>.<span class="ident">lifetimes</span>.<a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a class="ident" href="../../src/syn/generics.rs.html#1184">tokens</a>);
+            <a class="self" href="../../src/syn/generics.rs.html#1184">self</a>.<span class="ident">gt_token</span>.<a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a class="ident" href="../../src/syn/generics.rs.html#1184">tokens</a>);
         }
     }
 
     <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;printing&quot;</span>)))]</span>
     <span class="kw">impl</span> <a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">ToTokens</a> <span class="kw">for</span> <a class="ident" href="../../src/syn/generics.rs.html#64-76">LifetimeDef</a> {
         <span class="kw">fn</span> <span class="ident">to_tokens</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">tokens</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>) {
-            <a class="ident" href="../../src/syn/generics.rs.html#1190">tokens</a>.<span class="ident">append_all</span>(<a class="self" href="../../src/syn/generics.rs.html#1190">self</a>.<span class="ident">attrs</span>.<a class="ident" href="../../src/syn/attr.rs.html#469">outer</a>());
-            <a class="self" href="../../src/syn/generics.rs.html#1190">self</a>.<span class="ident">lifetime</span>.<span class="ident">to_tokens</span>(<a class="ident" href="../../src/syn/generics.rs.html#1190">tokens</a>);
-            <span class="kw">if</span> <span class="op">!</span><a class="self" href="../../src/syn/generics.rs.html#1190">self</a>.<span class="ident">bounds</span>.<a class="ident" href="../../src/syn/punctuated.rs.html#72">is_empty</a>() {
-                <a class="ident" href="../../src/syn/print.rs.html#4">TokensOrDefault</a>(<span class="kw-2">&amp;</span><a class="self" href="../../src/syn/generics.rs.html#1190">self</a>.<span class="ident">colon_token</span>).<span class="ident">to_tokens</span>(<a class="ident" href="../../src/syn/generics.rs.html#1190">tokens</a>);
-                <a class="self" href="../../src/syn/generics.rs.html#1190">self</a>.<span class="ident">bounds</span>.<span class="ident">to_tokens</span>(<a class="ident" href="../../src/syn/generics.rs.html#1190">tokens</a>);
+            <a class="ident" href="../../src/syn/generics.rs.html#1194">tokens</a>.<a class="ident" href="../../quote/ext/trait.TokenStreamExt.html">append_all</a>(<a class="self" href="../../src/syn/generics.rs.html#1194">self</a>.<span class="ident">attrs</span>.<a class="ident" href="../../src/syn/attr.rs.html#469">outer</a>());
+            <a class="self" href="../../src/syn/generics.rs.html#1194">self</a>.<span class="ident">lifetime</span>.<a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a class="ident" href="../../src/syn/generics.rs.html#1194">tokens</a>);
+            <span class="kw">if</span> <span class="op">!</span><a class="self" href="../../src/syn/generics.rs.html#1194">self</a>.<span class="ident">bounds</span>.<a class="ident" href="../../src/syn/punctuated.rs.html#72">is_empty</a>() {
+                <a class="ident" href="../../src/syn/print.rs.html#4">TokensOrDefault</a>(<span class="kw-2">&amp;</span><a class="self" href="../../src/syn/generics.rs.html#1194">self</a>.<span class="ident">colon_token</span>).<a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a class="ident" href="../../src/syn/generics.rs.html#1194">tokens</a>);
+                <a class="self" href="../../src/syn/generics.rs.html#1194">self</a>.<span class="ident">bounds</span>.<a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a class="ident" href="../../src/syn/generics.rs.html#1194">tokens</a>);
             }
         }
     }
@@ -2533,28 +2542,28 @@
     <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;printing&quot;</span>)))]</span>
     <span class="kw">impl</span> <a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">ToTokens</a> <span class="kw">for</span> <a class="ident" href="../../src/syn/generics.rs.html#48-62">TypeParam</a> {
         <span class="kw">fn</span> <span class="ident">to_tokens</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">tokens</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>) {
-            <a class="ident" href="../../src/syn/generics.rs.html#1202">tokens</a>.<span class="ident">append_all</span>(<a class="self" href="../../src/syn/generics.rs.html#1202">self</a>.<span class="ident">attrs</span>.<a class="ident" href="../../src/syn/attr.rs.html#469">outer</a>());
-            <a class="self" href="../../src/syn/generics.rs.html#1202">self</a>.<span class="ident">ident</span>.<span class="ident">to_tokens</span>(<a class="ident" href="../../src/syn/generics.rs.html#1202">tokens</a>);
-            <span class="kw">if</span> <span class="op">!</span><a class="self" href="../../src/syn/generics.rs.html#1202">self</a>.<span class="ident">bounds</span>.<a class="ident" href="../../src/syn/punctuated.rs.html#72">is_empty</a>() {
-                <a class="ident" href="../../src/syn/print.rs.html#4">TokensOrDefault</a>(<span class="kw-2">&amp;</span><a class="self" href="../../src/syn/generics.rs.html#1202">self</a>.<span class="ident">colon_token</span>).<span class="ident">to_tokens</span>(<a class="ident" href="../../src/syn/generics.rs.html#1202">tokens</a>);
-                <a class="self" href="../../src/syn/generics.rs.html#1202">self</a>.<span class="ident">bounds</span>.<span class="ident">to_tokens</span>(<a class="ident" href="../../src/syn/generics.rs.html#1202">tokens</a>);
+            <a class="ident" href="../../src/syn/generics.rs.html#1206">tokens</a>.<a class="ident" href="../../quote/ext/trait.TokenStreamExt.html">append_all</a>(<a class="self" href="../../src/syn/generics.rs.html#1206">self</a>.<span class="ident">attrs</span>.<a class="ident" href="../../src/syn/attr.rs.html#469">outer</a>());
+            <a class="self" href="../../src/syn/generics.rs.html#1206">self</a>.<span class="ident">ident</span>.<a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a class="ident" href="../../src/syn/generics.rs.html#1206">tokens</a>);
+            <span class="kw">if</span> <span class="op">!</span><a class="self" href="../../src/syn/generics.rs.html#1206">self</a>.<span class="ident">bounds</span>.<a class="ident" href="../../src/syn/punctuated.rs.html#72">is_empty</a>() {
+                <a class="ident" href="../../src/syn/print.rs.html#4">TokensOrDefault</a>(<span class="kw-2">&amp;</span><a class="self" href="../../src/syn/generics.rs.html#1206">self</a>.<span class="ident">colon_token</span>).<a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a class="ident" href="../../src/syn/generics.rs.html#1206">tokens</a>);
+                <a class="self" href="../../src/syn/generics.rs.html#1206">self</a>.<span class="ident">bounds</span>.<a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a class="ident" href="../../src/syn/generics.rs.html#1206">tokens</a>);
             }
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">default</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><a class="self" href="../../src/syn/generics.rs.html#1202">self</a>.<span class="ident">default</span> {
+            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">default</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><a class="self" href="../../src/syn/generics.rs.html#1206">self</a>.<span class="ident">default</span> {
                 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
                 {
-                    <span class="kw">if</span> <a class="self" href="../../src/syn/generics.rs.html#1202">self</a>.<span class="ident">eq_token</span>.<span class="ident">is_none</span>() {
-                        <span class="kw">if</span> <span class="kw">let</span> <a class="ident" href="../../src/syn/ty.rs.html#64">Type::Verbatim</a>(<span class="ident">default</span>) <span class="op">=</span> <a class="ident" href="../../src/syn/generics.rs.html#1209">default</a> {
-                            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">iter</span> <span class="op">=</span> <a class="ident" href="../../src/syn/generics.rs.html#1213">default</a>.<span class="ident">clone</span>().<span class="ident">into_iter</span>().<span class="ident">peekable</span>();
-                            <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">token</span>) <span class="op">=</span> <a class="ident" href="../../src/syn/generics.rs.html#1214">iter</a>.<span class="ident">next</span>() {
-                                <span class="kw">if</span> <span class="kw">let</span> <span class="ident">TokenTree::Punct</span>(<span class="ident">q</span>) <span class="op">=</span> <a class="ident" href="../../src/syn/generics.rs.html#1215">token</a> {
-                                    <span class="kw">if</span> <a class="ident" href="../../src/syn/generics.rs.html#1216">q</a>.<span class="ident">as_char</span>() <span class="op">==</span> <span class="string">&#39;~&#39;</span> {
-                                        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">TokenTree::Ident</span>(<span class="ident">c</span>)) <span class="op">=</span> <a class="ident" href="../../src/syn/generics.rs.html#1214">iter</a>.<span class="ident">peek</span>() {
-                                            <span class="kw">if</span> <a class="ident" href="../../src/syn/generics.rs.html#1218">c</a> <span class="op">==</span> <span class="string">&quot;const&quot;</span> {
-                                                <span class="kw">if</span> <a class="self" href="../../src/syn/generics.rs.html#1202">self</a>.<span class="ident">bounds</span>.<a class="ident" href="../../src/syn/punctuated.rs.html#72">is_empty</a>() {
-                                                    <a class="ident" href="../../src/syn/print.rs.html#4">TokensOrDefault</a>(<span class="kw-2">&amp;</span><a class="self" href="../../src/syn/generics.rs.html#1202">self</a>.<span class="ident">colon_token</span>)
-                                                        .<span class="ident">to_tokens</span>(<a class="ident" href="../../src/syn/generics.rs.html#1202">tokens</a>);
+                    <span class="kw">if</span> <a class="self" href="../../src/syn/generics.rs.html#1206">self</a>.<span class="ident">eq_token</span>.<span class="ident">is_none</span>() {
+                        <span class="kw">if</span> <span class="kw">let</span> <a class="ident" href="../../src/syn/ty.rs.html#64">Type::Verbatim</a>(<span class="ident">default</span>) <span class="op">=</span> <a class="ident" href="../../src/syn/generics.rs.html#1213">default</a> {
+                            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">iter</span> <span class="op">=</span> <a class="ident" href="../../src/syn/generics.rs.html#1217">default</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">peekable</a>();
+                            <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">token</span>) <span class="op">=</span> <a class="ident" href="../../src/syn/generics.rs.html#1218">iter</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>() {
+                                <span class="kw">if</span> <span class="kw">let</span> <span class="ident">TokenTree::Punct</span>(<span class="ident">q</span>) <span class="op">=</span> <a class="ident" href="../../src/syn/generics.rs.html#1219">token</a> {
+                                    <span class="kw">if</span> <a class="ident" href="../../src/syn/generics.rs.html#1220">q</a>.<span class="ident">as_char</span>() <span class="op">==</span> <span class="string">&#39;~&#39;</span> {
+                                        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">TokenTree::Ident</span>(<span class="ident">c</span>)) <span class="op">=</span> <a class="ident" href="../../src/syn/generics.rs.html#1218">iter</a>.<span class="ident">peek</span>() {
+                                            <span class="kw">if</span> <a class="ident" href="../../src/syn/generics.rs.html#1222">c</a> <span class="op">==</span> <span class="string">&quot;const&quot;</span> {
+                                                <span class="kw">if</span> <a class="self" href="../../src/syn/generics.rs.html#1206">self</a>.<span class="ident">bounds</span>.<a class="ident" href="../../src/syn/punctuated.rs.html#72">is_empty</a>() {
+                                                    <a class="ident" href="../../src/syn/print.rs.html#4">TokensOrDefault</a>(<span class="kw-2">&amp;</span><a class="self" href="../../src/syn/generics.rs.html#1206">self</a>.<span class="ident">colon_token</span>)
+                                                        .<a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a class="ident" href="../../src/syn/generics.rs.html#1206">tokens</a>);
                                                 }
-                                                <span class="kw">return</span> <a class="ident" href="../../src/syn/generics.rs.html#1213">default</a>.<span class="ident">to_tokens</span>(<a class="ident" href="../../src/syn/generics.rs.html#1202">tokens</a>);
+                                                <span class="kw">return</span> <a class="ident" href="../../src/syn/generics.rs.html#1217">default</a>.<a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a class="ident" href="../../src/syn/generics.rs.html#1206">tokens</a>);
                                             }
                                         }
                                     }
@@ -2563,8 +2572,8 @@
                         }
                     }
                 }
-                <a class="ident" href="../../src/syn/print.rs.html#4">TokensOrDefault</a>(<span class="kw-2">&amp;</span><a class="self" href="../../src/syn/generics.rs.html#1202">self</a>.<span class="ident">eq_token</span>).<span class="ident">to_tokens</span>(<a class="ident" href="../../src/syn/generics.rs.html#1202">tokens</a>);
-                <a class="ident" href="../../src/syn/generics.rs.html#1209">default</a>.<span class="ident">to_tokens</span>(<a class="ident" href="../../src/syn/generics.rs.html#1202">tokens</a>);
+                <a class="ident" href="../../src/syn/print.rs.html#4">TokensOrDefault</a>(<span class="kw-2">&amp;</span><a class="self" href="../../src/syn/generics.rs.html#1206">self</a>.<span class="ident">eq_token</span>).<a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a class="ident" href="../../src/syn/generics.rs.html#1206">tokens</a>);
+                <a class="ident" href="../../src/syn/generics.rs.html#1213">default</a>.<a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a class="ident" href="../../src/syn/generics.rs.html#1206">tokens</a>);
             }
         }
     }
@@ -2574,29 +2583,29 @@
         <span class="kw">fn</span> <span class="ident">to_tokens</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">tokens</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>) {
             <span class="kw">let</span> <span class="ident">to_tokens</span> <span class="op">=</span> <span class="op">|</span><span class="ident">tokens</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../proc_macro2/struct.TokenStream.html">TokenStream</a><span class="op">|</span> {
                 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
-                <span class="kw">let</span> <span class="ident">skip</span> <span class="op">=</span> <span class="kw">match</span> <a class="self" href="../../src/syn/generics.rs.html#1241">self</a>.<span class="ident">path</span>.<span class="ident">segments</span>.<a class="ident" href="../../src/syn/punctuated.rs.html#127">pairs</a>().<span class="ident">next</span>() {
-                    <span class="prelude-val">Some</span>(<a class="ident" href="../../src/syn/punctuated.rs.html#909">Pair::Punctuated</a>(<span class="ident">t</span>, <span class="ident">p</span>)) <span class="kw">if</span> <a class="ident" href="../../src/syn/generics.rs.html#1245">t</a>.<span class="ident">ident</span> <span class="op">==</span> <span class="string">&quot;const&quot;</span> =&gt; {
-                        <span class="macro">Token!</span>[~](<a class="ident" href="../../src/syn/generics.rs.html#1245">p</a>.<span class="ident">spans</span>[<span class="number">0</span>]).<span class="ident">to_tokens</span>(<a class="ident" href="../../src/syn/generics.rs.html#1242">tokens</a>);
-                        <a class="ident" href="../../src/syn/generics.rs.html#1245">t</a>.<span class="ident">to_tokens</span>(<a class="ident" href="../../src/syn/generics.rs.html#1242">tokens</a>);
+                <span class="kw">let</span> <span class="ident">skip</span> <span class="op">=</span> <span class="kw">match</span> <a class="self" href="../../src/syn/generics.rs.html#1245">self</a>.<span class="ident">path</span>.<span class="ident">segments</span>.<a class="ident" href="../../src/syn/punctuated.rs.html#127">pairs</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>() {
+                    <span class="prelude-val">Some</span>(<a class="ident" href="../../src/syn/punctuated.rs.html#909">Pair::Punctuated</a>(<span class="ident">t</span>, <span class="ident">p</span>)) <span class="kw">if</span> <a class="ident" href="../../src/syn/generics.rs.html#1249">t</a>.<span class="ident">ident</span> <span class="op">==</span> <span class="string">&quot;const&quot;</span> =&gt; {
+                        <span class="macro">Token!</span>[~](<a class="ident" href="../../src/syn/generics.rs.html#1249">p</a>.<span class="ident">spans</span>[<span class="number">0</span>]).<a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a class="ident" href="../../src/syn/generics.rs.html#1246">tokens</a>);
+                        <a class="ident" href="../../src/syn/generics.rs.html#1249">t</a>.<a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a class="ident" href="../../src/syn/generics.rs.html#1246">tokens</a>);
                         <span class="number">1</span>
                     }
                     <span class="kw">_</span> =&gt; <span class="number">0</span>,
                 };
-                <a class="self" href="../../src/syn/generics.rs.html#1241">self</a>.<span class="ident">modifier</span>.<span class="ident">to_tokens</span>(<a class="ident" href="../../src/syn/generics.rs.html#1242">tokens</a>);
-                <a class="self" href="../../src/syn/generics.rs.html#1241">self</a>.<span class="ident">lifetimes</span>.<span class="ident">to_tokens</span>(<a class="ident" href="../../src/syn/generics.rs.html#1242">tokens</a>);
+                <a class="self" href="../../src/syn/generics.rs.html#1245">self</a>.<span class="ident">modifier</span>.<a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a class="ident" href="../../src/syn/generics.rs.html#1246">tokens</a>);
+                <a class="self" href="../../src/syn/generics.rs.html#1245">self</a>.<span class="ident">lifetimes</span>.<a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a class="ident" href="../../src/syn/generics.rs.html#1246">tokens</a>);
                 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
                 {
-                    <a class="self" href="../../src/syn/generics.rs.html#1241">self</a>.<span class="ident">path</span>.<span class="ident">leading_colon</span>.<span class="ident">to_tokens</span>(<a class="ident" href="../../src/syn/generics.rs.html#1242">tokens</a>);
-                    <a class="ident" href="../../src/syn/generics.rs.html#1242">tokens</a>.<span class="ident">append_all</span>(<a class="self" href="../../src/syn/generics.rs.html#1241">self</a>.<span class="ident">path</span>.<span class="ident">segments</span>.<a class="ident" href="../../src/syn/punctuated.rs.html#127">pairs</a>().<span class="ident">skip</span>(<a class="ident" href="../../src/syn/generics.rs.html#1244">skip</a>));
+                    <a class="self" href="../../src/syn/generics.rs.html#1245">self</a>.<span class="ident">path</span>.<span class="ident">leading_colon</span>.<a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a class="ident" href="../../src/syn/generics.rs.html#1246">tokens</a>);
+                    <a class="ident" href="../../src/syn/generics.rs.html#1246">tokens</a>.<a class="ident" href="../../quote/ext/trait.TokenStreamExt.html">append_all</a>(<a class="self" href="../../src/syn/generics.rs.html#1245">self</a>.<span class="ident">path</span>.<span class="ident">segments</span>.<a class="ident" href="../../src/syn/punctuated.rs.html#127">pairs</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">skip</a>(<a class="ident" href="../../src/syn/generics.rs.html#1248">skip</a>));
                 }
                 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
                 {
                     <span class="self">self</span>.<span class="ident">path</span>.<span class="ident">to_tokens</span>(<span class="ident">tokens</span>);
                 }
             };
-            <span class="kw">match</span> <span class="kw-2">&amp;</span><a class="self" href="../../src/syn/generics.rs.html#1241">self</a>.<span class="ident">paren_token</span> {
-                <span class="prelude-val">Some</span>(<span class="ident">paren</span>) =&gt; <a class="ident" href="../../src/syn/generics.rs.html#1265">paren</a>.<a class="ident" href="../../src/syn/token.rs.html#756-761">surround</a>(<a class="ident" href="../../src/syn/generics.rs.html#1241">tokens</a>, <a class="ident" href="../../src/syn/generics.rs.html#1242">to_tokens</a>),
-                <span class="prelude-val">None</span> =&gt; <a class="ident" href="../../src/syn/generics.rs.html#1242">to_tokens</a>(<a class="ident" href="../../src/syn/generics.rs.html#1241">tokens</a>),
+            <span class="kw">match</span> <span class="kw-2">&amp;</span><a class="self" href="../../src/syn/generics.rs.html#1245">self</a>.<span class="ident">paren_token</span> {
+                <span class="prelude-val">Some</span>(<span class="ident">paren</span>) =&gt; <a class="ident" href="../../src/syn/generics.rs.html#1269">paren</a>.<a class="ident" href="../../src/syn/token.rs.html#756-761">surround</a>(<a class="ident" href="../../src/syn/generics.rs.html#1245">tokens</a>, <a class="ident" href="../../src/syn/generics.rs.html#1246">to_tokens</a>),
+                <span class="prelude-val">None</span> =&gt; <a class="ident" href="../../src/syn/generics.rs.html#1246">to_tokens</a>(<a class="ident" href="../../src/syn/generics.rs.html#1245">tokens</a>),
             }
         }
     }
@@ -2604,9 +2613,9 @@
     <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;printing&quot;</span>)))]</span>
     <span class="kw">impl</span> <a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">ToTokens</a> <span class="kw">for</span> <a class="ident" href="../../src/syn/generics.rs.html#498-509">TraitBoundModifier</a> {
         <span class="kw">fn</span> <span class="ident">to_tokens</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">tokens</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>) {
-            <span class="kw">match</span> <a class="self" href="../../src/syn/generics.rs.html#1273">self</a> {
+            <span class="kw">match</span> <a class="self" href="../../src/syn/generics.rs.html#1277">self</a> {
                 <a class="ident" href="../../src/syn/generics.rs.html#506">TraitBoundModifier::None</a> =&gt; {}
-                <a class="ident" href="../../src/syn/generics.rs.html#507">TraitBoundModifier::Maybe</a>(<span class="ident">t</span>) =&gt; <a class="ident" href="../../src/syn/generics.rs.html#1276">t</a>.<span class="ident">to_tokens</span>(<a class="ident" href="../../src/syn/generics.rs.html#1273">tokens</a>),
+                <a class="ident" href="../../src/syn/generics.rs.html#507">TraitBoundModifier::Maybe</a>(<span class="ident">t</span>) =&gt; <a class="ident" href="../../src/syn/generics.rs.html#1280">t</a>.<a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a class="ident" href="../../src/syn/generics.rs.html#1277">tokens</a>),
             }
         }
     }
@@ -2614,14 +2623,14 @@
     <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;printing&quot;</span>)))]</span>
     <span class="kw">impl</span> <a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">ToTokens</a> <span class="kw">for</span> <a class="ident" href="../../src/syn/generics.rs.html#78-93">ConstParam</a> {
         <span class="kw">fn</span> <span class="ident">to_tokens</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">tokens</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>) {
-            <a class="ident" href="../../src/syn/generics.rs.html#1283">tokens</a>.<span class="ident">append_all</span>(<a class="self" href="../../src/syn/generics.rs.html#1283">self</a>.<span class="ident">attrs</span>.<a class="ident" href="../../src/syn/attr.rs.html#469">outer</a>());
-            <a class="self" href="../../src/syn/generics.rs.html#1283">self</a>.<span class="ident">const_token</span>.<span class="ident">to_tokens</span>(<a class="ident" href="../../src/syn/generics.rs.html#1283">tokens</a>);
-            <a class="self" href="../../src/syn/generics.rs.html#1283">self</a>.<span class="ident">ident</span>.<span class="ident">to_tokens</span>(<a class="ident" href="../../src/syn/generics.rs.html#1283">tokens</a>);
-            <a class="self" href="../../src/syn/generics.rs.html#1283">self</a>.<span class="ident">colon_token</span>.<span class="ident">to_tokens</span>(<a class="ident" href="../../src/syn/generics.rs.html#1283">tokens</a>);
-            <a class="self" href="../../src/syn/generics.rs.html#1283">self</a>.<span class="ident">ty</span>.<span class="ident">to_tokens</span>(<a class="ident" href="../../src/syn/generics.rs.html#1283">tokens</a>);
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">default</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><a class="self" href="../../src/syn/generics.rs.html#1283">self</a>.<span class="ident">default</span> {
-                <a class="ident" href="../../src/syn/print.rs.html#4">TokensOrDefault</a>(<span class="kw-2">&amp;</span><a class="self" href="../../src/syn/generics.rs.html#1283">self</a>.<span class="ident">eq_token</span>).<span class="ident">to_tokens</span>(<a class="ident" href="../../src/syn/generics.rs.html#1283">tokens</a>);
-                <a class="ident" href="../../src/syn/generics.rs.html#1289">default</a>.<span class="ident">to_tokens</span>(<a class="ident" href="../../src/syn/generics.rs.html#1283">tokens</a>);
+            <a class="ident" href="../../src/syn/generics.rs.html#1287">tokens</a>.<a class="ident" href="../../quote/ext/trait.TokenStreamExt.html">append_all</a>(<a class="self" href="../../src/syn/generics.rs.html#1287">self</a>.<span class="ident">attrs</span>.<a class="ident" href="../../src/syn/attr.rs.html#469">outer</a>());
+            <a class="self" href="../../src/syn/generics.rs.html#1287">self</a>.<span class="ident">const_token</span>.<a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a class="ident" href="../../src/syn/generics.rs.html#1287">tokens</a>);
+            <a class="self" href="../../src/syn/generics.rs.html#1287">self</a>.<span class="ident">ident</span>.<a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a class="ident" href="../../src/syn/generics.rs.html#1287">tokens</a>);
+            <a class="self" href="../../src/syn/generics.rs.html#1287">self</a>.<span class="ident">colon_token</span>.<a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a class="ident" href="../../src/syn/generics.rs.html#1287">tokens</a>);
+            <a class="self" href="../../src/syn/generics.rs.html#1287">self</a>.<span class="ident">ty</span>.<a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a class="ident" href="../../src/syn/generics.rs.html#1287">tokens</a>);
+            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">default</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><a class="self" href="../../src/syn/generics.rs.html#1287">self</a>.<span class="ident">default</span> {
+                <a class="ident" href="../../src/syn/print.rs.html#4">TokensOrDefault</a>(<span class="kw-2">&amp;</span><a class="self" href="../../src/syn/generics.rs.html#1287">self</a>.<span class="ident">eq_token</span>).<a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a class="ident" href="../../src/syn/generics.rs.html#1287">tokens</a>);
+                <a class="ident" href="../../src/syn/generics.rs.html#1293">default</a>.<a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a class="ident" href="../../src/syn/generics.rs.html#1287">tokens</a>);
             }
         }
     }
@@ -2629,9 +2638,9 @@
     <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;printing&quot;</span>)))]</span>
     <span class="kw">impl</span> <a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">ToTokens</a> <span class="kw">for</span> <a class="ident" href="../../src/syn/generics.rs.html#511-522">WhereClause</a> {
         <span class="kw">fn</span> <span class="ident">to_tokens</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">tokens</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>) {
-            <span class="kw">if</span> <span class="op">!</span><a class="self" href="../../src/syn/generics.rs.html#1298">self</a>.<span class="ident">predicates</span>.<a class="ident" href="../../src/syn/punctuated.rs.html#72">is_empty</a>() {
-                <a class="self" href="../../src/syn/generics.rs.html#1298">self</a>.<span class="ident">where_token</span>.<span class="ident">to_tokens</span>(<a class="ident" href="../../src/syn/generics.rs.html#1298">tokens</a>);
-                <a class="self" href="../../src/syn/generics.rs.html#1298">self</a>.<span class="ident">predicates</span>.<span class="ident">to_tokens</span>(<a class="ident" href="../../src/syn/generics.rs.html#1298">tokens</a>);
+            <span class="kw">if</span> <span class="op">!</span><a class="self" href="../../src/syn/generics.rs.html#1302">self</a>.<span class="ident">predicates</span>.<a class="ident" href="../../src/syn/punctuated.rs.html#72">is_empty</a>() {
+                <a class="self" href="../../src/syn/generics.rs.html#1302">self</a>.<span class="ident">where_token</span>.<a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a class="ident" href="../../src/syn/generics.rs.html#1302">tokens</a>);
+                <a class="self" href="../../src/syn/generics.rs.html#1302">self</a>.<span class="ident">predicates</span>.<a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a class="ident" href="../../src/syn/generics.rs.html#1302">tokens</a>);
             }
         }
     }
@@ -2639,32 +2648,31 @@
     <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;printing&quot;</span>)))]</span>
     <span class="kw">impl</span> <a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">ToTokens</a> <span class="kw">for</span> <a class="ident" href="../../src/syn/generics.rs.html#548-563">PredicateType</a> {
         <span class="kw">fn</span> <span class="ident">to_tokens</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">tokens</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>) {
-            <a class="self" href="../../src/syn/generics.rs.html#1308">self</a>.<span class="ident">lifetimes</span>.<span class="ident">to_tokens</span>(<a class="ident" href="../../src/syn/generics.rs.html#1308">tokens</a>);
-            <a class="self" href="../../src/syn/generics.rs.html#1308">self</a>.<span class="ident">bounded_ty</span>.<span class="ident">to_tokens</span>(<a class="ident" href="../../src/syn/generics.rs.html#1308">tokens</a>);
-            <a class="self" href="../../src/syn/generics.rs.html#1308">self</a>.<span class="ident">colon_token</span>.<span class="ident">to_tokens</span>(<a class="ident" href="../../src/syn/generics.rs.html#1308">tokens</a>);
-            <a class="self" href="../../src/syn/generics.rs.html#1308">self</a>.<span class="ident">bounds</span>.<span class="ident">to_tokens</span>(<a class="ident" href="../../src/syn/generics.rs.html#1308">tokens</a>);
+            <a class="self" href="../../src/syn/generics.rs.html#1312">self</a>.<span class="ident">lifetimes</span>.<a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a class="ident" href="../../src/syn/generics.rs.html#1312">tokens</a>);
+            <a class="self" href="../../src/syn/generics.rs.html#1312">self</a>.<span class="ident">bounded_ty</span>.<a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a class="ident" href="../../src/syn/generics.rs.html#1312">tokens</a>);
+            <a class="self" href="../../src/syn/generics.rs.html#1312">self</a>.<span class="ident">colon_token</span>.<a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a class="ident" href="../../src/syn/generics.rs.html#1312">tokens</a>);
+            <a class="self" href="../../src/syn/generics.rs.html#1312">self</a>.<span class="ident">bounds</span>.<a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a class="ident" href="../../src/syn/generics.rs.html#1312">tokens</a>);
         }
     }
 
     <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;printing&quot;</span>)))]</span>
     <span class="kw">impl</span> <a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">ToTokens</a> <span class="kw">for</span> <a class="ident" href="../../src/syn/generics.rs.html#565-576">PredicateLifetime</a> {
         <span class="kw">fn</span> <span class="ident">to_tokens</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">tokens</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>) {
-            <a class="self" href="../../src/syn/generics.rs.html#1318">self</a>.<span class="ident">lifetime</span>.<span class="ident">to_tokens</span>(<a class="ident" href="../../src/syn/generics.rs.html#1318">tokens</a>);
-            <a class="self" href="../../src/syn/generics.rs.html#1318">self</a>.<span class="ident">colon_token</span>.<span class="ident">to_tokens</span>(<a class="ident" href="../../src/syn/generics.rs.html#1318">tokens</a>);
-            <a class="self" href="../../src/syn/generics.rs.html#1318">self</a>.<span class="ident">bounds</span>.<span class="ident">to_tokens</span>(<a class="ident" href="../../src/syn/generics.rs.html#1318">tokens</a>);
+            <a class="self" href="../../src/syn/generics.rs.html#1322">self</a>.<span class="ident">lifetime</span>.<a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a class="ident" href="../../src/syn/generics.rs.html#1322">tokens</a>);
+            <a class="self" href="../../src/syn/generics.rs.html#1322">self</a>.<span class="ident">colon_token</span>.<a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a class="ident" href="../../src/syn/generics.rs.html#1322">tokens</a>);
+            <a class="self" href="../../src/syn/generics.rs.html#1322">self</a>.<span class="ident">bounds</span>.<a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a class="ident" href="../../src/syn/generics.rs.html#1322">tokens</a>);
         }
     }
 
     <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;printing&quot;</span>)))]</span>
     <span class="kw">impl</span> <a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">ToTokens</a> <span class="kw">for</span> <a class="ident" href="../../src/syn/generics.rs.html#578-589">PredicateEq</a> {
         <span class="kw">fn</span> <span class="ident">to_tokens</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">tokens</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>) {
-            <a class="self" href="../../src/syn/generics.rs.html#1327">self</a>.<span class="ident">lhs_ty</span>.<span class="ident">to_tokens</span>(<a class="ident" href="../../src/syn/generics.rs.html#1327">tokens</a>);
-            <a class="self" href="../../src/syn/generics.rs.html#1327">self</a>.<span class="ident">eq_token</span>.<span class="ident">to_tokens</span>(<a class="ident" href="../../src/syn/generics.rs.html#1327">tokens</a>);
-            <a class="self" href="../../src/syn/generics.rs.html#1327">self</a>.<span class="ident">rhs_ty</span>.<span class="ident">to_tokens</span>(<a class="ident" href="../../src/syn/generics.rs.html#1327">tokens</a>);
+            <a class="self" href="../../src/syn/generics.rs.html#1331">self</a>.<span class="ident">lhs_ty</span>.<a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a class="ident" href="../../src/syn/generics.rs.html#1331">tokens</a>);
+            <a class="self" href="../../src/syn/generics.rs.html#1331">self</a>.<span class="ident">eq_token</span>.<a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a class="ident" href="../../src/syn/generics.rs.html#1331">tokens</a>);
+            <a class="self" href="../../src/syn/generics.rs.html#1331">self</a>.<span class="ident">rhs_ty</span>.<a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a class="ident" href="../../src/syn/generics.rs.html#1331">tokens</a>);
         }
     }
 }
 </code></pre></div>
-</section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="syn" data-search-index-js="../../search-index.js" data-search-js="../../search.js"></div>
-    <script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script>
+</section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="syn" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.59.0-nightly (207c80f10 2021-11-30)" ></div>
 </body></html>

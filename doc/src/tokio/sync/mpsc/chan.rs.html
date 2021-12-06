@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;tokio-1.13.0&#x2F;src&#x2F;sync&#x2F;mpsc&#x2F;chan.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>chan.rs - source</title><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../../../storage.js"></script><script src="../../../../crates.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../../tokio/index.html'><div class='logo-container rust-logo'><img src='../../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;tokio-1.14.0&#x2F;src&#x2F;sync&#x2F;mpsc&#x2F;chan.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>chan.rs - source</title><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css"disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css"disabled><link rel="stylesheet" type="text/css" href="../../../../light.css"id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script src="../../../../crates.js"></script><script defer src="../../../../main.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script>
+    <noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../../tokio/index.html'><div class='logo-container rust-logo'><img src='../../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -404,14 +405,14 @@
 <span id="404">404</span>
 <span id="405">405</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <a class="ident" href="../../../../src/tokio/loom/std/unsafe_cell.rs.html#2"><span class="kw">crate</span>::loom::cell::UnsafeCell</a>;
-<span class="kw">use</span> <a class="ident" href="../../../../src/tokio/sync/task/atomic_waker.rs.html#25-28"><span class="kw">crate</span>::loom::future::AtomicWaker</a>;
+<span class="kw">use</span> <a class="ident" href="../../../../src/tokio/sync/task/atomic_waker.rs.html#26-29"><span class="kw">crate</span>::loom::future::AtomicWaker</a>;
 <span class="kw">use</span> <a class="ident" href="../../../../src/tokio/loom/std/atomic_usize.rs.html#6-8"><span class="kw">crate</span>::loom::sync::atomic::AtomicUsize</a>;
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/sync/struct.Arc.html"><span class="kw">crate</span>::loom::sync::Arc</a>;
 <span class="kw">use</span> <a class="ident" href="../../../../src/tokio/park/thread.rs.html#225-227"><span class="kw">crate</span>::park::thread::CachedParkThread</a>;
 <span class="kw">use</span> <a class="ident" href="../../../../src/tokio/park/mod.rs.html#49-90"><span class="kw">crate</span>::park::Park</a>;
 <span class="kw">use</span> <a class="ident" href="../../../../src/tokio/sync/mpsc/error.rs.html#58-65"><span class="kw">crate</span>::sync::mpsc::error::TryRecvError</a>;
 <span class="kw">use</span> <a class="ident" href="../../../../src/tokio/sync/mpsc/mod.rs.html#80"><span class="kw">crate</span>::sync::mpsc::list</a>;
-<span class="kw">use</span> <a class="ident" href="../../../../src/tokio/sync/notify.rs.html#112-119"><span class="kw">crate</span>::sync::notify::Notify</a>;
+<span class="kw">use</span> <a class="ident" href="../../../../src/tokio/sync/notify.rs.html#115-122"><span class="kw">crate</span>::sync::notify::Notify</a>;
 
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/process/index.html">std::process</a>;
@@ -453,7 +454,7 @@
 
 <span class="kw">struct</span> <span class="ident">Chan</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">S</span><span class="op">&gt;</span> {
     <span class="doccomment">/// Notifies all tasks listening for the receiver being dropped.</span>
-    <span class="ident">notify_rx_closed</span>: <a class="ident" href="../../../../src/tokio/sync/notify.rs.html#112-119">Notify</a>,
+    <span class="ident">notify_rx_closed</span>: <a class="ident" href="../../../../src/tokio/sync/notify.rs.html#115-122">Notify</a>,
 
     <span class="doccomment">/// Handle to the push half of the lock-free list.</span>
     <span class="ident">tx</span>: <span class="ident">list::Tx</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
@@ -462,7 +463,7 @@
     <span class="ident">semaphore</span>: <span class="ident">S</span>,
 
     <span class="doccomment">/// Receiver waker. Notified when a value is pushed into the channel.</span>
-    <span class="ident">rx_waker</span>: <a class="ident" href="../../../../src/tokio/sync/task/atomic_waker.rs.html#25-28">AtomicWaker</a>,
+    <span class="ident">rx_waker</span>: <a class="ident" href="../../../../src/tokio/sync/task/atomic_waker.rs.html#26-29">AtomicWaker</a>,
 
     <span class="doccomment">/// Tracks the number of outstanding sender handles.</span>
     <span class="doccomment">///</span>
@@ -524,7 +525,7 @@
         }),
     });
 
-    (<span class="ident">Tx::new</span>(<a class="ident" href="../../../../src/tokio/sync/mpsc/chan.rs.html#110">chan</a>.<span class="ident">clone</span>()), <span class="ident">Rx::new</span>(<a class="ident" href="../../../../src/tokio/sync/mpsc/chan.rs.html#110">chan</a>))
+    (<span class="ident">Tx::new</span>(<a class="ident" href="../../../../src/tokio/sync/mpsc/chan.rs.html#110">chan</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()), <span class="ident">Rx::new</span>(<a class="ident" href="../../../../src/tokio/sync/mpsc/chan.rs.html#110">chan</a>))
 }
 
 <span class="comment">// ===== impl Tx =====</span>
@@ -545,7 +546,7 @@
 
     <span class="doccomment">/// Wake the receive half</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">wake_rx</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-        <a class="self" href="../../../../src/tokio/sync/mpsc/chan.rs.html#142">self</a>.<span class="ident">inner</span>.<span class="ident">rx_waker</span>.<a class="ident" href="../../../../src/tokio/sync/task/atomic_waker.rs.html#246">wake</a>();
+        <a class="self" href="../../../../src/tokio/sync/mpsc/chan.rs.html#142">self</a>.<span class="ident">inner</span>.<span class="ident">rx_waker</span>.<a class="ident" href="../../../../src/tokio/sync/task/atomic_waker.rs.html#304">wake</a>();
     }
 
     <span class="doccomment">/// Returns `true` if senders belong to the same channel.</span>
@@ -563,7 +564,7 @@
         <span class="comment">// In order to avoid a race condition, we first request a notification,</span>
         <span class="comment">// **then** check whether the semaphore is closed. If the semaphore is</span>
         <span class="comment">// closed the notification request is dropped.</span>
-        <span class="kw">let</span> <span class="ident">notified</span> <span class="op">=</span> <a class="self" href="../../../../src/tokio/sync/mpsc/chan.rs.html#157">self</a>.<span class="ident">inner</span>.<span class="ident">notify_rx_closed</span>.<a class="ident" href="../../../../src/tokio/sync/notify.rs.html#276">notified</a>();
+        <span class="kw">let</span> <span class="ident">notified</span> <span class="op">=</span> <a class="self" href="../../../../src/tokio/sync/mpsc/chan.rs.html#157">self</a>.<span class="ident">inner</span>.<span class="ident">notify_rx_closed</span>.<a class="ident" href="../../../../src/tokio/sync/notify.rs.html#279">notified</a>();
 
         <span class="kw">if</span> <a class="self" href="../../../../src/tokio/sync/mpsc/chan.rs.html#157">self</a>.<span class="ident">inner</span>.<span class="ident">semaphore</span>.<a class="ident" href="../../../../src/tokio/sync/mpsc/chan.rs.html#46">is_closed</a>() {
             <span class="kw">return</span>;
@@ -579,7 +580,7 @@
         <a class="self" href="../../../../src/tokio/sync/mpsc/chan.rs.html#171">self</a>.<span class="ident">inner</span>.<span class="ident">tx_count</span>.<span class="ident">fetch_add</span>(<span class="number">1</span>, <span class="ident">Relaxed</span>);
 
         <a class="ident" href="../../../../src/tokio/sync/mpsc/chan.rs.html#18-20">Tx</a> {
-            <span class="ident">inner</span>: <a class="self" href="../../../../src/tokio/sync/mpsc/chan.rs.html#171">self</a>.<span class="ident">inner</span>.<span class="ident">clone</span>(),
+            <span class="ident">inner</span>: <a class="self" href="../../../../src/tokio/sync/mpsc/chan.rs.html#171">self</a>.<span class="ident">inner</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
         }
     }
 }
@@ -617,7 +618,7 @@
         });
 
         <a class="self" href="../../../../src/tokio/sync/mpsc/chan.rs.html#203">self</a>.<span class="ident">inner</span>.<span class="ident">semaphore</span>.<a class="ident" href="../../../../src/tokio/sync/mpsc/chan.rs.html#44">close</a>();
-        <a class="self" href="../../../../src/tokio/sync/mpsc/chan.rs.html#203">self</a>.<span class="ident">inner</span>.<span class="ident">notify_rx_closed</span>.<a class="ident" href="../../../../src/tokio/sync/notify.rs.html#394">notify_waiters</a>();
+        <a class="self" href="../../../../src/tokio/sync/mpsc/chan.rs.html#203">self</a>.<span class="ident">inner</span>.<span class="ident">notify_rx_closed</span>.<a class="ident" href="../../../../src/tokio/sync/notify.rs.html#397">notify_waiters</a>();
     }
 
     <span class="doccomment">/// Receive the next value</span>
@@ -656,7 +657,7 @@
 
             <span class="macro">try_recv!</span>();
 
-            <a class="self" href="../../../../src/tokio/sync/mpsc/chan.rs.html#219">self</a>.<span class="ident">inner</span>.<span class="ident">rx_waker</span>.<a class="ident" href="../../../../src/tokio/sync/task/atomic_waker.rs.html#166">register_by_ref</a>(<a class="ident" href="../../../../src/tokio/sync/mpsc/chan.rs.html#219">cx</a>.<span class="ident">waker</span>());
+            <a class="self" href="../../../../src/tokio/sync/mpsc/chan.rs.html#219">self</a>.<span class="ident">inner</span>.<span class="ident">rx_waker</span>.<a class="ident" href="../../../../src/tokio/sync/task/atomic_waker.rs.html#170">register_by_ref</a>(<a class="ident" href="../../../../src/tokio/sync/mpsc/chan.rs.html#219">cx</a>.<span class="ident">waker</span>());
 
             <span class="comment">// It is possible that a value was pushed between attempting to read</span>
             <span class="comment">// and registering the task, so we have to check the channel a</span>
@@ -702,13 +703,13 @@
             <span class="comment">// This is not a spurious wakeup to `poll_recv` since we just got a</span>
             <span class="comment">// Busy from `try_pop`, which only happens if there are messages in</span>
             <span class="comment">// the queue.</span>
-            <a class="self" href="../../../../src/tokio/sync/mpsc/chan.rs.html#271">self</a>.<span class="ident">inner</span>.<span class="ident">rx_waker</span>.<a class="ident" href="../../../../src/tokio/sync/task/atomic_waker.rs.html#246">wake</a>();
+            <a class="self" href="../../../../src/tokio/sync/mpsc/chan.rs.html#271">self</a>.<span class="ident">inner</span>.<span class="ident">rx_waker</span>.<a class="ident" href="../../../../src/tokio/sync/task/atomic_waker.rs.html#304">wake</a>();
 
             <span class="comment">// Park the thread until the problematic send has completed.</span>
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">park</span> <span class="op">=</span> <span class="ident">CachedParkThread::new</span>();
             <span class="kw">let</span> <span class="ident">waker</span> <span class="op">=</span> <a class="ident" href="../../../../src/tokio/sync/mpsc/chan.rs.html#303">park</a>.<a class="ident" href="../../../../src/tokio/park/mod.rs.html#57">unpark</a>().<a class="ident" href="../../../../src/tokio/park/thread.rs.html#296">into_waker</a>();
             <span class="kw">loop</span> {
-                <a class="self" href="../../../../src/tokio/sync/mpsc/chan.rs.html#271">self</a>.<span class="ident">inner</span>.<span class="ident">rx_waker</span>.<a class="ident" href="../../../../src/tokio/sync/task/atomic_waker.rs.html#166">register_by_ref</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../src/tokio/sync/mpsc/chan.rs.html#304">waker</a>);
+                <a class="self" href="../../../../src/tokio/sync/mpsc/chan.rs.html#271">self</a>.<span class="ident">inner</span>.<span class="ident">rx_waker</span>.<a class="ident" href="../../../../src/tokio/sync/task/atomic_waker.rs.html#170">register_by_ref</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../src/tokio/sync/mpsc/chan.rs.html#304">waker</a>);
                 <span class="comment">// It is possible that the problematic send has now completed,</span>
                 <span class="comment">// so we have to check for messages again.</span>
                 <span class="macro">try_recv!</span>();
@@ -742,7 +743,7 @@
         <a class="self" href="../../../../src/tokio/sync/mpsc/chan.rs.html#335">self</a>.<span class="ident">tx</span>.<a class="ident" href="../../../../src/tokio/sync/mpsc/list.rs.html#68">push</a>(<a class="ident" href="../../../../src/tokio/sync/mpsc/chan.rs.html#335">value</a>);
 
         <span class="comment">// Notify the rx task</span>
-        <a class="self" href="../../../../src/tokio/sync/mpsc/chan.rs.html#335">self</a>.<span class="ident">rx_waker</span>.<a class="ident" href="../../../../src/tokio/sync/task/atomic_waker.rs.html#246">wake</a>();
+        <a class="self" href="../../../../src/tokio/sync/mpsc/chan.rs.html#335">self</a>.<span class="ident">rx_waker</span>.<a class="ident" href="../../../../src/tokio/sync/task/atomic_waker.rs.html#304">wake</a>();
     }
 }
 
@@ -809,6 +810,5 @@
     }
 }
 </code></pre></div>
-</section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="tokio" data-search-index-js="../../../../search-index.js" data-search-js="../../../../search.js"></div>
-    <script src="../../../../main.js"></script><script src="../../../../source-script.js"></script><script src="../../../../source-files.js"></script>
+</section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.59.0-nightly (207c80f10 2021-11-30)" ></div>
 </body></html>

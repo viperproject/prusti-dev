@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;clap-2.33.3&#x2F;src&#x2F;suggestions.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>suggestions.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../clap/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;clap-2.34.0&#x2F;src&#x2F;suggestions.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>suggestions.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css"disabled><link rel="stylesheet" type="text/css" href="../../dark.css"disabled><link rel="stylesheet" type="text/css" href="../../light.css"id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
+    <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../clap/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -139,42 +140,31 @@
 <span id="139">139</span>
 <span id="140">140</span>
 <span id="141">141</span>
-<span id="142">142</span>
-<span id="143">143</span>
-<span id="144">144</span>
-<span id="145">145</span>
-<span id="146">146</span>
-<span id="147">147</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <a class="ident" href="../../src/clap/app/mod.rs.html#60-66">app::App</a>;
-<span class="comment">// Third Party</span>
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;suggestions&quot;</span>)]</span>
-<span class="kw">use</span> <a class="ident" href="../../strsim/index.html">strsim</a>;
-
-<span class="comment">// Internal</span>
-<span class="kw">use</span> <a class="ident" href="../../src/clap/fmt.rs.html#121-130">fmt::Format</a>;
+</pre><pre class="rust"><code><span class="comment">// Internal</span>
+<span class="kw">use</span> <span class="kw">crate</span>::{<a class="ident" href="../../src/clap/app/mod.rs.html#63-69">app::App</a>, <a class="ident" href="../../src/clap/fmt.rs.html#119-128">fmt::Format</a>};
 
 <span class="doccomment">/// Produces a string from a given list of possible values which is similar to</span>
 <span class="doccomment">/// the passed in value `v` with a certain confidence.</span>
 <span class="doccomment">/// Thus in a list of possible values like [&quot;foo&quot;, &quot;bar&quot;], the value &quot;fop&quot; will yield</span>
 <span class="doccomment">/// `Some(&quot;foo&quot;)`, whereas &quot;blark&quot; would yield `None`.</span>
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;suggestions&quot;</span>)]</span>
-<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;lints&quot;</span>, <span class="ident">allow</span>(<span class="ident">needless_lifetimes</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;cargo-clippy&quot;</span>, <span class="ident">allow</span>(<span class="ident">clippy::needless_lifetimes</span>))]</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">did_you_mean</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span>: <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>, <span class="ident">I</span><span class="op">&gt;</span>(<span class="ident">v</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, <span class="ident">possible_values</span>: <span class="ident">I</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a><span class="op">&gt;</span>
 <span class="kw">where</span>
     <span class="ident">T</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;a</span>,
     <span class="ident">I</span>: <span class="ident">IntoIterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">T</span><span class="op">&gt;</span>,
 {
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">candidate</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.f64.html">f64</a>, <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>)<span class="op">&gt;</span> <span class="op">=</span> <span class="prelude-val">None</span>;
-    <span class="kw">for</span> <a class="ident" href="../../src/clap/suggestions.rs.html#21">pv</a> <span class="kw">in</span> <a class="ident" href="../../src/clap/suggestions.rs.html#15">possible_values</a> {
-        <span class="kw">let</span> <span class="ident">confidence</span> <span class="op">=</span> <span class="ident">strsim::jaro_winkler</span>(<a class="ident" href="../../src/clap/suggestions.rs.html#15">v</a>, <a class="ident" href="../../src/clap/suggestions.rs.html#21">pv</a>.<span class="ident">as_ref</span>());
-        <span class="kw">if</span> <a class="ident" href="../../src/clap/suggestions.rs.html#22">confidence</a> <span class="op">&gt;</span> <span class="number">0.8</span> <span class="op">&amp;&amp;</span> (<a class="ident" href="../../src/clap/suggestions.rs.html#20">candidate</a>.<span class="ident">is_none</span>() <span class="op">|</span><span class="op">|</span> (<a class="ident" href="../../src/clap/suggestions.rs.html#20">candidate</a>.<span class="ident">as_ref</span>().<span class="ident">unwrap</span>().<span class="number">0</span> <span class="op">&lt;</span> <a class="ident" href="../../src/clap/suggestions.rs.html#22">confidence</a>))
+    <span class="kw">for</span> <span class="ident">pv</span> <span class="kw">in</span> <a class="ident" href="../../src/clap/suggestions.rs.html#10">possible_values</a> {
+        <span class="kw">let</span> <span class="ident">confidence</span> <span class="op">=</span> <span class="ident">strsim::jaro_winkler</span>(<a class="ident" href="../../src/clap/suggestions.rs.html#10">v</a>, <a class="ident" href="../../src/clap/suggestions.rs.html#16">pv</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>());
+        <span class="kw">if</span> <a class="ident" href="../../src/clap/suggestions.rs.html#17">confidence</a> <span class="op">&gt;</span> <span class="number">0.8</span> <span class="op">&amp;&amp;</span> (<a class="ident" href="../../src/clap/suggestions.rs.html#15">candidate</a>.<span class="ident">is_none</span>() <span class="op">|</span><span class="op">|</span> (<a class="ident" href="../../src/clap/suggestions.rs.html#15">candidate</a>.<span class="ident">as_ref</span>().<span class="ident">unwrap</span>().<span class="number">0</span> <span class="op">&lt;</span> <a class="ident" href="../../src/clap/suggestions.rs.html#17">confidence</a>))
         {
-            <a class="ident" href="../../src/clap/suggestions.rs.html#20">candidate</a> <span class="op">=</span> <span class="prelude-val">Some</span>((<a class="ident" href="../../src/clap/suggestions.rs.html#22">confidence</a>, <a class="ident" href="../../src/clap/suggestions.rs.html#21">pv</a>.<span class="ident">as_ref</span>()));
+            <a class="ident" href="../../src/clap/suggestions.rs.html#15">candidate</a> <span class="op">=</span> <span class="prelude-val">Some</span>((<a class="ident" href="../../src/clap/suggestions.rs.html#17">confidence</a>, <a class="ident" href="../../src/clap/suggestions.rs.html#16">pv</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>()));
         }
     }
-    <span class="kw">match</span> <a class="ident" href="../../src/clap/suggestions.rs.html#20">candidate</a> {
+    <span class="kw">match</span> <a class="ident" href="../../src/clap/suggestions.rs.html#15">candidate</a> {
         <span class="prelude-val">None</span> =&gt; <span class="prelude-val">None</span>,
-        <span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="ident">candidate</span>)) =&gt; <span class="prelude-val">Some</span>(<a class="ident" href="../../src/clap/suggestions.rs.html#30">candidate</a>),
+        <span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="ident">candidate</span>)) =&gt; <span class="prelude-val">Some</span>(<a class="ident" href="../../src/clap/suggestions.rs.html#25">candidate</a>),
     }
 }
 
@@ -188,56 +178,55 @@
 }
 
 <span class="doccomment">/// Returns a suffix that can be empty, or is the standard &#39;did you mean&#39; phrase</span>
-<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;lints&quot;</span>, <span class="ident">allow</span>(<span class="ident">needless_lifetimes</span>))]</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">did_you_mean_flag_suffix</span><span class="op">&lt;</span><span class="lifetime">&#39;z</span>, <span class="ident">T</span>, <span class="ident">I</span><span class="op">&gt;</span>(
     <span class="ident">arg</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>,
     <span class="ident">args_rest</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;z</span> [<span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>],
     <span class="ident">longs</span>: <span class="ident">I</span>,
-    <span class="ident">subcommands</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;z</span> [<a class="ident" href="../../src/clap/app/mod.rs.html#60-66">App</a>],
+    <span class="ident">subcommands</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;z</span> [<a class="ident" href="../../src/clap/app/mod.rs.html#63-69">App</a>],
 ) -&gt; (<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;z</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a><span class="op">&gt;</span>)
 <span class="kw">where</span>
     <span class="ident">T</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;z</span>,
     <span class="ident">I</span>: <span class="ident">IntoIterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;z</span> <span class="ident">T</span><span class="op">&gt;</span>,
 {
-    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">candidate</span>) <span class="op">=</span> <a class="ident" href="../../src/clap/suggestions.rs.html#15-18">did_you_mean</a>(<a class="ident" href="../../src/clap/suggestions.rs.html#46">arg</a>, <a class="ident" href="../../src/clap/suggestions.rs.html#48">longs</a>) {
+    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">candidate</span>) <span class="op">=</span> <a class="ident" href="../../src/clap/suggestions.rs.html#10-13">did_you_mean</a>(<a class="ident" href="../../src/clap/suggestions.rs.html#40">arg</a>, <a class="ident" href="../../src/clap/suggestions.rs.html#42">longs</a>) {
         <span class="kw">let</span> <span class="ident">suffix</span> <span class="op">=</span> <span class="macro">format!</span>(
             <span class="string">&quot;\n\tDid you mean {}{}?&quot;</span>,
-            <a class="ident" href="../../src/clap/fmt.rs.html#127">Format::Good</a>(<span class="string">&quot;--&quot;</span>),
-            <a class="ident" href="../../src/clap/fmt.rs.html#127">Format::Good</a>(<a class="ident" href="../../src/clap/suggestions.rs.html#55">candidate</a>)
+            <a class="ident" href="../../src/clap/fmt.rs.html#125">Format::Good</a>(<span class="string">&quot;--&quot;</span>),
+            <a class="ident" href="../../src/clap/fmt.rs.html#125">Format::Good</a>(<a class="ident" href="../../src/clap/suggestions.rs.html#49">candidate</a>)
         );
-        <span class="kw">return</span> (<a class="ident" href="../../src/clap/suggestions.rs.html#56">suffix</a>, <span class="prelude-val">Some</span>(<a class="ident" href="../../src/clap/suggestions.rs.html#55">candidate</a>));
+        <span class="kw">return</span> (<a class="ident" href="../../src/clap/suggestions.rs.html#50">suffix</a>, <span class="prelude-val">Some</span>(<a class="ident" href="../../src/clap/suggestions.rs.html#49">candidate</a>));
     }
 
-    <a class="ident" href="../../src/clap/suggestions.rs.html#49">subcommands</a>
-        .<span class="ident">into_iter</span>()
-        .<span class="ident">filter_map</span>(<span class="op">|</span><span class="ident">subcommand</span><span class="op">|</span> {
-            <span class="kw">let</span> <span class="ident">opts</span> <span class="op">=</span> <a class="ident" href="../../src/clap/suggestions.rs.html#66">subcommand</a>
+    <a class="ident" href="../../src/clap/suggestions.rs.html#43">subcommands</a>
+        .<span class="ident">iter</span>()
+        .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter_map</a>(<span class="op">|</span><span class="ident">subcommand</span><span class="op">|</span> {
+            <span class="kw">let</span> <span class="ident">opts</span> <span class="op">=</span> <a class="ident" href="../../src/clap/suggestions.rs.html#60">subcommand</a>
                 .<span class="ident">p</span>
                 .<span class="ident">flags</span>
                 .<span class="ident">iter</span>()
-                .<span class="ident">filter_map</span>(<span class="op">|</span><span class="ident">f</span><span class="op">|</span> <a class="ident" href="../../src/clap/suggestions.rs.html#71">f</a>.<span class="ident">s</span>.<span class="ident">long</span>)
-                .<span class="ident">chain</span>(<a class="ident" href="../../src/clap/suggestions.rs.html#66">subcommand</a>.<span class="ident">p</span>.<span class="ident">opts</span>.<span class="ident">iter</span>().<span class="ident">filter_map</span>(<span class="op">|</span><span class="ident">o</span><span class="op">|</span> <a class="ident" href="../../src/clap/suggestions.rs.html#72">o</a>.<span class="ident">s</span>.<span class="ident">long</span>));
+                .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter_map</a>(<span class="op">|</span><span class="ident">f</span><span class="op">|</span> <a class="ident" href="../../src/clap/suggestions.rs.html#65">f</a>.<span class="ident">s</span>.<span class="ident">long</span>)
+                .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">chain</a>(<a class="ident" href="../../src/clap/suggestions.rs.html#60">subcommand</a>.<span class="ident">p</span>.<span class="ident">opts</span>.<span class="ident">iter</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter_map</a>(<span class="op">|</span><span class="ident">o</span><span class="op">|</span> <a class="ident" href="../../src/clap/suggestions.rs.html#66">o</a>.<span class="ident">s</span>.<span class="ident">long</span>));
 
-            <span class="kw">let</span> <span class="ident">candidate</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../src/clap/suggestions.rs.html#15-18">did_you_mean</a>(<a class="ident" href="../../src/clap/suggestions.rs.html#46">arg</a>, <a class="ident" href="../../src/clap/suggestions.rs.html#67">opts</a>) {
-                <span class="prelude-val">Some</span>(<span class="ident">candidate</span>) =&gt; <a class="ident" href="../../src/clap/suggestions.rs.html#75">candidate</a>,
+            <span class="kw">let</span> <span class="ident">candidate</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../src/clap/suggestions.rs.html#10-13">did_you_mean</a>(<a class="ident" href="../../src/clap/suggestions.rs.html#40">arg</a>, <a class="ident" href="../../src/clap/suggestions.rs.html#61">opts</a>) {
+                <span class="prelude-val">Some</span>(<span class="ident">candidate</span>) =&gt; <a class="ident" href="../../src/clap/suggestions.rs.html#69">candidate</a>,
                 <span class="prelude-val">None</span> =&gt; <span class="kw">return</span> <span class="prelude-val">None</span>,
             };
-            <span class="kw">let</span> <span class="ident">score</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../src/clap/suggestions.rs.html#47">args_rest</a>.<span class="ident">iter</span>().<span class="ident">position</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="kw-2">*</span><a class="ident" href="../../src/clap/suggestions.rs.html#78">x</a> <span class="op">==</span> <a class="ident" href="../../src/clap/suggestions.rs.html#66">subcommand</a>.<a class="ident" href="../../src/clap/app/mod.rs.html#87">get_name</a>()) {
-                <span class="prelude-val">Some</span>(<span class="ident">score</span>) =&gt; <a class="ident" href="../../src/clap/suggestions.rs.html#79">score</a>,
+            <span class="kw">let</span> <span class="ident">score</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../src/clap/suggestions.rs.html#41">args_rest</a>.<span class="ident">iter</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">position</a>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="kw-2">*</span><a class="ident" href="../../src/clap/suggestions.rs.html#72">x</a> <span class="op">==</span> <a class="ident" href="../../src/clap/suggestions.rs.html#60">subcommand</a>.<a class="ident" href="../../src/clap/app/mod.rs.html#90">get_name</a>()) {
+                <span class="prelude-val">Some</span>(<span class="ident">score</span>) =&gt; <a class="ident" href="../../src/clap/suggestions.rs.html#73">score</a>,
                 <span class="prelude-val">None</span> =&gt; <span class="kw">return</span> <span class="prelude-val">None</span>,
             };
 
             <span class="kw">let</span> <span class="ident">suffix</span> <span class="op">=</span> <span class="macro">format!</span>(
                 <span class="string">&quot;\n\tDid you mean to put &#39;{}{}&#39; after the subcommand &#39;{}&#39;?&quot;</span>,
-                <a class="ident" href="../../src/clap/fmt.rs.html#127">Format::Good</a>(<span class="string">&quot;--&quot;</span>),
-                <a class="ident" href="../../src/clap/fmt.rs.html#127">Format::Good</a>(<a class="ident" href="../../src/clap/suggestions.rs.html#74">candidate</a>),
-                <a class="ident" href="../../src/clap/fmt.rs.html#127">Format::Good</a>(<a class="ident" href="../../src/clap/suggestions.rs.html#66">subcommand</a>.<a class="ident" href="../../src/clap/app/mod.rs.html#87">get_name</a>())
+                <a class="ident" href="../../src/clap/fmt.rs.html#125">Format::Good</a>(<span class="string">&quot;--&quot;</span>),
+                <a class="ident" href="../../src/clap/fmt.rs.html#125">Format::Good</a>(<a class="ident" href="../../src/clap/suggestions.rs.html#68">candidate</a>),
+                <a class="ident" href="../../src/clap/fmt.rs.html#125">Format::Good</a>(<a class="ident" href="../../src/clap/suggestions.rs.html#60">subcommand</a>.<a class="ident" href="../../src/clap/app/mod.rs.html#90">get_name</a>())
             );
 
-            <span class="prelude-val">Some</span>((<a class="ident" href="../../src/clap/suggestions.rs.html#78">score</a>, (<a class="ident" href="../../src/clap/suggestions.rs.html#83">suffix</a>, <span class="prelude-val">Some</span>(<a class="ident" href="../../src/clap/suggestions.rs.html#74">candidate</a>))))
+            <span class="prelude-val">Some</span>((<a class="ident" href="../../src/clap/suggestions.rs.html#72">score</a>, (<a class="ident" href="../../src/clap/suggestions.rs.html#77">suffix</a>, <span class="prelude-val">Some</span>(<a class="ident" href="../../src/clap/suggestions.rs.html#68">candidate</a>))))
         })
-        .<span class="ident">min_by_key</span>(<span class="op">|</span><span class="kw-2">&amp;</span>(<span class="ident">score</span>, <span class="kw">_</span>)<span class="op">|</span> <a class="ident" href="../../src/clap/suggestions.rs.html#92">score</a>)
-        .<span class="ident">map</span>(<span class="op">|</span>(<span class="kw">_</span>, <span class="ident">suggestion</span>)<span class="op">|</span> <a class="ident" href="../../src/clap/suggestions.rs.html#93">suggestion</a>)
+        .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">min_by_key</a>(<span class="op">|</span><span class="kw-2">&amp;</span>(<span class="ident">score</span>, <span class="kw">_</span>)<span class="op">|</span> <a class="ident" href="../../src/clap/suggestions.rs.html#86">score</a>)
+        .<span class="ident">map</span>(<span class="op">|</span>(<span class="kw">_</span>, <span class="ident">suggestion</span>)<span class="op">|</span> <a class="ident" href="../../src/clap/suggestions.rs.html#87">suggestion</a>)
         .<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> (<span class="ident">String::new</span>(), <span class="prelude-val">None</span>))
 }
 
@@ -247,10 +236,10 @@
     <span class="ident">T</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;z</span>,
     <span class="ident">I</span>: <span class="ident">IntoIterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;z</span> <span class="ident">T</span><span class="op">&gt;</span>,
 {
-    <span class="kw">match</span> <a class="ident" href="../../src/clap/suggestions.rs.html#15-18">did_you_mean</a>(<a class="ident" href="../../src/clap/suggestions.rs.html#98">arg</a>, <a class="ident" href="../../src/clap/suggestions.rs.html#98">values</a>) {
+    <span class="kw">match</span> <a class="ident" href="../../src/clap/suggestions.rs.html#10-13">did_you_mean</a>(<a class="ident" href="../../src/clap/suggestions.rs.html#92">arg</a>, <a class="ident" href="../../src/clap/suggestions.rs.html#92">values</a>) {
         <span class="prelude-val">Some</span>(<span class="ident">candidate</span>) =&gt; {
-            <span class="kw">let</span> <span class="ident">suffix</span> <span class="op">=</span> <span class="macro">format!</span>(<span class="string">&quot;\n\tDid you mean &#39;{}&#39;?&quot;</span>, <a class="ident" href="../../src/clap/fmt.rs.html#127">Format::Good</a>(<a class="ident" href="../../src/clap/suggestions.rs.html#104">candidate</a>));
-            (<a class="ident" href="../../src/clap/suggestions.rs.html#105">suffix</a>, <span class="prelude-val">Some</span>(<a class="ident" href="../../src/clap/suggestions.rs.html#104">candidate</a>))
+            <span class="kw">let</span> <span class="ident">suffix</span> <span class="op">=</span> <span class="macro">format!</span>(<span class="string">&quot;\n\tDid you mean &#39;{}&#39;?&quot;</span>, <a class="ident" href="../../src/clap/fmt.rs.html#125">Format::Good</a>(<a class="ident" href="../../src/clap/suggestions.rs.html#98">candidate</a>));
+            (<a class="ident" href="../../src/clap/suggestions.rs.html#99">suffix</a>, <span class="prelude-val">Some</span>(<a class="ident" href="../../src/clap/suggestions.rs.html#98">candidate</a>))
         }
         <span class="prelude-val">None</span> =&gt; (<span class="ident">String::new</span>(), <span class="prelude-val">None</span>),
     }
@@ -293,6 +282,5 @@
     }
 }
 </code></pre></div>
-</section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="clap" data-search-index-js="../../search-index.js" data-search-js="../../search.js"></div>
-    <script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script>
+</section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="clap" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.59.0-nightly (207c80f10 2021-11-30)" ></div>
 </body></html>

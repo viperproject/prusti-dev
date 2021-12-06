@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;tokio-1.13.0&#x2F;src&#x2F;sync&#x2F;notify.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>notify.rs - source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../tokio/index.html'><div class='logo-container rust-logo'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;tokio-1.14.0&#x2F;src&#x2F;sync&#x2F;notify.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>notify.rs - source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css"disabled><link rel="stylesheet" type="text/css" href="../../../dark.css"disabled><link rel="stylesheet" type="text/css" href="../../../light.css"id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
+    <noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../tokio/index.html'><div class='logo-container rust-logo'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -734,6 +735,9 @@
 <span id="734">734</span>
 <span id="735">735</span>
 <span id="736">736</span>
+<span id="737">737</span>
+<span id="738">738</span>
+<span id="739">739</span>
 </pre><pre class="rust"><code><span class="comment">// Allow `unreachable_pub` warnings when sync is not enabled</span>
 <span class="comment">// due to the usage of `Notify` within the `rt` feature set.</span>
 <span class="comment">// When this module is compiled with `sync` enabled we will warn on</span>
@@ -754,7 +758,7 @@
 <span class="kw">use</span> <span class="ident">std::sync::atomic::Ordering::SeqCst</span>;
 <span class="kw">use</span> <span class="ident">std::task</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a>};
 
-<span class="kw">type</span> <span class="ident">WaitList</span> <span class="op">=</span> <span class="ident">LinkedList</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio/sync/notify.rs.html#130-142">Waiter</a>, <span class="op">&lt;</span><a class="ident" href="../../../src/tokio/sync/notify.rs.html#130-142">Waiter</a> <span class="kw">as</span> <span class="ident">linked_list::Link</span><span class="op">&gt;</span><span class="ident">::Target</span><span class="op">&gt;</span>;
+<span class="kw">type</span> <span class="ident">WaitList</span> <span class="op">=</span> <span class="ident">LinkedList</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio/sync/notify.rs.html#133-145">Waiter</a>, <span class="op">&lt;</span><a class="ident" href="../../../src/tokio/sync/notify.rs.html#133-145">Waiter</a> <span class="kw">as</span> <span class="ident">linked_list::Link</span><span class="op">&gt;</span><span class="ident">::Target</span><span class="op">&gt;</span>;
 
 <span class="doccomment">/// Notifies a single task to wake up.</span>
 <span class="doccomment">///</span>
@@ -793,13 +797,16 @@
 <span class="doccomment">///     let notify = Arc::new(Notify::new());</span>
 <span class="doccomment">///     let notify2 = notify.clone();</span>
 <span class="doccomment">///</span>
-<span class="doccomment">///     tokio::spawn(async move {</span>
+<span class="doccomment">///     let handle = tokio::spawn(async move {</span>
 <span class="doccomment">///         notify2.notified().await;</span>
 <span class="doccomment">///         println!(&quot;received notification&quot;);</span>
 <span class="doccomment">///     });</span>
 <span class="doccomment">///</span>
 <span class="doccomment">///     println!(&quot;sending notification&quot;);</span>
 <span class="doccomment">///     notify.notify_one();</span>
+<span class="doccomment">///</span>
+<span class="doccomment">///     // Wait for task to receive notification.</span>
+<span class="doccomment">///     handle.await.unwrap();</span>
 <span class="doccomment">/// }</span>
 <span class="doccomment">/// ```</span>
 <span class="doccomment">///</span>
@@ -865,13 +872,13 @@
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
 <span class="kw">struct</span> <span class="ident">Waiter</span> {
     <span class="doccomment">/// Intrusive linked-list pointers.</span>
-    <span class="ident">pointers</span>: <span class="ident">linked_list::Pointers</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio/sync/notify.rs.html#130-142">Waiter</a><span class="op">&gt;</span>,
+    <span class="ident">pointers</span>: <span class="ident">linked_list::Pointers</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio/sync/notify.rs.html#133-145">Waiter</a><span class="op">&gt;</span>,
 
     <span class="doccomment">/// Waiting task&#39;s waker.</span>
     <span class="ident">waker</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a><span class="op">&gt;</span>,
 
     <span class="doccomment">/// `true` if the notification has been assigned to this waiter.</span>
-    <span class="ident">notified</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio/sync/notify.rs.html#122-127">NotificationType</a><span class="op">&gt;</span>,
+    <span class="ident">notified</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio/sync/notify.rs.html#125-130">NotificationType</a><span class="op">&gt;</span>,
 
     <span class="doccomment">/// Should not be `Unpin`.</span>
     <span class="ident">_p</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/struct.PhantomPinned.html">PhantomPinned</a>,
@@ -881,13 +888,13 @@
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Notified</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
     <span class="doccomment">/// The `Notify` being received on.</span>
-    <span class="ident">notify</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#112-119">Notify</a>,
+    <span class="ident">notify</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#115-122">Notify</a>,
 
     <span class="doccomment">/// The current state of the receiving process.</span>
-    <span class="ident">state</span>: <a class="ident" href="../../../src/tokio/sync/notify.rs.html#161-165">State</a>,
+    <span class="ident">state</span>: <a class="ident" href="../../../src/tokio/sync/notify.rs.html#164-168">State</a>,
 
     <span class="doccomment">/// Entry in the waiter `LinkedList`.</span>
-    <span class="ident">waiter</span>: <span class="ident">UnsafeCell</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio/sync/notify.rs.html#130-142">Waiter</a><span class="op">&gt;</span>,
+    <span class="ident">waiter</span>: <span class="ident">UnsafeCell</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio/sync/notify.rs.html#133-145">Waiter</a><span class="op">&gt;</span>,
 }
 
 <span class="kw">unsafe</span> <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="kw">for</span> <span class="ident">Notified</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {}
@@ -901,8 +908,8 @@
 }
 
 <span class="kw">const</span> <span class="ident">NOTIFY_WAITERS_SHIFT</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> <span class="op">=</span> <span class="number">2</span>;
-<span class="kw">const</span> <span class="ident">STATE_MASK</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> <span class="op">=</span> (<span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#167">NOTIFY_WAITERS_SHIFT</a>) <span class="op">-</span> <span class="number">1</span>;
-<span class="kw">const</span> <span class="ident">NOTIFY_WAITERS_CALLS_MASK</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> <span class="op">=</span> <span class="op">!</span><a class="ident" href="../../../src/tokio/sync/notify.rs.html#168">STATE_MASK</a>;
+<span class="kw">const</span> <span class="ident">STATE_MASK</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> <span class="op">=</span> (<span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#170">NOTIFY_WAITERS_SHIFT</a>) <span class="op">-</span> <span class="number">1</span>;
+<span class="kw">const</span> <span class="ident">NOTIFY_WAITERS_CALLS_MASK</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> <span class="op">=</span> <span class="op">!</span><a class="ident" href="../../../src/tokio/sync/notify.rs.html#171">STATE_MASK</a>;
 
 <span class="doccomment">/// Initial &quot;idle&quot; state.</span>
 <span class="kw">const</span> <span class="ident">EMPTY</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> <span class="op">=</span> <span class="number">0</span>;
@@ -914,26 +921,26 @@
 <span class="kw">const</span> <span class="ident">NOTIFIED</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> <span class="op">=</span> <span class="number">2</span>;
 
 <span class="kw">fn</span> <span class="ident">set_state</span>(<span class="ident">data</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="ident">state</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-    (<a class="ident" href="../../../src/tokio/sync/notify.rs.html#180">data</a> <span class="op">&amp;</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#169">NOTIFY_WAITERS_CALLS_MASK</a>) <span class="op">|</span> (<a class="ident" href="../../../src/tokio/sync/notify.rs.html#180">state</a> <span class="op">&amp;</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#168">STATE_MASK</a>)
+    (<a class="ident" href="../../../src/tokio/sync/notify.rs.html#183">data</a> <span class="op">&amp;</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#172">NOTIFY_WAITERS_CALLS_MASK</a>) <span class="op">|</span> (<a class="ident" href="../../../src/tokio/sync/notify.rs.html#183">state</a> <span class="op">&amp;</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#171">STATE_MASK</a>)
 }
 
 <span class="kw">fn</span> <span class="ident">get_state</span>(<span class="ident">data</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-    <a class="ident" href="../../../src/tokio/sync/notify.rs.html#184">data</a> <span class="op">&amp;</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#168">STATE_MASK</a>
+    <a class="ident" href="../../../src/tokio/sync/notify.rs.html#187">data</a> <span class="op">&amp;</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#171">STATE_MASK</a>
 }
 
 <span class="kw">fn</span> <span class="ident">get_num_notify_waiters_calls</span>(<span class="ident">data</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-    (<a class="ident" href="../../../src/tokio/sync/notify.rs.html#188">data</a> <span class="op">&amp;</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#169">NOTIFY_WAITERS_CALLS_MASK</a>) <span class="op">&gt;</span><span class="op">&gt;</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#167">NOTIFY_WAITERS_SHIFT</a>
+    (<a class="ident" href="../../../src/tokio/sync/notify.rs.html#191">data</a> <span class="op">&amp;</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#172">NOTIFY_WAITERS_CALLS_MASK</a>) <span class="op">&gt;</span><span class="op">&gt;</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#170">NOTIFY_WAITERS_SHIFT</a>
 }
 
 <span class="kw">fn</span> <span class="ident">inc_num_notify_waiters_calls</span>(<span class="ident">data</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-    <a class="ident" href="../../../src/tokio/sync/notify.rs.html#192">data</a> <span class="op">+</span> (<span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#167">NOTIFY_WAITERS_SHIFT</a>)
+    <a class="ident" href="../../../src/tokio/sync/notify.rs.html#195">data</a> <span class="op">+</span> (<span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#170">NOTIFY_WAITERS_SHIFT</a>)
 }
 
 <span class="kw">fn</span> <span class="ident">atomic_inc_num_notify_waiters_calls</span>(<span class="ident">data</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/tokio/loom/std/atomic_usize.rs.html#6-8">AtomicUsize</a>) {
-    <a class="ident" href="../../../src/tokio/sync/notify.rs.html#196">data</a>.<span class="ident">fetch_add</span>(<span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#167">NOTIFY_WAITERS_SHIFT</a>, <span class="ident">SeqCst</span>);
+    <a class="ident" href="../../../src/tokio/sync/notify.rs.html#199">data</a>.<span class="ident">fetch_add</span>(<span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#170">NOTIFY_WAITERS_SHIFT</a>, <span class="ident">SeqCst</span>);
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#112-119">Notify</a> {
+<span class="kw">impl</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#115-122">Notify</a> {
     <span class="doccomment">/// Create a new `Notify`, initialized without a permit.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// # Examples</span>
@@ -943,8 +950,8 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// let notify = Notify::new();</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <a class="ident" href="../../../src/tokio/sync/notify.rs.html#112-119">Notify</a> {
-        <a class="ident" href="../../../src/tokio/sync/notify.rs.html#112-119">Notify</a> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <a class="ident" href="../../../src/tokio/sync/notify.rs.html#115-122">Notify</a> {
+        <a class="ident" href="../../../src/tokio/sync/notify.rs.html#115-122">Notify</a> {
             <span class="ident">state</span>: <span class="ident">AtomicUsize::new</span>(<span class="number">0</span>),
             <span class="ident">waiters</span>: <span class="ident">Mutex::new</span>(<span class="ident">LinkedList::new</span>()),
         }
@@ -1012,11 +1019,11 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">notified</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Notified</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
         <span class="comment">// we load the number of times notify_waiters</span>
         <span class="comment">// was called and store that in our initial state</span>
-        <span class="kw">let</span> <span class="ident">state</span> <span class="op">=</span> <a class="self" href="../../../src/tokio/sync/notify.rs.html#276">self</a>.<span class="ident">state</span>.<span class="ident">load</span>(<span class="ident">SeqCst</span>);
-        <a class="ident" href="../../../src/tokio/sync/notify.rs.html#146-155">Notified</a> {
-            <span class="ident">notify</span>: <a class="self" href="../../../src/tokio/sync/notify.rs.html#276">self</a>,
-            <span class="ident">state</span>: <a class="ident" href="../../../src/tokio/sync/notify.rs.html#162">State::Init</a>(<a class="ident" href="../../../src/tokio/sync/notify.rs.html#279">state</a> <span class="op">&gt;</span><span class="op">&gt;</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#167">NOTIFY_WAITERS_SHIFT</a>),
-            <span class="ident">waiter</span>: <span class="ident">UnsafeCell::new</span>(<a class="ident" href="../../../src/tokio/sync/notify.rs.html#130-142">Waiter</a> {
+        <span class="kw">let</span> <span class="ident">state</span> <span class="op">=</span> <a class="self" href="../../../src/tokio/sync/notify.rs.html#279">self</a>.<span class="ident">state</span>.<span class="ident">load</span>(<span class="ident">SeqCst</span>);
+        <a class="ident" href="../../../src/tokio/sync/notify.rs.html#149-158">Notified</a> {
+            <span class="ident">notify</span>: <a class="self" href="../../../src/tokio/sync/notify.rs.html#279">self</a>,
+            <span class="ident">state</span>: <a class="ident" href="../../../src/tokio/sync/notify.rs.html#165">State::Init</a>(<a class="ident" href="../../../src/tokio/sync/notify.rs.html#282">state</a> <span class="op">&gt;</span><span class="op">&gt;</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#170">NOTIFY_WAITERS_SHIFT</a>),
+            <span class="ident">waiter</span>: <span class="ident">UnsafeCell::new</span>(<a class="ident" href="../../../src/tokio/sync/notify.rs.html#133-145">Waiter</a> {
                 <span class="ident">pointers</span>: <span class="ident">linked_list::Pointers::new</span>(),
                 <span class="ident">waker</span>: <span class="prelude-val">None</span>,
                 <span class="ident">notified</span>: <span class="prelude-val">None</span>,
@@ -1063,35 +1070,35 @@
     <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">alias</span> <span class="op">=</span> <span class="string">&quot;notify&quot;</span>))]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">notify_one</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) {
         <span class="comment">// Load the current state</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">curr</span> <span class="op">=</span> <a class="self" href="../../../src/tokio/sync/notify.rs.html#328">self</a>.<span class="ident">state</span>.<span class="ident">load</span>(<span class="ident">SeqCst</span>);
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">curr</span> <span class="op">=</span> <a class="self" href="../../../src/tokio/sync/notify.rs.html#331">self</a>.<span class="ident">state</span>.<span class="ident">load</span>(<span class="ident">SeqCst</span>);
 
         <span class="comment">// If the state is `EMPTY`, transition to `NOTIFIED` and return.</span>
-        <span class="kw">while</span> <span class="kw">let</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#172">EMPTY</a> <span class="op">|</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#178">NOTIFIED</a> <span class="op">=</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#184">get_state</a>(<a class="ident" href="../../../src/tokio/sync/notify.rs.html#330">curr</a>) {
+        <span class="kw">while</span> <span class="kw">let</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#175">EMPTY</a> <span class="op">|</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#181">NOTIFIED</a> <span class="op">=</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#187">get_state</a>(<a class="ident" href="../../../src/tokio/sync/notify.rs.html#333">curr</a>) {
             <span class="comment">// The compare-exchange from `NOTIFIED` -&gt; `NOTIFIED` is intended. A</span>
             <span class="comment">// happens-before synchronization must happen between this atomic</span>
             <span class="comment">// operation and a task calling `notified().await`.</span>
-            <span class="kw">let</span> <span class="ident">new</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#180">set_state</a>(<a class="ident" href="../../../src/tokio/sync/notify.rs.html#330">curr</a>, <a class="ident" href="../../../src/tokio/sync/notify.rs.html#178">NOTIFIED</a>);
-            <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <a class="self" href="../../../src/tokio/sync/notify.rs.html#328">self</a>.<span class="ident">state</span>.<span class="ident">compare_exchange</span>(<a class="ident" href="../../../src/tokio/sync/notify.rs.html#330">curr</a>, <a class="ident" href="../../../src/tokio/sync/notify.rs.html#337">new</a>, <span class="ident">SeqCst</span>, <span class="ident">SeqCst</span>);
+            <span class="kw">let</span> <span class="ident">new</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#183">set_state</a>(<a class="ident" href="../../../src/tokio/sync/notify.rs.html#333">curr</a>, <a class="ident" href="../../../src/tokio/sync/notify.rs.html#181">NOTIFIED</a>);
+            <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <a class="self" href="../../../src/tokio/sync/notify.rs.html#331">self</a>.<span class="ident">state</span>.<span class="ident">compare_exchange</span>(<a class="ident" href="../../../src/tokio/sync/notify.rs.html#333">curr</a>, <a class="ident" href="../../../src/tokio/sync/notify.rs.html#340">new</a>, <span class="ident">SeqCst</span>, <span class="ident">SeqCst</span>);
 
-            <span class="kw">match</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#338">res</a> {
+            <span class="kw">match</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#341">res</a> {
                 <span class="comment">// No waiters, no further work to do</span>
                 <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; <span class="kw">return</span>,
                 <span class="prelude-val">Err</span>(<span class="ident">actual</span>) =&gt; {
-                    <a class="ident" href="../../../src/tokio/sync/notify.rs.html#330">curr</a> <span class="op">=</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#343">actual</a>;
+                    <a class="ident" href="../../../src/tokio/sync/notify.rs.html#333">curr</a> <span class="op">=</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#346">actual</a>;
                 }
             }
         }
 
         <span class="comment">// There are waiters, the lock must be acquired to notify.</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">waiters</span> <span class="op">=</span> <a class="self" href="../../../src/tokio/sync/notify.rs.html#328">self</a>.<span class="ident">waiters</span>.<a class="ident" href="../../../src/tokio/loom/std/mutex.rs.html#16">lock</a>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">waiters</span> <span class="op">=</span> <a class="self" href="../../../src/tokio/sync/notify.rs.html#331">self</a>.<span class="ident">waiters</span>.<a class="ident" href="../../../src/tokio/loom/std/mutex.rs.html#16">lock</a>();
 
         <span class="comment">// The state must be reloaded while the lock is held. The state may only</span>
         <span class="comment">// transition out of WAITING while the lock is held.</span>
-        <a class="ident" href="../../../src/tokio/sync/notify.rs.html#330">curr</a> <span class="op">=</span> <a class="self" href="../../../src/tokio/sync/notify.rs.html#328">self</a>.<span class="ident">state</span>.<span class="ident">load</span>(<span class="ident">SeqCst</span>);
+        <a class="ident" href="../../../src/tokio/sync/notify.rs.html#333">curr</a> <span class="op">=</span> <a class="self" href="../../../src/tokio/sync/notify.rs.html#331">self</a>.<span class="ident">state</span>.<span class="ident">load</span>(<span class="ident">SeqCst</span>);
 
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">waker</span>) <span class="op">=</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#462">notify_locked</a>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#350">waiters</a>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/tokio/sync/notify.rs.html#328">self</a>.<span class="ident">state</span>, <a class="ident" href="../../../src/tokio/sync/notify.rs.html#330">curr</a>) {
-            <a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<a class="ident" href="../../../src/tokio/sync/notify.rs.html#350">waiters</a>);
-            <a class="ident" href="../../../src/tokio/sync/notify.rs.html#356">waker</a>.<span class="ident">wake</span>();
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">waker</span>) <span class="op">=</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#465">notify_locked</a>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#353">waiters</a>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/tokio/sync/notify.rs.html#331">self</a>.<span class="ident">state</span>, <a class="ident" href="../../../src/tokio/sync/notify.rs.html#333">curr</a>) {
+            <a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<a class="ident" href="../../../src/tokio/sync/notify.rs.html#353">waiters</a>);
+            <a class="ident" href="../../../src/tokio/sync/notify.rs.html#359">waker</a>.<span class="ident">wake</span>();
         }
     }
 
@@ -1131,16 +1138,16 @@
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">wakers</span> <span class="op">=</span> <span class="ident">WakeList::new</span>();
 
         <span class="comment">// There are waiters, the lock must be acquired to notify.</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">waiters</span> <span class="op">=</span> <a class="self" href="../../../src/tokio/sync/notify.rs.html#394">self</a>.<span class="ident">waiters</span>.<a class="ident" href="../../../src/tokio/loom/std/mutex.rs.html#16">lock</a>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">waiters</span> <span class="op">=</span> <a class="self" href="../../../src/tokio/sync/notify.rs.html#397">self</a>.<span class="ident">waiters</span>.<a class="ident" href="../../../src/tokio/loom/std/mutex.rs.html#16">lock</a>();
 
         <span class="comment">// The state must be reloaded while the lock is held. The state may only</span>
         <span class="comment">// transition out of WAITING while the lock is held.</span>
-        <span class="kw">let</span> <span class="ident">curr</span> <span class="op">=</span> <a class="self" href="../../../src/tokio/sync/notify.rs.html#394">self</a>.<span class="ident">state</span>.<span class="ident">load</span>(<span class="ident">SeqCst</span>);
+        <span class="kw">let</span> <span class="ident">curr</span> <span class="op">=</span> <a class="self" href="../../../src/tokio/sync/notify.rs.html#397">self</a>.<span class="ident">state</span>.<span class="ident">load</span>(<span class="ident">SeqCst</span>);
 
-        <span class="kw">if</span> <span class="kw">let</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#172">EMPTY</a> <span class="op">|</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#178">NOTIFIED</a> <span class="op">=</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#184">get_state</a>(<a class="ident" href="../../../src/tokio/sync/notify.rs.html#402">curr</a>) {
+        <span class="kw">if</span> <span class="kw">let</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#175">EMPTY</a> <span class="op">|</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#181">NOTIFIED</a> <span class="op">=</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#187">get_state</a>(<a class="ident" href="../../../src/tokio/sync/notify.rs.html#405">curr</a>) {
             <span class="comment">// There are no waiting tasks. All we need to do is increment the</span>
             <span class="comment">// number of times this method was called.</span>
-            <a class="ident" href="../../../src/tokio/sync/notify.rs.html#196">atomic_inc_num_notify_waiters_calls</a>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/tokio/sync/notify.rs.html#394">self</a>.<span class="ident">state</span>);
+            <a class="ident" href="../../../src/tokio/sync/notify.rs.html#199">atomic_inc_num_notify_waiters_calls</a>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/tokio/sync/notify.rs.html#397">self</a>.<span class="ident">state</span>);
             <span class="kw">return</span>;
         }
 
@@ -1148,18 +1155,18 @@
         <span class="comment">// concurrently change, as holding the lock is required to</span>
         <span class="comment">// transition **out** of `WAITING`.</span>
         <span class="lifetime">&#39;outer</span>: <span class="kw">loop</span> {
-            <span class="kw">while</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#395">wakers</a>.<a class="ident" href="../../../src/tokio/util/wake_list.rs.html#27">can_push</a>() {
-                <span class="kw">match</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#398">waiters</a>.<a class="ident" href="../../../src/tokio/util/linked_list.rs.html#142">pop_back</a>() {
+            <span class="kw">while</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#398">wakers</a>.<a class="ident" href="../../../src/tokio/util/wake_list.rs.html#27">can_push</a>() {
+                <span class="kw">match</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#401">waiters</a>.<a class="ident" href="../../../src/tokio/util/linked_list.rs.html#142">pop_back</a>() {
                     <span class="prelude-val">Some</span>(<span class="kw-2">mut</span> <span class="ident">waiter</span>) =&gt; {
                         <span class="comment">// Safety: `waiters` lock is still held.</span>
-                        <span class="kw">let</span> <span class="ident">waiter</span> <span class="op">=</span> <span class="kw">unsafe</span> { <a class="ident" href="../../../src/tokio/sync/notify.rs.html#417">waiter</a>.<span class="ident">as_mut</span>() };
+                        <span class="kw">let</span> <span class="ident">waiter</span> <span class="op">=</span> <span class="kw">unsafe</span> { <a class="ident" href="../../../src/tokio/sync/notify.rs.html#420">waiter</a>.<span class="ident">as_mut</span>() };
 
-                        <span class="macro">assert!</span>(<a class="ident" href="../../../src/tokio/sync/notify.rs.html#419">waiter</a>.<span class="ident">notified</span>.<span class="ident">is_none</span>());
+                        <span class="macro">assert!</span>(<a class="ident" href="../../../src/tokio/sync/notify.rs.html#422">waiter</a>.<span class="ident">notified</span>.<span class="ident">is_none</span>());
 
-                        <a class="ident" href="../../../src/tokio/sync/notify.rs.html#419">waiter</a>.<span class="ident">notified</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/tokio/sync/notify.rs.html#124">NotificationType::AllWaiters</a>);
+                        <a class="ident" href="../../../src/tokio/sync/notify.rs.html#422">waiter</a>.<span class="ident">notified</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/tokio/sync/notify.rs.html#127">NotificationType::AllWaiters</a>);
 
-                        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">waker</span>) <span class="op">=</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#419">waiter</a>.<span class="ident">waker</span>.<span class="ident">take</span>() {
-                            <a class="ident" href="../../../src/tokio/sync/notify.rs.html#395">wakers</a>.<a class="ident" href="../../../src/tokio/util/wake_list.rs.html#31">push</a>(<a class="ident" href="../../../src/tokio/sync/notify.rs.html#425">waker</a>);
+                        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">waker</span>) <span class="op">=</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#422">waiter</a>.<span class="ident">waker</span>.<span class="ident">take</span>() {
+                            <a class="ident" href="../../../src/tokio/sync/notify.rs.html#398">wakers</a>.<a class="ident" href="../../../src/tokio/util/wake_list.rs.html#31">push</a>(<a class="ident" href="../../../src/tokio/sync/notify.rs.html#428">waker</a>);
                         }
                     }
                     <span class="prelude-val">None</span> =&gt; {
@@ -1168,74 +1175,74 @@
                 }
             }
 
-            <a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<a class="ident" href="../../../src/tokio/sync/notify.rs.html#398">waiters</a>);
+            <a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<a class="ident" href="../../../src/tokio/sync/notify.rs.html#401">waiters</a>);
 
-            <a class="ident" href="../../../src/tokio/sync/notify.rs.html#395">wakers</a>.<a class="ident" href="../../../src/tokio/util/wake_list.rs.html#38">wake_all</a>();
+            <a class="ident" href="../../../src/tokio/sync/notify.rs.html#398">wakers</a>.<a class="ident" href="../../../src/tokio/util/wake_list.rs.html#38">wake_all</a>();
 
             <span class="comment">// Acquire the lock again.</span>
-            <a class="ident" href="../../../src/tokio/sync/notify.rs.html#398">waiters</a> <span class="op">=</span> <a class="self" href="../../../src/tokio/sync/notify.rs.html#394">self</a>.<span class="ident">waiters</span>.<a class="ident" href="../../../src/tokio/loom/std/mutex.rs.html#16">lock</a>();
+            <a class="ident" href="../../../src/tokio/sync/notify.rs.html#401">waiters</a> <span class="op">=</span> <a class="self" href="../../../src/tokio/sync/notify.rs.html#397">self</a>.<span class="ident">waiters</span>.<a class="ident" href="../../../src/tokio/loom/std/mutex.rs.html#16">lock</a>();
         }
 
         <span class="comment">// All waiters will be notified, the state must be transitioned to</span>
         <span class="comment">// `EMPTY`. As transitioning **from** `WAITING` requires the lock to be</span>
         <span class="comment">// held, a `store` is sufficient.</span>
-        <span class="kw">let</span> <span class="ident">new</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#180">set_state</a>(<a class="ident" href="../../../src/tokio/sync/notify.rs.html#192">inc_num_notify_waiters_calls</a>(<a class="ident" href="../../../src/tokio/sync/notify.rs.html#402">curr</a>), <a class="ident" href="../../../src/tokio/sync/notify.rs.html#172">EMPTY</a>);
-        <a class="self" href="../../../src/tokio/sync/notify.rs.html#394">self</a>.<span class="ident">state</span>.<span class="ident">store</span>(<a class="ident" href="../../../src/tokio/sync/notify.rs.html#446">new</a>, <span class="ident">SeqCst</span>);
+        <span class="kw">let</span> <span class="ident">new</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#183">set_state</a>(<a class="ident" href="../../../src/tokio/sync/notify.rs.html#195">inc_num_notify_waiters_calls</a>(<a class="ident" href="../../../src/tokio/sync/notify.rs.html#405">curr</a>), <a class="ident" href="../../../src/tokio/sync/notify.rs.html#175">EMPTY</a>);
+        <a class="self" href="../../../src/tokio/sync/notify.rs.html#397">self</a>.<span class="ident">state</span>.<span class="ident">store</span>(<a class="ident" href="../../../src/tokio/sync/notify.rs.html#449">new</a>, <span class="ident">SeqCst</span>);
 
         <span class="comment">// Release the lock before notifying</span>
-        <a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<a class="ident" href="../../../src/tokio/sync/notify.rs.html#398">waiters</a>);
+        <a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<a class="ident" href="../../../src/tokio/sync/notify.rs.html#401">waiters</a>);
 
-        <a class="ident" href="../../../src/tokio/sync/notify.rs.html#395">wakers</a>.<a class="ident" href="../../../src/tokio/util/wake_list.rs.html#38">wake_all</a>();
+        <a class="ident" href="../../../src/tokio/sync/notify.rs.html#398">wakers</a>.<a class="ident" href="../../../src/tokio/util/wake_list.rs.html#38">wake_all</a>();
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#112-119">Notify</a> {
-    <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <a class="ident" href="../../../src/tokio/sync/notify.rs.html#112-119">Notify</a> {
+<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#115-122">Notify</a> {
+    <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <a class="ident" href="../../../src/tokio/sync/notify.rs.html#115-122">Notify</a> {
         <span class="ident">Notify::new</span>()
     }
 }
 
 <span class="kw">fn</span> <span class="ident">notify_locked</span>(<span class="ident">waiters</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#21">WaitList</a>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/tokio/loom/std/atomic_usize.rs.html#6-8">AtomicUsize</a>, <span class="ident">curr</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a><span class="op">&gt;</span> {
     <span class="kw">loop</span> {
-        <span class="kw">match</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#184">get_state</a>(<a class="ident" href="../../../src/tokio/sync/notify.rs.html#462">curr</a>) {
-            <a class="ident" href="../../../src/tokio/sync/notify.rs.html#172">EMPTY</a> <span class="op">|</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#178">NOTIFIED</a> =&gt; {
-                <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#462">state</a>.<span class="ident">compare_exchange</span>(<a class="ident" href="../../../src/tokio/sync/notify.rs.html#462">curr</a>, <a class="ident" href="../../../src/tokio/sync/notify.rs.html#180">set_state</a>(<a class="ident" href="../../../src/tokio/sync/notify.rs.html#462">curr</a>, <a class="ident" href="../../../src/tokio/sync/notify.rs.html#178">NOTIFIED</a>), <span class="ident">SeqCst</span>, <span class="ident">SeqCst</span>);
+        <span class="kw">match</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#187">get_state</a>(<a class="ident" href="../../../src/tokio/sync/notify.rs.html#465">curr</a>) {
+            <a class="ident" href="../../../src/tokio/sync/notify.rs.html#175">EMPTY</a> <span class="op">|</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#181">NOTIFIED</a> =&gt; {
+                <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#465">state</a>.<span class="ident">compare_exchange</span>(<a class="ident" href="../../../src/tokio/sync/notify.rs.html#465">curr</a>, <a class="ident" href="../../../src/tokio/sync/notify.rs.html#183">set_state</a>(<a class="ident" href="../../../src/tokio/sync/notify.rs.html#465">curr</a>, <a class="ident" href="../../../src/tokio/sync/notify.rs.html#181">NOTIFIED</a>), <span class="ident">SeqCst</span>, <span class="ident">SeqCst</span>);
 
-                <span class="kw">match</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#466">res</a> {
+                <span class="kw">match</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#469">res</a> {
                     <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; <span class="kw">return</span> <span class="prelude-val">None</span>,
                     <span class="prelude-val">Err</span>(<span class="ident">actual</span>) =&gt; {
-                        <span class="kw">let</span> <span class="ident">actual_state</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#184">get_state</a>(<a class="ident" href="../../../src/tokio/sync/notify.rs.html#470">actual</a>);
-                        <span class="macro">assert!</span>(<a class="ident" href="../../../src/tokio/sync/notify.rs.html#471">actual_state</a> <span class="op">==</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#172">EMPTY</a> <span class="op">|</span><span class="op">|</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#471">actual_state</a> <span class="op">==</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#178">NOTIFIED</a>);
-                        <a class="ident" href="../../../src/tokio/sync/notify.rs.html#462">state</a>.<span class="ident">store</span>(<a class="ident" href="../../../src/tokio/sync/notify.rs.html#180">set_state</a>(<a class="ident" href="../../../src/tokio/sync/notify.rs.html#470">actual</a>, <a class="ident" href="../../../src/tokio/sync/notify.rs.html#178">NOTIFIED</a>), <span class="ident">SeqCst</span>);
+                        <span class="kw">let</span> <span class="ident">actual_state</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#187">get_state</a>(<a class="ident" href="../../../src/tokio/sync/notify.rs.html#473">actual</a>);
+                        <span class="macro">assert!</span>(<a class="ident" href="../../../src/tokio/sync/notify.rs.html#474">actual_state</a> <span class="op">==</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#175">EMPTY</a> <span class="op">|</span><span class="op">|</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#474">actual_state</a> <span class="op">==</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#181">NOTIFIED</a>);
+                        <a class="ident" href="../../../src/tokio/sync/notify.rs.html#465">state</a>.<span class="ident">store</span>(<a class="ident" href="../../../src/tokio/sync/notify.rs.html#183">set_state</a>(<a class="ident" href="../../../src/tokio/sync/notify.rs.html#473">actual</a>, <a class="ident" href="../../../src/tokio/sync/notify.rs.html#181">NOTIFIED</a>), <span class="ident">SeqCst</span>);
                         <span class="kw">return</span> <span class="prelude-val">None</span>;
                     }
                 }
             }
-            <a class="ident" href="../../../src/tokio/sync/notify.rs.html#175">WAITING</a> =&gt; {
+            <a class="ident" href="../../../src/tokio/sync/notify.rs.html#178">WAITING</a> =&gt; {
                 <span class="comment">// At this point, it is guaranteed that the state will not</span>
                 <span class="comment">// concurrently change as holding the lock is required to</span>
                 <span class="comment">// transition **out** of `WAITING`.</span>
                 <span class="comment">//</span>
                 <span class="comment">// Get a pending waiter</span>
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">waiter</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#462">waiters</a>.<a class="ident" href="../../../src/tokio/util/linked_list.rs.html#142">pop_back</a>().<span class="ident">unwrap</span>();
+                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">waiter</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#465">waiters</a>.<a class="ident" href="../../../src/tokio/util/linked_list.rs.html#142">pop_back</a>().<span class="ident">unwrap</span>();
 
                 <span class="comment">// Safety: `waiters` lock is still held.</span>
-                <span class="kw">let</span> <span class="ident">waiter</span> <span class="op">=</span> <span class="kw">unsafe</span> { <a class="ident" href="../../../src/tokio/sync/notify.rs.html#484">waiter</a>.<span class="ident">as_mut</span>() };
+                <span class="kw">let</span> <span class="ident">waiter</span> <span class="op">=</span> <span class="kw">unsafe</span> { <a class="ident" href="../../../src/tokio/sync/notify.rs.html#487">waiter</a>.<span class="ident">as_mut</span>() };
 
-                <span class="macro">assert!</span>(<a class="ident" href="../../../src/tokio/sync/notify.rs.html#487">waiter</a>.<span class="ident">notified</span>.<span class="ident">is_none</span>());
+                <span class="macro">assert!</span>(<a class="ident" href="../../../src/tokio/sync/notify.rs.html#490">waiter</a>.<span class="ident">notified</span>.<span class="ident">is_none</span>());
 
-                <a class="ident" href="../../../src/tokio/sync/notify.rs.html#487">waiter</a>.<span class="ident">notified</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/tokio/sync/notify.rs.html#126">NotificationType::OneWaiter</a>);
-                <span class="kw">let</span> <span class="ident">waker</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#487">waiter</a>.<span class="ident">waker</span>.<span class="ident">take</span>();
+                <a class="ident" href="../../../src/tokio/sync/notify.rs.html#490">waiter</a>.<span class="ident">notified</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/tokio/sync/notify.rs.html#129">NotificationType::OneWaiter</a>);
+                <span class="kw">let</span> <span class="ident">waker</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#490">waiter</a>.<span class="ident">waker</span>.<span class="ident">take</span>();
 
-                <span class="kw">if</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#462">waiters</a>.<a class="ident" href="../../../src/tokio/util/linked_list.rs.html#161">is_empty</a>() {
+                <span class="kw">if</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#465">waiters</a>.<a class="ident" href="../../../src/tokio/util/linked_list.rs.html#161">is_empty</a>() {
                     <span class="comment">// As this the **final** waiter in the list, the state</span>
                     <span class="comment">// must be transitioned to `EMPTY`. As transitioning</span>
                     <span class="comment">// **from** `WAITING` requires the lock to be held, a</span>
                     <span class="comment">// `store` is sufficient.</span>
-                    <a class="ident" href="../../../src/tokio/sync/notify.rs.html#462">state</a>.<span class="ident">store</span>(<a class="ident" href="../../../src/tokio/sync/notify.rs.html#180">set_state</a>(<a class="ident" href="../../../src/tokio/sync/notify.rs.html#462">curr</a>, <a class="ident" href="../../../src/tokio/sync/notify.rs.html#172">EMPTY</a>), <span class="ident">SeqCst</span>);
+                    <a class="ident" href="../../../src/tokio/sync/notify.rs.html#465">state</a>.<span class="ident">store</span>(<a class="ident" href="../../../src/tokio/sync/notify.rs.html#183">set_state</a>(<a class="ident" href="../../../src/tokio/sync/notify.rs.html#465">curr</a>, <a class="ident" href="../../../src/tokio/sync/notify.rs.html#175">EMPTY</a>), <span class="ident">SeqCst</span>);
                 }
 
-                <span class="kw">return</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#492">waker</a>;
+                <span class="kw">return</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#495">waker</a>;
             }
             <span class="kw">_</span> =&gt; <span class="macro">unreachable!</span>(),
         }
@@ -1247,15 +1254,15 @@
 <span class="kw">impl</span> <span class="ident">Notified</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
     <span class="doccomment">/// A custom `project` implementation is used in place of `pin-project-lite`</span>
     <span class="doccomment">/// as a custom drop implementation is needed.</span>
-    <span class="kw">fn</span> <span class="ident">project</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>) -&gt; (<span class="kw-2">&amp;</span><a class="ident" href="../../../src/tokio/sync/notify.rs.html#112-119">Notify</a>, <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#161-165">State</a>, <span class="kw-2">&amp;</span><span class="ident">UnsafeCell</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio/sync/notify.rs.html#130-142">Waiter</a><span class="op">&gt;</span>) {
+    <span class="kw">fn</span> <span class="ident">project</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>) -&gt; (<span class="kw-2">&amp;</span><a class="ident" href="../../../src/tokio/sync/notify.rs.html#115-122">Notify</a>, <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#164-168">State</a>, <span class="kw-2">&amp;</span><span class="ident">UnsafeCell</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio/sync/notify.rs.html#133-145">Waiter</a><span class="op">&gt;</span>) {
         <span class="kw">unsafe</span> {
             <span class="comment">// Safety: both `notify` and `state` are `Unpin`.</span>
 
-            <span class="ident">is_unpin</span>::<span class="op">&lt;</span><span class="kw-2">&amp;</span><a class="ident" href="../../../src/tokio/sync/notify.rs.html#112-119">Notify</a><span class="op">&gt;</span>();
+            <span class="ident">is_unpin</span>::<span class="op">&lt;</span><span class="kw-2">&amp;</span><a class="ident" href="../../../src/tokio/sync/notify.rs.html#115-122">Notify</a><span class="op">&gt;</span>();
             <span class="ident">is_unpin</span>::<span class="op">&lt;</span><a class="ident" href="../../../src/tokio/loom/std/atomic_usize.rs.html#6-8">AtomicUsize</a><span class="op">&gt;</span>();
 
-            <span class="kw">let</span> <span class="ident">me</span> <span class="op">=</span> <a class="self" href="../../../src/tokio/sync/notify.rs.html#514">self</a>.<span class="ident">get_unchecked_mut</span>();
-            (<a class="ident" href="../../../src/tokio/sync/notify.rs.html#521">me</a>.<span class="ident">notify</span>, <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#521">me</a>.<span class="ident">state</span>, <span class="kw-2">&amp;</span><a class="ident" href="../../../src/tokio/sync/notify.rs.html#521">me</a>.<span class="ident">waiter</span>)
+            <span class="kw">let</span> <span class="ident">me</span> <span class="op">=</span> <a class="self" href="../../../src/tokio/sync/notify.rs.html#517">self</a>.<span class="ident">get_unchecked_mut</span>();
+            (<a class="ident" href="../../../src/tokio/sync/notify.rs.html#524">me</a>.<span class="ident">notify</span>, <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#524">me</a>.<span class="ident">state</span>, <span class="kw-2">&amp;</span><a class="ident" href="../../../src/tokio/sync/notify.rs.html#524">me</a>.<span class="ident">waiter</span>)
         }
     }
 }
@@ -1264,85 +1271,85 @@
     <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> ();
 
     <span class="kw">fn</span> <span class="ident">poll</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="kw">use</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#161-165">State</a>::<span class="kw-2">*</span>;
+        <span class="kw">use</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#164-168">State</a>::<span class="kw-2">*</span>;
 
-        <span class="kw">let</span> (<span class="ident">notify</span>, <span class="ident">state</span>, <span class="ident">waiter</span>) <span class="op">=</span> <a class="self" href="../../../src/tokio/sync/notify.rs.html#530">self</a>.<a class="ident" href="../../../src/tokio/sync/notify.rs.html#514">project</a>();
+        <span class="kw">let</span> (<span class="ident">notify</span>, <span class="ident">state</span>, <span class="ident">waiter</span>) <span class="op">=</span> <a class="self" href="../../../src/tokio/sync/notify.rs.html#533">self</a>.<a class="ident" href="../../../src/tokio/sync/notify.rs.html#517">project</a>();
 
         <span class="kw">loop</span> {
-            <span class="kw">match</span> <span class="kw-2">*</span><a class="ident" href="../../../src/tokio/sync/notify.rs.html#533">state</a> {
-                <a class="ident" href="../../../src/tokio/sync/notify.rs.html#162">Init</a>(<span class="ident">initial_notify_waiters_calls</span>) =&gt; {
-                    <span class="kw">let</span> <span class="ident">curr</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#533">notify</a>.<span class="ident">state</span>.<span class="ident">load</span>(<span class="ident">SeqCst</span>);
+            <span class="kw">match</span> <span class="kw-2">*</span><a class="ident" href="../../../src/tokio/sync/notify.rs.html#536">state</a> {
+                <a class="ident" href="../../../src/tokio/sync/notify.rs.html#165">Init</a>(<span class="ident">initial_notify_waiters_calls</span>) =&gt; {
+                    <span class="kw">let</span> <span class="ident">curr</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#536">notify</a>.<span class="ident">state</span>.<span class="ident">load</span>(<span class="ident">SeqCst</span>);
 
                     <span class="comment">// Optimistically try acquiring a pending notification</span>
-                    <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#533">notify</a>.<span class="ident">state</span>.<span class="ident">compare_exchange</span>(
-                        <a class="ident" href="../../../src/tokio/sync/notify.rs.html#180">set_state</a>(<a class="ident" href="../../../src/tokio/sync/notify.rs.html#538">curr</a>, <a class="ident" href="../../../src/tokio/sync/notify.rs.html#178">NOTIFIED</a>),
-                        <a class="ident" href="../../../src/tokio/sync/notify.rs.html#180">set_state</a>(<a class="ident" href="../../../src/tokio/sync/notify.rs.html#538">curr</a>, <a class="ident" href="../../../src/tokio/sync/notify.rs.html#172">EMPTY</a>),
+                    <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#536">notify</a>.<span class="ident">state</span>.<span class="ident">compare_exchange</span>(
+                        <a class="ident" href="../../../src/tokio/sync/notify.rs.html#183">set_state</a>(<a class="ident" href="../../../src/tokio/sync/notify.rs.html#541">curr</a>, <a class="ident" href="../../../src/tokio/sync/notify.rs.html#181">NOTIFIED</a>),
+                        <a class="ident" href="../../../src/tokio/sync/notify.rs.html#183">set_state</a>(<a class="ident" href="../../../src/tokio/sync/notify.rs.html#541">curr</a>, <a class="ident" href="../../../src/tokio/sync/notify.rs.html#175">EMPTY</a>),
                         <span class="ident">SeqCst</span>,
                         <span class="ident">SeqCst</span>,
                     );
 
-                    <span class="kw">if</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#541">res</a>.<span class="ident">is_ok</span>() {
+                    <span class="kw">if</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#544">res</a>.<span class="ident">is_ok</span>() {
                         <span class="comment">// Acquired the notification</span>
-                        <span class="kw-2">*</span><a class="ident" href="../../../src/tokio/sync/notify.rs.html#533">state</a> <span class="op">=</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#164">Done</a>;
+                        <span class="kw-2">*</span><a class="ident" href="../../../src/tokio/sync/notify.rs.html#536">state</a> <span class="op">=</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#167">Done</a>;
                         <span class="kw">return</span> <span class="ident">Poll::Ready</span>(());
                     }
 
                     <span class="comment">// Clone the waker before locking, a waker clone can be</span>
                     <span class="comment">// triggering arbitrary code.</span>
-                    <span class="kw">let</span> <span class="ident">waker</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#530">cx</a>.<span class="ident">waker</span>().<span class="ident">clone</span>();
+                    <span class="kw">let</span> <span class="ident">waker</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#533">cx</a>.<span class="ident">waker</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
 
                     <span class="comment">// Acquire the lock and attempt to transition to the waiting</span>
                     <span class="comment">// state.</span>
-                    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">waiters</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#533">notify</a>.<span class="ident">waiters</span>.<a class="ident" href="../../../src/tokio/loom/std/mutex.rs.html#16">lock</a>();
+                    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">waiters</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#536">notify</a>.<span class="ident">waiters</span>.<a class="ident" href="../../../src/tokio/loom/std/mutex.rs.html#16">lock</a>();
 
                     <span class="comment">// Reload the state with the lock held</span>
-                    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">curr</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#533">notify</a>.<span class="ident">state</span>.<span class="ident">load</span>(<span class="ident">SeqCst</span>);
+                    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">curr</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#536">notify</a>.<span class="ident">state</span>.<span class="ident">load</span>(<span class="ident">SeqCst</span>);
 
                     <span class="comment">// if notify_waiters has been called after the future</span>
                     <span class="comment">// was created, then we are done</span>
-                    <span class="kw">if</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#188">get_num_notify_waiters_calls</a>(<a class="ident" href="../../../src/tokio/sync/notify.rs.html#563">curr</a>) <span class="op">!</span><span class="op">=</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#537">initial_notify_waiters_calls</a> {
-                        <span class="kw-2">*</span><a class="ident" href="../../../src/tokio/sync/notify.rs.html#533">state</a> <span class="op">=</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#164">Done</a>;
+                    <span class="kw">if</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#191">get_num_notify_waiters_calls</a>(<a class="ident" href="../../../src/tokio/sync/notify.rs.html#566">curr</a>) <span class="op">!</span><span class="op">=</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#540">initial_notify_waiters_calls</a> {
+                        <span class="kw-2">*</span><a class="ident" href="../../../src/tokio/sync/notify.rs.html#536">state</a> <span class="op">=</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#167">Done</a>;
                         <span class="kw">return</span> <span class="ident">Poll::Ready</span>(());
                     }
 
                     <span class="comment">// Transition the state to WAITING.</span>
                     <span class="kw">loop</span> {
-                        <span class="kw">match</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#184">get_state</a>(<a class="ident" href="../../../src/tokio/sync/notify.rs.html#563">curr</a>) {
-                            <a class="ident" href="../../../src/tokio/sync/notify.rs.html#172">EMPTY</a> =&gt; {
+                        <span class="kw">match</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#187">get_state</a>(<a class="ident" href="../../../src/tokio/sync/notify.rs.html#566">curr</a>) {
+                            <a class="ident" href="../../../src/tokio/sync/notify.rs.html#175">EMPTY</a> =&gt; {
                                 <span class="comment">// Transition to WAITING</span>
-                                <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#533">notify</a>.<span class="ident">state</span>.<span class="ident">compare_exchange</span>(
-                                    <a class="ident" href="../../../src/tokio/sync/notify.rs.html#180">set_state</a>(<a class="ident" href="../../../src/tokio/sync/notify.rs.html#563">curr</a>, <a class="ident" href="../../../src/tokio/sync/notify.rs.html#172">EMPTY</a>),
-                                    <a class="ident" href="../../../src/tokio/sync/notify.rs.html#180">set_state</a>(<a class="ident" href="../../../src/tokio/sync/notify.rs.html#563">curr</a>, <a class="ident" href="../../../src/tokio/sync/notify.rs.html#175">WAITING</a>),
+                                <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#536">notify</a>.<span class="ident">state</span>.<span class="ident">compare_exchange</span>(
+                                    <a class="ident" href="../../../src/tokio/sync/notify.rs.html#183">set_state</a>(<a class="ident" href="../../../src/tokio/sync/notify.rs.html#566">curr</a>, <a class="ident" href="../../../src/tokio/sync/notify.rs.html#175">EMPTY</a>),
+                                    <a class="ident" href="../../../src/tokio/sync/notify.rs.html#183">set_state</a>(<a class="ident" href="../../../src/tokio/sync/notify.rs.html#566">curr</a>, <a class="ident" href="../../../src/tokio/sync/notify.rs.html#178">WAITING</a>),
                                     <span class="ident">SeqCst</span>,
                                     <span class="ident">SeqCst</span>,
                                 );
 
-                                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">actual</span>) <span class="op">=</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#577">res</a> {
-                                    <span class="macro">assert_eq!</span>(<a class="ident" href="../../../src/tokio/sync/notify.rs.html#184">get_state</a>(<a class="ident" href="../../../src/tokio/sync/notify.rs.html#584">actual</a>), <a class="ident" href="../../../src/tokio/sync/notify.rs.html#178">NOTIFIED</a>);
-                                    <a class="ident" href="../../../src/tokio/sync/notify.rs.html#563">curr</a> <span class="op">=</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#584">actual</a>;
+                                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">actual</span>) <span class="op">=</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#580">res</a> {
+                                    <span class="macro">assert_eq!</span>(<a class="ident" href="../../../src/tokio/sync/notify.rs.html#187">get_state</a>(<a class="ident" href="../../../src/tokio/sync/notify.rs.html#587">actual</a>), <a class="ident" href="../../../src/tokio/sync/notify.rs.html#181">NOTIFIED</a>);
+                                    <a class="ident" href="../../../src/tokio/sync/notify.rs.html#566">curr</a> <span class="op">=</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#587">actual</a>;
                                 } <span class="kw">else</span> {
                                     <span class="kw">break</span>;
                                 }
                             }
-                            <a class="ident" href="../../../src/tokio/sync/notify.rs.html#175">WAITING</a> =&gt; <span class="kw">break</span>,
-                            <a class="ident" href="../../../src/tokio/sync/notify.rs.html#178">NOTIFIED</a> =&gt; {
+                            <a class="ident" href="../../../src/tokio/sync/notify.rs.html#178">WAITING</a> =&gt; <span class="kw">break</span>,
+                            <a class="ident" href="../../../src/tokio/sync/notify.rs.html#181">NOTIFIED</a> =&gt; {
                                 <span class="comment">// Try consuming the notification</span>
-                                <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#533">notify</a>.<span class="ident">state</span>.<span class="ident">compare_exchange</span>(
-                                    <a class="ident" href="../../../src/tokio/sync/notify.rs.html#180">set_state</a>(<a class="ident" href="../../../src/tokio/sync/notify.rs.html#563">curr</a>, <a class="ident" href="../../../src/tokio/sync/notify.rs.html#178">NOTIFIED</a>),
-                                    <a class="ident" href="../../../src/tokio/sync/notify.rs.html#180">set_state</a>(<a class="ident" href="../../../src/tokio/sync/notify.rs.html#563">curr</a>, <a class="ident" href="../../../src/tokio/sync/notify.rs.html#172">EMPTY</a>),
+                                <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#536">notify</a>.<span class="ident">state</span>.<span class="ident">compare_exchange</span>(
+                                    <a class="ident" href="../../../src/tokio/sync/notify.rs.html#183">set_state</a>(<a class="ident" href="../../../src/tokio/sync/notify.rs.html#566">curr</a>, <a class="ident" href="../../../src/tokio/sync/notify.rs.html#181">NOTIFIED</a>),
+                                    <a class="ident" href="../../../src/tokio/sync/notify.rs.html#183">set_state</a>(<a class="ident" href="../../../src/tokio/sync/notify.rs.html#566">curr</a>, <a class="ident" href="../../../src/tokio/sync/notify.rs.html#175">EMPTY</a>),
                                     <span class="ident">SeqCst</span>,
                                     <span class="ident">SeqCst</span>,
                                 );
 
-                                <span class="kw">match</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#594">res</a> {
+                                <span class="kw">match</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#597">res</a> {
                                     <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; {
                                         <span class="comment">// Acquired the notification</span>
-                                        <span class="kw-2">*</span><a class="ident" href="../../../src/tokio/sync/notify.rs.html#533">state</a> <span class="op">=</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#164">Done</a>;
+                                        <span class="kw-2">*</span><a class="ident" href="../../../src/tokio/sync/notify.rs.html#536">state</a> <span class="op">=</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#167">Done</a>;
                                         <span class="kw">return</span> <span class="ident">Poll::Ready</span>(());
                                     }
                                     <span class="prelude-val">Err</span>(<span class="ident">actual</span>) =&gt; {
-                                        <span class="macro">assert_eq!</span>(<a class="ident" href="../../../src/tokio/sync/notify.rs.html#184">get_state</a>(<a class="ident" href="../../../src/tokio/sync/notify.rs.html#607">actual</a>), <a class="ident" href="../../../src/tokio/sync/notify.rs.html#172">EMPTY</a>);
-                                        <a class="ident" href="../../../src/tokio/sync/notify.rs.html#563">curr</a> <span class="op">=</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#607">actual</a>;
+                                        <span class="macro">assert_eq!</span>(<a class="ident" href="../../../src/tokio/sync/notify.rs.html#187">get_state</a>(<a class="ident" href="../../../src/tokio/sync/notify.rs.html#610">actual</a>), <a class="ident" href="../../../src/tokio/sync/notify.rs.html#175">EMPTY</a>);
+                                        <a class="ident" href="../../../src/tokio/sync/notify.rs.html#566">curr</a> <span class="op">=</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#610">actual</a>;
                                     }
                                 }
                             }
@@ -1352,40 +1359,40 @@
 
                     <span class="comment">// Safety: called while locked.</span>
                     <span class="kw">unsafe</span> {
-                        (<span class="kw-2">*</span><a class="ident" href="../../../src/tokio/sync/notify.rs.html#533">waiter</a>.<span class="ident">get</span>()).<span class="ident">waker</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/tokio/sync/notify.rs.html#556">waker</a>);
+                        (<span class="kw-2">*</span><a class="ident" href="../../../src/tokio/sync/notify.rs.html#536">waiter</a>.<span class="ident">get</span>()).<span class="ident">waker</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/tokio/sync/notify.rs.html#559">waker</a>);
                     }
 
                     <span class="comment">// Insert the waiter into the linked list</span>
                     <span class="comment">//</span>
                     <span class="comment">// safety: pointers from `UnsafeCell` are never null.</span>
-                    <a class="ident" href="../../../src/tokio/sync/notify.rs.html#560">waiters</a>.<a class="ident" href="../../../src/tokio/util/linked_list.rs.html#119">push_front</a>(<span class="kw">unsafe</span> { <span class="ident">NonNull::new_unchecked</span>(<a class="ident" href="../../../src/tokio/sync/notify.rs.html#533">waiter</a>.<span class="ident">get</span>()) });
+                    <a class="ident" href="../../../src/tokio/sync/notify.rs.html#563">waiters</a>.<a class="ident" href="../../../src/tokio/util/linked_list.rs.html#119">push_front</a>(<span class="kw">unsafe</span> { <span class="ident">NonNull::new_unchecked</span>(<a class="ident" href="../../../src/tokio/sync/notify.rs.html#536">waiter</a>.<span class="ident">get</span>()) });
 
-                    <span class="kw-2">*</span><a class="ident" href="../../../src/tokio/sync/notify.rs.html#533">state</a> <span class="op">=</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#163">Waiting</a>;
+                    <span class="kw-2">*</span><a class="ident" href="../../../src/tokio/sync/notify.rs.html#536">state</a> <span class="op">=</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#166">Waiting</a>;
 
                     <span class="kw">return</span> <span class="ident">Poll::Pending</span>;
                 }
-                <a class="ident" href="../../../src/tokio/sync/notify.rs.html#163">Waiting</a> =&gt; {
+                <a class="ident" href="../../../src/tokio/sync/notify.rs.html#166">Waiting</a> =&gt; {
                     <span class="comment">// Currently in the &quot;Waiting&quot; state, implying the caller has</span>
                     <span class="comment">// a waiter stored in the waiter list (guarded by</span>
                     <span class="comment">// `notify.waiters`). In order to access the waker fields,</span>
                     <span class="comment">// we must hold the lock.</span>
 
-                    <span class="kw">let</span> <span class="ident">waiters</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#533">notify</a>.<span class="ident">waiters</span>.<a class="ident" href="../../../src/tokio/loom/std/mutex.rs.html#16">lock</a>();
+                    <span class="kw">let</span> <span class="ident">waiters</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#536">notify</a>.<span class="ident">waiters</span>.<a class="ident" href="../../../src/tokio/loom/std/mutex.rs.html#16">lock</a>();
 
                     <span class="comment">// Safety: called while locked</span>
-                    <span class="kw">let</span> <span class="ident">w</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw-2">&amp;mut</span> <span class="kw-2">*</span><a class="ident" href="../../../src/tokio/sync/notify.rs.html#533">waiter</a>.<span class="ident">get</span>() };
+                    <span class="kw">let</span> <span class="ident">w</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw-2">&amp;mut</span> <span class="kw-2">*</span><a class="ident" href="../../../src/tokio/sync/notify.rs.html#536">waiter</a>.<span class="ident">get</span>() };
 
-                    <span class="kw">if</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#640">w</a>.<span class="ident">notified</span>.<span class="ident">is_some</span>() {
+                    <span class="kw">if</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#643">w</a>.<span class="ident">notified</span>.<span class="ident">is_some</span>() {
                         <span class="comment">// Our waker has been notified. Reset the fields and</span>
                         <span class="comment">// remove it from the list.</span>
-                        <a class="ident" href="../../../src/tokio/sync/notify.rs.html#640">w</a>.<span class="ident">waker</span> <span class="op">=</span> <span class="prelude-val">None</span>;
-                        <a class="ident" href="../../../src/tokio/sync/notify.rs.html#640">w</a>.<span class="ident">notified</span> <span class="op">=</span> <span class="prelude-val">None</span>;
+                        <a class="ident" href="../../../src/tokio/sync/notify.rs.html#643">w</a>.<span class="ident">waker</span> <span class="op">=</span> <span class="prelude-val">None</span>;
+                        <a class="ident" href="../../../src/tokio/sync/notify.rs.html#643">w</a>.<span class="ident">notified</span> <span class="op">=</span> <span class="prelude-val">None</span>;
 
-                        <span class="kw-2">*</span><a class="ident" href="../../../src/tokio/sync/notify.rs.html#533">state</a> <span class="op">=</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#164">Done</a>;
+                        <span class="kw-2">*</span><a class="ident" href="../../../src/tokio/sync/notify.rs.html#536">state</a> <span class="op">=</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#167">Done</a>;
                     } <span class="kw">else</span> {
                         <span class="comment">// Update the waker, if necessary.</span>
-                        <span class="kw">if</span> <span class="op">!</span><a class="ident" href="../../../src/tokio/sync/notify.rs.html#640">w</a>.<span class="ident">waker</span>.<span class="ident">as_ref</span>().<span class="ident">unwrap</span>().<span class="ident">will_wake</span>(<a class="ident" href="../../../src/tokio/sync/notify.rs.html#530">cx</a>.<span class="ident">waker</span>()) {
-                            <a class="ident" href="../../../src/tokio/sync/notify.rs.html#640">w</a>.<span class="ident">waker</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/tokio/sync/notify.rs.html#530">cx</a>.<span class="ident">waker</span>().<span class="ident">clone</span>());
+                        <span class="kw">if</span> <span class="op">!</span><a class="ident" href="../../../src/tokio/sync/notify.rs.html#643">w</a>.<span class="ident">waker</span>.<span class="ident">as_ref</span>().<span class="ident">unwrap</span>().<span class="ident">will_wake</span>(<a class="ident" href="../../../src/tokio/sync/notify.rs.html#533">cx</a>.<span class="ident">waker</span>()) {
+                            <a class="ident" href="../../../src/tokio/sync/notify.rs.html#643">w</a>.<span class="ident">waker</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/tokio/sync/notify.rs.html#533">cx</a>.<span class="ident">waker</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
                         }
 
                         <span class="kw">return</span> <span class="ident">Poll::Pending</span>;
@@ -1396,9 +1403,9 @@
                     <span class="comment">// ensure safe access to fields not held within the lock, it</span>
                     <span class="comment">// is helpful to visualize the scope of the critical</span>
                     <span class="comment">// section.</span>
-                    <a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<a class="ident" href="../../../src/tokio/sync/notify.rs.html#637">waiters</a>);
+                    <a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<a class="ident" href="../../../src/tokio/sync/notify.rs.html#640">waiters</a>);
                 }
-                <a class="ident" href="../../../src/tokio/sync/notify.rs.html#164">Done</a> =&gt; {
+                <a class="ident" href="../../../src/tokio/sync/notify.rs.html#167">Done</a> =&gt; {
                     <span class="kw">return</span> <span class="ident">Poll::Ready</span>(());
                 }
             }
@@ -1408,28 +1415,28 @@
 
 <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for</span> <span class="ident">Notified</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <span class="kw">use</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#161-165">State</a>::<span class="kw-2">*</span>;
+        <span class="kw">use</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#164-168">State</a>::<span class="kw-2">*</span>;
 
         <span class="comment">// Safety: The type only transitions to a &quot;Waiting&quot; state when pinned.</span>
-        <span class="kw">let</span> (<span class="ident">notify</span>, <span class="ident">state</span>, <span class="ident">waiter</span>) <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">Pin::new_unchecked</span>(<a class="self" href="../../../src/tokio/sync/notify.rs.html#674">self</a>).<a class="ident" href="../../../src/tokio/sync/notify.rs.html#514">project</a>() };
+        <span class="kw">let</span> (<span class="ident">notify</span>, <span class="ident">state</span>, <span class="ident">waiter</span>) <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">Pin::new_unchecked</span>(<a class="self" href="../../../src/tokio/sync/notify.rs.html#677">self</a>).<a class="ident" href="../../../src/tokio/sync/notify.rs.html#517">project</a>() };
 
         <span class="comment">// This is where we ensure safety. The `Notified` value is being</span>
         <span class="comment">// dropped, which means we must ensure that the waiter entry is no</span>
         <span class="comment">// longer stored in the linked list.</span>
-        <span class="kw">if</span> <span class="kw">let</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#163">Waiting</a> <span class="op">=</span> <span class="kw-2">*</span><a class="ident" href="../../../src/tokio/sync/notify.rs.html#678">state</a> {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">waiters</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#678">notify</a>.<span class="ident">waiters</span>.<a class="ident" href="../../../src/tokio/loom/std/mutex.rs.html#16">lock</a>();
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">notify_state</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#678">notify</a>.<span class="ident">state</span>.<span class="ident">load</span>(<span class="ident">SeqCst</span>);
+        <span class="kw">if</span> <span class="kw">let</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#166">Waiting</a> <span class="op">=</span> <span class="kw-2">*</span><a class="ident" href="../../../src/tokio/sync/notify.rs.html#681">state</a> {
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">waiters</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#681">notify</a>.<span class="ident">waiters</span>.<a class="ident" href="../../../src/tokio/loom/std/mutex.rs.html#16">lock</a>();
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">notify_state</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#681">notify</a>.<span class="ident">state</span>.<span class="ident">load</span>(<span class="ident">SeqCst</span>);
 
             <span class="comment">// remove the entry from the list (if not already removed)</span>
             <span class="comment">//</span>
             <span class="comment">// safety: the waiter is only added to `waiters` by virtue of it</span>
             <span class="comment">// being the only `LinkedList` available to the type.</span>
-            <span class="kw">unsafe</span> { <a class="ident" href="../../../src/tokio/sync/notify.rs.html#684">waiters</a>.<a class="ident" href="../../../src/tokio/util/linked_list.rs.html#176">remove</a>(<span class="ident">NonNull::new_unchecked</span>(<a class="ident" href="../../../src/tokio/sync/notify.rs.html#678">waiter</a>.<span class="ident">get</span>())) };
+            <span class="kw">unsafe</span> { <a class="ident" href="../../../src/tokio/sync/notify.rs.html#687">waiters</a>.<a class="ident" href="../../../src/tokio/util/linked_list.rs.html#176">remove</a>(<span class="ident">NonNull::new_unchecked</span>(<a class="ident" href="../../../src/tokio/sync/notify.rs.html#681">waiter</a>.<span class="ident">get</span>())) };
 
-            <span class="kw">if</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#684">waiters</a>.<a class="ident" href="../../../src/tokio/util/linked_list.rs.html#161">is_empty</a>() {
-                <span class="kw">if</span> <span class="kw">let</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#175">WAITING</a> <span class="op">=</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#184">get_state</a>(<a class="ident" href="../../../src/tokio/sync/notify.rs.html#685">notify_state</a>) {
-                    <a class="ident" href="../../../src/tokio/sync/notify.rs.html#685">notify_state</a> <span class="op">=</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#180">set_state</a>(<a class="ident" href="../../../src/tokio/sync/notify.rs.html#685">notify_state</a>, <a class="ident" href="../../../src/tokio/sync/notify.rs.html#172">EMPTY</a>);
-                    <a class="ident" href="../../../src/tokio/sync/notify.rs.html#678">notify</a>.<span class="ident">state</span>.<span class="ident">store</span>(<a class="ident" href="../../../src/tokio/sync/notify.rs.html#685">notify_state</a>, <span class="ident">SeqCst</span>);
+            <span class="kw">if</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#687">waiters</a>.<a class="ident" href="../../../src/tokio/util/linked_list.rs.html#161">is_empty</a>() {
+                <span class="kw">if</span> <span class="kw">let</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#178">WAITING</a> <span class="op">=</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#187">get_state</a>(<a class="ident" href="../../../src/tokio/sync/notify.rs.html#688">notify_state</a>) {
+                    <a class="ident" href="../../../src/tokio/sync/notify.rs.html#688">notify_state</a> <span class="op">=</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#183">set_state</a>(<a class="ident" href="../../../src/tokio/sync/notify.rs.html#688">notify_state</a>, <a class="ident" href="../../../src/tokio/sync/notify.rs.html#175">EMPTY</a>);
+                    <a class="ident" href="../../../src/tokio/sync/notify.rs.html#681">notify</a>.<span class="ident">state</span>.<span class="ident">store</span>(<a class="ident" href="../../../src/tokio/sync/notify.rs.html#688">notify_state</a>, <span class="ident">SeqCst</span>);
                 }
             }
 
@@ -1439,10 +1446,10 @@
             <span class="comment">//</span>
             <span class="comment">// Safety: with the entry removed from the linked list, there can be</span>
             <span class="comment">// no concurrent access to the entry</span>
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/tokio/sync/notify.rs.html#126">NotificationType::OneWaiter</a>) <span class="op">=</span> <span class="kw">unsafe</span> { (<span class="kw-2">*</span><a class="ident" href="../../../src/tokio/sync/notify.rs.html#678">waiter</a>.<span class="ident">get</span>()).<span class="ident">notified</span> } {
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">waker</span>) <span class="op">=</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#462">notify_locked</a>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#684">waiters</a>, <span class="kw-2">&amp;</span><a class="ident" href="../../../src/tokio/sync/notify.rs.html#678">notify</a>.<span class="ident">state</span>, <a class="ident" href="../../../src/tokio/sync/notify.rs.html#685">notify_state</a>) {
-                    <a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<a class="ident" href="../../../src/tokio/sync/notify.rs.html#684">waiters</a>);
-                    <a class="ident" href="../../../src/tokio/sync/notify.rs.html#707">waker</a>.<span class="ident">wake</span>();
+            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/tokio/sync/notify.rs.html#129">NotificationType::OneWaiter</a>) <span class="op">=</span> <span class="kw">unsafe</span> { (<span class="kw-2">*</span><a class="ident" href="../../../src/tokio/sync/notify.rs.html#681">waiter</a>.<span class="ident">get</span>()).<span class="ident">notified</span> } {
+                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">waker</span>) <span class="op">=</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#465">notify_locked</a>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#687">waiters</a>, <span class="kw-2">&amp;</span><a class="ident" href="../../../src/tokio/sync/notify.rs.html#681">notify</a>.<span class="ident">state</span>, <a class="ident" href="../../../src/tokio/sync/notify.rs.html#688">notify_state</a>) {
+                    <a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<a class="ident" href="../../../src/tokio/sync/notify.rs.html#687">waiters</a>);
+                    <a class="ident" href="../../../src/tokio/sync/notify.rs.html#710">waker</a>.<span class="ident">wake</span>();
                 }
             }
         }
@@ -1452,25 +1459,24 @@
 <span class="doccomment">/// # Safety</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// `Waiter` is forced to be !Unpin.</span>
-<span class="kw">unsafe</span> <span class="kw">impl</span> <a class="ident" href="../../../src/tokio/util/linked_list.rs.html#43-61">linked_list::Link</a> <span class="kw">for</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#130-142">Waiter</a> {
-    <span class="kw">type</span> <span class="ident">Handle</span> <span class="op">=</span> <span class="ident">NonNull</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio/sync/notify.rs.html#130-142">Waiter</a><span class="op">&gt;</span>;
-    <span class="kw">type</span> <span class="ident">Target</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#130-142">Waiter</a>;
+<span class="kw">unsafe</span> <span class="kw">impl</span> <a class="ident" href="../../../src/tokio/util/linked_list.rs.html#43-61">linked_list::Link</a> <span class="kw">for</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#133-145">Waiter</a> {
+    <span class="kw">type</span> <span class="ident">Handle</span> <span class="op">=</span> <span class="ident">NonNull</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio/sync/notify.rs.html#133-145">Waiter</a><span class="op">&gt;</span>;
+    <span class="kw">type</span> <span class="ident">Target</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#133-145">Waiter</a>;
 
-    <span class="kw">fn</span> <span class="ident">as_raw</span>(<span class="ident">handle</span>: <span class="kw-2">&amp;</span><span class="ident">NonNull</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio/sync/notify.rs.html#130-142">Waiter</a><span class="op">&gt;</span>) -&gt; <span class="ident">NonNull</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio/sync/notify.rs.html#130-142">Waiter</a><span class="op">&gt;</span> {
-        <span class="kw-2">*</span><a class="ident" href="../../../src/tokio/sync/notify.rs.html#723">handle</a>
+    <span class="kw">fn</span> <span class="ident">as_raw</span>(<span class="ident">handle</span>: <span class="kw-2">&amp;</span><span class="ident">NonNull</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio/sync/notify.rs.html#133-145">Waiter</a><span class="op">&gt;</span>) -&gt; <span class="ident">NonNull</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio/sync/notify.rs.html#133-145">Waiter</a><span class="op">&gt;</span> {
+        <span class="kw-2">*</span><a class="ident" href="../../../src/tokio/sync/notify.rs.html#726">handle</a>
     }
 
-    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">from_raw</span>(<span class="ident">ptr</span>: <span class="ident">NonNull</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio/sync/notify.rs.html#130-142">Waiter</a><span class="op">&gt;</span>) -&gt; <span class="ident">NonNull</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio/sync/notify.rs.html#130-142">Waiter</a><span class="op">&gt;</span> {
-        <a class="ident" href="../../../src/tokio/sync/notify.rs.html#727">ptr</a>
+    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">from_raw</span>(<span class="ident">ptr</span>: <span class="ident">NonNull</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio/sync/notify.rs.html#133-145">Waiter</a><span class="op">&gt;</span>) -&gt; <span class="ident">NonNull</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio/sync/notify.rs.html#133-145">Waiter</a><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/tokio/sync/notify.rs.html#730">ptr</a>
     }
 
-    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">pointers</span>(<span class="kw-2">mut</span> <span class="ident">target</span>: <span class="ident">NonNull</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio/sync/notify.rs.html#130-142">Waiter</a><span class="op">&gt;</span>) -&gt; <span class="ident">NonNull</span><span class="op">&lt;</span><span class="ident">linked_list::Pointers</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio/sync/notify.rs.html#130-142">Waiter</a><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="ident">NonNull::from</span>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#731">target</a>.<span class="ident">as_mut</span>().<span class="ident">pointers</span>)
+    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">pointers</span>(<span class="kw-2">mut</span> <span class="ident">target</span>: <span class="ident">NonNull</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio/sync/notify.rs.html#133-145">Waiter</a><span class="op">&gt;</span>) -&gt; <span class="ident">NonNull</span><span class="op">&lt;</span><span class="ident">linked_list::Pointers</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio/sync/notify.rs.html#133-145">Waiter</a><span class="op">&gt;</span><span class="op">&gt;</span> {
+        <span class="ident">NonNull::from</span>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#734">target</a>.<span class="ident">as_mut</span>().<span class="ident">pointers</span>)
     }
 }
 
 <span class="kw">fn</span> <span class="ident">is_unpin</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a><span class="op">&gt;</span>() {}
 </code></pre></div>
-</section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="tokio" data-search-index-js="../../../search-index.js" data-search-js="../../../search.js"></div>
-    <script src="../../../main.js"></script><script src="../../../source-script.js"></script><script src="../../../source-files.js"></script>
+</section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.59.0-nightly (207c80f10 2021-11-30)" ></div>
 </body></html>

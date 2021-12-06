@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;derive_more-0.99.16&#x2F;src&#x2F;try_into.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>try_into.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../derive_more/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;derive_more-0.99.17&#x2F;src&#x2F;try_into.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>try_into.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css"disabled><link rel="stylesheet" type="text/css" href="../../dark.css"disabled><link rel="stylesheet" type="text/css" href="../../light.css"id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
+    <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../derive_more/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -119,6 +120,7 @@
 <span id="119">119</span>
 <span id="120">120</span>
 <span id="121">121</span>
+<span id="122">122</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::utils</span>::{
     <a class="ident" href="../../src/derive_more/utils.rs.html#174-177">add_extra_generic_param</a>, <a class="ident" href="../../src/derive_more/utils.rs.html#90">numbered_vars</a>, <a class="ident" href="../../src/derive_more/utils.rs.html#281-286">AttrParams</a>, <a class="ident" href="../../src/derive_more/utils.rs.html#255-259">DeriveType</a>, <a class="ident" href="../../src/derive_more/utils.rs.html#809-828">MultiFieldData</a>,
     <a class="ident" href="../../src/derive_more/utils.rs.html#261-278">State</a>,
@@ -144,79 +146,80 @@
             <span class="ident">field</span>: <span class="macro">vec!</span>[<span class="string">&quot;ignore&quot;</span>],
         },
     )<span class="question-mark">?</span>;
-    <span class="kw">if</span> <a class="ident" href="../../src/derive_more/try_into.rs.html#14">state</a>.<span class="ident">derive_type</span> <span class="op">!</span><span class="op">=</span> <a class="ident" href="../../src/derive_more/utils.rs.html#258">DeriveType::Enum</a> {
-        <span class="macro">panic!</span>(<span class="string">&quot;Only enums can derive TryInto&quot;</span>);
-    }
+    <span class="macro">assert!</span>(
+        <a class="ident" href="../../src/derive_more/try_into.rs.html#14">state</a>.<span class="ident">derive_type</span> <span class="op">==</span> <a class="ident" href="../../src/derive_more/utils.rs.html#258">DeriveType::Enum</a>,
+        <span class="string">&quot;Only enums can derive TryInto&quot;</span>
+    );
 
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">variants_per_types</span> <span class="op">=</span> <span class="ident">HashMap::default</span>();
 
-    <span class="kw">for</span> <a class="ident" href="../../src/derive_more/try_into.rs.html#32">variant_state</a> <span class="kw">in</span> <a class="ident" href="../../src/derive_more/try_into.rs.html#14">state</a>.<a class="ident" href="../../src/derive_more/utils.rs.html#697-699">enabled_variant_data</a>().<span class="ident">variant_states</span> {
-        <span class="kw">let</span> <span class="ident">multi_field_data</span> <span class="op">=</span> <a class="ident" href="../../src/derive_more/try_into.rs.html#32">variant_state</a>.<a class="ident" href="../../src/derive_more/utils.rs.html#642">enabled_fields_data</a>();
+    <span class="kw">for</span> <span class="ident">variant_state</span> <span class="kw">in</span> <a class="ident" href="../../src/derive_more/try_into.rs.html#14">state</a>.<a class="ident" href="../../src/derive_more/utils.rs.html#697-699">enabled_variant_data</a>().<span class="ident">variant_states</span> {
+        <span class="kw">let</span> <span class="ident">multi_field_data</span> <span class="op">=</span> <a class="ident" href="../../src/derive_more/try_into.rs.html#33">variant_state</a>.<a class="ident" href="../../src/derive_more/utils.rs.html#642">enabled_fields_data</a>();
         <span class="kw">let</span> <a class="ident" href="../../src/derive_more/utils.rs.html#809-828">MultiFieldData</a> {
             <span class="ident">variant_info</span>,
             <span class="ident">field_types</span>,
             ..
-        } <span class="op">=</span> <a class="ident" href="../../src/derive_more/try_into.rs.html#33">multi_field_data</a>.<span class="ident">clone</span>();
-        <span class="kw">for</span> <a class="ident" href="../../src/derive_more/try_into.rs.html#39">ref_type</a> <span class="kw">in</span> <a class="ident" href="../../src/derive_more/try_into.rs.html#35">variant_info</a>.<a class="ident" href="../../src/derive_more/utils.rs.html#1165">ref_types</a>() {
-            <a class="ident" href="../../src/derive_more/try_into.rs.html#30">variants_per_types</a>
-                .<span class="ident">entry</span>((<a class="ident" href="../../src/derive_more/try_into.rs.html#39">ref_type</a>, <a class="ident" href="../../src/derive_more/try_into.rs.html#36">field_types</a>.<span class="ident">clone</span>()))
+        } <span class="op">=</span> <a class="ident" href="../../src/derive_more/try_into.rs.html#34">multi_field_data</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+        <span class="kw">for</span> <span class="ident">ref_type</span> <span class="kw">in</span> <a class="ident" href="../../src/derive_more/try_into.rs.html#36">variant_info</a>.<a class="ident" href="../../src/derive_more/utils.rs.html#1165">ref_types</a>() {
+            <a class="ident" href="../../src/derive_more/try_into.rs.html#31">variants_per_types</a>
+                .<span class="ident">entry</span>((<a class="ident" href="../../src/derive_more/try_into.rs.html#40">ref_type</a>, <a class="ident" href="../../src/derive_more/try_into.rs.html#37">field_types</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()))
                 .<span class="ident">or_insert_with</span>(<span class="ident">Vec::new</span>)
-                .<span class="ident">push</span>(<a class="ident" href="../../src/derive_more/try_into.rs.html#33">multi_field_data</a>.<span class="ident">clone</span>());
+                .<span class="ident">push</span>(<a class="ident" href="../../src/derive_more/try_into.rs.html#34">multi_field_data</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
         }
     }
 
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">tokens</span> <span class="op">=</span> <span class="ident">TokenStream::new</span>();
 
-    <span class="kw">for</span> ((<span class="ident">ref_type</span>, <span class="kw-2">ref</span> <span class="ident">original_types</span>), <span class="kw-2">ref</span> <span class="ident">multi_field_datas</span>) <span class="kw">in</span> <a class="ident" href="../../src/derive_more/try_into.rs.html#30">variants_per_types</a> {
+    <span class="kw">for</span> ((<span class="ident">ref_type</span>, <span class="kw-2">ref</span> <span class="ident">original_types</span>), <span class="kw-2">ref</span> <span class="ident">multi_field_datas</span>) <span class="kw">in</span> <a class="ident" href="../../src/derive_more/try_into.rs.html#31">variants_per_types</a> {
         <span class="kw">let</span> <span class="ident">input_type</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="ident" href="../../src/derive_more/try_into.rs.html#13">input</a>.<span class="ident">ident</span>;
 
-        <span class="kw">let</span> <span class="ident">pattern_ref</span> <span class="op">=</span> <a class="ident" href="../../src/derive_more/try_into.rs.html#49">ref_type</a>.<a class="ident" href="../../src/derive_more/utils.rs.html#56">pattern_ref</a>();
-        <span class="kw">let</span> <span class="ident">lifetime</span> <span class="op">=</span> <a class="ident" href="../../src/derive_more/try_into.rs.html#49">ref_type</a>.<a class="ident" href="../../src/derive_more/utils.rs.html#34">lifetime</a>();
-        <span class="kw">let</span> <span class="ident">reference_with_lifetime</span> <span class="op">=</span> <a class="ident" href="../../src/derive_more/try_into.rs.html#49">ref_type</a>.<a class="ident" href="../../src/derive_more/utils.rs.html#64">reference_with_lifetime</a>();
+        <span class="kw">let</span> <span class="ident">pattern_ref</span> <span class="op">=</span> <a class="ident" href="../../src/derive_more/try_into.rs.html#50">ref_type</a>.<a class="ident" href="../../src/derive_more/utils.rs.html#56">pattern_ref</a>();
+        <span class="kw">let</span> <span class="ident">lifetime</span> <span class="op">=</span> <a class="ident" href="../../src/derive_more/try_into.rs.html#50">ref_type</a>.<a class="ident" href="../../src/derive_more/utils.rs.html#34">lifetime</a>();
+        <span class="kw">let</span> <span class="ident">reference_with_lifetime</span> <span class="op">=</span> <a class="ident" href="../../src/derive_more/try_into.rs.html#50">ref_type</a>.<a class="ident" href="../../src/derive_more/utils.rs.html#64">reference_with_lifetime</a>();
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">matchers</span> <span class="op">=</span> <span class="macro">vec!</span>[];
-        <span class="kw">let</span> <span class="ident">vars</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="ident" href="../../src/derive_more/utils.rs.html#90">numbered_vars</a>(<a class="ident" href="../../src/derive_more/try_into.rs.html#49">original_types</a>.<span class="ident">len</span>(), <span class="string">&quot;&quot;</span>);
-        <span class="kw">for</span> <a class="ident" href="../../src/derive_more/try_into.rs.html#58">multi_field_data</a> <span class="kw">in</span> <a class="ident" href="../../src/derive_more/try_into.rs.html#49">multi_field_datas</a> {
+        <span class="kw">let</span> <span class="ident">vars</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="ident" href="../../src/derive_more/utils.rs.html#90">numbered_vars</a>(<a class="ident" href="../../src/derive_more/try_into.rs.html#50">original_types</a>.<span class="ident">len</span>(), <span class="string">&quot;&quot;</span>);
+        <span class="kw">for</span> <span class="ident">multi_field_data</span> <span class="kw">in</span> <a class="ident" href="../../src/derive_more/try_into.rs.html#50">multi_field_datas</a> {
             <span class="kw">let</span> <span class="ident">patterns</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span>
-                <a class="ident" href="../../src/derive_more/try_into.rs.html#57">vars</a>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">var</span><span class="op">|</span> <span class="macro">quote!</span>(#<span class="ident">pattern_ref</span> #<span class="ident">var</span>)).<span class="ident">collect</span>();
-            <a class="ident" href="../../src/derive_more/try_into.rs.html#56">matchers</a>.<span class="ident">push</span>(
-                <a class="ident" href="../../src/derive_more/try_into.rs.html#58">multi_field_data</a>.<a class="ident" href="../../src/derive_more/utils.rs.html#854-858">matcher</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/derive_more/try_into.rs.html#58">multi_field_data</a>.<span class="ident">field_indexes</span>, <span class="kw-2">&amp;</span><a class="ident" href="../../src/derive_more/try_into.rs.html#59">patterns</a>),
+                <a class="ident" href="../../src/derive_more/try_into.rs.html#58">vars</a>.<span class="ident">iter</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="op">|</span><span class="ident">var</span><span class="op">|</span> <span class="macro">quote!</span>(#<span class="ident">pattern_ref</span> #<span class="ident">var</span>)).<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
+            <a class="ident" href="../../src/derive_more/try_into.rs.html#57">matchers</a>.<span class="ident">push</span>(
+                <a class="ident" href="../../src/derive_more/try_into.rs.html#59">multi_field_data</a>.<a class="ident" href="../../src/derive_more/utils.rs.html#854-858">matcher</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/derive_more/try_into.rs.html#59">multi_field_data</a>.<span class="ident">field_indexes</span>, <span class="kw-2">&amp;</span><a class="ident" href="../../src/derive_more/try_into.rs.html#60">patterns</a>),
             );
         }
 
-        <span class="kw">let</span> <span class="ident">vars</span> <span class="op">=</span> <span class="kw">if</span> <a class="ident" href="../../src/derive_more/try_into.rs.html#57">vars</a>.<span class="ident">len</span>() <span class="op">==</span> <span class="number">1</span> {
+        <span class="kw">let</span> <span class="ident">vars</span> <span class="op">=</span> <span class="kw">if</span> <a class="ident" href="../../src/derive_more/try_into.rs.html#58">vars</a>.<span class="ident">len</span>() <span class="op">==</span> <span class="number">1</span> {
             <span class="macro">quote!</span>(#(#<span class="ident">vars</span>)<span class="kw-2">*</span>)
         } <span class="kw">else</span> {
             <span class="macro">quote!</span>((#(#<span class="ident">vars</span>),<span class="kw-2">*</span>))
         };
 
-        <span class="kw">let</span> <span class="ident">output_type</span> <span class="op">=</span> <span class="kw">if</span> <a class="ident" href="../../src/derive_more/try_into.rs.html#49">original_types</a>.<span class="ident">len</span>() <span class="op">==</span> <span class="number">1</span> {
+        <span class="kw">let</span> <span class="ident">output_type</span> <span class="op">=</span> <span class="kw">if</span> <a class="ident" href="../../src/derive_more/try_into.rs.html#50">original_types</a>.<span class="ident">len</span>() <span class="op">==</span> <span class="number">1</span> {
             <span class="macro">format!</span>(<span class="string">&quot;{}&quot;</span>, <span class="macro">quote!</span>(#(#<span class="ident">original_types</span>)<span class="kw-2">*</span>))
         } <span class="kw">else</span> {
-            <span class="kw">let</span> <span class="ident">types</span> <span class="op">=</span> <a class="ident" href="../../src/derive_more/try_into.rs.html#49">original_types</a>
+            <span class="kw">let</span> <span class="ident">types</span> <span class="op">=</span> <a class="ident" href="../../src/derive_more/try_into.rs.html#50">original_types</a>
                 .<span class="ident">iter</span>()
-                .<span class="ident">map</span>(<span class="op">|</span><span class="ident">t</span><span class="op">|</span> <span class="macro">format!</span>(<span class="string">&quot;{}&quot;</span>, <span class="macro">quote!</span>(#<span class="ident">t</span>)))
-                .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>();
-            <span class="macro">format!</span>(<span class="string">&quot;({})&quot;</span>, <a class="ident" href="../../src/derive_more/try_into.rs.html#75">types</a>.<span class="ident">join</span>(<span class="string">&quot;, &quot;</span>))
+                .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="op">|</span><span class="ident">t</span><span class="op">|</span> <span class="macro">format!</span>(<span class="string">&quot;{}&quot;</span>, <span class="macro">quote!</span>(#<span class="ident">t</span>)))
+                .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>();
+            <span class="macro">format!</span>(<span class="string">&quot;({})&quot;</span>, <a class="ident" href="../../src/derive_more/try_into.rs.html#76">types</a>.<span class="ident">join</span>(<span class="string">&quot;, &quot;</span>))
         };
-        <span class="kw">let</span> <span class="ident">variant_names</span> <span class="op">=</span> <a class="ident" href="../../src/derive_more/try_into.rs.html#49">multi_field_datas</a>
+        <span class="kw">let</span> <span class="ident">variant_names</span> <span class="op">=</span> <a class="ident" href="../../src/derive_more/try_into.rs.html#50">multi_field_datas</a>
             .<span class="ident">iter</span>()
-            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">d</span><span class="op">|</span> {
+            .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="op">|</span><span class="ident">d</span><span class="op">|</span> {
                 <span class="macro">format!</span>(
                     <span class="string">&quot;{}&quot;</span>,
-                    <a class="ident" href="../../src/derive_more/try_into.rs.html#83">d</a>.<span class="ident">variant_name</span>.<span class="ident">expect</span>(<span class="string">&quot;Somehow there was no variant name&quot;</span>)
+                    <a class="ident" href="../../src/derive_more/try_into.rs.html#84">d</a>.<span class="ident">variant_name</span>.<span class="ident">expect</span>(<span class="string">&quot;Somehow there was no variant name&quot;</span>)
                 )
             })
-            .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>()
+            .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>()
             .<span class="ident">join</span>(<span class="string">&quot;, &quot;</span>);
         <span class="kw">let</span> <span class="ident">message</span> <span class="op">=</span>
-            <span class="macro">format!</span>(<span class="string">&quot;Only {} can be converted to {}&quot;</span>, <a class="ident" href="../../src/derive_more/try_into.rs.html#81">variant_names</a>, <a class="ident" href="../../src/derive_more/try_into.rs.html#72">output_type</a>);
+            <span class="macro">format!</span>(<span class="string">&quot;Only {} can be converted to {}&quot;</span>, <a class="ident" href="../../src/derive_more/try_into.rs.html#82">variant_names</a>, <a class="ident" href="../../src/derive_more/try_into.rs.html#73">output_type</a>);
 
         <span class="kw">let</span> <span class="ident">generics_impl</span>;
         <span class="kw">let</span> (<span class="kw">_</span>, <span class="ident">ty_generics</span>, <span class="ident">where_clause</span>) <span class="op">=</span> <a class="ident" href="../../src/derive_more/try_into.rs.html#13">input</a>.<span class="ident">generics</span>.<span class="ident">split_for_impl</span>();
-        <span class="kw">let</span> (<span class="ident">impl_generics</span>, <span class="kw">_</span>, <span class="kw">_</span>) <span class="op">=</span> <span class="kw">if</span> <a class="ident" href="../../src/derive_more/try_into.rs.html#49">ref_type</a>.<a class="ident" href="../../src/derive_more/utils.rs.html#73">is_ref</a>() {
-            <a class="ident" href="../../src/derive_more/try_into.rs.html#94">generics_impl</a> <span class="op">=</span> <a class="ident" href="../../src/derive_more/utils.rs.html#174-177">add_extra_generic_param</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/derive_more/try_into.rs.html#13">input</a>.<span class="ident">generics</span>, <a class="ident" href="../../src/derive_more/try_into.rs.html#53">lifetime</a>.<span class="ident">clone</span>());
-            <a class="ident" href="../../src/derive_more/try_into.rs.html#94">generics_impl</a>.<span class="ident">split_for_impl</span>()
+        <span class="kw">let</span> (<span class="ident">impl_generics</span>, <span class="kw">_</span>, <span class="kw">_</span>) <span class="op">=</span> <span class="kw">if</span> <a class="ident" href="../../src/derive_more/try_into.rs.html#50">ref_type</a>.<a class="ident" href="../../src/derive_more/utils.rs.html#73">is_ref</a>() {
+            <a class="ident" href="../../src/derive_more/try_into.rs.html#95">generics_impl</a> <span class="op">=</span> <a class="ident" href="../../src/derive_more/utils.rs.html#174-177">add_extra_generic_param</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/derive_more/try_into.rs.html#13">input</a>.<span class="ident">generics</span>, <a class="ident" href="../../src/derive_more/try_into.rs.html#54">lifetime</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
+            <a class="ident" href="../../src/derive_more/try_into.rs.html#95">generics_impl</a>.<span class="ident">split_for_impl</span>()
         } <span class="kw">else</span> {
             <a class="ident" href="../../src/derive_more/try_into.rs.html#13">input</a>.<span class="ident">generics</span>.<span class="ident">split_for_impl</span>()
         };
@@ -236,11 +239,10 @@
                 }
             }
         };
-        <a class="ident" href="../../src/derive_more/try_into.rs.html#103">try_from</a>.<span class="ident">to_tokens</span>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/derive_more/try_into.rs.html#47">tokens</a>)
+        <a class="ident" href="../../src/derive_more/try_into.rs.html#104">try_from</a>.<a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/derive_more/try_into.rs.html#48">tokens</a>)
     }
-    <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/derive_more/try_into.rs.html#47">tokens</a>)
+    <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/derive_more/try_into.rs.html#48">tokens</a>)
 }
 </code></pre></div>
-</section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="derive_more" data-search-index-js="../../search-index.js" data-search-js="../../search.js"></div>
-    <script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script>
+</section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="derive_more" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.59.0-nightly (207c80f10 2021-11-30)" ></div>
 </body></html>
