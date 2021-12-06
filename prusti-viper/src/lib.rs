@@ -9,6 +9,7 @@
 #![feature(box_syntax)]
 #![feature(bool_to_option)]
 #![feature(try_blocks)]
+#![feature(never_type)]
 
 #![allow(unused_imports)]
 #![deny(unused_must_use)]
