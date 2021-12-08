@@ -375,6 +375,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         args: &[places::Local],
         target: places::Local,
         tymap: SubstMap<'tcx>,
+        locals: &places::LocalVariableManager<'tcx>,
     ) -> EncodingResult<ProcedureContract<'tcx>> {
         // get specification on trait declaration method or inherent impl
         let trait_spec = self.get_procedure_specs(proc_def_id)
@@ -389,15 +390,16 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         if let Some(ty) = self_ty {
             if let Some(id) = self.env().tcx().trait_of_item(proc_def_id) {
                 let proc_name = self.env().tcx().item_name(proc_def_id);
-                let procs = self.env().get_trait_method_decl_for_type(ty, id, proc_name);
-                if procs.len() == 1 {
-                    // FIXME(@jakob): if several methods are found, we currently don't know which
-                    // one to pick.
-                    let item = procs[0];
-                    if let Some(spec) = self.get_procedure_specs(item.def_id) {
+                let proc_argument_tys: Vec<ty::Ty<'tcx>> = args.iter().map(|arg| locals.get_type(*arg)).collect();
+                let proc_argument_tys: &[ty::Ty<'tcx>] = &proc_argument_tys;
+                let proc_target_ty: ty::Ty<'tcx> = locals.get_type(target);
+               
+                let method_impl = self.env().find_impl_of_trait_method_call(ty, id, proc_name, proc_argument_tys, proc_target_ty);
+
+                if let Some(method_impl) = method_impl {
+                    let spec = self.get_procedure_specs(method_impl.def_id);
+                    if let Some(spec) = spec {
                         impl_spec = spec;
-                    } else {
-                        debug!("Procedure {:?} has no specification", item.def_id);
                     }
                 }
             }
