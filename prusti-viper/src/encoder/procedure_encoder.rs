@@ -3070,6 +3070,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 &arguments,
                 target_local,
                 tymap.clone(),
+                &self.locals,
             ).with_span(call_site_span)?
         };
         assert_one_magic_wand(procedure_contract.borrow_infos.len()).with_span(call_site_span)?;

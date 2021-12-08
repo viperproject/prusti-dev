@@ -17,7 +17,7 @@ use std::path::PathBuf;
 use std::cell::Ref;
 use rustc_span::{Span, MultiSpan, symbol::Symbol};
 use std::collections::HashSet;
-use log::debug;
+use log::{debug, warn};
 use std::rc::Rc;
 use std::collections::HashMap;
 use std::cell::RefCell;
@@ -289,16 +289,77 @@ impl<'tcx> Environment<'tcx> {
         self.tcx().associated_items(id).filter_by_name_unhygienic(name).next().cloned()
     }
 
-    /// Get a trait method declaration by name for type.
-    pub fn get_trait_method_decl_for_type(&self, typ: ty::Ty<'tcx>, trait_id: DefId, name: Symbol) -> Vec<ty::AssocItem> {
-        let mut result = Vec::new();
-        self.tcx().for_each_relevant_impl(trait_id, typ, |impl_id| {
-            let item = self.get_assoc_item(impl_id, name);
-            if let Some(inner) = item {
-                result.push(inner);
+    /// Given a call to a method with some `method_name` defined in some trait, this method returns the to-be invoked implemented method on `ty` as a [ty::AssocItem].
+    /// 
+    /// A possible returned method matches the following conditions:
+    /// 1. The method is implemented in an implementation block of `ty` (blanket implementations are ignored)
+    /// 2. The method's signature is compatible with the arguments and the receiver on the callsite (i.e. their types match *exactly*)
+    /// 
+    /// If these conditions are not satisfied or multiple methods satisfy these conditions, `None` is returned.
+    /// 
+    /// # Arguments
+    /// * `ty` - The type on which the method is called
+    /// * `method_name` - The name of the method that is called
+    /// * `trait_id` - The [DefId] of the trait which defines the method
+    /// * `callsite_arg_tys` - The callsite argument types
+    /// * `callsite_return_ty` - The type of the callsite lvalue
+    /// 
+    pub fn find_impl_of_trait_method_call(&self, ty: ty::Ty<'tcx>, trait_id: DefId, method_name: Symbol, callsite_arg_tys: &[ty::Ty<'tcx>], callsite_return_ty: ty::Ty<'tcx>) -> Option<ty::AssocItem> {
+        debug!("Fetching implementations of method '{}' defined in trait '{}' for type '{:?}'", method_name, self.tcx().def_path_str(trait_id), ty);
+        
+        let mut valid_impl_ids: Vec<DefId> = Vec::new();
+        self.tcx().for_each_relevant_impl(trait_id, ty, |impl_id| {
+            debug!("Found (possible) implementation '{}'", self.tcx().def_path_str(impl_id));
+            
+            // Check that the type of the implementation matches (e.g. no blanket implementations)
+            let impl_ty = self.tcx().type_of(impl_id);
+            if impl_ty != ty {
+                debug!("This implementation is ignored (the type of the implementation '{}' does not match the requested type '{}')", impl_ty, ty);
+                return;
             }
+
+            // Check parameters and return type of this function -> if they do not match callsite signature, ignore this implementation
+            // TODO: Should we check for co-/contravariance? This implementation might be overly restrictive!
+            let impl_method: Vec<&ty::AssocItem> = self.tcx().provided_trait_methods(impl_id)
+                .filter(|assoc_item_method| assoc_item_method.ident.name == method_name)
+                .collect();
+
+            if impl_method.len() != 1 { // e.g. for default immplementations
+                return;
+            }
+
+            let impl_method = impl_method[0];
+            let impl_method_sig = self.tcx().fn_sig(impl_method.def_id).skip_binder();
+            let impl_method_sig_input_tys: &[ty::Ty<'tcx>] = impl_method_sig.inputs();
+            let impl_method_sig_output_ty: ty::Ty<'tcx> = impl_method_sig.output();
+
+            let all_inputs_equal = impl_method_sig_input_tys.iter().zip(callsite_arg_tys.iter())
+                .map(|(a, b)| (a.peel_refs(), b.peel_refs())) // We ignore references, since their [Region] may differ
+                .map(|(a, b)| ty::TyS::same_type(a, b))
+                .all(|el| el);
+            if !all_inputs_equal {
+                debug!("This implementation is ignored because the function signature does not match the actual function call.
+                        Expected parameter types: {:?}, actual argument types: {:?}", impl_method_sig_input_tys, callsite_arg_tys);
+                return;
+            }
+
+            if !ty::TyS::same_type(impl_method_sig_output_ty.peel_refs(), callsite_return_ty.peel_refs()) {
+                debug!("This implementation is ignored because the function signature does not match the actual function call.
+                        This signatures return type: {:?}, actual return type: {:?}", impl_method_sig_output_ty, callsite_return_ty);
+                return;
+            }
+
+            valid_impl_ids.push(impl_id);
         });
-        result
+
+        match valid_impl_ids.len() {
+            1 => self.get_assoc_item(valid_impl_ids[0], method_name),
+            0 => None,
+            _ => {
+                warn!("Found multiple implementations for method '{}' defined in trait '{}' for type '{}'", method_name, self.tcx().def_path_str(trait_id), ty);
+                None
+            }
+        }
     }
 
     pub fn type_is_allowed_in_pure_functions(&self, ty: ty::Ty<'tcx>, param_env: ty::ParamEnv<'tcx>) -> bool {
