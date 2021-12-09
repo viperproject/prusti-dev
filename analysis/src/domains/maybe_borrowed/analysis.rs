@@ -12,17 +12,21 @@ use log::{error, trace};
 use rustc_borrowck::{consumers::RichLocation, BodyWithBorrowckFacts};
 use rustc_data_structures::fx::FxHashMap;
 use rustc_middle::mir;
+use rustc_middle::ty::TyCtxt;
 
 pub struct MaybeBorrowedAnalysis<'mir, 'tcx: 'mir> {
+    tcx: TyCtxt<'tcx>,
     body_with_facts: &'mir BodyWithBorrowckFacts<'tcx>,
 }
 
 impl<'mir, 'tcx: 'mir> MaybeBorrowedAnalysis<'mir, 'tcx> {
-    pub fn new(body_with_facts: &'mir BodyWithBorrowckFacts<'tcx>) -> Self {
-        MaybeBorrowedAnalysis { body_with_facts }
+    pub fn new(tcx: TyCtxt<'tcx>, body_with_facts: &'mir BodyWithBorrowckFacts<'tcx>) -> Self {
+        MaybeBorrowedAnalysis { tcx, body_with_facts }
     }
 
-    pub fn run_analysis(&self) -> AnalysisResult<PointwiseState<'mir, 'tcx, MaybeBorrowedState>> {
+    pub fn run_analysis(
+        &self,
+    ) -> AnalysisResult<PointwiseState<'mir, 'tcx, MaybeBorrowedState<'tcx>>> {
         let body = &self.body_with_facts.body;
         let location_table = &self.body_with_facts.location_table;
         let borrowck_in_facts = &self.body_with_facts.input_facts;
@@ -59,7 +63,7 @@ impl<'mir, 'tcx: 'mir> MaybeBorrowedAnalysis<'mir, 'tcx> {
                                 borrowed_place,
                                 borrow_kind,
                             );
-                            let blocked_place = get_blocked_place(*borrowed_place);
+                            let blocked_place = self.get_blocked_place(*borrowed_place);
                             trace!("      Blocked: {:?}", blocked_place);
                             match borrow_kind {
                                 mir::BorrowKind::Shared => {
@@ -114,21 +118,24 @@ impl<'mir, 'tcx: 'mir> MaybeBorrowedAnalysis<'mir, 'tcx> {
 
         Ok(analysis_state)
     }
-}
 
-fn get_blocked_place(borrowed: mir::Place) -> mir::PlaceRef {
-    for (place_ref, place_elem) in borrowed.iter_projections() {
-        match place_elem {
-            mir::ProjectionElem::Deref
-            | mir::ProjectionElem::Index(..)
-            | mir::ProjectionElem::ConstantIndex { .. }
-            | mir::ProjectionElem::Subslice { .. } => {
-                return place_ref;
-            }
-            mir::ProjectionElem::Field(..) | mir::ProjectionElem::Downcast(..) => {
-                // Continue
+    fn get_blocked_place(&self, borrowed: mir::Place<'tcx>) -> mir::Place<'tcx> {
+        for (place_ref, place_elem) in borrowed.iter_projections() {
+            match place_elem {
+                mir::ProjectionElem::Deref
+                | mir::ProjectionElem::Index(..)
+                | mir::ProjectionElem::ConstantIndex { .. }
+                | mir::ProjectionElem::Subslice { .. } => {
+                    return mir::Place {
+                        local: place_ref.local,
+                        projection: self.tcx.intern_place_elems(place_ref.projection),
+                    };
+                }
+                mir::ProjectionElem::Field(..) | mir::ProjectionElem::Downcast(..) => {
+                    // Continue
+                }
             }
         }
+        borrowed
     }
-    borrowed.as_ref()
 }

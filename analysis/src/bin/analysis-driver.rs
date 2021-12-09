@@ -225,7 +225,7 @@ impl rustc_driver::Callbacks for OurCompilerCalls {
                         }
                     }
                     "MaybeBorrowedAnalysis" => {
-                        let analyzer = MaybeBorrowedAnalysis::new(&body_with_facts);
+                        let analyzer = MaybeBorrowedAnalysis::new(tcx, &body_with_facts);
                         match analyzer.run_analysis() {
                             Ok(state) => {
                                 println!("{}", serde_json::to_string_pretty(&state).unwrap())
