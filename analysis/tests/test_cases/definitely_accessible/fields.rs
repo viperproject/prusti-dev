@@ -1,8 +1,9 @@
 #[derive(Clone, Default)]
 struct T {
-    value1: u32,
-    value2: u32,
-    value3: u32,
+    // Wrap in box to have non-Copy types
+    value1: Box<u32>,
+    value2: Box<u32>,
+    value3: Box<u32>,
 }
 
 #[analyzer::run]
@@ -14,13 +15,13 @@ fn main() {
     let borrow_value2 = &mut x.value2;
     let block_value2 = &borrow_value2;
     // Freeze value3
-    let shared_ref = &mut x.value3;
+    let shared_ref = &x.value3;
     // Nothing should be owned here
     drop(shared_ref);
     // Now value3 should be owned
     drop(block_value2);
     // Now value2 should be accessible
-    x.value1 = 123;
+    x.value1 = Box::new(123);
     // Now everything should be owned
     drop(x);
     // Now the state should be empty
