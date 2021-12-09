@@ -14,7 +14,10 @@ extern crate rustc_session;
 
 use analysis::{
     abstract_interpretation::FixpointEngine,
-    domains::{DefinitelyInitializedAnalysis, MaybeBorrowedAnalysis, ReachingDefsAnalysis},
+    domains::{
+        DefinitelyAccessibleAnalysis, DefinitelyInitializedAnalysis, MaybeBorrowedAnalysis,
+        ReachingDefsAnalysis,
+    },
 };
 use polonius_engine::{Algorithm, Output};
 use rustc_ast::ast;
@@ -223,6 +226,19 @@ impl rustc_driver::Callbacks for OurCompilerCalls {
                     }
                     "MaybeBorrowedAnalysis" => {
                         let analyzer = MaybeBorrowedAnalysis::new(&body_with_facts);
+                        match analyzer.run_analysis() {
+                            Ok(state) => {
+                                println!("{}", serde_json::to_string_pretty(&state).unwrap())
+                            }
+                            Err(e) => eprintln!("{}", e.to_pretty_str(body)),
+                        }
+                    }
+                    "DefinitelyAccessibleAnalysis" => {
+                        let analyzer = DefinitelyAccessibleAnalysis::new(
+                            tcx,
+                            local_def_id.to_def_id(),
+                            &body_with_facts,
+                        );
                         match analyzer.run_analysis() {
                             Ok(state) => {
                                 println!("{}", serde_json::to_string_pretty(&state).unwrap())
