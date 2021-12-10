@@ -1,6 +1,6 @@
 #[derive(Clone, Default)]
 struct T {
-    // Wrap in box to have non-Copy types
+    // Wrap in Box to have non-Copy types
     value1: Box<u32>,
     value2: Box<u32>,
     value3: Box<u32>,
@@ -20,7 +20,7 @@ fn main() {
     drop(shared_ref);
     // Now value3 should be owned
     drop(block_value2);
-    // Now value2 should be accessible
+    // Now value2 should be owned
     x.value1 = Box::new(123);
     // Now everything should be owned
     drop(x);
