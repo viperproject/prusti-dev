@@ -370,12 +370,11 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
 
     pub fn get_procedure_contract_for_call(
         &self,
-        self_ty: Option<&'tcx ty::TyS<'tcx>>,
         proc_def_id: ProcedureDefId,
         args: &[places::Local],
         target: places::Local,
-        tymap: SubstMap<'tcx>,
-        locals: &places::LocalVariableManager<'tcx>,
+        tymap: SubstMap<'tcx>,// TODO: Simplify these params
+        substs: ty::subst::SubstsRef<'tcx>,
     ) -> EncodingResult<ProcedureContract<'tcx>> {
         // get specification on trait declaration method or inherent impl
         let trait_spec = self.get_procedure_specs(proc_def_id)
@@ -384,26 +383,11 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
                 typed::ProcedureSpecification::empty()
             });
 
-        // get receiver object base type
-        let mut impl_spec = typed::ProcedureSpecification::empty();
-
-        if let Some(ty) = self_ty {
-            if let Some(id) = self.env().tcx().trait_of_item(proc_def_id) {
-                let proc_name = self.env().tcx().item_name(proc_def_id);
-                let proc_argument_tys: Vec<ty::Ty<'tcx>> = args.iter().map(|arg| locals.get_type(*arg)).collect();
-                let proc_argument_tys: &[ty::Ty<'tcx>] = &proc_argument_tys;
-                let proc_target_ty: ty::Ty<'tcx> = locals.get_type(target);
-               
-                let method_impl = self.env().find_impl_of_trait_method_call(ty, id, proc_name, proc_argument_tys, proc_target_ty);
-
-                if let Some(method_impl) = method_impl {
-                    let spec = self.get_procedure_specs(method_impl.def_id);
-                    if let Some(spec) = spec {
-                        impl_spec = spec;
-                    }
-                }
-            }
-        }
+        // get specification of trait implementation
+        let impl_spec = self.env()
+            .find_impl_of_trait_method_call(proc_def_id, substs)
+            .and_then(|impl_def_id| self.get_procedure_specs(impl_def_id))
+            .unwrap_or_else(typed::ProcedureSpecification::empty);
 
         // merge specifications
         let final_spec = trait_spec.refine(&impl_spec);
