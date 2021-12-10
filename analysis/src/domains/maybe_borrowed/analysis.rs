@@ -11,8 +11,7 @@ use crate::{
 use log::{error, trace};
 use rustc_borrowck::{consumers::RichLocation, BodyWithBorrowckFacts};
 use rustc_data_structures::fx::FxHashMap;
-use rustc_middle::mir;
-use rustc_middle::ty::TyCtxt;
+use rustc_middle::{mir, ty::TyCtxt};
 
 pub struct MaybeBorrowedAnalysis<'mir, 'tcx: 'mir> {
     tcx: TyCtxt<'tcx>,
@@ -21,7 +20,10 @@ pub struct MaybeBorrowedAnalysis<'mir, 'tcx: 'mir> {
 
 impl<'mir, 'tcx: 'mir> MaybeBorrowedAnalysis<'mir, 'tcx> {
     pub fn new(tcx: TyCtxt<'tcx>, body_with_facts: &'mir BodyWithBorrowckFacts<'tcx>) -> Self {
-        MaybeBorrowedAnalysis { tcx, body_with_facts }
+        MaybeBorrowedAnalysis {
+            tcx,
+            body_with_facts,
+        }
     }
 
     pub fn run_analysis(

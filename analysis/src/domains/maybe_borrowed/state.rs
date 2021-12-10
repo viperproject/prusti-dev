@@ -14,7 +14,6 @@ pub struct MaybeBorrowedState<'tcx> {
     pub(super) maybe_mut_borrowed: FxHashSet<mir::Place<'tcx>>,
 }
 
-
 impl<'tcx> MaybeBorrowedState<'tcx> {
     pub fn get_maybe_shared_borrowed(&self) -> &FxHashSet<mir::Place<'tcx>> {
         &self.maybe_shared_borrowed
