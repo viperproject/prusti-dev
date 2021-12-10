@@ -10,14 +10,14 @@ use crate::{
         DefinitelyAccessibleState, DefinitelyInitializedAnalysis, DefinitelyInitializedState,
         MaybeBorrowedAnalysis, MaybeBorrowedState,
     },
+    mir_utils::{expand, is_prefix},
     PointwiseState,
 };
 use rustc_borrowck::BodyWithBorrowckFacts;
+use rustc_data_structures::stable_set::FxHashSet;
 use rustc_middle::{mir, ty::TyCtxt};
 use rustc_span::def_id::DefId;
-use rustc_data_structures::stable_set::FxHashSet;
 use std::mem;
-use crate::mir_utils::{is_prefix, expand};
 
 pub struct DefinitelyAccessibleAnalysis<'mir, 'tcx: 'mir> {
     tcx: TyCtxt<'tcx>,
@@ -38,12 +38,12 @@ impl<'mir, 'tcx: 'mir> DefinitelyAccessibleAnalysis<'mir, 'tcx> {
         }
     }
 
-    pub fn run_analysis<'body>(
-        &'body self,
-    ) -> AnalysisResult<PointwiseState<'body, 'tcx, DefinitelyAccessibleState<'tcx>>> {
+    pub fn run_analysis(
+        &self,
+    ) -> AnalysisResult<PointwiseState<'mir, 'tcx, DefinitelyAccessibleState<'tcx>>> {
         let body = &self.body_with_facts.body;
         let def_init_analysis =
-            DefinitelyInitializedAnalysis::new(self.tcx, self.def_id, body);
+            DefinitelyInitializedAnalysis::new_relaxed(self.tcx, self.def_id, body);
         let borrowed_analysis = MaybeBorrowedAnalysis::new(self.tcx, &self.body_with_facts);
         let def_init = def_init_analysis.run_fwd_analysis()?;
         let borrowed = borrowed_analysis.run_analysis()?;
@@ -114,12 +114,21 @@ impl<'mir, 'tcx: 'mir> DefinitelyAccessibleAnalysis<'mir, 'tcx> {
     }
 
     /// Remove all extensions of a place from a set, unpacking prefixes as much as needed.
-    fn remove_place_from_set(&self, to_remove: mir::Place<'tcx>, set: &mut FxHashSet<mir::Place<'tcx>>) {
+    fn remove_place_from_set(
+        &self,
+        to_remove: mir::Place<'tcx>,
+        set: &mut FxHashSet<mir::Place<'tcx>>,
+    ) {
         let old_set = mem::take(set);
         for old_place in old_set {
             if is_prefix(to_remove, old_place) {
                 // Unpack `old_place` and remove `to_remove`.
-                set.extend(expand(&self.body_with_facts.body, self.tcx, old_place, to_remove));
+                set.extend(expand(
+                    &self.body_with_facts.body,
+                    self.tcx,
+                    old_place,
+                    to_remove,
+                ));
             } else if is_prefix(old_place, to_remove) {
                 // `to_remove` is a prefix of `old_place`. So, it should *not* be added to `set`.
             } else {

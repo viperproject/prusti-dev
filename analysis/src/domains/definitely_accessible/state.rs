@@ -111,9 +111,8 @@ impl<'mir, 'tcx: 'mir> PointwiseState<'mir, 'tcx, DefinitelyAccessibleState<'tcx
             let before = "\t\t\t";
             let after = " // Check analysis";
             let state = self.lookup_before(location).unwrap();
-            let mut check_stmts = vec![
-                format!("{}// Check definitely accessible analysis", before)
-            ];
+            let mut check_stmts =
+                vec![format!("{}// Check definitely accessible analysis", before)];
             for &place in state.definitely_accessible.iter() {
                 if let Some(place_expr) = pretty_print_place(tcx, self.mir, place) {
                     check_stmts.push(format!("{}let _ = & {};{}", before, place_expr, after));
@@ -128,10 +127,8 @@ impl<'mir, 'tcx: 'mir> PointwiseState<'mir, 'tcx, DefinitelyAccessibleState<'tcx
                             before, place_expr, after
                         ));
                     } else {
-                        check_stmts.push(format!(
-                            "{}let _ = &mut {};{}",
-                            before, place_expr, after
-                        ));
+                        check_stmts
+                            .push(format!("{}let _ = &mut {};{}", before, place_expr, after));
                     }
                 }
             }
