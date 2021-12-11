@@ -306,7 +306,7 @@ impl<'tcx> Environment<'tcx> {
             let diagnostic: &rustc_errors::Handler = self.tcx().sess.diagnostic();
             let resolved_instance: Result<Option<ty::Instance<'tcx>>, rustc_errors::ErrorReported> = diagnostic.with_disabled_diagnostic(||  {
                 let param_env = ty::ParamEnv::reveal_all();
-                return ty::Instance::resolve(self.tcx(), param_env, proc_def_id, substs);
+                ty::Instance::resolve(self.tcx(), param_env, proc_def_id, substs)
             });
 
             return match resolved_instance {
