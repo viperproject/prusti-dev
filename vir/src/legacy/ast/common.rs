@@ -18,13 +18,18 @@ pub trait WithIdentifier {
 }
 
 /// The identifier of a statement. Used in error reporting.
-#[derive(Debug, Copy, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Copy, Clone, Serialize, Deserialize)]
 pub struct Position {
     pub(crate) line: i32,
     pub(crate) column: i32,
     pub(crate) id: u64,
 }
 
+impl PartialEq for Position {
+    // Positions always eq!
+    fn eq(&self, _other: &Self) -> bool { true }
+}
+impl Eq for Position {}
 impl Hash for Position {
     // Don't include Position info in hash!
     fn hash<H: Hasher>(&self, _state: &mut H) {}

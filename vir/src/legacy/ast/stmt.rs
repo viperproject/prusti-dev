@@ -9,8 +9,11 @@ use super::super::{
     cfg::CfgBlockIndex,
 };
 use crate::legacy::ast::*;
-use std::fmt;
-use std::{hash::Hash, hash::Hasher, mem::discriminant};
+use std::{
+    fmt,
+    hash::{Hash, Hasher},
+    mem::discriminant,
+};
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub enum Stmt {
@@ -69,6 +72,8 @@ pub enum Stmt {
     Downcast(Expr, Field),
 }
 
+// This preserves `Stmt == Stmt ==> hash(Stmt) == hash(Stmt)`
+#[allow(clippy::derive_hash_xor_eq)]
 impl Hash for Stmt {
     /// Hash ignoring Comments and ExpireBorrows
     fn hash<H: Hasher>(&self, state: &mut H) {
@@ -83,11 +88,10 @@ impl Hash for Stmt {
             Stmt::Fold(s, v, pa, mevi, p) => (s, v, pa, mevi, p).hash(state),
             Stmt::Unfold(s, ve, pa, mevi) => (s, ve, pa, mevi).hash(state),
             Stmt::Obtain(e, p) => (e, p).hash(state),
-            Stmt::BeginFrame => {},
-            Stmt::EndFrame => {},
+            Stmt::BeginFrame => {}
+            Stmt::EndFrame => {}
             Stmt::TransferPerm(e1, e2, b) => (e1, e2, b).hash(state),
-            Stmt::PackageMagicWand(e, vs, s, vlv, p) =>
-                (e, vs, s, vlv, p).hash(state),
+            Stmt::PackageMagicWand(e, vs, s, vlv, p) => (e, vs, s, vlv, p).hash(state),
             Stmt::ApplyMagicWand(e, p) => (e, p).hash(state),
             Stmt::ExpireBorrows(_) => return,
             Stmt::If(e, vs1, vs2) => (e, vs1, vs2).hash(state),
