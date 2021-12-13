@@ -18,7 +18,9 @@ pub trait WithIdentifier {
 }
 
 /// The identifier of a statement. Used in error reporting.
-#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
+/// TODO: This should probably have custom `PartialEq, Eq, Hash, PartialOrd, Ord` impls,
+/// to ensure that it is not included in these calculations.
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, Serialize, Deserialize, PartialOrd, Ord)]
 pub struct Position {
     pub(crate) line: i32,
     pub(crate) column: i32,
@@ -113,13 +115,13 @@ impl Ord for PermAmount {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub enum Float {
     F32,
     F64,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub enum Type {
     Int,
     Bool,
@@ -398,7 +400,7 @@ impl Type {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialOrd, Ord)]
 pub struct SeqType {
     pub typ: Box<Type>,
 }
@@ -423,7 +425,7 @@ impl fmt::Display for SeqType {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialOrd, Ord)]
 pub struct TypedRef {
     pub label: String,
     pub arguments: Vec<Type>,
@@ -465,7 +467,7 @@ impl From<SnapshotType> for TypedRef {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialOrd, Ord)]
 pub struct DomainType {
     pub label: String,
     pub arguments: Vec<Type>,
@@ -506,7 +508,7 @@ impl From<TypeVar> for DomainType {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialOrd, Ord)]
 pub struct SnapshotType {
     pub label: String,
     pub arguments: Vec<Type>,
@@ -547,7 +549,7 @@ impl From<TypeVar> for SnapshotType {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub struct TypeVar {
     pub label: String,
 }
@@ -558,7 +560,7 @@ impl fmt::Display for TypeVar {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub enum TypeId {
     Int,
     Bool,
@@ -569,7 +571,7 @@ pub enum TypeId {
     Snapshot,
 }
 
-#[derive(Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Clone, PartialEq, Eq, Hash, Serialize, Deserialize, PartialOrd, Ord)]
 pub struct LocalVar {
     pub name: String,
     pub typ: Type,
@@ -596,7 +598,7 @@ impl LocalVar {
     }
 }
 
-#[derive(Clone, Eq, PartialEq, Hash, Serialize, Deserialize)]
+#[derive(Clone, Eq, PartialEq, Hash, Serialize, Deserialize, PartialOrd, Ord)]
 pub struct Field {
     pub name: String,
     pub typ: Type,

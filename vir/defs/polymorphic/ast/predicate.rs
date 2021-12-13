@@ -240,7 +240,7 @@ pub struct EnumPredicate {
     pub variants: Vec<(Expr, String, StructPredicate)>,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize, PartialOrd, Ord)]
 pub struct EnumVariantIndex(pub(crate) String);
 
 impl EnumVariantIndex {
