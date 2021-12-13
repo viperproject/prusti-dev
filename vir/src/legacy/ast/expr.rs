@@ -14,7 +14,7 @@ use std::{
     mem::discriminant,
 };
 
-#[derive(Debug, Clone, Serialize, Deserialize, Eq, Hash)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
 pub enum Expr {
     /// A local var
     Local(LocalVar, Position),
