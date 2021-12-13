@@ -12,12 +12,13 @@ use rustc_middle::mir;
 use rustc_hir::hir_id::HirId;
 use rustc_hir::def_id::{DefId, LocalDefId};
 use rustc_middle::ty::{self, TyCtxt, ParamEnv, WithOptConstParam};
+use rustc_middle::ty::subst::SubstsRef;
 use rustc_trait_selection::infer::{TyCtxtInferExt, InferCtxtExt};
 use std::path::PathBuf;
 use std::cell::Ref;
 use rustc_span::{Span, MultiSpan, symbol::Symbol};
 use std::collections::HashSet;
-use log::debug;
+use log::{debug, warn};
 use std::rc::Rc;
 use std::collections::HashMap;
 use std::cell::RefCell;
@@ -289,16 +290,38 @@ impl<'tcx> Environment<'tcx> {
         self.tcx().associated_items(id).filter_by_name_unhygienic(name).next().cloned()
     }
 
-    /// Get a trait method declaration by name for type.
-    pub fn get_trait_method_decl_for_type(&self, typ: ty::Ty<'tcx>, trait_id: DefId, name: Symbol) -> Vec<ty::AssocItem> {
-        let mut result = Vec::new();
-        self.tcx().for_each_relevant_impl(trait_id, typ, |impl_id| {
-            let item = self.get_assoc_item(impl_id, name);
-            if let Some(inner) = item {
-                result.push(inner);
-            }
-        });
-        result
+    /// Given some procedure `proc_def_id` which is called, this method returns the actual method which will be executed when `proc_def_id` is defined on a trait.
+    /// Returns `None` if this method can not be found or the provided `proc_def_it` is no trait item.
+    pub fn find_impl_of_trait_method_call(&self, proc_def_id: ProcedureDefId, substs: SubstsRef<'tcx>) -> Option<ProcedureDefId> {
+        if let Some(trait_id) = self.tcx().trait_of_item(proc_def_id) {
+            debug!("Fetching implementations of method '{:?}' defined in trait '{}' with substs '{:?}'", proc_def_id, self.tcx().def_path_str(trait_id), substs);
+
+            /*
+                Note: In order to run ty::Instance::resolve, we disable diagnostics. In some cases
+                if method lookup fails, this method attaches delayed span bugs to the compiler session,
+                which will eventually be printed to stderr. With disabled diagnostics, these errors are ignored.
+                There is a change request pending for the Rust compiler to change that behaviour [1] which is not yet implemented.
+                [1]  https://github.com/rust-lang/compiler-team/issues/449
+             */
+            let diagnostic: &rustc_errors::Handler = self.tcx().sess.diagnostic();
+            let resolved_instance: Result<Option<ty::Instance<'tcx>>, rustc_errors::ErrorReported> = diagnostic.with_disabled_diagnostic(||  {
+                let param_env = ty::ParamEnv::reveal_all();
+                ty::Instance::resolve(self.tcx(), param_env, proc_def_id, substs)
+            });
+
+            return match resolved_instance {
+                Ok(method_impl_instance) => {
+                    let impl_method_def_id = method_impl_instance.map(|instance| instance.def_id());
+                    debug!("Resolved to-be called method: {:?}", impl_method_def_id);
+                    impl_method_def_id
+                },
+                Err(err) => {
+                    debug!("Error while resolving the to-be called method: {:?}", err);
+                    None
+                }
+            };
+        }
+        None
     }
 
     pub fn type_is_allowed_in_pure_functions(&self, ty: ty::Ty<'tcx>, param_env: ty::ParamEnv<'tcx>) -> bool {
