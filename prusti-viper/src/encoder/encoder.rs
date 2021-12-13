@@ -370,11 +370,11 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
 
     pub fn get_procedure_contract_for_call(
         &self,
-        self_ty: Option<&'tcx ty::TyS<'tcx>>,
         proc_def_id: ProcedureDefId,
         args: &[places::Local],
         target: places::Local,
-        tymap: SubstMap<'tcx>,
+        tymap: SubstMap<'tcx>,// TODO: Simplify these params
+        substs: ty::subst::SubstsRef<'tcx>,
     ) -> EncodingResult<ProcedureContract<'tcx>> {
         // get specification on trait declaration method or inherent impl
         let trait_spec = self.get_procedure_specs(proc_def_id)
@@ -383,25 +383,11 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
                 typed::ProcedureSpecification::empty()
             });
 
-        // get receiver object base type
-        let mut impl_spec = typed::ProcedureSpecification::empty();
-
-        if let Some(ty) = self_ty {
-            if let Some(id) = self.env().tcx().trait_of_item(proc_def_id) {
-                let proc_name = self.env().tcx().item_name(proc_def_id);
-                let procs = self.env().get_trait_method_decl_for_type(ty, id, proc_name);
-                if procs.len() == 1 {
-                    // FIXME(@jakob): if several methods are found, we currently don't know which
-                    // one to pick.
-                    let item = procs[0];
-                    if let Some(spec) = self.get_procedure_specs(item.def_id) {
-                        impl_spec = spec;
-                    } else {
-                        debug!("Procedure {:?} has no specification", item.def_id);
-                    }
-                }
-            }
-        }
+        // get specification of trait implementation
+        let impl_spec = self.env()
+            .find_impl_of_trait_method_call(proc_def_id, substs)
+            .and_then(|impl_def_id| self.get_procedure_specs(impl_def_id))
+            .unwrap_or_else(typed::ProcedureSpecification::empty);
 
         // merge specifications
         let final_spec = trait_spec.refine(&impl_spec);
