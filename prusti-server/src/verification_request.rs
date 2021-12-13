@@ -9,7 +9,7 @@ use serde::{Deserialize, Serialize};
 use std::str::FromStr;
 use viper::{self, VerificationBackend};
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, Hash)]
 pub struct VerificationRequest {
     pub program: Program,
     pub backend_config: ViperBackendConfig,

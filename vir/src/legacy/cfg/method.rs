@@ -10,39 +10,51 @@ use std::{
     fmt,
     iter::FromIterator,
 };
+use derivative::Derivative;
 use uuid::Uuid;
 
 pub const RETURN_LABEL: &str = "end_of_method";
 
+#[derive(Derivative)]
+#[derivative(Hash)]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CfgMethod {
     // TODO: extract logic using (most) skipped fields to CfgMethodBuilder
     #[serde(skip)]
+    #[derivative(Hash="ignore")]
     pub(crate) uuid: Uuid,
+
     pub(crate) method_name: String,
     pub(crate) formal_arg_count: usize,
     pub(crate) formal_returns: Vec<LocalVar>,
     // FIXME: This should be pub(in super::super). However, the optimization
     // that depends on snapshots needs to modify this field.
     pub local_vars: Vec<LocalVar>,
+
+    #[derivative(Hash="ignore")]
     pub(crate) labels: HashSet<String>,
     #[serde(skip)]
+    #[derivative(Hash="ignore")]
     pub(crate) reserved_labels: HashSet<String>,
+
     pub basic_blocks: Vec<CfgBlock>, // FIXME: Hack, should be pub(super).
     pub(crate) basic_blocks_labels: Vec<String>,
+
     #[serde(skip)]
+    #[derivative(Hash="ignore")]
     pub(crate) fresh_var_index: i32,
     #[serde(skip)]
+    #[derivative(Hash="ignore")]
     pub(crate) fresh_label_index: i32,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, Hash)]
 pub struct CfgBlock {
     pub stmts: Vec<Stmt>, // FIXME: Hack, should be pub(super).
     pub successor: Successor,
 }
 
-#[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize, Hash)]
 pub enum Successor {
     Undefined,
     Return,
@@ -50,9 +62,12 @@ pub enum Successor {
     GotoSwitch(Vec<(Expr, CfgBlockIndex)>, CfgBlockIndex),
 }
 
-#[derive(PartialEq, Eq, Clone, Copy, Hash, Serialize, Deserialize)]
+#[derive(Derivative)]
+#[derivative(Hash)]
+#[derive(PartialEq, Eq, Clone, Copy, Serialize, Deserialize)]
 pub struct CfgBlockIndex {
     #[serde(skip)]
+    #[derivative(Hash="ignore")]
     pub(crate) method_uuid: Uuid,
     pub block_index: usize,
 }
