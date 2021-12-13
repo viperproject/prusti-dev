@@ -538,9 +538,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
         );
 
         // Replacement 2: rename the variables introduced by a quantification
-        let opt_forall_id = read_prusti_attr("expr_id", inner_attrs).and_then(
-            |s| s.split('_').nth(1).map(String::from)
-        );
+        let opt_forall_id = read_prusti_attr("expr_id", inner_attrs)
+            .and_then(|s| s.split('_').nth(1).map(String::from));
         if let Some(forall_id) = opt_forall_id {
             // Skip the first argument, which is the captured state
             for local_arg_index in inner_mir.args_iter().skip(1) {
