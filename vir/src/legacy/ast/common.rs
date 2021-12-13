@@ -27,7 +27,9 @@ pub struct Position {
 
 impl PartialEq for Position {
     // Positions always eq!
-    fn eq(&self, _other: &Self) -> bool { true }
+    fn eq(&self, _other: &Self) -> bool {
+        true
+    }
 }
 impl Eq for Position {}
 impl Hash for Position {
