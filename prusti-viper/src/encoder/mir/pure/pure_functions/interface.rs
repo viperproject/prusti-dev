@@ -353,12 +353,12 @@ impl<'v, 'tcx: 'v> PureFunctionEncoderInterface<'tcx>
             // but the pure function call does not use these generics.
             // For instance a pure function call in a trait and then a trait impl;
             // in the former `substs` is empty, but in the latter the generic `Self` is mapped.
-            function_descriptions.entry(function_identifier).or_insert(
-                FunctionDescription {
+            function_descriptions
+                .entry(function_identifier)
+                .or_insert(FunctionDescription {
                     proc_def_id,
                     substs: substs.clone(),
-                }
-            );
+                });
 
             call_infos.insert(key.clone(), function_call_info);
         }
