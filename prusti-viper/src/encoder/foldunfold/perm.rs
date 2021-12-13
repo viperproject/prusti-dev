@@ -13,7 +13,7 @@ use std::{
 use vir_crate::polymorphic::{Expr, PermAmount, Position, Type};
 
 /// An access or predicate permission to a place
-#[derive(Clone, PartialEq, Eq, Hash)]
+#[derive(Clone, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub enum Perm {
     Acc(Expr, PermAmount),
     Pred(Expr, PermAmount),

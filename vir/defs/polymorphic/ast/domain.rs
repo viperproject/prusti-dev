@@ -49,7 +49,7 @@ impl fmt::Display for Domain {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize, PartialOrd, Ord)]
 pub struct DomainFunc {
     pub name: String,
     pub formal_args: Vec<LocalVar>,

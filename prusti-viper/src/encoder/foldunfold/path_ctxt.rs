@@ -507,7 +507,8 @@ impl<'a> PathCtxt<'a> {
     }
 
     /// Obtain the required permissions, changing the state inplace and returning the statements.
-    fn obtain_all(&mut self, reqs: Vec<Perm>) -> Result<Vec<Action>, FoldUnfoldError> {
+    fn obtain_all(&mut self, mut reqs: Vec<Perm>) -> Result<Vec<Action>, FoldUnfoldError> {
+        reqs.sort_unstable();
         trace!("[enter] obtain_all: {{{}}}", reqs.iter().to_string());
         reqs.iter()
             .map(|perm| self.obtain(perm, false).and_then(|x| x.get_actions()))

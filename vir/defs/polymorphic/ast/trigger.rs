@@ -7,7 +7,7 @@
 use crate::polymorphic::ast::*;
 use std::{collections::HashMap, fmt};
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize, PartialOrd, Ord)]
 pub struct Trigger(pub(crate) Vec<Expr>);
 
 impl fmt::Display for Trigger {
