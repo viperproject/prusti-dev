@@ -41,7 +41,7 @@ pub(super) fn encode_function_decl<'p, 'v: 'p, 'tcx: 'v>(
         parent_def_id,
         tymap.clone(),
     );
-    let encoder = PureEncoder {
+    let pure_encoder = PureEncoder {
         encoder,
         proc_def_id,
         mir,
@@ -49,9 +49,43 @@ pub(super) fn encode_function_decl<'p, 'v: 'p, 'tcx: 'v>(
         tymap,
         interpreter,
     };
-    encoder.encode_function_decl()
+    let function_decl = pure_encoder.encode_function_decl()?;
+    if function_decl.body.is_some() {
+        // Check that function does not call itself in its contract.
+        let span = encoder.env().get_def_span(proc_def_id);
+        struct CallFinder<'a> {
+            function_name: &'a str,
+            span: Span,
+        }
+        impl<'a> vir_high::visitors::ExpressionFallibleWalker for CallFinder<'a> {
+            type Error = SpannedEncodingError;
+            fn fallible_walk_func_app(
+                &mut self,
+                func_app: &vir_high::FuncApp,
+            ) -> Result<(), Self::Error> {
+                if func_app.function_name == self.function_name {
+                    return Err(SpannedEncodingError::incorrect(
+                        "only trusted functions can call themselves in their contracts".to_string(),
+                        self.span,
+                    ));
+                }
+                vir_high::visitors::default_fallible_walk_func_app(self, func_app)
+            }
+        }
+        let mut finder = CallFinder {
+            span,
+            function_name: &function_decl.name,
+        };
+        for expr in function_decl.pres.iter().chain(&function_decl.posts) {
+            vir_high::visitors::ExpressionFallibleWalker::fallible_walk_expression(
+                &mut finder,
+                expr,
+            )?;
+        }
+    }
     // FIXME: Traverse the encoded function and check that all used types are
     // Copy. Doing this before encoding causes too many false positives.
+    Ok(function_decl)
 }
 
 pub(super) fn encode_pure_expression<'p, 'v: 'p, 'tcx: 'v>(

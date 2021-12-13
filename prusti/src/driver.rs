@@ -196,8 +196,8 @@ fn main() {
 
         if config::check_overflows() {
             // Some crates might have a `overflow-checks = false` in their `Cargo.toml` to
-            // disable integer overflow checks, but we want to ignore that.
-            rustc_args.push("-Zforce-overflow-checks=yes".to_owned());
+            // disable integer overflow checks, but we want to override that.
+            rustc_args.push("-Coverflow-checks=on".to_owned());
         }
 
         if config::dump_debug_info() {
