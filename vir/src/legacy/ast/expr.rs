@@ -14,7 +14,7 @@ use std::{
     mem::discriminant,
 };
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, Eq, Hash)]
 pub enum Expr {
     /// A local var
     Local(LocalVar, Position),
@@ -1847,57 +1847,6 @@ impl PartialEq for Expr {
                 debug_assert_ne!(discriminant(a), discriminant(b));
                 false
             }
-        }
-    }
-}
-
-impl Eq for Expr {}
-
-impl Hash for Expr {
-    /// Hash ignoring the `position` field
-    fn hash<H: Hasher>(&self, state: &mut H) {
-        discriminant(self).hash(state);
-        match self {
-            Expr::Local(ref var, _) => var.hash(state),
-            Expr::Variant(box ref base, variant_index, _) => (base, variant_index).hash(state),
-            Expr::Field(box ref base, ref field, _) => (base, field).hash(state),
-            Expr::AddrOf(box ref base, ref typ, _) => (base, typ).hash(state),
-            Expr::LabelledOld(ref label, box ref base, _) => (label, base).hash(state),
-            Expr::Const(ref const_expr, _) => const_expr.hash(state),
-            Expr::MagicWand(box ref lhs, box ref rhs, b, _) => (lhs, rhs, b).hash(state),
-            Expr::PredicateAccessPredicate(ref name, ref arg, perm, _) => {
-                (name, arg, perm).hash(state)
-            }
-            Expr::FieldAccessPredicate(box ref base, perm, _) => (base, perm).hash(state),
-            Expr::UnaryOp(op, box ref arg, _) => (op, arg).hash(state),
-            Expr::BinOp(op, box ref left, box ref right, _) => (op, left, right).hash(state),
-            Expr::Cond(box ref cond, box ref then_expr, box ref else_expr, _) => {
-                (cond, then_expr, else_expr).hash(state)
-            }
-            Expr::ForAll(ref vars, ref triggers, box ref expr, _) => {
-                (vars, triggers, expr).hash(state)
-            }
-            Expr::Exists(ref vars, ref triggers, box ref expr, _) => {
-                (vars, triggers, expr).hash(state)
-            }
-            Expr::LetExpr(ref var, box ref def, box ref expr, _) => (var, def, expr).hash(state),
-            Expr::FuncApp(ref name, ref args, _, _, _) => (name, args).hash(state),
-            Expr::DomainFuncApp(ref function, ref args, _) => (&function.name, args).hash(state),
-            // TODO Expr::DomainFuncApp(ref name, ref args, _, _, ref domain_name ,_) => (name, args, domain_name).hash(state),
-            Expr::Unfolding(ref name, ref args, box ref base, perm, ref variant, _) => {
-                (name, args, base, perm, variant).hash(state)
-            }
-            Expr::InhaleExhale(box ref inhale_expr, box ref exhale_expr, _) => {
-                (inhale_expr, exhale_expr).hash(state)
-            }
-            Expr::Downcast(box ref base, box ref enum_place, ref field) => {
-                (base, enum_place, field).hash(state)
-            }
-            Expr::SnapApp(ref expr, _) => expr.hash(state),
-            Expr::ContainerOp(op_kind, box ref left, box ref right, _) => {
-                (op_kind, left, right).hash(state)
-            }
-            Expr::Seq(ty, elems, _) => (ty, elems).hash(state),
         }
     }
 }
