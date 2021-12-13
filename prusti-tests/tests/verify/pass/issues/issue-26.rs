@@ -8,7 +8,7 @@ fn pure_fn() -> bool { true }
 
 trait Trait {
     #[requires(pure_fn())]
-    //#[ensures(pure_fn_2::<Self>())]
+    //#[ensures(pure_fn_generics::<Self>())]
     fn foo();
 }
 
