@@ -5,12 +5,12 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use crate::legacy::{ast::*, gather_labels::gather_labels};
+use derivative::Derivative;
 use std::{
     collections::{HashMap, HashSet, VecDeque},
     fmt,
     iter::FromIterator,
 };
-use derivative::Derivative;
 use uuid::Uuid;
 
 pub const RETURN_LABEL: &str = "end_of_method";
@@ -21,7 +21,7 @@ pub const RETURN_LABEL: &str = "end_of_method";
 pub struct CfgMethod {
     // TODO: extract logic using (most) skipped fields to CfgMethodBuilder
     #[serde(skip)]
-    #[derivative(Hash="ignore")]
+    #[derivative(Hash = "ignore")]
     pub(crate) uuid: Uuid,
 
     pub(crate) method_name: String,
@@ -31,20 +31,20 @@ pub struct CfgMethod {
     // that depends on snapshots needs to modify this field.
     pub local_vars: Vec<LocalVar>,
 
-    #[derivative(Hash="ignore")]
+    #[derivative(Hash = "ignore")]
     pub(crate) labels: HashSet<String>,
     #[serde(skip)]
-    #[derivative(Hash="ignore")]
+    #[derivative(Hash = "ignore")]
     pub(crate) reserved_labels: HashSet<String>,
 
     pub basic_blocks: Vec<CfgBlock>, // FIXME: Hack, should be pub(super).
     pub(crate) basic_blocks_labels: Vec<String>,
 
     #[serde(skip)]
-    #[derivative(Hash="ignore")]
+    #[derivative(Hash = "ignore")]
     pub(crate) fresh_var_index: i32,
     #[serde(skip)]
-    #[derivative(Hash="ignore")]
+    #[derivative(Hash = "ignore")]
     pub(crate) fresh_label_index: i32,
 }
 
@@ -63,11 +63,11 @@ pub enum Successor {
 }
 
 #[derive(Derivative)]
-#[derivative(Hash)]
-#[derive(PartialEq, Eq, Clone, Copy, Serialize, Deserialize)]
+#[derivative(Hash, PartialEq, Eq)]
+#[derive(Clone, Copy, Serialize, Deserialize)]
 pub struct CfgBlockIndex {
     #[serde(skip)]
-    #[derivative(Hash="ignore")]
+    #[derivative(Hash = "ignore")]
     pub(crate) method_uuid: Uuid,
     pub block_index: usize,
 }
