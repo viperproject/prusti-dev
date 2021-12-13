@@ -5,6 +5,7 @@ use super::{
 };
 use crate::encoder::{high::types::HighTypeEncoderInterface, mir::types::MirTypeEncoderInterface};
 use prusti_common::vir_local;
+use rustc_span::Span;
 use std::{
     collections::{HashMap, HashSet},
     hash::Hash,
@@ -31,6 +32,7 @@ use vir_crate::polymorphic::{
 /// We include bodies of all predicates which we observed unfolded at any step
 /// of the process.
 pub(super) fn collect_definitions(
+    error_span: Span,
     encoder: &Encoder,
     name: String,
     methods: Vec<vir::CfgMethod>,
@@ -40,6 +42,7 @@ pub(super) fn collect_definitions(
     };
     vir::utils::walk_methods(&methods, &mut unfolded_predicate_collector);
     let mut collector = Collector {
+        error_span,
         encoder,
         method_names: methods.iter().map(|method| method.name()).collect(),
         unfolded_predicates: unfolded_predicate_collector.unfolded_predicates,
@@ -49,6 +52,7 @@ pub(super) fn collect_definitions(
         used_domains: Default::default(),
         used_snap_domain_functions: Default::default(),
         used_functions: Default::default(),
+        checked_function_contracts: Default::default(),
         used_mirror_functions: Default::default(),
         unfolded_functions: Default::default(),
         directly_called_functions: Default::default(),
@@ -59,6 +63,7 @@ pub(super) fn collect_definitions(
 }
 
 struct Collector<'p, 'v: 'p, 'tcx: 'v> {
+    error_span: Span,
     encoder: &'p Encoder<'v, 'tcx>,
     /// The list of encoded methods for checking that they do not clash with
     /// functions.
@@ -74,6 +79,8 @@ struct Collector<'p, 'v: 'p, 'tcx: 'v> {
     used_snap_domain_functions: HashSet<vir::FunctionIdentifier>,
     /// The set of all functions that are mentioned in the method.
     used_functions: HashSet<vir::FunctionIdentifier>,
+    /// The set of functions whose contracts were already checked.
+    checked_function_contracts: HashSet<vir::FunctionIdentifier>,
     /// The set of all mirror functions that are mentioned in the method.
     used_mirror_functions: HashSet<vir::FunctionIdentifier>,
     /// The set of functions whose bodies have to be included because predicates
@@ -202,10 +209,15 @@ impl<'p, 'v: 'p, 'tcx: 'v> Collector<'p, 'v, 'tcx> {
                     function.body = None;
                 }
             }
-            assert!(
-                !self.method_names.contains(&function.name),
-                "same Rust function encoded as both Viper method and function"
-            );
+            if self.method_names.contains(&function.name) {
+                return Err(SpannedEncodingError::internal(
+                    format!(
+                        "Rust function {} encoded both as a Viper method and function",
+                        function.name
+                    ),
+                    self.error_span,
+                ));
+            }
             functions.push(function);
         }
         functions.sort_by_cached_key(|f| f.get_identifier());
@@ -225,12 +237,29 @@ impl<'p, 'v: 'p, 'tcx: 'v> Collector<'p, 'v, 'tcx> {
                         && !predicate_name.starts_with("Array$")
                     {
                         // The type is never unfolded, so the snapshot should be
-                        // abstract. The only exception is the discriminant function
+                        // abstract. An exception is the discriminant function
                         // because it can be called on a folded type.
-                        domain.axioms.clear();
+                        // Another exception is when a snap domain function depends
+                        // on an axiom, then we should also retain the axiom.
+                        let mut used_snap_domain_function_prefixes = vec![];
                         domain.functions.retain(|function| {
-                            self.used_snap_domain_functions
-                                .contains(&function.get_identifier().into())
+                            let function_name = function.get_identifier();
+                            let prefix = function_name.split("__").next().map(String::from);
+                            if self
+                                .used_snap_domain_functions
+                                .contains(&function_name.into())
+                            {
+                                used_snap_domain_function_prefixes.extend(prefix);
+                                true
+                            } else {
+                                false
+                            }
+                        });
+                        domain.axioms.retain(|axiom| {
+                            axiom.name.ends_with("$valid")
+                                && used_snap_domain_function_prefixes
+                                    .iter()
+                                    .any(|prefix| axiom.name.starts_with(prefix))
                         });
                     }
                 }
@@ -349,18 +378,30 @@ impl<'p, 'v: 'p, 'tcx: 'v> FallibleExprWalker for Collector<'p, 'v, 'tcx> {
     ) -> SpannedEncodingResult<()> {
         let identifier: vir::FunctionIdentifier =
             compute_identifier(function_name, formal_arguments, return_type).into();
-        let have_visited = !self.used_functions.contains(&identifier);
-        let have_visited_in_directly_calling_state =
+        let should_visit = !self.used_functions.contains(&identifier);
+        let should_visit_in_directly_calling_state =
             self.in_directly_calling_state && !self.directly_called_functions.contains(&identifier);
-        if have_visited || have_visited_in_directly_calling_state {
+        if should_visit || should_visit_in_directly_calling_state {
             let function = self.encoder.get_function(&identifier)?;
             self.used_functions.insert(identifier.clone());
-            for expr in function.pres.iter().chain(&function.posts) {
-                self.fallible_walk_expr(expr)?;
+            if !self.checked_function_contracts.contains(&identifier)
+                || should_visit_in_directly_calling_state
+            {
+                self.checked_function_contracts.insert(identifier.clone());
+                for expr in function.pres.iter().chain(&function.posts) {
+                    self.fallible_walk_expr(expr)?;
+                }
             }
             let is_unfoldable = self.contains_unfolded_predicates(&function.pres)
                 || self.contains_unfolded_parameters(&function.formal_args);
-            if self.in_directly_calling_state || is_unfoldable {
+            // TODO: this post-condition check can be removed once verification of Viper functions is disabled,
+            // TODO: this is just a temporary fix for https://github.com/viperproject/prusti-dev/issues/770
+            let post_conditions_depend_on_result = function.posts.iter().any(|postcondition| {
+                postcondition.find(&vir::Expr::from(
+                    vir_local! { __result: { function.return_type.clone() } },
+                ))
+            });
+            if self.in_directly_calling_state || is_unfoldable || post_conditions_depend_on_result {
                 self.directly_called_functions.insert(identifier.clone());
                 self.unfolded_functions.insert(identifier);
                 let old_in_directly_calling_state = self.in_directly_calling_state;

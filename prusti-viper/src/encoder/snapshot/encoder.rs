@@ -857,7 +857,7 @@ impl SnapshotEncoder {
                 };
 
                 let slice_helper = self.encode_slice_helper(
-                    snap_type,
+                    snap_type.clone(),
                     elem_snap_ty,
                     read.clone(),
                     array_types.array_len.into(),
@@ -897,7 +897,6 @@ impl SnapshotEncoder {
                         right: box idx.clone().into(),
                         position: vir::Position::default(),
                     });
-
                     vir::DomainAxiom {
                         name: format!("{}$read_indices", predicate_type.name()),
                         expr: Expr::forall(
@@ -912,12 +911,41 @@ impl SnapshotEncoder {
                     }
                 };
 
-                let domain = vir::Domain {
-                    name: domain_name,
+                let mut domain = vir::Domain {
+                    name: domain_name.clone(),
                     functions: vec![cons.clone(), read.clone()],
                     axioms: vec![constructor_inj, read_axiom],
                     type_vars: vec![],
                 };
+
+                // encode type validity axiom for array element
+                // TODO: encode type invariants rather than just integer bounds
+                match elem_ty.kind() {
+                    ty::TyKind::Int(_)
+                    | ty::TyKind::Uint(_)
+                    | ty::TyKind::Float(_)
+                    | ty::TyKind::Char => domain.axioms.push({
+                        let self_local = vir::LocalVar::new("self", snap_type);
+                        let self_expr = Expr::local(self_local.clone());
+                        let idx = vir_local! { idx: Int };
+                        let read_call = read.apply(vec![self_expr, idx.clone().into()]);
+
+                        vir::DomainAxiom {
+                            name: format!("{}$valid", domain_name),
+                            expr: Expr::forall(
+                                vec![self_local, idx],
+                                vec![vir::Trigger::new(vec![read_call.clone()])],
+                                encoder
+                                    .encode_type_bounds(&read_call, elem_ty)
+                                    .into_iter()
+                                    .conjoin(),
+                            ),
+                            domain_name,
+                        }
+                    }),
+
+                    _ => {}
+                }
 
                 Ok(Snapshot::Array {
                     predicate_type: predicate_type.convert_to_snapshot(),
@@ -1219,17 +1247,46 @@ impl SnapshotEncoder {
 
                     vir::DomainAxiom {
                         name: format!("{}$len_positive", predicate_type.name()),
-                        expr: vir_expr! { forall slice: {slice_snap_ty} :: { [len_call] } ([len_call] >= [Expr::from(0)]) },
+                        expr: vir_expr! { forall slice: {slice_snap_ty.clone()} :: { [len_call] } ([len_call] >= [Expr::from(0)]) },
                         domain_name: domain_name.clone(),
                     }
                 };
 
-                let domain = vir::Domain {
-                    name: domain_name,
+                let mut domain = vir::Domain {
+                    name: domain_name.clone(),
                     functions: vec![cons.clone(), read.clone(), len.clone()],
                     axioms: vec![cons_inj, read_axiom, len_of_seq, len_positive],
                     type_vars: vec![],
                 };
+
+                // encode type validity axiom for slice element
+                // TODO: encode type invariants rather than just integer bounds
+                match elem_ty.kind() {
+                    ty::TyKind::Int(_)
+                    | ty::TyKind::Uint(_)
+                    | ty::TyKind::Float(_)
+                    | ty::TyKind::Char => domain.axioms.push({
+                        let self_local = vir::LocalVar::new("self", slice_snap_ty);
+                        let self_expr = Expr::local(self_local.clone());
+                        let idx = vir_local! { idx: Int };
+                        let read_call = read.apply(vec![self_expr, idx.clone().into()]);
+
+                        vir::DomainAxiom {
+                            name: format!("{}$valid", domain_name),
+                            expr: Expr::forall(
+                                vec![self_local, idx],
+                                vec![vir::Trigger::new(vec![read_call.clone()])],
+                                encoder
+                                    .encode_type_bounds(&read_call, elem_ty)
+                                    .into_iter()
+                                    .conjoin(),
+                            ),
+                            domain_name,
+                        }
+                    }),
+
+                    _ => {}
+                }
 
                 Ok(Snapshot::Slice {
                     predicate_type: predicate_type.convert_to_snapshot(),

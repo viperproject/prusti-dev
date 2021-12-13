@@ -214,8 +214,9 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         self.error_manager.borrow_mut()
     }
 
-    pub fn finalize_viper_program(&self, name: String) -> SpannedEncodingResult<vir::Program> {
-        super::definition_collector::collect_definitions(self, name, self.get_used_viper_methods())
+    pub fn finalize_viper_program(&self, name: String, proc_def_id: DefId) -> SpannedEncodingResult<vir::Program> {
+        let error_span = self.env.get_def_span(proc_def_id);
+        super::definition_collector::collect_definitions(error_span, self, name, self.get_used_viper_methods())
     }
 
     pub fn get_viper_programs(&mut self) -> Vec<vir::Program> {
@@ -847,7 +848,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
                 self.register_encoding_error(error);
                 debug!("Error encoding function: {:?}", proc_def_id);
             } else {
-                match self.finalize_viper_program(proc_name) {
+                match self.finalize_viper_program(proc_name, proc_def_id) {
                     Ok(program) => self.programs.push(program),
                     Err(error) => {
                         self.register_encoding_error(error);
@@ -899,7 +900,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             fn tcx(&self) -> ty::TyCtxt<'tcx> {
                 self.tcx
             }
-            fn fold_ty(&mut self, ty: ty::Ty<'tcx>) -> ty::Ty<'tcx> {
+            fn fold_ty(&mut self, ty: ty::Ty<'tcx>) -> Result<ty::Ty<'tcx>, !> {
                 let rep = self.tymap.get(&ty).unwrap_or(&ty);
                 rep.super_fold_with(self)
             }
@@ -908,7 +909,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             tcx: self.env().tcx(),
             // TODO: creating each time a current_tymap might be slow. This can be optimized.
             tymap//: self.current_tymap(),
-        })
+        }).unwrap()
     }
 
     /// Merges the stack of type maps into a single map.
