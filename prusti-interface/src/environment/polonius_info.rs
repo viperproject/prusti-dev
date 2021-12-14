@@ -898,16 +898,6 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
             .map(|loans| loans.iter().cloned().collect()).unwrap_or_default()
     }
 
-    /// Get loans that dye at the given location.
-    pub(crate) fn get_dying_loans(&self, location: mir::Location) -> Vec<facts::Loan> {
-        self.get_loans_dying_at(location, false)
-    }
-
-    /// Get loans that dye at the given location.
-    pub(crate) fn get_dying_zombie_loans(&self, location: mir::Location) -> Vec<facts::Loan> {
-        self.get_loans_dying_at(location, true)
-    }
-
     /// Get loans including the zombies ``(all_loans, zombie_loans)``.
     pub fn get_all_active_loans(
         &self,
