@@ -590,7 +590,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> vir::CfgReplacer<PathCtxt<'p>, ActionVec> for FoldUnf
         // 2. Obtain required *curr* permissions. *old* requirements will be handled at steps 0 and/or 4.
         trace!("[step.2] replace_stmt: {}", stmt);
         {
-            let all_perms = stmt.get_required_permissions(pctxt.predicates(), pctxt.old_exprs());
+            let all_perms = stmt.get_required_permissions(pctxt.predicates());
             let pred_permissions: Vec<_> =
                 all_perms.iter().cloned().filter(|p| p.is_pred()).collect();
 
@@ -631,6 +631,33 @@ impl<'p, 'v: 'p, 'tcx: 'v> vir::CfgReplacer<PathCtxt<'p>, ActionVec> for FoldUnf
                     }));
                 }
             }
+        }
+
+        // A label has to ensure that all usages of labelled-old expressions can be later
+        // solved by *unfolding*, and not *folding*, permissions.
+        // See issue https://github.com/viperproject/prusti-dev/issues/797.
+        if let vir::Stmt::Label(label) = &stmt {
+            let curr_acc_perms = pctxt.state().acc_places();
+            let mut perms = pctxt
+                .old_exprs()
+                .get(&label.label)
+                .map(|exprs| exprs.get_required_permissions(pctxt.predicates()))
+                .unwrap_or_default();
+            // Remove what would need to be unfolded
+            perms.retain(|p| {
+                p.is_pred()
+                    && curr_acc_perms.iter().all(|q| {
+                        q.get_place()
+                            .map(|q_place| !p.has_proper_prefix(q_place))
+                            .unwrap_or(true)
+                    })
+            });
+            stmts.extend(
+                pctxt
+                    .obtain_permissions(perms.into_iter().collect())?
+                    .iter()
+                    .map(|a| a.to_stmt()),
+            );
         }
 
         // 3. Replace special statements
@@ -975,7 +1002,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> vir::CfgReplacer<PathCtxt<'p>, ActionVec> for FoldUnf
 
         let grouped_perms: HashMap<_, _> = exprs
             .iter()
-            .flat_map(|e| e.get_required_permissions(pctxt.predicates(), pctxt.old_exprs()))
+            .flat_map(|e| e.get_required_permissions(pctxt.predicates()))
             .group_by_label();
 
         let mut stmts: Vec<vir::Stmt> = vec![];
@@ -1436,7 +1463,7 @@ impl<'b, 'a: 'b> FallibleExprFolder for ExprReplacer<'b, 'a> {
             // Compute the permissions that are still missing in order for the current expression
             // to be well-formed
             let perms: Vec<_> = inner_expr
-                .get_required_permissions(self.curr_pctxt.predicates(), self.curr_pctxt.old_exprs())
+                .get_required_permissions(self.curr_pctxt.predicates())
                 .into_iter()
                 .filter(|p| p.is_curr())
                 .collect();
@@ -1484,7 +1511,7 @@ impl<'b, 'a: 'b> FallibleExprFolder for ExprReplacer<'b, 'a> {
 
             // Compute the unfoldings to be generated around the function call
             let perms: Vec<_> = vir::Expr::FuncApp(func_app.clone())
-                .get_required_permissions(self.curr_pctxt.predicates(), self.curr_pctxt.old_exprs())
+                .get_required_permissions(self.curr_pctxt.predicates())
                 .into_iter()
                 .collect();
             let unfolding_actions: Vec<_> = self
@@ -1548,7 +1575,7 @@ impl<'b, 'a: 'b> FallibleExprFolder for ExprReplacer<'b, 'a> {
 
             // Compute the unfoldings to be generated around the function call
             let perms: Vec<_> = vir::Expr::DomainFuncApp(domain_func_app.clone())
-                .get_required_permissions(self.curr_pctxt.predicates(), self.curr_pctxt.old_exprs())
+                .get_required_permissions(self.curr_pctxt.predicates())
                 .into_iter()
                 .collect();
             let unfolding_actions: Vec<_> = self
