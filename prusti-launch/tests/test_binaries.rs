@@ -45,11 +45,12 @@ fn find_executable_path(base_name: &str) -> PathBuf {
 }
 
 fn run_on_test_files<F: Fn(&PathBuf) -> ExitStatus>(run: F) {
-    let pass_entries = glob("verify/pass/quick/**/*.jpg").expect("failed to read glob pattern");
+    let pass_entries = glob("tests/pass/**/*.rs").expect("failed to read glob pattern");
     for entry in pass_entries {
         match entry {
             Err(e) => println!("{:?}", e),
             Ok(path) => {
+                println!("Testing {:?}", path);
                 let exit_status = run(&path);
                 assert!(
                     exit_status.success(),
@@ -60,11 +61,12 @@ fn run_on_test_files<F: Fn(&PathBuf) -> ExitStatus>(run: F) {
         }
     }
 
-    let fail_entries = glob("verify/fail/quick/**/*.jpg").expect("failed to read glob pattern");
+    let fail_entries = glob("tests/fail/**/*.rs").expect("failed to read glob pattern");
     for entry in fail_entries {
         match entry {
             Err(e) => println!("{:?}", e),
             Ok(path) => {
+                println!("Testing {:?}", path);
                 let exit_status = run(&path);
                 assert!(
                     !exit_status.success(),
@@ -97,11 +99,17 @@ fn test_prusti_rustc() {
             prusti_rustc.display(),
             program.display()
         );
+        let filtered_env: HashMap<String, String> = env::vars()
+            .filter(|&(ref k, _)| k == "PATH")
+            .collect();
         Command::new(&prusti_rustc)
             .arg("--edition=2018")
             .arg(program)
             .env_clear()
             .env("RUST_BACKTRACE", "1")
+            .envs(&filtered_env)
+            .stdout(Stdio::null())
+            .stderr(Stdio::null())
             .status()
             .expect("failed to execute prusti-rustc")
     });
@@ -159,15 +167,22 @@ fn test_prusti_rustc_with_server() {
             prusti_rustc.display(),
             program.display()
         );
+        let filtered_env: HashMap<String, String> = env::vars()
+            .filter(|&(ref k, _)| k == "PATH")
+            .collect();
         Command::new(&prusti_rustc)
             .arg("--edition=2018")
             .arg(program)
             .env_clear()
+            .env("PATH", env::var("PATH").unwrap_or_default())
             .env("RUST_BACKTRACE", "1")
             .env(
                 "PRUSTI_SERVER_ADDRESS",
                 format!("localhost:{}", server_port),
             )
+            .envs(&filtered_env)
+            .stdout(Stdio::null())
+            .stderr(Stdio::null())
             .status()
             .expect("failed to execute prusti-rustc")
     });
