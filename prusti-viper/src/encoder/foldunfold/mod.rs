@@ -566,17 +566,17 @@ impl<'p, 'v: 'p, 'tcx: 'v> vir::CfgReplacer<PathCtxt<'p>, ActionVec> for FoldUnf
         let mut stmts: Vec<vir::Stmt> = vec![];
 
         if stmt_index == 0 && config::dump_path_ctxt_in_debug_info() {
-            let acc_state = pctxt.state().display_acc().replace("\n", "\n//");
+            let acc_state = pctxt.state().display_acc().replace('\n', "\n//");
             stmts.push(vir::Stmt::comment(format!(
                 "[state] acc: {{\n//{}\n//}}",
                 acc_state
             )));
-            let pred_state = pctxt.state().display_pred().replace("\n", "\n//");
+            let pred_state = pctxt.state().display_pred().replace('\n', "\n//");
             stmts.push(vir::Stmt::comment(format!(
                 "[state] pred: {{\n//{}\n//}}",
                 pred_state
             )));
-            let moved_state = pctxt.state().display_moved().replace("\n", "\n//");
+            let moved_state = pctxt.state().display_moved().replace('\n', "\n//");
             stmts.push(vir::Stmt::comment(format!(
                 "[state] moved: {{\n//{}\n//}}",
                 moved_state

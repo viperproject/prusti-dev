@@ -77,13 +77,12 @@ pub trait FixpointEngine<'mir, 'tcx: 'mir> {
         while let Some(&bb) = work_set.iter().next() {
             work_set.remove(&bb);
 
-            let mut state_before_block;
-            if bb == mir::START_BLOCK {
+            let mut state_before_block = if bb == mir::START_BLOCK {
                 // entry block
-                state_before_block = self.new_initial();
+                self.new_initial()
             } else {
-                state_before_block = self.new_bottom();
-            }
+                self.new_bottom()
+            };
 
             for &pred_bb in &mir.predecessors()[bb] {
                 if let Some(map) = p_state.lookup_after_block(pred_bb) {

@@ -13,8 +13,8 @@ pub struct ClassName {
 
 impl ClassName {
     pub fn new(full_class_name: &str) -> Self {
-        let full_class_name_dot = full_class_name.to_string().replace("/", ".");
-        let full_class_name_slash = full_class_name_dot.replace(".", "/");
+        let full_class_name_dot = full_class_name.to_string().replace('/', ".");
+        let full_class_name_slash = full_class_name_dot.replace('.', "/");
         let class_name = full_class_name_slash.split('/').last().unwrap().to_string();
 
         ClassName {
@@ -53,5 +53,5 @@ impl ClassName {
 }
 
 fn component_name_to_rust(name: &str) -> String {
-    name.replace("$", "_object")
+    name.replace('$', "_object")
 }
