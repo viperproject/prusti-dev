@@ -12,12 +12,12 @@ pub(in super::super::super) fn to_sorted_text<S: ToText>(texts: &[S]) -> Vec<Str
 
 fn escape_html<S: ToString>(s: S) -> String {
     s.to_string()
-        .replace("&", "&amp;")
-        .replace(">", "&gt;")
-        .replace("<", "&lt;")
-        .replace("{", "\\{")
-        .replace("}", "\\}")
-        .replace("\n", "<br/>")
+        .replace('&', "&amp;")
+        .replace('>', "&gt;")
+        .replace('<', "&lt;")
+        .replace('{', "\\{")
+        .replace('}', "\\}")
+        .replace('\n', "<br/>")
 }
 
 impl ToText for str {

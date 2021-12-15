@@ -10,10 +10,10 @@ use crate::vir::polymorphic_vir::{self as vir, cfg::{CfgMethod, CfgBlock, Succes
 
 fn escape_html<S: ToString>(s: S) -> String {
     s.to_string()
-        .replace("&", "&amp;")
-        .replace(">", "&gt;")
-        .replace("<", "&lt;")
-        .replace("\n", "<br/>")
+        .replace('&', "&amp;")
+        .replace('>', "&gt;")
+        .replace('<', "&lt;")
+        .replace('\n', "<br/>")
 }
 
 pub trait ToGraphViz {
