@@ -354,7 +354,7 @@ impl fmt::Display for PackageMagicWand {
             writeln!(f)?;
         }
         for stmt in self.package_stmts.iter() {
-            writeln!(f, "    {}", stmt.to_string().replace("\n", "\n    "))?;
+            writeln!(f, "    {}", stmt.to_string().replace('\n', "\n    "))?;
         }
         write!(f, "}}")
     }
@@ -404,7 +404,7 @@ pub struct If {
 impl fmt::Display for If {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         fn write_stmt(f: &mut fmt::Formatter, stmt: &Stmt) -> fmt::Result {
-            writeln!(f, "    {}", stmt.to_string().replace("\n", "\n    "))
+            writeln!(f, "    {}", stmt.to_string().replace('\n', "\n    "))
         }
         fn write_block(f: &mut fmt::Formatter, stmts: &[Stmt]) -> fmt::Result {
             write!(f, "{{")?;

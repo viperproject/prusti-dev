@@ -821,8 +821,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
         let tcx = self.encoder.env().tcx();
         let macro_names: Vec<String> = macro_backtrace.iter()
             .take(lookup_size)
-            .map(|x| x.macro_def_id.map(|y| tcx.def_path_str(y)))
-            .flatten()
+            .filter_map(|x| x.macro_def_id.map(|y| tcx.def_path_str(y)))
             .collect();
         debug!("macro_names: {:?}", macro_names);
 
