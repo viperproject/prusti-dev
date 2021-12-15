@@ -75,8 +75,8 @@ pub fn java_str_to_valid_rust_argument_name(string: &JavaStr) -> Result<String> 
     let mut res = "arg_".to_string();
     res.push_str(
         &java_str_to_string(string)?
-            .replace("_", "___")
-            .replace("$", "_d_"),
+            .replace('_', "___")
+            .replace('$', "_d_"),
     );
     Ok(res)
 }

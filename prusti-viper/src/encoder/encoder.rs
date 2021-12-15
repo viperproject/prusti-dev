@@ -886,7 +886,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             fn tcx(&self) -> ty::TyCtxt<'tcx> {
                 self.tcx
             }
-            fn fold_ty(&mut self, ty: ty::Ty<'tcx>) -> Result<ty::Ty<'tcx>, !> {
+            fn fold_ty(&mut self, ty: ty::Ty<'tcx>) -> ty::Ty<'tcx> {
                 let rep = self.tymap.get(&ty).unwrap_or(&ty);
                 rep.super_fold_with(self)
             }
@@ -895,7 +895,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             tcx: self.env().tcx(),
             // TODO: creating each time a current_tymap might be slow. This can be optimized.
             tymap//: self.current_tymap(),
-        }).unwrap()
+        })
     }
 
     /// Merges the stack of type maps into a single map.
@@ -1015,16 +1015,16 @@ fn encode_identifier(ident: String) -> String {
     // Rule: the rhs must always have an even number of "$"
     ident
         .replace("::", "$$")
-        .replace("#", "$sharp$")
-        .replace("<", "$openang$")
-        .replace(">", "$closeang$")
-        .replace("(", "$openrou$")
-        .replace(")", "$closerou$")
-        .replace("[", "$opensqu$")
-        .replace("]", "$closesqu$")
-        .replace("{", "$opencur$")
-        .replace("}", "$closecur$")
-        .replace(",", "$comma$")
-        .replace(";", "$semic$")
-        .replace(" ", "$space$")
+        .replace('#', "$sharp$")
+        .replace('<', "$openang$")
+        .replace('>', "$closeang$")
+        .replace('(', "$openrou$")
+        .replace(')', "$closerou$")
+        .replace('[', "$opensqu$")
+        .replace(']', "$closesqu$")
+        .replace('{', "$opencur$")
+        .replace('}', "$closecur$")
+        .replace(',', "$comma$")
+        .replace(';', "$semic$")
+        .replace(' ', "$space$")
 }
