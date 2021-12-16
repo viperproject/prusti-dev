@@ -23,12 +23,13 @@ use rustc_middle::{ty, ty::layout::IntegerExt};
 use rustc_target::abi::Integer;
 use std::{collections::HashMap, convert::TryInto, rc::Rc};
 use vir_crate::{
+    common::identifier::WithIdentifier,
     polymorphic as vir,
     polymorphic::{
         ContainerOpKind, EnumVariantIndex, Expr, ExprIterator, FallibleExprFolder,
         FallibleStmtFolder,
         Float::{F32, F64},
-        PermAmount, Type, WithIdentifier,
+        PermAmount, Type,
     },
 };
 

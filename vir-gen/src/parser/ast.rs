@@ -74,6 +74,13 @@ impl Parse for Include {
     }
 }
 
+impl Parse for CopyModule {
+    fn parse(input: ParseStream) -> syn::Result<Self> {
+        let path = input.parse()?;
+        Ok(Self { path })
+    }
+}
+
 impl Parse for RawBlock {
     fn parse(input: ParseStream) -> syn::Result<Self> {
         let name = input.parse()?;

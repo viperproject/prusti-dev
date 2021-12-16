@@ -1,8 +1,6 @@
-use std::{collections::HashMap, fmt};
-
-use crate::polymorphic::WithIdentifier;
-
 use super::super::{legacy, polymorphic};
+use crate::common::identifier::WithIdentifier;
+use std::{collections::HashMap, fmt};
 use uuid::Uuid;
 
 // bodyless_method

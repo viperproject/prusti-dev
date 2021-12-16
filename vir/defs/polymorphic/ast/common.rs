@@ -4,7 +4,9 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use crate::{converter::type_substitution::Generic, polymorphic::ast::*};
+use crate::{
+    common::identifier::WithIdentifier, converter::type_substitution::Generic, polymorphic::ast::*,
+};
 use std::{
     cmp::Ordering,
     collections::{hash_map::DefaultHasher, HashMap},
@@ -12,10 +14,6 @@ use std::{
     hash::{Hash, Hasher},
     mem::discriminant,
 };
-
-pub trait WithIdentifier {
-    fn get_identifier(&self) -> String;
-}
 
 /// The identifier of a statement. Used in error reporting.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
