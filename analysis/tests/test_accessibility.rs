@@ -87,7 +87,7 @@ fn generate_program_testing_accessible_paths(
 
 fn check_compile_pass(cwd: impl AsRef<Path>, program_path: impl AsRef<OsStr> + fmt::Debug) {
     let mut cmd = Command::new("rustc");
-    cmd.args(["--edition=2018", "--crate-type=lib"])
+    cmd.args(["--edition=2018", "--crate-type=lib", "-Zpolonius"])
         .arg(&program_path);
     println!("Running {:?}", cmd);
     let output = cmd
@@ -114,6 +114,7 @@ fn collect_standalone_test_programs() -> Vec<PathBuf> {
     let mut programs = vec![];
     let glob_paths = [
         "tests/test_cases/gen_accessibility/*.rs",
+        "tests/test_cases/gen_accessibility/**/*.rs",
         //"../prusti-tests/tests/verify*/fail/no-annotations/*.rs",
         //"../prusti-tests/tests/verify*/pass/no-annotations/*.rs",
     ];
@@ -135,6 +136,9 @@ fn collect_standalone_test_programs() -> Vec<PathBuf> {
     programs
 }
 
+/// Test the correctness of the analysis by injecting `let _ = & <place>` (respectively,
+/// `let _ = &mut <place>`) statements wherever the `DefinitelyAccessibleAnalysis` believes that
+/// a place is accessible by read (respectively, write) operations.
 #[test]
 fn test_accessibility() {
     let test_programs = collect_standalone_test_programs();

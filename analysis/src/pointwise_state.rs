@@ -9,7 +9,7 @@ use rustc_middle::mir;
 use serde::{ser::SerializeMap, Serialize, Serializer};
 use std::{collections::BTreeMap, fmt};
 
-/// Records the abstract state at every program point and CFG edge of `mir`.
+/// Records the state of the analysis at every program point and CFG edge of `mir`.
 pub struct PointwiseState<'mir, 'tcx: 'mir, S: Serialize> {
     state_before: FxHashMap<mir::Location, S>,
     /// Maps each basic block to a map of its successor blocks to the state on the CFG edge.
@@ -117,7 +117,7 @@ impl<'mir, 'tcx: 'mir, S: Serialize> PointwiseState<'mir, 'tcx, S> {
         self.state_after_block.get(&block)
     }
 
-    /// Return the mutable abstract state on the outgoing CFG edges of `block`.
+    /// Return the mutable state of the analysis on the outgoing CFG edges of `block`.
     /// The return value maps all successor blocks to the state on the CFG edge from `block` to
     /// that block.
     pub(crate) fn lookup_mut_after_block(
