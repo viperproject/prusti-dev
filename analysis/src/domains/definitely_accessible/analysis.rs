@@ -14,8 +14,9 @@ use crate::{
     PointwiseState,
 };
 use rustc_borrowck::BodyWithBorrowckFacts;
-use rustc_data_structures::stable_set::FxHashSet;
+use rustc_data_structures::{stable_map::FxHashMap, stable_set::FxHashSet};
 use rustc_middle::{mir, ty::TyCtxt};
+use rustc_mir_dataflow::{impls::MaybeLiveLocals, Analysis};
 use rustc_span::def_id::DefId;
 use std::mem;
 
@@ -44,9 +45,22 @@ impl<'mir, 'tcx: 'mir> DefinitelyAccessibleAnalysis<'mir, 'tcx> {
         let body = &self.body_with_facts.body;
         let def_init_analysis =
             DefinitelyInitializedAnalysis::new_relaxed(self.tcx, self.def_id, body);
-        let borrowed_analysis = MaybeBorrowedAnalysis::new(self.tcx, &self.body_with_facts);
+        let borrowed_analysis = MaybeBorrowedAnalysis::new(self.tcx, self.body_with_facts);
         let def_init = def_init_analysis.run_fwd_analysis()?;
         let borrowed = borrowed_analysis.run_analysis()?;
+        let location_table = &self.body_with_facts.location_table;
+        let borrowck_out_facts = self.body_with_facts.output_facts.as_ref();
+        let var_live_on_entry: FxHashMap<_, _> = borrowck_out_facts
+            .var_live_on_entry
+            .iter()
+            .map(|(point, live_vars)| (point, FxHashSet::from_iter(live_vars.iter().cloned())))
+            .collect();
+        let empty_locals_set: FxHashSet<mir::Local> = FxHashSet::default();
+        // TODO: This might slightly differ from the liveness analysis used by the borrow checker.
+        let liveness = MaybeLiveLocals
+            .into_engine(self.tcx, body)
+            .iterate_to_fixpoint()
+            .into_results_cursor(body);
         let mut analysis_state = PointwiseState::default(body);
 
         // Set state_after_block
@@ -63,8 +77,15 @@ impl<'mir, 'tcx: 'mir> DefinitelyAccessibleAnalysis<'mir, 'tcx> {
                 let borrowed_before = borrowed
                     .lookup_before(location)
                     .unwrap_or_else(|| panic!("No 'borrowed' state after location {:?}", location));
-                let state = self.compute_accessible_state(def_init_before, borrowed_before);
-                state.check_invariant();
+                let liveness_before = var_live_on_entry
+                    .get(&location_table.start_index(location))
+                    .unwrap_or(&empty_locals_set);
+                let state = self.compute_accessible_state(
+                    def_init_before,
+                    borrowed_before,
+                    liveness_before,
+                );
+                state.check_invariant(location);
                 analysis_state.set_before(location, state);
             }
 
@@ -83,8 +104,12 @@ impl<'mir, 'tcx: 'mir> DefinitelyAccessibleAnalysis<'mir, 'tcx> {
                 let borrowed_after = borrowed_after_block.get(&successor).unwrap_or_else(|| {
                     panic!("No 'borrowed' state from {:?} to {:?}", block, successor)
                 });
-                let state = self.compute_accessible_state(def_init_after, borrowed_after);
-                state.check_invariant();
+                let liveness_after = var_live_on_entry
+                    .get(&location_table.start_index(successor.start_location()))
+                    .unwrap_or(&empty_locals_set);
+                let state =
+                    self.compute_accessible_state(def_init_after, borrowed_after, liveness_after);
+                state.check_invariant(successor);
                 available_after_block.insert(successor, state);
             }
         }
@@ -98,8 +123,17 @@ impl<'mir, 'tcx: 'mir> DefinitelyAccessibleAnalysis<'mir, 'tcx> {
         &self,
         def_init: &DefinitelyInitializedState<'mir, 'tcx>,
         borrowed: &MaybeBorrowedState<'tcx>,
+        live_vars: &FxHashSet<mir::Local>,
     ) -> DefinitelyAccessibleState<'tcx> {
+        let body = &self.body_with_facts.body;
         let mut definitely_accessible: FxHashSet<_> = def_init.get_def_init_places().clone();
+        for (local, local_decl) in body.local_decls.iter_enumerated() {
+            let has_lifetimes = self.tcx.any_free_region_meets(&local_decl.ty, |_| true);
+            let maybe_expired = !live_vars.contains(&local);
+            if has_lifetimes && maybe_expired {
+                self.remove_place_from_set(local.into(), &mut definitely_accessible);
+            }
+        }
         for &place in borrowed.get_maybe_mut_borrowed().iter() {
             self.remove_place_from_set(place, &mut definitely_accessible);
         }

@@ -8,6 +8,7 @@ use crate::{
     abstract_interpretation::AnalysisResult, domains::MaybeBorrowedState, AnalysisError,
     PointwiseState,
 };
+use itertools::Itertools;
 use log::{error, trace};
 use rustc_borrowck::{consumers::RichLocation, BodyWithBorrowckFacts};
 use rustc_data_structures::fx::FxHashMap;
@@ -35,6 +36,13 @@ impl<'mir, 'tcx: 'mir> MaybeBorrowedAnalysis<'mir, 'tcx> {
         let borrowck_out_facts = self.body_with_facts.output_facts.as_ref();
         let loan_issued_at = &borrowck_in_facts.loan_issued_at;
         let loan_live_at = &borrowck_out_facts.loan_live_at;
+        let var_live_on_entry = &borrowck_out_facts.var_live_on_entry;
+        let use_of_var_derefs_origin = borrowck_in_facts
+            .use_of_var_derefs_origin
+            .iter()
+            .copied()
+            .into_group_map();
+        let origin_live_on_entry = &borrowck_out_facts.origin_live_on_entry;
         let loan_issued_at_location: FxHashMap<_, mir::Location> = loan_issued_at
             .iter()
             .map(|&(_, loan, point_index)| {
@@ -45,28 +53,64 @@ impl<'mir, 'tcx: 'mir> MaybeBorrowedAnalysis<'mir, 'tcx> {
                 (loan, location)
             })
             .collect();
-        let mut analysis_state = PointwiseState::default(body);
+        let mut analysis_state: PointwiseState<MaybeBorrowedState> = PointwiseState::default(body);
+
+        // TODO: Move to definitely_accessible analysis.
+        trace!(
+            "There are {} var_live_on_entry output facts",
+            var_live_on_entry.len()
+        );
+        for (&point_index, vars) in var_live_on_entry.iter() {
+            let live_origins: &Vec<_> = &origin_live_on_entry[&point_index];
+            let rich_location = location_table.to_location(point_index);
+            if let RichLocation::Start(_) = rich_location {
+                trace!(
+                    "  Location {:?} has {} live vars and {} live origins on entry:",
+                    rich_location,
+                    vars.len(),
+                    live_origins.len()
+                );
+                let empty = vec![];
+                for &var in vars {
+                    let var_origins = use_of_var_derefs_origin.get(&var).unwrap_or(&empty);
+                    let num_origins = var_origins.len();
+                    let all_live_origins = var_origins.iter().all(|o| live_origins.contains(o));
+                    if num_origins == 0 {
+                        trace!("    Variable {:?} is live, but has no regions", var);
+                    } else if all_live_origins {
+                        trace!("    Variable {:?} has {} live regions", var, num_origins);
+                    } else {
+                        trace!(
+                            "    Variable {:?} has {} regions, but some of them expired",
+                            var,
+                            num_origins
+                        );
+                    }
+                }
+            }
+        }
 
         trace!("There are {} loan_live_at output facts", loan_live_at.len());
         for (&point_index, loans) in loan_live_at.iter() {
             let rich_location = location_table.to_location(point_index);
-            if let RichLocation::Start(loan_live_at_location) = rich_location {
+            if let RichLocation::Start(location) = rich_location {
                 trace!("  Location {:?}:", rich_location);
-                let mut state = MaybeBorrowedState::default();
+                let state = analysis_state.lookup_mut_before(location).unwrap();
                 for loan in loans {
                     let loan_location = loan_issued_at_location[loan];
                     let loan_stmt =
                         &body[loan_location.block].statements[loan_location.statement_index];
-                    if let mir::StatementKind::Assign(box (_, rhs)) = &loan_stmt.kind {
+                    if let mir::StatementKind::Assign(box (lhs, rhs)) = &loan_stmt.kind {
                         if let mir::Rvalue::Ref(_region, borrow_kind, borrowed_place) = rhs {
                             trace!(
-                                "    Loan {:?} is still borrowing {:?} as {:?}:",
+                                "    Loan {:?}: {:?} = & {:?} {:?}",
                                 loan,
-                                borrowed_place,
+                                lhs,
                                 borrow_kind,
+                                borrowed_place,
                             );
                             let blocked_place = self.get_blocked_place(*borrowed_place);
-                            trace!("      Blocked: {:?}", blocked_place);
+                            trace!("      Blocking {:?}: {:?}", borrow_kind, blocked_place);
                             match borrow_kind {
                                 mir::BorrowKind::Shared => {
                                     state.maybe_shared_borrowed.insert(blocked_place);
@@ -91,7 +135,6 @@ impl<'mir, 'tcx: 'mir> MaybeBorrowedAnalysis<'mir, 'tcx> {
                         return Err(AnalysisError::UnsupportedStatement(loan_location));
                     }
                 }
-                analysis_state.set_before(loan_live_at_location, state);
             }
         }
 

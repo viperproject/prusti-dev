@@ -11,6 +11,7 @@ use rustc_middle::{mir, ty, ty::TyCtxt};
 use rustc_span::source_map::SourceMap;
 use rustc_target::abi::VariantIdx;
 use serde::{ser::SerializeMap, Serialize, Serializer};
+use std::fmt;
 
 #[derive(Clone, Default, Eq, PartialEq)]
 pub struct DefinitelyAccessibleState<'tcx> {
@@ -22,13 +23,14 @@ pub struct DefinitelyAccessibleState<'tcx> {
 }
 
 impl<'tcx> DefinitelyAccessibleState<'tcx> {
-    pub fn check_invariant(&self) {
+    pub fn check_invariant(&self, location: impl fmt::Debug) {
         for &owned_place in self.definitely_owned.iter() {
             debug_assert!(
                 self.definitely_accessible
                     .iter()
-                    .any(|&place| place == owned_place || is_prefix(place, owned_place)),
-                "The place {:?} is owned but not accessible",
+                    .any(|&place| place == owned_place || is_prefix(owned_place, place)),
+                "In the state before {:?} the place {:?} is owned but not accessible",
+                location,
                 owned_place
             );
         }
@@ -53,6 +55,12 @@ impl<'tcx> Serialize for DefinitelyAccessibleState<'tcx> {
         }
         seq.serialize_entry("owned", &definitely_owned_strings)?;
         seq.end()
+    }
+}
+
+impl fmt::Debug for DefinitelyAccessibleState<'_> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", serde_json::to_string_pretty(&self).unwrap())
     }
 }
 
@@ -102,7 +110,7 @@ impl<'mir, 'tcx: 'mir> PointwiseState<'mir, 'tcx, DefinitelyAccessibleState<'tcx
             }
         }
         let mut line_locations: Vec<_> = first_location_on_line.iter().collect();
-        line_locations.sort_by(|left, right| right.0.cmp(&left.0));
+        line_locations.sort_by(|left, right| right.0.cmp(left.0));
         for (&line_num, &location) in line_locations {
             info!(
                 "The first single-line statement on line {} is {:?}",
@@ -212,7 +220,7 @@ fn describe_field_from_ty(
 ) -> Option<String> {
     if ty.is_box() {
         // If the type is a box, the field is described from the boxed type
-        describe_field_from_ty(&ty.boxed_ty(), field, variant_index)
+        describe_field_from_ty(ty.boxed_ty(), field, variant_index)
     } else {
         match *ty.kind() {
             ty::TyKind::Adt(def, _) => {
@@ -226,14 +234,14 @@ fn describe_field_from_ty(
             }
             ty::TyKind::Tuple(_) => Some(field.index().to_string()),
             ty::TyKind::Ref(_, ty, _) | ty::TyKind::RawPtr(ty::TypeAndMut { ty, .. }) => {
-                describe_field_from_ty(&ty, field, variant_index)
+                describe_field_from_ty(ty, field, variant_index)
             }
             ty::TyKind::Array(ty, _) | ty::TyKind::Slice(ty) => {
-                describe_field_from_ty(&ty, field, variant_index)
+                describe_field_from_ty(ty, field, variant_index)
             }
             ty::TyKind::Closure(..) | ty::TyKind::Generator(..) => {
                 // Supporting these cases is complex
-                return None;
+                None
             }
             _ => unreachable!("Unexpected type `{:?}`", ty),
         }
