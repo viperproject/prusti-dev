@@ -142,10 +142,6 @@ impl rustc_driver::Callbacks for OurCompilerCalls {
         let session = compiler.session();
         session.abort_if_errors();
 
-        let generate_test_program: bool = self
-            .args
-            .contains(&String::from("--analysis-generate-test-program"));
-
         let abstract_domain: &str = self
             .args
             .iter()
@@ -246,14 +242,7 @@ impl rustc_driver::Callbacks for OurCompilerCalls {
                         );
                         match analyzer.run_analysis() {
                             Ok(state) => {
-                                if generate_test_program {
-                                    println!(
-                                        "{}",
-                                        state.generate_test_program(tcx, session.source_map(),)
-                                    );
-                                } else {
-                                    println!("{}", serde_json::to_string_pretty(&state).unwrap());
-                                }
+                                println!("{}", serde_json::to_string_pretty(&state).unwrap());
                             }
                             Err(e) => eprintln!("{}", e.to_pretty_str(body)),
                         }
@@ -262,8 +251,6 @@ impl rustc_driver::Callbacks for OurCompilerCalls {
                 }
             }
         });
-
-        compiler.session().abort_if_errors();
 
         Compilation::Stop
     }
