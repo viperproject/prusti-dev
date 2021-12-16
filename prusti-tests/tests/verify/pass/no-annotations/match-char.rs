@@ -1,5 +1,3 @@
-extern crate prusti_contracts;
-
 fn main() {
     let mut x = 'a';
     x = 'x';

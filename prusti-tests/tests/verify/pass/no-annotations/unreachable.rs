@@ -1,7 +1,3 @@
-#![feature(nll)]
-
-use prusti_contracts::*;
-
 struct IntBox {
     val: i32
 }

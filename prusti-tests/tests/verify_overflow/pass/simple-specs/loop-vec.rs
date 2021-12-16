@@ -1,12 +1,4 @@
-//! An adaptation of the example from
-//! https://rosettacode.org/wiki/Dijkstra%27s_algorithm#Rust
-
 use prusti_contracts::*;
-
-use std::cmp::Ordering;
-use std::collections::BinaryHeap;
-use std::usize;
-
 
 struct VecWrapperPath{
     v: Vec<usize>

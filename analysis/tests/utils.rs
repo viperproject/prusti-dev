@@ -17,9 +17,10 @@ pub fn find_compiled_executable(name: &str) -> PathBuf {
     if local_driver_path.exists() {
         return local_driver_path;
     }
-    let workspace_driver_path: PathBuf = ["..", "target", target_directory, executable_name.as_str()]
-        .iter()
-        .collect();
+    let workspace_driver_path: PathBuf =
+        ["..", "target", target_directory, executable_name.as_str()]
+            .iter()
+            .collect();
     if workspace_driver_path.exists() {
         return workspace_driver_path;
     }

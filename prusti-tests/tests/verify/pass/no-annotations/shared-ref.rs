@@ -1,7 +1,5 @@
 //! Source: https://docs.diesel.rs/src/matches/lib.rs.html#31-40
 
-extern crate prusti_contracts;
-
 
 /// Work around "error: unexpected token: `an interpolated tt`", whatever that means.
 macro_rules! _matches_tt_as_expr_hack {

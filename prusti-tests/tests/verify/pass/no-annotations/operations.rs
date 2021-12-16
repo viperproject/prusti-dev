@@ -1,5 +1,3 @@
-extern crate prusti_contracts;
-
 fn main() {
     let a = 10;
     let b = (a + 2) - 6;  // 6

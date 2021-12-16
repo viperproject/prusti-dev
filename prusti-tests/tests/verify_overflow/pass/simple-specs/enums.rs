@@ -1,9 +1,5 @@
-#![feature(nll)]
-
 #[allow(dead_code)]
 #[allow(unused_variables)]
-
-use prusti_contracts::*;
 
 struct T0 (u32);
 
