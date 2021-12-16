@@ -8,7 +8,6 @@ use crate::{
     abstract_interpretation::AnalysisResult, domains::MaybeBorrowedState, AnalysisError,
     PointwiseState,
 };
-use itertools::Itertools;
 use log::{error, trace};
 use rustc_borrowck::{consumers::RichLocation, BodyWithBorrowckFacts};
 use rustc_data_structures::fx::FxHashMap;
@@ -36,13 +35,6 @@ impl<'mir, 'tcx: 'mir> MaybeBorrowedAnalysis<'mir, 'tcx> {
         let borrowck_out_facts = self.body_with_facts.output_facts.as_ref();
         let loan_issued_at = &borrowck_in_facts.loan_issued_at;
         let loan_live_at = &borrowck_out_facts.loan_live_at;
-        let var_live_on_entry = &borrowck_out_facts.var_live_on_entry;
-        let use_of_var_derefs_origin = borrowck_in_facts
-            .use_of_var_derefs_origin
-            .iter()
-            .copied()
-            .into_group_map();
-        let origin_live_on_entry = &borrowck_out_facts.origin_live_on_entry;
         let loan_issued_at_location: FxHashMap<_, mir::Location> = loan_issued_at
             .iter()
             .map(|&(_, loan, point_index)| {
@@ -54,41 +46,6 @@ impl<'mir, 'tcx: 'mir> MaybeBorrowedAnalysis<'mir, 'tcx> {
             })
             .collect();
         let mut analysis_state: PointwiseState<MaybeBorrowedState> = PointwiseState::default(body);
-
-        // TODO: Move to definitely_accessible analysis.
-        trace!(
-            "There are {} var_live_on_entry output facts",
-            var_live_on_entry.len()
-        );
-        for (&point_index, vars) in var_live_on_entry.iter() {
-            let live_origins: &Vec<_> = &origin_live_on_entry[&point_index];
-            let rich_location = location_table.to_location(point_index);
-            if let RichLocation::Start(_) = rich_location {
-                trace!(
-                    "  Location {:?} has {} live vars and {} live origins on entry:",
-                    rich_location,
-                    vars.len(),
-                    live_origins.len()
-                );
-                let empty = vec![];
-                for &var in vars {
-                    let var_origins = use_of_var_derefs_origin.get(&var).unwrap_or(&empty);
-                    let num_origins = var_origins.len();
-                    let all_live_origins = var_origins.iter().all(|o| live_origins.contains(o));
-                    if num_origins == 0 {
-                        trace!("    Variable {:?} is live, but has no regions", var);
-                    } else if all_live_origins {
-                        trace!("    Variable {:?} has {} live regions", var, num_origins);
-                    } else {
-                        trace!(
-                            "    Variable {:?} has {} regions, but some of them expired",
-                            var,
-                            num_origins
-                        );
-                    }
-                }
-            }
-        }
 
         trace!("There are {} loan_live_at output facts", loan_live_at.len());
         for (&point_index, loans) in loan_live_at.iter() {
