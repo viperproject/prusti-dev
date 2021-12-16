@@ -1,5 +1,3 @@
-extern crate prusti_contracts;
-
 fn main() {
     let n = 1;
     let x = match n {

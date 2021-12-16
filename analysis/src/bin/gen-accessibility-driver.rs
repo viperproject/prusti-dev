@@ -1,9 +1,9 @@
 #![feature(rustc_private)]
 
-extern crate polonius_engine;
 /// Sources:
 /// https://github.com/rust-lang/miri/blob/master/benches/helpers/miri_helper.rs
 /// https://github.com/rust-lang/rust/blob/master/src/test/run-make-fulldeps/obtain-borrowck/driver.rs
+extern crate polonius_engine;
 extern crate rustc_ast;
 extern crate rustc_borrowck;
 extern crate rustc_driver;
@@ -11,19 +11,22 @@ extern crate rustc_hir;
 extern crate rustc_interface;
 extern crate rustc_middle;
 extern crate rustc_session;
+extern crate rustc_span;
 
 use analysis::domains::DefinitelyAccessibleAnalysis;
 use polonius_engine::{Algorithm, Output};
 use rustc_borrowck::BodyWithBorrowckFacts;
 use rustc_driver::Compilation;
 use rustc_hir::def_id::LocalDefId;
+use rustc_hir as hir;
 use rustc_interface::{interface, Config, Queries};
 use rustc_middle::{
     ty,
     ty::query::{query_values::mir_borrowck, ExternProviders, Providers},
 };
 use rustc_session::Session;
-use std::{cell::RefCell, collections::HashMap, rc::Rc};
+use rustc_span::FileName;
+use std::{cell::RefCell, collections::HashMap, path::PathBuf, rc::Rc};
 
 struct OurCompilerCalls {
     args: Vec<String>,
@@ -114,7 +117,17 @@ impl rustc_driver::Callbacks for OurCompilerCalls {
             let mut def_ids_with_body: Vec<_> = tcx
                 .mir_keys(())
                 .iter()
-                .map(|&local_def_id| {
+                .flat_map(|&local_def_id| {
+                    // Skip items that are not functions or methods.
+                    let hir_id = tcx.hir().local_def_id_to_hir_id(local_def_id);
+                    let hir_node = tcx.hir().get(hir_id);
+                    match hir_node {
+                        hir::Node::Item(hir::Item { kind: hir::ItemKind::Fn(..), ..}) |
+                        hir::Node::ImplItem(hir::ImplItem { kind: hir::ImplItemKind::Fn(..), ..}) |
+                        hir::Node::TraitItem(hir::TraitItem { kind: hir::TraitItemKind::Fn(..), ..}) => {}
+                        _ => return None,
+                    }
+
                     // SAFETY: This is safe because we are feeding in the same `tcx`
                     // that was used to store the data.
                     let mut body_with_facts =
@@ -124,7 +137,29 @@ impl rustc_driver::Callbacks for OurCompilerCalls {
                         Algorithm::Naive,
                         true,
                     ));
-                    (local_def_id, body_with_facts)
+
+                    // Skip macro expansions
+                    let mir_span = body_with_facts.body.span;
+                    if mir_span.parent_callsite().is_some() {
+                        return None;
+                    }
+
+                    // Skip functions that are too short or that are in an external file.
+                    let source_file = session.source_map().lookup_source_file(mir_span.data().lo);
+                    if let FileName::Real(filename) = &source_file.name {
+                        if session.local_crate_source_file
+                            != filename.local_path().map(PathBuf::from)
+                        {
+                            return None;
+                        }
+                    } else {
+                        return None;
+                    }
+                    if source_file.count_lines() <= 1 {
+                        return None;
+                    }
+
+                    Some((local_def_id, body_with_facts))
                 })
                 .collect();
 

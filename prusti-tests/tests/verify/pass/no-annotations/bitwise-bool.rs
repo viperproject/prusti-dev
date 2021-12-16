@@ -1,5 +1,3 @@
-extern crate prusti_contracts;
-
 fn test_and() {
     assert!(true  & true  == true );
     assert!(true  & false == false);

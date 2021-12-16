@@ -4,10 +4,8 @@ use glob::glob;
 use std::{
     env,
     ffi::OsStr,
-    fmt,
-    fs,
-    path::PathBuf,
-    path::Path,
+    fmt, fs,
+    path::{Path, PathBuf},
     process::{Command, Stdio},
 };
 use utils::*;
@@ -81,13 +79,16 @@ fn generate_program_testing_accessible_paths(
         panic!("Test case unexpectedly failed. See the output for details.");
     }
 
-    stdout.to_string().split("\n/* NEW PROGRAM */\n\n").map(|s| s.to_string()).collect()
+    stdout
+        .to_string()
+        .split("\n/* NEW PROGRAM */\n\n")
+        .map(|s| s.to_string())
+        .collect()
 }
 
 fn check_compile_pass(cwd: impl AsRef<Path>, program_path: impl AsRef<OsStr> + fmt::Debug) {
     let mut cmd = Command::new("rustc");
-    cmd.args(["--edition", "2018"])
-        .arg(&program_path);
+    cmd.args(["--edition=2018", "--crate-type=lib"]).arg(&program_path);
     println!("Running {:?}", cmd);
     let output = cmd
         .current_dir(cwd)
@@ -154,9 +155,14 @@ fn test_accessibility() {
         );
         let gen_programs = generate_program_testing_accessible_paths(test_program);
         println!("The analysis generated {} programs", gen_programs.len());
-        for (gen_num, gen_program) in gen_programs.iter().enumerate() {
+        let limit = 10;
+        if gen_programs.len() > limit {
+            println!("Too many generated programs. Only the first {} will be considered.", limit);
+        }
+        for (gen_num, gen_program) in gen_programs.iter().take(limit).enumerate() {
             let test_filename = test_program.file_name().unwrap().to_str().unwrap();
-            let gen_path = out_dir.join(format!("{:03}_{:02}_{}", test_num, gen_num, test_filename));
+            let gen_path =
+                out_dir.join(format!("{:03}_{:02}_{}", test_num, gen_num, test_filename));
             println!(
                 "Generated program: {:?} ({}/{})",
                 gen_path,
@@ -166,8 +172,16 @@ fn test_accessibility() {
             println!("┌─── Begin of generated program ───┐");
             println!("{}", gen_program);
             println!("└──── End of generated program ────┘");
-            std::fs::write(&gen_path, gen_program).unwrap();
-            check_compile_pass(&out_dir, gen_path);
+            match syn::parse_file(gen_program) {
+                syn::Result::Err(err) => {
+                    println!("Parsing error: {:?}", err);
+                }
+                syn::Result::Ok(_) => {
+                    // Check that it compiles successfully
+                    std::fs::write(&gen_path, gen_program).unwrap();
+                    check_compile_pass(&out_dir, gen_path);
+                }
+            }
         }
     }
 

@@ -1,5 +1,3 @@
-extern crate prusti_contracts;
-
 struct T(i32);
 
 fn main() {
