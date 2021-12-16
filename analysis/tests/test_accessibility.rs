@@ -45,8 +45,7 @@ fn generate_program_testing_accessible_paths(
     let executable_path = find_compiled_executable("gen-accessibility-driver");
 
     let mut cmd = Command::new(executable_path);
-    cmd.args(["--edition", "2018"])
-        .arg("--sysroot")
+    cmd.args(["--edition=2018", "--crate-type=lib", "--sysroot"])
         .arg(
             compiler_sysroot
                 .into_os_string()
@@ -114,8 +113,8 @@ fn collect_standalone_test_programs() -> Vec<PathBuf> {
     let mut programs = vec![];
     let glob_paths = [
         "tests/test_cases/gen_accessibility/*.rs",
-        "../prusti-tests/tests/verify*/fail/no-annotations/*.rs",
-        "../prusti-tests/tests/verify*/pass/no-annotations/*.rs",
+        //"../prusti-tests/tests/verify*/fail/no-annotations/*.rs",
+        //"../prusti-tests/tests/verify*/pass/no-annotations/*.rs",
     ];
     for glob_path in &glob_paths {
         let mut new_programs: Vec<_> = glob(glob_path)
@@ -154,6 +153,7 @@ fn test_accessibility() {
             test_programs.len()
         );
         let gen_programs = generate_program_testing_accessible_paths(test_program);
+        assert!(gen_programs.len() > 0);
         println!("The analysis generated {} programs", gen_programs.len());
         let limit = 10;
         if gen_programs.len() > limit {
@@ -172,16 +172,10 @@ fn test_accessibility() {
             println!("┌─── Begin of generated program ───┐");
             println!("{}", gen_program);
             println!("└──── End of generated program ────┘");
-            match syn::parse_file(gen_program) {
-                syn::Result::Err(err) => {
-                    println!("Parsing error: {:?}", err);
-                }
-                syn::Result::Ok(_) => {
-                    // Check that it compiles successfully
-                    std::fs::write(&gen_path, gen_program).unwrap();
-                    check_compile_pass(&out_dir, gen_path);
-                }
-            }
+
+            // Check that it compiles successfully
+            std::fs::write(&gen_path, gen_program).unwrap();
+            check_compile_pass(&out_dir, gen_path);
         }
     }
 
