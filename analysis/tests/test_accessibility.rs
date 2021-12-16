@@ -87,7 +87,8 @@ fn generate_program_testing_accessible_paths(
 
 fn check_compile_pass(cwd: impl AsRef<Path>, program_path: impl AsRef<OsStr> + fmt::Debug) {
     let mut cmd = Command::new("rustc");
-    cmd.args(["--edition=2018", "--crate-type=lib"]).arg(&program_path);
+    cmd.args(["--edition=2018", "--crate-type=lib"])
+        .arg(&program_path);
     println!("Running {:?}", cmd);
     let output = cmd
         .current_dir(cwd)
@@ -157,7 +158,10 @@ fn test_accessibility() {
         println!("The analysis generated {} programs", gen_programs.len());
         let limit = 10;
         if gen_programs.len() > limit {
-            println!("Too many generated programs. Only the first {} will be considered.", limit);
+            println!(
+                "Too many generated programs. Only the first {} will be considered.",
+                limit
+            );
         }
         for (gen_num, gen_program) in gen_programs.iter().take(limit).enumerate() {
             let test_filename = test_program.file_name().unwrap().to_str().unwrap();
