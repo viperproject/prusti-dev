@@ -40,8 +40,7 @@ fn process(mut args: Vec<String>) -> Result<(), i32> {
     let libjvm_path = prusti_launch::find_libjvm(&java_home)
         .expect("Failed to find JVM library. Check JAVA_HOME");
 
-    let prusti_sysroot = prusti_launch::prusti_sysroot()
-        .unwrap_or_else(|| panic!("{}", "Failed to find Rust's sysroot for Prusti".to_string()));
+    let prusti_sysroot = prusti_launch::prusti_sysroot().expect("Failed to find Rust's sysroot");
 
     let compiler_bin = prusti_sysroot.join("bin");
     let compiler_lib = prusti_sysroot.join("lib");
@@ -101,7 +100,7 @@ fn process(mut args: Vec<String>) -> Result<(), i32> {
 
     let has_no_sysroot_arg = !args.iter().any(|s| s == "--sysroot");
     if has_no_sysroot_arg {
-        cmd.arg("--sysroot".to_string());
+        cmd.arg("--sysroot");
         cmd.arg(
             prusti_sysroot
                 .into_os_string()
