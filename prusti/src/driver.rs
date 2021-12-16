@@ -210,7 +210,9 @@ fn main() {
             ));
             rustc_args.push("-Zdump-mir=all".to_owned());
             rustc_args.push("-Zdump-mir-graphviz".to_owned());
-            rustc_args.push("-Zidentify-regions=yes".to_owned());
+            if !config::ignore_regions() {
+                rustc_args.push("-Zidentify-regions=yes".to_owned());
+            }
         }
 
         let mut callbacks = PrustiCompilerCalls::default();
