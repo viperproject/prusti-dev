@@ -16,7 +16,6 @@ use crate::{
 use rustc_borrowck::BodyWithBorrowckFacts;
 use rustc_data_structures::{stable_map::FxHashMap, stable_set::FxHashSet};
 use rustc_middle::{mir, ty::TyCtxt};
-use rustc_mir_dataflow::{impls::MaybeLiveLocals, Analysis};
 use rustc_span::def_id::DefId;
 use std::mem;
 
@@ -56,11 +55,6 @@ impl<'mir, 'tcx: 'mir> DefinitelyAccessibleAnalysis<'mir, 'tcx> {
             .map(|(point, live_vars)| (point, FxHashSet::from_iter(live_vars.iter().cloned())))
             .collect();
         let empty_locals_set: FxHashSet<mir::Local> = FxHashSet::default();
-        // TODO: This might slightly differ from the liveness analysis used by the borrow checker.
-        let liveness = MaybeLiveLocals
-            .into_engine(self.tcx, body)
-            .iterate_to_fixpoint()
-            .into_results_cursor(body);
         let mut analysis_state = PointwiseState::default(body);
 
         // Set state_after_block
@@ -129,6 +123,7 @@ impl<'mir, 'tcx: 'mir> DefinitelyAccessibleAnalysis<'mir, 'tcx> {
         let mut definitely_accessible: FxHashSet<_> = def_init.get_def_init_places().clone();
         for (local, local_decl) in body.local_decls.iter_enumerated() {
             let has_lifetimes = self.tcx.any_free_region_meets(&local_decl.ty, |_| true);
+            // TODO: Make more precise by checking liveness of the origins
             let maybe_expired = !live_vars.contains(&local);
             if has_lifetimes && maybe_expired {
                 self.remove_place_from_set(local.into(), &mut definitely_accessible);
