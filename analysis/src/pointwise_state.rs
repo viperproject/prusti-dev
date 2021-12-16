@@ -94,6 +94,12 @@ impl<'mir, 'tcx: 'mir, S: Serialize> PointwiseState<'mir, 'tcx, S> {
         self.state_before.get(&location)
     }
 
+    /// Look up the mutable state before the `location`.
+    /// The `location` can point to a statement or terminator.
+    pub fn lookup_mut_before(&mut self, location: mir::Location) -> Option<&mut S> {
+        self.state_before.get_mut(&location)
+    }
+
     /// Look up the state after the `location`.
     /// The `location` should point to a statement, not a terminator.
     pub fn lookup_after(&self, location: mir::Location) -> Option<&S> {
