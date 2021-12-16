@@ -17,8 +17,8 @@ use analysis::domains::DefinitelyAccessibleAnalysis;
 use polonius_engine::{Algorithm, Output};
 use rustc_borrowck::BodyWithBorrowckFacts;
 use rustc_driver::Compilation;
-use rustc_hir::def_id::LocalDefId;
 use rustc_hir as hir;
+use rustc_hir::def_id::LocalDefId;
 use rustc_interface::{interface, Config, Queries};
 use rustc_middle::{
     ty,
@@ -122,9 +122,18 @@ impl rustc_driver::Callbacks for OurCompilerCalls {
                     let hir_id = tcx.hir().local_def_id_to_hir_id(local_def_id);
                     let hir_node = tcx.hir().get(hir_id);
                     match hir_node {
-                        hir::Node::Item(hir::Item { kind: hir::ItemKind::Fn(..), ..}) |
-                        hir::Node::ImplItem(hir::ImplItem { kind: hir::ImplItemKind::Fn(..), ..}) |
-                        hir::Node::TraitItem(hir::TraitItem { kind: hir::TraitItemKind::Fn(..), ..}) => {}
+                        hir::Node::Item(hir::Item {
+                            kind: hir::ItemKind::Fn(..),
+                            ..
+                        })
+                        | hir::Node::ImplItem(hir::ImplItem {
+                            kind: hir::ImplItemKind::Fn(..),
+                            ..
+                        })
+                        | hir::Node::TraitItem(hir::TraitItem {
+                            kind: hir::TraitItemKind::Fn(..),
+                            ..
+                        }) => {}
                         _ => return None,
                     }
 

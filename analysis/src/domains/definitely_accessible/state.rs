@@ -98,7 +98,8 @@ impl<'mir, 'tcx: 'mir> PointwiseState<'mir, 'tcx, DefinitelyAccessibleState<'tcx
                             location, line_num
                         );
                         // Check that it parses as a statement
-                        let line_seems_stmt = syn::parse_str::<syn::Stmt>(&result[line.line_index]).is_ok();
+                        let line_seems_stmt =
+                            syn::parse_str::<syn::Stmt>(&result[line.line_index]).is_ok();
                         if !line_seems_stmt {
                             info!("Statement {:?} doesn't parse as a statement", location);
                             continue;
