@@ -1,3 +1,5 @@
+use prusti_contracts::*;
+
 #[derive(Eq, PartialEq)]
 pub struct T {
     val: u32,

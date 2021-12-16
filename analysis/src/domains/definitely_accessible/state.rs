@@ -65,6 +65,7 @@ impl fmt::Debug for DefinitelyAccessibleState<'_> {
 }
 
 impl<'mir, 'tcx: 'mir> PointwiseState<'mir, 'tcx, DefinitelyAccessibleState<'tcx>> {
+    /// Make a best-effort at injecting statements to check the analysis state.
     pub fn generate_test_program(&self, tcx: TyCtxt<'tcx>, source_map: &SourceMap) -> String {
         let mir_span = self.mir.span;
         let source_file = source_map.lookup_source_file(mir_span.data().lo);
@@ -88,7 +89,6 @@ impl<'mir, 'tcx: 'mir> PointwiseState<'mir, 'tcx, DefinitelyAccessibleState<'tcx
                     info!("Statement {:?} is on multiple lines", location);
                     continue;
                 }
-                //let snippet = source_map.span_to_snippet(span).unwrap();
                 if let Ok(file_lines) = source_map.span_to_lines(span) {
                     if file_lines.lines.len() == 1 {
                         let line = file_lines.lines.first().unwrap();
@@ -97,14 +97,21 @@ impl<'mir, 'tcx: 'mir> PointwiseState<'mir, 'tcx, DefinitelyAccessibleState<'tcx
                             "Statement {:?} is on a single line at {}",
                             location, line_num
                         );
-                        let insert =
+                        // Check that it parses as a statement
+                        let line_seems_stmt = syn::parse_str::<syn::Stmt>(&result[line.line_index]).is_ok();
+                        if !line_seems_stmt {
+                            info!("Statement {:?} doesn't parse as a statement", location);
+                            continue;
+                        }
+                        // Keep the first span
+                        let insert_or_replace =
                             if let Some(other_location) = first_location_on_line.get(&line_num) {
                                 let other_span = self.mir.source_info(*other_location).span;
                                 span < other_span
                             } else {
                                 true
                             };
-                        if insert {
+                        if insert_or_replace {
                             first_location_on_line.insert(line_num, location);
                         }
                     }
@@ -114,7 +121,7 @@ impl<'mir, 'tcx: 'mir> PointwiseState<'mir, 'tcx, DefinitelyAccessibleState<'tcx
             }
         }
         let mut line_locations: Vec<_> = first_location_on_line.iter().collect();
-        line_locations.sort_by(|left, right| right.0.cmp(left.0));
+        line_locations.sort_by(|left, right| right.0.cmp(left.0)); // From last to first
         for (&line_num, &location) in line_locations {
             info!(
                 "The first single-line statement on line {} is {:?}",

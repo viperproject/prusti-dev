@@ -144,7 +144,12 @@ impl rustc_driver::Callbacks for OurCompilerCalls {
                         return None;
                     }
 
-                    // Skip functions that are too short or that are in an external file.
+                    // Skip short functions
+                    if !session.source_map().is_multiline(mir_span) {
+                        return None;
+                    }
+
+                    // Skip functions that are in an external file.
                     let source_file = session.source_map().lookup_source_file(mir_span.data().lo);
                     if let FileName::Real(filename) = &source_file.name {
                         if session.local_crate_source_file
@@ -155,13 +160,12 @@ impl rustc_driver::Callbacks for OurCompilerCalls {
                     } else {
                         return None;
                     }
-                    if source_file.count_lines() <= 1 {
-                        return None;
-                    }
 
                     Some((local_def_id, body_with_facts))
                 })
                 .collect();
+
+            assert!(!def_ids_with_body.is_empty());
 
             // Sort according to span to ensure deterministic output
             def_ids_with_body.sort_unstable_by_key(|(_, bwf)| bwf.body.span);
