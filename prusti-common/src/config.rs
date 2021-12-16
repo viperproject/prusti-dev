@@ -73,6 +73,7 @@ lazy_static! {
         settings.set_default("log_dir", "./log/").unwrap();
         settings.set_default("dump_debug_info", false).unwrap();
         settings.set_default("dump_debug_info_during_fold", false).unwrap();
+        settings.set_default("ignore_regions", false).unwrap();
         settings.set_default("max_log_file_name_length", 60).unwrap();
         settings.set_default("dump_path_ctxt_in_debug_info", false).unwrap();
         settings.set_default("dump_reborrowing_dag_in_debug_info", false).unwrap();
@@ -227,6 +228,11 @@ pub fn dump_debug_info() -> bool {
 /// Should we dump debug files for fold/unfold generation?
 pub fn dump_debug_info_during_fold() -> bool {
     read_setting("dump_debug_info_during_fold")
+}
+
+/// Should the dumped debug files not contain lifetime regions?
+pub fn ignore_regions() -> bool {
+    read_setting("ignore_regions")
 }
 
 /// What is the longest allowed length of a log file name? If this is exceeded,
