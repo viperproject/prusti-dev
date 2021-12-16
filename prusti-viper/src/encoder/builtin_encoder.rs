@@ -5,7 +5,8 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use prusti_common::{vir_local, vir_expr};
-use vir_crate::polymorphic::{self as vir, WithIdentifier};
+use vir_crate::polymorphic::{self as vir};
+use vir_crate::common::identifier::WithIdentifier;
 use super::high::builtin_functions::HighBuiltinFunctionEncoderInterface;
 
 const PRIMITIVE_VALID_DOMAIN_NAME: &str = "PrimitiveValidDomain";

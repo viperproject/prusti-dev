@@ -36,7 +36,9 @@ fn main() {
     let root = quote! { components =>
         pub mod high;
         pub mod snapshot;
+        pub mod middle;
         pub mod polymorphic;
+        pub mod low;
     };
     let tokens = define_vir(root, Path::new("defs/root.rs"));
     let out_dir = Path::new(&env::var("CARGO_MANIFEST_DIR").unwrap()).join("gen");

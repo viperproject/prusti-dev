@@ -4,7 +4,10 @@
 //! in this module can have the `'tcx` bound.
 
 pub(crate) mod builtin_functions;
+pub(crate) mod expressions;
 pub(crate) mod generics;
 pub(crate) mod lower;
+pub(crate) mod procedures;
 pub(crate) mod pure_functions;
+mod to_middle;
 pub(crate) mod types;

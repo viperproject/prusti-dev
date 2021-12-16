@@ -10,9 +10,12 @@ use std::{
     collections::{HashMap, HashSet},
     hash::Hash,
 };
-use vir_crate::polymorphic::{
-    self as vir, compute_identifier, ExprWalker, FallibleExprWalker, FallibleStmtWalker,
-    FunctionIdentifier, PredicateAccessPredicate, StmtWalker, WithIdentifier,
+use vir_crate::{
+    common::identifier::WithIdentifier,
+    polymorphic::{
+        self as vir, compute_identifier, ExprWalker, FallibleExprWalker, FallibleStmtWalker,
+        FunctionIdentifier, PredicateAccessPredicate, StmtWalker,
+    },
 };
 
 /// Determining which of the collected functions should have bodies works as

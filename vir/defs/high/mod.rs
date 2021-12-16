@@ -1,5 +1,6 @@
 pub mod ast;
-pub mod operations;
+pub mod cfg;
+pub(crate) mod operations_internal;
 
 pub use self::{
     ast::{
@@ -11,9 +12,11 @@ pub use self::{
         field::FieldDecl,
         function::FunctionDecl,
         position::Position,
+        predicate::Predicate,
+        statement::Statement,
         ty::{self, Type},
         type_decl::{self, TypeDecl},
         variable::VariableDecl,
     },
-    operations::ty::Generic,
+    cfg::procedure::{BasicBlock, BasicBlockId, ProcedureDecl, Successor},
 };
