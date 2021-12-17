@@ -256,7 +256,7 @@ pub trait ExprFolder: Sized {
             body,
             position,
         } = expr;
-        Expr::ForAll(ForAll {
+        Expr::Exists(Exists {
             variables,
             triggers,
             body: self.fold_boxed(body),
