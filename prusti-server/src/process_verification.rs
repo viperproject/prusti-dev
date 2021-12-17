@@ -9,11 +9,28 @@ use log::info;
 use prusti_common::{config, report::log::report, vir::ToViper, Stopwatch};
 use std::{fs::create_dir_all, path::PathBuf};
 use viper::{VerificationBackend, VerificationContext};
+use std::collections::hash_map::DefaultHasher;
+use std::hash::{Hash, Hasher};
 
 pub fn process_verification_request<'v, 't: 'v>(
     verification_context: &'v VerificationContext<'t>,
     request: VerificationRequest,
 ) -> viper::VerificationResult {
+    // Print hash of the `VerificationRequest`
+    if config::print_hash() {
+        println!("Recieved verification request for: {}", request.program.name);
+        let mut hasher = DefaultHasher::new();
+        request.hash(&mut hasher);
+        println!("Hash of the request is: {}", hasher.finish());
+        // Skip actual verification
+        if !config::dump_viper_program() {
+            return viper::VerificationResult::Success;
+        }
+    }
+    if !config::disable_cache() {
+        // Try to load and return `result`
+    }
+
     let ast_utils = verification_context.new_ast_utils();
     ast_utils.with_local_frame(16, || {
         // Create a new verifier each time.
@@ -26,9 +43,16 @@ pub fn process_verification_request<'v, 't: 'v>(
         if config::dump_viper_program() {
             stopwatch.start_next("dumping viper program");
             dump_program(&ast_utils, viper_program, &request.program.name);
+            if config::print_hash() {
+                return viper::VerificationResult::Success;
+            }
         }
         stopwatch.start_next("verification");
-        verifier.verify(viper_program)
+        let result = verifier.verify(viper_program);
+        if !config::disable_cache() {
+            // Save `result`
+        }
+        result
     })
 }
 
