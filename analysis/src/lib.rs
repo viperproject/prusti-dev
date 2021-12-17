@@ -14,6 +14,7 @@ extern crate rustc_index;
 extern crate rustc_infer;
 extern crate rustc_middle;
 extern crate rustc_span;
+extern crate rustc_target;
 extern crate rustc_trait_selection;
 extern crate serde;
 

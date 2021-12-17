@@ -10,8 +10,12 @@ use rustc_middle::mir;
 #[derive(Debug)]
 pub enum AnalysisError {
     UnsupportedStatement(mir::Location),
-    /// *Contains the Location of Terminator & successor BB without state*
-    SuccessorWithoutState(mir::Location, mir::BasicBlock),
+    /// The state is not defined before the given location.
+    NoStateBeforeLocation(mir::Location),
+    /// The state is not defined after the given MIR block.
+    NoStateAfterBlock(mir::BasicBlock),
+    /// The state is not defined on the edge between two MIR blocks (source, destination).
+    NoStateAfterSuccessor(mir::BasicBlock, mir::BasicBlock),
 }
 
 impl AnalysisError {
@@ -21,11 +25,25 @@ impl AnalysisError {
                 let stmt = location_to_stmt_str(*location, mir);
                 format!("Unsupported statement at {:?}: {}", location, stmt)
             }
-            AnalysisError::SuccessorWithoutState(location, bb) => {
+            AnalysisError::NoStateBeforeLocation(location) => {
                 let stmt = location_to_stmt_str(*location, mir);
                 format!(
-                    "Basic block {:?} after terminator at {:?} ({}) has no state assigned",
-                    bb, location, stmt
+                    "There is no state before the statement at {:?} ({})",
+                    location, stmt
+                )
+            }
+            AnalysisError::NoStateAfterBlock(bb) => {
+                let terminator = &mir[*bb].terminator();
+                format!(
+                    "There is no state after the terminator of block {:?} ({:?})",
+                    bb, terminator.kind
+                )
+            }
+            AnalysisError::NoStateAfterSuccessor(bb_src, bb_dst) => {
+                let terminator = &mir[*bb_src].terminator();
+                format!(
+                    "There is no state for the block {:?} after the terminator of block {:?} ({:?})",
+                    bb_dst, bb_src, terminator.kind
                 )
             }
         }

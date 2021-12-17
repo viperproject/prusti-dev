@@ -85,7 +85,7 @@ impl<'mir, 'tcx: 'mir> FixpointEngine<'mir, 'tcx> for DefinitelyInitializedAnaly
     }
 
     fn need_to_widen(_counter: u32) -> bool {
-        false //TODO: check
+        false // TODO: check
     }
 
     fn apply_statement_effect(

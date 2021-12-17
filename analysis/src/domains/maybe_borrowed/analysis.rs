@@ -11,18 +11,24 @@ use crate::{
 use log::{error, trace};
 use rustc_borrowck::{consumers::RichLocation, BodyWithBorrowckFacts};
 use rustc_data_structures::fx::FxHashMap;
-use rustc_middle::mir;
+use rustc_middle::{mir, ty::TyCtxt};
 
 pub struct MaybeBorrowedAnalysis<'mir, 'tcx: 'mir> {
+    tcx: TyCtxt<'tcx>,
     body_with_facts: &'mir BodyWithBorrowckFacts<'tcx>,
 }
 
 impl<'mir, 'tcx: 'mir> MaybeBorrowedAnalysis<'mir, 'tcx> {
-    pub fn new(body_with_facts: &'mir BodyWithBorrowckFacts<'tcx>) -> Self {
-        MaybeBorrowedAnalysis { body_with_facts }
+    pub fn new(tcx: TyCtxt<'tcx>, body_with_facts: &'mir BodyWithBorrowckFacts<'tcx>) -> Self {
+        MaybeBorrowedAnalysis {
+            tcx,
+            body_with_facts,
+        }
     }
 
-    pub fn run_analysis(&self) -> AnalysisResult<PointwiseState<'mir, 'tcx, MaybeBorrowedState>> {
+    pub fn run_analysis(
+        &self,
+    ) -> AnalysisResult<PointwiseState<'mir, 'tcx, MaybeBorrowedState<'tcx>>> {
         let body = &self.body_with_facts.body;
         let location_table = &self.body_with_facts.location_table;
         let borrowck_in_facts = &self.body_with_facts.input_facts;
@@ -39,28 +45,29 @@ impl<'mir, 'tcx: 'mir> MaybeBorrowedAnalysis<'mir, 'tcx> {
                 (loan, location)
             })
             .collect();
-        let mut analysis_state = PointwiseState::default(body);
+        let mut analysis_state: PointwiseState<MaybeBorrowedState> = PointwiseState::default(body);
 
         trace!("There are {} loan_live_at output facts", loan_live_at.len());
         for (&point_index, loans) in loan_live_at.iter() {
             let rich_location = location_table.to_location(point_index);
-            if let RichLocation::Start(loan_live_at_location) = rich_location {
+            if let RichLocation::Start(location) = rich_location {
                 trace!("  Location {:?}:", rich_location);
-                let mut state = MaybeBorrowedState::default();
+                let state = analysis_state.lookup_mut_before(location).unwrap();
                 for loan in loans {
                     let loan_location = loan_issued_at_location[loan];
                     let loan_stmt =
                         &body[loan_location.block].statements[loan_location.statement_index];
-                    if let mir::StatementKind::Assign(box (_, rhs)) = &loan_stmt.kind {
+                    if let mir::StatementKind::Assign(box (lhs, rhs)) = &loan_stmt.kind {
                         if let mir::Rvalue::Ref(_region, borrow_kind, borrowed_place) = rhs {
                             trace!(
-                                "    Loan {:?} is still borrowing {:?} as {:?}:",
+                                "    Loan {:?}: {:?} = & {:?} {:?}",
                                 loan,
-                                borrowed_place,
+                                lhs,
                                 borrow_kind,
+                                borrowed_place,
                             );
-                            let blocked_place = get_blocked_place(*borrowed_place);
-                            trace!("      Blocked: {:?}", blocked_place);
+                            let blocked_place = self.get_blocked_place(*borrowed_place);
+                            trace!("      Blocking {:?}: {:?}", borrow_kind, blocked_place);
                             match borrow_kind {
                                 mir::BorrowKind::Shared => {
                                     state.maybe_shared_borrowed.insert(blocked_place);
@@ -85,7 +92,6 @@ impl<'mir, 'tcx: 'mir> MaybeBorrowedAnalysis<'mir, 'tcx> {
                         return Err(AnalysisError::UnsupportedStatement(loan_location));
                     }
                 }
-                analysis_state.set_before(loan_live_at_location, state);
             }
         }
 
@@ -114,21 +120,24 @@ impl<'mir, 'tcx: 'mir> MaybeBorrowedAnalysis<'mir, 'tcx> {
 
         Ok(analysis_state)
     }
-}
 
-fn get_blocked_place(borrowed: mir::Place) -> mir::PlaceRef {
-    for (place_ref, place_elem) in borrowed.iter_projections() {
-        match place_elem {
-            mir::ProjectionElem::Deref
-            | mir::ProjectionElem::Index(..)
-            | mir::ProjectionElem::ConstantIndex { .. }
-            | mir::ProjectionElem::Subslice { .. } => {
-                return place_ref;
-            }
-            mir::ProjectionElem::Field(..) | mir::ProjectionElem::Downcast(..) => {
-                // Continue
+    fn get_blocked_place(&self, borrowed: mir::Place<'tcx>) -> mir::Place<'tcx> {
+        for (place_ref, place_elem) in borrowed.iter_projections() {
+            match place_elem {
+                mir::ProjectionElem::Deref
+                | mir::ProjectionElem::Index(..)
+                | mir::ProjectionElem::ConstantIndex { .. }
+                | mir::ProjectionElem::Subslice { .. } => {
+                    return mir::Place {
+                        local: place_ref.local,
+                        projection: self.tcx.intern_place_elems(place_ref.projection),
+                    };
+                }
+                mir::ProjectionElem::Field(..) | mir::ProjectionElem::Downcast(..) => {
+                    // Continue
+                }
             }
         }
+        borrowed
     }
-    borrowed.as_ref()
 }
