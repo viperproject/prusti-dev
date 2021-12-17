@@ -52,7 +52,7 @@ impl<'mir, 'tcx: 'mir> DefinitelyAccessibleAnalysis<'mir, 'tcx> {
         let var_live_on_entry: FxHashMap<_, _> = borrowck_out_facts
             .var_live_on_entry
             .iter()
-            .map(|(point, live_vars)| (point, FxHashSet::from_iter(live_vars.iter().cloned())))
+            .map(|(&point, live_vars)| (point, FxHashSet::from_iter(live_vars.iter().cloned())))
             .collect();
         let empty_locals_set: FxHashSet<mir::Local> = FxHashSet::default();
         let mut analysis_state = PointwiseState::default(body);
