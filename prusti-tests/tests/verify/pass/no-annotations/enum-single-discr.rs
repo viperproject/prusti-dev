@@ -1,5 +1,3 @@
-extern crate prusti_contracts;
-
 enum MyEnum {
     A = 123
 }

@@ -14,7 +14,10 @@ extern crate rustc_session;
 
 use analysis::{
     abstract_interpretation::FixpointEngine,
-    domains::{DefinitelyInitializedAnalysis, MaybeBorrowedAnalysis, ReachingDefsAnalysis},
+    domains::{
+        DefinitelyAccessibleAnalysis, DefinitelyInitializedAnalysis, MaybeBorrowedAnalysis,
+        ReachingDefsAnalysis,
+    },
 };
 use polonius_engine::{Algorithm, Output};
 use rustc_ast::ast;
@@ -136,7 +139,8 @@ impl rustc_driver::Callbacks for OurCompilerCalls {
         compiler: &interface::Compiler,
         queries: &'tcx Queries<'tcx>,
     ) -> Compilation {
-        compiler.session().abort_if_errors();
+        let session = compiler.session();
+        session.abort_if_errors();
 
         let abstract_domain: &str = self
             .args
@@ -222,10 +226,23 @@ impl rustc_driver::Callbacks for OurCompilerCalls {
                         }
                     }
                     "MaybeBorrowedAnalysis" => {
-                        let analyzer = MaybeBorrowedAnalysis::new(&body_with_facts);
+                        let analyzer = MaybeBorrowedAnalysis::new(tcx, &body_with_facts);
                         match analyzer.run_analysis() {
                             Ok(state) => {
                                 println!("{}", serde_json::to_string_pretty(&state).unwrap())
+                            }
+                            Err(e) => eprintln!("{}", e.to_pretty_str(body)),
+                        }
+                    }
+                    "DefinitelyAccessibleAnalysis" => {
+                        let analyzer = DefinitelyAccessibleAnalysis::new(
+                            tcx,
+                            local_def_id.to_def_id(),
+                            &body_with_facts,
+                        );
+                        match analyzer.run_analysis() {
+                            Ok(state) => {
+                                println!("{}", serde_json::to_string_pretty(&state).unwrap());
                             }
                             Err(e) => eprintln!("{}", e.to_pretty_str(body)),
                         }
@@ -234,8 +251,6 @@ impl rustc_driver::Callbacks for OurCompilerCalls {
                 }
             }
         });
-
-        compiler.session().abort_if_errors();
 
         Compilation::Stop
     }

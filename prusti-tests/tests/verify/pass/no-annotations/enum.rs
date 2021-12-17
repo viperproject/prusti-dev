@@ -1,7 +1,3 @@
-#![feature(nll)]
-
-extern crate prusti_contracts;
-
 enum Either {
     Left(i32),
     Right(i32),
