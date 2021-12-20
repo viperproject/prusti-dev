@@ -608,7 +608,6 @@ impl From<polymorphic::Trigger> for legacy::Trigger {
 impl From<polymorphic::CfgMethod> for legacy::CfgMethod {
     fn from(cfg_method: polymorphic::CfgMethod) -> legacy::CfgMethod {
         legacy::CfgMethod {
-            uuid: cfg_method.uuid,
             method_name: cfg_method.method_name,
             formal_arg_count: cfg_method.formal_arg_count,
             formal_returns: cfg_method
@@ -622,15 +621,12 @@ impl From<polymorphic::CfgMethod> for legacy::CfgMethod {
                 .map(|local_var| local_var.into())
                 .collect(),
             labels: cfg_method.labels.into_iter().collect(),
-            reserved_labels: cfg_method.reserved_labels.into_iter().collect(),
             basic_blocks: cfg_method
                 .basic_blocks
                 .into_iter()
                 .map(|basic_block| basic_block.into())
                 .collect(),
             basic_blocks_labels: cfg_method.basic_blocks_labels.into_iter().collect(),
-            fresh_var_index: cfg_method.fresh_var_index,
-            fresh_label_index: cfg_method.fresh_label_index,
         }
     }
 }
@@ -672,7 +668,6 @@ impl From<polymorphic::Successor> for legacy::Successor {
 impl From<polymorphic::CfgBlockIndex> for legacy::CfgBlockIndex {
     fn from(cfg_block_index: polymorphic::CfgBlockIndex) -> legacy::CfgBlockIndex {
         legacy::CfgBlockIndex {
-            method_uuid: cfg_block_index.method_uuid,
             block_index: cfg_block_index.block_index,
         }
     }
