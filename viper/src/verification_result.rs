@@ -106,7 +106,7 @@ enum ResultCache {
 
 impl CacheData {
     pub fn load_cache(cache_loc: &str) -> Self {
-        let data_str = fs::read_to_string(cache_loc).unwrap_or(String::new());
+        let data_str = fs::read_to_string(cache_loc).unwrap_or_default();
         let data_res = serde_json::from_str(&data_str);
         CacheData {
             updated: false,
