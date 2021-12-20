@@ -2,9 +2,6 @@ use prusti_contracts::*;
 
 fn main() {}
 
-
-
-
 fn looping() {
     let mut a = [0; 3];
     let mut i = 0;
