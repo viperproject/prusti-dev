@@ -5872,25 +5872,34 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         let tymap = HashMap::new();
         let elem_snap_ty = self.encoder.encode_snapshot_type(array_types.elem_ty_rs, &tymap).with_span(span)?;
 
-        for idx in 0..array_types.array_len {
-            let array_lookup_call = array_types.encode_lookup_pure_call(
-                self.encoder,
-                rhs_expr.clone(),
-                vir::Expr::from(idx),
-                elem_snap_ty.clone(),
-            );
+        let i: Expr = vir_local! { i: Int }.into();
 
-            let slice_lookup_call = slice_types.encode_lookup_pure_call(
-                self.encoder,
-                slice_expr.clone(),
-                vir::Expr::from(idx),
-                elem_snap_ty.clone(),
-            );
+        let array_lookup_call = array_types.encode_lookup_pure_call(
+            self.encoder,
+            rhs_expr,
+            i.clone(),
+            elem_snap_ty.clone(),
+        );
 
-            stmts.push(vir::Stmt::Inhale( vir::Inhale {
-                expr: vir_expr!{ [array_lookup_call] == [slice_lookup_call] }
-            }));
-        }
+        let slice_lookup_call = slice_types.encode_lookup_pure_call(
+            self.encoder,
+            slice_expr,
+            i.clone(),
+            elem_snap_ty,
+        );
+
+        let indices = vir_expr! { ([Expr::from(0)] <= [i]) && ([i] < [Expr::from(array_types.array_len)]) };
+
+        // TODO: maybe don't bother with a complicated forall if the array length is less than some
+        // reasonable bound. This should also consider other quantifiers in existance which may be
+        // explicitly instantiated when emitting trigger expressions not nested under a quantifier.
+        // Note: instantiating too many quantifiers will lead to bad performance.
+        stmts.push(vir::Stmt::Inhale( vir::Inhale {
+            expr: vir_expr! {
+                forall i: Int ::
+                { [array_lookup_call], [slice_lookup_call] }
+                ([indices] ==> ([array_lookup_call] == [slice_lookup_call])) }
+        }));
 
         // Store a label for permissions got back from the call
         debug!(
