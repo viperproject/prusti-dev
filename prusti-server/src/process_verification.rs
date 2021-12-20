@@ -8,9 +8,27 @@ use crate::{VerificationRequest, ViperBackendConfig};
 use log::info;
 use prusti_common::{config, report::log::report, vir::ToViper, Stopwatch};
 use std::{fs::create_dir_all, path::PathBuf};
-use viper::{VerificationBackend, VerificationContext};
-use std::collections::hash_map::DefaultHasher;
-use std::hash::{Hash, Hasher};
+use viper::{Cache, VerificationBackend, VerificationContext};
+
+pub fn process_verification_request_cache<'v, 't: 'v>(
+    verification_context: &'v VerificationContext<'t>,
+    request: VerificationRequest,
+    cache: impl Cache,
+) -> viper::VerificationResult {
+    if config::disable_cache() || config::print_hash() {
+        process_verification_request(verification_context, request)
+    } else {
+        let hash = request.get_hash();
+        // Try to load from cache and return `result`
+        if let Some(result) = cache.get(hash) {
+            return result;
+        }
+        let result = process_verification_request(verification_context, request);
+        // Save `result` to cache
+        cache.insert(hash, result.clone());
+        result
+    }
+}
 
 pub fn process_verification_request<'v, 't: 'v>(
     verification_context: &'v VerificationContext<'t>,
@@ -18,17 +36,15 @@ pub fn process_verification_request<'v, 't: 'v>(
 ) -> viper::VerificationResult {
     // Print hash of the `VerificationRequest`
     if config::print_hash() {
-        println!("Recieved verification request for: {}", request.program.name);
-        let mut hasher = DefaultHasher::new();
-        request.hash(&mut hasher);
-        println!("Hash of the request is: {}", hasher.finish());
+        println!(
+            "Recieved verification request for: {}",
+            request.program.name
+        );
+        println!("Hash of the request is: {}", request.get_hash());
         // Skip actual verification
         if !config::dump_viper_program() {
             return viper::VerificationResult::Success;
         }
-    }
-    if !config::disable_cache() {
-        // Try to load and return `result`
     }
 
     let ast_utils = verification_context.new_ast_utils();
@@ -48,11 +64,7 @@ pub fn process_verification_request<'v, 't: 'v>(
             }
         }
         stopwatch.start_next("verification");
-        let result = verifier.verify(viper_program);
-        if !config::disable_cache() {
-            // Save `result`
-        }
-        result
+        verifier.verify(viper_program)
     })
 }
 

@@ -71,6 +71,7 @@ lazy_static! {
         settings.set_default("encode_unsigned_num_constraint", false).unwrap();
         settings.set_default("simplify_encoding", true).unwrap();
         settings.set_default("log_dir", "./log/").unwrap();
+        settings.set_default("cache_dir", "./cache/").unwrap();
         settings.set_default("dump_debug_info", false).unwrap();
         settings.set_default("dump_debug_info_during_fold", false).unwrap();
         settings.set_default("max_log_file_name_length", 60).unwrap();
@@ -265,6 +266,11 @@ pub fn foldunfold_state_filter() -> String {
 /// In which folder should we sore log/dumps?
 pub fn log_dir() -> String {
     read_setting("log_dir")
+}
+
+/// In which folder should we store the Verification cache
+pub fn cache_dir() -> String {
+    read_setting("cache_dir")
 }
 
 /// Check binary operations for overflows
