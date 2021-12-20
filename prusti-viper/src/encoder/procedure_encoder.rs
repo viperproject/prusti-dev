@@ -2675,13 +2675,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         // lookup_pure: contents
         let i = vir_local!{ i: Int };
         let i_var: vir::Expr = i.clone().into();
-        let j_var: vir::Expr = j.into();
+        let j_var: vir::Expr = j.clone().into();
 
         let lhs_lookup_i = {
             slice_types_lhs.encode_lookup_pure_call(
                 self.encoder,
                 lhs_slice_expr,
-                vir::Expr::from(i),
+                i_var.clone(),
                 elem_snap_ty,
             )
         };
@@ -2706,8 +2706,15 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
 
         // TODO: maybe don't bother with a complicated forall if the array length is less than some
         // reasonable bound
+        // forall i: Int, j: Int :: { lhs_lookup(i), rhs_lookup(j) } 0 <= i && i < slice$len && j == i + start && start <= j && j < end ==> lhs_lookup(i) == rhs_lookup(j)
         stmts.push(vir_stmt!{
-            inhale [vir_expr!{ forall i: Int, j: Int :: {} ([indices] ==> [lookup_eq]) }]
+            inhale [
+                Expr::forall(
+                    vec![i, j],
+                    vec![vir::Trigger::new(vec![lhs_lookup_i, rhs_lookup_j])],
+                    vir_expr!{ ([indices] ==> [lookup_eq]) }
+                )
+            ]
         });
 
         self.encode_transfer_args_permissions(location, args,  &mut stmts, label.clone(), false)?;
