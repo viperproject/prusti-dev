@@ -15,6 +15,7 @@ use rustc_middle::{
     ty::{self, TyCtxt},
 };
 use rustc_trait_selection::infer::InferCtxtExt;
+use std::mem;
 
 /// Convert a `location` to a string representing the statement or terminator at that `location`
 pub fn location_to_stmt_str(location: mir::Location, mir: &mir::Body) -> String {
@@ -211,25 +212,64 @@ pub(crate) fn collapse<'tcx>(
     recurse(mir, tcx, places, guide_place.local.into(), guide_place);
 }
 
+/// Remove all extensions of a place from a set, unpacking prefixes as much as needed.
+pub fn remove_place_from_set<'tcx>(
+    body: &mir::Body<'tcx>,
+    tcx: TyCtxt<'tcx>,
+    to_remove: mir::Place<'tcx>,
+    set: &mut FxHashSet<mir::Place<'tcx>>,
+) {
+    let old_set = mem::take(set);
+    for old_place in old_set {
+        if is_prefix(to_remove, old_place) {
+            // Unpack `old_place` and remove `to_remove`.
+            set.extend(expand(body, tcx, old_place, to_remove));
+        } else if is_prefix(old_place, to_remove) {
+            // `to_remove` is a prefix of `old_place`. So, it should *not* be added to `set`.
+        } else {
+            // `old_place` and `to_remove` are unrelated.
+            set.insert(old_place);
+        }
+    }
+}
+
 pub fn is_copy<'tcx>(
     tcx: ty::TyCtxt<'tcx>,
     ty: ty::Ty<'tcx>,
     param_env: ty::ParamEnv<'tcx>,
 ) -> bool {
     if let Some(copy_trait) = tcx.lang_items().copy_trait() {
-        // We need this check because `type_implements_trait`
-        // panics when called on reference types.
-        if let ty::TyKind::Ref(_, _, mutability) = ty.kind() {
-            // Shared references are copy and mutable references are not.
-            matches!(mutability, mir::Mutability::Not)
-        } else {
-            tcx.infer_ctxt().enter(|infcx| {
-                infcx
-                    .type_implements_trait(copy_trait, ty, ty::List::empty(), param_env)
-                    .must_apply_considering_regions()
-            })
-        }
+        tcx.infer_ctxt().enter(|infcx| {
+            // Avoid panic. If ty has any inference variables (e.g. a region variable), then using
+            // it with the freshly-created InferCtxt (i.e. `tcx.infer_ctxt().enter(|infcx|`) will
+            // cause a panic, since those inference variables don't exist in the new InferCtxt.
+            // See: https://rust-lang.zulipchat.com/#narrow/stream/182449-t-compiler.2Fhelp/topic/.E2.9C.94.20Panic.20in.20is_copy_modulo_regions
+            let fresh_ty = infcx.freshen(ty);
+            infcx
+                .type_implements_trait(copy_trait, fresh_ty, ty::List::empty(), param_env)
+                .must_apply_considering_regions()
+        })
     } else {
         false
     }
+}
+
+pub fn get_blocked_place<'tcx>(tcx: TyCtxt<'tcx>, borrowed: mir::Place<'tcx>) -> mir::Place<'tcx> {
+    for (place_ref, place_elem) in borrowed.iter_projections() {
+        match place_elem {
+            mir::ProjectionElem::Deref
+            | mir::ProjectionElem::Index(..)
+            | mir::ProjectionElem::ConstantIndex { .. }
+            | mir::ProjectionElem::Subslice { .. } => {
+                return mir::Place {
+                    local: place_ref.local,
+                    projection: tcx.intern_place_elems(place_ref.projection),
+                };
+            }
+            mir::ProjectionElem::Field(..) | mir::ProjectionElem::Downcast(..) => {
+                // Continue
+            }
+        }
+    }
+    borrowed
 }
