@@ -18,6 +18,7 @@ use crate::encoder::stub_function_encoder::StubFunctionEncoder;
 use crate::encoder::spec_encoder::encode_spec_assertion;
 use crate::encoder::SpecFunctionKind;
 use crate::encoder::spec_function_encoder::SpecFunctionEncoder;
+use prusti_common::{vir_expr, vir_local};
 use prusti_common::config;
 use prusti_common::report::log;
 use prusti_interface::data::ProcedureDefId;
@@ -27,7 +28,6 @@ use prusti_interface::specs::typed::SpecificationId;
 use prusti_interface::utils::{has_spec_only_attr, read_prusti_attrs};
 use prusti_interface::PrustiError;
 use prusti_specs::specifications::common::SpecIdRef;
-use prusti_common::vir_local;
 use vir_crate::polymorphic::{self as vir, WithIdentifier, ExprIterator};
 use rustc_hir as hir;
 use rustc_hir::def_id::DefId;
@@ -547,6 +547,59 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
                 pres: precondition,
                 posts: postcondition,
                 body: Some(arg.into()),
+            };
+            let identifier = self.insert_function(function);
+            self.type_cast_functions.borrow_mut().insert((src_ty, dst_ty), identifier);
+        }
+        Ok(function_name)
+    }
+
+    pub fn encode_unsize_function_use(&self, src_ty: ty::Ty<'tcx>, dst_ty: ty::Ty<'tcx>, tymap: &SubstMap<'tcx>)
+        -> EncodingResult<String>
+    {
+        trace!("encode_unsize_function_use(src_ty={:?}, dst_ty={:?})", src_ty, dst_ty);
+        // at some point we may want to add support for other types of unsizing calls?
+        assert!(matches!(src_ty.kind(), ty::TyKind::Array(..)));
+        assert!(matches!(dst_ty.kind(), ty::TyKind::Slice(..)));
+
+        let array_types = self.encode_array_types(src_ty)?;
+        let slice_types = self.encode_slice_types(dst_ty)?;
+        let function_name = format!(
+            "builtin$unsize${}${}",
+            &array_types.array_pred_type.name(),
+            &slice_types.slice_pred_type.name()
+        );
+
+        if !self.type_cast_functions.borrow().contains_key(&(src_ty, dst_ty)) {
+            let src_snap_ty = self.encode_snapshot_type(src_ty, tymap)?;
+            let dst_snap_ty = self.encode_snapshot_type(dst_ty, tymap)?;
+            let elem_snap_ty = match src_ty.kind() {
+                ty::TyKind::Array(elem_ty, ..) => self.encode_snapshot_type(elem_ty, tymap)?,
+                _ => unreachable!(),
+            };
+            let seq_type = vir::Type::Seq(vir::SeqType {
+                typ: box elem_snap_ty,
+            });
+            let arg = vir_local!{ array: {src_snap_ty} };
+            let arg_expr = vir::Expr::from(arg.clone());
+            let result = vir::Expr::from(vir_local!{ __result: {dst_snap_ty.clone()} });
+            let data = vir_local! { data: {seq_type} };
+            let data_expr = vir::Expr::from(data.clone());
+            let array_cons = self.encode_snapshot(src_ty, None, vec![data_expr.clone()], tymap)?;
+            let slice_cons = self.encode_snapshot(dst_ty, None, vec![data_expr], tymap)?;
+            let postcondition = vir::Expr::Exists(vir::Exists {
+                variables: vec![data],
+                triggers: vec![],
+                body: box vir_expr!{ [vir_expr!{ [arg_expr] == [array_cons] }] && [vir_expr!{ [result] == [slice_cons] }] },
+                position: vir::Position::default()
+            });
+            let function = vir::Function {
+                name: function_name.clone(),
+                formal_args: vec![arg],
+                return_type: dst_snap_ty,
+                pres: vec![],
+                posts: vec![postcondition],
+                body: None,
             };
             let identifier = self.insert_function(function);
             self.type_cast_functions.borrow_mut().insert((src_ty, dst_ty), identifier);
