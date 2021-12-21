@@ -238,19 +238,25 @@ pub fn is_copy<'tcx>(
     ty: ty::Ty<'tcx>,
     param_env: ty::ParamEnv<'tcx>,
 ) -> bool {
-    if let Some(copy_trait) = tcx.lang_items().copy_trait() {
-        tcx.infer_ctxt().enter(|infcx| {
-            // Avoid panic. If ty has any inference variables (e.g. a region variable), then using
-            // it with the freshly-created InferCtxt (i.e. `tcx.infer_ctxt().enter(|infcx|`) will
-            // cause a panic, since those inference variables don't exist in the new InferCtxt.
-            // See: https://rust-lang.zulipchat.com/#narrow/stream/182449-t-compiler.2Fhelp/topic/.E2.9C.94.20Panic.20in.20is_copy_modulo_regions
-            let fresh_ty = infcx.freshen(ty);
-            infcx
-                .type_implements_trait(copy_trait, fresh_ty, ty::List::empty(), param_env)
-                .must_apply_considering_regions()
-        })
+    if let ty::TyKind::Ref(_, _, mutability) = ty.kind() {
+        // Shared references are copy, mutable references are not.
+        // `type_implements_trait` doesn't consider that.
+        matches!(mutability, mir::Mutability::Not)
     } else {
-        false
+        if let Some(copy_trait) = tcx.lang_items().copy_trait() {
+            tcx.infer_ctxt().enter(|infcx| {
+                // If `ty` has any inference variables (e.g. a region variable), then using it with
+                // the freshly-created `InferCtxt` (i.e. `tcx.infer_ctxt().enter(..)`) will cause
+                // a panic, since those inference variables don't exist in the new `InferCtxt`.
+                // See: https://rust-lang.zulipchat.com/#narrow/stream/182449-t-compiler.2Fhelp/topic/.E2.9C.94.20Panic.20in.20is_copy_modulo_regions
+                let fresh_ty = infcx.freshen(ty);
+                infcx
+                    .type_implements_trait(copy_trait, fresh_ty, ty::List::empty(), param_env)
+                    .must_apply_considering_regions()
+            })
+        } else {
+            false
+        }
     }
 }
 
