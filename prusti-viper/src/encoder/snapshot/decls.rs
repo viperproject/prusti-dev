@@ -35,6 +35,7 @@ pub(super) enum Snapshot {
         predicate_type: Type,
         _domain: String,
         _snap_func: vir::FunctionIdentifier,
+        _array_collect_func: vir::FunctionIdentifier,
         slice_helper: vir::FunctionIdentifier,
         cons: vir::DomainFunc,
         read: vir::DomainFunc,
