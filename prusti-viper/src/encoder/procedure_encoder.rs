@@ -6009,19 +6009,20 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         };
 
         let mut stmts = self.encode_havoc_and_initialization(&encoded_lhs);
-        for i in 0..len {
-            let idx = vir::Expr::from(i);
-            let lookup_pure_call = array_types.encode_lookup_pure_call(
-                self.encoder,
-                encoded_lhs.clone(),
-                idx,
-                lookup_ret_ty.clone(),
-            );
-
-            stmts.push(vir::Stmt::Inhale( vir::Inhale {
-                expr: vir_expr!{ [lookup_pure_call] == [inhaled_operand] }
-            }));
-        }
+        let idx: Expr = vir_local! { i: Int }.into();
+        let indices = vir_expr! { ([Expr::from(0)] <= [idx]) && ([idx] < [Expr::from(len)]) };
+        let lookup_pure_call = array_types.encode_lookup_pure_call(
+            self.encoder,
+            encoded_lhs,
+            idx,
+            lookup_ret_ty,
+        );
+        stmts.push(vir::Stmt::Inhale( vir::Inhale {
+            expr: vir_expr! {
+                forall i: Int ::
+                { [lookup_pure_call] }
+                ([indices] ==> ([lookup_pure_call] == [inhaled_operand])) }
+        }));
 
         Ok(stmts)
     }

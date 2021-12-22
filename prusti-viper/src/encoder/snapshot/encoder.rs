@@ -861,16 +861,7 @@ impl SnapshotEncoder {
                         arg_expr,
                         PermAmount::Read,
                     )],
-                    posts: vec![
-                        // FIXME: this shouldn't be necessary, would want to just use
-                        // read_eq_lookup here, but doesn't verify always (for big arrays
-                        // especially)
-                        Expr::InhaleExhale(vir::InhaleExhale {
-                            inhale_expr: box read_eq_lookup,
-                            exhale_expr: box true.into(),
-                            position: vir::Position::default(),
-                        }),
-                    ],
+                    posts: vec![read_eq_lookup],
                     body: Some(snap_body),
                 };
 
@@ -896,6 +887,27 @@ impl SnapshotEncoder {
                             Expr::implies(
                                 vir_expr! { [lhs_call] == [rhs_call] },
                                 vir_expr! { [Expr::from(lhs_arg)] == [Expr::from(rhs_arg)] },
+                            ),
+                        ),
+                        domain_name: domain_name.clone(),
+                    }
+                };
+
+                let constructor_surj = {
+                    let lhs_arg = vir_local! { _l_data: {seq_type.clone()} };
+                    let rhs_arg = vir_local! { _r_data: {seq_type.clone()} };
+
+                    let lhs_call = cons.apply(vec![lhs_arg.clone().into()]);
+                    let rhs_call = cons.apply(vec![rhs_arg.clone().into()]);
+
+                    vir::DomainAxiom {
+                        name: format!("{}$surjectivity", domain_name),
+                        expr: Expr::forall(
+                            vec![lhs_arg.clone(), rhs_arg.clone()],
+                            vec![vir::Trigger::new(vec![lhs_call.clone(), rhs_call.clone()])],
+                            Expr::implies(
+                                vir_expr! { [Expr::from(lhs_arg)] == [Expr::from(rhs_arg)] },
+                                vir_expr! { [lhs_call] == [rhs_call] },
                             ),
                         ),
                         domain_name: domain_name.clone(),
@@ -932,7 +944,7 @@ impl SnapshotEncoder {
                 let mut domain = vir::Domain {
                     name: domain_name.clone(),
                     functions: vec![cons.clone(), read.clone()],
-                    axioms: vec![constructor_inj, read_axiom],
+                    axioms: vec![constructor_inj, constructor_surj, read_axiom],
                     type_vars: vec![],
                 };
 
@@ -1100,6 +1112,27 @@ impl SnapshotEncoder {
                     }
                 };
 
+                let cons_surj = {
+                    let data_l = vir_local! { _l_data: {seq_type.clone()} };
+                    let data_r = vir_local! { _r_data: {seq_type.clone()} };
+
+                    let cons_l = cons.apply(vec![data_l.clone().into()]);
+                    let cons_r = cons.apply(vec![data_r.clone().into()]);
+
+                    vir::DomainAxiom {
+                        name: format!("{}$surjectivity", domain_name),
+                        expr: Expr::forall(
+                            vec![data_l.clone(), data_r.clone()],
+                            vec![vir::Trigger::new(vec![cons_l.clone(), cons_r.clone()])],
+                            Expr::implies(
+                                vir_expr! { ([Expr::from(data_l)] == [Expr::from(data_r)]) },
+                                vir_expr! { [cons_l] == [cons_r] },
+                            ),
+                        ),
+                        domain_name: domain_name.clone(),
+                    }
+                };
+
                 let data = vir_local! { data: {seq_type.clone()} };
                 let cons_call = cons.apply(vec![data.clone().into()]);
 
@@ -1159,7 +1192,7 @@ impl SnapshotEncoder {
                 let mut domain = vir::Domain {
                     name: domain_name.clone(),
                     functions: vec![cons.clone(), read.clone(), len.clone()],
-                    axioms: vec![cons_inj, read_axiom, len_of_seq, len_positive],
+                    axioms: vec![cons_inj, cons_surj, read_axiom, len_of_seq, len_positive],
                     type_vars: vec![],
                 };
 
