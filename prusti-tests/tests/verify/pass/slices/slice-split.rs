@@ -7,6 +7,11 @@ fn main() {
     assert!(s0.len() == 7);
     assert!(s1.len() == 6);
 
+    // these 2 dummy assertions are needed to trigger the quantifiers from split_at().
+    // without it, the next block of assertions won't be verified by Prusti.
+    assert!(a[2] == s0[2]);
+    assert!(a[9] == s1[2]);
+
     assert!(s0[2] == 0);
     assert!(s1[2] == 0);
 }
