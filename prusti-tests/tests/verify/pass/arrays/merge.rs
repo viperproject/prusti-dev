@@ -50,10 +50,12 @@ fn merge(a: [i32; 3], b: [i32; 3]) -> [i32; 6] {
         body_invariant!(res_pos > 0 && b_pos < 3 ==> res[res_pos - 1] <= b[b_pos]);
 
         if b_pos == 3 || a_pos < 3 && a[a_pos] <= b[b_pos] {
-            res[res_pos] = a[a_pos];
+            // res[res_pos] = a[a_pos];
+            set_res(&mut res, res_pos, a[a_pos]);
             a_pos += 1;
         } else {
-            res[res_pos] = b[b_pos];
+            // res[res_pos] = b[b_pos];
+            set_res(&mut res, res_pos, b[b_pos]);
             b_pos += 1;
         }
         res_pos += 1;
@@ -62,4 +64,14 @@ fn merge(a: [i32; 3], b: [i32; 3]) -> [i32; 6] {
     assert!(res_pos == res.len());
 
     res
+}
+
+#[requires(res_pos < 6)]
+#[requires(forall(|i: usize, j: usize| (0 <= i && i < j && j < res_pos) ==> res[i] <= res[j]))]
+#[requires(forall(|i: usize| (0 <= i && i < res_pos) ==> res[i] <= value))]
+#[ensures(forall(|i: usize| (0 <= i && i < res_pos) ==> res[i] == old(res[i])))]
+#[ensures(res[res_pos] == value)]
+#[ensures(forall(|i: usize, j: usize| (0 <= i && i < j && j <= res_pos) ==> res[i] <= res[j]))]
+fn set_res(res: &mut [i32; 6], res_pos: usize, value: i32) {
+    res[res_pos] = value
 }

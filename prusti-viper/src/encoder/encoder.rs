@@ -718,6 +718,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             | ty::TyKind::Tuple(_)
             | ty::TyKind::Never
             | ty::TyKind::Array(..)
+            | ty::TyKind::Slice(..)
             | ty::TyKind::Param(_) => true,
             ty::TyKind::Adt(_, _) => {
                 self.env().tcx().has_structural_eq_impls(ty)
