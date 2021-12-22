@@ -2704,8 +2704,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             )
         };
 
-        // TODO: maybe don't bother with a complicated forall if the array length is less than some
-        // reasonable bound
         // forall i: Int, j: Int :: { lhs_lookup(i), rhs_lookup(j) } 0 <= i && i < slice$len && j == i + start && start <= j && j < end ==> lhs_lookup(i) == rhs_lookup(j)
         stmts.push(vir_stmt!{
             inhale [
@@ -5897,10 +5895,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
 
         let indices = vir_expr! { ([Expr::from(0)] <= [i]) && ([i] < [Expr::from(array_types.array_len)]) };
 
-        // TODO: maybe don't bother with a complicated forall if the array length is less than some
-        // reasonable bound. This should also consider other quantifiers in existance which may be
-        // explicitly instantiated when emitting trigger expressions not nested under a quantifier.
-        // Note: instantiating too many quantifiers will lead to bad performance.
         stmts.push(vir::Stmt::Inhale( vir::Inhale {
             expr: vir_expr! {
                 forall i: Int ::
