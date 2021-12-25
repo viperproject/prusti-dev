@@ -113,7 +113,8 @@ pub fn compute_identifier(name: &str, formal_args: &[LocalVar], return_type: &Ty
 
 impl WithIdentifier for Function {
     fn get_identifier(&self) -> String {
-        compute_identifier(&self.name, &self.formal_args, &self.return_type)
+        // The functions in `low` should be already monomorphised.
+        self.name.clone()
     }
 }
 

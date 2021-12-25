@@ -84,7 +84,8 @@ impl fmt::Display for DomainFunc {
 
 impl WithIdentifier for DomainFunc {
     fn get_identifier(&self) -> String {
-        compute_identifier(&self.name, &self.formal_args, &self.return_type)
+        // The functions in `low` should be already monomorphised.
+        self.name.clone()
     }
 }
 

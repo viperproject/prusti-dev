@@ -1,5 +1,7 @@
 use std::{collections::HashMap, fmt};
 
+use crate::polymorphic::WithIdentifier;
+
 use super::super::{legacy, polymorphic};
 use uuid::Uuid;
 
@@ -130,7 +132,7 @@ impl From<polymorphic::Domain> for legacy::Domain {
 impl From<polymorphic::DomainFunc> for legacy::DomainFunc {
     fn from(domain_func: polymorphic::DomainFunc) -> legacy::DomainFunc {
         legacy::DomainFunc {
-            name: domain_func.name,
+            name: domain_func.get_identifier(),
             formal_args: domain_func
                 .formal_args
                 .into_iter()
@@ -402,7 +404,7 @@ impl From<polymorphic::Const> for legacy::Const {
 impl From<polymorphic::Function> for legacy::Function {
     fn from(function: polymorphic::Function) -> legacy::Function {
         legacy::Function {
-            name: function.name,
+            name: function.get_identifier(),
             formal_args: function
                 .formal_args
                 .into_iter()
