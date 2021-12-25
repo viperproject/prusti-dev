@@ -1,3 +1,5 @@
+// compile-flags: -Pverification_deadline=5
+
 use prusti_contracts::*;
 
 #[requires(forall(|i: usize| (0 <= i && i < 16) ==> (array[i] > 100) ))]
