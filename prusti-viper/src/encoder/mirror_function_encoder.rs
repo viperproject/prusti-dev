@@ -67,6 +67,7 @@ impl MirrorEncoder {
         // create mirror function
         let mirror_func = vir::DomainFunc {
             name: format!("mirror_simple${}", function.name),
+            type_arguments: function.type_arguments.clone(),
             formal_args: function.formal_args.clone(),
             return_type: function.return_type.clone(),
             unique: false,

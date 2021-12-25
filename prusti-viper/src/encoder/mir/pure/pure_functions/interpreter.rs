@@ -8,8 +8,11 @@ use crate::encoder::{
         SpannedEncodingResult, WithSpan,
     },
     foldunfold,
-    high::types::HighTypeEncoderInterface,
-    mir::types::MirTypeEncoderInterface,
+    high::{
+        builtin_functions::HighBuiltinFunctionEncoderInterface,
+        generics::HighGenericsEncoderInterface, types::HighTypeEncoderInterface,
+    },
+    mir::{generics::MirGenericsEncoderInterface, types::MirTypeEncoderInterface},
     mir_encoder::{MirEncoder, PlaceEncoder, PlaceEncoding, PRECONDITION_LABEL, WAND_LHS_LABEL},
     mir_interpreter::{
         run_backward_interpretation, BackwardMirInterpreter, ExprBackwardInterpreterState,
@@ -208,30 +211,46 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
         let location = self.mir.terminator_loc(bb);
 
         // Generate a function call that leaves the expression undefined.
-        let unreachable_expr =
-            |pos| {
-                self.encoder
-                    .encode_snapshot_type(self.mir.return_ty(), &self.tymap)
-                    .map(|encoded_type| {
-                        let function_name = self.encoder.encode_builtin_function_use(
-                            BuiltinFunctionKind::Unreachable(encoded_type.clone()),
-                        );
-                        vir::Expr::func_app(function_name, vec![], vec![], encoded_type, pos)
-                    })
-            };
+        let unreachable_expr = |pos| {
+            self.encoder
+                .encode_snapshot_type(self.mir.return_ty(), &self.tymap)
+                .map(|encoded_type| {
+                    let (function_name, type_arguments) =
+                        self.encoder
+                            .encode_builtin_function_use(BuiltinFunctionKind::Unreachable(
+                                encoded_type.clone(),
+                            ));
+                    vir::Expr::func_app(
+                        function_name,
+                        type_arguments,
+                        vec![],
+                        vec![],
+                        encoded_type,
+                        pos,
+                    )
+                })
+        };
 
         // Generate a function call that leaves the expression undefined.
-        let undef_expr =
-            |pos| {
-                self.encoder
-                    .encode_snapshot_type(self.mir.return_ty(), &self.tymap)
-                    .map(|encoded_type| {
-                        let function_name = self.encoder.encode_builtin_function_use(
-                            BuiltinFunctionKind::Undefined(encoded_type.clone()),
-                        );
-                        vir::Expr::func_app(function_name, vec![], vec![], encoded_type, pos)
-                    })
-            };
+        let undef_expr = |pos| {
+            self.encoder
+                .encode_snapshot_type(self.mir.return_ty(), &self.tymap)
+                .map(|encoded_type| {
+                    let (function_name, type_arguments) =
+                        self.encoder
+                            .encode_builtin_function_use(BuiltinFunctionKind::Undefined(
+                                encoded_type.clone(),
+                            ));
+                    vir::Expr::func_app(
+                        function_name,
+                        type_arguments,
+                        vec![],
+                        vec![],
+                        encoded_type,
+                        pos,
+                    )
+                })
+        };
 
         let mut state = match term.kind {
             TerminatorKind::Unreachable => {
@@ -391,25 +410,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                 if let ty::TyKind::FnDef(def_id, substs) = ty.kind() {
                     let def_id = *def_id;
                     let full_func_proc_name: &str = &self.encoder.env().tcx().def_path_str(def_id);
-                    // &self.encoder.env().tcx().absolute_item_path_str(def_id);
                     let func_proc_name = &self.encoder.env().get_item_name(def_id);
 
-                    let own_substs = ty::List::identity_for_item(self.encoder.env().tcx(), def_id);
-
-                    // FIXME: this is a hack to support generics. See issue #187.
-                    let mut new_tymap = HashMap::new();
-                    for (kind1, kind2) in own_substs.iter().zip(substs.iter()) {
-                        if let (
-                            ty::subst::GenericArgKind::Type(ty1),
-                            ty::subst::GenericArgKind::Type(ty2),
-                        ) = (kind1.unpack(), kind2.unpack())
-                        {
-                            new_tymap.insert(ty1, ty2);
-                        }
-                    }
-                    // let _cleanup_token = self.encoder.push_temp_tymap(tymap);
-                    let subst_stack = vec![self.tymap.clone(), new_tymap];
-                    let tymap = self.encoder.merge_tymaps(subst_stack);
+                    let tymap = self
+                        .encoder
+                        .update_substitution_map(self.tymap.clone(), def_id, substs)
+                        .with_span(span)?;
 
                     let state = if destination.is_some() {
                         let (ref lhs_place, target_block) = destination.as_ref().unwrap();
@@ -535,7 +541,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                                     ),
                                     "std::ops::RangeTo" | "core::ops::RangeTo" |
                                     "std::ops::RangeFull" | "core::ops::RangeFull" |
-                                    "std::ops::RangeToInclusive" | "core::ops::RangeToInclusive" => vir::Expr::from(0),
+                                    "std::ops::RangeToInclusive" | "core::ops::RangeToInclusive" => vir::Expr::from(0u32),
                                     _ => unreachable!("{}", idx_ident)
                                 };
                                 let end = match &*idx_ident {
@@ -547,7 +553,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                                     ),
                                     "std::ops::RangeToInclusive" | "core::ops::RangeToInclusive" => {
                                         let end_expr = self.encoder.encode_struct_field_value(encoded_idx.clone(), "end", usize_ty).with_span(span)?;
-                                        vir::Expr::add(end_expr, vir::Expr::from(1))
+                                        vir::Expr::add(end_expr, vir::Expr::from(1u32))
                                     }
                                     "std::ops::RangeFrom" | "core::ops::RangeFrom" |
                                     "std::ops::RangeFull" | "core::ops::RangeFull" => {
@@ -619,8 +625,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                                     ErrorCtxt::PureFunctionCall,
                                     self.caller_def_id,
                                 );
+                                let type_arguments = self
+                                    .encoder
+                                    .encode_generic_arguments(def_id, &tymap)
+                                    .with_span(term.source_info.span)?;
                                 let encoded_rhs = vir::Expr::func_app(
                                     function_name,
+                                    type_arguments,
                                     encoded_args,
                                     formal_args,
                                     return_type,
@@ -1005,18 +1016,19 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                                         .encoder
                                         .error_manager()
                                         .register(stmt.source_info.span, ErrorCtxt::Unexpected, self.caller_def_id);
-                                    let function_name = self.encoder.encode_builtin_function_use(
+                                    let (function_name, type_arguments) = self.encoder.encode_builtin_function_use(
                                         BuiltinFunctionKind::Unreachable(vir::Type::Int),
                                     );
                                     vir::Expr::func_app(
                                         function_name,
+                                        type_arguments,
                                         vec![],
                                         vec![],
                                         vir::Type::Int,
                                         pos,
                                     )
                                 } else if num_variants == 1 {
-                                    0.into()
+                                    0u32.into()
                                 } else {
                                     let discr_field = self.encoder.encode_discriminant_field();
                                     encoded_src.field(discr_field)
@@ -1098,6 +1110,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                             let encoded_arg = self.encoder.encode_value_expr(self.encode_operand(operand).with_span(span)?.0, rhs_ref_ty).with_span(span)?;
                             let unsize_func = vir::Expr::func_app(
                                 function_name,
+                                Vec::new(),     // FIXME: This is probably wrong.
                                 vec![encoded_arg],
                                 formal_args,
                                 self.encoder.encode_snapshot_type(lhs_ty, &self.tymap).with_span(span)?,

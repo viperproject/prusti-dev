@@ -272,7 +272,7 @@ impl<'a> PathCtxt<'a> {
                                             perm,
                                             missing_perm
                                         );
-                                        actions.push(Action::Drop(perm, missing_perm.clone()));
+                                        actions.push(Action::Drop(perm, (*missing_perm).clone()));
                                     }
                                 }
                                 for place in ctxt.state.pred_places() {
@@ -284,7 +284,7 @@ impl<'a> PathCtxt<'a> {
                                             perm,
                                             missing_perm
                                         );
-                                        actions.push(Action::Drop(perm, missing_perm.clone()));
+                                        actions.push(Action::Drop(perm, (*missing_perm).clone()));
                                     }
                                 }
                             };
@@ -319,7 +319,7 @@ impl<'a> PathCtxt<'a> {
                             }
                             ObtainResult::Failure(missing_perm) => {
                                 ctxt_right.state.remove_perm(&perm)?;
-                                right_actions.push(Action::Drop(perm, missing_perm));
+                                right_actions.push(Action::Drop(perm, *missing_perm));
                                 Ok(false)
                             }
                         }
@@ -696,12 +696,12 @@ Predicates: {{
                     self.state.display_acc(),
                     self.state.display_pred()
                 );
-                Ok(ObtainResult::Failure(req.clone()))
+                Ok(ObtainResult::Failure(Box::new(req.clone())))
             }
         } else if in_join && req.get_perm_amount() == PermAmount::Read {
             // Permissions held by shared references can be dropped
             // without being explicitly moved because &T implements Copy.
-            Ok(ObtainResult::Failure(req.clone()))
+            Ok(ObtainResult::Failure(Box::new(req.clone())))
         } else {
             // We have no predicate to obtain the access permission `req`
             debug!(
@@ -719,7 +719,7 @@ Predicates: {{
                 self.state.display_acc(),
                 self.state.display_pred()
             );
-            Ok(ObtainResult::Failure(req.clone()))
+            Ok(ObtainResult::Failure(Box::new(req.clone())))
         }
     }
 
@@ -920,14 +920,14 @@ fn solve_conficts(perms: Vec<Perm>) -> Vec<Perm> {
 /// permission that was missing.
 enum ObtainResult {
     Success(Vec<Action>),
-    Failure(Perm),
+    Failure(Box<Perm>),
 }
 
 impl ObtainResult {
     pub fn get_actions(self) -> Result<Vec<Action>, FoldUnfoldError> {
         match self {
             ObtainResult::Success(actions) => Ok(actions),
-            ObtainResult::Failure(p) => Err(FailedToObtain(p)),
+            ObtainResult::Failure(p) => Err(FailedToObtain(*p)),
         }
     }
 }

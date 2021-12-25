@@ -294,6 +294,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
                                     encoded_pres.clone(),
                                     vir::Expr::FuncApp( vir::FuncApp {
                                         function_name: sf_pre_name,
+                                        type_arguments: Vec::new(), // FIXME: This is probably wrong.
                                         arguments: qvars_pre.iter()
                                             .map(|x| vir::Expr::local(x.clone()))
                                             .collect(),
@@ -339,6 +340,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
                                         vir::Expr::implies(
                                             vir::Expr::FuncApp( vir::FuncApp {
                                                 function_name: sf_post_name,
+                                                type_arguments: Vec::new(), // FIXME: This is probably wrong.
                                                 arguments: qvars_post.iter()
                                                 .map(|x| vir::Expr::local(x.clone()))
                                                 .collect(),

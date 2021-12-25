@@ -38,6 +38,7 @@ pub(super) enum Snapshot {
         _array_collect_func: vir::FunctionIdentifier,
         slice_helper: vir::FunctionIdentifier,
         cons: vir::DomainFunc,
+        uncons: vir::DomainFunc,
         read: vir::DomainFunc,
     },
     /// Slices
@@ -52,6 +53,7 @@ pub(super) enum Snapshot {
         /// result Seq[elem_ty]
         slice_helper: vir::FunctionIdentifier,
         cons: vir::DomainFunc,
+        _uncons: vir::DomainFunc,
         read: vir::DomainFunc,
         len: vir::DomainFunc,
     },
