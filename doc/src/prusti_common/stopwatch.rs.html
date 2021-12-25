@@ -116,6 +116,8 @@
 <span id="115">115</span>
 <span id="116">116</span>
 <span id="117">117</span>
+<span id="118">118</span>
+<span id="119">119</span>
 </pre><pre class="rust"><code><span class="comment">// © 2020, ETH Zurich</span>
 <span class="comment">//</span>
 <span class="comment">// This Source Code Form is subject to the terms of the Mozilla Public</span>
@@ -141,7 +143,7 @@
     <span class="ident">level</span>: <span class="ident">PhantomData</span><span class="op">&lt;</span><span class="ident">Level</span><span class="op">&gt;</span>,
 }
 
-<span class="kw">impl</span> <span class="ident">Stopwatch</span><span class="op">&lt;</span><a class="ident" href="../../src/prusti_common/stopwatch.rs.html#114">log_level::Info</a><span class="op">&gt;</span> {
+<span class="kw">impl</span> <span class="ident">Stopwatch</span><span class="op">&lt;</span><a class="ident" href="../../src/prusti_common/stopwatch.rs.html#116">log_level::Info</a><span class="op">&gt;</span> {
     <span class="doccomment">/// Starts a stopwatch logging at info level, within the given domain, timing a section with the given name.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">start</span><span class="op">&lt;</span><span class="ident">D</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">Display</a>, <span class="ident">S</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">ToString</a><span class="op">&gt;</span>(<span class="ident">domain</span>: <span class="ident">D</span>, <span class="ident">section_name</span>: <span class="ident">S</span>) -&gt; <span class="self">Self</span> {
         <span class="ident"><span class="self">Self</span>::start_info</span>(<a class="ident" href="../../src/prusti_common/stopwatch.rs.html#28">domain</a>, <a class="ident" href="../../src/prusti_common/stopwatch.rs.html#28">section_name</a>)
@@ -177,20 +179,22 @@
     <span class="doccomment">/// Finishes up the current section, logging the time taken.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// - Note: Simply dropping the stopwatch has the same effect.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">finish</span>(<span class="kw-2">mut</span> <span class="self">self</span>) {
-        <a class="self" href="../../src/prusti_common/stopwatch.rs.html#62">self</a>.<a class="ident" href="../../src/prusti_common/stopwatch.rs.html#66">_finish</a>();
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">finish</span>(<span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a> {
+        <a class="self" href="../../src/prusti_common/stopwatch.rs.html#62">self</a>.<a class="ident" href="../../src/prusti_common/stopwatch.rs.html#66">_finish</a>()
     }
 
-    <span class="kw">fn</span> <span class="ident">_finish</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <span class="ident">Level::log_finish</span>(<span class="kw-2">&amp;</span><a class="self" href="../../src/prusti_common/stopwatch.rs.html#66">self</a>.<span class="ident">prefix</span>, <span class="kw-2">&amp;</span><a class="self" href="../../src/prusti_common/stopwatch.rs.html#66">self</a>.<span class="ident">section_name</span>, <a class="self" href="../../src/prusti_common/stopwatch.rs.html#66">self</a>.<span class="ident">start_time</span>.<span class="ident">elapsed</span>());
+    <span class="kw">fn</span> <span class="ident">_finish</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a> {
+        <span class="kw">let</span> <span class="ident">duration</span> <span class="op">=</span> <a class="self" href="../../src/prusti_common/stopwatch.rs.html#66">self</a>.<span class="ident">start_time</span>.<span class="ident">elapsed</span>();
+        <span class="ident">Level::log_finish</span>(<span class="kw-2">&amp;</span><a class="self" href="../../src/prusti_common/stopwatch.rs.html#66">self</a>.<span class="ident">prefix</span>, <span class="kw-2">&amp;</span><a class="self" href="../../src/prusti_common/stopwatch.rs.html#66">self</a>.<span class="ident">section_name</span>, <a class="ident" href="../../src/prusti_common/stopwatch.rs.html#67">duration</a>);
         <a class="self" href="../../src/prusti_common/stopwatch.rs.html#66">self</a>.<span class="ident">is_finished</span> <span class="op">=</span> <span class="bool-val">true</span>;
+        <a class="ident" href="../../src/prusti_common/stopwatch.rs.html#67">duration</a>
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Level</span>: <a class="ident" href="../../src/prusti_common/stopwatch.rs.html#13-16">LogLevel</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for</span> <span class="ident">Stopwatch</span><span class="op">&lt;</span><span class="ident">Level</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <span class="kw">if</span> <span class="op">!</span><a class="self" href="../../src/prusti_common/stopwatch.rs.html#73">self</a>.<span class="ident">is_finished</span> {
-            <a class="self" href="../../src/prusti_common/stopwatch.rs.html#73">self</a>.<a class="ident" href="../../src/prusti_common/stopwatch.rs.html#66">_finish</a>();
+        <span class="kw">if</span> <span class="op">!</span><a class="self" href="../../src/prusti_common/stopwatch.rs.html#75">self</a>.<span class="ident">is_finished</span> {
+            <a class="self" href="../../src/prusti_common/stopwatch.rs.html#75">self</a>.<a class="ident" href="../../src/prusti_common/stopwatch.rs.html#66">_finish</a>();
         }
     }
 }
