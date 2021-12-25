@@ -1,3 +1,5 @@
+// compile-flags: -Pverification_deadline=180
+
 use prusti_contracts::*;
 
 fn main() {}

@@ -1,4 +1,7 @@
+// compile-flags: -Pverification_deadline=20
+
 //! See https://github.com/viperproject/prusti-dev/issues/721
+
 use prusti_contracts::*;
 
 pub const MAX_DEPTH: usize = usize::BITS as usize;

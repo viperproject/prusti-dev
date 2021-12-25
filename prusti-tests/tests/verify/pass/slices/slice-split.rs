@@ -1,3 +1,5 @@
+// compile-flags: -Pverification_deadline=20
+
 use prusti_contracts::*;
 
 fn main() {
@@ -9,6 +11,7 @@ fn main() {
 
     // these 2 dummy assertions are needed to trigger the quantifiers from split_at().
     // without it, the next block of assertions won't be verified by Prusti.
+    // Issue: https://github.com/viperproject/prusti-dev/issues/812
     assert!(a[2] == s0[2]);
     assert!(a[9] == s1[2]);
 

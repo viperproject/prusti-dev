@@ -1,3 +1,5 @@
+// compile-flags: -Pverification_deadline=500
+
 use prusti_contracts::*;
 
 fn main() {
@@ -50,11 +52,9 @@ fn merge(a: [i32; 3], b: [i32; 3]) -> [i32; 6] {
         body_invariant!(res_pos > 0 && b_pos < 3 ==> res[res_pos - 1] <= b[b_pos]);
 
         if b_pos == 3 || a_pos < 3 && a[a_pos] <= b[b_pos] {
-            // res[res_pos] = a[a_pos];
             set_res(&mut res, res_pos, a[a_pos]);
             a_pos += 1;
         } else {
-            // res[res_pos] = b[b_pos];
             set_res(&mut res, res_pos, b[b_pos]);
             b_pos += 1;
         }
