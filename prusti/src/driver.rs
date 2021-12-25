@@ -38,7 +38,7 @@ use arg_value::arg_value;
 use callbacks::PrustiCompilerCalls;
 use lazy_static::lazy_static;
 use log::{info, warn};
-use prusti_common::{config, report::user};
+use prusti_common::{config, report::user, Stopwatch};
 use rustc_interface::interface::try_print_query_stack;
 use std::{borrow::Cow, env, panic, path::PathBuf};
 
@@ -123,6 +123,8 @@ const PRUSTI_PACKAGES: [&str; 4] = [
 ];
 
 fn main() {
+    let stopwatch = Stopwatch::start("prusti", "main");
+
     // We assume that prusti-rustc already removed the first "rustc" argument
     // added by RUSTC_WRAPPER and all command line arguments -P<arg>=<val>
     // have been filtered out.
@@ -219,5 +221,15 @@ fn main() {
 
         rustc_driver::RunCompiler::new(&rustc_args, &mut callbacks).run()
     });
+    let duration = stopwatch.finish();
+    if let Some(deadline) = config::verification_deadline() {
+        // Check that we met the deadline.
+        assert!(
+            duration < std::time::Duration::from_secs(deadline),
+            "Prusti failed to finish within {} seconds. It finished in {:?}.",
+            deadline,
+            duration,
+        );
+    }
     std::process::exit(exit_code)
 }
