@@ -96,6 +96,7 @@ lazy_static! {
         settings.set_default("intern_names", true).unwrap();
         settings.set_default("enable_purification_optimization", false).unwrap();
         settings.set_default("enable_manual_axiomatization", false).unwrap();
+        settings.set_default::<Option<i64>>("verification_deadline", None).unwrap();
 
         settings.set_default("print_desugared_specs", false).unwrap();
         settings.set_default("print_typeckd_specs", false).unwrap();
@@ -435,6 +436,17 @@ pub fn enable_purification_optimization() -> bool {
 /// **Note:** this is currently very incomplete and may introduce unsoudnesses.
 pub fn enable_manual_axiomatization() -> bool {
     read_setting("enable_manual_axiomatization")
+}
+
+/// Set the deadline in seconds within which Prusti should encode and verify the
+/// program.
+///
+/// Prusti panics if it fails to meet this deadline. This flag is intended to be
+/// used for tests that aim to catch performance regressions.
+pub fn verification_deadline() -> Option<u64> {
+    read_setting::<Option<i64>>("verification_deadline").map(|value| {
+        value.try_into().expect("verification_deadline must be a valid u64")
+    })
 }
 
 /// Replace the given basic blocks with ``assume false``.
