@@ -217,6 +217,7 @@ pub struct LetExpr {
 #[display(fmt = "{}({})", function_name, "display::cjoin(arguments)")]
 pub struct FuncApp {
     pub function_name: String,
+    pub type_arguments: Vec<Type>,
     pub arguments: Vec<Expression>,
     pub parameters: Vec<VariableDecl>,
     pub return_type: Type,

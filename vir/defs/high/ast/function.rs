@@ -2,8 +2,9 @@ use super::{expression::Expression, ty::Type, variable::VariableDecl};
 use crate::common::display;
 
 #[display(
-    fmt = "function {}({}): {}\n{}{}{{ {} }}\n",
+    fmt = "function {}<{}>({}): {}\n{}{}{{ {} }}\n",
     name,
+    "display::cjoin(type_arguments)",
     "display::cjoin(parameters)",
     return_type,
     "display::foreach!(\"  requires {}\n\", pres)",
@@ -12,6 +13,7 @@ use crate::common::display;
 )]
 pub struct FunctionDecl {
     pub name: String,
+    pub type_arguments: Vec<Type>,
     pub parameters: Vec<VariableDecl>,
     pub return_type: Type,
     pub pres: Vec<Expression>,

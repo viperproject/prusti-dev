@@ -155,6 +155,7 @@ impl Generic for Type {
 
 pub trait Typed {
     fn get_type(&self) -> &Type;
+    fn set_type(&mut self, new_type: Type);
 }
 
 impl Typed for Expression {
@@ -179,11 +180,35 @@ impl Typed for Expression {
             Expression::Downcast(expression) => expression.get_type(),
         }
     }
+    fn set_type(&mut self, new_type: Type) {
+        match self {
+            Expression::Local(expression) => expression.set_type(new_type),
+            Expression::Constructor(expression) => expression.set_type(new_type),
+            Expression::Variant(expression) => expression.set_type(new_type),
+            Expression::Field(expression) => expression.set_type(new_type),
+            Expression::Deref(expression) => expression.set_type(new_type),
+            Expression::AddrOf(expression) => expression.set_type(new_type),
+            Expression::LabelledOld(expression) => expression.set_type(new_type),
+            Expression::Constant(expression) => expression.set_type(new_type),
+            Expression::UnaryOp(expression) => expression.set_type(new_type),
+            Expression::BinOp(expression) => expression.set_type(new_type),
+            Expression::ContainerOp(expression) => expression.set_type(new_type),
+            Expression::Seq(expression) => expression.set_type(new_type),
+            Expression::Conditional(expression) => expression.set_type(new_type),
+            Expression::Quantifier(expression) => expression.set_type(new_type),
+            Expression::LetExpr(expression) => expression.set_type(new_type),
+            Expression::FuncApp(expression) => expression.set_type(new_type),
+            Expression::Downcast(expression) => expression.set_type(new_type),
+        }
+    }
 }
 
 impl Typed for Local {
     fn get_type(&self) -> &Type {
         &self.variable.ty
+    }
+    fn set_type(&mut self, new_type: Type) {
+        self.variable.ty = new_type;
     }
 }
 
@@ -191,10 +216,16 @@ impl Typed for Constructor {
     fn get_type(&self) -> &Type {
         &self.ty
     }
+    fn set_type(&mut self, new_type: Type) {
+        self.ty = new_type;
+    }
 }
 impl Typed for Variant {
     fn get_type(&self) -> &Type {
         &self.ty
+    }
+    fn set_type(&mut self, new_type: Type) {
+        self.ty = new_type;
     }
 }
 
@@ -202,11 +233,17 @@ impl Typed for Field {
     fn get_type(&self) -> &Type {
         &self.field.ty
     }
+    fn set_type(&mut self, new_type: Type) {
+        self.field.ty = new_type;
+    }
 }
 
 impl Typed for Deref {
     fn get_type(&self) -> &Type {
         &self.ty
+    }
+    fn set_type(&mut self, new_type: Type) {
+        self.ty = new_type;
     }
 }
 
@@ -214,11 +251,17 @@ impl Typed for AddrOf {
     fn get_type(&self) -> &Type {
         &self.ty
     }
+    fn set_type(&mut self, new_type: Type) {
+        self.ty = new_type;
+    }
 }
 
 impl Typed for LabelledOld {
     fn get_type(&self) -> &Type {
         self.base.get_type()
+    }
+    fn set_type(&mut self, new_type: Type) {
+        self.base.set_type(new_type);
     }
 }
 
@@ -226,11 +269,17 @@ impl Typed for Constant {
     fn get_type(&self) -> &Type {
         &self.ty
     }
+    fn set_type(&mut self, new_type: Type) {
+        self.ty = new_type;
+    }
 }
 
 impl Typed for UnaryOp {
     fn get_type(&self) -> &Type {
         self.argument.get_type()
+    }
+    fn set_type(&mut self, new_type: Type) {
+        self.argument.set_type(new_type);
     }
 }
 
@@ -258,17 +307,27 @@ impl Typed for BinOp {
             }
         }
     }
+    fn set_type(&mut self, new_type: Type) {
+        self.left.set_type(new_type.clone());
+        self.right.set_type(new_type);
+    }
 }
 
 impl Typed for ContainerOp {
     fn get_type(&self) -> &Type {
         unimplemented!()
     }
+    fn set_type(&mut self, _new_type: Type) {
+        unimplemented!();
+    }
 }
 
 impl Typed for Seq {
     fn get_type(&self) -> &Type {
         unimplemented!()
+    }
+    fn set_type(&mut self, _new_type: Type) {
+        unimplemented!();
     }
 }
 
@@ -279,11 +338,18 @@ impl Typed for Conditional {
         assert_eq!(ty1, ty2, "expr: {:?}", self);
         ty1
     }
+    fn set_type(&mut self, new_type: Type) {
+        self.then_expr.set_type(new_type.clone());
+        self.else_expr.set_type(new_type);
+    }
 }
 
 impl Typed for Quantifier {
     fn get_type(&self) -> &Type {
         &Type::Bool
+    }
+    fn set_type(&mut self, _new_type: Type) {
+        unreachable!();
     }
 }
 
@@ -291,16 +357,25 @@ impl Typed for LetExpr {
     fn get_type(&self) -> &Type {
         &self.variable.ty
     }
+    fn set_type(&mut self, new_type: Type) {
+        self.variable.ty = new_type;
+    }
 }
 
 impl Typed for FuncApp {
     fn get_type(&self) -> &Type {
         &self.return_type
     }
+    fn set_type(&mut self, new_type: Type) {
+        self.return_type = new_type;
+    }
 }
 
 impl Typed for Downcast {
     fn get_type(&self) -> &Type {
         self.base.get_type()
+    }
+    fn set_type(&mut self, new_type: Type) {
+        self.base.set_type(new_type);
     }
 }

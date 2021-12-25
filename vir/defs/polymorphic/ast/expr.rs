@@ -5,7 +5,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use super::super::borrows::Borrow;
-use crate::{converter::type_substitution::Generic, polymorphic::ast::*};
+use crate::{common::display, converter::type_substitution::Generic, polymorphic::ast::*};
 use std::{
     collections::HashMap,
     fmt,
@@ -265,12 +265,14 @@ impl Expr {
             }),
             Expr::FuncApp(FuncApp {
                 function_name,
+                type_arguments,
                 arguments,
                 formal_arguments,
                 return_type,
                 ..
             }) => Expr::FuncApp(FuncApp {
                 function_name,
+                type_arguments,
                 arguments,
                 formal_arguments,
                 return_type,
@@ -637,6 +639,7 @@ impl Expr {
 
     pub fn func_app(
         name: String,
+        type_arguments: Vec<Type>,
         args: Vec<Expr>,
         internal_args: Vec<LocalVar>,
         return_type: Type,
@@ -644,6 +647,7 @@ impl Expr {
     ) -> Self {
         Expr::FuncApp(FuncApp {
             function_name: name,
+            type_arguments,
             arguments: args,
             formal_arguments: internal_args,
             return_type,
@@ -1773,6 +1777,7 @@ impl Expr {
                 &mut self,
                 FuncApp {
                     function_name,
+                    type_arguments,
                     arguments,
                     formal_arguments,
                     return_type,
@@ -1790,6 +1795,7 @@ impl Expr {
                 // generic values.
                 Expr::FuncApp(FuncApp {
                     function_name,
+                    type_arguments,
                     arguments: arguments.into_iter().map(|e| self.fold(e)).collect(),
                     formal_arguments,
                     return_type,
@@ -2487,6 +2493,7 @@ impl Hash for LetExpr {
 #[derive(Debug, Clone, Eq, Serialize, Deserialize)]
 pub struct FuncApp {
     pub function_name: String,
+    pub type_arguments: Vec<Type>,
     pub arguments: Vec<Expr>,
     pub formal_arguments: Vec<LocalVar>,
     pub return_type: Type,
@@ -2497,32 +2504,28 @@ impl fmt::Display for FuncApp {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(
             f,
-            "{}<{},{}>({})",
+            "{}<{}>({})",
             &self.function_name,
-            (&self.formal_arguments)
-                .iter()
-                .map(|p| p.typ.to_string())
-                .collect::<Vec<String>>()
-                .join(", "),
-            &(self.return_type).to_string(),
-            &(self.arguments)
-                .iter()
-                .map(|f| f.to_string())
-                .collect::<Vec<String>>()
-                .join(", "),
+            display::cjoin(&self.type_arguments),
+            display::cjoin(&self.arguments),
         )
     }
 }
 
 impl PartialEq for FuncApp {
     fn eq(&self, other: &Self) -> bool {
-        (&self.function_name, &self.arguments) == (&other.function_name, &other.arguments)
+        (&self.function_name, &self.type_arguments, &self.arguments)
+            == (
+                &other.function_name,
+                &other.type_arguments,
+                &other.arguments,
+            )
     }
 }
 
 impl Hash for FuncApp {
     fn hash<H: Hasher>(&self, state: &mut H) {
-        (&self.function_name, &self.arguments).hash(state);
+        (&self.function_name, &self.type_arguments, &self.arguments).hash(state);
     }
 }
 
@@ -2537,13 +2540,10 @@ impl fmt::Display for DomainFuncApp {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(
             f,
-            "{}({})",
+            "{}<{}>({})",
             self.domain_function.name,
-            (&self.arguments)
-                .iter()
-                .map(|f| f.to_string())
-                .collect::<Vec<String>>()
-                .join(", "),
+            display::cjoin(&self.domain_function.type_arguments),
+            display::cjoin(&self.arguments),
         )
     }
 }

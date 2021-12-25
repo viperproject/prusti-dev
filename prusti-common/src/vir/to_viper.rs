@@ -593,18 +593,15 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for Expr {
             Expr::FuncApp(
                 ref function_name,
                 ref args,
-                ref formal_args,
+                ref _formal_args,
                 ref return_type,
                 ref pos,
-            ) => {
-                let identifier = compute_identifier(function_name, formal_args, return_type);
-                ast.func_app(
-                    &identifier,
-                    &args.to_viper(ast),
-                    return_type.to_viper(ast),
-                    pos.to_viper(ast),
-                )
-            }
+            ) => ast.func_app(
+                function_name,
+                &args.to_viper(ast),
+                return_type.to_viper(ast),
+                pos.to_viper(ast),
+            ),
             Expr::DomainFuncApp(ref function, ref args, ref _pos) => {
                 ast.domain_func_app(
                     function.to_viper(ast),

@@ -66,6 +66,7 @@ fn merge(a: [i32; 3], b: [i32; 3]) -> [i32; 6] {
     res
 }
 
+#[requires(0 <= res_pos)]
 #[requires(res_pos < 6)]
 #[requires(forall(|i: usize, j: usize| (0 <= i && i < j && j < res_pos) ==> res[i] <= res[j]))]
 #[requires(forall(|i: usize| (0 <= i && i < res_pos) ==> res[i] <= value))]

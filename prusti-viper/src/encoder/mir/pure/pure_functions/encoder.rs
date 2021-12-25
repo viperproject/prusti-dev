@@ -14,8 +14,8 @@ use crate::encoder::{
         SpannedEncodingResult, WithSpan,
     },
     foldunfold,
-    high::types::HighTypeEncoderInterface,
-    mir::types::MirTypeEncoderInterface,
+    high::{generics::HighGenericsEncoderInterface, types::HighTypeEncoderInterface},
+    mir::{generics::MirGenericsEncoderInterface, types::MirTypeEncoderInterface},
     mir_encoder::{MirEncoder, PlaceEncoder, PlaceEncoding, PRECONDITION_LABEL, WAND_LHS_LABEL},
     mir_interpreter::{
         run_backward_interpretation, BackwardMirInterpreter, ExprBackwardInterpreterState,
@@ -250,13 +250,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
             }
         } else if config::encode_unsigned_num_constraint() {
             if let ty::TyKind::Uint(_) = self.mir.return_ty().kind() {
-                let expr = vir::Expr::le_cmp(0.into(), pure_fn_return_variable.into());
+                let expr = vir::Expr::le_cmp(0u32.into(), pure_fn_return_variable.into());
                 postcondition.push(expr.set_default_pos(res_value_range_pos));
             }
             for (formal_arg, local) in formal_args.iter().zip(self.mir.args_iter()) {
                 let typ = self.interpreter.mir_encoder().get_local_ty(local);
                 if let ty::TyKind::Uint(_) = typ.kind() {
-                    precondition.push(vir::Expr::le_cmp(0.into(), formal_arg.into()));
+                    precondition.push(vir::Expr::le_cmp(0u32.into(), formal_arg.into()));
                 }
             }
         }
@@ -267,8 +267,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
             postcondition
         );
 
+        let type_arguments = self.encode_type_arguments()?;
+
         let mut function = vir::Function {
             name: function_name,
+            type_arguments,
             formal_args,
             return_type,
             pres: precondition,
@@ -453,6 +456,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
             .with_span(self.mir.span)
     }
 
+    fn encode_type_arguments(&self) -> SpannedEncodingResult<Vec<vir::Type>> {
+        self.encoder
+            .encode_generic_arguments(self.proc_def_id, self.tymap)
+            .with_span(self.mir.span)
+    }
+
     fn encode_formal_args(&self) -> SpannedEncodingResult<Vec<vir::LocalVar>> {
         let substs = self.encode_substs()?;
         let mut formal_args = vec![];
@@ -481,6 +490,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
     pub fn encode_function_call_info(&self) -> SpannedEncodingResult<FunctionCallInfo> {
         Ok(FunctionCallInfo {
             name: self.encode_function_name(),
+            type_arguments: self.encode_type_arguments()?,
             formal_args: self.encode_formal_args()?,
             return_type: self.encode_function_return_type()?,
         })
@@ -489,13 +499,19 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
 
 pub(super) struct FunctionCallInfo {
     pub name: String,
+    pub type_arguments: Vec<vir::Type>,
     pub formal_args: Vec<vir::LocalVar>,
     pub return_type: vir::Type,
 }
 
 impl vir::WithIdentifier for FunctionCallInfo {
     fn get_identifier(&self) -> String {
-        vir::compute_identifier(&self.name, &self.formal_args, &self.return_type)
+        vir::compute_identifier(
+            &self.name,
+            &self.type_arguments,
+            &self.formal_args,
+            &self.return_type,
+        )
     }
 }
 
