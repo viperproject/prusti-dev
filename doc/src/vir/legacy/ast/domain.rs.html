@@ -101,6 +101,7 @@
 <span id="100">100</span>
 <span id="101">101</span>
 <span id="102">102</span>
+<span id="103">103</span>
 </pre><pre class="rust"><code><span class="comment">// © 2020, ETH Zurich</span>
 <span class="comment">//</span>
 <span class="comment">// This Source Code Form is subject to the terms of the Mozilla Public</span>
@@ -114,7 +115,7 @@
 <span class="kw">pub</span> <span class="kw">struct</span> <a class="ident" href="../../../../src/vir/legacy/ast/domain.rs.html#11-16">Domain</a> {
     <span class="kw">pub</span> <span class="ident">name</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>,
     <span class="kw">pub</span> <span class="ident">functions</span>: <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../../../src/vir/legacy/ast/domain.rs.html#53-59">DomainFunc</a><span class="op">&gt;</span>,
-    <span class="kw">pub</span> <span class="ident">axioms</span>: <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../../../src/vir/legacy/ast/domain.rs.html#92-96">DomainAxiom</a><span class="op">&gt;</span>,
+    <span class="kw">pub</span> <span class="ident">axioms</span>: <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../../../src/vir/legacy/ast/domain.rs.html#93-97">DomainAxiom</a><span class="op">&gt;</span>,
     <span class="kw">pub</span> <span class="ident">type_vars</span>: <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#139-150">Type</a><span class="op">&gt;</span>,
 }
 
@@ -187,20 +188,21 @@
 
 <span class="kw">impl</span> <a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#16-18">WithIdentifier</a> <span class="kw">for</span> <a class="ident" href="../../../../src/vir/legacy/ast/domain.rs.html#53-59">DomainFunc</a> {
     <span class="kw">fn</span> <span class="ident">get_identifier</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> {
-        <a class="ident" href="../../../../src/vir/legacy/ast/function.rs.html#85">compute_identifier</a>(<span class="kw-2">&amp;</span><a class="self" href="../../../../src/vir/legacy/ast/domain.rs.html#86">self</a>.<span class="ident">name</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../../src/vir/legacy/ast/domain.rs.html#86">self</a>.<span class="ident">formal_args</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../../src/vir/legacy/ast/domain.rs.html#86">self</a>.<span class="ident">return_type</span>)
+        <span class="comment">// The functions in `low` should be already monomorphised.</span>
+        <a class="self" href="../../../../src/vir/legacy/ast/domain.rs.html#86">self</a>.<span class="ident">name</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()
     }
 }
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Hash</span>, <span class="ident">Serialize</span>, <span class="ident">Deserialize</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <a class="ident" href="../../../../src/vir/legacy/ast/domain.rs.html#92-96">DomainAxiom</a> {
+<span class="kw">pub</span> <span class="kw">struct</span> <a class="ident" href="../../../../src/vir/legacy/ast/domain.rs.html#93-97">DomainAxiom</a> {
     <span class="kw">pub</span> <span class="ident">name</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>,
     <span class="kw">pub</span> <span class="ident">expr</span>: <a class="ident" href="../../../../src/vir/legacy/ast/expr.rs.html#18-74">Expr</a>,
     <span class="kw">pub</span> <span class="ident">domain_name</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>,
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for</span> <a class="ident" href="../../../../src/vir/legacy/ast/domain.rs.html#92-96">DomainAxiom</a> {
+<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for</span> <a class="ident" href="../../../../src/vir/legacy/ast/domain.rs.html#93-97">DomainAxiom</a> {
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <span class="macro">writeln!</span>(<a class="ident" href="../../../../src/vir/legacy/ast/domain.rs.html#99">f</a>, <span class="string">&quot;axiom {} {{ {} }}&quot;</span>, <a class="self" href="../../../../src/vir/legacy/ast/domain.rs.html#99">self</a>.<span class="ident">name</span>, <a class="self" href="../../../../src/vir/legacy/ast/domain.rs.html#99">self</a>.<span class="ident">expr</span>)
+        <span class="macro">writeln!</span>(<a class="ident" href="../../../../src/vir/legacy/ast/domain.rs.html#100">f</a>, <span class="string">&quot;axiom {} {{ {} }}&quot;</span>, <a class="self" href="../../../../src/vir/legacy/ast/domain.rs.html#100">self</a>.<span class="ident">name</span>, <a class="self" href="../../../../src/vir/legacy/ast/domain.rs.html#100">self</a>.<span class="ident">expr</span>)
     }
 }
 </code></pre></div>
