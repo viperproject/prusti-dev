@@ -587,10 +587,21 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             let data_expr = vir::Expr::from(data.clone());
             let array_cons = self.encode_snapshot(src_ty, None, vec![data_expr.clone()], tymap)?;
             let slice_cons = self.encode_snapshot(dst_ty, None, vec![data_expr], tymap)?;
+            let data_len = vir::Expr::ContainerOp(vir::ContainerOp {
+                op_kind: vir::ContainerOpKind::SeqLen,
+                left: box data.clone().into(),
+                right: box true.into(), // unused
+                position: vir::Position::default(),
+            });
+            // exists data: Seq[Int] :: array == cons$Snap$Array(data) && result == cons$Snap$Slice(data) && |data| == |array|)
             let postcondition = vir::Expr::Exists(vir::Exists {
                 variables: vec![data],
                 triggers: vec![],
-                body: box vir_expr!{ [vir_expr!{ [arg_expr] == [array_cons] }] && [vir_expr!{ [result] == [slice_cons] }] },
+                body: box vec![
+                    vir_expr!{ [arg_expr] == [array_cons] },
+                    vir_expr!{ [result] == [slice_cons] },
+                    vir_expr!{ [data_len] ==  [vir::Expr::from(array_types.array_len)] },
+                ].into_iter().conjoin(),
                 position: vir::Position::default()
             });
             let function = vir::Function {
