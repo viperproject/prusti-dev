@@ -2675,13 +2675,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         // lookup_pure: contents
         let i = vir_local!{ i: Int };
         let i_var: vir::Expr = i.clone().into();
-        let j_var: vir::Expr = j.into();
+        let j_var: vir::Expr = j.clone().into();
 
         let lhs_lookup_i = {
             slice_types_lhs.encode_lookup_pure_call(
                 self.encoder,
                 lhs_slice_expr,
-                vir::Expr::from(i),
+                i_var.clone(),
                 elem_snap_ty,
             )
         };
@@ -2704,10 +2704,15 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             )
         };
 
-        // TODO: maybe don't bother with a complicated forall if the array length is less than some
-        // reasonable bound
+        // forall i: Int, j: Int :: { lhs_lookup(i), rhs_lookup(j) } 0 <= i && i < slice$len && j == i + start && start <= j && j < end ==> lhs_lookup(i) == rhs_lookup(j)
         stmts.push(vir_stmt!{
-            inhale [vir_expr!{ forall i: Int, j: Int :: {} ([indices] ==> [lookup_eq]) }]
+            inhale [
+                Expr::forall(
+                    vec![i, j],
+                    vec![vir::Trigger::new(vec![lhs_lookup_i, rhs_lookup_j])],
+                    vir_expr!{ ([indices] ==> [lookup_eq]) }
+                )
+            ]
         });
 
         self.encode_transfer_args_permissions(location, args,  &mut stmts, label.clone(), false)?;
@@ -5872,25 +5877,30 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         let tymap = HashMap::new();
         let elem_snap_ty = self.encoder.encode_snapshot_type(array_types.elem_ty_rs, &tymap).with_span(span)?;
 
-        for idx in 0..array_types.array_len {
-            let array_lookup_call = array_types.encode_lookup_pure_call(
-                self.encoder,
-                rhs_expr.clone(),
-                vir::Expr::from(idx),
-                elem_snap_ty.clone(),
-            );
+        let i: Expr = vir_local! { i: Int }.into();
 
-            let slice_lookup_call = slice_types.encode_lookup_pure_call(
-                self.encoder,
-                slice_expr.clone(),
-                vir::Expr::from(idx),
-                elem_snap_ty.clone(),
-            );
+        let array_lookup_call = array_types.encode_lookup_pure_call(
+            self.encoder,
+            rhs_expr,
+            i.clone(),
+            elem_snap_ty.clone(),
+        );
 
-            stmts.push(vir::Stmt::Inhale( vir::Inhale {
-                expr: vir_expr!{ [array_lookup_call] == [slice_lookup_call] }
-            }));
-        }
+        let slice_lookup_call = slice_types.encode_lookup_pure_call(
+            self.encoder,
+            slice_expr,
+            i.clone(),
+            elem_snap_ty,
+        );
+
+        let indices = vir_expr! { ([Expr::from(0)] <= [i]) && ([i] < [Expr::from(array_types.array_len)]) };
+
+        stmts.push(vir::Stmt::Inhale( vir::Inhale {
+            expr: vir_expr! {
+                forall i: Int ::
+                { [array_lookup_call], [slice_lookup_call] }
+                ([indices] ==> ([array_lookup_call] == [slice_lookup_call])) }
+        }));
 
         // Store a label for permissions got back from the call
         debug!(
@@ -5993,19 +6003,20 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         };
 
         let mut stmts = self.encode_havoc_and_initialization(&encoded_lhs);
-        for i in 0..len {
-            let idx = vir::Expr::from(i);
-            let lookup_pure_call = array_types.encode_lookup_pure_call(
-                self.encoder,
-                encoded_lhs.clone(),
-                idx,
-                lookup_ret_ty.clone(),
-            );
-
-            stmts.push(vir::Stmt::Inhale( vir::Inhale {
-                expr: vir_expr!{ [lookup_pure_call] == [inhaled_operand] }
-            }));
-        }
+        let idx: Expr = vir_local! { i: Int }.into();
+        let indices = vir_expr! { ([Expr::from(0)] <= [idx]) && ([idx] < [Expr::from(len)]) };
+        let lookup_pure_call = array_types.encode_lookup_pure_call(
+            self.encoder,
+            encoded_lhs,
+            idx,
+            lookup_ret_ty,
+        );
+        stmts.push(vir::Stmt::Inhale( vir::Inhale {
+            expr: vir_expr! {
+                forall i: Int ::
+                { [lookup_pure_call] }
+                ([indices] ==> ([lookup_pure_call] == [inhaled_operand])) }
+        }));
 
         Ok(stmts)
     }

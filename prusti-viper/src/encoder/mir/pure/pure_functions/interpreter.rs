@@ -1083,42 +1083,33 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                         }
                     }
 
-                    mir::Rvalue::Cast(mir::CastKind::Pointer(ty::adjustment::PointerCast::Unsize), ref operand, ty) => {
-                        if !ty.is_slice() {
-                            return Err(EncodingError::unsupported(
-                                "unsizing a pointer or reference value is not supported"
-                            )).with_span(span);
-                        }
-
-                        let rhs_array_ref_ty = self.mir_encoder.get_operand_ty(operand);
-                        let (encoded_rhs, _) = self.encode_operand(operand).with_span(span)?;
-                        // encoded_rhs is something like ref$Array$.. or ref$Slice$.. but we want .val_ref: Array$..
-                        let encoded_rhs = self.encoder.encode_value_expr(encoded_rhs, rhs_array_ref_ty).with_span(span)?;
-                        let rhs_array_ty = if let ty::TyKind::Ref(_, array_ty, _) = rhs_array_ref_ty.kind() {
-                            array_ty
+                    mir::Rvalue::Cast(mir::CastKind::Pointer(ty::adjustment::PointerCast::Unsize), ref operand, lhs_ref_ty) => {
+                        let lhs_ty = lhs_ref_ty.peel_refs();
+                        let rhs_ref_ty = self.mir_encoder.get_operand_ty(operand);
+                        let rhs_ty = rhs_ref_ty.peel_refs();
+                        if lhs_ref_ty.is_slice() && rhs_ty.is_array() {
+                            let function_name = self.encoder.encode_unsize_function_use(rhs_ty, lhs_ty, &self.tymap)
+                                .unwrap_or_else(|error| unreachable!("error during unsizing slice to array: {:?}", error) );
+                            let encoded_rhs = self.encoder.encode_snapshot_type(rhs_ty, &self.tymap).with_span(span)?;
+                            let formal_args = vec![vir::LocalVar::new(
+                                String::from("array"),
+                                encoded_rhs,
+                            )];
+                            let encoded_arg = self.encoder.encode_value_expr(self.encode_operand(operand).with_span(span)?.0, rhs_ref_ty).with_span(span)?;
+                            let unsize_func = vir::Expr::func_app(
+                                function_name,
+                                vec![encoded_arg],
+                                formal_args,
+                                self.encoder.encode_snapshot_type(lhs_ty, &self.tymap).with_span(span)?,
+                                vir::Position::default(),
+                            );
+                            state.substitute_value(&opt_lhs_value_place.unwrap(), unsize_func);
                         } else {
-                            unreachable!("rhs array not a ref?")
-                        };
-                        trace!("rhs_array_ty: {:?}", rhs_array_ty);
-                        let array_types = self.encoder.encode_array_types(rhs_array_ty).with_span(span)?;
-
-                        let encoded_array_elems = (0..array_types.array_len)
-                            .map(|idx| {
-                                self.encoder.encode_snapshot_array_idx(rhs_array_ty, encoded_rhs.clone(), idx.into(),&self.tymap,)
-                            })
-                            .collect::<Result<Vec<_>, _>>()
-                            .with_span(span)?;
-
-                        let elem_snap_ty = self.encoder.encode_snapshot_type(array_types.elem_ty_rs, &self.tymap).with_span(span)?;
-                        let elems_seq = vir::Expr::Seq( vir::Seq {
-                            typ: vir::Type::Seq( vir::SeqType {typ: box elem_snap_ty} ),
-                            elements: encoded_array_elems,
-                            position: vir::Position::default(),
-                        });
-
-                        let slice_snap = self.encoder.encode_snapshot(ty, None, vec![elems_seq], &self.tymap).with_span(span)?;
-
-                        state.substitute_value(&opt_lhs_value_place.unwrap(), slice_snap);
+                            return Err(EncodingError::unsupported(format!(
+                                "unsizing a {} into a {} is not supported",
+                                rhs_ref_ty, lhs_ref_ty
+                            ))).with_span(span);
+                        }
                     }
 
                     mir::Rvalue::Repeat(ref operand, times) => {
