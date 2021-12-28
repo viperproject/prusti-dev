@@ -6,7 +6,7 @@ use crate::encoder::{
     },
     high::{pure_functions::HighPureFunctionEncoderInterface, types::HighTypeEncoderInterface},
     mir::{
-        generics::GenericsEncoderInterface,
+        generics::MirGenericsEncoderInterface,
         places::PlacesEncoderInterface,
         pure::{
             interpreter::{state::ExprBackwardInterpreterState, ExpressionBackwardInterpreter},
@@ -269,6 +269,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecificationEncoder<'p, 'v, 'tcx> {
                                     encoded_pres.clone(),
                                     vir_high::Expression::function_call(
                                         sf_pre_name,
+                                        Vec::new(), // FIXME: This is probably wrong.
                                         qvars_pre
                                             .iter()
                                             .map(|x| vir_high::Expression::local_no_pos(x.clone()))
@@ -329,6 +330,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecificationEncoder<'p, 'v, 'tcx> {
                                     vir_high::Expression::implies(
                                         vir_high::Expression::function_call(
                                             sf_post_name,
+                                            Vec::new(), // FIXME: This is probably wrong.
                                             arguments,
                                             vir_high::Type::Bool,
                                         ),

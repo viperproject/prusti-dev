@@ -73,6 +73,7 @@ use crate::utils::is_reference;
 use crate::encoder::mir::pure::PureFunctionEncoderInterface;
 use crate::encoder::mir::types::MirTypeEncoderInterface;
 use super::encoder::SubstMap;
+use super::high::generics::HighGenericsEncoderInterface;
 
 pub struct ProcedureEncoder<'p, 'v: 'p, 'tcx: 'v> {
     encoder: &'p Encoder<'v, 'tcx>,
@@ -3247,6 +3248,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             function_name,
             arg_exprs,
             return_type,
+            called_def_id,
             tymap,
         )
     }
@@ -3261,6 +3263,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         function_name: String,
         arg_exprs: Vec<Expr>,
         return_type: Type,
+        called_def_id: ProcedureDefId,
         tymap: SubstMap<'tcx>,
     ) -> SpannedEncodingResult<Vec<vir::Stmt>> {
         let formal_args: Vec<vir::LocalVar> = args
@@ -3278,8 +3281,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             .error_manager()
             .register(call_site_span, ErrorCtxt::PureFunctionCall, self.proc_def_id);
 
+        let type_arguments = self.encoder.encode_generic_arguments(called_def_id, &tymap).with_span(call_site_span)?;
+
         let func_call = vir::Expr::func_app(
             function_name,
+            type_arguments,
             arg_exprs,
             formal_args,
             return_type.clone(),

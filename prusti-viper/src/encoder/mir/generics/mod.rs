@@ -2,4 +2,4 @@
 
 mod interface;
 
-pub(crate) use interface::GenericsEncoderInterface;
+pub(crate) use interface::MirGenericsEncoderInterface;

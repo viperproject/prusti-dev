@@ -13,7 +13,9 @@ use crate::encoder::{
     errors::{EncodingError, EncodingResult, SpannedEncodingError, SpannedEncodingResult},
     foldunfold,
     high::types::HighTypeEncoderInterface,
-    mir::types::helpers::compute_discriminant_bounds_high,
+    mir::{
+        generics::MirGenericsEncoderInterface, types::helpers::compute_discriminant_bounds_high,
+    },
     utils::{range_extract, PlusOne},
     Encoder,
 };
@@ -183,7 +185,7 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
             ),
 
             ty::TyKind::Param(param_ty) => {
-                vir::Type::type_var(format!("{}", param_ty.name.as_str()))
+                vir::Type::TypeVar(self.encoder.encode_param(param_ty.name, param_ty.index))
             }
 
             ty::TyKind::Projection(ty::ProjectionTy {
@@ -721,6 +723,7 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
         let self_local_var = vir::VariableDecl::new("self", typ);
         Ok(vir::FunctionDecl {
             name: invariant_name.to_string(),
+            type_arguments: Vec::new(), // FIXME: This is probably wrong.
             parameters: vec![self_local_var],
             return_type: vir::Type::Bool,
             pres: Vec::new(),
@@ -759,6 +762,7 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
 
         vir::FunctionDecl {
             name: tag_name,
+            type_arguments: Vec::new(), // FIXME: This is probably wrong.
             parameters: Vec::new(),
             return_type: vir::Type::Int(vir::ty::Int::Unbounded),
             pres: Vec::new(),

@@ -52,6 +52,12 @@ pub(crate) trait SnapshotEncoderInterface<'tcx> {
         args: Vec<vir_poly::Expr>,
         tymap: &SubstMap<'tcx>,
     ) -> EncodingResult<vir_poly::Expr>;
+    fn encode_snapshot_destructor(
+        &self,
+        ty: ty::Ty<'tcx>,
+        args: Vec<vir_poly::Expr>,
+        tymap: &SubstMap<'tcx>,
+    ) -> EncodingResult<vir_poly::Expr>;
     fn encode_snapshot_array_idx(
         &self,
         ty: ty::Ty<'tcx>,
@@ -198,6 +204,18 @@ impl<'v, 'tcx: 'v> SnapshotEncoderInterface<'tcx> for super::super::Encoder<'v, 
             .encoder
             .borrow_mut()
             .encode_constructor(self, ty, variant, args, tymap)
+    }
+
+    fn encode_snapshot_destructor(
+        &self,
+        ty: ty::Ty<'tcx>,
+        args: Vec<vir_poly::Expr>,
+        tymap: &SubstMap<'tcx>,
+    ) -> EncodingResult<vir_poly::Expr> {
+        self.snapshot_encoder_state
+            .encoder
+            .borrow_mut()
+            .encode_destructor(self, ty, args, tymap)
     }
 
     fn encode_snapshot_array_idx(

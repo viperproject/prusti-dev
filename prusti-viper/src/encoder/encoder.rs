@@ -56,6 +56,7 @@ use crate::encoder::mirror_function_encoder::MirrorEncoder;
 use crate::encoder::snapshot::interface::{SnapshotEncoderInterface, SnapshotEncoderState};
 use crate::encoder::purifier;
 use crate::encoder::array_encoder::{ArrayTypesEncoder, EncodedArrayTypes, EncodedSliceTypes};
+use super::high::builtin_functions::HighBuiltinFunctionEncoderState;
 use super::mir::{
     pure::{PureFunctionEncoderState, PureFunctionEncoderInterface},
     types::{
@@ -76,7 +77,7 @@ pub struct Encoder<'v, 'tcx: 'v> {
     /// A map containing all functions: identifier → function definition.
     functions: RefCell<HashMap<vir::FunctionIdentifier, Rc<vir::Function>>>,
     builtin_methods: RefCell<HashMap<BuiltinMethodKind, vir::BodylessMethod>>,
-    builtin_functions: RefCell<HashMap<BuiltinFunctionKind, vir::FunctionIdentifier>>,
+    pub(super) high_builtin_function_encoder_state: HighBuiltinFunctionEncoderState,
     procedures: RefCell<HashMap<ProcedureDefId, vir::CfgMethod>>,
     programs: Vec<vir::Program>,
     pub(super) mir_type_encoder_state: MirTypeEncoderState<'tcx>,
@@ -100,7 +101,6 @@ pub struct Encoder<'v, 'tcx: 'v> {
 
 pub type EncodingTask<'tcx> = (ProcedureDefId, Vec<(ty::Ty<'tcx>, ty::Ty<'tcx>)>);
 pub type SubstMap<'tcx> = HashMap<ty::Ty<'tcx>, ty::Ty<'tcx>>;
-pub type SubstStack<'tcx> = Vec<SubstMap<'tcx>>;
 
 // If the field name is an identifier, removing the leading prefix r#
 pub fn encode_field_name(field_name: &str) -> String {
@@ -142,7 +142,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             procedure_contracts: RefCell::new(HashMap::new()),
             functions: RefCell::new(HashMap::new()),
             builtin_methods: RefCell::new(HashMap::new()),
-            builtin_functions: RefCell::new(HashMap::new()),
+            high_builtin_function_encoder_state: Default::default(),
             programs: Vec::new(),
             procedures: RefCell::new(HashMap::new()),
             mir_type_encoder_state: Default::default(),
@@ -242,7 +242,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
 
     pub(super) fn insert_function(&self, function: vir::Function) -> vir::FunctionIdentifier {
         let identifier: vir::FunctionIdentifier = function.get_identifier().into();
-        assert!(self.functions.borrow_mut().insert(identifier.clone(), Rc::new(function)).is_none());
+        assert!(self.functions.borrow_mut().insert(identifier.clone(), Rc::new(function)).is_none(), "{:?} is not unique", identifier);
         identifier
     }
 
@@ -454,6 +454,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             let self_local_var_expr: vir::Expr = self_local_var.clone().into();
             let function = vir::Function {
                 name: name.clone(),
+                type_arguments: Vec::new(),
                 formal_args: vec![self_local_var.clone()],
                 return_type: vir::Type::Int,
                 pres: vec![precondition],
@@ -479,6 +480,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         }
         Ok(vir::Expr::FuncApp( vir::FuncApp {
             function_name: name,
+            type_arguments: Vec::new(),
             arguments: vec![place],
             formal_arguments: vec![self_local_var],
             return_type: vir::Type::Int,
@@ -489,7 +491,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     pub fn encode_builtin_method_def(&self, method_kind: BuiltinMethodKind) -> vir::BodylessMethod {
         trace!("encode_builtin_method_def({:?})", method_kind);
         if !self.builtin_methods.borrow().contains_key(&method_kind) {
-            let builtin_encoder = BuiltinEncoder::new();
+            let builtin_encoder = BuiltinEncoder::new(self);
             let method = builtin_encoder.encode_builtin_method_def(method_kind);
             self.log_vir_program_before_viper(method.to_string());
             self.builtin_methods
@@ -503,30 +505,8 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         trace!("encode_builtin_method_use({:?})", method_kind);
         // Trigger encoding of definition
         self.encode_builtin_method_def(method_kind);
-        let builtin_encoder = BuiltinEncoder::new();
+        let builtin_encoder = BuiltinEncoder::new(self);
         builtin_encoder.encode_builtin_method_name(method_kind)
-    }
-
-    pub fn encode_builtin_function_def(&self, function_kind: BuiltinFunctionKind) {
-        trace!("encode_builtin_function_def({:?})", function_kind);
-        if !self.builtin_functions.borrow().contains_key(&function_kind) {
-            let builtin_encoder = BuiltinEncoder::new();
-            let function = builtin_encoder.encode_builtin_function_def(function_kind.clone());
-            self.log_vir_program_before_viper(function.to_string());
-            self.builtin_functions
-                .borrow_mut()
-                .insert(function_kind, self.insert_function(function));
-        }
-    }
-
-    pub fn encode_builtin_function_use(&self, function_kind: BuiltinFunctionKind) -> String {
-        trace!("encode_builtin_function_use({:?})", function_kind);
-        if !self.builtin_functions.borrow().contains_key(&function_kind) {
-            // Trigger encoding of definition
-            self.encode_builtin_function_def(function_kind.clone());
-        }
-        let builtin_encoder = BuiltinEncoder::new();
-        builtin_encoder.encode_builtin_function_name(&function_kind)
     }
 
     pub fn encode_cast_function_use(&self, src_ty: ty::Ty<'tcx>, dst_ty: ty::Ty<'tcx>, tymap: &SubstMap<'tcx>)
@@ -542,6 +522,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             let postcondition = self.encode_type_bounds(&result.into(), dst_ty);
             let function = vir::Function {
                 name: function_name.clone(),
+                type_arguments: Vec::new(),
                 formal_args: vec![arg.clone()],
                 return_type: self.encode_snapshot_type(dst_ty, tymap)?,
                 pres: precondition,
@@ -573,43 +554,28 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         if !self.type_cast_functions.borrow().contains_key(&(src_ty, dst_ty)) {
             let src_snap_ty = self.encode_snapshot_type(src_ty, tymap)?;
             let dst_snap_ty = self.encode_snapshot_type(dst_ty, tymap)?;
-            let elem_snap_ty = match src_ty.kind() {
-                ty::TyKind::Array(elem_ty, ..) => self.encode_snapshot_type(elem_ty, tymap)?,
-                _ => unreachable!(),
-            };
-            let seq_type = vir::Type::Seq(vir::SeqType {
-                typ: box elem_snap_ty,
-            });
             let arg = vir_local!{ array: {src_snap_ty} };
             let arg_expr = vir::Expr::from(arg.clone());
-            let result = vir::Expr::from(vir_local!{ __result: {dst_snap_ty.clone()} });
-            let data = vir_local! { data: {seq_type} };
-            let data_expr = vir::Expr::from(data.clone());
-            let array_cons = self.encode_snapshot(src_ty, None, vec![data_expr.clone()], tymap)?;
-            let slice_cons = self.encode_snapshot(dst_ty, None, vec![data_expr], tymap)?;
+            let array_uncons = self.encode_snapshot_destructor(src_ty, vec![arg_expr], tymap)?;
+            let slice_cons = self.encode_snapshot(dst_ty, None, vec![array_uncons.clone()], tymap)?;
             let data_len = vir::Expr::ContainerOp(vir::ContainerOp {
                 op_kind: vir::ContainerOpKind::SeqLen,
-                left: box data.clone().into(),
+                left: box array_uncons,
                 right: box true.into(), // unused
                 position: vir::Position::default(),
             });
-            // exists data: Seq[Int] :: array == cons$Snap$Array(data) && result == cons$Snap$Slice(data) && |data| == |array|)
-            let postcondition = vir::Expr::Exists(vir::Exists {
-                variables: vec![data],
-                triggers: vec![],
-                body: box vec![
-                    vir_expr!{ [arg_expr] == [array_cons] },
-                    vir_expr!{ [result] == [slice_cons] },
-                    vir_expr!{ [data_len] ==  [vir::Expr::from(array_types.array_len)] },
-                ].into_iter().conjoin(),
-                position: vir::Position::default()
-            });
+            let result = vir::Expr::from(vir_local!{ __result: {dst_snap_ty.clone()} });
+            let postcondition = vec![
+                vir_expr!{ [data_len] ==  [vir::Expr::from(array_types.array_len)] },
+                vir_expr!{ [result] == [slice_cons]},
+            ];
             let function = vir::Function {
                 name: function_name.clone(),
+                type_arguments: vec![], // FIXME: This is probably wrong.
                 formal_args: vec![arg],
                 return_type: dst_snap_ty,
                 pres: vec![],
-                posts: vec![postcondition],
+                posts: postcondition,
                 body: None,
             };
             let identifier = self.insert_function(function);
@@ -835,6 +801,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             .expect("failed to encode unsupported type");
         Ok(vir::Expr::FuncApp( vir::FuncApp {
             function_name: self.encode_type_invariant_use(ty)?,
+            type_arguments: vec![],
             arguments: vec![encoded_arg],
             // TODO ?
             formal_arguments: vec![vir_local!{ self: { type_pred } }],
@@ -847,6 +814,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     pub fn encode_tag_func_app(&self, ty: ty::Ty<'tcx>) -> vir::Expr {
         vir::Expr::FuncApp( vir::FuncApp {
             function_name: self.encode_type_tag_use(ty),
+            type_arguments: vec![],
             arguments: vec![],
             // TODO ?
             formal_arguments: vec![],
@@ -963,39 +931,6 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         })
     }
 
-    /// Merges the stack of type maps into a single map.
-    #[allow(clippy::needless_collect)]  // Clippy false positive.
-    pub fn merge_tymaps(&self, stack: SubstStack<'tcx>) -> SubstMap<'tcx> {
-        let mut map = HashMap::new();
-        for map_frame in stack.iter().rev() {
-            for (&typ, &subst) in map_frame {
-                map.insert(typ, subst);
-                let additional_substs: Vec<_> = map
-                    .iter()
-                    .filter(|(_typ1, typ2)| **typ2 == typ)
-                    .map(|(typ1, typ2)| (*typ1, *typ2))
-                    .collect();
-                for (typ, subst) in additional_substs.into_iter() {
-                    map.insert(typ, subst);
-                }
-            }
-        }
-        map
-    }
-
-
-    /// TODO: This is a hack, it generates a String that can be used for uniquely identifying this
-    /// type substitution.
-    pub fn type_substitution_key(&self, tymap: &SubstMap<'tcx>) -> EncodingResult<String> {
-        let mut substs: Vec<_> = tymap
-            .iter()
-            .filter(|(typ, subst)| typ != subst)
-            .map(|(typ, subst)| format!("({},{})", typ, subst))
-            .collect();
-        substs.sort();
-        Ok(substs.join(";"))
-    }
-
     pub fn encode_spec_func_name(&self, def_id: ProcedureDefId, kind: SpecFunctionKind) -> String {
         let kind_name = match kind {
             SpecFunctionKind::Pre => "pre",
@@ -1076,7 +1011,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     }
 }
 
-fn encode_identifier(ident: String) -> String {
+pub(crate) fn encode_identifier(ident: String) -> String {
     // Rule: the rhs must always have an even number of "$"
     ident
         .replace("::", "$$")
@@ -1092,4 +1027,5 @@ fn encode_identifier(ident: String) -> String {
         .replace(',', "$comma$")
         .replace(';', "$semic$")
         .replace(' ', "$space$")
+        .replace('&', "$amp$")
 }

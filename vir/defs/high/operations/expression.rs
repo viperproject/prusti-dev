@@ -197,6 +197,7 @@ impl Expression {
     }
     pub fn function_call<S: Into<String>>(
         name: S,
+        type_arguments: Vec<Type>,
         arguments: Vec<Expression>,
         return_type: Type,
     ) -> Expression {
@@ -208,7 +209,13 @@ impl Expression {
                 ty: argument.get_type().clone(),
             })
             .collect();
-        Expression::func_app_no_pos(name.into(), arguments, parameters, return_type)
+        Expression::func_app_no_pos(
+            name.into(),
+            type_arguments,
+            arguments,
+            parameters,
+            return_type,
+        )
     }
     pub fn set_default_pos(self, new_position: Position) -> Self {
         struct DefaultPositionReplacer {

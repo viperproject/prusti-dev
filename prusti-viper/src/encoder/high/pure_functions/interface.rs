@@ -56,6 +56,7 @@ impl<'v, 'tcx: 'v> HighPureFunctionEncoderInterface<'tcx>
         let return_type = vir_high::Type::Int(vir_high::ty::Int::Isize);
         Ok(vir_high::Expression::function_call(
             name,
+            vec![], // FIXME: This is most likely wrong.
             vec![adt],
             return_type,
         ))
@@ -69,22 +70,11 @@ impl<'v, 'tcx: 'v> HighPureFunctionEncoderInterface<'tcx>
     ) -> EncodingResult<vir_high::Expression> {
         // FIXME: Should use encode_builtin_function_use.
         let name = "lookup_pure";
-        let return_type = {
-            match container.get_type() {
-                vir_high::Type::Array(vir_high::ty::Array { element_type, .. })
-                | vir_high::Type::Slice(vir_high::ty::Slice { element_type }) => {
-                    (**element_type).clone()
-                }
-                container_ty => {
-                    return Err(EncodingError::unsupported(format!(
-                        "calling index on unsupported container: {}",
-                        container_ty
-                    )))
-                }
-            }
-        };
+        let element_type = extract_container_element_type(&container)?;
+        let return_type = element_type.clone();
         Ok(vir_high::Expression::function_call(
             name,
+            vec![element_type.clone()],
             vec![container, index],
             return_type,
         ))
@@ -98,24 +88,11 @@ impl<'v, 'tcx: 'v> HighPureFunctionEncoderInterface<'tcx>
     ) -> EncodingResult<vir_high::Expression> {
         // FIXME: Should use encode_builtin_function_use.
         let name = "subslice";
-        let return_type = {
-            match container.get_type() {
-                vir_high::Type::Reference(vir_high::ty::Reference {
-                    target_type: box vir_high::Type::Array(vir_high::ty::Array { element_type, .. }),
-                })
-                | vir_high::Type::Reference(vir_high::ty::Reference {
-                    target_type: box vir_high::Type::Slice(vir_high::ty::Slice { element_type, .. }),
-                }) => vir_high::Type::reference(vir_high::Type::slice((**element_type).clone())),
-                container_ty => {
-                    return Err(EncodingError::unsupported(format!(
-                        "calling index on unsupported container: {}",
-                        container_ty
-                    )))
-                }
-            }
-        };
+        let element_type = extract_container_element_type(&container)?;
+        let return_type = vir_high::Type::reference(vir_high::Type::slice(element_type.clone()));
         Ok(vir_high::Expression::function_call(
             name,
+            vec![element_type.clone()],
             vec![container, range],
             return_type,
         ))
@@ -128,9 +105,11 @@ impl<'v, 'tcx: 'v> HighPureFunctionEncoderInterface<'tcx>
     ) -> EncodingResult<vir_high::Expression> {
         // FIXME: Should use encode_builtin_function_use.
         let name = "len";
+        let element_type = extract_container_element_type(&container)?;
         let return_type = vir_high::Type::Int(vir_high::ty::Int::Usize);
         Ok(vir_high::Expression::function_call(
             name,
+            vec![element_type.clone()],
             vec![container],
             return_type,
         ))
@@ -144,10 +123,31 @@ impl<'v, 'tcx: 'v> HighPureFunctionEncoderInterface<'tcx>
         let name = "into_slice";
         // FIXME: Check that argumet types of container and
         // target_container_type match.
+        let element_type = extract_container_element_type(&container)?;
         Ok(vir_high::Expression::function_call(
             name,
+            vec![element_type.clone()],
             vec![container],
             target_container_type,
         ))
+    }
+}
+
+fn extract_container_element_type(
+    container: &vir_high::Expression,
+) -> EncodingResult<&vir_high::Type> {
+    match container.get_type() {
+        vir_high::Type::Array(vir_high::ty::Array { element_type, .. })
+        | vir_high::Type::Slice(vir_high::ty::Slice { element_type, .. })
+        | vir_high::Type::Reference(vir_high::ty::Reference {
+            target_type: box vir_high::Type::Array(vir_high::ty::Array { element_type, .. }),
+        })
+        | vir_high::Type::Reference(vir_high::ty::Reference {
+            target_type: box vir_high::Type::Slice(vir_high::ty::Slice { element_type, .. }),
+        }) => Ok(&**element_type),
+        container_ty => Err(EncodingError::unsupported(format!(
+            "unsupported container: {}",
+            container_ty
+        ))),
     }
 }

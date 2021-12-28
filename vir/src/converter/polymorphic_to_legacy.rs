@@ -286,7 +286,12 @@ impl From<polymorphic::Expr> for legacy::Expr {
                 let_expr.position.into(),
             ),
             polymorphic::Expr::FuncApp(func_app) => legacy::Expr::FuncApp(
-                func_app.function_name,
+                polymorphic::compute_identifier(
+                    &func_app.function_name,
+                    &func_app.type_arguments,
+                    &func_app.formal_arguments,
+                    &func_app.return_type,
+                ),
                 func_app
                     .arguments
                     .into_iter()
