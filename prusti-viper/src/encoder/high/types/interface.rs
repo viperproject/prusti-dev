@@ -253,6 +253,7 @@ impl<'v, 'tcx: 'v> HighTypeEncoderInterface<'tcx> for super::super::super::Encod
         trace!("encode_type_invariant_use: {:?}", ty.kind());
         let encoded_type = self.encode_type_high(ty)?;
         let invariant_name = format!("{}$inv", encoded_type);
+        let invariant_name = crate::encoder::encoder::encode_identifier(invariant_name);
         // Trigger encoding of definition.
         // FIXME: This should not be needed.
         self.encode_type_invariant_def_internal(ty, &invariant_name)?;
@@ -288,6 +289,7 @@ impl<'v, 'tcx: 'v> HighTypeEncoderInterface<'tcx> for super::super::super::Encod
             let self_local_var = vir_poly::LocalVar::new("self", encoded_type);
             let invariant = vir_poly::Function {
                 name: invariant_name.to_string(),
+                type_arguments: vec![], // FIXME: This is probably wrong.
                 formal_args: vec![self_local_var],
                 return_type: vir_poly::Type::Bool,
                 pres: Vec::new(),

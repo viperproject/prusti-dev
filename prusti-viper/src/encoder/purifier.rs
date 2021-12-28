@@ -357,7 +357,7 @@ impl ExprFolder for Purifier<'_, '_, '_> {
             position,
         })
     }
-    fn fold_func_app(&mut self, vir::FuncApp {function_name, arguments, formal_arguments, return_type, position}: vir::FuncApp) -> vir::Expr {
+    fn fold_func_app(&mut self, vir::FuncApp {function_name, type_arguments, arguments, formal_arguments, return_type, position}: vir::FuncApp) -> vir::Expr {
         let arguments: Vec<_> = arguments.into_iter().map(|e| ExprFolder::fold(self, e)).collect();
         if let [vir::Expr::Local( vir::Local {variable: local_var, position: local_pos} )] = arguments.as_slice() {
             if self.vars.contains(&local_var.name) ||
@@ -377,6 +377,7 @@ impl ExprFolder for Purifier<'_, '_, '_> {
                     });
                     let discriminant_func = vir::DomainFunc {
                         name: "discriminant$".to_string(),
+                        type_arguments,
                         formal_args: vec![local_var.clone()],
                         return_type: vir::Type::Int,
                         unique: false,
@@ -388,6 +389,7 @@ impl ExprFolder for Purifier<'_, '_, '_> {
         }
         vir::Expr::FuncApp( vir::FuncApp {
             function_name,
+            type_arguments,
             arguments,
             formal_arguments,
             return_type,

@@ -1,4 +1,4 @@
-// compile-flags: -Pverification_deadline=20
+// compile-flags: -Pverification_deadline=30
 
 //! See https://github.com/viperproject/prusti-dev/issues/721
 

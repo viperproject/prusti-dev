@@ -738,6 +738,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
                     let return_type = self.encoder.encode_snapshot_type(dst_ty, tymap).with_span(span)?;
                     return Ok(vir::Expr::func_app(
                         function_name,
+                        vec![], // FIXME: This is probably wrong.
                         encoded_args,
                         formal_args,
                         return_type,

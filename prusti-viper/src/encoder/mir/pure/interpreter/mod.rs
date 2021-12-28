@@ -7,9 +7,13 @@ use crate::encoder::{
     builtin_encoder::BuiltinFunctionKind,
     encoder::SubstMap,
     errors::{EncodingResult, ErrorCtxt, SpannedEncodingError, SpannedEncodingResult, WithSpan},
-    high::{pure_functions::HighPureFunctionEncoderInterface, types::HighTypeEncoderInterface},
+    high::{
+        builtin_functions::{BuiltinFunctionHighKind, HighBuiltinFunctionEncoderInterface},
+        pure_functions::HighPureFunctionEncoderInterface,
+        types::HighTypeEncoderInterface,
+    },
     mir::{
-        casts::CastsEncoderInterface, generics::GenericsEncoderInterface,
+        casts::CastsEncoderInterface, generics::MirGenericsEncoderInterface,
         places::PlacesEncoderInterface, pure::PureFunctionEncoderInterface,
         types::MirTypeEncoderInterface,
     },
@@ -600,8 +604,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
             ErrorCtxt::PureFunctionCall,
             self.caller_def_id,
         );
-        let encoded_rhs = vir_high::Expression::function_call(function_name, args, return_type)
-            .set_default_pos(pos.into());
+        let type_arguments = self
+            .encoder
+            .encode_generic_arguments_high(def_id, tymap)
+            .with_span(span)?;
+        let encoded_rhs =
+            vir_high::Expression::function_call(function_name, type_arguments, args, return_type)
+                .set_default_pos(pos.into());
         let mut state = states[&target_block].clone();
         state.substitute_value(&lhs, encoded_rhs);
         Ok(state)
@@ -612,12 +621,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
         position: vir_high::Position,
     ) -> EncodingResult<vir_high::Expression> {
         let ty = self.encoder.encode_type_high(self.mir.return_ty())?;
-        let encoded_type = self.encoder.encode_type(self.mir.return_ty())?; // FIXME
-        let function_name = self
+        let encoded_type = self.encoder.encode_type_high(self.mir.return_ty())?;
+        let (function_name, type_arguments) = self
             .encoder
-            .encode_builtin_function_use(BuiltinFunctionKind::Unreachable(encoded_type));
+            .encode_builtin_function_use_high(BuiltinFunctionHighKind::Unreachable(encoded_type));
         Ok(vir_high::Expression::func_app(
             function_name,
+            type_arguments,
             Vec::new(),
             Vec::new(),
             ty,
@@ -627,12 +637,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
 
     fn undefined_expr(&self, position: vir_high::Position) -> EncodingResult<vir_high::Expression> {
         let ty = self.encoder.encode_type_high(self.mir.return_ty())?;
-        let encoded_type = self.encoder.encode_type(self.mir.return_ty())?; // FIXME
-        let function_name = self
+        let encoded_type = self.encoder.encode_type_high(self.mir.return_ty())?;
+        let (function_name, type_arguments) = self
             .encoder
-            .encode_builtin_function_use(BuiltinFunctionKind::Undefined(encoded_type));
+            .encode_builtin_function_use_high(BuiltinFunctionHighKind::Undefined(encoded_type));
         Ok(vir_high::Expression::func_app(
             function_name,
+            type_arguments,
             Vec::new(),
             Vec::new(),
             ty,

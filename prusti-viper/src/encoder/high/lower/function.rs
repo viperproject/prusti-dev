@@ -5,6 +5,7 @@ impl IntoPolymorphic<vir_poly::Function> for vir_high::FunctionDecl {
     fn lower(&self, encoder: &impl HighTypeEncoderInterfacePrivate) -> vir_poly::Function {
         vir_poly::Function {
             name: self.name.clone(),
+            type_arguments: self.type_arguments.lower(encoder),
             formal_args: self
                 .parameters
                 .iter()

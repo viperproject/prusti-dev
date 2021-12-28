@@ -121,10 +121,13 @@ impl SnapshotEncoder {
 
     fn insert_function(&mut self, function: vir::Function) -> vir::FunctionIdentifier {
         let identifier: vir::FunctionIdentifier = function.get_identifier().into();
-        assert!(self
-            .functions
-            .insert(identifier.clone(), Rc::new(function))
-            .is_none());
+        assert!(
+            self.functions
+                .insert(identifier.clone(), Rc::new(function))
+                .is_none(),
+            "{:?} is not unique",
+            identifier,
+        );
         identifier
     }
 
@@ -255,6 +258,7 @@ impl SnapshotEncoder {
         // than looking up the snapshot definition
         Expr::func_app(
             SNAP_FUNC_NAME.to_string(),
+            vec![ty.clone()],
             vec![expr.clone()],
             vec![vir::LocalVar::new("_", expr.get_type().clone())],
             ty,
@@ -447,23 +451,34 @@ impl SnapshotEncoder {
             Snapshot::Slice { cons, .. } => {
                 // the caller must have created a vir::Expr::Seq already
                 assert_eq!(args.len(), 1);
-                // args[0] is the `Seq` of elements
-                assert!(
-                    matches!(args[0], Expr::Seq(..))
-                        || matches!(
-                            args[0],
-                            Expr::Local(vir::Local {
-                                variable: vir::LocalVar {
-                                    typ: vir::Type::Seq(..),
-                                    ..
-                                },
-                                ..
-                            })
-                        ),
-                    "Seq expected for slice snapshot"
-                );
 
                 Ok(cons.apply(args))
+            }
+            _ => Err(EncodingError::internal(format!(
+                "invalid constructor (not Complex): {}",
+                ty
+            ))),
+        }
+    }
+
+    pub fn encode_destructor<'p, 'v: 'p, 'tcx: 'v>(
+        &mut self,
+        encoder: &'p Encoder<'v, 'tcx>,
+        ty: ty::Ty<'tcx>,
+        args: Vec<Expr>,
+        tymap: &SubstMap<'tcx>,
+    ) -> EncodingResult<Expr> {
+        let snapshot = self.encode_snapshot(encoder, ty, tymap)?;
+        match snapshot {
+            Snapshot::Primitive(..) => {
+                unimplemented!();
+            }
+            Snapshot::Complex { .. } => {
+                unimplemented!();
+            }
+            Snapshot::Array { uncons, .. } => Ok(uncons.apply(args)),
+            Snapshot::Slice { .. } => {
+                unimplemented!()
             }
             _ => Err(EncodingError::internal(format!(
                 "invalid constructor (not Complex): {}",
@@ -803,8 +818,18 @@ impl SnapshotEncoder {
 
                 let cons = vir::DomainFunc {
                     name: format!("cons${}$", domain_name),
+                    type_arguments: Vec::new(), // FIXME: This is most likely wrong.
                     formal_args: vec![vir_local! { data: {seq_type.clone()} }],
                     return_type: snap_type.clone(),
+                    unique: false,
+                    domain_name: domain_name.clone(),
+                };
+
+                let uncons = vir::DomainFunc {
+                    name: format!("uncons${}$", domain_name),
+                    type_arguments: Vec::new(), // FIXME: This is most likely wrong.
+                    formal_args: vec![vir_local! { array: {snap_type.clone()} }],
+                    return_type: seq_type.clone(),
                     unique: false,
                     domain_name: domain_name.clone(),
                 };
@@ -825,6 +850,7 @@ impl SnapshotEncoder {
 
                 let read = vir::DomainFunc {
                     name: format!("read${}$", domain_name),
+                    type_arguments: Vec::new(), // FIXME: This is most likely wrong.
                     formal_args: vec![
                         vir_local! { arr: {snap_type.clone()} },
                         vir_local! { idx: Int },
@@ -854,6 +880,7 @@ impl SnapshotEncoder {
 
                 let snap_func = vir::Function {
                     name: SNAP_FUNC_NAME.to_string(),
+                    type_arguments: vec![snap_type.clone()],
                     formal_args: vec![arg_self],
                     return_type: snap_type.clone(),
                     pres: vec![Expr::predicate_access_predicate(
@@ -873,27 +900,38 @@ impl SnapshotEncoder {
                 );
 
                 let constructor_inj = {
-                    let lhs_arg = vir_local! { _l_data: {seq_type.clone()} };
-                    let rhs_arg = vir_local! { _r_data: {seq_type.clone()} };
-
-                    let lhs_call = cons.apply(vec![lhs_arg.clone().into()]);
-                    let rhs_call = cons.apply(vec![rhs_arg.clone().into()]);
+                    let arg = vir_local! { data: {seq_type.clone()} };
+                    let cons_call = cons.apply(vec![arg.clone().into()]);
+                    let uncons_call = uncons.apply(vec![cons_call.clone()]);
 
                     vir::DomainAxiom {
                         name: format!("{}$injectivity", domain_name),
                         expr: Expr::forall(
-                            vec![lhs_arg.clone(), rhs_arg.clone()],
-                            vec![vir::Trigger::new(vec![lhs_call.clone(), rhs_call.clone()])],
-                            Expr::implies(
-                                vir_expr! { [lhs_call] == [rhs_call] },
-                                vir_expr! { [Expr::from(lhs_arg)] == [Expr::from(rhs_arg)] },
-                            ),
+                            vec![arg.clone()],
+                            vec![vir::Trigger::new(vec![cons_call])],
+                            vir_expr! { [uncons_call] == [Expr::from(arg)]},
                         ),
                         domain_name: domain_name.clone(),
                     }
                 };
 
                 let constructor_surj = {
+                    let arg = vir_local! { data: {snap_type.clone()} };
+                    let uncons_call = uncons.apply(vec![arg.clone().into()]);
+                    let cons_call = cons.apply(vec![uncons_call.clone()]);
+
+                    vir::DomainAxiom {
+                        name: format!("{}$surjectivity", domain_name),
+                        expr: Expr::forall(
+                            vec![arg.clone()],
+                            vec![vir::Trigger::new(vec![uncons_call])],
+                            vir_expr! { [cons_call] == [Expr::from(arg)]},
+                        ),
+                        domain_name: domain_name.clone(),
+                    }
+                };
+
+                let constructor_extensionality = {
                     let lhs_arg = vir_local! { _l_data: {seq_type.clone()} };
                     let rhs_arg = vir_local! { _r_data: {seq_type.clone()} };
 
@@ -901,7 +939,7 @@ impl SnapshotEncoder {
                     let rhs_call = cons.apply(vec![rhs_arg.clone().into()]);
 
                     vir::DomainAxiom {
-                        name: format!("{}$surjectivity", domain_name),
+                        name: format!("{}$extensionality", domain_name),
                         expr: Expr::forall(
                             vec![lhs_arg.clone(), rhs_arg.clone()],
                             vec![vir::Trigger::new(vec![lhs_call.clone(), rhs_call.clone()])],
@@ -943,8 +981,13 @@ impl SnapshotEncoder {
 
                 let mut domain = vir::Domain {
                     name: domain_name.clone(),
-                    functions: vec![cons.clone(), read.clone()],
-                    axioms: vec![constructor_inj, constructor_surj, read_axiom],
+                    functions: vec![cons.clone(), uncons.clone(), read.clone()],
+                    axioms: vec![
+                        constructor_inj,
+                        constructor_surj,
+                        constructor_extensionality,
+                        read_axiom,
+                    ],
                     type_vars: vec![],
                 };
 
@@ -984,6 +1027,7 @@ impl SnapshotEncoder {
                     _array_collect_func: self.insert_function(array_collect_func),
                     slice_helper: self.insert_function(slice_helper),
                     cons,
+                    uncons,
                     read,
                 })
             }
@@ -999,14 +1043,25 @@ impl SnapshotEncoder {
 
                 let cons = vir::DomainFunc {
                     name: format!("cons${}$", domain_name),
+                    type_arguments: Vec::new(), // FIXME: This is most likely wrong.
                     formal_args: vec![vir_local! { data: {seq_type.clone()} }],
                     return_type: slice_snap_ty.clone(),
                     unique: false,
                     domain_name: domain_name.clone(),
                 };
 
+                let uncons = vir::DomainFunc {
+                    name: format!("uncons${}$", domain_name),
+                    type_arguments: Vec::new(), // FIXME: This is most likely wrong.
+                    formal_args: vec![vir_local! { data: {slice_snap_ty.clone()} }],
+                    return_type: seq_type.clone(),
+                    unique: false,
+                    domain_name: domain_name.clone(),
+                };
+
                 let len = vir::DomainFunc {
                     name: format!("len${}$", domain_name),
+                    type_arguments: Vec::new(), // FIXME: This is most likely wrong.
                     formal_args: vec![vir_local! { self: {slice_snap_ty.clone()} }],
                     return_type: Type::Int,
                     unique: false,
@@ -1015,6 +1070,7 @@ impl SnapshotEncoder {
 
                 let read = vir::DomainFunc {
                     name: format!("read${}$", domain_name),
+                    type_arguments: Vec::new(), // FIXME: This is most likely wrong.
                     formal_args: vec![
                         vir_local! { self: {slice_snap_ty.clone()} },
                         vir_local! { idx: Int },
@@ -1062,6 +1118,7 @@ impl SnapshotEncoder {
 
                 let snap_func = vir::Function {
                     name: SNAP_FUNC_NAME.to_string(),
+                    type_arguments: vec![slice_snap_ty.clone()],
                     formal_args: vec![arg_self],
                     return_type: slice_snap_ty.clone(),
                     pres: vec![Expr::predicate_access_predicate(
@@ -1092,41 +1149,52 @@ impl SnapshotEncoder {
                 );
 
                 let cons_inj = {
-                    let data_l = vir_local! { _l_data: {seq_type.clone()} };
-                    let data_r = vir_local! { _r_data: {seq_type.clone()} };
-
-                    let cons_l = cons.apply(vec![data_l.clone().into()]);
-                    let cons_r = cons.apply(vec![data_r.clone().into()]);
+                    let arg = vir_local! { data: {seq_type.clone()} };
+                    let cons_call = cons.apply(vec![arg.clone().into()]);
+                    let uncons_call = uncons.apply(vec![cons_call.clone()]);
 
                     vir::DomainAxiom {
                         name: format!("{}$injectivity", domain_name),
                         expr: Expr::forall(
-                            vec![data_l.clone(), data_r.clone()],
-                            vec![vir::Trigger::new(vec![cons_l.clone(), cons_r.clone()])],
-                            Expr::implies(
-                                vir_expr! { [cons_l] == [cons_r] },
-                                vir_expr! { ([Expr::from(data_l)] == [Expr::from(data_r)]) },
-                            ),
+                            vec![arg.clone()],
+                            vec![vir::Trigger::new(vec![cons_call])],
+                            vir_expr! { [uncons_call] == [Expr::from(arg)]},
                         ),
                         domain_name: domain_name.clone(),
                     }
                 };
 
                 let cons_surj = {
-                    let data_l = vir_local! { _l_data: {seq_type.clone()} };
-                    let data_r = vir_local! { _r_data: {seq_type.clone()} };
-
-                    let cons_l = cons.apply(vec![data_l.clone().into()]);
-                    let cons_r = cons.apply(vec![data_r.clone().into()]);
+                    let arg = vir_local! { data: {slice_snap_ty.clone()} };
+                    let uncons_call = uncons.apply(vec![arg.clone().into()]);
+                    let cons_call = cons.apply(vec![uncons_call.clone()]);
 
                     vir::DomainAxiom {
                         name: format!("{}$surjectivity", domain_name),
                         expr: Expr::forall(
-                            vec![data_l.clone(), data_r.clone()],
-                            vec![vir::Trigger::new(vec![cons_l.clone(), cons_r.clone()])],
+                            vec![arg.clone()],
+                            vec![vir::Trigger::new(vec![uncons_call])],
+                            vir_expr! { [cons_call] == [Expr::from(arg)]},
+                        ),
+                        domain_name: domain_name.clone(),
+                    }
+                };
+
+                let constructor_extensionality = {
+                    let lhs_arg = vir_local! { _l_data: {seq_type.clone()} };
+                    let rhs_arg = vir_local! { _r_data: {seq_type.clone()} };
+
+                    let lhs_call = cons.apply(vec![lhs_arg.clone().into()]);
+                    let rhs_call = cons.apply(vec![rhs_arg.clone().into()]);
+
+                    vir::DomainAxiom {
+                        name: format!("{}$extensionality", domain_name),
+                        expr: Expr::forall(
+                            vec![lhs_arg.clone(), rhs_arg.clone()],
+                            vec![vir::Trigger::new(vec![lhs_call.clone(), rhs_call.clone()])],
                             Expr::implies(
-                                vir_expr! { ([Expr::from(data_l)] == [Expr::from(data_r)]) },
-                                vir_expr! { [cons_l] == [cons_r] },
+                                vir_expr! { [Expr::from(lhs_arg)] == [Expr::from(rhs_arg)] },
+                                vir_expr! { [lhs_call] == [rhs_call] },
                             ),
                         ),
                         domain_name: domain_name.clone(),
@@ -1191,8 +1259,15 @@ impl SnapshotEncoder {
 
                 let mut domain = vir::Domain {
                     name: domain_name.clone(),
-                    functions: vec![cons.clone(), read.clone(), len.clone()],
-                    axioms: vec![cons_inj, cons_surj, read_axiom, len_of_seq, len_positive],
+                    functions: vec![cons.clone(), uncons.clone(), read.clone(), len.clone()],
+                    axioms: vec![
+                        cons_inj,
+                        cons_surj,
+                        constructor_extensionality,
+                        read_axiom,
+                        len_of_seq,
+                        len_positive,
+                    ],
                     type_vars: vec![],
                 };
 
@@ -1232,6 +1307,7 @@ impl SnapshotEncoder {
                     _slice_collect_func: self.insert_function(slice_collect_func),
                     slice_helper: self.insert_function(slice_helper),
                     cons,
+                    _uncons: uncons,
                     read,
                     len,
                 })
@@ -1318,6 +1394,7 @@ impl SnapshotEncoder {
 
         vir::Function {
             name: seq_collect_funcname.clone(),
+            type_arguments: Vec::new(), // FIXME: This is most likely wrong.
             formal_args: vec![vir_local! { self: {seq_pred_ty.clone()} }, start.clone()],
             return_type: seq_type.clone(),
             pres: vec![
@@ -1354,6 +1431,7 @@ impl SnapshotEncoder {
                     }),
                     right: box Expr::func_app(
                         seq_collect_funcname,
+                        Vec::new(), // FIXME: This is most likely wrong.
                         vec![self_expr, vir_expr! { [start_expr] + [Expr::from(1)] }],
                         vec![vir_local! { slice: {seq_pred_ty} }, start],
                         seq_type,
@@ -1426,6 +1504,7 @@ impl SnapshotEncoder {
 
         vir::Function {
             name: slice_helper_name.clone(),
+            type_arguments: vec![self_snap_ty.clone()],
             formal_args: vec![
                 vir_local! { self: {self_snap_ty.clone()} },
                 lo.clone(),
@@ -1458,6 +1537,7 @@ impl SnapshotEncoder {
                     }),
                     right: box Expr::func_app(
                         slice_helper_name,
+                        vec![self_snap_ty.clone()],
                         vec![
                             self_expr,
                             vir_expr! { [lo_expr] + [Expr::from(1)] },
@@ -1483,6 +1563,7 @@ impl SnapshotEncoder {
         // encode snap function
         let snap_func = vir::Function {
             name: SNAP_FUNC_NAME.to_string(),
+            type_arguments: vec![snapshot_type.clone()],
             formal_args: vec![arg_ref_local],
             return_type: snapshot_type,
             pres: vec![Expr::predicate_access_predicate(
@@ -1532,6 +1613,7 @@ impl SnapshotEncoder {
         // encode discriminant function
         let discriminant_func = vir::DomainFunc {
             name: "discriminant$".to_string(),
+            type_arguments: vec![snapshot_type.clone()],
             formal_args: vec![arg_dom_local.clone()],
             return_type: Type::Int,
             unique: false,
@@ -1607,6 +1689,7 @@ impl SnapshotEncoder {
             // encode constructor
             let constructor = vir::DomainFunc {
                 name: constructor_name.to_string(),
+                type_arguments: vec![snapshot_type.clone()],
                 formal_args: args.clone(),
                 return_type: snapshot_type.clone(),
                 unique: false,
@@ -1681,6 +1764,7 @@ impl SnapshotEncoder {
                 // encode field access function
                 let field_access_func = vir::DomainFunc {
                     name: format!("{}${}$field${}", domain_name, variant_idx, field.name),
+                    type_arguments: Vec::new(), // FIXME: This is most likely wrong.
                     formal_args: vec![vir::LocalVar::new("self", snapshot_type.clone())],
                     return_type: field.typ.clone(),
                     unique: false,
@@ -1773,6 +1857,7 @@ impl SnapshotEncoder {
 
             vir::Function {
                 name: SNAP_FUNC_NAME.to_string(),
+                type_arguments: vec![snapshot_type.clone()],
                 formal_args: vec![arg_ref_local],
                 return_type: snapshot_type,
                 pres: vec![Expr::predicate_access_predicate(
