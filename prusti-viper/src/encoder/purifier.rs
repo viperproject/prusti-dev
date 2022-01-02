@@ -4,7 +4,8 @@
 // represent types like "snapshot of X". Resolve SnapOf in snapshot patcher.
 
 use vir_crate::polymorphic::{self as vir, ExprWalker, ExprFolder, StmtWalker, StmtFolder};
-use std::collections::{BTreeMap, BTreeSet, HashMap, HashSet};
+use rustc_hash::{FxHashMap as HashMap, FxHashSet as HashSet};
+use std::collections::{BTreeMap, BTreeSet};
 use log::{debug, trace};
 use crate::encoder::Encoder;
 use crate::encoder::high::types::HighTypeEncoderInterface;
@@ -19,7 +20,7 @@ pub fn purify_method(
     method: &mut vir::CfgMethod
 ) {
     // A set of candidate references to be purified.
-    let mut candidates = HashSet::new();
+    let mut candidates = HashSet::default();
     debug!("method: {}", method.name());
     for var in &method.local_vars {
         match var.typ {
@@ -63,7 +64,7 @@ pub fn purify_method(
         candidates
     );
 
-    let tymap = HashMap::new();
+    let tymap = HashMap::default();
     let mut purifier = Purifier::new(encoder, candidates, tymap);
 
     for block in &mut method.basic_blocks {
@@ -159,11 +160,11 @@ impl StmtWalker for VarDependencyCollector {
         let dependencies = collect_variables(source);
         let dependents = collect_variables(target);
         for dependent in &dependents {
-            let entry = self.dependencies.entry(dependent.clone()).or_insert_with(HashSet::new);
+            let entry = self.dependencies.entry(dependent.clone()).or_insert_with(HashSet::default);
             entry.extend(dependencies.iter().cloned());
         }
         for dependency in dependencies {
-            let entry = self.dependents.entry(dependency).or_insert_with(HashSet::new);
+            let entry = self.dependents.entry(dependency).or_insert_with(HashSet::default);
             entry.extend(dependents.iter().cloned());
         }
         match kind {
@@ -189,7 +190,7 @@ impl StmtWalker for VarDependencyCollector {
 }
 
 fn collect_variables(expr: &vir::Expr) -> HashSet<String> {
-    let mut collector = VariableCollector { vars: HashSet::new() };
+    let mut collector = VariableCollector { vars: HashSet::default() };
     ExprWalker::walk(&mut collector, expr);
     collector.vars
 }
@@ -235,7 +236,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> Purifier<'p, 'v, 'tcx> {
             encoder,
             vars,
             fresh_variables: Vec::new(),
-            change_var_types: HashMap::new(),
+            change_var_types: HashMap::default(),
             tymap,
         }
     }

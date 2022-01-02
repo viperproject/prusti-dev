@@ -26,10 +26,8 @@ use prusti_common::vir_high_local;
 use rustc_hir::def_id::DefId;
 use rustc_middle::{mir, span_bug, ty};
 use rustc_span::Span;
-use std::{
-    collections::HashMap,
-    fmt::{self, Display},
-};
+use rustc_hash::{FxHashMap as HashMap};
+use std::fmt::{self, Display};
 use vir_crate::{
     common::expression::{BinaryOperationHelpers, UnaryOperationHelpers},
     high::{self as vir_high},

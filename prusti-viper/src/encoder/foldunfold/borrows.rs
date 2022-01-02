@@ -4,7 +4,8 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use std::{collections::HashMap, io};
+use rustc_hash::{FxHashMap as HashMap};
+use std::io;
 use vir_crate::polymorphic as vir;
 
 pub(super) struct BasicBlock<'a> {
@@ -28,7 +29,7 @@ impl<'a> CFG<'a> {
     pub(super) fn new() -> Self {
         Self {
             basic_blocks: Vec::new(),
-            edges: HashMap::new(),
+            edges: HashMap::default(),
         }
     }
     pub(super) fn add_block(&mut self, block: BasicBlock<'a>) {

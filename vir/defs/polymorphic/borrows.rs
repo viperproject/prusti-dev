@@ -5,8 +5,9 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use super::ast::*;
+use rustc_hash::{FxHashMap as HashMap};
 use std::{
-    collections::{HashMap, VecDeque},
+    collections::VecDeque,
     fmt,
 };
 

@@ -21,7 +21,8 @@ use prusti_common::{vir_expr, vir_local};
 use prusti_specs::predicate;
 use rustc_middle::{ty, ty::layout::IntegerExt};
 use rustc_target::abi::Integer;
-use std::{collections::HashMap, convert::TryInto, rc::Rc};
+use rustc_hash::{FxHashMap as HashMap};
+use std::{convert::TryInto, rc::Rc};
 use vir_crate::{
     polymorphic as vir,
     polymorphic::{
@@ -142,7 +143,7 @@ impl SnapshotEncoder {
         method: vir::CfgMethod,
     ) -> EncodingResult<vir::CfgMethod> {
         debug!("[snap] method: {:?}", method.name());
-        let tymap = HashMap::new();
+        let tymap = HashMap::default();
         let mut patcher = SnapshotPatcher {
             snapshot_encoder: self,
             encoder,
@@ -1602,7 +1603,7 @@ impl SnapshotEncoder {
         let mut domain_axioms = vec![];
         let mut variant_domain_funcs = vec![];
         let mut variant_snap_bodies = vec![];
-        let mut variant_names = HashMap::new();
+        let mut variant_names = HashMap::default();
 
         // a local called "self", both as a Ref and as a Snapshot
         let arg_ref_local = vir::LocalVar::new("self", predicate_type.clone());
@@ -1758,7 +1759,7 @@ impl SnapshotEncoder {
                 });
             }
 
-            let mut field_access_funcs = HashMap::new();
+            let mut field_access_funcs = HashMap::default();
 
             for (field_idx, field) in variant.fields.iter().enumerate() {
                 // encode field access function

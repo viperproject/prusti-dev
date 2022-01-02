@@ -11,10 +11,8 @@ use crate::encoder::foldunfold::{
 };
 use log::{debug, trace};
 use prusti_common::utils::to_string::ToString;
-use std::{
-    collections::{HashMap, HashSet},
-    iter::FromIterator,
-};
+use rustc_hash::{FxHashMap as HashMap, FxHashSet as HashSet};
+use std::iter::FromIterator;
 use vir_crate::polymorphic::{self as vir, PermAmount};
 
 /// The fold-unfold context of a CFG path
@@ -42,8 +40,8 @@ impl<'a> PathCtxt<'a> {
                         .into_iter()
                         .map(|v| (vir::Expr::local(v), PermAmount::Write)),
                 ),
-                HashMap::new(),
-                HashSet::new(),
+                HashMap::default(),
+                HashSet::default(),
             ),
             predicates,
             old_exprs,
@@ -843,7 +841,7 @@ pub fn compute_fold_target(
     left: &HashSet<vir::Expr>,
     right: &HashSet<vir::Expr>,
 ) -> (HashSet<vir::Expr>, HashSet<vir::Expr>) {
-    let mut conflicting_base = HashSet::new();
+    let mut conflicting_base = HashSet::default();
     // If we have an enum unfolded only in one, then we add that enum to
     // conflicting places.
     let mut conflicting_base_check = |item: &vir::Expr, second_set: &HashSet<vir::Expr>| {
@@ -862,7 +860,7 @@ pub fn compute_fold_target(
         conflicting_base_check(right_item, left);
     }
 
-    let mut places = HashSet::new();
+    let mut places = HashSet::default();
     let mut place_check =
         |item: &vir::Expr, item_set: &HashSet<vir::Expr>, other_set: &HashSet<vir::Expr>| {
             let is_leaf = !item_set.iter().any(|p| p.has_proper_prefix(item));

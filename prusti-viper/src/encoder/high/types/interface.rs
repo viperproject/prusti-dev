@@ -9,7 +9,8 @@ use crate::encoder::{
 use ::log::trace;
 use prusti_common::{config, report::log};
 use rustc_middle::ty;
-use std::{cell::RefCell, collections::HashMap};
+use rustc_hash::{FxHashMap as HashMap};
+use std::cell::RefCell;
 use vir_crate::{high as vir_high, polymorphic as vir_poly};
 
 #[derive(Default)]
@@ -146,7 +147,7 @@ impl<'v, 'tcx: 'v> HighTypeEncoderInterface<'tcx> for super::super::super::Encod
         &self,
     ) -> SpannedEncodingResult<HashMap<vir_poly::Type, vir_poly::Predicate>> {
         // let predicate_names = self.high_type_encoder_state.viper_predicate_descriptions.borrow().keys().map(|key: &String| key.to_owned()).collect::<Vec<String>>();
-        // let mut predicates = HashMap::new();
+        // let mut predicates = HashMap::default();
         // for predicate_name in predicate_names {
         //     let predicate = self.get_viper_predicate(&predicate_name)?;
         //     predicates.insert(predicate_name, predicate);

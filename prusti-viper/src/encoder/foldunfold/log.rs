@@ -10,7 +10,8 @@
 use crate::encoder::foldunfold::{action::Action, perm::Perm, FoldUnfoldError};
 use log::trace;
 use prusti_common::utils::to_string::ToString;
-use std::{cmp::Ordering, collections::HashMap, rc::Rc, sync::RwLock};
+use rustc_hash::{FxHashMap as HashMap};
+use std::{cmp::Ordering, rc::Rc, sync::RwLock};
 use vir_crate::polymorphic as vir;
 
 // Note: Now every PathCtxt has its own EventLog, because a Borrow no longer unique
@@ -49,10 +50,10 @@ pub(super) struct EventLog {
 impl EventLog {
     pub fn new() -> Self {
         Self {
-            prejoin_actions: HashMap::new(),
-            duplicated_reads: HashMap::new(),
-            blocked_place: HashMap::new(),
-            converted_to_read_places: HashMap::new(),
+            prejoin_actions: HashMap::default(),
+            duplicated_reads: HashMap::default(),
+            blocked_place: HashMap::default(),
+            converted_to_read_places: HashMap::default(),
             id_generator: 0,
         }
     }

@@ -36,7 +36,7 @@ use rustc_middle::mir;
 // use rustc::mir::interpret::GlobalId;
 use rustc_middle::ty;
 use std::cell::{RefCell, RefMut, Ref};
-use std::collections::{HashMap, HashSet};
+use rustc_hash::{FxHashMap as HashMap, FxHashSet as HashSet};
 use std::io::Write;
 use std::mem;
 use std::rc::Rc;
@@ -139,18 +139,18 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             env,
             def_spec,
             error_manager: RefCell::new(ErrorManager::new(env.codemap())),
-            procedure_contracts: RefCell::new(HashMap::new()),
-            functions: RefCell::new(HashMap::new()),
-            builtin_methods: RefCell::new(HashMap::new()),
+            procedure_contracts: RefCell::new(HashMap::default()),
+            functions: RefCell::new(HashMap::default()),
+            builtin_methods: RefCell::new(HashMap::default()),
             high_builtin_function_encoder_state: Default::default(),
             programs: Vec::new(),
-            procedures: RefCell::new(HashMap::new()),
+            procedures: RefCell::new(HashMap::default()),
             mir_type_encoder_state: Default::default(),
             high_type_encoder_state: Default::default(),
             pure_function_encoder_state: Default::default(),
-            spec_functions: RefCell::new(HashMap::new()),
-            type_discriminant_funcs: RefCell::new(HashMap::new()),
-            type_cast_functions: RefCell::new(HashMap::new()),
+            spec_functions: RefCell::new(HashMap::default()),
+            type_discriminant_funcs: RefCell::new(HashMap::default()),
+            type_cast_functions: RefCell::new(HashMap::default()),
             closures_collector: RefCell::new(SpecsClosuresCollector::new()),
             encoding_queue: RefCell::new(vec![]),
             vir_program_before_foldunfold_writer,
@@ -160,7 +160,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             array_types_encoder: RefCell::new(ArrayTypesEncoder::new()),
             encoding_errors_counter: RefCell::new(0),
             name_interner: RefCell::new(NameInterner::new()),
-            discriminants_info: RefCell::new(HashMap::new()),
+            discriminants_info: RefCell::new(HashMap::default()),
         }
     }
 
@@ -638,7 +638,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
 
         if !self.spec_functions.borrow().contains_key(&def_id) {
             let procedure = self.env.get_procedure(def_id);
-            let tymap = HashMap::new(); // TODO: This is probably wrong.
+            let tymap = HashMap::default(); // TODO: This is probably wrong.
             let spec_func_encoder = SpecFunctionEncoder::new(self, &procedure, &tymap);
             let result = spec_func_encoder.encode()?.into_iter().map(|function| {
                 self.insert_function(function)
@@ -851,7 +851,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
 
                 // TODO: Make sure that this encoded function does not end up in
                 // the Viper file because that would be unsound.
-                if let Err(error) = self.encode_pure_function_def(proc_def_id, &HashMap::new()) {
+                if let Err(error) = self.encode_pure_function_def(proc_def_id, &HashMap::default()) {
                     self.register_encoding_error(error);
                     debug!("Error encoding function: {:?}", proc_def_id);
                     // Skip encoding the function as a method.

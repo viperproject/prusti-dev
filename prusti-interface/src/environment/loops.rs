@@ -10,7 +10,7 @@ use crate::environment::procedure::BasicBlockIndex;
 use rustc_middle::mir;
 use rustc_middle::mir::visit::Visitor;
 use rustc_data_structures::graph::dominators::Dominators;
-use std::collections::{HashMap, HashSet};
+use rustc_hash::{FxHashMap as HashMap, FxHashSet as HashSet};
 use rustc_index::vec::{Idx, IndexVec};
 use log::{debug, trace};
 use crate::environment::mir_utils::RealEdges;
@@ -233,7 +233,7 @@ impl ProcedureLoops {
     pub fn new<'a, 'tcx: 'a>(mir: &'a mir::Body<'tcx>, real_edges: &RealEdges) -> ProcedureLoops {
         let dominators = mir.dominators();
 
-        let mut back_edges: HashSet<(_, _)> = HashSet::new();
+        let mut back_edges: HashSet<(_, _)> = HashSet::default();
         for bb in mir.basic_blocks().indices() {
             for successor in real_edges.successors(bb) {
                 if dominators.is_dominated_by(bb, *successor) {
@@ -243,30 +243,30 @@ impl ProcedureLoops {
             }
         }
 
-        let mut loop_bodies = HashMap::new();
+        let mut loop_bodies = HashMap::default();
         for &(source, target) in back_edges.iter() {
-            let body = loop_bodies.entry(target).or_insert_with(HashSet::new);
+            let body = loop_bodies.entry(target).or_insert_with(HashSet::default);
             collect_loop_body(target, source, real_edges, body);
         }
 
         let mut enclosing_loop_heads_set: HashMap<BasicBlockIndex, HashSet<BasicBlockIndex>> =
-            HashMap::new();
+            HashMap::default();
         for (&loop_head, loop_body) in loop_bodies.iter() {
             for &block in loop_body.iter() {
                 let heads_set = enclosing_loop_heads_set
                     .entry(block)
-                    .or_insert_with(HashSet::new);
+                    .or_insert_with(HashSet::default);
                 heads_set.insert(loop_head);
             }
         }
 
         let loop_heads: HashSet<_> = loop_bodies.keys().copied().collect();
-        let mut loop_head_depths = HashMap::new();
+        let mut loop_head_depths = HashMap::default();
         for &loop_head in loop_heads.iter() {
             loop_head_depths.insert(loop_head, enclosing_loop_heads_set[&loop_head].len());
         }
 
-        let mut enclosing_loop_heads = HashMap::new();
+        let mut enclosing_loop_heads = HashMap::default();
         for (&block, loop_heads) in enclosing_loop_heads_set.iter() {
             let mut heads: Vec<BasicBlockIndex> = loop_heads.iter().cloned().collect();
             heads.sort_by_key(|bbi| loop_head_depths[bbi]);
@@ -285,7 +285,7 @@ impl ProcedureLoops {
             .iter().cloned().enumerate().map(|(i, v)| (v, i)).collect();
         debug!("ordered_blocks: {:?}", ordered_blocks);
 
-        let mut ordered_loop_bodies = HashMap::new();
+        let mut ordered_loop_bodies = HashMap::default();
         for (&loop_head, loop_body) in loop_bodies.iter() {
             let mut ordered_body: Vec<_> = loop_body.iter().cloned().collect();
             ordered_body.sort_by_key(|bb| block_order[bb]);
@@ -298,14 +298,14 @@ impl ProcedureLoops {
         // They are those blocks in the loop that:
         // 1. have a SwitchInt terminator (TODO: can we remove this condition?)
         // 2. have an out-edge that exits from the loop
-        let mut loop_exit_blocks = HashMap::new();
+        let mut loop_exit_blocks = HashMap::default();
         for &loop_head in loop_heads.iter() {
             let loop_head_depth = loop_head_depths[&loop_head];
             let loop_body = &loop_bodies[&loop_head];
             let ordered_loop_body = &ordered_loop_bodies[&loop_head];
 
             let mut exit_blocks = vec![];
-            let mut border = HashSet::new();
+            let mut border = HashSet::default();
             border.insert(loop_head);
 
             for &curr_bb in ordered_loop_body {
@@ -339,7 +339,7 @@ impl ProcedureLoops {
 
         // The nonconditional blocks of a loop are those blocks of the loop body that dominate all
         // the blocks from which a back-edge starts.
-        let mut nonconditional_loop_blocks = HashMap::new();
+        let mut nonconditional_loop_blocks = HashMap::default();
         for (&loop_head, loop_body) in loop_bodies.iter() {
             nonconditional_loop_blocks.insert(loop_head, loop_body.clone());
         }

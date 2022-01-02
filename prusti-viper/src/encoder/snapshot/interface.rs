@@ -188,7 +188,7 @@ impl<'v, 'tcx: 'v> SnapshotEncoderInterface<'tcx> for super::super::Encoder<'v, 
                 vec![self.encode_const_expr(expr.ty(), &const_val)?]
             }
         };
-        self.encode_snapshot(expr.ty(), None, args, &SubstMap::new())
+        self.encode_snapshot(expr.ty(), None, args, &SubstMap::default())
     }
 
     /// Constructs a snapshot. The `variant` is needed only if `ty` is an enum.

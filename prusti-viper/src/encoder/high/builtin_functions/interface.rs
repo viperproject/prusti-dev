@@ -11,10 +11,8 @@ use crate::encoder::{
 use log::{debug, trace};
 use prusti_interface::{data::ProcedureDefId, environment::Environment};
 use rustc_middle::ty::TyCtxt;
-use std::{
-    cell::{Ref, RefCell},
-    collections::{HashMap, HashSet},
-};
+use rustc_hash::{FxHashMap as HashMap, FxHashSet as HashSet};
+use std::cell::{Ref, RefCell};
 use vir_crate::{
     high::{self as vir_high, operations::ty::Typed},
     polymorphic as vir_poly,

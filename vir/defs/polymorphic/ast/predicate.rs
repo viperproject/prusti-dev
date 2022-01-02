@@ -5,10 +5,8 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use crate::polymorphic::ast::*;
-use std::{
-    collections::{HashMap, HashSet},
-    fmt,
-};
+use rustc_hash::{FxHashMap as HashMap, FxHashSet as HashSet};
+use std::fmt;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum Predicate {

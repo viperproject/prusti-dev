@@ -6,10 +6,8 @@
 
 use crate::encoder::foldunfold::FoldUnfoldError;
 use log::trace;
-use std::{
-    collections::{HashMap, HashSet},
-    fmt,
-};
+use rustc_hash::{FxHashMap as HashMap, FxHashSet as HashSet};
+use std::fmt;
 use vir_crate::polymorphic::{Expr, PermAmount, Position, Type};
 
 /// An access or predicate permission to a place
@@ -135,8 +133,8 @@ pub struct PermSet {
 impl PermSet {
     pub fn empty() -> Self {
         PermSet {
-            acc_perms: HashMap::new(),
-            pred_perms: HashMap::new(),
+            acc_perms: HashMap::default(),
+            pred_perms: HashMap::default(),
         }
     }
 
@@ -190,7 +188,7 @@ where
     }
 
     fn group_by_label(&mut self) -> HashMap<Option<String>, Vec<Perm>> {
-        let mut res_perms = HashMap::new();
+        let mut res_perms = HashMap::default();
         for perm in self {
             res_perms
                 .entry(perm.get_label().cloned())

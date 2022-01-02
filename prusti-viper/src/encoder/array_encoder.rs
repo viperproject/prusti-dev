@@ -5,10 +5,8 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use rustc_middle::ty;
-use std::{
-    collections::HashMap,
-    convert::TryInto,
-};
+use rustc_hash::{FxHashMap as HashMap};
+use std::convert::TryInto;
 use crate::encoder::{
     Encoder,
     errors::{EncodingResult, EncodingError},
@@ -132,8 +130,8 @@ pub struct ArrayTypesEncoder<'tcx> {
 impl<'p, 'v: 'p, 'tcx: 'v> ArrayTypesEncoder<'tcx> {
     pub fn new() -> Self {
         ArrayTypesEncoder {
-            array_types_cache: HashMap::new(),
-            slice_types_cache: HashMap::new(),
+            array_types_cache: HashMap::default(),
+            slice_types_cache: HashMap::default(),
         }
     }
 
