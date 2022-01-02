@@ -10,7 +10,7 @@
 use crate::encoder::foldunfold::{action::Action, perm::Perm, FoldUnfoldError};
 use log::trace;
 use prusti_common::utils::to_string::ToString;
-use rustc_hash::{FxHashMap as HashMap};
+use rustc_hash::FxHashMap as HashMap;
 use std::{cmp::Ordering, rc::Rc, sync::RwLock};
 use vir_crate::polymorphic as vir;
 

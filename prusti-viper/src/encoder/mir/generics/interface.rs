@@ -5,10 +5,10 @@ use crate::encoder::{
     utils::transpose,
 };
 use log::debug;
+use rustc_hash::FxHashMap as HashMap;
 use rustc_hir::def_id::DefId;
 use rustc_middle::{mir, span_bug, ty};
 use rustc_span::symbol::Symbol;
-use rustc_hash::{FxHashMap as HashMap};
 use vir_crate::{
     common::expression::BinaryOperationHelpers,
     high::{self as vir_high, operations::ty::Typed},

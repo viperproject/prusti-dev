@@ -23,11 +23,11 @@ use log::{debug, trace};
 use prusti_common::{config, vir_local};
 use prusti_interface::specs::typed;
 use rustc_attr::IntType::SignedInt;
+use rustc_hash::FxHashMap as HashMap;
 use rustc_hir::def_id::DefId;
 use rustc_middle::{ty, ty::layout::IntegerExt};
 use rustc_span::MultiSpan;
 use rustc_target::{abi, abi::Integer};
-use rustc_hash::{FxHashMap as HashMap};
 use std::{
     convert::TryInto,
     hash::{Hash, Hasher},

@@ -22,10 +22,10 @@ use log::{debug, trace};
 use prusti_common::config;
 use prusti_interface::{specs::typed, utils::read_prusti_attr};
 use rustc_ast::ast;
+use rustc_hash::{FxHashMap as HashMap, FxHashSet as HashSet};
 use rustc_hir as hir;
 use rustc_hir::def_id::DefId;
 use rustc_middle::{mir, ty};
-use rustc_hash::{FxHashMap as HashMap, FxHashSet as HashSet};
 use vir_crate::{
     common::expression::{BinaryOperationHelpers, ExpressionIterator, QuantifierHelpers},
     high::{self as vir_high, operations::ty::Typed, Generic},

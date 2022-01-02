@@ -19,9 +19,9 @@ use crate::encoder::{
 use log::{debug, trace};
 use prusti_common::{vir_expr, vir_local};
 use prusti_specs::predicate;
+use rustc_hash::FxHashMap as HashMap;
 use rustc_middle::{ty, ty::layout::IntegerExt};
 use rustc_target::abi::Integer;
-use rustc_hash::{FxHashMap as HashMap};
 use std::{convert::TryInto, rc::Rc};
 use vir_crate::{
     polymorphic as vir,

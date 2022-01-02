@@ -14,13 +14,9 @@ use ::log::{debug, trace};
 use super::errors::SpannedEncodingError;
 use crate::encoder::{high::types::HighTypeEncoderInterface, mir::types::MirTypeEncoderInterface};
 use prusti_common::{config, report, utils::to_string::ToString, vir::ToGraphViz, Stopwatch};
-use rustc_middle::mir;
 use rustc_hash::{FxHashMap as HashMap, FxHashSet as HashSet};
-use std::{
-    self,
-    fmt, mem,
-    ops::Deref,
-};
+use rustc_middle::mir;
+use std::{self, fmt, mem, ops::Deref};
 use vir_crate::{
     polymorphic as vir,
     polymorphic::{

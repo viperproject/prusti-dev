@@ -1,4 +1,4 @@
-use rustc_hash::{FxHashMap as HashMap};
+use rustc_hash::FxHashMap as HashMap;
 use std::{
     fmt::{self, Display},
     mem,

@@ -5,7 +5,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use crate::polymorphic::{self, ast::*, CfgBlock, CfgBlockIndex, CfgMethod};
-use rustc_hash::{FxHashSet as HashSet};
+use rustc_hash::FxHashSet as HashSet;
 
 pub fn collect_assigned_vars(
     method: &CfgMethod,
