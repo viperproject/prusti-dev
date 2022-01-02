@@ -5,11 +5,9 @@ use super::{
 };
 use crate::encoder::{high::types::HighTypeEncoderInterface, mir::types::MirTypeEncoderInterface};
 use prusti_common::vir_local;
-use rustc_span::Span;
 use rustc_hash::{FxHashMap as HashMap, FxHashSet as HashSet};
-use std::{
-    hash::Hash,
-};
+use rustc_span::Span;
+use std::hash::Hash;
 use vir_crate::polymorphic::{
     self as vir, compute_identifier, ExprWalker, FallibleExprWalker, FallibleStmtWalker,
     FunctionIdentifier, PredicateAccessPredicate, StmtWalker, WithIdentifier,

@@ -9,7 +9,7 @@ use super::super::{
     cfg::CfgBlockIndex,
 };
 use crate::polymorphic::ast::*;
-use rustc_hash::{FxHashMap as HashMap};
+use rustc_hash::FxHashMap as HashMap;
 use std::fmt;
 
 // TODO: Fix by boxing all `Expr`s.

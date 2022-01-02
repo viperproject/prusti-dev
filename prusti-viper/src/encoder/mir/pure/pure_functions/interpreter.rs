@@ -23,11 +23,11 @@ use crate::encoder::{
 use log::{debug, trace};
 use prusti_common::{config, vir::optimizations::functions::Simplifier, vir_local};
 use prusti_interface::{specs::typed, PrustiError};
+use rustc_hash::FxHashMap as HashMap;
 use rustc_hir as hir;
 use rustc_hir::def_id::DefId;
 use rustc_middle::{mir, span_bug, ty};
 use rustc_span::Span;
-use rustc_hash::{FxHashMap as HashMap};
 use std::{convert::TryInto, mem};
 use vir_crate::polymorphic::{self as vir, ExprIterator};
 

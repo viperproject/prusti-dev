@@ -6,11 +6,7 @@
 
 use crate::polymorphic::{ast::*, gather_labels::gather_labels};
 use rustc_hash::{FxHashMap as HashMap, FxHashSet as HashSet};
-use std::{
-    collections::VecDeque,
-    fmt,
-    iter::FromIterator,
-};
+use std::{collections::VecDeque, fmt, iter::FromIterator};
 use uuid::Uuid;
 
 pub(super) const RETURN_LABEL: &str = "end_of_method";

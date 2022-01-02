@@ -1,4 +1,4 @@
-use rustc_hash::{FxHashMap as HashMap};
+use rustc_hash::FxHashMap as HashMap;
 
 use jni::{objects::JObject, JNIEnv};
 use jni_utils::JniUtils;

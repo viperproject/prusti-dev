@@ -8,8 +8,8 @@ use crate::encoder::{
 #[rustfmt::skip]
 use ::log::trace;
 use prusti_common::{config, report::log};
+use rustc_hash::FxHashMap as HashMap;
 use rustc_middle::ty;
-use rustc_hash::{FxHashMap as HashMap};
 use std::cell::RefCell;
 use vir_crate::{high as vir_high, polymorphic as vir_poly};
 

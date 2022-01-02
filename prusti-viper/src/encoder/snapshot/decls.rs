@@ -4,8 +4,8 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+use rustc_hash::FxHashMap as HashMap;
 use rustc_middle::ty;
-use rustc_hash::{FxHashMap as HashMap};
 use vir_crate::polymorphic::{self as vir, Expr, Type};
 
 /// Snapshot of a VIR type. This enum is internal to the snapshot encoding and
