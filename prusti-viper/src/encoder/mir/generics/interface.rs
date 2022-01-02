@@ -8,7 +8,7 @@ use log::debug;
 use rustc_hir::def_id::DefId;
 use rustc_middle::{mir, span_bug, ty};
 use rustc_span::symbol::Symbol;
-use std::collections::HashMap;
+use rustc_hash::{FxHashMap as HashMap};
 use vir_crate::{
     common::expression::BinaryOperationHelpers,
     high::{self as vir_high, operations::ty::Typed},
@@ -70,7 +70,7 @@ impl<'v, 'tcx: 'v> MirGenericsEncoderInterface<'tcx> for super::super::super::En
         &self,
         tymap: &SubstMap<'tcx>,
     ) -> EncodingResult<HashMap<vir_high::ty::TypeVar, vir_high::Type>> {
-        let mut encoded_tymap = HashMap::new();
+        let mut encoded_tymap = HashMap::default();
         for (ty, subst) in tymap {
             if let vir_high::Type::TypeVar(type_var) = self.encode_type_high(ty)? {
                 let encoded_substitution = self.encode_type_high(subst)?;

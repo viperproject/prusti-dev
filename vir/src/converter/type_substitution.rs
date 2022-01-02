@@ -1,4 +1,5 @@
-use std::{collections::HashMap, fmt};
+use rustc_hash::{FxHashMap as HashMap};
+use std::fmt;
 
 use super::super::polymorphic::*;
 use uuid::Uuid;
@@ -883,7 +884,7 @@ mod tests {
 
     lazy_static! {
         static ref SUBSTITUTION_MAP : HashMap<TypeVar, Type> = {
-            let mut m = HashMap::new();
+            let mut m = HashMap::default();
             m.insert(TypeVar { label: String::from("T") }, Type::Int);
             m.insert(TypeVar { label: String::from("E") }, Type::Bool);
             m.insert(TypeVar { label: String::from("F") }, Type::typed_ref("SimpleRef"));

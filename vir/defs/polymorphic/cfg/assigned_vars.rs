@@ -5,7 +5,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use crate::polymorphic::{self, ast::*, CfgBlock, CfgBlockIndex, CfgMethod};
-use std::collections::HashSet;
+use rustc_hash::{FxHashSet as HashSet};
 
 pub fn collect_assigned_vars(
     method: &CfgMethod,
@@ -15,8 +15,8 @@ pub fn collect_assigned_vars(
     let predecessors = method.predecessors();
     let start = start_block.block_index;
     let end = end_block.block_index;
-    let mut variables = HashSet::new();
-    let mut marked = HashSet::new();
+    let mut variables = HashSet::default();
+    let mut marked = HashSet::default();
     marked.insert(end);
     marked.insert(start);
     let mut to_visit = vec![start];

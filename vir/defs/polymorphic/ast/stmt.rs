@@ -9,7 +9,8 @@ use super::super::{
     cfg::CfgBlockIndex,
 };
 use crate::polymorphic::ast::*;
-use std::{collections::HashMap, fmt};
+use rustc_hash::{FxHashMap as HashMap};
+use std::fmt;
 
 // TODO: Fix by boxing all `Expr`s.
 #[allow(clippy::large_enum_variant)]

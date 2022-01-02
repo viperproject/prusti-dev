@@ -5,8 +5,9 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use crate::polymorphic::{ast::*, gather_labels::gather_labels};
+use rustc_hash::{FxHashMap as HashMap, FxHashSet as HashSet};
 use std::{
-    collections::{HashMap, HashSet, VecDeque},
+    collections::VecDeque,
     fmt,
     iter::FromIterator,
 };
@@ -146,7 +147,7 @@ impl CfgMethod {
             formal_arg_count,
             formal_returns,
             local_vars,
-            labels: HashSet::new(),
+            labels: HashSet::default(),
             reserved_labels: HashSet::from_iter(reserved_labels),
             basic_blocks: vec![],
             basic_blocks_labels: vec![],
@@ -314,7 +315,7 @@ impl CfgMethod {
 
     #[allow(dead_code)]
     pub fn predecessors(&self) -> HashMap<usize, Vec<usize>> {
-        let mut result = HashMap::new();
+        let mut result = HashMap::default();
         for (index, block) in self.basic_blocks.iter().enumerate() {
             for successor in block.successor.get_following() {
                 let entry = result.entry(successor.block_index).or_insert_with(Vec::new);

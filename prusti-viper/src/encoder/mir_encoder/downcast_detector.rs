@@ -2,7 +2,7 @@ use rustc_middle::mir;
 use rustc_target::abi;
 use rustc_middle::mir::visit::Visitor;
 use prusti_interface::environment::mir_utils::MirPlace;
-use std::collections::HashSet;
+use rustc_hash::{FxHashSet as HashSet};
 
 pub fn detect_downcasts<'tcx>(body: &mir::Body<'tcx>, location: mir::Location)
     -> Vec<(MirPlace<'tcx>, abi::VariantIdx)>

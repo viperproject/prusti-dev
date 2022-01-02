@@ -6,8 +6,8 @@ use super::{
 use crate::encoder::{high::types::HighTypeEncoderInterface, mir::types::MirTypeEncoderInterface};
 use prusti_common::vir_local;
 use rustc_span::Span;
+use rustc_hash::{FxHashMap as HashMap, FxHashSet as HashSet};
 use std::{
-    collections::{HashMap, HashSet},
     hash::Hash,
 };
 use vir_crate::polymorphic::{

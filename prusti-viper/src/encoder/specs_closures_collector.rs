@@ -4,7 +4,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use std::collections::{HashMap, HashSet};
+use rustc_hash::{FxHashMap as HashMap, FxHashSet as HashSet};
 use log::{debug, trace};
 use rustc_hir as hir;
 use rustc_middle::mir;
@@ -31,8 +31,8 @@ pub struct SpecsClosuresCollector<'tcx> {
 impl<'tcx> SpecsClosuresCollector<'tcx> {
     pub fn new() -> Self {
         SpecsClosuresCollector {
-            visited: HashSet::new(),
-            instantiations: HashMap::new(),
+            visited: HashSet::default(),
+            instantiations: HashMap::default(),
         }
     }
 

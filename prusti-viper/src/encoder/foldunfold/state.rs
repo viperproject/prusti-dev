@@ -6,9 +6,9 @@
 
 use crate::encoder::foldunfold::{perm::*, FoldUnfoldError};
 use log::{debug, trace};
+use rustc_hash::{FxHashMap as HashMap, FxHashSet as HashSet};
 use std::{
     borrow::Borrow,
-    collections::{HashMap, HashSet},
     fmt,
     ops::{Add, Sub},
 };
@@ -40,7 +40,7 @@ impl State {
             pred,
             moved,
             framing_stack: vec![],
-            dropped: HashSet::new(),
+            dropped: HashSet::default(),
         }
     }
 
@@ -199,7 +199,7 @@ impl State {
     }
 
     pub fn acc_leaves(&self) -> HashSet<vir::Expr> {
-        let mut acc_leaves = HashSet::new();
+        let mut acc_leaves = HashSet::default();
         for place in self.acc.keys() {
             if !self.is_proper_prefix_of_some_acc(place) {
                 acc_leaves.insert(place.clone());

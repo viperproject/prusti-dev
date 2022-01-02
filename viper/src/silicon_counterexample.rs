@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use rustc_hash::{FxHashMap as HashMap};
 
 use jni::{objects::JObject, JNIEnv};
 use jni_utils::JniUtils;
@@ -99,7 +99,7 @@ fn unwrap_counterexample<'a>(
             .call_extractedHeaps(converter_original)
         );
     let old_heaps_map = jni.stringmap_to_hashmap(old_heaps_scala);
-    let mut old_heaps = HashMap::new();
+    let mut old_heaps = HashMap::default();
     for (label, h) in old_heaps_map {
         let old_heap = unwrap_heap(env, jni, h);
         old_heaps.insert(label, old_heap);
@@ -192,7 +192,7 @@ fn unwrap_model<'a>(env: &'a JNIEnv<'a>, jni: JniUtils<'a>, model: JObject<'a>) 
     let model_wrapper = silicon::reporting::ExtractedModel::with(env);
     let entries_scala = jni.unwrap_result(model_wrapper.call_entries(model));
     let map_string_scala = jni.stringmap_to_hashmap(entries_scala);
-    let mut entries = HashMap::new();
+    let mut entries = HashMap::default();
     for (name, entry_scala) in map_string_scala {
         let entry = unwrap_model_entry(env, jni, entry_scala, &mut entries);
         if let Some(e) = entry {

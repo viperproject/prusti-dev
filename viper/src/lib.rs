@@ -15,6 +15,7 @@ extern crate uuid;
 extern crate viper_sys;
 #[macro_use]
 extern crate serde;
+extern crate rustc_hash;
 
 mod ast_factory;
 mod ast_utils;

@@ -2,7 +2,7 @@ use super::super::ast::{
     expression::{visitors::ExpressionFolder, *},
     ty::{visitors::TypeFolder, *},
 };
-use std::collections::HashMap;
+use rustc_hash::{FxHashMap as HashMap};
 
 impl Type {
     /// Return a type that represents a variant of the given enum.

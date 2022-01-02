@@ -6,8 +6,8 @@
 
 use super::super::borrows::Borrow;
 use crate::{common::display, converter::type_substitution::Generic, polymorphic::ast::*};
+use rustc_hash::{FxHashMap as HashMap};
 use std::{
-    collections::HashMap,
     fmt,
     hash::{Hash, Hasher},
     mem,

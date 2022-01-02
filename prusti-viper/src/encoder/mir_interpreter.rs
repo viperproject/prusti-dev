@@ -6,7 +6,7 @@
 
 use vir_crate::polymorphic as vir;
 use rustc_middle::mir;
-use std::collections::HashMap;
+use rustc_hash::{FxHashMap as HashMap};
 use std::fmt::{self, Debug, Display};
 use std::iter::FromIterator;
 use std::marker::Sized;
@@ -44,7 +44,7 @@ pub fn run_backward_interpretation<'tcx, S, E, I>(
     I: BackwardMirInterpreter<'tcx, State = S, Error = E>
 {
     let basic_blocks = mir.basic_blocks();
-    let mut heads: HashMap<mir::BasicBlock, S> = HashMap::new();
+    let mut heads: HashMap<mir::BasicBlock, S> = HashMap::default();
 
     // Find the final basic blocks
     let mut pending_blocks: Vec<mir::BasicBlock> = basic_blocks
@@ -116,7 +116,7 @@ pub fn run_backward_interpretation_point_to_point<
     undef_state: S,
 ) -> Result<Option<S>, E> {
     let basic_blocks = mir.basic_blocks();
-    let mut heads: HashMap<mir::BasicBlock, S> = HashMap::new();
+    let mut heads: HashMap<mir::BasicBlock, S> = HashMap::default();
     trace!(
         "[start] run_backward_interpretation_point_to_point:\n - from final block {:?}, statement {}\n - and state {:?}\n - to initial block {:?}\n - using undef state {:?}",
         final_bbi,
@@ -232,15 +232,15 @@ impl Display for ExprBackwardInterpreterState {
 
 impl ExprBackwardInterpreterState {
     pub fn new(expr: Option<vir::Expr>) -> Self {
-        ExprBackwardInterpreterState { expr, substs: HashMap::new() }
+        ExprBackwardInterpreterState { expr, substs: HashMap::default() }
     }
 
     pub fn new_defined(expr: vir::Expr) -> Self {
-        ExprBackwardInterpreterState { expr: Some(expr), substs: HashMap::new() }
+        ExprBackwardInterpreterState { expr: Some(expr), substs: HashMap::default() }
     }
 
     pub fn new_undefined() -> Self {
-        ExprBackwardInterpreterState { expr: None, substs: HashMap::new() }
+        ExprBackwardInterpreterState { expr: None, substs: HashMap::default() }
     }
 
     pub fn new_defined_with_substs(

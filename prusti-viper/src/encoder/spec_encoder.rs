@@ -26,7 +26,7 @@ use rustc_hir as hir;
 use rustc_hir::def_id::DefId;
 use rustc_middle::mir;
 use rustc_middle::ty;
-use std::collections::HashMap;
+use rustc_hash::{FxHashMap as HashMap, FxHashSet as HashSet};
 use rustc_ast::ast;
 use log::{debug, trace};
 use prusti_interface::utils::read_prusti_attr;
@@ -172,7 +172,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
             }
         }
         let bounded_vars: Vec<_> = bounded_vars.iter().map(|var| var.clone().into()).collect();
-        let mut found_bounded_vars = std::collections::HashSet::new();
+        let mut found_bounded_vars = HashSet::default();
         let mut encoded_expressions = Vec::new();
         for term in trigger.terms() {
             let encoded_expr = self.encode_expression(term)?;

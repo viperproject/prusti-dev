@@ -27,7 +27,8 @@ use rustc_hir as hir;
 use rustc_hir::def_id::DefId;
 use rustc_middle::{mir, span_bug, ty};
 use rustc_span::Span;
-use std::{collections::HashMap, convert::TryInto, mem};
+use rustc_hash::{FxHashMap as HashMap};
+use std::{convert::TryInto, mem};
 use vir_crate::polymorphic::{self as vir, ExprIterator};
 
 pub(crate) struct PureFunctionBackwardInterpreter<'p, 'v: 'p, 'tcx: 'v> {
