@@ -107,6 +107,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecFunctionEncoder<'p, 'v, 'tcx> {
         Ok(vir::Function {
             name: self.encoder.encode_spec_func_name(self.procedure.get_id(),
                                                      SpecFunctionKind::Pre),
+            type_arguments: Vec::new(), // FIXME: This is probably wrong.
             formal_args: encoded_args.into_iter()
                                      .skip(if self.is_closure { 1 } else { 0 }) // FIXME: "self" is skipped, see TypeEncoder
                                      .collect(),
@@ -152,6 +153,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecFunctionEncoder<'p, 'v, 'tcx> {
         Ok(vir::Function {
             name: self.encoder.encode_spec_func_name(self.procedure.get_id(),
                                                      SpecFunctionKind::Post),
+            type_arguments: Vec::new(), // FIXME: This is probably wrong.
             formal_args: encoded_args.into_iter()
                                      .skip(if self.is_closure { 1 } else { 0 }) // FIXME: "self" is skipped, see TypeEncoder
                                      .chain(std::iter::once(encoded_return))

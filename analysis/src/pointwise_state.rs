@@ -9,13 +9,13 @@ use rustc_middle::mir;
 use serde::{ser::SerializeMap, Serialize, Serializer};
 use std::{collections::BTreeMap, fmt};
 
-/// Records the abstract state at every program point and CFG edge of `mir`.
+/// Records the state of the analysis at every program point and CFG edge of `mir`.
 pub struct PointwiseState<'mir, 'tcx: 'mir, S: Serialize> {
     state_before: FxHashMap<mir::Location, S>,
     /// Maps each basic block to a map of its successor blocks to the state on the CFG edge.
     state_after_block: FxHashMap<mir::BasicBlock, FxHashMap<mir::BasicBlock, S>>,
     // Needed for translation of location to statement/terminator in serialization.
-    mir: &'mir mir::Body<'tcx>,
+    pub(crate) mir: &'mir mir::Body<'tcx>,
 }
 
 impl<'mir, 'tcx: 'mir, S> fmt::Debug for PointwiseState<'mir, 'tcx, S>
@@ -94,6 +94,12 @@ impl<'mir, 'tcx: 'mir, S: Serialize> PointwiseState<'mir, 'tcx, S> {
         self.state_before.get(&location)
     }
 
+    /// Look up the mutable state before the `location`.
+    /// The `location` can point to a statement or terminator.
+    pub fn lookup_mut_before(&mut self, location: mir::Location) -> Option<&mut S> {
+        self.state_before.get_mut(&location)
+    }
+
     /// Look up the state after the `location`.
     /// The `location` should point to a statement, not a terminator.
     pub fn lookup_after(&self, location: mir::Location) -> Option<&S> {
@@ -111,7 +117,7 @@ impl<'mir, 'tcx: 'mir, S: Serialize> PointwiseState<'mir, 'tcx, S> {
         self.state_after_block.get(&block)
     }
 
-    /// Return the mutable abstract state on the outgoing CFG edges of `block`.
+    /// Return the mutable state of the analysis on the outgoing CFG edges of `block`.
     /// The return value maps all successor blocks to the state on the CFG edge from `block` to
     /// that block.
     pub(crate) fn lookup_mut_after_block(

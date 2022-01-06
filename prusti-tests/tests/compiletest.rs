@@ -150,6 +150,16 @@ fn run_verification_core_proof(group_name: &str, filter: &Option<String>) {
     run_verification_base(group_name, filter);
 }
 
+fn run_lifetimes_dump(group_name: &str, filter: &Option<String>) {
+    let _temporary_env_vars = (
+        TemporaryEnvVar::set("PRUSTI_NO_VERIFY", "true"),
+        TemporaryEnvVar::set("PRUSTI_DUMP_BORROWCK_INFO", "true"),
+        TemporaryEnvVar::set("PRUSTI_QUIET", "true"),
+    );
+
+    run_prusti_tests(group_name, filter, None);
+}
+
 fn test_runner(_tests: &[&()]) {
     // Spawn server process as child (so it stays around until main function terminates)
     let server_address = spawn_server_thread();
@@ -186,4 +196,8 @@ fn test_runner(_tests: &[&()]) {
     // Test the verifier with panic checks disabled (i.e. verify only the core proof).
     println!("[core_proof]");
     run_verification_core_proof("core_proof", &filter);
+
+    // Test the verifier with panic checks disabled (i.e. verify only the core proof).
+    println!("[lifetimes_dump]");
+    run_lifetimes_dump("lifetimes_dump", &filter);
 }

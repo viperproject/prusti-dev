@@ -9,9 +9,10 @@ use rustc_hir::def_id::DefId;
 #[rustfmt::skip]
 use ::log::trace;
 use prusti_common::{config, report::log};
+use rustc_hash::FxHashMap as HashMap;
 use rustc_middle::{mir, ty};
 use rustc_span::MultiSpan;
-use std::{cell::RefCell, collections::HashMap};
+use std::cell::RefCell;
 use vir_crate::{common::expression::less_equals, high as vir_high, polymorphic as vir};
 
 #[derive(Default)]

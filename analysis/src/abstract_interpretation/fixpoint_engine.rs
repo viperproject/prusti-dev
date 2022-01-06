@@ -5,7 +5,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use crate::{
-    abstract_interpretation::AbstractState, analysis_error::AnalysisError::SuccessorWithoutState,
+    abstract_interpretation::AbstractState, analysis_error::AnalysisError::NoStateAfterSuccessor,
     PointwiseState,
 };
 pub use crate::{domains::*, AnalysisError};
@@ -77,13 +77,12 @@ pub trait FixpointEngine<'mir, 'tcx: 'mir> {
         while let Some(&bb) = work_set.iter().next() {
             work_set.remove(&bb);
 
-            let mut state_before_block;
-            if bb == mir::START_BLOCK {
+            let mut state_before_block = if bb == mir::START_BLOCK {
                 // entry block
-                state_before_block = self.new_initial();
+                self.new_initial()
             } else {
-                state_before_block = self.new_bottom();
-            }
+                self.new_bottom()
+            };
 
             for &pred_bb in &mir.predecessors()[bb] {
                 if let Some(map) = p_state.lookup_after_block(pred_bb) {
@@ -152,7 +151,7 @@ pub trait FixpointEngine<'mir, 'tcx: 'mir> {
             let terminator = mir[bb].terminator();
             for &next_bb in terminator.successors() {
                 if !new_map.contains_key(&next_bb) {
-                    return Err(SuccessorWithoutState(location, next_bb));
+                    return Err(NoStateAfterSuccessor(bb, next_bb));
                 }
             }
             debug_assert_eq!(

@@ -5,10 +5,8 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use super::ast::*;
-use std::{
-    collections::{HashMap, VecDeque},
-    fmt,
-};
+use rustc_hash::FxHashMap as HashMap;
+use std::{collections::VecDeque, fmt};
 
 /// The method-unique borrow identifier.
 #[derive(Ord, PartialOrd, Eq, PartialEq, Clone, Copy, Hash, Serialize, Deserialize)]

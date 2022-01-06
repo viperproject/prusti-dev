@@ -1,5 +1,3 @@
-use prusti_contracts::*;
-
 pub enum Void { }
 
 pub fn unreachable(x: Void) -> ! {

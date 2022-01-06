@@ -14,13 +14,9 @@ use ::log::{debug, trace};
 use super::errors::SpannedEncodingError;
 use crate::encoder::{high::types::HighTypeEncoderInterface, mir::types::MirTypeEncoderInterface};
 use prusti_common::{config, report, utils::to_string::ToString, vir::ToGraphViz, Stopwatch};
+use rustc_hash::{FxHashMap as HashMap, FxHashSet as HashSet};
 use rustc_middle::mir;
-use std::{
-    self,
-    collections::{HashMap, HashSet},
-    fmt, mem,
-    ops::Deref,
-};
+use std::{self, fmt, mem, ops::Deref};
 use vir_crate::{
     polymorphic as vir,
     polymorphic::{
@@ -139,7 +135,7 @@ impl From<SpannedEncodingError> for FoldUnfoldError {
 }
 
 fn add_unfolding_to_expr(expr: vir::Expr, pctxt: &PathCtxt) -> Result<vir::Expr, FoldUnfoldError> {
-    let pctxt_at_label = HashMap::new();
+    let pctxt_at_label = HashMap::default();
     // First, add unfolding only inside old expressions
     let expr = ExprReplacer::new(pctxt.clone(), &pctxt_at_label, true).fallible_fold(expr)?;
     // Then, add unfolding expressions everywhere else
@@ -162,7 +158,7 @@ pub fn add_folding_unfolding_to_function(
     let formal_vars = function.formal_args.clone();
     // Viper functions cannot contain label statements, so knowing all usages of old expressions
     // is not needed.
-    let old_exprs = HashMap::new();
+    let old_exprs = HashMap::default();
     let mut pctxt = PathCtxt::new(formal_vars, &predicates, &old_exprs);
     for pre in &function.pres {
         pctxt.apply_stmt(&vir::Stmt::Inhale(vir::Inhale { expr: pre.clone() }))?;
@@ -230,7 +226,7 @@ pub fn add_fold_unfold<'p, 'v: 'p, 'tcx: 'v>(
             }
         }
         let mut old_expr_collector = OldExprCollector {
-            old_exprs: HashMap::new(),
+            old_exprs: HashMap::default(),
         };
         cfg.walk_expressions(|expr| old_expr_collector.walk(expr));
         old_expr_collector.old_exprs
@@ -277,7 +273,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> FoldUnfold<'p, 'v, 'tcx> {
         FoldUnfold {
             encoder,
             initial_pctxt,
-            pctxt_at_label: HashMap::new(),
+            pctxt_at_label: HashMap::default(),
             dump_debug_info: config::dump_debug_info_during_fold(),
             check_foldunfold_state: config::check_foldunfold_state(),
             foldunfold_state_filter: config::foldunfold_state_filter(),
@@ -566,17 +562,17 @@ impl<'p, 'v: 'p, 'tcx: 'v> vir::CfgReplacer<PathCtxt<'p>, ActionVec> for FoldUnf
         let mut stmts: Vec<vir::Stmt> = vec![];
 
         if stmt_index == 0 && config::dump_path_ctxt_in_debug_info() {
-            let acc_state = pctxt.state().display_acc().replace("\n", "\n//");
+            let acc_state = pctxt.state().display_acc().replace('\n', "\n//");
             stmts.push(vir::Stmt::comment(format!(
                 "[state] acc: {{\n//{}\n//}}",
                 acc_state
             )));
-            let pred_state = pctxt.state().display_pred().replace("\n", "\n//");
+            let pred_state = pctxt.state().display_pred().replace('\n', "\n//");
             stmts.push(vir::Stmt::comment(format!(
                 "[state] pred: {{\n//{}\n//}}",
                 pred_state
             )));
-            let moved_state = pctxt.state().display_moved().replace("\n", "\n//");
+            let moved_state = pctxt.state().display_moved().replace('\n', "\n//");
             stmts.push(vir::Stmt::comment(format!(
                 "[state] moved: {{\n//{}\n//}}",
                 moved_state
@@ -590,7 +586,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> vir::CfgReplacer<PathCtxt<'p>, ActionVec> for FoldUnf
         // 2. Obtain required *curr* permissions. *old* requirements will be handled at steps 0 and/or 4.
         trace!("[step.2] replace_stmt: {}", stmt);
         {
-            let all_perms = stmt.get_required_permissions(pctxt.predicates(), pctxt.old_exprs());
+            let all_perms = stmt.get_required_permissions(pctxt.predicates());
             let pred_permissions: Vec<_> =
                 all_perms.iter().cloned().filter(|p| p.is_pred()).collect();
 
@@ -631,6 +627,33 @@ impl<'p, 'v: 'p, 'tcx: 'v> vir::CfgReplacer<PathCtxt<'p>, ActionVec> for FoldUnf
                     }));
                 }
             }
+        }
+
+        // A label has to ensure that all usages of labelled-old expressions can be later
+        // solved by *unfolding*, and not *folding*, permissions.
+        // See issue https://github.com/viperproject/prusti-dev/issues/797.
+        if let vir::Stmt::Label(label) = &stmt {
+            let curr_acc_perms = pctxt.state().acc_places();
+            let mut perms = pctxt
+                .old_exprs()
+                .get(&label.label)
+                .map(|exprs| exprs.get_required_permissions(pctxt.predicates()))
+                .unwrap_or_default();
+            // Remove what would need to be unfolded
+            perms.retain(|p| {
+                p.is_pred()
+                    && curr_acc_perms.iter().all(|q| {
+                        q.get_place()
+                            .map(|q_place| !p.has_proper_prefix(q_place))
+                            .unwrap_or(true)
+                    })
+            });
+            stmts.extend(
+                pctxt
+                    .obtain_permissions(perms.into_iter().collect())?
+                    .iter()
+                    .map(|a| a.to_stmt()),
+            );
         }
 
         // 3. Replace special statements
@@ -975,7 +998,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> vir::CfgReplacer<PathCtxt<'p>, ActionVec> for FoldUnf
 
         let grouped_perms: HashMap<_, _> = exprs
             .iter()
-            .flat_map(|e| e.get_required_permissions(pctxt.predicates(), pctxt.old_exprs()))
+            .flat_map(|e| e.get_required_permissions(pctxt.predicates()))
             .group_by_label();
 
         let mut stmts: Vec<vir::Stmt> = vec![];
@@ -1436,7 +1459,7 @@ impl<'b, 'a: 'b> FallibleExprFolder for ExprReplacer<'b, 'a> {
             // Compute the permissions that are still missing in order for the current expression
             // to be well-formed
             let perms: Vec<_> = inner_expr
-                .get_required_permissions(self.curr_pctxt.predicates(), self.curr_pctxt.old_exprs())
+                .get_required_permissions(self.curr_pctxt.predicates())
                 .into_iter()
                 .filter(|p| p.is_curr())
                 .collect();
@@ -1484,7 +1507,7 @@ impl<'b, 'a: 'b> FallibleExprFolder for ExprReplacer<'b, 'a> {
 
             // Compute the unfoldings to be generated around the function call
             let perms: Vec<_> = vir::Expr::FuncApp(func_app.clone())
-                .get_required_permissions(self.curr_pctxt.predicates(), self.curr_pctxt.old_exprs())
+                .get_required_permissions(self.curr_pctxt.predicates())
                 .into_iter()
                 .collect();
             let unfolding_actions: Vec<_> = self
@@ -1548,7 +1571,7 @@ impl<'b, 'a: 'b> FallibleExprFolder for ExprReplacer<'b, 'a> {
 
             // Compute the unfoldings to be generated around the function call
             let perms: Vec<_> = vir::Expr::DomainFuncApp(domain_func_app.clone())
-                .get_required_permissions(self.curr_pctxt.predicates(), self.curr_pctxt.old_exprs())
+                .get_required_permissions(self.curr_pctxt.predicates())
                 .into_iter()
                 .collect();
             let unfolding_actions: Vec<_> = self

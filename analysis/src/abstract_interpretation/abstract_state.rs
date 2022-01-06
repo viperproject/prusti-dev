@@ -33,7 +33,7 @@ use serde::Serialize;
 ///   abstraction before.
 ///   (If an operation is not supported an `AnalysisError::UnsupportedStatement` can be returned.)
 /// * `apply_terminator_effect` should assign an abstract state to every successor basic block,
-///   otherwise `SuccessorWithoutState` error will be returned by the analysis.
+///   otherwise `NoStateAfterSuccessor` error will be returned by the analysis.
 ///
 /// To get a result that is as precise as possible implementers probably also want to fulfill the
 /// following properties:

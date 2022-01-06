@@ -4,12 +4,18 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use crate::polymorphic::ast::*;
-use std::{collections::HashMap, fmt};
+use crate::{common::display, polymorphic::ast::*};
+use rustc_hash::FxHashMap as HashMap;
+use std::fmt;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct Function {
     pub name: String,
+    /// Type arguments with which this function was instantiated. These are
+    /// needed to distinguish `std::mem::size_of::<u32>()` from
+    /// `std::mem::size_of::<u8>()`, which have the same parameters and return
+    /// types, but different implementations.
+    pub type_arguments: Vec<Type>,
     pub formal_args: Vec<LocalVar>,
     pub return_type: Type,
     pub pres: Vec<Expr>,
@@ -19,7 +25,12 @@ pub struct Function {
 
 impl fmt::Display for Function {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "function {}(", self.name)?;
+        write!(
+            f,
+            "function {}<{}>(",
+            self.name,
+            display::cjoin(&self.type_arguments)
+        )?;
         let mut first = true;
         for arg in &self.formal_args {
             if !first {
@@ -65,6 +76,7 @@ impl Function {
     pub fn apply(&self, args: Vec<Expr>) -> Expr {
         Expr::func_app(
             self.name.to_string(),
+            self.type_arguments.clone(),
             args,
             self.formal_args.clone(),
             self.return_type.clone(),
@@ -82,7 +94,12 @@ impl Function {
     }
 }
 
-pub fn compute_identifier(name: &str, formal_args: &[LocalVar], return_type: &Type) -> String {
+pub fn compute_identifier(
+    name: &str,
+    type_arguments: &[Type],
+    _formal_args: &[LocalVar],
+    _return_type: &Type,
+) -> String {
     let mut identifier = name.to_string();
     // Include the signature of the function in the function name
     identifier.push_str("__$TY$__");
@@ -98,17 +115,21 @@ pub fn compute_identifier(name: &str, formal_args: &[LocalVar], return_type: &Ty
             Type::Seq(seq_type) => format!("Seq${}", type_name(&seq_type.typ)),
         }
     }
-    for arg in formal_args {
-        identifier.push_str(&type_name(&arg.typ));
+    for arg in type_arguments {
+        identifier.push_str(&type_name(arg));
         identifier.push('$');
     }
-    identifier.push_str(&type_name(return_type));
     identifier
 }
 
 impl WithIdentifier for Function {
     fn get_identifier(&self) -> String {
-        compute_identifier(&self.name, &self.formal_args, &self.return_type)
+        compute_identifier(
+            &self.name,
+            &self.type_arguments,
+            &self.formal_args,
+            &self.return_type,
+        )
     }
 }
 

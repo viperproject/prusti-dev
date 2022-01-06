@@ -1,5 +1,5 @@
 fn test() {
-    assert!(false);
+    assert!(true);
 }
 
 fn main() {}

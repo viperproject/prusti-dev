@@ -5,11 +5,9 @@ use super::{
 };
 use crate::encoder::{high::types::HighTypeEncoderInterface, mir::types::MirTypeEncoderInterface};
 use prusti_common::vir_local;
+use rustc_hash::{FxHashMap as HashMap, FxHashSet as HashSet};
 use rustc_span::Span;
-use std::{
-    collections::{HashMap, HashSet},
-    hash::Hash,
-};
+use std::hash::Hash;
 use vir_crate::polymorphic::{
     self as vir, compute_identifier, ExprWalker, FallibleExprWalker, FallibleStmtWalker,
     FunctionIdentifier, PredicateAccessPredicate, StmtWalker, WithIdentifier,
@@ -370,6 +368,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> FallibleExprWalker for Collector<'p, 'v, 'tcx> {
         &mut self,
         vir::FuncApp {
             function_name,
+            type_arguments,
             arguments,
             formal_arguments,
             return_type,
@@ -377,7 +376,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> FallibleExprWalker for Collector<'p, 'v, 'tcx> {
         }: &vir::FuncApp,
     ) -> SpannedEncodingResult<()> {
         let identifier: vir::FunctionIdentifier =
-            compute_identifier(function_name, formal_arguments, return_type).into();
+            compute_identifier(function_name, type_arguments, formal_arguments, return_type).into();
         let should_visit = !self.used_functions.contains(&identifier);
         let should_visit_in_directly_calling_state =
             self.in_directly_calling_state && !self.directly_called_functions.contains(&identifier);
@@ -385,7 +384,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> FallibleExprWalker for Collector<'p, 'v, 'tcx> {
             let function = self.encoder.get_function(&identifier)?;
             self.used_functions.insert(identifier.clone());
             if !self.checked_function_contracts.contains(&identifier)
-                || should_visit_in_directly_calling_state
+                || (should_visit_in_directly_calling_state && function.body.is_some())
             {
                 self.checked_function_contracts.insert(identifier.clone());
                 for expr in function.pres.iter().chain(&function.posts) {

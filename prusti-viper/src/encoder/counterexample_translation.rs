@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use rustc_hash::{FxHashMap as HashMap};
 use std::convert::TryFrom;
 
 use viper::silicon_counterexample::*;
@@ -47,8 +47,8 @@ pub fn backtranslate(
     let (result_sil_name, result_span, result_typ) = translator.result_to_process();
 
     // map those needed
-    let mut entries = HashMap::new();
-    let mut args = HashMap::new();
+    let mut entries = HashMap::default();
+    let mut args = HashMap::default();
 
     for (rust_name, span, vir_name, typ, is_arg) in entries_to_process {
         if !translator.is_pure {

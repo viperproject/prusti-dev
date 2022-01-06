@@ -74,6 +74,7 @@ lazy_static! {
         settings.set_default("cache_dir", "./cache/").unwrap();
         settings.set_default("dump_debug_info", false).unwrap();
         settings.set_default("dump_debug_info_during_fold", false).unwrap();
+        settings.set_default("ignore_regions", false).unwrap();
         settings.set_default("max_log_file_name_length", 60).unwrap();
         settings.set_default("dump_path_ctxt_in_debug_info", false).unwrap();
         settings.set_default("dump_reborrowing_dag_in_debug_info", false).unwrap();
@@ -96,6 +97,7 @@ lazy_static! {
         settings.set_default("intern_names", true).unwrap();
         settings.set_default("enable_purification_optimization", false).unwrap();
         settings.set_default("enable_manual_axiomatization", false).unwrap();
+        settings.set_default::<Option<i64>>("verification_deadline", None).unwrap();
 
         settings.set_default("print_desugared_specs", false).unwrap();
         settings.set_default("print_typeckd_specs", false).unwrap();
@@ -230,6 +232,11 @@ pub fn dump_debug_info() -> bool {
 /// Should we dump debug files for fold/unfold generation?
 pub fn dump_debug_info_during_fold() -> bool {
     read_setting("dump_debug_info_during_fold")
+}
+
+/// Should the dumped debug files not contain lifetime regions?
+pub fn ignore_regions() -> bool {
+    read_setting("ignore_regions")
 }
 
 /// What is the longest allowed length of a log file name? If this is exceeded,
@@ -447,6 +454,17 @@ pub fn enable_purification_optimization() -> bool {
 /// **Note:** this is currently very incomplete and may introduce unsoudnesses.
 pub fn enable_manual_axiomatization() -> bool {
     read_setting("enable_manual_axiomatization")
+}
+
+/// Set the deadline in seconds within which Prusti should encode and verify the
+/// program.
+///
+/// Prusti panics if it fails to meet this deadline. This flag is intended to be
+/// used for tests that aim to catch performance regressions.
+pub fn verification_deadline() -> Option<u64> {
+    read_setting::<Option<i64>>("verification_deadline").map(|value| {
+        value.try_into().expect("verification_deadline must be a valid u64")
+    })
 }
 
 /// Replace the given basic blocks with ``assume false``.

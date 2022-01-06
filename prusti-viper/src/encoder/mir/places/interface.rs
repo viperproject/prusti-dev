@@ -434,6 +434,7 @@ impl<'v, 'tcx: 'v> PlacesEncoderInterface<'tcx> for super::super::super::Encoder
         span: Span,
     ) -> SpannedEncodingResult<vir_high::Expression> {
         let src_ty = self.get_operand_type(mir, operand)?;
+        let destination_type = self.encode_type_high(dst_ty)?;
 
         let encoded_val = match (src_ty.kind(), dst_ty.kind()) {
             // Numeric casts that cannot fail
@@ -476,7 +477,9 @@ impl<'v, 'tcx: 'v> PlacesEncoderInterface<'tcx> for super::super::super::Encoder
             | (ty::TyKind::Uint(ty::UintTy::U64), ty::TyKind::Uint(ty::UintTy::U128))
             | (ty::TyKind::Uint(ty::UintTy::U128), ty::TyKind::Uint(ty::UintTy::U128))
             | (ty::TyKind::Uint(ty::UintTy::Usize), ty::TyKind::Uint(ty::UintTy::Usize)) => {
-                self.encode_operand_high(mir, operand).with_span(span)?
+                let mut value = self.encode_operand_high(mir, operand).with_span(span)?;
+                value.set_type(destination_type);
+                value
             }
 
             // Numeric casts where the source value might not fit into the target type
@@ -488,7 +491,7 @@ impl<'v, 'tcx: 'v> PlacesEncoderInterface<'tcx> for super::super::super::Encoder
             | (ty::TyKind::Uint(_), ty::TyKind::Char)
             | (ty::TyKind::Uint(_), ty::TyKind::Int(_))
             | (ty::TyKind::Uint(_), ty::TyKind::Uint(_)) => {
-                let encoded_operand = self.encode_operand_high(mir, operand).with_span(span)?;
+                let mut encoded_operand = self.encode_operand_high(mir, operand).with_span(span)?;
                 if prusti_common::config::check_overflows() {
                     // Check the cast
                     // FIXME: Should use a high function.
@@ -498,16 +501,17 @@ impl<'v, 'tcx: 'v> PlacesEncoderInterface<'tcx> for super::super::super::Encoder
                     let position = self
                         .error_manager()
                         .register(span, ErrorCtxt::TypeCast, def_id);
-                    let return_type = self.encode_type_high(dst_ty)?;
                     let call = vir_high::Expression::function_call(
                         function_name,
+                        vec![], // FIXME: This is probably wrong.
                         vec![encoded_operand],
-                        return_type,
+                        destination_type,
                     )
                     .set_default_pos(position.into());
                     return Ok(call);
                 } else {
                     // Don't check the cast
+                    encoded_operand.set_type(destination_type);
                     encoded_operand
                 }
             }

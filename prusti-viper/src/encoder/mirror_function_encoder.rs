@@ -5,12 +5,12 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use rustc_hir::def_id::DefId;
-use std::collections::HashSet;
+use rustc_hash::FxHashSet as HashSet;
 
 use vir_crate::polymorphic::{self as vir, ExprIterator, WithIdentifier};
 use prusti_interface::environment::borrowck::facts::Loan;
 use crate::encoder::encoder::Encoder;
-use std::collections::HashMap;
+use rustc_hash::{FxHashMap as HashMap};
 
 const MIRROR_DOMAIN_NAME: &str = "MirrorDomain";
 
@@ -30,7 +30,7 @@ impl MirrorEncoder {
                 axioms: vec![],
                 type_vars: vec![],
             },
-            encoded: HashSet::new(),
+            encoded: HashSet::default(),
         }
     }
 
@@ -67,6 +67,7 @@ impl MirrorEncoder {
         // create mirror function
         let mirror_func = vir::DomainFunc {
             name: format!("mirror_simple${}", function.name),
+            type_arguments: function.type_arguments.clone(),
             formal_args: function.formal_args.clone(),
             return_type: function.return_type.clone(),
             unique: false,

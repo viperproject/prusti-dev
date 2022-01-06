@@ -6,7 +6,7 @@ use crate::encoder::{
     },
     high::{pure_functions::HighPureFunctionEncoderInterface, types::HighTypeEncoderInterface},
     mir::{
-        generics::GenericsEncoderInterface,
+        generics::MirGenericsEncoderInterface,
         places::PlacesEncoderInterface,
         pure::{
             interpreter::{state::ExprBackwardInterpreterState, ExpressionBackwardInterpreter},
@@ -22,10 +22,10 @@ use log::{debug, trace};
 use prusti_common::config;
 use prusti_interface::{specs::typed, utils::read_prusti_attr};
 use rustc_ast::ast;
+use rustc_hash::{FxHashMap as HashMap, FxHashSet as HashSet};
 use rustc_hir as hir;
 use rustc_hir::def_id::DefId;
 use rustc_middle::{mir, ty};
-use std::collections::HashMap;
 use vir_crate::{
     common::expression::{BinaryOperationHelpers, ExpressionIterator, QuantifierHelpers},
     high::{self as vir_high, operations::ty::Typed, Generic},
@@ -124,7 +124,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecificationEncoder<'p, 'v, 'tcx> {
             }
         }
         let bounded_vars: Vec<_> = bounded_vars.iter().map(|var| var.clone().into()).collect();
-        let mut found_bounded_vars = std::collections::HashSet::new();
+        let mut found_bounded_vars = HashSet::default();
         let mut encoded_expressions = Vec::new();
         for term in trigger.terms() {
             let encoded_expr = self.encode_expression(term)?;
@@ -269,6 +269,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecificationEncoder<'p, 'v, 'tcx> {
                                     encoded_pres.clone(),
                                     vir_high::Expression::function_call(
                                         sf_pre_name,
+                                        Vec::new(), // FIXME: This is probably wrong.
                                         qvars_pre
                                             .iter()
                                             .map(|x| vir_high::Expression::local_no_pos(x.clone()))
@@ -329,6 +330,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecificationEncoder<'p, 'v, 'tcx> {
                                     vir_high::Expression::implies(
                                         vir_high::Expression::function_call(
                                             sf_post_name,
+                                            Vec::new(), // FIXME: This is probably wrong.
                                             arguments,
                                             vir_high::Type::Bool,
                                         ),

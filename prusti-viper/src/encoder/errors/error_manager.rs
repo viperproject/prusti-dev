@@ -5,7 +5,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use vir_crate::polymorphic::Position;
-use std::collections::HashMap;
+use rustc_hash::{FxHashMap as HashMap};
 use rustc_span::source_map::SourceMap;
 use rustc_span::MultiSpan;
 use viper::VerificationError;
@@ -112,8 +112,8 @@ impl<'tcx> ErrorManager<'tcx>
     pub fn new(codemap: &'tcx SourceMap) -> Self {
         ErrorManager {
             codemap,
-            source_span: HashMap::new(),
-            error_contexts: HashMap::new(),
+            source_span: HashMap::default(),
+            error_contexts: HashMap::default(),
             next_pos_id: 1,
         }
     }
