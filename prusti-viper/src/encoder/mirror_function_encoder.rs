@@ -5,18 +5,18 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use rustc_hir::def_id::DefId;
-use rustc_hash::FxHashSet as HashSet;
+use rustc_hash::FxHashSet;
 
 use vir_crate::polymorphic::{self as vir, ExprIterator, WithIdentifier};
 use prusti_interface::environment::borrowck::facts::Loan;
 use crate::encoder::encoder::Encoder;
-use rustc_hash::{FxHashMap as HashMap};
+use rustc_hash::{FxHashMap};
 
 const MIRROR_DOMAIN_NAME: &str = "MirrorDomain";
 
 pub struct MirrorEncoder {
     domain: vir::Domain,
-    encoded: HashSet<DefId>,
+    encoded: FxHashSet<DefId>,
 }
 
 // mirror_caller_functions: RefCell<Vec<vir::Function>>
@@ -30,7 +30,7 @@ impl MirrorEncoder {
                 axioms: vec![],
                 type_vars: vec![],
             },
-            encoded: HashSet::default(),
+            encoded: FxHashSet::default(),
         }
     }
 
@@ -116,7 +116,7 @@ pub fn encode_mirror_of_pure_function(
     function: &vir::Function,
 ) {
     /*
-    let snapshots: &HashMap<String, Box<Snapshot>> = &encoder.get_snapshots();
+    let snapshots: &FxHashMap<String, Box<Snapshot>> = &encoder.get_snapshots();
     let formal_args_without_nat: Vec<vir::LocalVar> =
         snapshot::encode_mirror_function_args_without_nat(&function.formal_args, &snapshots).unwrap();
 

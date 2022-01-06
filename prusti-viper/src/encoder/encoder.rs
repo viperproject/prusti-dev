@@ -36,7 +36,7 @@ use rustc_middle::mir;
 // use rustc::mir::interpret::GlobalId;
 use rustc_middle::ty;
 use std::cell::{RefCell, RefMut, Ref};
-use rustc_hash::{FxHashMap as HashMap, FxHashSet as HashSet};
+use rustc_hash::{FxHashMap, FxHashSet};
 use std::io::Write;
 use std::mem;
 use std::rc::Rc;
@@ -70,22 +70,22 @@ pub struct Encoder<'v, 'tcx: 'v> {
     env: &'v Environment<'tcx>,
     def_spec: &'v typed::DefSpecificationMap<'tcx>,
     error_manager: RefCell<ErrorManager<'tcx>>,
-    procedure_contracts: RefCell<HashMap<
+    procedure_contracts: RefCell<FxHashMap<
         ProcedureDefId,
         EncodingResult<ProcedureContractMirDef<'tcx>>
     >>,
     /// A map containing all functions: identifier → function definition.
-    functions: RefCell<HashMap<vir::FunctionIdentifier, Rc<vir::Function>>>,
-    builtin_methods: RefCell<HashMap<BuiltinMethodKind, vir::BodylessMethod>>,
+    functions: RefCell<FxHashMap<vir::FunctionIdentifier, Rc<vir::Function>>>,
+    builtin_methods: RefCell<FxHashMap<BuiltinMethodKind, vir::BodylessMethod>>,
     pub(super) high_builtin_function_encoder_state: HighBuiltinFunctionEncoderState,
-    procedures: RefCell<HashMap<ProcedureDefId, vir::CfgMethod>>,
+    procedures: RefCell<FxHashMap<ProcedureDefId, vir::CfgMethod>>,
     programs: Vec<vir::Program>,
     pub(super) mir_type_encoder_state: MirTypeEncoderState<'tcx>,
     pub(super) high_type_encoder_state: HighTypeEncoderState<'tcx>,
     pub(super) pure_function_encoder_state: PureFunctionEncoderState<'tcx>,
-    spec_functions: RefCell<HashMap<ProcedureDefId, Vec<vir::FunctionIdentifier>>>,
-    type_discriminant_funcs: RefCell<HashMap<String, vir::FunctionIdentifier>>,
-    type_cast_functions: RefCell<HashMap<(ty::Ty<'tcx>, ty::Ty<'tcx>), vir::FunctionIdentifier>>,
+    spec_functions: RefCell<FxHashMap<ProcedureDefId, Vec<vir::FunctionIdentifier>>>,
+    type_discriminant_funcs: RefCell<FxHashMap<String, vir::FunctionIdentifier>>,
+    type_cast_functions: RefCell<FxHashMap<(ty::Ty<'tcx>, ty::Ty<'tcx>), vir::FunctionIdentifier>>,
     pub(super) snapshot_encoder_state: SnapshotEncoderState,
     pub(super) mirror_encoder: RefCell<MirrorEncoder>,
     array_types_encoder: RefCell<ArrayTypesEncoder<'tcx>>,
@@ -96,11 +96,11 @@ pub struct Encoder<'v, 'tcx: 'v> {
     encoding_errors_counter: RefCell<usize>,
     name_interner: RefCell<NameInterner>,
     /// Maps locals to the local of their discriminant.
-    discriminants_info: RefCell<HashMap<(ProcedureDefId, String), Vec<String>>>,
+    discriminants_info: RefCell<FxHashMap<(ProcedureDefId, String), Vec<String>>>,
 }
 
 pub type EncodingTask<'tcx> = (ProcedureDefId, Vec<(ty::Ty<'tcx>, ty::Ty<'tcx>)>);
-pub type SubstMap<'tcx> = HashMap<ty::Ty<'tcx>, ty::Ty<'tcx>>;
+pub type SubstMap<'tcx> = FxHashMap<ty::Ty<'tcx>, ty::Ty<'tcx>>;
 
 // If the field name is an identifier, removing the leading prefix r#
 pub fn encode_field_name(field_name: &str) -> String {
@@ -139,18 +139,18 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             env,
             def_spec,
             error_manager: RefCell::new(ErrorManager::new(env.codemap())),
-            procedure_contracts: RefCell::new(HashMap::default()),
-            functions: RefCell::new(HashMap::default()),
-            builtin_methods: RefCell::new(HashMap::default()),
+            procedure_contracts: RefCell::new(FxHashMap::default()),
+            functions: RefCell::new(FxHashMap::default()),
+            builtin_methods: RefCell::new(FxHashMap::default()),
             high_builtin_function_encoder_state: Default::default(),
             programs: Vec::new(),
-            procedures: RefCell::new(HashMap::default()),
+            procedures: RefCell::new(FxHashMap::default()),
             mir_type_encoder_state: Default::default(),
             high_type_encoder_state: Default::default(),
             pure_function_encoder_state: Default::default(),
-            spec_functions: RefCell::new(HashMap::default()),
-            type_discriminant_funcs: RefCell::new(HashMap::default()),
-            type_cast_functions: RefCell::new(HashMap::default()),
+            spec_functions: RefCell::new(FxHashMap::default()),
+            type_discriminant_funcs: RefCell::new(FxHashMap::default()),
+            type_cast_functions: RefCell::new(FxHashMap::default()),
             closures_collector: RefCell::new(SpecsClosuresCollector::new()),
             encoding_queue: RefCell::new(vec![]),
             vir_program_before_foldunfold_writer,
@@ -160,7 +160,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             array_types_encoder: RefCell::new(ArrayTypesEncoder::new()),
             encoding_errors_counter: RefCell::new(0),
             name_interner: RefCell::new(NameInterner::new()),
-            discriminants_info: RefCell::new(HashMap::default()),
+            discriminants_info: RefCell::new(FxHashMap::default()),
         }
     }
 
@@ -260,7 +260,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
 
     pub(super) fn get_builtin_methods(
         &self
-    ) -> Ref<'_, HashMap<BuiltinMethodKind, vir::BodylessMethod>> {
+    ) -> Ref<'_, FxHashMap<BuiltinMethodKind, vir::BodylessMethod>> {
         self.builtin_methods.borrow()
     }
 
@@ -638,7 +638,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
 
         if !self.spec_functions.borrow().contains_key(&def_id) {
             let procedure = self.env.get_procedure(def_id);
-            let tymap = HashMap::default(); // TODO: This is probably wrong.
+            let tymap = FxHashMap::default(); // TODO: This is probably wrong.
             let spec_func_encoder = SpecFunctionEncoder::new(self, &procedure, &tymap);
             let result = spec_func_encoder.encode()?.into_iter().map(|function| {
                 self.insert_function(function)
@@ -851,7 +851,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
 
                 // TODO: Make sure that this encoded function does not end up in
                 // the Viper file because that would be unsound.
-                if let Err(error) = self.encode_pure_function_def(proc_def_id, &HashMap::default()) {
+                if let Err(error) = self.encode_pure_function_def(proc_def_id, &FxHashMap::default()) {
                     self.register_encoding_error(error);
                     debug!("Error encoding function: {:?}", proc_def_id);
                     // Skip encoding the function as a method.
@@ -913,7 +913,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         use rustc_middle::ty::fold::{TypeFolder, TypeFoldable};
         struct Resolver<'a, 'tcx> {
             tcx: ty::TyCtxt<'tcx>,
-            tymap: &'a HashMap<ty::Ty<'tcx>, ty::Ty<'tcx>>,
+            tymap: &'a FxHashMap<ty::Ty<'tcx>, ty::Ty<'tcx>>,
         }
         impl<'a, 'tcx> TypeFolder<'tcx> for Resolver<'a, 'tcx> {
             fn tcx(&self) -> ty::TyCtxt<'tcx> {
@@ -1006,7 +1006,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             .push(discr_id);
     }
 
-    pub fn discriminants_info(&self) -> HashMap<(ProcedureDefId, String), Vec<String>> {
+    pub fn discriminants_info(&self) -> FxHashMap<(ProcedureDefId, String), Vec<String>> {
         self.discriminants_info.borrow().clone()
     }
 }

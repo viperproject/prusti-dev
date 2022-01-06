@@ -9,7 +9,7 @@ use rustc_hir::def_id::DefId;
 #[rustfmt::skip]
 use ::log::trace;
 use prusti_common::{config, report::log};
-use rustc_hash::FxHashMap as HashMap;
+use rustc_hash::FxHashMap;
 use rustc_middle::{mir, ty};
 use rustc_span::MultiSpan;
 use std::cell::RefCell;
@@ -17,12 +17,12 @@ use vir_crate::{common::expression::less_equals, high as vir_high, polymorphic a
 
 #[derive(Default)]
 pub(crate) struct MirTypeEncoderState<'tcx> {
-    encoded_types: RefCell<HashMap<ty::TyKind<'tcx>, vir_high::Type>>,
-    encoded_types_inverse: RefCell<HashMap<vir_high::Type, ty::Ty<'tcx>>>,
-    encoded_type_decls: RefCell<HashMap<vir_high::Type, vir_high::TypeDecl>>,
+    encoded_types: RefCell<FxHashMap<ty::TyKind<'tcx>, vir_high::Type>>,
+    encoded_types_inverse: RefCell<FxHashMap<vir_high::Type, ty::Ty<'tcx>>>,
+    encoded_type_decls: RefCell<FxHashMap<vir_high::Type, vir_high::TypeDecl>>,
 
-    type_tag_names: RefCell<HashMap<ty::TyKind<'tcx>, String>>,
-    type_tags: RefCell<HashMap<String, vir::FunctionIdentifier>>,
+    type_tag_names: RefCell<FxHashMap<ty::TyKind<'tcx>, String>>,
+    type_tags: RefCell<FxHashMap<String, vir::FunctionIdentifier>>,
 }
 
 pub(crate) trait MirTypeEncoderInterface<'tcx> {

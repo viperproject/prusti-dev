@@ -12,17 +12,17 @@ use prusti_interface::environment::place_set::PlaceSet;
 use prusti_interface::utils::expand_one_level;
 use rustc_hir::def_id::DefId;
 use rustc_middle::{mir, ty::{self, TyCtxt}};
-use rustc_hash::{FxHashMap as HashMap, FxHashSet as HashSet};
+use rustc_hash::{FxHashMap, FxHashSet};
 use std::hash::Hash;
 use crate::encoder::errors::{SpannedEncodingError, EncodingError};
 use crate::encoder::errors::EncodingResult;
 use crate::encoder::errors::SpannedEncodingResult;
 
 pub struct InitInfo {
-    //mir_acc_before_block: HashMap<mir::BasicBlock, HashSet<mir::Place<'tcx>>>,
-    //mir_acc_after_statement: HashMap<mir::Location, HashSet<mir::Place<'tcx>>>,
-    vir_acc_before_block: HashMap<mir::BasicBlock, HashSet<vir::Expr>>,
-    vir_acc_after_statement: HashMap<mir::Location, HashSet<vir::Expr>>,
+    //mir_acc_before_block: FxHashMap<mir::BasicBlock, FxHashSet<mir::Place<'tcx>>>,
+    //mir_acc_after_statement: FxHashMap<mir::Location, FxHashSet<mir::Place<'tcx>>>,
+    vir_acc_before_block: FxHashMap<mir::BasicBlock, FxHashSet<vir::Expr>>,
+    vir_acc_after_statement: FxHashMap<mir::Location, FxHashSet<vir::Expr>>,
 }
 
 /// Create a set that contains all places and their prefixes of the original set.
@@ -30,8 +30,8 @@ fn explode<'tcx>(
     mir: &mir::Body<'tcx>,
     tcx: TyCtxt<'tcx>,
     place_set: PlaceSet<'tcx>
-) -> HashSet<mir::Place<'tcx>> {
-    let mut result = HashSet::default();
+) -> FxHashSet<mir::Place<'tcx>> {
+    let mut result = FxHashSet::default();
     for guide_place in place_set.into_iter() {
         let mut current_place: mir::Place = guide_place.local.into();
         result.insert(current_place);
@@ -45,7 +45,7 @@ fn explode<'tcx>(
 }
 
 /// Does the ``set`` contain the ``place`` or its prefix?
-fn contains_prefix(set: &HashSet<vir::Expr>, place: &vir::Expr) -> bool {
+fn contains_prefix(set: &FxHashSet<vir::Expr>, place: &vir::Expr) -> bool {
     if set.contains(place) {
         true
     } else if let Some(parent) = place.get_parent_ref() {
@@ -56,12 +56,12 @@ fn contains_prefix(set: &HashSet<vir::Expr>, place: &vir::Expr) -> bool {
 }
 
 fn convert_to_vir<'tcx, T: Eq + Hash + Clone>(
-    map: &HashMap<T, HashSet<mir::Place<'tcx>>>,
+    map: &FxHashMap<T, FxHashSet<mir::Place<'tcx>>>,
     mir_encoder: &MirEncoder<'_, '_, 'tcx>,
-) -> EncodingResult<HashMap<T, HashSet<vir::Expr>>> {
-    let mut result = HashMap::default();
+) -> EncodingResult<FxHashMap<T, FxHashSet<vir::Expr>>> {
+    let mut result = FxHashMap::default();
     for (loc, set) in map.iter() {
-        let mut new_set = HashSet::default();
+        let mut new_set = FxHashSet::default();
         for place in set.iter() {
             let encoded_place = mir_encoder.encode_place(place)?.0.try_into_expr()?;
             new_set.insert(encoded_place);
@@ -79,12 +79,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> InitInfo {
         mir_encoder: &MirEncoder<'p, 'v, 'tcx>,
     ) -> EncodingResult<Self> {
         let initialisation = compute_definitely_initialized(def_id, mir, tcx);
-        let mir_acc_before_block: HashMap<_, _> = initialisation
+        let mir_acc_before_block: FxHashMap<_, _> = initialisation
             .before_block
             .into_iter()
             .map(|(basic_block, place_set)| (basic_block, explode(mir, tcx, place_set)))
             .collect();
-        let mir_acc_after_statement: HashMap<_, _> = initialisation
+        let mir_acc_after_statement: FxHashMap<_, _> = initialisation
             .after_statement
             .into_iter()
             .map(|(location, place_set)| (location, explode(mir, tcx, place_set)))

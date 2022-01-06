@@ -11,7 +11,7 @@ use crate::encoder::{
 };
 use log::{debug, trace};
 use prusti_interface::{data::ProcedureDefId, environment::Environment};
-use rustc_hash::{FxHashMap as HashMap, FxHashSet as HashSet};
+use rustc_hash::{FxHashMap, FxHashSet};
 use rustc_middle::ty::TyCtxt;
 use std::cell::{Ref, RefCell};
 use vir_crate::{high as vir_high, polymorphic as vir_poly};
@@ -20,22 +20,22 @@ type Key = (ProcedureDefId, Vec<vir_high::Type>);
 
 #[derive(Default)]
 pub(crate) struct PureFunctionEncoderState<'tcx> {
-    bodies_high: RefCell<HashMap<Key, vir_high::Expression>>,
-    bodies_poly: RefCell<HashMap<Key, vir_poly::Expr>>,
+    bodies_high: RefCell<FxHashMap<Key, vir_high::Expression>>,
+    bodies_poly: RefCell<FxHashMap<Key, vir_poly::Expr>>,
     /// Information necessary to encode a function call. FIXME: Remove this one
     /// and have only call_infos_high.
-    call_infos_poly: RefCell<HashMap<Key, FunctionCallInfo>>,
+    call_infos_poly: RefCell<FxHashMap<Key, FunctionCallInfo>>,
     /// Information necessary to encode a function call.
-    call_infos_high: RefCell<HashMap<Key, FunctionCallInfoHigh>>,
+    call_infos_high: RefCell<FxHashMap<Key, FunctionCallInfoHigh>>,
     /// Pure functions whose encoding started (and potentially already
     /// finished). This is used to break recursion.
-    pure_functions_encoding_started: RefCell<HashSet<Key>>,
+    pure_functions_encoding_started: RefCell<FxHashSet<Key>>,
     // A mapping from the function identifier to an information needed to encode
     // that function.
     function_descriptions:
-        RefCell<HashMap<vir_poly::FunctionIdentifier, FunctionDescription<'tcx>>>,
+        RefCell<FxHashMap<vir_poly::FunctionIdentifier, FunctionDescription<'tcx>>>,
     /// Mapping from keys on MIR level to function identifiers on VIR level.
-    function_identifiers: RefCell<HashMap<Key, vir_poly::FunctionIdentifier>>,
+    function_identifiers: RefCell<FxHashMap<Key, vir_poly::FunctionIdentifier>>,
 }
 
 /// The information necessary to encode a function definition.

@@ -22,7 +22,7 @@ use log::{debug, trace};
 use prusti_common::config;
 use prusti_interface::{specs::typed, utils::read_prusti_attr};
 use rustc_ast::ast;
-use rustc_hash::{FxHashMap as HashMap, FxHashSet as HashSet};
+use rustc_hash::{FxHashMap, FxHashSet};
 use rustc_hir as hir;
 use rustc_hir::def_id::DefId;
 use rustc_middle::{mir, ty};
@@ -124,7 +124,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecificationEncoder<'p, 'v, 'tcx> {
             }
         }
         let bounded_vars: Vec<_> = bounded_vars.iter().map(|var| var.clone().into()).collect();
-        let mut found_bounded_vars = HashSet::default();
+        let mut found_bounded_vars = FxHashSet::default();
         let mut encoded_expressions = Vec::new();
         for term in trigger.terms() {
             let encoded_expr = self.encode_expression(term)?;
@@ -803,7 +803,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
         &self,
         bb: mir::BasicBlock,
         term: &mir::Terminator<'tcx>,
-        states: HashMap<mir::BasicBlock, &Self::State>,
+        states: FxHashMap<mir::BasicBlock, &Self::State>,
     ) -> Result<Self::State, Self::Error> {
         trace!("apply_terminator {:?}, states: {:?}", term, states);
         self.interpreter.apply_terminator(bb, term, states)

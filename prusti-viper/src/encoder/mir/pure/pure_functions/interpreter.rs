@@ -23,7 +23,7 @@ use crate::encoder::{
 use log::{debug, trace};
 use prusti_common::{config, vir::optimizations::functions::Simplifier, vir_local};
 use prusti_interface::{specs::typed, PrustiError};
-use rustc_hash::FxHashMap as HashMap;
+use rustc_hash::FxHashMap;
 use rustc_hir as hir;
 use rustc_hir::def_id::DefId;
 use rustc_middle::{mir, span_bug, ty};
@@ -204,7 +204,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
         &self,
         bb: mir::BasicBlock,
         term: &mir::Terminator<'tcx>,
-        states: HashMap<mir::BasicBlock, &Self::State>,
+        states: FxHashMap<mir::BasicBlock, &Self::State>,
     ) -> Result<Self::State, Self::Error> {
         trace!("apply_terminator {:?}, states: {:?}", term, states);
         use rustc_middle::mir::TerminatorKind;
