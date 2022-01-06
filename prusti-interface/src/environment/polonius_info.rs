@@ -6,7 +6,7 @@
 
 use std::collections::BTreeMap;
 use std::collections::BTreeSet;
-use rustc_hash::{FxHashMap as HashMap, FxHashSet as HashSet};
+use rustc_hash::{FxHashMap, FxHashSet};
 use std::fmt;
 use std::path::PathBuf;
 
@@ -16,7 +16,7 @@ use log::trace;
 use polonius_engine::Algorithm;
 use polonius_engine::Atom;
 use polonius_engine::Output;
-use rustc_data_structures::fx::FxHashMap;
+use rustc_data_structures::fx::{FxHashMap as RustcPrivateFxHashMap};
 use rustc_index::vec::Idx;
 use rustc_middle::mir;
 use rustc_middle::ty;
@@ -308,16 +308,16 @@ pub fn graphviz<'tcx>(
     let graph_file = std::fs::File::create(graph_path).expect("Unable to create file");
     let mut graph = std::io::BufWriter::new(graph_file);
 
-    let mut blocks: HashMap<_, _> = HashMap::default();
-    let mut block_edges = HashSet::default();
+    let mut blocks: FxHashMap<_, _> = FxHashMap::default();
+    let mut block_edges = FxHashSet::default();
     for (from_index, to_index) in borrowck_in_facts.cfg_edge {
         let from = interner.get_point(from_index);
         let from_block = from.location.block;
         let to = interner.get_point(to_index);
         let to_block = to.location.block;
-        let from_points = blocks.entry(from_block).or_insert_with(HashSet::default);
+        let from_points = blocks.entry(from_block).or_insert_with(FxHashSet::default);
         from_points.insert(from_index);
-        let to_points = blocks.entry(to_block).or_insert_with(HashSet::default);
+        let to_points = blocks.entry(to_block).or_insert_with(FxHashSet::default);
         to_points.insert(to_index);
         if from_block != to_block {
             block_edges.insert((from_block, to_block));
@@ -376,14 +376,14 @@ pub struct PoloniusInfo<'a, 'tcx: 'a> {
     pub(crate) borrowck_out_facts: facts::AllOutputFacts,
     pub(crate) interner: facts::Interner,
     /// Position at which a specific loan was created.
-    pub(crate) loan_position: HashMap<facts::Loan, mir::Location>,
-    pub(crate) loan_at_position: HashMap<mir::Location, facts::Loan>,
-    pub(crate) call_loan_at_position: HashMap<mir::Location, facts::Loan>,
-    pub(crate) call_magic_wands: HashMap<facts::Loan, mir::Local>,
+    pub(crate) loan_position: FxHashMap<facts::Loan, mir::Location>,
+    pub(crate) loan_at_position: FxHashMap<mir::Location, facts::Loan>,
+    pub(crate) call_loan_at_position: FxHashMap<mir::Location, facts::Loan>,
+    pub(crate) call_magic_wands: FxHashMap<facts::Loan, mir::Local>,
     pub place_regions: PlaceRegions,
     pub(crate) additional_facts: AdditionalFacts,
     /// Loop head → Vector of magic wands in that loop.
-    pub(crate) loop_magic_wands: HashMap<mir::BasicBlock, Vec<LoopMagicWand>>,
+    pub(crate) loop_magic_wands: FxHashMap<mir::BasicBlock, Vec<LoopMagicWand>>,
     /// Loans that are created inside loops. Loan → loop head.
     pub(crate) loops: loops::ProcedureLoops,
     /// Fake loans that were created due to variable moves.
@@ -394,7 +394,7 @@ pub struct PoloniusInfo<'a, 'tcx: 'a> {
     pub(crate) additional_facts_no_back: AdditionalFacts,
     /// Two loans are conflicting if they borrow overlapping places and
     /// are alive at overlapping regions.
-    pub(crate) loan_conflict_sets: HashMap<facts::Loan, HashSet<facts::Loan>>
+    pub(crate) loan_conflict_sets: FxHashMap<facts::Loan, FxHashSet<facts::Loan>>
 }
 
 /// This creates a new loan for each move of a borrow. Moves occur either due to assignments or
@@ -410,7 +410,7 @@ fn add_fake_facts<'a, 'tcx: 'a>(
     tcx: ty::TyCtxt<'tcx>,
     mir: &'a mir::Body<'tcx>,
     place_regions: &PlaceRegions,
-    call_magic_wands: &mut HashMap<facts::Loan, mir::Local>,
+    call_magic_wands: &mut FxHashMap<facts::Loan, mir::Local>,
 ) -> Result<
     (Vec<facts::Loan>, Vec<facts::Loan>, Vec<Vec<facts::Loan>>),
     (PlaceRegionsError, mir::Location)
@@ -433,7 +433,7 @@ fn add_fake_facts<'a, 'tcx: 'a>(
 
     // Create a map from points to (region1, region2) vectors.
     let universal_region = &all_facts.universal_region;
-    let mut outlives_at_point = HashMap::default();
+    let mut outlives_at_point = FxHashMap::default();
     for &(region1, region2, point) in all_facts.subset_base.iter() {
         if !universal_region.contains(&region1) && !universal_region.contains(&region2) {
             let subset_base = outlives_at_point.entry(point).or_insert_with(Vec::new);
@@ -520,7 +520,7 @@ fn add_fake_facts<'a, 'tcx: 'a>(
 fn remove_back_edges(
     mut all_facts: facts::AllInputFacts,
     interner: &facts::Interner,
-    back_edges: &HashSet<(mir::BasicBlock, mir::BasicBlock)>,
+    back_edges: &FxHashSet<(mir::BasicBlock, mir::BasicBlock)>,
 ) -> facts::AllInputFacts {
     let cfg_edge = all_facts.cfg_edge;
     let cfg_edge = cfg_edge
@@ -544,7 +544,7 @@ fn remove_back_edges(
 /// all other cases.
 fn get_borrowed_places<'a, 'tcx: 'a>(
     mir: &'a mir::Body<'tcx>,
-    loan_position: &HashMap<facts::Loan, mir::Location>,
+    loan_position: &FxHashMap<facts::Loan, mir::Location>,
     loan: facts::Loan,
 ) -> Result<Vec<&'a mir::Place<'tcx>>, PoloniusInfoError> {
     let location = if let Some(location) = loan_position.get(&loan) {
@@ -608,18 +608,18 @@ fn get_borrowed_places<'a, 'tcx: 'a>(
 
 fn compute_loan_conflict_sets(
     procedure: &Procedure,
-    loan_position: &HashMap<facts::Loan, mir::Location>,
+    loan_position: &FxHashMap<facts::Loan, mir::Location>,
     borrowck_in_facts: &facts::AllInputFacts,
     borrowck_out_facts: &facts::AllOutputFacts,
-) -> Result<HashMap<facts::Loan, HashSet<facts::Loan>>, PoloniusInfoError> {
+) -> Result<FxHashMap<facts::Loan, FxHashSet<facts::Loan>>, PoloniusInfoError> {
     trace!("[enter] compute_loan_conflict_sets");
 
-    let mut loan_conflict_sets = HashMap::default();
+    let mut loan_conflict_sets = FxHashMap::default();
 
     let mir = procedure.get_mir();
 
     for &(_r, loan, _) in &borrowck_in_facts.loan_issued_at {
-        loan_conflict_sets.insert(loan, HashSet::default());
+        loan_conflict_sets.insert(loan, FxHashSet::default());
     }
 
     for &(_r, loan_created, point) in &borrowck_in_facts.loan_issued_at {
@@ -665,7 +665,7 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
     pub fn new(
         env: &'a Environment<'tcx>,
         procedure: &'a Procedure<'tcx>,
-        _loop_invariant_block: &HashMap<mir::BasicBlock, mir::BasicBlock>,
+        _loop_invariant_block: &FxHashMap<mir::BasicBlock, mir::BasicBlock>,
     ) -> Result<Self, PoloniusInfoError> {
         let tcx = procedure.get_tcx();
         let def_id = procedure.get_id();
@@ -685,7 +685,7 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
         // debug!("Renumber path: {:?}", renumber_path);
         let place_regions = regions::load_place_regions(mir).unwrap();
 
-        let mut call_magic_wands = HashMap::default();
+        let mut call_magic_wands = FxHashMap::default();
 
         let mut all_facts = facts.input_facts.take().unwrap();
         let interner = facts::Interner::new(facts.location_table.take().unwrap());
@@ -715,7 +715,7 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
         let output_without_back_edges =
             Output::compute(&all_facts_without_back_edges, Algorithm::Naive, true);
 
-        let loan_position: HashMap<_, _> = all_facts
+        let loan_position: FxHashMap<_, _> = all_facts
             .loan_issued_at
             .iter()
             .map(|&(_, loan, point_index)| {
@@ -723,7 +723,7 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
                 (loan, point.location)
             })
             .collect();
-        let loan_at_position: HashMap<_, _> = all_facts
+        let loan_at_position: FxHashMap<_, _> = all_facts
             .loan_issued_at
             .iter()
             .map(|&(_, loan, point_index)| {
@@ -731,7 +731,7 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
                 (point.location, loan)
             })
             .collect();
-        let call_loan_at_position: HashMap<_, _> = all_facts
+        let call_loan_at_position: FxHashMap<_, _> = all_facts
             .loan_issued_at
             .iter()
             .filter(|&(_, loan, _)| call_magic_wands.contains_key(loan))
@@ -763,7 +763,7 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
             call_magic_wands,
             place_regions,
             additional_facts,
-            loop_magic_wands: HashMap::default(),
+            loop_magic_wands: FxHashMap::default(),
             additional_facts_no_back: additional_facts_without_back_edges,
             loops: loop_info,
             reference_moves,
@@ -811,7 +811,7 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
 
     // fn compute_loop_magic_wands(
     //     &mut self,
-    //     _loop_invariant_block: &HashMap<mir::BasicBlock, mir::BasicBlock>,
+    //     _loop_invariant_block: &FxHashMap<mir::BasicBlock, mir::BasicBlock>,
     // ) -> Result<(), PoloniusInfoError> {
     //     trace!("[enter] compute_loop_magic_wands");
     //     let loop_heads = self.loops.loop_heads.clone();
@@ -885,7 +885,7 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
         &self,
         point: facts::PointIndex,
         region: facts::Region,
-        restricts_map: &FxHashMap<
+        restricts_map: &RustcPrivateFxHashMap<
             facts::PointIndex,
             BTreeMap<facts::Region, BTreeSet<facts::Loan>>,
         >,
@@ -908,7 +908,7 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
         (loans, zombie_loans)
     }
 
-    fn get_borrow_live_at(&self, zombie: bool) -> &FxHashMap<facts::PointIndex, Vec<facts::Loan>> {
+    fn get_borrow_live_at(&self, zombie: bool) -> &RustcPrivateFxHashMap<facts::PointIndex, Vec<facts::Loan>> {
         if zombie {
             &self.additional_facts.zombie_borrow_live_at
         } else {
@@ -1078,13 +1078,13 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
 //         zombie: bool,
 //     ) -> Vec<facts::Loan> {
 //         let mut predecessors = self.get_predecessors(location);
-//         let mut dying_before: Option<HashSet<facts::Loan>> = None;
+//         let mut dying_before: Option<FxHashSet<facts::Loan>> = None;
 //         for predecessor in predecessors.drain(..) {
-//             let dying_at_predecessor: HashSet<_> =
-//                 HashSet::from_iter(self.get_loans_dying_at(predecessor, zombie));
-//             let dying_between: HashSet<_> =
-//                 HashSet::from_iter(self.get_loans_dying_between(predecessor, location, zombie));
-//             let dying_before_loc: HashSet<_> = dying_between
+//             let dying_at_predecessor: FxHashSet<_> =
+//                 FxHashSet::from_iter(self.get_loans_dying_at(predecessor, zombie));
+//             let dying_between: FxHashSet<_> =
+//                 FxHashSet::from_iter(self.get_loans_dying_between(predecessor, location, zombie));
+//             let dying_before_loc: FxHashSet<_> = dying_between
 //                 .difference(&dying_at_predecessor)
 //                 .cloned()
 //                 .collect();
@@ -1148,7 +1148,7 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
         self.call_loan_at_position.get(&location).cloned()
     }
 
-    pub fn loan_locations(&self) -> HashMap<facts::Loan, mir::Location> {
+    pub fn loan_locations(&self) -> FxHashMap<facts::Loan, mir::Location> {
         self.loan_position
             .iter()
             .map(|(loan, location)| (*loan, *location))
@@ -1844,7 +1844,7 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
 //             }]
 //         } else {
 //             debug_assert_eq!(location.statement_index, 0);
-//             let mut predecessors = HashSet::default();
+//             let mut predecessors = FxHashSet::default();
 //             for (bbi, bb_data) in self.mir.basic_blocks().iter_enumerated() {
 //                 for &bb_successor in bb_data.terminator().successors() {
 //                     if bb_successor == location.block {
@@ -1993,7 +1993,7 @@ pub struct AdditionalFacts {
     ///     origin_live_on_entry(R, Q).
     /// ```
     pub zombie_requires:
-        FxHashMap<facts::PointIndex, BTreeMap<facts::Region, BTreeSet<facts::Loan>>>,
+        RustcPrivateFxHashMap<facts::PointIndex, BTreeMap<facts::Region, BTreeSet<facts::Loan>>>,
     /// The ``zombie_borrow_live_at`` facts are ``loan_live_at`` facts
     /// for the loans that were loan_killed_at.
     ///
@@ -2002,9 +2002,9 @@ pub struct AdditionalFacts {
     ///     zombie_requires(R, L, P),
     ///     origin_live_on_entry(R, P).
     /// ```
-    pub zombie_borrow_live_at: FxHashMap<facts::PointIndex, Vec<facts::Loan>>,
+    pub zombie_borrow_live_at: RustcPrivateFxHashMap<facts::PointIndex, Vec<facts::Loan>>,
     /// Which loans were loan_killed_at (become zombies) at a given point.
-    pub borrow_become_zombie_at: FxHashMap<facts::PointIndex, Vec<facts::Loan>>,
+    pub borrow_become_zombie_at: RustcPrivateFxHashMap<facts::PointIndex, Vec<facts::Loan>>,
 }
 
 impl AdditionalFacts {
@@ -2014,9 +2014,9 @@ impl AdditionalFacts {
         all_facts: &facts::AllInputFacts,
         output: &facts::AllOutputFacts,
     ) -> (
-        FxHashMap<facts::PointIndex, BTreeMap<facts::Region, BTreeSet<facts::Loan>>>,
-        FxHashMap<facts::PointIndex, Vec<facts::Loan>>,
-        FxHashMap<facts::PointIndex, Vec<facts::Loan>>,
+        RustcPrivateFxHashMap<facts::PointIndex, BTreeMap<facts::Region, BTreeSet<facts::Loan>>>,
+        RustcPrivateFxHashMap<facts::PointIndex, Vec<facts::Loan>>,
+        RustcPrivateFxHashMap<facts::PointIndex, Vec<facts::Loan>>,
     ) {
         use self::facts::{Loan, PointIndex as Point, Region};
         use datafrog::{Iteration, Relation};
@@ -2148,7 +2148,7 @@ impl AdditionalFacts {
         }
 
         let zombie_requires = zombie_requires.complete();
-        let mut zombie_requires_map = FxHashMap::default();
+        let mut zombie_requires_map = RustcPrivateFxHashMap::default();
         for (region, loan, point) in &zombie_requires.elements {
             zombie_requires_map
                 .entry(*point)
@@ -2159,7 +2159,7 @@ impl AdditionalFacts {
         }
 
         let zombie_borrow_live_at = zombie_borrow_live_at.complete();
-        let mut zombie_borrow_live_at_map = FxHashMap::default();
+        let mut zombie_borrow_live_at_map = RustcPrivateFxHashMap::default();
         for (loan, point) in &zombie_borrow_live_at.elements {
             zombie_borrow_live_at_map
                 .entry(*point)
@@ -2168,7 +2168,7 @@ impl AdditionalFacts {
         }
 
         let borrow_become_zombie_at = borrow_become_zombie_at.complete();
-        let mut borrow_become_zombie_at_map = FxHashMap::default();
+        let mut borrow_become_zombie_at_map = RustcPrivateFxHashMap::default();
         for (loan, point) in &borrow_become_zombie_at.elements {
             borrow_become_zombie_at_map
                 .entry(*point)
