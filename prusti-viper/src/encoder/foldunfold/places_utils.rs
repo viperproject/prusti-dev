@@ -104,6 +104,9 @@ pub fn union3<T: Eq + Hash + Clone>(
 }
 
 /// Returns the intersection of two sets
-pub fn intersection<T: Eq + Hash + Clone>(left: &FxHashSet<T>, right: &FxHashSet<T>) -> FxHashSet<T> {
+pub fn intersection<T: Eq + Hash + Clone>(
+    left: &FxHashSet<T>,
+    right: &FxHashSet<T>,
+) -> FxHashSet<T> {
     left.clone().intersection(right).cloned().collect()
 }
