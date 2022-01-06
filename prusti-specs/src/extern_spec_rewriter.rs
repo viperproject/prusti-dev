@@ -353,6 +353,32 @@ pub mod traits {
         })
     }
 
+    /// Given a trait declaration, returns the bounds to `Self` in the where clause
+    /// # Example
+    /// ```
+    /// trait Foo where Self: Bar<Baz> + Qux, Self: Quux
+    /// ```
+    /// Returns `Bar<Baz> + Qux + Quux`
+    fn get_bounds_of_self(
+        item_trait: &syn::ItemTrait,
+    ) -> syn::punctuated::Punctuated<syn::TypeParamBound, syn::Token![+]> {
+        let mut bounds: syn::punctuated::Punctuated<syn::TypeParamBound, syn::Token![+]> = syn::punctuated::Punctuated::new();
+
+        if let Some(ref where_clause) = item_trait.generics.where_clause {
+            for where_predicate in where_clause.predicates.iter() {
+                if let syn::WherePredicate::Type(where_predicate_type) = where_predicate {
+                    if let syn::Type::Path(bounded_type_path) = &where_predicate_type.bounded_ty {
+                        let path_ident = bounded_type_path.path.get_ident();
+                        if  path_ident.is_some() && path_ident.unwrap() == "Self" {
+                            bounds.extend(where_predicate_type.bounds.clone());
+                        }
+                    }
+                }
+            }
+        }
+        bounds
+    }
+
     /// Responsible for generating a struct
     fn generate_new_struct(item_trait: &syn::ItemTrait) -> syn::Result<GeneratedStruct> {
         // TODO: Handle generics in Trait
@@ -397,8 +423,9 @@ pub mod traits {
         // and it's possible restrictions on Self
         let trait_assoc_type_idents = assoc_types_to_generics_map.keys();
         let trait_assoc_type_generics = assoc_types_to_generics_map.values();
+        let self_bounds_ts = get_bounds_of_self(item_trait);
         let self_where_clause: syn::WhereClause = parse_quote! {
-            where #self_type_param_ident: #trait_ident <#(#trait_assoc_type_idents = #trait_assoc_type_generics),*>
+            where #self_type_param_ident: #trait_ident <#(#trait_assoc_type_idents = #trait_assoc_type_generics),*> + #self_bounds_ts
         };
         new_struct.generics.where_clause = Some(self_where_clause);
 
@@ -424,7 +451,7 @@ pub mod traits {
     impl<'a> GeneratedStruct<'a> {
         fn generate_impl(&self) -> syn::ItemImpl {
             // TODO: Check that for every associated type on trait, there is a generic param in struct
-            // TODO: Use spans
+            // TODO: Use spans!
 
             // Generate the impl block for the struct
             let trait_ident = &self.item_trait.ident;
@@ -472,7 +499,6 @@ pub mod traits {
                         );
                         trait_method.sig.output = syn::parse2(output_ts).unwrap();
 
-                        // TODO: Might need to rename method to avoid name clashes
                         let signature = trait_method.sig.clone().into_token_stream();
                         let signature = &rewrite_access_to_assoc_types(
                             signature,
@@ -511,7 +537,7 @@ pub mod traits {
         result
     }
 
-    // TODO Ugly
+    // TODO ugly af
     fn rewrite_access_to_assoc_types(
         tokens: proc_macro2::TokenStream,
         repl: &HashMap<&syn::Ident, syn::TypeParam>,
