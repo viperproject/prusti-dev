@@ -15,12 +15,14 @@ pub fn process_verification_request_cache<'v, 't: 'v>(
     request: VerificationRequest,
     cache: impl Cache,
 ) -> viper::VerificationResult {
-    if config::disable_cache() || config::print_hash() {
+    if !config::enable_cache() || config::print_hash() {
         process_verification_request(verification_context, request)
     } else {
         let hash = request.get_hash();
+        info!("Verification request hash: {}", hash);
         // Try to load from cache and return `result`
         if let Some(result) = cache.get(hash) {
+            info!("Using verification result from the cache");
             return result;
         }
         let result = process_verification_request(verification_context, request);
@@ -37,7 +39,7 @@ pub fn process_verification_request<'v, 't: 'v>(
     // Print hash of the `VerificationRequest`
     if config::print_hash() {
         println!(
-            "Recieved verification request for: {}",
+            "Received verification request for: {}",
             request.program.name
         );
         println!("Hash of the request is: {}", request.get_hash());

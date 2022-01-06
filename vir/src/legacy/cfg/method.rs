@@ -23,6 +23,7 @@ pub struct CfgMethod {
     pub formal_arg_count: usize,
     pub formal_returns: Vec<LocalVar>,
     pub local_vars: Vec<LocalVar>,
+    #[derivative(Hash = "ignore")]
     pub labels: HashSet<String>,
     pub basic_blocks: Vec<CfgBlock>,
     pub basic_blocks_labels: Vec<String>,

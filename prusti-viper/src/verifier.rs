@@ -17,7 +17,7 @@ use prusti_interface::environment::Environment;
 use prusti_interface::PrustiError;
 // use prusti_interface::specifications::TypedSpecificationMap;
 use std::time::Instant;
-use viper::{self, CacheData, VerificationBackend, Viper};
+use viper::{self, PersistentCache, VerificationBackend, Viper};
 use std::path::PathBuf;
 use std::fs;
 use std::ffi::OsString;
@@ -422,8 +422,7 @@ fn verify_programs(env: &Environment, programs: Vec<vir::Program>)
         stopwatch.start_next("attach current thread to the JVM");
         let viper_thread = viper.attach_current_thread();
         stopwatch.finish();
-        let cache_loc = config::cache_dir() + "data.json";
-        let mut cache = CacheData::load_cache(&cache_loc);
+        let mut cache = PersistentCache::load_cache(config::cache_path().into());
         verification_requests.map(|(program_name, request)| {
             let result = process_verification_request_cache(&viper_thread, request, &mut cache);
             (program_name, result)
