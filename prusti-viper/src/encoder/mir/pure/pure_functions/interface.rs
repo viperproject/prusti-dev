@@ -16,7 +16,7 @@ use std::{
     cell::{Ref, RefCell},
     collections::{HashMap, HashSet},
 };
-use vir_crate::{high as vir_high, polymorphic as vir_poly};
+use vir_crate::{common::identifier::WithIdentifier, high as vir_high, polymorphic as vir_poly};
 
 type Key = (ProcedureDefId, Vec<vir_high::Type>);
 
@@ -54,13 +54,13 @@ pub(crate) trait PureFunctionEncoderInterface<'tcx> {
         parent_def_id: ProcedureDefId,
         substs: &SubstMap<'tcx>,
     ) -> SpannedEncodingResult<vir_poly::Expr>;
+
     /// Encode the body of the given procedure as a pure expression.
     fn encode_pure_expression_high(
         &self,
         proc_def_id: ProcedureDefId,
         parent_def_id: ProcedureDefId,
         substs: &SubstMap<'tcx>,
-        // FIXME: The return type should be vir_high::Expression
     ) -> SpannedEncodingResult<vir_high::Expression>;
 
     /// Encode the pure function definition.
@@ -353,7 +353,7 @@ impl<'v, 'tcx: 'v> PureFunctionEncoderInterface<'tcx>
 
             // Save the information necessary to encode the function definition.
             let function_identifier: vir_poly::FunctionIdentifier =
-                vir_poly::WithIdentifier::get_identifier(&function_call_info).into();
+                WithIdentifier::get_identifier(&function_call_info).into();
             let mut function_descriptions = self
                 .pure_function_encoder_state
                 .function_descriptions

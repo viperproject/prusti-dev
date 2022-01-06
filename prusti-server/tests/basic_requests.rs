@@ -59,7 +59,7 @@ where
     configure(&mut program);
 
     let request = VerificationRequest {
-        program,
+        program: prusti_common::vir::program::Program::Legacy(program),
         backend_config: Default::default(),
     };
 

@@ -6,8 +6,8 @@
 
 use rustc_hir::def_id::DefId;
 use std::collections::HashSet;
-
-use vir_crate::polymorphic::{self as vir, ExprIterator, WithIdentifier};
+use vir_crate::common::identifier::WithIdentifier;
+use vir_crate::polymorphic::{self as vir, ExprIterator};
 use prusti_interface::environment::borrowck::facts::Loan;
 use crate::encoder::encoder::Encoder;
 use std::collections::HashMap;

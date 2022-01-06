@@ -32,6 +32,7 @@ use rustc_middle::{mir, span_bug, ty};
 use rustc_span::Span;
 use std::{collections::HashMap, mem};
 use vir_crate::{
+    common::identifier::WithIdentifier,
     high as vir_high,
     polymorphic::{self as vir, ExprIterator},
 };
@@ -504,7 +505,7 @@ pub(super) struct FunctionCallInfo {
     pub return_type: vir::Type,
 }
 
-impl vir::WithIdentifier for FunctionCallInfo {
+impl WithIdentifier for FunctionCallInfo {
     fn get_identifier(&self) -> String {
         vir::compute_identifier(
             &self.name,
