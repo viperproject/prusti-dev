@@ -137,7 +137,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
 
         let cfg_method = vir::CfgMethod::new(
             // method name
-            encoder.encode_item_name(def_id),
+            encoder.encode_item_name(def_id, ""),
             // formal args
             mir.arg_count,
             // formal returns

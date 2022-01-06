@@ -22,7 +22,8 @@ use rustc_middle::{mir, span_bug, ty};
 use rustc_span::Span;
 use vir_crate::{
     common::expression::ExpressionIterator,
-    high::{self as vir_high},
+    high as vir_high,
+    polymorphic::NameHash,
 };
 
 use super::encoder::FunctionCallInfoHigh;
@@ -188,8 +189,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureEncoder<'p, 'v, 'tcx> {
         function
     }
 
-    fn encode_function_name(&self) -> String {
-        self.encoder.encode_item_name(self.proc_def_id)
+    fn encode_function_name(&self) -> NameHash {
+        self.encoder.encode_item_name(self.proc_def_id, "")
     }
 
     fn encode_function_decl_given_body(

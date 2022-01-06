@@ -28,7 +28,7 @@ use prusti_interface::specs::typed::SpecificationId;
 use prusti_interface::utils::{has_spec_only_attr, read_prusti_attrs};
 use prusti_interface::PrustiError;
 use prusti_specs::specifications::common::SpecIdRef;
-use vir_crate::polymorphic::{self as vir, WithIdentifier, ExprIterator};
+use vir_crate::polymorphic::{self as vir, WithIdentifier, ExprIterator, NameHash};
 use rustc_hir as hir;
 use rustc_hir::def_id::DefId;
 // use rustc::middle::const_val::ConstVal;
@@ -781,14 +781,15 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         expr
     }
 
-    pub fn encode_item_name(&self, def_id: DefId) -> String {
-        let full_name = format!("m_{}", encode_identifier(self.env.get_item_def_path(def_id)));
-        let short_name = format!("m_{}", encode_identifier(
-            self.env.tcx().opt_item_name(def_id)
-                .map(|s| s.name.to_ident_string())
-                .unwrap_or_else(|| self.env.get_item_name(def_id))
-        ));
-        self.intern_viper_identifier(full_name, short_name)
+    pub fn encode_item_name(&self, def_id: DefId, prefix: &str) -> NameHash {
+        self.name_interner.borrow_mut().intern(&format!("{}m_", prefix), def_id, self.env.tcx())
+    }
+
+    // TODO: why are we using this check?
+    pub fn is_closure(&self, def_id: DefId) -> bool {
+        let def_path = self.env.tcx().def_path(def_id);
+        let item_name = def_path.to_string_no_crate_verbose();
+        item_name.contains("_closure_")
     }
 
     pub fn encode_invariant_func_app(
@@ -931,38 +932,13 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         })
     }
 
-    pub fn encode_spec_func_name(&self, def_id: ProcedureDefId, kind: SpecFunctionKind) -> String {
+    pub fn encode_spec_func_name(&self, def_id: ProcedureDefId, kind: SpecFunctionKind) -> NameHash {
         let kind_name = match kind {
             SpecFunctionKind::Pre => "pre",
             SpecFunctionKind::Post => "post",
             SpecFunctionKind::HistInv => "histinv",
         };
-        let full_name = format!(
-            "sf_{}_{}",
-            kind_name,
-            encode_identifier(self.env.get_item_def_path(def_id))
-        );
-        let short_name = format!(
-            "sf_{}_{}",
-            kind_name,
-            encode_identifier(
-                self.env.tcx().opt_item_name(def_id)
-                    .map(|s| s.name.to_ident_string())
-                    .unwrap_or_else(|| self.env.get_item_name(def_id))
-            )
-        );
-        self.intern_viper_identifier(full_name, short_name)
-    }
-
-    pub fn intern_viper_identifier<S: AsRef<str>>(&self, full_name: S, short_name: S) -> String {
-        let result = if config::disable_name_mangling() {
-            short_name.as_ref().to_string()
-        } else if config::intern_names() {
-            self.name_interner.borrow_mut().intern(full_name, &[short_name])
-        } else {
-            full_name.as_ref().to_string()
-        };
-        result
+        self.name_interner.borrow_mut().intern(&format!("sf_{}_", kind_name), def_id, self.env.tcx())
     }
 
     pub fn encode_array_types(

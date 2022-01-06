@@ -33,7 +33,7 @@ use rustc_span::Span;
 use std::{collections::HashMap, mem};
 use vir_crate::{
     high as vir_high,
-    polymorphic::{self as vir, ExprIterator},
+    polymorphic::{self as vir, ExprIterator, NameHash},
 };
 
 pub(super) struct PureFunctionEncoder<'p, 'v: 'p, 'tcx: 'v> {
@@ -424,8 +424,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
         self.interpreter.mir_encoder().get_local_span(local)
     }
 
-    pub fn encode_function_name(&self) -> String {
-        self.encoder.encode_item_name(self.proc_def_id)
+    pub fn encode_function_name(&self) -> NameHash {
+        self.encoder.encode_item_name(self.proc_def_id, "")
     }
 
     pub fn encode_function_return_type(&self) -> SpannedEncodingResult<vir::Type> {

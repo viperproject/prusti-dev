@@ -4,59 +4,125 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use std::collections::{HashMap, HashSet};
+use vir_crate::polymorphic::NameHash;
+use prusti_common::config;
+use rustc_hash::{FxHashMap as HashMap, FxHashSet as HashSet};
+use rustc_hir::definitions::DefPath;
+use rustc_hir::def_id::DefPathHash;
+use std::fmt;
 use log::debug;
+
+// Tracks if crate-unqiue and module-unique names are needed to ensure uniqueness
+#[derive(Debug)]
+struct ShortName {
+    prefix: String,
+    project_unique: (bool, String),
+    crate_unique: (bool, String),
+    mod_unique: (bool, String),
+    short_name: String,
+}
+impl fmt::Display for ShortName {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}", self.prefix);
+        if !self.project_unique.0 {
+            write!(f, "{}::", self.project_unique.1);
+        }
+        if !self.crate_unique.0 {
+            write!(f, "{}::", self.crate_unique.1);
+        }
+        if !self.mod_unique.0 {
+            write!(f, "{}::", self.mod_unique.1);
+        }
+        write!(f, "{}", self.short_name)
+    }
+}
+impl ShortName {
+    fn update(&mut self, other: &mut Self) {
+        if self.short_name == other.short_name && self.prefix == other.prefix {
+            if self.project_unique.1 != other.project_unique.1 {
+                self.project_unique.0 = false;
+                other.project_unique.0 = false;
+            } else if self.crate_unique.1 != other.crate_unique.1 {
+                self.crate_unique.0 = false;
+                other.crate_unique.0 = false;
+            } else if self.mod_unique.1 != other.mod_unique.1 {
+                self.mod_unique.0 = false;
+                other.mod_unique.0 = false;
+            } else {
+                panic!("Have been given two identical names: {:?}", self);
+            }
+        }
+    }
+}
 
 /// Name interner.
 /// This structure can be used to shorten long unique names without losing the uniqueness property.
-#[derive(Debug)]
 pub struct NameInterner {
-    name_to_symbol: HashMap<String, String>,
-    used_symbols: HashSet<String>,
+    name_to_short: HashMap<NameHash, ShortName>,
+    locked: bool,
 }
 
 impl NameInterner {
     pub fn new() -> Self {
         NameInterner {
-            name_to_symbol: HashMap::new(),
-            used_symbols: HashSet::new(),
+            name_to_short: HashMap::default(),
+            locked: false,
         }
     }
 
     /// Intern a full unique name, returning a possibly readable string that uniquely identifies it.
-    /// The `readable_names` must not collide with past or future `full_unique_name`s, except for
-    /// the `full_unique_name` passed in the same call.
-    pub fn intern<S: AsRef<str>>(&mut self, full_unique_name: S, readable_names: &[S]) -> String {
-        let full_unique_name = full_unique_name.as_ref();
+    pub fn intern(&mut self, prefix: &str, def_id: DefId, tcx: TyCtxt) -> NameHash {
+        let def_path = tcx.def_path(def_id);
+        // The `to_string` gives each `DisambiguatedDefPathData` separated by "::"
+        let crate_name = tcx.crate_name(def_path.krate).to_string();
+        // Assume that the friendly `tcx.opt_item_name` is the last one, use second-to-last as the mod unique, and others as crate unique.
+        let item_name = def_path.to_string_no_crate_verbose().rsplitn(3, "::");
+        let short_name = item_name.next().unwrap_or_default();
+        let mod_unique = item_name.next().unwrap_or_default();
+        // TODO: How does this work when we have a crate with multiple files
+        let crate_unique = item_name.next().unwrap_or_default();
 
-        debug_assert!(!readable_names.iter().any(|r| r.as_ref() == ""));
+        let path_hash = tcx.def_path_hash(def_id);
+        let key = NameHash::new(path_hash.stable_crate_id().to_u64(), path_hash.local_hash());
+        let name = self.intern_name(prefix.to_string(), crate_name, crate_unique, mod_unique, short_name);
+        // Uniqueness is ensured by `ShortName::update`; `Some` indicates a clash of the Hash
+        let old = self.name_to_short.insert(key, name);
+        assert!(old.is_none(), "Two name hashes have clashed! This is exceedingly rare");
+    }
 
-        // Check that the readable name is not equal to full names passed in the past.
-        debug_assert!(!readable_names.iter().any(
-            |r| r.as_ref() != full_unique_name && self.name_to_symbol.contains_key(r.as_ref())
-        ));
-
-        // Check that readable names passed in the past are not equal to the current full name.
-        debug_assert!(
-            self.name_to_symbol.contains_key(full_unique_name)
-            || !self.used_symbols.contains(full_unique_name)
-        );
-
-        // Return the symbol, if we already interned the full name
-        if let Some(symbol) = self.name_to_symbol.get(full_unique_name) {
-            debug!("Interning of {:?} is {:?}", full_unique_name, symbol);
-            return symbol.clone();
+    fn intern_name(&mut self, prefix: String, project_unique: String, crate_unique: String, mod_unique: String, short_name: String) -> ShortName {
+        if self.locked {
+            let full_name = format!("{}{}::{}::{}::{}", prefix, project_unique, crate_unique, mod_unique, short_name);
+            let short_name = format!("{}{}", prefix, short_name);
+            panic!(
+                "Attempting to add {} to the `NameInterner` after names have been read out, \
+                this could invalidate these names if they clash with {}!",
+                full_name,
+                short_name
+            );
         }
+        let can_be_unqiue = config::disable_name_mangling() || config::intern_names();
+        let mut name = ShortName {
+            prefix,
+            // If name_mangling is enabled but `!intern_names`, assume nothing is unique:
+            // `!crate_unique.0` and `!mod_unique.0`
+            project_unique: (can_be_unqiue, crate_name),
+            crate_unique: (can_be_unqiue, crate_unique),
+            mod_unique: (can_be_unqiue, mod_unique),
+            short_name,
+        };
+        // Intern mangled names only if `enable_name_mangling && intern_names`
+        if !config::disable_name_mangling() && config::intern_names() {
+            for (_, mut value) in self.name_to_short {
+                value.update(&mut name);
+            }
+        }
+        name
+    }
 
-        let symbol = readable_names.iter()
-            .find(|r| !self.used_symbols.contains(r.as_ref()))
-            .map(|r| r.as_ref())
-            .unwrap_or(full_unique_name);
-        debug!("Interning of {:?} is {:?}", full_unique_name, symbol);
-        self.used_symbols.insert(symbol.to_string());
-        self.name_to_symbol.insert(full_unique_name.to_string(), symbol.to_string());
-
-        symbol.to_string()
+    pub fn get_interned(&mut self, full_name: &NameHash) -> String {
+        self.locked = true;
+        self.name_to_short.get(full_name).unwrap().to_string()
     }
 }
 
@@ -66,6 +132,7 @@ impl Default for NameInterner {
     }
 }
 
+/*
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -151,3 +218,4 @@ mod tests {
         let _ = interner.intern("second", &[""]);
     }
 }
+*/
