@@ -5,7 +5,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use crate::{common::display, polymorphic::ast::*};
-use rustc_hash::FxHashMap as HashMap;
+use rustc_hash::FxHashMap;
 use std::fmt;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]

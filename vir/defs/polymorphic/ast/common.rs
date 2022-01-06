@@ -5,7 +5,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use crate::{converter::type_substitution::Generic, polymorphic::ast::*};
-use rustc_hash::FxHashMap as HashMap;
+use rustc_hash::FxHashMap;
 use std::{
     cmp::Ordering,
     collections::hash_map::DefaultHasher,
@@ -206,7 +206,7 @@ impl Type {
     }
 
     /// Replace all generic types with their instantiations by using string substitution.
-    pub fn patch(self, substs: &HashMap<TypeVar, Type>) -> Self {
+    pub fn patch(self, substs: &FxHashMap<TypeVar, Type>) -> Self {
         self.substitute(substs)
     }
 
