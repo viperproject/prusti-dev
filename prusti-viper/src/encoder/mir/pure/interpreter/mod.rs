@@ -23,7 +23,7 @@ use crate::encoder::{
 };
 use log::{debug, trace};
 use prusti_common::vir_high_local;
-use rustc_hash::FxHashMap as HashMap;
+use rustc_hash::FxHashMap;
 use rustc_hir::def_id::DefId;
 use rustc_middle::{mir, span_bug, ty};
 use rustc_span::Span;
@@ -331,7 +331,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
         switch_ty: ty::Ty<'tcx>,
         discriminant: &mir::Operand<'tcx>,
         targets: &mir::SwitchTargets,
-        states: HashMap<mir::BasicBlock, &ExprBackwardInterpreterState>,
+        states: FxHashMap<mir::BasicBlock, &ExprBackwardInterpreterState>,
         span: Span,
     ) -> SpannedEncodingResult<ExprBackwardInterpreterState> {
         trace!(
@@ -416,7 +416,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
         args: &[mir::Operand<'tcx>],
         destination: &Option<(mir::Place<'tcx>, mir::BasicBlock)>,
         ty: ty::Ty<'tcx>,
-        states: HashMap<mir::BasicBlock, &ExprBackwardInterpreterState>,
+        states: FxHashMap<mir::BasicBlock, &ExprBackwardInterpreterState>,
         span: Span,
     ) -> SpannedEncodingResult<ExprBackwardInterpreterState> {
         if let ty::TyKind::FnDef(def_id, substs) = ty.kind() {
@@ -552,7 +552,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
     fn encode_call_len(
         &self,
         target_block: mir::BasicBlock,
-        states: HashMap<mir::BasicBlock, &ExprBackwardInterpreterState>,
+        states: FxHashMap<mir::BasicBlock, &ExprBackwardInterpreterState>,
         lhs: vir_high::Expression,
         arg: vir_high::Expression,
         span: Span,
@@ -566,7 +566,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
     fn encode_call_index(
         &self,
         target_block: mir::BasicBlock,
-        states: HashMap<mir::BasicBlock, &ExprBackwardInterpreterState>,
+        states: FxHashMap<mir::BasicBlock, &ExprBackwardInterpreterState>,
         lhs: vir_high::Expression,
         container: vir_high::Expression,
         index: vir_high::Expression,
@@ -585,7 +585,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
     fn encode_call_generic(
         &self,
         target_block: mir::BasicBlock,
-        states: HashMap<mir::BasicBlock, &ExprBackwardInterpreterState>,
+        states: FxHashMap<mir::BasicBlock, &ExprBackwardInterpreterState>,
         lhs: vir_high::Expression,
         def_id: DefId,
         args: Vec<vir_high::Expression>,
@@ -665,7 +665,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
         &self,
         _bb: mir::BasicBlock,
         terminator: &mir::Terminator<'tcx>,
-        states: HashMap<mir::BasicBlock, &Self::State>,
+        states: FxHashMap<mir::BasicBlock, &Self::State>,
     ) -> Result<Self::State, Self::Error> {
         use rustc_middle::mir::TerminatorKind;
         let span = terminator.source_info.span;
