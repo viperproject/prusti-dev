@@ -1,1 +1,1 @@
-initSidebarItems({"mod":[["common",""],["converter",""],["high",""],["legacy",""],["polymorphic",""],["snapshot",""]]});
+initSidebarItems({"mod":[["common",""],["converter",""],["high",""],["legacy",""],["low",""],["middle",""],["polymorphic",""],["snapshot",""]]});

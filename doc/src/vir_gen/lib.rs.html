@@ -68,12 +68,12 @@
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/index.html">std::mem</a>;
 <span class="kw">use</span> <span class="ident">syn::parse_quote</span>;
 
-<span class="kw">mod</span> <a class="ident" href="../../src/vir_gen/ast/mod.rs.html#1-61">ast</a>;
+<span class="kw">mod</span> <a class="ident" href="../../src/vir_gen/ast/mod.rs.html#1-67">ast</a>;
 <span class="kw">mod</span> <a class="ident" href="../../src/vir_gen/deriver/mod.rs.html#1-66">deriver</a>;
 <span class="kw">mod</span> <a class="ident" href="../../src/vir_gen/generator/mod.rs.html#1-32">generator</a>;
 <span class="kw">mod</span> <a class="ident" href="../../src/vir_gen/helpers.rs.html#1-130">helpers</a>;
 <span class="kw">mod</span> <a class="ident" href="../../src/vir_gen/parser/mod.rs.html#1-70">parser</a>;
-<span class="kw">mod</span> <a class="ident" href="../../src/vir_gen/resolver/mod.rs.html#1-241">resolver</a>;
+<span class="kw">mod</span> <a class="ident" href="../../src/vir_gen/resolver/mod.rs.html#1-303">resolver</a>;
 
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">define_vir</span>(<span class="ident">input</span>: <a class="ident" href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>, <span class="ident">source_file</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">std::path::Path</a>) -&gt; <a class="ident" href="../../proc_macro2/struct.TokenStream.html">TokenStream</a> {
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">declarations</span>: <a class="ident" href="../../src/vir_gen/ast/mod.rs.html#1-6">ast::Declarations</a> <span class="op">=</span> <span class="ident">syn::parse2</span>(<a class="ident" href="../../src/vir_gen/lib.rs.html#13">input</a>)
@@ -99,16 +99,16 @@
         }
         <span class="ident">mem::swap</span>(<a class="ident" href="../../src/vir_gen/lib.rs.html#27">ir</a>, <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/vir_gen/lib.rs.html#16">sentinel_item</a>);
     }
-    <span class="kw">for</span> <span class="ident">ir</span> <span class="kw">in</span> <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/vir_gen/lib.rs.html#14">declarations</a>.<span class="ident">irs</span> {
-        <span class="ident">mem::swap</span>(<a class="ident" href="../../src/vir_gen/lib.rs.html#37">ir</a>, <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/vir_gen/lib.rs.html#16">sentinel_item</a>);
-        <span class="kw">let</span> (<span class="ident">new_item</span>, <span class="ident">errors</span>) <span class="op">=</span> <a class="ident" href="../../src/vir_gen/resolver/mod.rs.html#6-9">resolver::expand</a>(<a class="ident" href="../../src/vir_gen/lib.rs.html#16">sentinel_item</a>, <span class="kw-2">&amp;</span><a class="ident" href="../../src/vir_gen/lib.rs.html#14">declarations</a>.<span class="ident">components</span>);
-        <a class="ident" href="../../src/vir_gen/lib.rs.html#16">sentinel_item</a> <span class="op">=</span> <a class="ident" href="../../src/vir_gen/lib.rs.html#39">new_item</a>;
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">resolved_irs</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
+    <span class="kw">for</span> <span class="ident">ir</span> <span class="kw">in</span> <a class="ident" href="../../src/vir_gen/lib.rs.html#14">declarations</a>.<span class="ident">irs</span> {
+        <span class="kw">let</span> (<span class="ident">new_item</span>, <span class="ident">errors</span>) <span class="op">=</span> <a class="ident" href="../../src/vir_gen/resolver/mod.rs.html#6-10">resolver::expand</a>(<a class="ident" href="../../src/vir_gen/lib.rs.html#38">ir</a>, <span class="kw-2">&amp;</span><a class="ident" href="../../src/vir_gen/lib.rs.html#14">declarations</a>.<span class="ident">components</span>, <span class="kw-2">&amp;</span><a class="ident" href="../../src/vir_gen/lib.rs.html#37">resolved_irs</a>);
         <span class="kw">for</span> <span class="ident">error</span> <span class="kw">in</span> <a class="ident" href="../../src/vir_gen/lib.rs.html#39">errors</a> {
-            <span class="macro">eprintln!</span>(<span class="string">&quot;error in resolving declarations: {}&quot;</span>, <a class="ident" href="../../src/vir_gen/lib.rs.html#41">error</a>);
-            <a class="ident" href="../../src/vir_gen/lib.rs.html#17">error_tokens</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a class="ident" href="../../src/vir_gen/lib.rs.html#41">error</a>.<span class="ident">to_compile_error</span>());
+            <span class="macro">eprintln!</span>(<span class="string">&quot;error in resolving declarations: {}&quot;</span>, <a class="ident" href="../../src/vir_gen/lib.rs.html#40">error</a>);
+            <a class="ident" href="../../src/vir_gen/lib.rs.html#17">error_tokens</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a class="ident" href="../../src/vir_gen/lib.rs.html#40">error</a>.<span class="ident">to_compile_error</span>());
         }
-        <span class="ident">mem::swap</span>(<a class="ident" href="../../src/vir_gen/lib.rs.html#37">ir</a>, <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/vir_gen/lib.rs.html#16">sentinel_item</a>);
+        <a class="ident" href="../../src/vir_gen/lib.rs.html#37">resolved_irs</a>.<span class="ident">push</span>(<a class="ident" href="../../src/vir_gen/lib.rs.html#39">new_item</a>);
     }
+    <a class="ident" href="../../src/vir_gen/lib.rs.html#14">declarations</a>.<span class="ident">irs</span> <span class="op">=</span> <a class="ident" href="../../src/vir_gen/lib.rs.html#37">resolved_irs</a>;
     <span class="kw">let</span> <span class="ident">original_irs</span> <span class="op">=</span> <a class="ident" href="../../src/vir_gen/lib.rs.html#14">declarations</a>.<span class="ident">irs</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
     <span class="kw">for</span> <span class="ident">ir</span> <span class="kw">in</span> <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/vir_gen/lib.rs.html#14">declarations</a>.<span class="ident">irs</span> {
         <span class="ident">mem::swap</span>(<a class="ident" href="../../src/vir_gen/lib.rs.html#48">ir</a>, <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/vir_gen/lib.rs.html#16">sentinel_item</a>);

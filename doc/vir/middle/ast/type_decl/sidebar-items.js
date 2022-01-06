@@ -1,0 +1,1 @@
+initSidebarItems({"enum":[["TypeDecl",""]],"struct":[["Array",""],["Closure",""],["Enum",""],["Float",""],["Int",""],["Reference",""],["Struct",""],["Tuple",""],["TypeVar",""],["Unsupported",""]]});

@@ -1,0 +1,478 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `prusti-viper&#x2F;src&#x2F;encoder&#x2F;middle&#x2F;core_proof&#x2F;lower&#x2F;cfg.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>cfg.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../../../storage.js"></script><script src="../../../../../../crates.js"></script><script defer src="../../../../../../main.js"></script><script defer src="../../../../../../source-script.js"></script><script defer src="../../../../../../source-files.js"></script>
+    <noscript><link rel="stylesheet" href="../../../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a class="sidebar-logo" href='../../../../../../prusti_viper/index.html'><div class='logo-container rust-logo'><img src='../../../../../../rust-logo.png' alt='logo'></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container rust-logo" href='../../../../../../prusti_viper/index.html'><img src='../../../../../../rust-logo.png' alt='logo'></a><nav class="sub"><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../../../../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../../../../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../../../../../wheel.svg"></a></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
+<span id="2">  2</span>
+<span id="3">  3</span>
+<span id="4">  4</span>
+<span id="5">  5</span>
+<span id="6">  6</span>
+<span id="7">  7</span>
+<span id="8">  8</span>
+<span id="9">  9</span>
+<span id="10"> 10</span>
+<span id="11"> 11</span>
+<span id="12"> 12</span>
+<span id="13"> 13</span>
+<span id="14"> 14</span>
+<span id="15"> 15</span>
+<span id="16"> 16</span>
+<span id="17"> 17</span>
+<span id="18"> 18</span>
+<span id="19"> 19</span>
+<span id="20"> 20</span>
+<span id="21"> 21</span>
+<span id="22"> 22</span>
+<span id="23"> 23</span>
+<span id="24"> 24</span>
+<span id="25"> 25</span>
+<span id="26"> 26</span>
+<span id="27"> 27</span>
+<span id="28"> 28</span>
+<span id="29"> 29</span>
+<span id="30"> 30</span>
+<span id="31"> 31</span>
+<span id="32"> 32</span>
+<span id="33"> 33</span>
+<span id="34"> 34</span>
+<span id="35"> 35</span>
+<span id="36"> 36</span>
+<span id="37"> 37</span>
+<span id="38"> 38</span>
+<span id="39"> 39</span>
+<span id="40"> 40</span>
+<span id="41"> 41</span>
+<span id="42"> 42</span>
+<span id="43"> 43</span>
+<span id="44"> 44</span>
+<span id="45"> 45</span>
+<span id="46"> 46</span>
+<span id="47"> 47</span>
+<span id="48"> 48</span>
+<span id="49"> 49</span>
+<span id="50"> 50</span>
+<span id="51"> 51</span>
+<span id="52"> 52</span>
+<span id="53"> 53</span>
+<span id="54"> 54</span>
+<span id="55"> 55</span>
+<span id="56"> 56</span>
+<span id="57"> 57</span>
+<span id="58"> 58</span>
+<span id="59"> 59</span>
+<span id="60"> 60</span>
+<span id="61"> 61</span>
+<span id="62"> 62</span>
+<span id="63"> 63</span>
+<span id="64"> 64</span>
+<span id="65"> 65</span>
+<span id="66"> 66</span>
+<span id="67"> 67</span>
+<span id="68"> 68</span>
+<span id="69"> 69</span>
+<span id="70"> 70</span>
+<span id="71"> 71</span>
+<span id="72"> 72</span>
+<span id="73"> 73</span>
+<span id="74"> 74</span>
+<span id="75"> 75</span>
+<span id="76"> 76</span>
+<span id="77"> 77</span>
+<span id="78"> 78</span>
+<span id="79"> 79</span>
+<span id="80"> 80</span>
+<span id="81"> 81</span>
+<span id="82"> 82</span>
+<span id="83"> 83</span>
+<span id="84"> 84</span>
+<span id="85"> 85</span>
+<span id="86"> 86</span>
+<span id="87"> 87</span>
+<span id="88"> 88</span>
+<span id="89"> 89</span>
+<span id="90"> 90</span>
+<span id="91"> 91</span>
+<span id="92"> 92</span>
+<span id="93"> 93</span>
+<span id="94"> 94</span>
+<span id="95"> 95</span>
+<span id="96"> 96</span>
+<span id="97"> 97</span>
+<span id="98"> 98</span>
+<span id="99"> 99</span>
+<span id="100">100</span>
+<span id="101">101</span>
+<span id="102">102</span>
+<span id="103">103</span>
+<span id="104">104</span>
+<span id="105">105</span>
+<span id="106">106</span>
+<span id="107">107</span>
+<span id="108">108</span>
+<span id="109">109</span>
+<span id="110">110</span>
+<span id="111">111</span>
+<span id="112">112</span>
+<span id="113">113</span>
+<span id="114">114</span>
+<span id="115">115</span>
+<span id="116">116</span>
+<span id="117">117</span>
+<span id="118">118</span>
+<span id="119">119</span>
+<span id="120">120</span>
+<span id="121">121</span>
+<span id="122">122</span>
+<span id="123">123</span>
+<span id="124">124</span>
+<span id="125">125</span>
+<span id="126">126</span>
+<span id="127">127</span>
+<span id="128">128</span>
+<span id="129">129</span>
+<span id="130">130</span>
+<span id="131">131</span>
+<span id="132">132</span>
+<span id="133">133</span>
+<span id="134">134</span>
+<span id="135">135</span>
+<span id="136">136</span>
+<span id="137">137</span>
+<span id="138">138</span>
+<span id="139">139</span>
+<span id="140">140</span>
+<span id="141">141</span>
+<span id="142">142</span>
+<span id="143">143</span>
+<span id="144">144</span>
+<span id="145">145</span>
+<span id="146">146</span>
+<span id="147">147</span>
+<span id="148">148</span>
+<span id="149">149</span>
+<span id="150">150</span>
+<span id="151">151</span>
+<span id="152">152</span>
+<span id="153">153</span>
+<span id="154">154</span>
+<span id="155">155</span>
+<span id="156">156</span>
+<span id="157">157</span>
+<span id="158">158</span>
+<span id="159">159</span>
+<span id="160">160</span>
+<span id="161">161</span>
+<span id="162">162</span>
+<span id="163">163</span>
+<span id="164">164</span>
+<span id="165">165</span>
+<span id="166">166</span>
+<span id="167">167</span>
+<span id="168">168</span>
+<span id="169">169</span>
+<span id="170">170</span>
+<span id="171">171</span>
+<span id="172">172</span>
+<span id="173">173</span>
+<span id="174">174</span>
+<span id="175">175</span>
+<span id="176">176</span>
+<span id="177">177</span>
+<span id="178">178</span>
+<span id="179">179</span>
+<span id="180">180</span>
+<span id="181">181</span>
+<span id="182">182</span>
+<span id="183">183</span>
+<span id="184">184</span>
+<span id="185">185</span>
+<span id="186">186</span>
+<span id="187">187</span>
+<span id="188">188</span>
+<span id="189">189</span>
+<span id="190">190</span>
+<span id="191">191</span>
+<span id="192">192</span>
+<span id="193">193</span>
+<span id="194">194</span>
+<span id="195">195</span>
+<span id="196">196</span>
+<span id="197">197</span>
+<span id="198">198</span>
+<span id="199">199</span>
+<span id="200">200</span>
+<span id="201">201</span>
+<span id="202">202</span>
+<span id="203">203</span>
+<span id="204">204</span>
+<span id="205">205</span>
+<span id="206">206</span>
+<span id="207">207</span>
+<span id="208">208</span>
+<span id="209">209</span>
+<span id="210">210</span>
+<span id="211">211</span>
+<span id="212">212</span>
+<span id="213">213</span>
+<span id="214">214</span>
+<span id="215">215</span>
+<span id="216">216</span>
+<span id="217">217</span>
+<span id="218">218</span>
+<span id="219">219</span>
+<span id="220">220</span>
+<span id="221">221</span>
+<span id="222">222</span>
+<span id="223">223</span>
+<span id="224">224</span>
+<span id="225">225</span>
+<span id="226">226</span>
+<span id="227">227</span>
+<span id="228">228</span>
+<span id="229">229</span>
+<span id="230">230</span>
+<span id="231">231</span>
+<span id="232">232</span>
+<span id="233">233</span>
+<span id="234">234</span>
+<span id="235">235</span>
+<span id="236">236</span>
+<span id="237">237</span>
+</pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">super</span>::{<a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lower/mod.rs.html#34-36">IntoLow</a>, <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lower/mod.rs.html#10-32">State</a>};
+<span class="kw">use</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/encoder.rs.html#71-103"><span class="kw">crate</span>::encoder::encoder::Encoder</a>;
+<span class="kw">use</span> <span class="ident">std::collections</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/std/collections/hash/map/struct.HashMap.html">HashMap</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/collections/hash/set/struct.HashSet.html">HashSet</a>};
+<span class="kw">use</span> <span class="ident">vir_crate</span>::{
+    <a class="ident" href="../../../../../../vir/common/identifier/trait.WithIdentifier.html">common::identifier::WithIdentifier</a>,
+    <span class="ident">low</span>::{<a class="ident" href="../../../../../../vir/gen/low/ast/index.html">ast</a> <span class="kw">as</span> <span class="ident">vir_low_ast</span>, <a class="ident" href="../../../../../../vir/gen/low/cfg/index.html">cfg</a> <span class="kw">as</span> <span class="ident">vir_low_cfg</span>},
+    <span class="ident">middle</span>::{<a class="ident" href="../../../../../../vir/gen/middle/ast/index.html">ast</a> <span class="kw">as</span> <span class="ident">vir_mid_ast</span>, <a class="ident" href="../../../../../../vir/gen/middle/cfg/index.html">cfg</a> <span class="kw">as</span> <span class="ident">vir_mid_cfg</span>, <a class="ident" href="../../../../../../vir/gen/middle/operations_internal/ty/trait.Typed.html">operations::ty::Typed</a>},
+};
+
+<span class="kw">impl</span> <span class="ident">IntoLow</span><span class="op">&lt;</span><a class="ident" href="../../../../../../vir/gen/low/cfg/method/struct.ProcedureDecl.html">vir_low_cfg::ProcedureDecl</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../../../../../vir/gen/middle/cfg/procedure/struct.ProcedureDecl.html">vir_mid_cfg::ProcedureDecl</a> {
+    <span class="kw">fn</span> <span class="ident">into_low</span>(<span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;mut</span> <span class="kw">dyn</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lower/mod.rs.html#10-32">State</a>) -&gt; <a class="ident" href="../../../../../../vir/gen/low/cfg/method/struct.ProcedureDecl.html">vir_low_cfg::ProcedureDecl</a> {
+        <span class="kw">let</span> <span class="ident">locals</span> <span class="op">=</span> <a class="self" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lower/cfg.rs.html#11">self</a>.<span class="ident">collect_locals</span>().<a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lower/mod.rs.html#35">into_low</a>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lower/cfg.rs.html#11">state</a>);
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">basic_blocks</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
+        <span class="kw">for</span> (<span class="ident">label</span>, <span class="ident">basic_block</span>) <span class="kw">in</span> <a class="self" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lower/cfg.rs.html#11">self</a>.<span class="ident">basic_blocks</span> {
+            <span class="kw">let</span> <span class="ident">block</span> <span class="op">=</span> <a class="ident" href="../../../../../../vir/gen/low/cfg/method/struct.BasicBlock.html">vir_low_cfg::BasicBlock</a> {
+                <span class="ident">label</span>: <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lower/cfg.rs.html#14">label</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lower/mod.rs.html#35">into_low</a>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lower/cfg.rs.html#11">state</a>),
+                <span class="ident">statements</span>: <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lower/cfg.rs.html#14">basic_block</a>
+                    .<span class="ident">statements</span>
+                    .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
+                    .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">flat_map</a>(<span class="op">|</span><span class="ident">statement</span><span class="op">|</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lower/cfg.rs.html#20">statement</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lower/mod.rs.html#35">into_low</a>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lower/cfg.rs.html#11">state</a>))
+                    .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>(),
+                <span class="ident">successor</span>: <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lower/cfg.rs.html#14">basic_block</a>.<span class="ident">successor</span>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lower/mod.rs.html#35">into_low</a>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lower/cfg.rs.html#11">state</a>),
+            };
+            <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lower/cfg.rs.html#13">basic_blocks</a>.<span class="ident">push</span>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lower/cfg.rs.html#15">block</a>);
+        }
+        <a class="ident" href="../../../../../../vir/gen/low/cfg/method/struct.ProcedureDecl.html">vir_low_cfg::ProcedureDecl</a> {
+            <span class="ident">name</span>: <a class="self" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lower/cfg.rs.html#11">self</a>.<span class="ident">name</span>,
+            <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lower/cfg.rs.html#12">locals</a>,
+            <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lower/cfg.rs.html#13">basic_blocks</a>,
+        }
+    }
+}
+
+<span class="kw">impl</span> <span class="ident">IntoLow</span><span class="op">&lt;</span><a class="ident" href="../../../../../../vir/gen/low/ast/function/struct.FunctionDecl.html">vir_low_ast::FunctionDecl</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../../../../../vir/gen/middle/ast/function/struct.FunctionDecl.html">vir_mid_ast::FunctionDecl</a> {
+    <span class="kw">fn</span> <span class="ident">into_low</span>(<span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;mut</span> <span class="kw">dyn</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lower/mod.rs.html#10-32">State</a>) -&gt; <a class="ident" href="../../../../../../vir/gen/low/ast/function/struct.FunctionDecl.html">vir_low_ast::FunctionDecl</a> {
+        <a class="ident" href="../../../../../../vir/gen/low/ast/function/struct.FunctionDecl.html">vir_low_ast::FunctionDecl</a> {
+            <span class="ident">name</span>: <a class="self" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lower/cfg.rs.html#35">self</a>.<a class="ident" href="../../../../../../vir/common/identifier/trait.WithIdentifier.html">get_identifier</a>(),
+            <span class="ident">parameters</span>: <a class="self" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lower/cfg.rs.html#35">self</a>.<span class="ident">parameters</span>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lower/mod.rs.html#35">into_low</a>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lower/cfg.rs.html#35">state</a>),
+            <span class="ident">return_type</span>: <a class="self" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lower/cfg.rs.html#35">self</a>.<span class="ident">return_type</span>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lower/mod.rs.html#35">into_low</a>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lower/cfg.rs.html#35">state</a>),
+            <span class="ident">pres</span>: <a class="self" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lower/cfg.rs.html#35">self</a>.<span class="ident">pres</span>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lower/mod.rs.html#35">into_low</a>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lower/cfg.rs.html#35">state</a>),
+            <span class="ident">posts</span>: <a class="self" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lower/cfg.rs.html#35">self</a>.<span class="ident">posts</span>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lower/mod.rs.html#35">into_low</a>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lower/cfg.rs.html#35">state</a>),
+            <span class="ident">body</span>: <a class="self" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lower/cfg.rs.html#35">self</a>.<span class="ident">body</span>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lower/mod.rs.html#35">into_low</a>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lower/cfg.rs.html#35">state</a>),
+        }
+    }
+}
+
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">S</span>: <span class="ident">IntoLow</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="ident">IntoLow</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">into_low</span>(<span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;mut</span> <span class="kw">dyn</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lower/mod.rs.html#10-32">State</a>) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+        <a class="self" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lower/cfg.rs.html#48">self</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="op">|</span><span class="ident">decl</span><span class="op">|</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lower/cfg.rs.html#49">decl</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lower/mod.rs.html#35">into_low</a>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lower/cfg.rs.html#48">state</a>)).<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>()
+    }
+}
+
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">S</span>: <span class="ident">IntoLow</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="ident">IntoLow</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">into_low</span>(<span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;mut</span> <span class="kw">dyn</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lower/mod.rs.html#10-32">State</a>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+        <a class="self" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lower/cfg.rs.html#54">self</a>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">decl</span><span class="op">|</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lower/cfg.rs.html#55">decl</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lower/mod.rs.html#35">into_low</a>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lower/cfg.rs.html#54">state</a>))
+    }
+}
+
+<span class="kw">impl</span> <span class="ident">IntoLow</span><span class="op">&lt;</span><a class="ident" href="../../../../../../vir/gen/low/ast/variable/struct.VariableDecl.html">vir_low_ast::variable::VariableDecl</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../../../../../vir/gen/middle/ast/variable/struct.VariableDecl.html">vir_mid_ast::variable::VariableDecl</a> {
+    <span class="kw">fn</span> <span class="ident">into_low</span>(<span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;mut</span> <span class="kw">dyn</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lower/mod.rs.html#10-32">State</a>) -&gt; <a class="ident" href="../../../../../../vir/gen/low/ast/variable/struct.VariableDecl.html">vir_low_ast::variable::VariableDecl</a> {
+        <a class="ident" href="../../../../../../vir/gen/low/ast/variable/struct.VariableDecl.html">vir_low_ast::variable::VariableDecl</a> {
+            <span class="ident">name</span>: <a class="self" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lower/cfg.rs.html#60">self</a>.<span class="ident">name</span>,
+            <span class="ident">ty</span>: <a class="self" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lower/cfg.rs.html#60">self</a>.<span class="ident">ty</span>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lower/mod.rs.html#35">into_low</a>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lower/cfg.rs.html#60">state</a>),
+        }
+    }
+}
+
+<span class="kw">impl</span> <span class="ident">IntoLow</span><span class="op">&lt;</span><a class="ident" href="../../../../../../vir/gen/low/ast/ty/enum.Type.html">vir_low_ast::ty::Type</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../../../../../vir/gen/middle/ast/ty/enum.Type.html">vir_mid_ast::ty::Type</a> {
+    <span class="kw">fn</span> <span class="ident">into_low</span>(<span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;mut</span> <span class="kw">dyn</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lower/mod.rs.html#10-32">State</a>) -&gt; <a class="ident" href="../../../../../../vir/gen/low/ast/ty/enum.Type.html">vir_low_ast::ty::Type</a> {
+        <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lower/cfg.rs.html#69">state</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lower/mod.rs.html#31">lower_type</a>(<a class="self" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lower/cfg.rs.html#69">self</a>)
+    }
+}
+
+<span class="kw">impl</span> <span class="ident">IntoLow</span><span class="op">&lt;</span><a class="ident" href="../../../../../../vir/gen/low/ast/expression/enum.Expression.html">vir_low_ast::Expression</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../../../../../vir/gen/middle/ast/expression/enum.Expression.html">vir_mid_ast::Expression</a> {
+    <span class="kw">fn</span> <span class="ident">into_low</span>(<span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;mut</span> <span class="kw">dyn</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lower/mod.rs.html#10-32">State</a>) -&gt; <a class="ident" href="../../../../../../vir/gen/low/ast/expression/enum.Expression.html">vir_low_ast::Expression</a> {
+        <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lower/cfg.rs.html#75">state</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lower/mod.rs.html#11-14">lower_expression</a>(<a class="self" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lower/cfg.rs.html#75">self</a>)
+    }
+}
+
+<span class="kw">impl</span> <span class="ident">IntoLow</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../../../../../vir/gen/low/ast/statement/enum.Statement.html">vir_low_ast::statement::Statement</a><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../../../../../vir/gen/middle/ast/statement/enum.Statement.html">vir_mid_ast::Statement</a> {
+    <span class="kw">fn</span> <span class="ident">into_low</span>(<span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;mut</span> <span class="kw">dyn</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lower/mod.rs.html#10-32">State</a>) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../../../../../vir/gen/low/ast/statement/enum.Statement.html">vir_low_ast::statement::Statement</a><span class="op">&gt;</span> {
+        <span class="kw">use</span> <a class="ident" href="../../../../../../vir/gen/low/ast/statement/enum.Statement.html">vir_low_ast::statement::Statement</a>;
+        <span class="kw">match</span> <a class="self" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lower/cfg.rs.html#81">self</a> {
+            <span class="ident"><span class="self">Self</span>::Comment</span>(<span class="ident">statement</span>) =&gt; {
+                <span class="macro">vec!</span>[<span class="ident">Statement::comment</span>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lower/cfg.rs.html#84">statement</a>.<span class="ident">comment</span>)]
+            }
+            <span class="ident"><span class="self">Self</span>::Inhale</span>(<span class="ident">statement</span>) =&gt; {
+                <span class="macro">vec!</span>[<span class="ident">Statement::inhale</span>(
+                    <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lower/cfg.rs.html#87">statement</a>.<span class="ident">predicate</span>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lower/mod.rs.html#35">into_low</a>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lower/cfg.rs.html#81">state</a>),
+                    <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lower/cfg.rs.html#87">statement</a>.<span class="ident">position</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
+                )]
+            }
+            <span class="ident"><span class="self">Self</span>::Exhale</span>(<span class="ident">statement</span>) =&gt; {
+                <span class="macro">vec!</span>[<span class="ident">Statement::exhale</span>(
+                    <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lower/cfg.rs.html#93">statement</a>.<span class="ident">predicate</span>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lower/mod.rs.html#35">into_low</a>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lower/cfg.rs.html#81">state</a>),
+                    <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lower/cfg.rs.html#93">statement</a>.<span class="ident">position</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
+                )]
+            }
+            <span class="ident"><span class="self">Self</span>::MovePlace</span>(<span class="ident">statement</span>) =&gt; {
+                <span class="kw">let</span> <span class="ident">target_ty</span> <span class="op">=</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lower/cfg.rs.html#99">statement</a>.<span class="ident">target</span>.<a class="ident" href="../../../../../../vir/gen/middle/operations_internal/ty/trait.Typed.html">get_type</a>();
+                <span class="kw">let</span> <span class="ident">source_ty</span> <span class="op">=</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lower/cfg.rs.html#99">statement</a>.<span class="ident">source</span>.<a class="ident" href="../../../../../../vir/gen/middle/operations_internal/ty/trait.Typed.html">get_type</a>();
+                <span class="macro">assert_eq!</span>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lower/cfg.rs.html#100">target_ty</a>, <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lower/cfg.rs.html#101">source_ty</a>);
+                <span class="macro">vec!</span>[<span class="ident">Statement::method_call</span>(
+                    <span class="macro">format!</span>(<span class="string">&quot;move_place${}&quot;</span>, <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lower/cfg.rs.html#100">target_ty</a>.<a class="ident" href="../../../../../../vir/common/identifier/trait.WithIdentifier.html">get_identifier</a>()),
+                    <span class="macro">vec!</span>[
+                        <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lower/cfg.rs.html#81">state</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lower/mod.rs.html#19-22">lower_expression_into_place</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lower/cfg.rs.html#99">statement</a>.<span class="ident">target</span>),
+                        <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lower/cfg.rs.html#81">state</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lower/mod.rs.html#15-18">extract_root_address</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lower/cfg.rs.html#99">statement</a>.<span class="ident">target</span>),
+                        <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lower/cfg.rs.html#81">state</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lower/mod.rs.html#27-30">lower_expression_into_snapshot</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lower/cfg.rs.html#99">statement</a>.<span class="ident">target</span>),
+                        <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lower/cfg.rs.html#81">state</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lower/mod.rs.html#19-22">lower_expression_into_place</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lower/cfg.rs.html#99">statement</a>.<span class="ident">source</span>),
+                        <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lower/cfg.rs.html#81">state</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lower/mod.rs.html#15-18">extract_root_address</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lower/cfg.rs.html#99">statement</a>.<span class="ident">source</span>),
+                        <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lower/cfg.rs.html#81">state</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lower/mod.rs.html#27-30">lower_expression_into_snapshot</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lower/cfg.rs.html#99">statement</a>.<span class="ident">source</span>),
+                    ],
+                    <span class="ident">Vec::new</span>(),
+                )]
+            }
+            <span class="ident"><span class="self">Self</span>::CopyPlace</span>(<span class="ident">_statement</span>) =&gt; {
+                <span class="macro">unimplemented!</span>();
+            }
+            <span class="ident"><span class="self">Self</span>::WritePlace</span>(<span class="ident">statement</span>) =&gt; {
+                <span class="kw">let</span> <span class="ident">target_ty</span> <span class="op">=</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lower/cfg.rs.html#119">statement</a>.<span class="ident">target</span>.<a class="ident" href="../../../../../../vir/gen/middle/operations_internal/ty/trait.Typed.html">get_type</a>();
+                <span class="kw">let</span> <span class="ident">source_ty</span> <span class="op">=</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lower/cfg.rs.html#119">statement</a>.<span class="ident">value</span>.<a class="ident" href="../../../../../../vir/gen/middle/operations_internal/ty/trait.Typed.html">get_type</a>();
+                <span class="macro">assert_eq!</span>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lower/cfg.rs.html#120">target_ty</a>, <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lower/cfg.rs.html#121">source_ty</a>);
+                <span class="kw">let</span> <span class="ident">root_address</span> <span class="op">=</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lower/cfg.rs.html#81">state</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lower/mod.rs.html#15-18">extract_root_address</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lower/cfg.rs.html#119">statement</a>.<span class="ident">target</span>);
+                <span class="macro">vec!</span>[<span class="ident">Statement::method_call</span>(
+                    <span class="macro">format!</span>(<span class="string">&quot;write_place${}&quot;</span>, <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lower/cfg.rs.html#120">target_ty</a>.<a class="ident" href="../../../../../../vir/common/identifier/trait.WithIdentifier.html">get_identifier</a>()),
+                    <span class="macro">vec!</span>[
+                        <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lower/cfg.rs.html#81">state</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lower/mod.rs.html#19-22">lower_expression_into_place</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lower/cfg.rs.html#119">statement</a>.<span class="ident">target</span>),
+                        <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lower/cfg.rs.html#123">root_address</a>,
+                        <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lower/cfg.rs.html#81">state</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lower/mod.rs.html#27-30">lower_expression_into_snapshot</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lower/cfg.rs.html#119">statement</a>.<span class="ident">value</span>),
+                    ],
+                    <span class="ident">Vec::new</span>(),
+                )]
+            }
+            <span class="ident"><span class="self">Self</span>::WriteAddress</span>(<span class="ident">statement</span>) =&gt; {
+                <span class="kw">let</span> <span class="ident">target_ty</span> <span class="op">=</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lower/cfg.rs.html#134">statement</a>.<span class="ident">target</span>.<a class="ident" href="../../../../../../vir/gen/middle/operations_internal/ty/trait.Typed.html">get_type</a>();
+                <span class="kw">let</span> <span class="ident">source_ty</span> <span class="op">=</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lower/cfg.rs.html#134">statement</a>.<span class="ident">value</span>.<a class="ident" href="../../../../../../vir/gen/middle/operations_internal/ty/trait.Typed.html">get_type</a>();
+                <span class="macro">assert_eq!</span>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lower/cfg.rs.html#135">target_ty</a>, <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lower/cfg.rs.html#136">source_ty</a>);
+                <span class="macro">vec!</span>[
+                    <span class="comment">// method write$T(address: Address, value: Snap$T)</span>
+                    <span class="comment">//      requires MemoryBlock(address, size_of::&lt;T&gt;())</span>
+                    <span class="comment">//      ensures MemoryBlock(address, size_of::&lt;T&gt;())</span>
+                    <span class="comment">//      ensures MemoryBlock$bytes(address, size_of::&lt;T&gt;()) == Snap$T$to_bytes(value)</span>
+                    <span class="ident">Statement::method_call</span>(
+                        <span class="macro">format!</span>(<span class="string">&quot;write_address${}&quot;</span>, <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lower/cfg.rs.html#135">target_ty</a>.<a class="ident" href="../../../../../../vir/common/identifier/trait.WithIdentifier.html">get_identifier</a>()),
+                        <span class="macro">vec!</span>[
+                            <span class="comment">// field_address$T$f(_1$address)</span>
+                            <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lower/cfg.rs.html#81">state</a>
+                                .<a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lower/mod.rs.html#23-26">lower_expression_into_place_address_computation</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lower/cfg.rs.html#134">statement</a>.<span class="ident">target</span>),
+                            <span class="comment">// value</span>
+                            <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lower/cfg.rs.html#81">state</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lower/mod.rs.html#27-30">lower_expression_into_snapshot</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lower/cfg.rs.html#134">statement</a>.<span class="ident">value</span>),
+                        ],
+                        <span class="ident">Vec::new</span>(),
+                    ),
+                ]
+            }
+        }
+    }
+}
+
+<span class="kw">impl</span> <span class="ident">IntoLow</span><span class="op">&lt;</span><a class="ident" href="../../../../../../vir/gen/low/ast/expression/enum.Expression.html">vir_low_ast::expression::Expression</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../../../../../vir/gen/middle/ast/predicate/enum.Predicate.html">vir_mid_ast::predicate::Predicate</a> {
+    <span class="kw">fn</span> <span class="ident">into_low</span>(<span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;mut</span> <span class="kw">dyn</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lower/mod.rs.html#10-32">State</a>) -&gt; <a class="ident" href="../../../../../../vir/gen/low/ast/expression/enum.Expression.html">vir_low_ast::expression::Expression</a> {
+        <span class="kw">use</span> <a class="ident" href="../../../../../../vir/gen/middle/ast/predicate/enum.Predicate.html">vir_mid_ast::predicate::Predicate</a>;
+        <span class="kw">match</span> <a class="self" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lower/cfg.rs.html#161">self</a> {
+            <span class="ident">Predicate::MemoryBlockStack</span>(<span class="ident">predicate</span>) =&gt; {
+                <span class="ident">vir_low_ast::Expression::predicate_access_predicate</span>(
+                    <span class="string">&quot;MemoryBlockStack&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(),
+                    <span class="macro">vec!</span>[
+                        <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lower/cfg.rs.html#164">predicate</a>.<span class="ident">place</span>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lower/mod.rs.html#35">into_low</a>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lower/cfg.rs.html#161">state</a>),
+                        <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lower/cfg.rs.html#164">predicate</a>.<span class="ident">size</span>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lower/mod.rs.html#35">into_low</a>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lower/cfg.rs.html#161">state</a>),
+                    ],
+                    <span class="ident">vir_low_ast::PermAmount::Write</span>,
+                    <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lower/cfg.rs.html#164">predicate</a>.<span class="ident">position</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
+                )
+            }
+            <span class="ident">Predicate::MemoryBlockStackDrop</span>(<span class="ident">predicate</span>) =&gt; {
+                <span class="ident">vir_low_ast::Expression::predicate_access_predicate</span>(
+                    <span class="string">&quot;MemoryBlockStackDrop&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(),
+                    <span class="macro">vec!</span>[
+                        <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lower/cfg.rs.html#175">predicate</a>.<span class="ident">place</span>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lower/mod.rs.html#35">into_low</a>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lower/cfg.rs.html#161">state</a>),
+                        <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lower/cfg.rs.html#175">predicate</a>.<span class="ident">size</span>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lower/mod.rs.html#35">into_low</a>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lower/cfg.rs.html#161">state</a>),
+                    ],
+                    <span class="ident">vir_low_ast::PermAmount::Write</span>,
+                    <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lower/cfg.rs.html#175">predicate</a>.<span class="ident">position</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
+                )
+            }
+            <span class="ident">Predicate::MemoryBlockHeap</span>(<span class="ident">predicate</span>) =&gt; {
+                <span class="ident">vir_low_ast::Expression::predicate_access_predicate</span>(
+                    <span class="string">&quot;MemoryBlockHeap&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(),
+                    <span class="macro">vec!</span>[
+                        <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lower/cfg.rs.html#186">predicate</a>.<span class="ident">address</span>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lower/mod.rs.html#35">into_low</a>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lower/cfg.rs.html#161">state</a>),
+                        <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lower/cfg.rs.html#186">predicate</a>.<span class="ident">size</span>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lower/mod.rs.html#35">into_low</a>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lower/cfg.rs.html#161">state</a>),
+                    ],
+                    <span class="ident">vir_low_ast::PermAmount::Write</span>,
+                    <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lower/cfg.rs.html#186">predicate</a>.<span class="ident">position</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
+                )
+            }
+            <span class="ident">Predicate::MemoryBlockHeapDrop</span>(<span class="ident">predicate</span>) =&gt; {
+                <span class="ident">vir_low_ast::Expression::predicate_access_predicate</span>(
+                    <span class="string">&quot;MemoryBlockHeapDrop&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(),
+                    <span class="macro">vec!</span>[
+                        <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lower/cfg.rs.html#197">predicate</a>.<span class="ident">address</span>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lower/mod.rs.html#35">into_low</a>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lower/cfg.rs.html#161">state</a>),
+                        <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lower/cfg.rs.html#197">predicate</a>.<span class="ident">size</span>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lower/mod.rs.html#35">into_low</a>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lower/cfg.rs.html#161">state</a>),
+                    ],
+                    <span class="ident">vir_low_ast::PermAmount::Write</span>,
+                    <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lower/cfg.rs.html#197">predicate</a>.<span class="ident">position</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
+                )
+            }
+        }
+    }
+}
+
+<span class="kw">impl</span> <span class="ident">IntoLow</span><span class="op">&lt;</span><a class="ident" href="../../../../../../vir/gen/low/cfg/method/struct.Label.html">vir_low_cfg::method::Label</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../../../../../vir/gen/middle/cfg/procedure/struct.BasicBlockId.html">vir_mid_cfg::BasicBlockId</a> {
+    <span class="kw">fn</span> <span class="ident">into_low</span>(<span class="self">self</span>, <span class="ident">_state</span>: <span class="kw-2">&amp;mut</span> <span class="kw">dyn</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lower/mod.rs.html#10-32">State</a>) -&gt; <a class="ident" href="../../../../../../vir/gen/low/cfg/method/struct.Label.html">vir_low_cfg::method::Label</a> {
+        <a class="ident" href="../../../../../../vir/gen/low/cfg/method/struct.Label.html">vir_low_cfg::method::Label</a> { <span class="ident">name</span>: <a class="self" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lower/cfg.rs.html#213">self</a>.<span class="ident">name</span> }
+    }
+}
+
+<span class="kw">impl</span> <span class="ident">IntoLow</span><span class="op">&lt;</span><a class="ident" href="../../../../../../vir/gen/low/cfg/method/enum.Successor.html">vir_low_cfg::method::Successor</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../../../../../vir/gen/middle/cfg/procedure/enum.Successor.html">vir_mid_cfg::Successor</a> {
+    <span class="kw">fn</span> <span class="ident">into_low</span>(<span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;mut</span> <span class="kw">dyn</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lower/mod.rs.html#10-32">State</a>) -&gt; <a class="ident" href="../../../../../../vir/gen/low/cfg/method/enum.Successor.html">vir_low_cfg::method::Successor</a> {
+        <span class="kw">match</span> <a class="self" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lower/cfg.rs.html#219">self</a> {
+            <span class="ident">vir_mid_cfg::Successor::Return</span> =&gt; <span class="ident">vir_low_cfg::method::Successor::Return</span>,
+            <span class="ident">vir_mid_cfg::Successor::Goto</span>(<span class="ident">target</span>) =&gt; {
+                <span class="ident">vir_low_cfg::method::Successor::Goto</span>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lower/cfg.rs.html#222">target</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lower/mod.rs.html#35">into_low</a>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lower/cfg.rs.html#219">state</a>))
+            }
+            <span class="ident">vir_mid_cfg::Successor::GotoSwitch</span>(<span class="ident">targets</span>) =&gt; {
+                <span class="ident">vir_low_cfg::method::Successor::GotoSwitch</span>(
+                    <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lower/cfg.rs.html#225">targets</a>
+                        .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
+                        .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="op">|</span>(<span class="ident">expression</span>, <span class="ident">target</span>)<span class="op">|</span> {
+                            (<a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lower/cfg.rs.html#229">expression</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lower/mod.rs.html#35">into_low</a>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lower/cfg.rs.html#219">state</a>), <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lower/cfg.rs.html#229">target</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lower/mod.rs.html#35">into_low</a>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lower/cfg.rs.html#219">state</a>))
+                        })
+                        .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>(),
+                )
+            }
+        }
+    }
+}
+</code></pre></div>
+</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../../../../../" data-current-crate="prusti_viper" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.59.0-nightly (404c8471a 2021-12-14)" ></div>
+</body></html>

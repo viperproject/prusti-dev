@@ -1,1 +1,1 @@
-initSidebarItems({});
+initSidebarItems({"trait":[["ToSnapshot",""],["ToSnapshotLowerer",""]]});

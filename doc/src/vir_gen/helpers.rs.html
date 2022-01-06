@@ -163,7 +163,7 @@
         }
     }
     <span class="kw">match</span> <a class="ident" href="../../src/vir_gen/helpers.rs.html#24">new_ident</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>() {
-        <span class="string">&quot;struct&quot;</span> <span class="op">|</span> <span class="string">&quot;enum&quot;</span> <span class="op">|</span> <span class="string">&quot;union&quot;</span> <span class="op">|</span> <span class="string">&quot;type&quot;</span> =&gt; {
+        <span class="string">&quot;struct&quot;</span> <span class="op">|</span> <span class="string">&quot;enum&quot;</span> <span class="op">|</span> <span class="string">&quot;union&quot;</span> <span class="op">|</span> <span class="string">&quot;type&quot;</span> <span class="op">|</span> <span class="string">&quot;ref&quot;</span> <span class="op">|</span> <span class="string">&quot;move&quot;</span> =&gt; {
             <a class="ident" href="../../src/vir_gen/helpers.rs.html#24">new_ident</a>.<span class="ident">push</span>(<span class="string">&#39;_&#39;</span>);
             <a class="ident" href="../../src/vir_gen/helpers.rs.html#24">new_ident</a>
         }
@@ -172,7 +172,7 @@
 }
 
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">append_ident</span>(<span class="ident">ident</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../proc_macro2/struct.Ident.html">syn::Ident</a>, <span class="ident">suffix</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <a class="ident" href="../../proc_macro2/struct.Ident.html">syn::Ident</a> {
-    <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="macro">format!</span>(<span class="string">&quot;{}{}&quot;</span>, <a class="ident" href="../../src/vir_gen/helpers.rs.html#43">ident</a>, <a class="ident" href="../../src/vir_gen/helpers.rs.html#43">suffix</a>);
+    <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="macro">format!</span>(<span class="string">&quot;{}{}&quot;</span>, <a class="ident" href="../../src/vir_gen/helpers.rs.html#43">ident</a>, <a class="ident" href="../../src/vir_gen/helpers.rs.html#43">suffix</a>).<span class="ident">replace</span>(<span class="string">&quot;__&quot;</span>, <span class="string">&quot;_&quot;</span>);
     <span class="ident">syn::Ident::new</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/vir_gen/helpers.rs.html#44">name</a>, <a class="ident" href="../../src/vir_gen/helpers.rs.html#43">ident</a>.<span class="ident">span</span>())
 }
 
@@ -246,7 +246,7 @@
                     <span class="ident">syn::PathArguments::AngleBracketed</span>(<a class="ident" href="../../syn/path/struct.AngleBracketedGenericArguments.html">syn::AngleBracketedGenericArguments</a> {
                         <span class="ident">args</span>, ..
                     }),
-            } <span class="kw">if</span> (<a class="ident" href="../../src/vir_gen/helpers.rs.html#113">ident</a> <span class="op">==</span> <span class="string">&quot;Box&quot;</span> <span class="op">|</span><span class="op">|</span> <a class="ident" href="../../src/vir_gen/helpers.rs.html#113">ident</a> <span class="op">==</span> <span class="string">&quot;Vec&quot;</span>) <span class="op">&amp;&amp;</span> <a class="ident" href="../../src/vir_gen/helpers.rs.html#116">args</a>.<span class="ident">len</span>() <span class="op">==</span> <span class="number">1</span> =&gt; {
+            } <span class="kw">if</span> (<a class="ident" href="../../src/vir_gen/helpers.rs.html#113">ident</a> <span class="op">==</span> <span class="string">&quot;Box&quot;</span> <span class="op">|</span><span class="op">|</span> <a class="ident" href="../../src/vir_gen/helpers.rs.html#113">ident</a> <span class="op">==</span> <span class="string">&quot;Vec&quot;</span> <span class="op">|</span><span class="op">|</span> <a class="ident" href="../../src/vir_gen/helpers.rs.html#113">ident</a> <span class="op">==</span> <span class="string">&quot;Option&quot;</span>) <span class="op">&amp;&amp;</span> <a class="ident" href="../../src/vir_gen/helpers.rs.html#116">args</a>.<span class="ident">len</span>() <span class="op">==</span> <span class="number">1</span> =&gt; {
                 <span class="kw">if</span> <span class="kw">let</span> <span class="ident">syn::GenericArgument::Type</span>(<span class="ident">inner_ty</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><a class="ident" href="../../src/vir_gen/helpers.rs.html#116">args</a>[<span class="number">0</span>] {
                     <span class="kw">let</span> <span class="ident">inner_ident</span> <span class="op">=</span> <a class="ident" href="../../src/vir_gen/helpers.rs.html#78">unwrap_type_ident</a>(<a class="ident" href="../../src/vir_gen/helpers.rs.html#119">inner_ty</a>)<span class="question-mark">?</span>;
                     <span class="kw">return</span> <span class="prelude-val">Ok</span>((<a class="ident" href="../../src/vir_gen/helpers.rs.html#120">inner_ident</a>, <span class="prelude-val">Some</span>(<a class="ident" href="../../src/vir_gen/helpers.rs.html#113">ident</a>)));
