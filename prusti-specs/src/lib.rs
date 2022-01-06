@@ -447,10 +447,7 @@ pub fn extern_spec(_attr: TokenStream, tokens:TokenStream) -> TokenStream {
     let item_span = item.span();
     match item {
         syn::Item::Impl(mut item_impl) => {
-            let new_struct = handle_result!(
-                extern_spec_rewriter::generate_new_struct(&item_impl)
-            );
-
+            let new_struct = handle_result!(extern_spec_rewriter::impls::generate_new_struct(&item_impl));
             let struct_ident = &new_struct.ident;
             let generic_args = extern_spec_rewriter::rewrite_generics(&new_struct.generics);
 
@@ -459,7 +456,7 @@ pub fn extern_spec(_attr: TokenStream, tokens:TokenStream) -> TokenStream {
             };
 
             let rewritten_item = handle_result!(
-                extern_spec_rewriter::rewrite_impl(&mut item_impl, Box::from(struct_ty))
+                extern_spec_rewriter::impls::rewrite_impl(&mut item_impl, Box::from(struct_ty))
             );
 
             quote_spanned! {item_span=>
@@ -467,12 +464,15 @@ pub fn extern_spec(_attr: TokenStream, tokens:TokenStream) -> TokenStream {
                 #rewritten_item
             }
         }
+        syn::Item::Trait(item_trait) => {
+            handle_result!(extern_spec_rewriter::traits::handle_extern_spec_trait(&item_trait))
+        }
         syn::Item::Mod(mut item_mod) => {
             let mut path = syn::Path {
                 leading_colon: None,
                 segments: syn::punctuated::Punctuated::new(),
             };
-            handle_result!(extern_spec_rewriter::rewrite_mod(&mut item_mod, &mut path));
+            handle_result!(extern_spec_rewriter::mods::rewrite_mod(&mut item_mod, &mut path));
             quote!(#item_mod)
         }
         _ => { unimplemented!() }
