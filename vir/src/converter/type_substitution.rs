@@ -1,4 +1,5 @@
-use std::{collections::HashMap, fmt};
+use rustc_hash::FxHashMap as HashMap;
+use std::fmt;
 
 use super::super::polymorphic::*;
 use uuid::Uuid;
@@ -883,7 +884,7 @@ mod tests {
 
     lazy_static! {
         static ref SUBSTITUTION_MAP : HashMap<TypeVar, Type> = {
-            let mut m = HashMap::new();
+            let mut m = HashMap::default();
             m.insert(TypeVar { label: String::from("T") }, Type::Int);
             m.insert(TypeVar { label: String::from("E") }, Type::Bool);
             m.insert(TypeVar { label: String::from("F") }, Type::typed_ref("SimpleRef"));
@@ -1807,6 +1808,7 @@ mod tests {
         // FuncApp
         source = Expr::FuncApp(FuncApp {
             function_name: String::from("f1"),
+            type_arguments: vec![],
             arguments: vec![
                 Expr::Local(Local {
                     variable: LocalVar {
@@ -1838,6 +1840,7 @@ mod tests {
         });
         expected = Expr::FuncApp(FuncApp {
             function_name: String::from("f1"),
+            type_arguments: vec![],
             arguments: vec![
                 Expr::Local(Local {
                     variable: LocalVar {
@@ -1873,6 +1876,7 @@ mod tests {
         source = Expr::DomainFuncApp(DomainFuncApp {
             domain_function: DomainFunc {
                 name: String::from("df1"),
+                type_arguments: vec![],
                 formal_args: vec![
                     LocalVar {
                         name: String::from("_v2"),
@@ -1908,6 +1912,7 @@ mod tests {
         expected = Expr::DomainFuncApp(DomainFuncApp {
             domain_function: DomainFunc {
                 name: String::from("df1"),
+                type_arguments: vec![],
                 formal_args: vec![
                     LocalVar {
                         name: String::from("_v2"),
@@ -2834,6 +2839,7 @@ mod tests {
     fn substitution_type_var_domain_func_test() {
         let source = DomainFunc {
             name: String::from("df"),
+            type_arguments: vec![],
             formal_args: vec![
                 LocalVar {
                     name: String::from("_v1"),
@@ -2851,6 +2857,7 @@ mod tests {
 
         let expected = DomainFunc {
             name: String::from("df"),
+            type_arguments: vec![],
             formal_args: vec![
                 LocalVar {
                     name: String::from("_v1"),
@@ -2911,6 +2918,7 @@ mod tests {
             functions: vec![
                 DomainFunc {
                     name: String::from("df1"),
+                    type_arguments: vec![],
                     formal_args: vec![
                         LocalVar {
                             name: String::from("_v1"),
@@ -2927,6 +2935,7 @@ mod tests {
                 },
                 DomainFunc {
                     name: String::from("df2"),
+                    type_arguments: vec![],
                     formal_args: vec![
                         LocalVar {
                             name: String::from("_v3"),
@@ -2974,6 +2983,7 @@ mod tests {
             functions: vec![
                 DomainFunc {
                     name: String::from("df1"),
+                    type_arguments: vec![],
                     formal_args: vec![
                         LocalVar {
                             name: String::from("_v1"),
@@ -2990,6 +3000,7 @@ mod tests {
                 },
                 DomainFunc {
                     name: String::from("df2"),
+                    type_arguments: vec![],
                     formal_args: vec![
                         LocalVar {
                             name: String::from("_v3"),
@@ -3042,6 +3053,7 @@ mod tests {
 
         let source = Function {
             name: String::from("f1"),
+            type_arguments: vec![],
             formal_args: vec![
                 LocalVar {
                     name: String::from("_v1"),
@@ -3096,6 +3108,7 @@ mod tests {
 
         let expected = Function {
             name: String::from("f1"),
+            type_arguments: vec![],
             formal_args: vec![
                 LocalVar {
                     name: String::from("_v1"),

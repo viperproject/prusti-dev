@@ -1,10 +1,7 @@
 //! Example of linked list
 
-#![feature(nll)]
 #![feature(box_patterns)]
 #![feature(box_syntax)]
-
-use prusti_contracts::*;
 
 enum List {
     Nil,

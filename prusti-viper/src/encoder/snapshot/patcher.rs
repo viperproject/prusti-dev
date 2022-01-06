@@ -36,6 +36,7 @@ impl<'v, 'tcx: 'v> FallibleExprFolder for SnapshotPatcher<'v, 'tcx> {
         &mut self,
         vir::FuncApp {
             function_name,
+            type_arguments,
             mut arguments,
             formal_arguments,
             return_type,
@@ -59,6 +60,7 @@ impl<'v, 'tcx: 'v> FallibleExprFolder for SnapshotPatcher<'v, 'tcx> {
             .collect::<Result<_, _>>()?;
         Ok(vir::Expr::FuncApp(vir::FuncApp {
             function_name,
+            type_arguments,
             arguments,
             formal_arguments,
             return_type,

@@ -1,5 +1,5 @@
+use rustc_hash::FxHashMap as HashMap;
 use std::{
-    collections::HashMap,
     fmt::{self, Display},
     mem,
 };
@@ -30,21 +30,21 @@ impl ExprBackwardInterpreterState {
     pub(super) fn new(expr: Option<vir_high::Expression>) -> Self {
         ExprBackwardInterpreterState {
             expr,
-            substs: HashMap::new(),
+            substs: HashMap::default(),
         }
     }
 
     pub(super) fn new_defined(expr: vir_high::Expression) -> ExprBackwardInterpreterState {
         ExprBackwardInterpreterState {
             expr: Some(expr),
-            substs: HashMap::new(),
+            substs: HashMap::default(),
         }
     }
 
     pub(in super::super) fn new_undefined() -> Self {
         ExprBackwardInterpreterState {
             expr: None,
-            substs: HashMap::new(),
+            substs: HashMap::default(),
         }
     }
 

@@ -82,38 +82,10 @@ impl Function {
     }
 }
 
-pub fn compute_identifier(name: &str, formal_args: &[LocalVar], return_type: &Type) -> String {
-    let mut identifier = name.to_string();
-    // Include the signature of the function in the function name
-    identifier.push_str("__$TY$__");
-    fn type_name(typ: &Type) -> String {
-        match typ {
-            Type::Int => "$int$".to_string(),
-            Type::Bool => "$bool$".to_string(),
-            Type::Float(Float::F32) => "$f32$".to_string(),
-            Type::Float(Float::F64) => "$f64$".to_string(),
-            Type::BitVector(BitVector::BV8) => "$bv8$".to_string(),
-            Type::BitVector(BitVector::BV16) => "$bv16$".to_string(),
-            Type::BitVector(BitVector::BV32) => "$bv32$".to_string(),
-            Type::BitVector(BitVector::BV64) => "$bv64$".to_string(),
-            Type::BitVector(BitVector::BV128) => "$bv128$".to_string(),
-            Type::TypedRef(ref name) => name.to_string(),
-            Type::Domain(ref name) => name.to_string(),
-            Type::Snapshot(ref name) => format!("Snap${}", name),
-            Type::Seq(ref elem_ty) => format!("Seq${}", type_name(elem_ty)),
-        }
-    }
-    for arg in formal_args {
-        identifier.push_str(&type_name(&arg.typ));
-        identifier.push('$');
-    }
-    identifier.push_str(&type_name(return_type));
-    identifier
-}
-
 impl WithIdentifier for Function {
     fn get_identifier(&self) -> String {
-        compute_identifier(&self.name, &self.formal_args, &self.return_type)
+        // The functions in `low` should be already monomorphised.
+        self.name.clone()
     }
 }
 

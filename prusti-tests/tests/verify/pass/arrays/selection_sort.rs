@@ -1,3 +1,5 @@
+// compile-flags: -Pverification_deadline=180
+
 use prusti_contracts::*;
 
 fn main() {}
@@ -44,11 +46,29 @@ fn selection_sort(mut a: [i32; 10]) {
             j += 1;
         }
 
-        let a_i = a[i];
-        let a_min = a[min];
-        a[i] = a_min;
-        a[min] = a_i;
+        // let a_i = a[i];
+        // let a_min = a[min];
+        // a[i] = a_min;
+        // a[min] = a_i;
+        set_a(&mut a, i, min);
 
         i += 1;
     }
+}
+
+#[requires(i < 10)]
+#[requires(min < 10)]
+#[requires(i <= min)]
+#[requires(forall(|k1: usize, k2: usize| (0 <= k1 && k1 < k2 && k2 < i) ==> a[k1] <= a[k2]))]
+#[requires(forall(|k1: usize, k2: usize| (0 <= k1 && k1 < i && i <= k2 && k2 < 10) ==> a[k1] <= a[k2]))]
+#[ensures(forall(|k1: usize| (0 <= k1 && k1 < 10 && k1 != i && k1 != min) ==> (a[k1] == old(a[k1]))))]
+#[ensures(a[i] == old(a[min]))]
+#[ensures(a[min] == old(a[i]))]
+#[ensures(forall(|k1: usize, k2: usize| (0 <= k1 && k1 < k2 && k2 <= i) ==> a[k1] <= a[k2]))]
+#[ensures(forall(|k1: usize, k2: usize| (0 <= k1 && k1 < i && i <= k2 && k2 < 10) ==> a[k1] <= a[k2]))]
+fn set_a(a: &mut [i32; 10], i: usize, min: usize) {
+    let a_i = a[i];
+    let a_min = a[min];
+    a[i] = a_min;
+    a[min] = a_i;
 }

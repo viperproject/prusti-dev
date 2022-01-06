@@ -5,9 +5,10 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use crate::{converter::type_substitution::Generic, polymorphic::ast::*};
+use rustc_hash::FxHashMap as HashMap;
 use std::{
     cmp::Ordering,
-    collections::{hash_map::DefaultHasher, HashMap},
+    collections::hash_map::DefaultHasher,
     fmt,
     hash::{Hash, Hasher},
     mem::discriminant,

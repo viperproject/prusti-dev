@@ -59,13 +59,15 @@ impl<Level: LogLevel> Stopwatch<Level> {
     /// Finishes up the current section, logging the time taken.
     ///
     /// - Note: Simply dropping the stopwatch has the same effect.
-    pub fn finish(mut self) {
-        self._finish();
+    pub fn finish(mut self) -> Duration {
+        self._finish()
     }
 
-    fn _finish(&mut self) {
-        Level::log_finish(&self.prefix, &self.section_name, self.start_time.elapsed());
+    fn _finish(&mut self) -> Duration {
+        let duration = self.start_time.elapsed();
+        Level::log_finish(&self.prefix, &self.section_name, duration);
         self.is_finished = true;
+        duration
     }
 }
 

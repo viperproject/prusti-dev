@@ -1,0 +1,30 @@
+use crate::encoder::{
+    encoder::SubstMap, errors::EncodingResult, high::lower::IntoPolymorphic,
+    mir::generics::MirGenericsEncoderInterface,
+};
+use rustc_hir::def_id::DefId;
+use vir_crate::polymorphic as vir_poly;
+
+pub(crate) trait HighGenericsEncoderInterface<'tcx> {
+    fn encode_generic_parameters(&self, def_id: DefId) -> EncodingResult<Vec<vir_poly::TypeVar>>;
+    fn encode_generic_arguments(
+        &self,
+        def_id: DefId,
+        tymap: &SubstMap<'tcx>,
+    ) -> EncodingResult<Vec<vir_poly::Type>>;
+}
+
+impl<'v, 'tcx: 'v> HighGenericsEncoderInterface<'tcx> for super::super::super::Encoder<'v, 'tcx> {
+    fn encode_generic_parameters(&self, def_id: DefId) -> EncodingResult<Vec<vir_poly::TypeVar>> {
+        let type_parameters = self.encode_generic_parameters_high(def_id)?;
+        Ok(type_parameters.lower(self))
+    }
+    fn encode_generic_arguments(
+        &self,
+        def_id: DefId,
+        tymap: &SubstMap<'tcx>,
+    ) -> EncodingResult<Vec<vir_poly::Type>> {
+        let type_arguments = self.encode_generic_arguments_high(def_id, tymap)?;
+        Ok(type_arguments.lower(self))
+    }
+}

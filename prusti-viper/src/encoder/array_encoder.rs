@@ -5,10 +5,8 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use rustc_middle::ty;
-use std::{
-    collections::HashMap,
-    convert::TryInto,
-};
+use rustc_hash::{FxHashMap as HashMap};
+use std::convert::TryInto;
 use crate::encoder::{
     Encoder,
     errors::{EncodingResult, EncodingError},
@@ -18,7 +16,7 @@ use prusti_common::vir_local;
 use vir_crate::polymorphic as vir;
 use crate::encoder::mir::types::MirTypeEncoderInterface;
 
-use super::high::types::HighTypeEncoderInterface;
+use super::high::{types::HighTypeEncoderInterface, builtin_functions::HighBuiltinFunctionEncoderInterface};
 
 
 /// The result of `ArrayEncoder::encode_array_types`. Contains types, type predicates and length of the given array type.
@@ -36,7 +34,7 @@ pub struct EncodedArrayTypes<'tcx> {
 
 impl<'p, 'v: 'p, 'tcx: 'v> EncodedArrayTypes<'tcx> {
     pub fn encode_lookup_pure_call(&self, encoder: &'p Encoder<'v, 'tcx>, array: vir::Expr, idx: vir::Expr, ret_ty: vir::Type) -> vir::Expr {
-        let lookup_pure = encoder.encode_builtin_function_use(
+        let (lookup_pure, type_arguments) = encoder.encode_builtin_function_use(
             BuiltinFunctionKind::ArrayLookupPure {
                 array_pred_type: self.array_pred_type.clone(),
                 elem_pred_type: self.elem_pred_type.clone(),
@@ -47,6 +45,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> EncodedArrayTypes<'tcx> {
 
         vir::Expr::func_app(
             lookup_pure,
+            type_arguments,
             vec![
                 array,
                 idx,
@@ -74,7 +73,7 @@ pub struct EncodedSliceTypes<'tcx> {
 
 impl<'p, 'v: 'p, 'tcx: 'v> EncodedSliceTypes<'tcx> {
     pub fn encode_lookup_pure_call(&self, encoder: &'p Encoder<'v, 'tcx>, slice: vir::Expr, idx: vir::Expr, ret_ty: vir::Type) -> vir::Expr {
-        let lookup_pure = encoder.encode_builtin_function_use(
+        let (lookup_pure, type_arguments) = encoder.encode_builtin_function_use(
             BuiltinFunctionKind::SliceLookupPure {
                 slice_pred_type: self.slice_pred_type.clone(),
                 elem_pred_type: self.elem_pred_type.clone(),
@@ -84,6 +83,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> EncodedSliceTypes<'tcx> {
 
         vir::Expr::func_app(
             lookup_pure,
+            type_arguments,
             vec![
                 slice,
                 idx,
@@ -98,7 +98,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> EncodedSliceTypes<'tcx> {
     }
 
     pub fn encode_slice_len_call(&self, encoder: &'p Encoder<'v, 'tcx>, slice: vir::Expr) -> vir::Expr {
-        let slice_len = encoder.encode_builtin_function_use(
+        let (slice_len, type_arguments) = encoder.encode_builtin_function_use(
             BuiltinFunctionKind::SliceLen {
                 slice_pred_type: self.slice_pred_type.clone(),
                 elem_pred_type: self.elem_pred_type.clone(),
@@ -107,6 +107,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> EncodedSliceTypes<'tcx> {
 
         vir::Expr::func_app(
             slice_len,
+            type_arguments,
             vec![
                 slice,
             ],
@@ -129,8 +130,8 @@ pub struct ArrayTypesEncoder<'tcx> {
 impl<'p, 'v: 'p, 'tcx: 'v> ArrayTypesEncoder<'tcx> {
     pub fn new() -> Self {
         ArrayTypesEncoder {
-            array_types_cache: HashMap::new(),
-            slice_types_cache: HashMap::new(),
+            array_types_cache: HashMap::default(),
+            slice_types_cache: HashMap::default(),
         }
     }
 

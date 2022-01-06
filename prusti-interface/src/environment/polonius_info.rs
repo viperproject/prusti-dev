@@ -6,8 +6,7 @@
 
 use std::collections::BTreeMap;
 use std::collections::BTreeSet;
-use std::collections::HashMap;
-use std::collections::HashSet;
+use rustc_hash::{FxHashMap as HashMap, FxHashSet as HashSet};
 use std::fmt;
 use std::path::PathBuf;
 
@@ -309,16 +308,16 @@ pub fn graphviz<'tcx>(
     let graph_file = std::fs::File::create(graph_path).expect("Unable to create file");
     let mut graph = std::io::BufWriter::new(graph_file);
 
-    let mut blocks: HashMap<_, _> = HashMap::new();
-    let mut block_edges = HashSet::new();
+    let mut blocks: HashMap<_, _> = HashMap::default();
+    let mut block_edges = HashSet::default();
     for (from_index, to_index) in borrowck_in_facts.cfg_edge {
         let from = interner.get_point(from_index);
         let from_block = from.location.block;
         let to = interner.get_point(to_index);
         let to_block = to.location.block;
-        let from_points = blocks.entry(from_block).or_insert_with(HashSet::new);
+        let from_points = blocks.entry(from_block).or_insert_with(HashSet::default);
         from_points.insert(from_index);
-        let to_points = blocks.entry(to_block).or_insert_with(HashSet::new);
+        let to_points = blocks.entry(to_block).or_insert_with(HashSet::default);
         to_points.insert(to_index);
         if from_block != to_block {
             block_edges.insert((from_block, to_block));
@@ -434,7 +433,7 @@ fn add_fake_facts<'a, 'tcx: 'a>(
 
     // Create a map from points to (region1, region2) vectors.
     let universal_region = &all_facts.universal_region;
-    let mut outlives_at_point = HashMap::new();
+    let mut outlives_at_point = HashMap::default();
     for &(region1, region2, point) in all_facts.subset_base.iter() {
         if !universal_region.contains(&region1) && !universal_region.contains(&region2) {
             let subset_base = outlives_at_point.entry(point).or_insert_with(Vec::new);
@@ -615,12 +614,12 @@ fn compute_loan_conflict_sets(
 ) -> Result<HashMap<facts::Loan, HashSet<facts::Loan>>, PoloniusInfoError> {
     trace!("[enter] compute_loan_conflict_sets");
 
-    let mut loan_conflict_sets = HashMap::new();
+    let mut loan_conflict_sets = HashMap::default();
 
     let mir = procedure.get_mir();
 
     for &(_r, loan, _) in &borrowck_in_facts.loan_issued_at {
-        loan_conflict_sets.insert(loan, HashSet::new());
+        loan_conflict_sets.insert(loan, HashSet::default());
     }
 
     for &(_r, loan_created, point) in &borrowck_in_facts.loan_issued_at {
@@ -686,7 +685,7 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
         // debug!("Renumber path: {:?}", renumber_path);
         let place_regions = regions::load_place_regions(mir).unwrap();
 
-        let mut call_magic_wands = HashMap::new();
+        let mut call_magic_wands = HashMap::default();
 
         let mut all_facts = facts.input_facts.take().unwrap();
         let interner = facts::Interner::new(facts.location_table.take().unwrap());
@@ -764,7 +763,7 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
             call_magic_wands,
             place_regions,
             additional_facts,
-            loop_magic_wands: HashMap::new(),
+            loop_magic_wands: HashMap::default(),
             additional_facts_no_back: additional_facts_without_back_edges,
             loops: loop_info,
             reference_moves,
@@ -896,16 +895,6 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
             .as_ref()
             .and_then(|origin_contains_loan_at| origin_contains_loan_at.get(&region))
             .map(|loans| loans.iter().cloned().collect()).unwrap_or_default()
-    }
-
-    /// Get loans that dye at the given location.
-    pub(crate) fn get_dying_loans(&self, location: mir::Location) -> Vec<facts::Loan> {
-        self.get_loans_dying_at(location, false)
-    }
-
-    /// Get loans that dye at the given location.
-    pub(crate) fn get_dying_zombie_loans(&self, location: mir::Location) -> Vec<facts::Loan> {
-        self.get_loans_dying_at(location, true)
     }
 
     /// Get loans including the zombies ``(all_loans, zombie_loans)``.
@@ -1855,7 +1844,7 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
 //             }]
 //         } else {
 //             debug_assert_eq!(location.statement_index, 0);
-//             let mut predecessors = HashSet::new();
+//             let mut predecessors = HashSet::default();
 //             for (bbi, bb_data) in self.mir.basic_blocks().iter_enumerated() {
 //                 for &bb_successor in bb_data.terminator().successors() {
 //                     if bb_successor == location.block {

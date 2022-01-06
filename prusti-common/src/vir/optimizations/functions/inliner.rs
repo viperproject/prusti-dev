@@ -100,12 +100,13 @@ impl<'a> ast::StmtFolder for ConstantFunctionInliner<'a> {
 }
 
 impl<'a> ast::ExprFolder for ConstantFunctionInliner<'a> {
-    fn fold_func_app(&mut self, ast::FuncApp {function_name, arguments, formal_arguments, return_type, position}: ast::FuncApp) -> ast::Expr {
+    fn fold_func_app(&mut self, ast::FuncApp {function_name, type_arguments, arguments, formal_arguments, return_type, position}: ast::FuncApp) -> ast::Expr {
         if self.pure_function_map.contains_key(&function_name) {
             self.pure_function_map[&function_name].clone()
         } else {
             ast::Expr::FuncApp( ast::FuncApp {
                 function_name,
+                type_arguments,
                 arguments: arguments.into_iter().map(|e| self.fold(e)).collect(),
                 formal_arguments,
                 return_type,

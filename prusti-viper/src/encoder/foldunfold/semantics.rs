@@ -10,7 +10,7 @@ use crate::encoder::foldunfold::{
     FoldUnfoldError,
 };
 use log::{debug, trace};
-use std::collections::HashMap;
+use rustc_hash::FxHashMap as HashMap;
 use vir_crate::polymorphic as vir;
 
 fn inhale_expr(

@@ -3,6 +3,7 @@ use crate::encoder::{
     encoder::SubstMap,
     errors::{ErrorCtxt, SpannedEncodingError, SpannedEncodingResult, WithSpan},
     mir::{
+        generics::MirGenericsEncoderInterface,
         places::PlacesEncoderInterface,
         pure::{
             interpreter::ExpressionBackwardInterpreter,
@@ -209,9 +210,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureEncoder<'p, 'v, 'tcx> {
             .with_span(self.mir.span)?;
         let func_precondition = self.encode_precondition_expr(&parameters, &contract)?;
         let func_postcondition = self.encode_postcondition_expr(&parameters, &contract)?;
+        let type_arguments = self.encode_type_arguments()?;
 
         let function = vir_high::FunctionDecl {
             name,
+            type_arguments,
             parameters,
             return_type,
             pres: vec![func_precondition],
@@ -223,6 +226,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureEncoder<'p, 'v, 'tcx> {
             self.proc_def_id
         );
         Ok(function)
+    }
+
+    fn encode_type_arguments(&self) -> SpannedEncodingResult<Vec<vir_high::Type>> {
+        self.encoder
+            .encode_generic_arguments_high(self.proc_def_id, self.tymap)
+            .with_span(self.mir.span)
     }
 
     fn encode_parameters(&self) -> SpannedEncodingResult<Vec<vir_high::VariableDecl>> {

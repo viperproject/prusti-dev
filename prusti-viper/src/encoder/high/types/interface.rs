@@ -8,8 +8,9 @@ use crate::encoder::{
 #[rustfmt::skip]
 use ::log::trace;
 use prusti_common::{config, report::log};
+use rustc_hash::FxHashMap as HashMap;
 use rustc_middle::ty;
-use std::{cell::RefCell, collections::HashMap};
+use std::cell::RefCell;
 use vir_crate::{high as vir_high, polymorphic as vir_poly};
 
 #[derive(Default)]
@@ -146,7 +147,7 @@ impl<'v, 'tcx: 'v> HighTypeEncoderInterface<'tcx> for super::super::super::Encod
         &self,
     ) -> SpannedEncodingResult<HashMap<vir_poly::Type, vir_poly::Predicate>> {
         // let predicate_names = self.high_type_encoder_state.viper_predicate_descriptions.borrow().keys().map(|key: &String| key.to_owned()).collect::<Vec<String>>();
-        // let mut predicates = HashMap::new();
+        // let mut predicates = HashMap::default();
         // for predicate_name in predicate_names {
         //     let predicate = self.get_viper_predicate(&predicate_name)?;
         //     predicates.insert(predicate_name, predicate);
@@ -253,6 +254,7 @@ impl<'v, 'tcx: 'v> HighTypeEncoderInterface<'tcx> for super::super::super::Encod
         trace!("encode_type_invariant_use: {:?}", ty.kind());
         let encoded_type = self.encode_type_high(ty)?;
         let invariant_name = format!("{}$inv", encoded_type);
+        let invariant_name = crate::encoder::encoder::encode_identifier(invariant_name);
         // Trigger encoding of definition.
         // FIXME: This should not be needed.
         self.encode_type_invariant_def_internal(ty, &invariant_name)?;
@@ -288,6 +290,7 @@ impl<'v, 'tcx: 'v> HighTypeEncoderInterface<'tcx> for super::super::super::Encod
             let self_local_var = vir_poly::LocalVar::new("self", encoded_type);
             let invariant = vir_poly::Function {
                 name: invariant_name.to_string(),
+                type_arguments: vec![], // FIXME: This is probably wrong.
                 formal_args: vec![self_local_var],
                 return_type: vir_poly::Type::Bool,
                 pres: Vec::new(),

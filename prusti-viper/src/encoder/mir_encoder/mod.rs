@@ -24,10 +24,8 @@ use rustc_middle::{mir, ty};
 use rustc_index::vec::{Idx, IndexVec};
 use rustc_span::{Span, DUMMY_SP};
 use log::{trace, debug};
-use std::{
-    collections::HashMap,
-    convert::TryInto,
-};
+use rustc_hash::{FxHashMap as HashMap};
+use std::convert::TryInto;
 use prusti_interface::environment::mir_utils::MirPlace;
 use crate::encoder::mir::types::MirTypeEncoderInterface;
 
@@ -738,6 +736,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
                     let return_type = self.encoder.encode_snapshot_type(dst_ty, tymap).with_span(span)?;
                     return Ok(vir::Expr::func_app(
                         function_name,
+                        vec![], // FIXME: This is probably wrong.
                         encoded_args,
                         formal_args,
                         return_type,
@@ -821,8 +820,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
         let tcx = self.encoder.env().tcx();
         let macro_names: Vec<String> = macro_backtrace.iter()
             .take(lookup_size)
-            .map(|x| x.macro_def_id.map(|y| tcx.def_path_str(y)))
-            .flatten()
+            .filter_map(|x| x.macro_def_id.map(|y| tcx.def_path_str(y)))
             .collect();
         debug!("macro_names: {:?}", macro_names);
 

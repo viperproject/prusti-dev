@@ -4,8 +4,8 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+use rustc_hash::FxHashMap as HashMap;
 use rustc_middle::ty;
-use std::collections::HashMap;
 use vir_crate::polymorphic::{self as vir, Expr, Type};
 
 /// Snapshot of a VIR type. This enum is internal to the snapshot encoding and
@@ -35,8 +35,10 @@ pub(super) enum Snapshot {
         predicate_type: Type,
         _domain: String,
         _snap_func: vir::FunctionIdentifier,
+        _array_collect_func: vir::FunctionIdentifier,
         slice_helper: vir::FunctionIdentifier,
         cons: vir::DomainFunc,
+        uncons: vir::DomainFunc,
         read: vir::DomainFunc,
     },
     /// Slices
@@ -51,6 +53,7 @@ pub(super) enum Snapshot {
         /// result Seq[elem_ty]
         slice_helper: vir::FunctionIdentifier,
         cons: vir::DomainFunc,
+        _uncons: vir::DomainFunc,
         read: vir::DomainFunc,
         len: vir::DomainFunc,
     },

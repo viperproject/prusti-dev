@@ -256,7 +256,7 @@ pub trait ExprFolder: Sized {
             body,
             position,
         } = expr;
-        Expr::ForAll(ForAll {
+        Expr::Exists(Exists {
             variables,
             triggers,
             body: self.fold_boxed(body),
@@ -282,6 +282,7 @@ pub trait ExprFolder: Sized {
     fn fold_func_app(&mut self, expr: FuncApp) -> Expr {
         let FuncApp {
             function_name,
+            type_arguments,
             arguments,
             formal_arguments,
             return_type,
@@ -289,6 +290,7 @@ pub trait ExprFolder: Sized {
         } = expr;
         Expr::FuncApp(FuncApp {
             function_name,
+            type_arguments,
             arguments: arguments.into_iter().map(|e| self.fold(e)).collect(),
             formal_arguments,
             return_type,
@@ -884,6 +886,7 @@ pub trait FallibleExprFolder: Sized {
     fn fallible_fold_func_app(&mut self, expr: FuncApp) -> Result<Expr, Self::Error> {
         let FuncApp {
             function_name,
+            type_arguments,
             arguments,
             formal_arguments,
             return_type,
@@ -891,6 +894,7 @@ pub trait FallibleExprFolder: Sized {
         } = expr;
         Ok(Expr::FuncApp(FuncApp {
             function_name,
+            type_arguments,
             arguments: arguments
                 .into_iter()
                 .map(|e| self.fallible_fold(e))

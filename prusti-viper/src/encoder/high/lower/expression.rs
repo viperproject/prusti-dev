@@ -309,6 +309,7 @@ impl IntoPolymorphic<vir_poly::FuncApp> for vir_high::expression::FuncApp {
     fn lower(&self, encoder: &impl HighTypeEncoderInterfacePrivate) -> vir_poly::FuncApp {
         vir_poly::FuncApp {
             function_name: self.function_name.clone(),
+            type_arguments: self.type_arguments.lower(encoder),
             arguments: self.arguments.lower(encoder),
             formal_arguments: self.parameters.lower(encoder),
             return_type: self.return_type.lower(encoder),

@@ -12,7 +12,7 @@ use prusti_interface::environment::place_set::PlaceSet;
 use prusti_interface::utils::expand_one_level;
 use rustc_hir::def_id::DefId;
 use rustc_middle::{mir, ty::{self, TyCtxt}};
-use std::collections::{HashMap, HashSet};
+use rustc_hash::{FxHashMap as HashMap, FxHashSet as HashSet};
 use std::hash::Hash;
 use crate::encoder::errors::{SpannedEncodingError, EncodingError};
 use crate::encoder::errors::EncodingResult;
@@ -31,7 +31,7 @@ fn explode<'tcx>(
     tcx: TyCtxt<'tcx>,
     place_set: PlaceSet<'tcx>
 ) -> HashSet<mir::Place<'tcx>> {
-    let mut result = HashSet::new();
+    let mut result = HashSet::default();
     for guide_place in place_set.into_iter() {
         let mut current_place: mir::Place = guide_place.local.into();
         result.insert(current_place);
@@ -59,9 +59,9 @@ fn convert_to_vir<'tcx, T: Eq + Hash + Clone>(
     map: &HashMap<T, HashSet<mir::Place<'tcx>>>,
     mir_encoder: &MirEncoder<'_, '_, 'tcx>,
 ) -> EncodingResult<HashMap<T, HashSet<vir::Expr>>> {
-    let mut result = HashMap::new();
+    let mut result = HashMap::default();
     for (loc, set) in map.iter() {
-        let mut new_set = HashSet::new();
+        let mut new_set = HashSet::default();
         for place in set.iter() {
             let encoded_place = mir_encoder.encode_place(place)?.0.try_into_expr()?;
             new_set.insert(encoded_place);

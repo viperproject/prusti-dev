@@ -4,7 +4,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use std::collections::{HashMap, HashSet};
+use rustc_hash::{FxHashMap as HashMap, FxHashSet as HashSet};
 use log::debug;
 
 /// Name interner.
@@ -18,8 +18,8 @@ pub struct NameInterner {
 impl NameInterner {
     pub fn new() -> Self {
         NameInterner {
-            name_to_symbol: HashMap::new(),
-            used_symbols: HashSet::new(),
+            name_to_symbol: HashMap::default(),
+            used_symbols: HashSet::default(),
         }
     }
 

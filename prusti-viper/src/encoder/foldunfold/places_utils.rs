@@ -4,7 +4,8 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use std::{collections::HashSet, hash::Hash};
+use rustc_hash::FxHashSet as HashSet;
+use std::hash::Hash;
 use vir_crate::polymorphic as vir;
 
 /// Returns the elements of A1 that are a proper extension of at least one element in A2.
@@ -18,7 +19,7 @@ pub fn filter_proper_extensions_of(
     left: &HashSet<vir::Expr>,
     right: &HashSet<vir::Expr>,
 ) -> HashSet<vir::Expr> {
-    let mut res = HashSet::new();
+    let mut res = HashSet::default();
     for left_item in left.iter() {
         for right_item in right.iter() {
             if left_item.has_proper_prefix(right_item) {
@@ -41,7 +42,7 @@ pub fn filter_not_proper_extensions_of(
     left: &HashSet<vir::Expr>,
     right: &HashSet<vir::Expr>,
 ) -> HashSet<vir::Expr> {
-    let mut res = HashSet::new();
+    let mut res = HashSet::default();
     for left_item in left.iter() {
         let mut keep: bool = true;
         for right_item in right.iter() {
@@ -64,7 +65,7 @@ pub fn filter_not_proper_extensions_of(
 ///   { a, b.c, b.c.e, d.e.f },
 /// ) = { a, b.c, d.e.f }
 pub fn ancestors(initial: &HashSet<vir::Expr>) -> HashSet<vir::Expr> {
-    let mut res = HashSet::new();
+    let mut res = HashSet::default();
     // Filter paths that are an extension of some other path
     // This way, we avoid having both `d` and `d.g`
     for a in initial.iter() {

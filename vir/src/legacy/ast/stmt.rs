@@ -217,7 +217,7 @@ impl fmt::Display for Stmt {
                     writeln!(f)?;
                 }
                 for stmt in package_stmts.iter() {
-                    writeln!(f, "    {}", stmt.to_string().replace("\n", "\n    "))?;
+                    writeln!(f, "    {}", stmt.to_string().replace('\n', "\n    "))?;
                 }
                 write!(f, "}}")
             }
@@ -238,7 +238,7 @@ impl fmt::Display for Stmt {
 
             Stmt::If(ref guard, ref then_stmts, ref else_stmts) => {
                 fn write_stmt(f: &mut fmt::Formatter, stmt: &Stmt) -> fmt::Result {
-                    writeln!(f, "    {}", stmt.to_string().replace("\n", "\n    "))
+                    writeln!(f, "    {}", stmt.to_string().replace('\n', "\n    "))
                 }
                 fn write_block(f: &mut fmt::Formatter, stmts: &[Stmt]) -> fmt::Result {
                     write!(f, "{{")?;
