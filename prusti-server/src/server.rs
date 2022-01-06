@@ -13,7 +13,7 @@ use std::{
     thread,
 };
 use tokio::runtime::Builder;
-use viper::{CacheData, Viper};
+use viper::{PersistentCache, Viper};
 use warp::Filter;
 
 #[derive(Debug)]
@@ -54,12 +54,10 @@ where
     let viper = Arc::new(Viper::new_with_args(config::extra_jvm_args()));
     stopwatch.finish();
 
-    let cache_loc = config::cache_dir() + "data.json";
-    let cache = Arc::new(Mutex::new(CacheData::load_cache(&cache_loc)));
+    let cache_data = PersistentCache::load_cache(config::cache_path().into());
+    let cache = Arc::new(Mutex::new(cache_data));
     let build_verification_request_handler = |viper_arc: Arc<Viper>, cache| {
         move |request: VerificationRequest| {
-            // Here it would be easy to cache the result of verification requests, as soon as
-            // `VerificationRequest` implements `Hash`.
             let stopwatch = Stopwatch::start("prusti-server", "attach thread to JVM");
             let viper_thread = viper_arc.attach_current_thread();
             stopwatch.finish();
