@@ -37,6 +37,21 @@ impl crate::high::Position {
     }
 }
 
+impl crate::middle::Position {
+    pub fn line(&self) -> i32 {
+        self.line
+    }
+    pub fn column(&self) -> i32 {
+        self.column
+    }
+    pub fn id(&self) -> u64 {
+        self.id
+    }
+    pub fn is_default(&self) -> bool {
+        self.line == 0 && self.column == 0 && self.id == 0
+    }
+}
+
 impl crate::snapshot::Position {
     pub fn line(&self) -> i32 {
         self.line

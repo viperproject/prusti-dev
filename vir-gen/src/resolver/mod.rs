@@ -1,4 +1,4 @@
-use crate::ast::{CustomDerive, CustomDeriveList, Include, RawBlock};
+use crate::ast::{CopyModule, CustomDerive, CustomDeriveList, Include, RawBlock};
 use proc_macro2::TokenStream;
 use quote::quote;
 use syn::{fold::Fold, parse_quote, spanned::Spanned};
@@ -6,9 +6,11 @@ use syn::{fold::Fold, parse_quote, spanned::Spanned};
 pub(crate) fn expand(
     ir: syn::ItemMod,
     components: &syn::ItemMod,
+    expanded_irs: &[syn::ItemMod],
 ) -> (syn::ItemMod, Vec<syn::Error>) {
     let mut expander = Expander {
         components,
+        expanded_irs,
         errors: Vec::new(),
         new_derives: Vec::new(),
         new_struct_derives: Vec::new(),
@@ -19,6 +21,7 @@ pub(crate) fn expand(
 
 struct Expander<'a> {
     components: &'a syn::ItemMod,
+    expanded_irs: &'a [syn::ItemMod],
     errors: Vec<syn::Error>,
     /// A list of things to derive for each type.
     new_derives: Vec<Vec<CustomDerive>>,
@@ -116,9 +119,54 @@ impl<'a> Expander<'a> {
         }
         Ok(())
     }
+    fn expand_copy_module(
+        &mut self,
+        items: &mut Vec<syn::Item>,
+        copy_module: CopyModule,
+    ) -> syn::Result<()> {
+        let content = self.find_component(&copy_module.path)?;
+        let module_name = copy_module.path.segments.last().unwrap().ident.clone();
+        items.push(syn::parse_quote! {
+            pub mod #module_name {
+                #(#content)*
+            }
+        });
+        Ok(())
+    }
     fn find_component(&self, path: &syn::Path) -> syn::Result<&[syn::Item]> {
-        let mut current_mod = self.components;
-        for segment in &path.segments {
+        let mut segments = path.segments.iter();
+        let mut current_mod = if let Some(first) = path.segments.first() {
+            if first.ident == "crate" && first.arguments == syn::PathArguments::None {
+                if path.segments.len() < 2 {
+                    return Err(syn::Error::new(
+                        path.span(),
+                        "must be at least two segments long",
+                    ));
+                }
+                let mut current_mod = None;
+                for ir in self.expanded_irs {
+                    if ir.ident == path.segments[1].ident {
+                        current_mod = Some(ir);
+                        break;
+                    }
+                }
+                if let Some(current_mod) = current_mod {
+                    segments.next();
+                    segments.next();
+                    current_mod
+                } else {
+                    return Err(syn::Error::new(
+                        path.span(),
+                        "the module was not yet expanded",
+                    ));
+                }
+            } else {
+                self.components
+            }
+        } else {
+            self.components
+        };
+        for segment in segments {
             let (_, content) = current_mod
                 .content
                 .as_ref()
@@ -211,6 +259,20 @@ impl<'a> Fold for Expander<'a> {
                         match syn::parse2::<Include>(macro_item.mac.tokens) {
                             Ok(include) => {
                                 if let Err(error) = self.expand_include(&mut new_content, include) {
+                                    self.errors.push(error);
+                                }
+                            }
+                            Err(error) => {
+                                self.errors.push(error);
+                            }
+                        }
+                    }
+                    syn::Item::Macro(macro_item) if macro_item.mac.path.is_ident("copy_module") => {
+                        match syn::parse2::<CopyModule>(macro_item.mac.tokens) {
+                            Ok(copy_from) => {
+                                if let Err(error) =
+                                    self.expand_copy_module(&mut new_content, copy_from)
+                                {
                                     self.errors.push(error);
                                 }
                             }

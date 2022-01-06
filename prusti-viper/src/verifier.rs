@@ -6,7 +6,7 @@
 
 use prusti_common::vir::{self, optimizations::optimize_program, ToViper, ToViperDecl};
 use prusti_common::{
-    config, report::log, Stopwatch,
+    config, report::log, Stopwatch, vir::program::Program,
 };
 use crate::encoder::Encoder;
 use crate::encoder::counterexample_translation;
@@ -250,17 +250,18 @@ impl<'v, 'tcx> Verifier<'v, 'tcx> {
 
         let polymorphic_programs = self.encoder.get_viper_programs();
 
-        let programs: Vec<vir::Program> = if config::simplify_encoding() {
+        let mut programs: Vec<Program> = if config::simplify_encoding() {
             stopwatch.start_next("optimizing Viper program");
             let source_file_name = self.encoder.env().source_file_name();
             polymorphic_programs.into_iter().map(
-                |program| optimize_program(program, &source_file_name).into()
+                |program| Program::Legacy(optimize_program(program, &source_file_name).into())
             ).collect()
         } else {
             polymorphic_programs.into_iter().map(
-                |program| program.into()
+                |program| Program::Legacy(program.into())
             ).collect()
         };
+        programs.extend(self.encoder.get_core_proof_programs());
 
         stopwatch.start_next("verifying Viper program");
         let verification_results = verify_programs(self.env, programs);
@@ -360,7 +361,7 @@ impl<'v, 'tcx> Verifier<'v, 'tcx> {
 
 /// Verify a list of programs.
 /// Returns a list of (program_name, verification_result) tuples.
-fn verify_programs(env: &Environment, programs: Vec<vir::Program>)
+fn verify_programs(env: &Environment, programs: Vec<Program>)
     -> Vec<(String, viper::VerificationResult)>
 {
     let source_path = env.source_path();
@@ -370,15 +371,12 @@ fn verify_programs(env: &Environment, programs: Vec<vir::Program>)
         .to_str()
         .unwrap()
         .to_owned();
-    let verification_requests = programs.into_iter().map(|program| {
-        let program_name = program.name.clone();
+    let verification_requests = programs.into_iter().map(|mut program| {
+        let program_name = program.get_name().to_string();
         // Prepend the Rust file name to the program.
-        let renamed_program = vir::Program {
-            name: format!("{}_{}", rust_program_name, program_name),
-            ..program
-        };
+        program.set_name(format!("{}_{}", rust_program_name, program_name));
         let request = VerificationRequest {
-            program: renamed_program,
+            program,
             backend_config: Default::default(),
         };
         (program_name, request)

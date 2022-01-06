@@ -97,6 +97,7 @@ lazy_static! {
         settings.set_default("enable_purification_optimization", false).unwrap();
         settings.set_default("enable_manual_axiomatization", false).unwrap();
         settings.set_default::<Option<i64>>("verification_deadline", None).unwrap();
+        settings.set_default("only_lifetimes_core", false).unwrap();
 
         settings.set_default("print_desugared_specs", false).unwrap();
         settings.set_default("print_typeckd_specs", false).unwrap();
@@ -447,6 +448,13 @@ pub fn verification_deadline() -> Option<u64> {
     read_setting::<Option<i64>>("verification_deadline").map(|value| {
         value.try_into().expect("verification_deadline must be a valid u64")
     })
+}
+
+/// Do only the core proof of the lifetimes.
+///
+/// **Note:** this is currently very incomplete.
+pub fn only_lifetimes_core() -> bool {
+    read_setting("only_lifetimes_core")
 }
 
 /// Replace the given basic blocks with ``assume false``.
