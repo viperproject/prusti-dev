@@ -5,7 +5,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use super::ast::*;
-use rustc_hash::FxHashMap as HashMap;
+use rustc_hash::FxHashMap;
 use std::{collections::VecDeque, fmt};
 
 /// The method-unique borrow identifier.
@@ -89,7 +89,7 @@ impl fmt::Debug for Node {
 pub struct DAG {
     /// Mapping from borrows to their node indices.
     #[serde(skip)]
-    pub(crate) borrow_indices: HashMap<Borrow, usize>,
+    pub(crate) borrow_indices: FxHashMap<Borrow, usize>,
     #[serde(skip)]
     pub(crate) nodes: Vec<Node>,
     #[serde(skip)]

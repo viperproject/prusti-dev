@@ -5,7 +5,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use crate::polymorphic::{ast::*, gather_labels::gather_labels};
-use rustc_hash::{FxHashMap as HashMap, FxHashSet as HashSet};
+use rustc_hash::{FxHashMap, FxHashSet};
 use std::{collections::VecDeque, fmt, iter::FromIterator};
 use uuid::Uuid;
 
@@ -22,9 +22,9 @@ pub struct CfgMethod {
     // FIXME: This should be pub(in super::super). However, the optimization
     // that depends on snapshots needs to modify this field.
     pub local_vars: Vec<LocalVar>,
-    pub(crate) labels: HashSet<String>,
+    pub(crate) labels: FxHashSet<String>,
     #[serde(skip)]
-    pub(crate) reserved_labels: HashSet<String>,
+    pub(crate) reserved_labels: FxHashSet<String>,
     pub basic_blocks: Vec<CfgBlock>, // FIXME: Hack, should be pub(super).
     pub(crate) basic_blocks_labels: Vec<String>,
     #[serde(skip)]
@@ -143,8 +143,8 @@ impl CfgMethod {
             formal_arg_count,
             formal_returns,
             local_vars,
-            labels: HashSet::default(),
-            reserved_labels: HashSet::from_iter(reserved_labels),
+            labels: FxHashSet::default(),
+            reserved_labels: FxHashSet::from_iter(reserved_labels),
             basic_blocks: vec![],
             basic_blocks_labels: vec![],
             fresh_var_index: 0,
@@ -156,7 +156,7 @@ impl CfgMethod {
         self.method_name.clone()
     }
 
-    pub fn labels(&self) -> &HashSet<String> {
+    pub fn labels(&self) -> &FxHashSet<String> {
         &self.labels
     }
 
@@ -310,8 +310,8 @@ impl CfgMethod {
     }
 
     #[allow(dead_code)]
-    pub fn predecessors(&self) -> HashMap<usize, Vec<usize>> {
-        let mut result = HashMap::default();
+    pub fn predecessors(&self) -> FxHashMap<usize, Vec<usize>> {
+        let mut result = FxHashMap::default();
         for (index, block) in self.basic_blocks.iter().enumerate() {
             for successor in block.successor.get_following() {
                 let entry = result.entry(successor.block_index).or_insert_with(Vec::new);
