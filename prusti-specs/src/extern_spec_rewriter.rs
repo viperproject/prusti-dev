@@ -371,6 +371,14 @@ pub mod traits {
             }
         }
 
+        // Generics not supported
+        if item_trait.generics.params.len() > 0 {
+            return Err(syn::Error::new(
+                item_trait.span(),
+                "Generics in external trait specs are not supported",
+            ));
+        }
+
         return Ok(());
     }
 
@@ -403,9 +411,6 @@ pub mod traits {
 
     /// Responsible for generating a struct
     fn generate_new_struct(item_trait: &syn::ItemTrait) -> syn::Result<GeneratedStruct> {
-        // TODO: Handle generics in Trait
-        // let mut generic_args = rewrite_generics(&new_struct.generics);
-
         let trait_ident = &item_trait.ident;
 
         let name_generator = NameGenerator::new();
