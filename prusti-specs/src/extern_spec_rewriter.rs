@@ -344,6 +344,8 @@ pub mod traits {
     /// and a corresponding impl block with methods of `SomeTrait`.
     ///
     pub fn handle_extern_spec_trait(item_trait: &syn::ItemTrait) -> syn::Result<TokenStream> {
+        validate_macro_usage(item_trait)?;
+
         let generated_struct = generate_new_struct(item_trait)?;
 
         let trait_impl = generated_struct.generate_impl();
@@ -352,6 +354,24 @@ pub mod traits {
                 #new_struct
                 #trait_impl
         })
+    }
+
+    /// Returns an error when the macro was used in a wrong way on the trait
+    fn validate_macro_usage(item_trait: &syn::ItemTrait) -> syn::Result<()> {
+        // Default methods not allowed
+        for item in item_trait.items.iter() {
+            if let syn::TraitItem::Method(item_method) = item {
+                if item_method.default.is_some() {
+                    return Err(syn::Error::new(
+                        item_method.default.as_ref().unwrap().span(),
+                        "Default methods in external trait specs are disallowed \
+                        because external specs are always trusted",
+                    ));
+                }
+            }
+        }
+
+        return Ok(());
     }
 
     /// Given a trait declaration, returns the bounds to `Self` in the where clause
