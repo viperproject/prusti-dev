@@ -289,6 +289,16 @@
 <span id="288">288</span>
 <span id="289">289</span>
 <span id="290">290</span>
+<span id="291">291</span>
+<span id="292">292</span>
+<span id="293">293</span>
+<span id="294">294</span>
+<span id="295">295</span>
+<span id="296">296</span>
+<span id="297">297</span>
+<span id="298">298</span>
+<span id="299">299</span>
+<span id="300">300</span>
 </pre><pre class="rust"><code><span class="attribute">#![<span class="ident">feature</span>(<span class="ident">rustc_private</span>)]</span>
 
 <span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">polonius_engine</span>;
@@ -306,8 +316,8 @@
 <span class="kw">use</span> <span class="ident">analysis</span>::{
     <a class="ident" href="../../analysis/abstract_interpretation/fixpoint_engine/trait.FixpointEngine.html">abstract_interpretation::FixpointEngine</a>,
     <span class="ident">domains</span>::{
-        <a class="ident" href="../../analysis/domains/definitely_accessible/analysis/struct.DefinitelyAccessibleAnalysis.html">DefinitelyAccessibleAnalysis</a>, <a class="ident" href="../../analysis/domains/definitely_initialized/analysis/struct.DefinitelyInitializedAnalysis.html">DefinitelyInitializedAnalysis</a>, <a class="ident" href="../../analysis/domains/maybe_borrowed/analysis/struct.MaybeBorrowedAnalysis.html">MaybeBorrowedAnalysis</a>,
-        <a class="ident" href="../../analysis/domains/reaching_definitions/analysis/struct.ReachingDefsAnalysis.html">ReachingDefsAnalysis</a>,
+        <a class="ident" href="../../analysis/domains/definitely_accessible/analysis/struct.DefinitelyAccessibleAnalysis.html">DefinitelyAccessibleAnalysis</a>, <a class="ident" href="../../analysis/domains/definitely_initialized/analysis/struct.DefinitelyInitializedAnalysis.html">DefinitelyInitializedAnalysis</a>, <a class="ident" href="../../analysis/domains/framing/analysis/struct.FramingAnalysis.html">FramingAnalysis</a>,
+        <a class="ident" href="../../analysis/domains/maybe_borrowed/analysis/struct.MaybeBorrowedAnalysis.html">MaybeBorrowedAnalysis</a>, <a class="ident" href="../../analysis/domains/reaching_definitions/analysis/struct.ReachingDefsAnalysis.html">ReachingDefsAnalysis</a>,
     },
 };
 <span class="kw">use</span> <span class="ident">polonius_engine</span>::{<span class="ident">Algorithm</span>, <span class="ident">Output</span>};
@@ -538,6 +548,16 @@
                             <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; <span class="macro">eprintln!</span>(<span class="string">&quot;{}&quot;</span>, <a class="ident" href="../../src/analysis_driver/analysis-driver.rs.html#247">e</a>.<span class="ident">to_pretty_str</span>(<a class="ident" href="../../src/analysis_driver/analysis-driver.rs.html#190">body</a>)),
                         }
                     }
+                    <span class="string">&quot;FramingAnalysis&quot;</span> =&gt; {
+                        <span class="kw">let</span> <span class="ident">analyzer</span> <span class="op">=</span>
+                            <span class="ident">FramingAnalysis::new</span>(<a class="ident" href="../../src/analysis_driver/analysis-driver.rs.html#159">tcx</a>, <a class="ident" href="../../src/analysis_driver/analysis-driver.rs.html#174">local_def_id</a>.<span class="ident">to_def_id</span>(), <span class="kw-2">&amp;</span><a class="ident" href="../../src/analysis_driver/analysis-driver.rs.html#182">body_with_facts</a>);
+                        <span class="kw">match</span> <a class="ident" href="../../src/analysis_driver/analysis-driver.rs.html#251">analyzer</a>.<span class="ident">run_analysis</span>() {
+                            <span class="prelude-val">Ok</span>(<span class="ident">state</span>) =&gt; {
+                                <span class="macro">println!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">serde_json::to_string_pretty</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/analysis_driver/analysis-driver.rs.html#254">state</a>).<span class="ident">unwrap</span>());
+                            }
+                            <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; <span class="macro">eprintln!</span>(<span class="string">&quot;{}&quot;</span>, <a class="ident" href="../../src/analysis_driver/analysis-driver.rs.html#257">e</a>.<span class="ident">to_pretty_str</span>(<a class="ident" href="../../src/analysis_driver/analysis-driver.rs.html#190">body</a>)),
+                        }
+                    }
                     <span class="kw">_</span> =&gt; <span class="macro">panic!</span>(<span class="string">&quot;Unknown domain argument: {}&quot;</span>, <a class="ident" href="../../src/analysis_driver/analysis-driver.rs.html#145">abstract_domain</a>),
                 }
             }
@@ -558,26 +578,26 @@
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">compiler_args</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">callback_args</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
     <span class="kw">for</span> <span class="ident">arg</span> <span class="kw">in</span> <span class="ident">std::env::args</span>() {
-        <span class="kw">if</span> <a class="ident" href="../../src/analysis_driver/analysis-driver.rs.html#269">arg</a>.<span class="ident">starts_with</span>(<span class="string">&quot;--analysis&quot;</span>) {
-            <a class="ident" href="../../src/analysis_driver/analysis-driver.rs.html#268">callback_args</a>.<span class="ident">push</span>(<a class="ident" href="../../src/analysis_driver/analysis-driver.rs.html#269">arg</a>);
+        <span class="kw">if</span> <a class="ident" href="../../src/analysis_driver/analysis-driver.rs.html#279">arg</a>.<span class="ident">starts_with</span>(<span class="string">&quot;--analysis&quot;</span>) {
+            <a class="ident" href="../../src/analysis_driver/analysis-driver.rs.html#278">callback_args</a>.<span class="ident">push</span>(<a class="ident" href="../../src/analysis_driver/analysis-driver.rs.html#279">arg</a>);
         } <span class="kw">else</span> {
-            <a class="ident" href="../../src/analysis_driver/analysis-driver.rs.html#267">compiler_args</a>.<span class="ident">push</span>(<a class="ident" href="../../src/analysis_driver/analysis-driver.rs.html#269">arg</a>);
+            <a class="ident" href="../../src/analysis_driver/analysis-driver.rs.html#277">compiler_args</a>.<span class="ident">push</span>(<a class="ident" href="../../src/analysis_driver/analysis-driver.rs.html#279">arg</a>);
         }
     }
 
-    <a class="ident" href="../../src/analysis_driver/analysis-driver.rs.html#267">compiler_args</a>.<span class="ident">push</span>(<span class="string">&quot;-Zpolonius&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>());
-    <a class="ident" href="../../src/analysis_driver/analysis-driver.rs.html#267">compiler_args</a>.<span class="ident">push</span>(<span class="string">&quot;-Zalways-encode-mir&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>());
-    <a class="ident" href="../../src/analysis_driver/analysis-driver.rs.html#267">compiler_args</a>.<span class="ident">push</span>(<span class="string">&quot;-Zcrate-attr=feature(register_tool)&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>());
-    <a class="ident" href="../../src/analysis_driver/analysis-driver.rs.html#267">compiler_args</a>.<span class="ident">push</span>(<span class="string">&quot;-Zcrate-attr=register_tool(analyzer)&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>());
+    <a class="ident" href="../../src/analysis_driver/analysis-driver.rs.html#277">compiler_args</a>.<span class="ident">push</span>(<span class="string">&quot;-Zpolonius&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>());
+    <a class="ident" href="../../src/analysis_driver/analysis-driver.rs.html#277">compiler_args</a>.<span class="ident">push</span>(<span class="string">&quot;-Zalways-encode-mir&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>());
+    <a class="ident" href="../../src/analysis_driver/analysis-driver.rs.html#277">compiler_args</a>.<span class="ident">push</span>(<span class="string">&quot;-Zcrate-attr=feature(register_tool)&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>());
+    <a class="ident" href="../../src/analysis_driver/analysis-driver.rs.html#277">compiler_args</a>.<span class="ident">push</span>(<span class="string">&quot;-Zcrate-attr=register_tool(analyzer)&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>());
 
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">callbacks</span> <span class="op">=</span> <a class="ident" href="../../src/analysis_driver/analysis-driver.rs.html#35-37">OurCompilerCalls</a> {
-        <span class="ident">args</span>: <a class="ident" href="../../src/analysis_driver/analysis-driver.rs.html#268">callback_args</a>,
+        <span class="ident">args</span>: <a class="ident" href="../../src/analysis_driver/analysis-driver.rs.html#278">callback_args</a>,
     };
     <span class="comment">// Invoke compiler, and handle return code.</span>
     <span class="kw">let</span> <span class="ident">exit_code</span> <span class="op">=</span> <span class="ident">rustc_driver::catch_with_exit_code</span>(<span class="kw">move</span> <span class="op">|</span><span class="op">|</span> {
-        <span class="ident">rustc_driver::RunCompiler::new</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/analysis_driver/analysis-driver.rs.html#267">compiler_args</a>, <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/analysis_driver/analysis-driver.rs.html#282">callbacks</a>).<span class="ident">run</span>()
+        <span class="ident">rustc_driver::RunCompiler::new</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/analysis_driver/analysis-driver.rs.html#277">compiler_args</a>, <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/analysis_driver/analysis-driver.rs.html#292">callbacks</a>).<span class="ident">run</span>()
     });
-    <a class="ident" href="https://doc.rust-lang.org/nightly/std/process/fn.exit.html">std::process::exit</a>(<a class="ident" href="../../src/analysis_driver/analysis-driver.rs.html#286">exit_code</a>)
+    <a class="ident" href="https://doc.rust-lang.org/nightly/std/process/fn.exit.html">std::process::exit</a>(<a class="ident" href="../../src/analysis_driver/analysis-driver.rs.html#296">exit_code</a>)
 }
 </code></pre></div>
 </section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="analysis_driver" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.59.0-nightly (404c8471a 2021-12-14)" ></div>
