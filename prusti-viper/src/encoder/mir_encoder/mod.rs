@@ -24,10 +24,8 @@ use rustc_middle::{mir, ty};
 use rustc_index::vec::{Idx, IndexVec};
 use rustc_span::{Span, DUMMY_SP};
 use log::{trace, debug};
-use std::{
-    collections::HashMap,
-    convert::TryInto,
-};
+use rustc_hash::{FxHashMap};
+use std::convert::TryInto;
 use prusti_interface::environment::mir_utils::MirPlace;
 use crate::encoder::mir::types::MirTypeEncoderInterface;
 

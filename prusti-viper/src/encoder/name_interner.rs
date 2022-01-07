@@ -5,11 +5,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use vir_crate::polymorphic::NameHash;
-use prusti_common::config;
-use rustc_hash::{FxHashMap as HashMap, FxHashSet as HashSet};
-use rustc_hir::definitions::DefPath;
-use rustc_hir::def_id::DefPathHash;
-use std::fmt;
+use rustc_hash::{FxHashMap, FxHashSet};
 use log::debug;
 
 // Tracks if crate-unqiue and module-unique names are needed to ensure uniqueness
@@ -58,14 +54,14 @@ impl ShortName {
 /// Name interner.
 /// This structure can be used to shorten long unique names without losing the uniqueness property.
 pub struct NameInterner {
-    name_to_short: HashMap<NameHash, ShortName>,
+    name_to_short: FxHashMap<NameHash, ShortName>,
     locked: bool,
 }
 
 impl NameInterner {
     pub fn new() -> Self {
         NameInterner {
-            name_to_short: HashMap::default(),
+            name_to_short: FxHashMap::default(),
             locked: false,
         }
     }

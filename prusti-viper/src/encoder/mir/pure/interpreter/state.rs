@@ -1,5 +1,5 @@
+use rustc_hash::FxHashMap;
 use std::{
-    collections::HashMap,
     fmt::{self, Display},
     mem,
 };
@@ -13,7 +13,7 @@ use vir_crate::high::{self as vir_high, Generic};
 pub(in super::super) struct ExprBackwardInterpreterState {
     /// None if the expression is undefined.
     expr: Option<vir_high::Expression>,
-    substs: HashMap<vir_high::ty::TypeVar, vir_high::Type>,
+    substs: FxHashMap<vir_high::ty::TypeVar, vir_high::Type>,
 }
 
 impl Display for ExprBackwardInterpreterState {
@@ -30,27 +30,27 @@ impl ExprBackwardInterpreterState {
     pub(super) fn new(expr: Option<vir_high::Expression>) -> Self {
         ExprBackwardInterpreterState {
             expr,
-            substs: HashMap::new(),
+            substs: FxHashMap::default(),
         }
     }
 
     pub(super) fn new_defined(expr: vir_high::Expression) -> ExprBackwardInterpreterState {
         ExprBackwardInterpreterState {
             expr: Some(expr),
-            substs: HashMap::new(),
+            substs: FxHashMap::default(),
         }
     }
 
     pub(in super::super) fn new_undefined() -> Self {
         ExprBackwardInterpreterState {
             expr: None,
-            substs: HashMap::new(),
+            substs: FxHashMap::default(),
         }
     }
 
     pub(in super::super) fn new_defined_with_substs(
         expr: vir_high::Expression,
-        substs: HashMap<vir_high::ty::TypeVar, vir_high::Type>,
+        substs: FxHashMap<vir_high::ty::TypeVar, vir_high::Type>,
     ) -> Self {
         ExprBackwardInterpreterState {
             expr: Some(expr),

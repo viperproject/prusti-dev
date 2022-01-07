@@ -1,3 +1,4 @@
+// ignore-test: FIXME performance issue, see https://github.com/viperproject/prusti-dev/issues/819
 // compile-flags: -Pverification_deadline=180
 
 use prusti_contracts::*;

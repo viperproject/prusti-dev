@@ -2,7 +2,7 @@ use rustc_middle::mir;
 use rustc_target::abi;
 use rustc_middle::mir::visit::Visitor;
 use prusti_interface::environment::mir_utils::MirPlace;
-use std::collections::HashSet;
+use rustc_hash::{FxHashSet};
 
 pub fn detect_downcasts<'tcx>(body: &mir::Body<'tcx>, location: mir::Location)
     -> Vec<(MirPlace<'tcx>, abi::VariantIdx)>
@@ -17,7 +17,7 @@ pub fn detect_downcasts<'tcx>(body: &mir::Body<'tcx>, location: mir::Location)
 
 #[derive(Default)]
 struct DownCastCollector<'tcx> {
-    pub downcasts: HashSet<(MirPlace<'tcx>, abi::VariantIdx)>
+    pub downcasts: FxHashSet<(MirPlace<'tcx>, abi::VariantIdx)>
 }
 
 impl<'tcx> Visitor<'tcx> for DownCastCollector<'tcx> {

@@ -4,7 +4,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use std::collections::{HashMap, HashSet};
+use rustc_hash::{FxHashMap, FxHashSet};
 use log::{debug, trace};
 use rustc_hir as hir;
 use rustc_middle::mir;
@@ -14,10 +14,10 @@ use prusti_interface::environment::Environment;
 
 /// Structure to collect closure instantiations annotated with `prusti::spec_only`.
 pub struct SpecsClosuresCollector<'tcx> {
-    visited: HashSet<LocalDefId>,
+    visited: FxHashSet<LocalDefId>,
     /// For each instantiation of each closure: DefId, location, operands and types of operands.
     #[allow(clippy::type_complexity)]
-    instantiations: HashMap<
+    instantiations: FxHashMap<
         DefId,
         Vec<(
             DefId,
@@ -31,8 +31,8 @@ pub struct SpecsClosuresCollector<'tcx> {
 impl<'tcx> SpecsClosuresCollector<'tcx> {
     pub fn new() -> Self {
         SpecsClosuresCollector {
-            visited: HashSet::new(),
-            instantiations: HashMap::new(),
+            visited: FxHashSet::default(),
+            instantiations: FxHashMap::default(),
         }
     }
 

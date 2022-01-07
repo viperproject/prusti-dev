@@ -10,14 +10,13 @@ use crate::{
         DefinitelyAccessibleState, DefinitelyInitializedAnalysis, DefinitelyInitializedState,
         MaybeBorrowedAnalysis, MaybeBorrowedState,
     },
-    mir_utils::{expand, is_prefix},
+    mir_utils::remove_place_from_set,
     PointwiseState,
 };
 use rustc_borrowck::BodyWithBorrowckFacts;
 use rustc_data_structures::{stable_map::FxHashMap, stable_set::FxHashSet};
 use rustc_middle::{mir, ty::TyCtxt};
 use rustc_span::def_id::DefId;
-use std::mem;
 
 pub struct DefinitelyAccessibleAnalysis<'mir, 'tcx: 'mir> {
     tcx: TyCtxt<'tcx>,
@@ -57,7 +56,6 @@ impl<'mir, 'tcx: 'mir> DefinitelyAccessibleAnalysis<'mir, 'tcx> {
         let empty_locals_set: FxHashSet<mir::Local> = FxHashSet::default();
         let mut analysis_state = PointwiseState::default(body);
 
-        // Set state_after_block
         for (block, block_data) in body.basic_blocks().iter_enumerated() {
             // Initialize the state before each statement
             for statement_index in 0..=block_data.statements.len() {
@@ -65,12 +63,12 @@ impl<'mir, 'tcx: 'mir> DefinitelyAccessibleAnalysis<'mir, 'tcx> {
                     block,
                     statement_index,
                 };
-                let def_init_before = def_init
-                    .lookup_before(location)
-                    .unwrap_or_else(|| panic!("No 'def_init' state after location {:?}", location));
-                let borrowed_before = borrowed
-                    .lookup_before(location)
-                    .unwrap_or_else(|| panic!("No 'borrowed' state after location {:?}", location));
+                let def_init_before = def_init.lookup_before(location).unwrap_or_else(|| {
+                    panic!("No 'def_init' state before location {:?}", location)
+                });
+                let borrowed_before = borrowed.lookup_before(location).unwrap_or_else(|| {
+                    panic!("No 'borrowed' state before location {:?}", location)
+                });
                 let liveness_before = var_live_on_entry
                     .get(&location_table.start_index(location))
                     .unwrap_or(&empty_locals_set);
@@ -123,47 +121,21 @@ impl<'mir, 'tcx: 'mir> DefinitelyAccessibleAnalysis<'mir, 'tcx> {
         let mut definitely_accessible: FxHashSet<_> = def_init.get_def_init_places().clone();
         for (local, local_decl) in body.local_decls.iter_enumerated() {
             let has_lifetimes = self.tcx.any_free_region_meets(&local_decl.ty, |_| true);
-            // TODO: Make more precise by checking liveness of the origins
             let maybe_expired = !live_vars.contains(&local);
             if has_lifetimes && maybe_expired {
-                self.remove_place_from_set(local.into(), &mut definitely_accessible);
+                remove_place_from_set(body, self.tcx, local.into(), &mut definitely_accessible);
             }
         }
         for &place in borrowed.get_maybe_mut_borrowed().iter() {
-            self.remove_place_from_set(place, &mut definitely_accessible);
+            remove_place_from_set(body, self.tcx, place, &mut definitely_accessible);
         }
         let mut definitely_owned = definitely_accessible.clone();
         for &place in borrowed.get_maybe_shared_borrowed().iter() {
-            self.remove_place_from_set(place, &mut definitely_owned);
+            remove_place_from_set(body, self.tcx, place, &mut definitely_owned);
         }
         DefinitelyAccessibleState {
             definitely_accessible,
             definitely_owned,
-        }
-    }
-
-    /// Remove all extensions of a place from a set, unpacking prefixes as much as needed.
-    fn remove_place_from_set(
-        &self,
-        to_remove: mir::Place<'tcx>,
-        set: &mut FxHashSet<mir::Place<'tcx>>,
-    ) {
-        let old_set = mem::take(set);
-        for old_place in old_set {
-            if is_prefix(to_remove, old_place) {
-                // Unpack `old_place` and remove `to_remove`.
-                set.extend(expand(
-                    &self.body_with_facts.body,
-                    self.tcx,
-                    old_place,
-                    to_remove,
-                ));
-            } else if is_prefix(old_place, to_remove) {
-                // `to_remove` is a prefix of `old_place`. So, it should *not* be added to `set`.
-            } else {
-                // `old_place` and `to_remove` are unrelated.
-                set.insert(old_place);
-            }
         }
     }
 }

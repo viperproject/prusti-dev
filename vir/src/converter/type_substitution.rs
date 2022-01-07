@@ -1,15 +1,16 @@
-use std::{collections::HashMap, fmt};
+use rustc_hash::FxHashMap;
+use std::fmt;
 
 use super::super::polymorphic::*;
 use uuid::Uuid;
 
 pub trait Generic {
-    fn substitute(self, map: &HashMap<TypeVar, Type>) -> Self;
+    fn substitute(self, map: &FxHashMap<TypeVar, Type>) -> Self;
 }
 
 // bodyless_method
 impl Generic for BodylessMethod {
-    fn substitute(self, map: &HashMap<TypeVar, Type>) -> Self {
+    fn substitute(self, map: &FxHashMap<TypeVar, Type>) -> Self {
         let mut bodyless_method = self;
         bodyless_method.formal_args = bodyless_method
             .formal_args
@@ -27,7 +28,7 @@ impl Generic for BodylessMethod {
 
 // common
 impl Generic for Type {
-    fn substitute(self, map: &HashMap<TypeVar, Type>) -> Self {
+    fn substitute(self, map: &FxHashMap<TypeVar, Type>) -> Self {
         match self {
             Type::Bool | Type::Int | Type::Float(..) => self,
             Type::Seq(mut seq) => {
@@ -68,7 +69,7 @@ impl Generic for Type {
 }
 
 impl Generic for LocalVar {
-    fn substitute(self, map: &HashMap<TypeVar, Type>) -> Self {
+    fn substitute(self, map: &FxHashMap<TypeVar, Type>) -> Self {
         let mut local_var = self;
         local_var.typ = local_var.typ.substitute(map);
         local_var
@@ -76,7 +77,7 @@ impl Generic for LocalVar {
 }
 
 impl Generic for Field {
-    fn substitute(self, map: &HashMap<TypeVar, Type>) -> Self {
+    fn substitute(self, map: &FxHashMap<TypeVar, Type>) -> Self {
         let mut field = self;
         field.typ = field.typ.substitute(map);
         field
@@ -85,7 +86,7 @@ impl Generic for Field {
 
 // domain
 impl Generic for Domain {
-    fn substitute(self, map: &HashMap<TypeVar, Type>) -> Self {
+    fn substitute(self, map: &FxHashMap<TypeVar, Type>) -> Self {
         let mut domain = self;
         domain.functions = domain
             .functions
@@ -107,7 +108,7 @@ impl Generic for Domain {
 }
 
 impl Generic for DomainFunc {
-    fn substitute(self, map: &HashMap<TypeVar, Type>) -> Self {
+    fn substitute(self, map: &FxHashMap<TypeVar, Type>) -> Self {
         let mut domain_func = self;
         domain_func.formal_args = domain_func
             .formal_args
@@ -120,7 +121,7 @@ impl Generic for DomainFunc {
 }
 
 impl Generic for DomainAxiom {
-    fn substitute(self, map: &HashMap<TypeVar, Type>) -> Self {
+    fn substitute(self, map: &FxHashMap<TypeVar, Type>) -> Self {
         let mut domain_axiom = self;
         domain_axiom.expr = domain_axiom.expr.substitute(map);
         domain_axiom
@@ -129,7 +130,7 @@ impl Generic for DomainAxiom {
 
 // expr
 impl Generic for Expr {
-    fn substitute(self, map: &HashMap<TypeVar, Type>) -> Self {
+    fn substitute(self, map: &FxHashMap<TypeVar, Type>) -> Self {
         match self {
             Expr::Local(local) => Expr::Local(local.substitute(map)),
             Expr::Variant(variant) => Expr::Variant(variant.substitute(map)),
@@ -165,7 +166,7 @@ impl Generic for Expr {
 }
 
 impl Generic for Local {
-    fn substitute(self, map: &HashMap<TypeVar, Type>) -> Self {
+    fn substitute(self, map: &FxHashMap<TypeVar, Type>) -> Self {
         let mut local = self;
         local.variable = local.variable.substitute(map);
         local
@@ -173,7 +174,7 @@ impl Generic for Local {
 }
 
 impl Generic for Variant {
-    fn substitute(self, map: &HashMap<TypeVar, Type>) -> Self {
+    fn substitute(self, map: &FxHashMap<TypeVar, Type>) -> Self {
         let mut variant = self;
         *variant.base = variant.base.substitute(map);
         variant.variant_index = variant.variant_index.substitute(map);
@@ -182,7 +183,7 @@ impl Generic for Variant {
 }
 
 impl Generic for FieldExpr {
-    fn substitute(self, map: &HashMap<TypeVar, Type>) -> Self {
+    fn substitute(self, map: &FxHashMap<TypeVar, Type>) -> Self {
         let mut field_expr = self;
         *field_expr.base = field_expr.base.substitute(map);
         field_expr.field = field_expr.field.substitute(map);
@@ -191,7 +192,7 @@ impl Generic for FieldExpr {
 }
 
 impl Generic for AddrOf {
-    fn substitute(self, map: &HashMap<TypeVar, Type>) -> Self {
+    fn substitute(self, map: &FxHashMap<TypeVar, Type>) -> Self {
         let mut addr_of = self;
         *addr_of.base = addr_of.base.substitute(map);
         addr_of.addr_type = addr_of.addr_type.substitute(map);
@@ -200,7 +201,7 @@ impl Generic for AddrOf {
 }
 
 impl Generic for LabelledOld {
-    fn substitute(self, map: &HashMap<TypeVar, Type>) -> Self {
+    fn substitute(self, map: &FxHashMap<TypeVar, Type>) -> Self {
         let mut labelled_old = self;
         *labelled_old.base = labelled_old.base.substitute(map);
         labelled_old
@@ -208,13 +209,13 @@ impl Generic for LabelledOld {
 }
 
 impl Generic for ConstExpr {
-    fn substitute(self, _map: &HashMap<TypeVar, Type>) -> Self {
+    fn substitute(self, _map: &FxHashMap<TypeVar, Type>) -> Self {
         self
     }
 }
 
 impl Generic for MagicWand {
-    fn substitute(self, map: &HashMap<TypeVar, Type>) -> Self {
+    fn substitute(self, map: &FxHashMap<TypeVar, Type>) -> Self {
         let mut magic_wand = self;
         *magic_wand.left = magic_wand.left.substitute(map);
         *magic_wand.right = magic_wand.right.substitute(map);
@@ -224,7 +225,7 @@ impl Generic for MagicWand {
 }
 
 impl Generic for PredicateAccessPredicate {
-    fn substitute(self, map: &HashMap<TypeVar, Type>) -> Self {
+    fn substitute(self, map: &FxHashMap<TypeVar, Type>) -> Self {
         let mut predicate_access_predicate = self;
         *predicate_access_predicate.argument = predicate_access_predicate.argument.substitute(map);
         predicate_access_predicate
@@ -232,7 +233,7 @@ impl Generic for PredicateAccessPredicate {
 }
 
 impl Generic for FieldAccessPredicate {
-    fn substitute(self, map: &HashMap<TypeVar, Type>) -> Self {
+    fn substitute(self, map: &FxHashMap<TypeVar, Type>) -> Self {
         let mut field_access_predicate = self;
         *field_access_predicate.base = field_access_predicate.base.substitute(map);
         field_access_predicate
@@ -240,7 +241,7 @@ impl Generic for FieldAccessPredicate {
 }
 
 impl Generic for UnaryOp {
-    fn substitute(self, map: &HashMap<TypeVar, Type>) -> Self {
+    fn substitute(self, map: &FxHashMap<TypeVar, Type>) -> Self {
         let mut unary_op = self;
         *unary_op.argument = unary_op.argument.substitute(map);
         unary_op
@@ -248,7 +249,7 @@ impl Generic for UnaryOp {
 }
 
 impl Generic for BinOp {
-    fn substitute(self, map: &HashMap<TypeVar, Type>) -> Self {
+    fn substitute(self, map: &FxHashMap<TypeVar, Type>) -> Self {
         let mut bin_op = self;
         *bin_op.left = bin_op.left.substitute(map);
         *bin_op.right = bin_op.right.substitute(map);
@@ -257,7 +258,7 @@ impl Generic for BinOp {
 }
 
 impl Generic for ContainerOp {
-    fn substitute(self, map: &HashMap<TypeVar, Type>) -> Self {
+    fn substitute(self, map: &FxHashMap<TypeVar, Type>) -> Self {
         let mut container_op = self;
         *container_op.left = container_op.left.substitute(map);
         *container_op.right = container_op.right.substitute(map);
@@ -266,7 +267,7 @@ impl Generic for ContainerOp {
 }
 
 impl Generic for Seq {
-    fn substitute(self, map: &HashMap<TypeVar, Type>) -> Self {
+    fn substitute(self, map: &FxHashMap<TypeVar, Type>) -> Self {
         let mut seq = self;
         seq.typ = seq.typ.substitute(map);
         seq.elements = seq
@@ -279,7 +280,7 @@ impl Generic for Seq {
 }
 
 impl Generic for Unfolding {
-    fn substitute(self, map: &HashMap<TypeVar, Type>) -> Self {
+    fn substitute(self, map: &FxHashMap<TypeVar, Type>) -> Self {
         let mut unfolding = self;
         unfolding.arguments = unfolding
             .arguments
@@ -295,7 +296,7 @@ impl Generic for Unfolding {
 }
 
 impl Generic for Cond {
-    fn substitute(self, map: &HashMap<TypeVar, Type>) -> Self {
+    fn substitute(self, map: &FxHashMap<TypeVar, Type>) -> Self {
         let mut cond = self;
         *cond.guard = cond.guard.substitute(map);
         *cond.then_expr = cond.then_expr.substitute(map);
@@ -305,7 +306,7 @@ impl Generic for Cond {
 }
 
 impl Generic for ForAll {
-    fn substitute(self, map: &HashMap<TypeVar, Type>) -> Self {
+    fn substitute(self, map: &FxHashMap<TypeVar, Type>) -> Self {
         let mut for_all = self;
         for_all.variables = for_all
             .variables
@@ -323,7 +324,7 @@ impl Generic for ForAll {
 }
 
 impl Generic for Exists {
-    fn substitute(self, map: &HashMap<TypeVar, Type>) -> Self {
+    fn substitute(self, map: &FxHashMap<TypeVar, Type>) -> Self {
         let mut exists = self;
         exists.variables = exists
             .variables
@@ -341,7 +342,7 @@ impl Generic for Exists {
 }
 
 impl Generic for LetExpr {
-    fn substitute(self, map: &HashMap<TypeVar, Type>) -> Self {
+    fn substitute(self, map: &FxHashMap<TypeVar, Type>) -> Self {
         let mut let_expr = self;
         let_expr.variable = let_expr.variable.substitute(map);
         *let_expr.def = let_expr.def.substitute(map);
@@ -351,7 +352,7 @@ impl Generic for LetExpr {
 }
 
 impl Generic for FuncApp {
-    fn substitute(self, map: &HashMap<TypeVar, Type>) -> Self {
+    fn substitute(self, map: &FxHashMap<TypeVar, Type>) -> Self {
         let mut func_app = self;
         func_app.arguments = func_app
             .arguments
@@ -369,7 +370,7 @@ impl Generic for FuncApp {
 }
 
 impl Generic for DomainFuncApp {
-    fn substitute(self, map: &HashMap<TypeVar, Type>) -> Self {
+    fn substitute(self, map: &FxHashMap<TypeVar, Type>) -> Self {
         let mut domain_func_app = self;
         domain_func_app.domain_function = domain_func_app.domain_function.substitute(map);
         domain_func_app.arguments = domain_func_app
@@ -382,7 +383,7 @@ impl Generic for DomainFuncApp {
 }
 
 impl Generic for InhaleExhale {
-    fn substitute(self, map: &HashMap<TypeVar, Type>) -> Self {
+    fn substitute(self, map: &FxHashMap<TypeVar, Type>) -> Self {
         let mut inhale_exhale = self;
         *inhale_exhale.inhale_expr = inhale_exhale.inhale_expr.substitute(map);
         *inhale_exhale.exhale_expr = inhale_exhale.exhale_expr.substitute(map);
@@ -391,7 +392,7 @@ impl Generic for InhaleExhale {
 }
 
 impl Generic for DowncastExpr {
-    fn substitute(self, map: &HashMap<TypeVar, Type>) -> Self {
+    fn substitute(self, map: &FxHashMap<TypeVar, Type>) -> Self {
         let mut downcast = self;
         *downcast.base = downcast.base.substitute(map);
         *downcast.enum_place = downcast.enum_place.substitute(map);
@@ -401,7 +402,7 @@ impl Generic for DowncastExpr {
 }
 
 impl Generic for SnapApp {
-    fn substitute(self, map: &HashMap<TypeVar, Type>) -> Self {
+    fn substitute(self, map: &FxHashMap<TypeVar, Type>) -> Self {
         let mut snap_app = self;
         *snap_app.base = snap_app.base.substitute(map);
         snap_app
@@ -410,7 +411,7 @@ impl Generic for SnapApp {
 
 // function
 impl Generic for Function {
-    fn substitute(self, map: &HashMap<TypeVar, Type>) -> Self {
+    fn substitute(self, map: &FxHashMap<TypeVar, Type>) -> Self {
         let mut function = self;
         function.formal_args = function
             .formal_args
@@ -435,7 +436,7 @@ impl Generic for Function {
 
 // predicate
 impl Generic for Predicate {
-    fn substitute(self, map: &HashMap<TypeVar, Type>) -> Self {
+    fn substitute(self, map: &FxHashMap<TypeVar, Type>) -> Self {
         match self {
             Predicate::Struct(struct_predicate) => {
                 Predicate::Struct(struct_predicate.substitute(map))
@@ -449,7 +450,7 @@ impl Generic for Predicate {
 }
 
 impl Generic for StructPredicate {
-    fn substitute(self, map: &HashMap<TypeVar, Type>) -> Self {
+    fn substitute(self, map: &FxHashMap<TypeVar, Type>) -> Self {
         let mut struct_predicate = self;
         struct_predicate.this = struct_predicate.this.substitute(map);
         struct_predicate.body = struct_predicate.body.map(|expr| expr.substitute(map));
@@ -458,7 +459,7 @@ impl Generic for StructPredicate {
 }
 
 impl Generic for EnumPredicate {
-    fn substitute(self, map: &HashMap<TypeVar, Type>) -> Self {
+    fn substitute(self, map: &FxHashMap<TypeVar, Type>) -> Self {
         let mut enum_predicate = self;
         enum_predicate.this = enum_predicate.this.substitute(map);
         enum_predicate.discriminant_field = enum_predicate.discriminant_field.substitute(map);
@@ -479,14 +480,14 @@ impl Generic for EnumPredicate {
 }
 
 impl Generic for EnumVariantIndex {
-    fn substitute(self, _map: &HashMap<TypeVar, Type>) -> Self {
+    fn substitute(self, _map: &FxHashMap<TypeVar, Type>) -> Self {
         self
     }
 }
 
 // stmt
 impl Generic for Stmt {
-    fn substitute(self, map: &HashMap<TypeVar, Type>) -> Self {
+    fn substitute(self, map: &FxHashMap<TypeVar, Type>) -> Self {
         match self {
             Stmt::Comment(comment) => Stmt::Comment(comment.substitute(map)),
             Stmt::Label(label) => Stmt::Label(label.substitute(map)),
@@ -518,7 +519,7 @@ impl Generic for Stmt {
 
 // trigger
 impl Generic for Trigger {
-    fn substitute(self, map: &HashMap<TypeVar, Type>) -> Self {
+    fn substitute(self, map: &FxHashMap<TypeVar, Type>) -> Self {
         let mut trigger = self;
         trigger.0 = trigger
             .0
@@ -530,19 +531,19 @@ impl Generic for Trigger {
 }
 
 impl Generic for Comment {
-    fn substitute(self, _map: &HashMap<TypeVar, Type>) -> Self {
+    fn substitute(self, _map: &FxHashMap<TypeVar, Type>) -> Self {
         self
     }
 }
 
 impl Generic for Label {
-    fn substitute(self, _map: &HashMap<TypeVar, Type>) -> Self {
+    fn substitute(self, _map: &FxHashMap<TypeVar, Type>) -> Self {
         self
     }
 }
 
 impl Generic for Inhale {
-    fn substitute(self, map: &HashMap<TypeVar, Type>) -> Self {
+    fn substitute(self, map: &FxHashMap<TypeVar, Type>) -> Self {
         let mut inhale = self;
         inhale.expr = inhale.expr.substitute(map);
         inhale
@@ -550,7 +551,7 @@ impl Generic for Inhale {
 }
 
 impl Generic for Exhale {
-    fn substitute(self, map: &HashMap<TypeVar, Type>) -> Self {
+    fn substitute(self, map: &FxHashMap<TypeVar, Type>) -> Self {
         let mut exhale = self;
         exhale.expr = exhale.expr.substitute(map);
         exhale
@@ -558,7 +559,7 @@ impl Generic for Exhale {
 }
 
 impl Generic for Assert {
-    fn substitute(self, map: &HashMap<TypeVar, Type>) -> Self {
+    fn substitute(self, map: &FxHashMap<TypeVar, Type>) -> Self {
         let mut assert = self;
         assert.expr = assert.expr.substitute(map);
         assert
@@ -566,7 +567,7 @@ impl Generic for Assert {
 }
 
 impl Generic for MethodCall {
-    fn substitute(self, map: &HashMap<TypeVar, Type>) -> Self {
+    fn substitute(self, map: &FxHashMap<TypeVar, Type>) -> Self {
         let mut method_call = self;
         method_call.arguments = method_call
             .arguments
@@ -583,7 +584,7 @@ impl Generic for MethodCall {
 }
 
 impl Generic for Assign {
-    fn substitute(self, map: &HashMap<TypeVar, Type>) -> Self {
+    fn substitute(self, map: &FxHashMap<TypeVar, Type>) -> Self {
         let mut assign = self;
         assign.target = assign.target.substitute(map);
         assign.source = assign.source.substitute(map);
@@ -592,7 +593,7 @@ impl Generic for Assign {
 }
 
 impl Generic for Fold {
-    fn substitute(self, map: &HashMap<TypeVar, Type>) -> Self {
+    fn substitute(self, map: &FxHashMap<TypeVar, Type>) -> Self {
         let mut fold = self;
         fold.arguments = fold
             .arguments
@@ -607,7 +608,7 @@ impl Generic for Fold {
 }
 
 impl Generic for Unfold {
-    fn substitute(self, map: &HashMap<TypeVar, Type>) -> Self {
+    fn substitute(self, map: &FxHashMap<TypeVar, Type>) -> Self {
         let mut unfold = self;
         unfold.arguments = unfold
             .arguments
@@ -622,7 +623,7 @@ impl Generic for Unfold {
 }
 
 impl Generic for Obtain {
-    fn substitute(self, map: &HashMap<TypeVar, Type>) -> Self {
+    fn substitute(self, map: &FxHashMap<TypeVar, Type>) -> Self {
         let mut obtain = self;
         obtain.expr = obtain.expr.substitute(map);
         obtain
@@ -630,19 +631,19 @@ impl Generic for Obtain {
 }
 
 impl Generic for BeginFrame {
-    fn substitute(self, _map: &HashMap<TypeVar, Type>) -> Self {
+    fn substitute(self, _map: &FxHashMap<TypeVar, Type>) -> Self {
         self
     }
 }
 
 impl Generic for EndFrame {
-    fn substitute(self, _map: &HashMap<TypeVar, Type>) -> Self {
+    fn substitute(self, _map: &FxHashMap<TypeVar, Type>) -> Self {
         self
     }
 }
 
 impl Generic for TransferPerm {
-    fn substitute(self, map: &HashMap<TypeVar, Type>) -> Self {
+    fn substitute(self, map: &FxHashMap<TypeVar, Type>) -> Self {
         let mut transfer_perm = self;
         transfer_perm.left = transfer_perm.left.substitute(map);
         transfer_perm.right = transfer_perm.right.substitute(map);
@@ -651,7 +652,7 @@ impl Generic for TransferPerm {
 }
 
 impl Generic for PackageMagicWand {
-    fn substitute(self, map: &HashMap<TypeVar, Type>) -> Self {
+    fn substitute(self, map: &FxHashMap<TypeVar, Type>) -> Self {
         let mut package_magic_wand = self;
         package_magic_wand.magic_wand = package_magic_wand.magic_wand.substitute(map);
         package_magic_wand.package_stmts = package_magic_wand
@@ -669,7 +670,7 @@ impl Generic for PackageMagicWand {
 }
 
 impl Generic for ApplyMagicWand {
-    fn substitute(self, map: &HashMap<TypeVar, Type>) -> Self {
+    fn substitute(self, map: &FxHashMap<TypeVar, Type>) -> Self {
         let mut apply_magic_wand = self;
         apply_magic_wand.magic_wand = apply_magic_wand.magic_wand.substitute(map);
         apply_magic_wand
@@ -677,7 +678,7 @@ impl Generic for ApplyMagicWand {
 }
 
 impl Generic for ExpireBorrows {
-    fn substitute(self, map: &HashMap<TypeVar, Type>) -> Self {
+    fn substitute(self, map: &FxHashMap<TypeVar, Type>) -> Self {
         let mut expire_borrows = self;
         expire_borrows.dag = expire_borrows.dag.substitute(map);
         expire_borrows
@@ -685,7 +686,7 @@ impl Generic for ExpireBorrows {
 }
 
 impl Generic for If {
-    fn substitute(self, map: &HashMap<TypeVar, Type>) -> Self {
+    fn substitute(self, map: &FxHashMap<TypeVar, Type>) -> Self {
         let mut if_stmt = self;
         if_stmt.guard = if_stmt.guard.substitute(map);
         if_stmt.then_stmts = if_stmt
@@ -703,7 +704,7 @@ impl Generic for If {
 }
 
 impl Generic for Downcast {
-    fn substitute(self, map: &HashMap<TypeVar, Type>) -> Self {
+    fn substitute(self, map: &FxHashMap<TypeVar, Type>) -> Self {
         let mut downcast = self;
         downcast.base = downcast.base.substitute(map);
         downcast.field = downcast.field.substitute(map);
@@ -713,7 +714,7 @@ impl Generic for Downcast {
 
 // method
 impl Generic for CfgMethod {
-    fn substitute(self, map: &HashMap<TypeVar, Type>) -> Self {
+    fn substitute(self, map: &FxHashMap<TypeVar, Type>) -> Self {
         let mut cfg_method = self;
         cfg_method.formal_returns = cfg_method
             .formal_returns
@@ -735,7 +736,7 @@ impl Generic for CfgMethod {
 }
 
 impl Generic for CfgBlock {
-    fn substitute(self, map: &HashMap<TypeVar, Type>) -> Self {
+    fn substitute(self, map: &FxHashMap<TypeVar, Type>) -> Self {
         let mut cfg_block = self;
         cfg_block.stmts = cfg_block
             .stmts
@@ -748,7 +749,7 @@ impl Generic for CfgBlock {
 }
 
 impl Generic for Successor {
-    fn substitute(self, map: &HashMap<TypeVar, Type>) -> Self {
+    fn substitute(self, map: &FxHashMap<TypeVar, Type>) -> Self {
         match self {
             Successor::Undefined | Successor::Return => self,
             Successor::Goto(cfg_block_index) => Successor::Goto(cfg_block_index.substitute(map)),
@@ -764,20 +765,20 @@ impl Generic for Successor {
 }
 
 impl Generic for CfgBlockIndex {
-    fn substitute(self, _map: &HashMap<TypeVar, Type>) -> Self {
+    fn substitute(self, _map: &FxHashMap<TypeVar, Type>) -> Self {
         self
     }
 }
 
 // borrows
 impl Generic for Borrow {
-    fn substitute(self, _map: &HashMap<TypeVar, Type>) -> Self {
+    fn substitute(self, _map: &FxHashMap<TypeVar, Type>) -> Self {
         self
     }
 }
 
 impl Generic for Node {
-    fn substitute(self, map: &HashMap<TypeVar, Type>) -> Self {
+    fn substitute(self, map: &FxHashMap<TypeVar, Type>) -> Self {
         let mut node = self;
         node.guard = node.guard.substitute(map);
         node.borrow = node.borrow.substitute(map);
@@ -817,7 +818,7 @@ impl Generic for Node {
 }
 
 impl Generic for DAG {
-    fn substitute(self, map: &HashMap<TypeVar, Type>) -> Self {
+    fn substitute(self, map: &FxHashMap<TypeVar, Type>) -> Self {
         let mut dag = self;
         dag.borrow_indices = dag
             .borrow_indices
@@ -840,7 +841,7 @@ impl Generic for DAG {
 
 // program
 impl Generic for Program {
-    fn substitute(self, map: &HashMap<TypeVar, Type>) -> Self {
+    fn substitute(self, map: &FxHashMap<TypeVar, Type>) -> Self {
         let mut program = self;
         program.domains = program
             .domains
@@ -882,8 +883,8 @@ mod tests {
     use super::*;
 
     lazy_static! {
-        static ref SUBSTITUTION_MAP : HashMap<TypeVar, Type> = {
-            let mut m = HashMap::new();
+        static ref SUBSTITUTION_MAP : FxHashMap<TypeVar, Type> = {
+            let mut m = FxHashMap::default();
             m.insert(TypeVar { label: String::from("T") }, Type::Int);
             m.insert(TypeVar { label: String::from("E") }, Type::Bool);
             m.insert(TypeVar { label: String::from("F") }, Type::typed_ref("SimpleRef"));
@@ -905,7 +906,7 @@ mod tests {
     }
 
     // Compare the results after substitution with expected value
-    fn test<T>(source: T, expected: T, map: &HashMap<TypeVar, Type>)
+    fn test<T>(source: T, expected: T, map: &FxHashMap<TypeVar, Type>)
     where
         T: Generic,
         T: fmt::Debug,

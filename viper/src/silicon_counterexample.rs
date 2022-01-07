@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use rustc_hash::FxHashMap;
 
 use jni::{objects::JObject, JNIEnv};
 use jni_utils::JniUtils;
@@ -7,9 +7,9 @@ use viper_sys::wrappers::{scala, viper::silicon};
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct SiliconCounterexample {
     //pub heap: Heap,
-    //pub old_heaps: HashMap<String, Heap>,
+    //pub old_heaps: FxHashMap<String, Heap>,
     pub model: Model,
-    pub old_models: HashMap<String, Model>,
+    pub old_models: FxHashMap<String, Model>,
     // label_order because HashMaps do not guarantee order of elements
     // whereas the Map used in scala does guarantee it
     pub label_order: Vec<String>,
@@ -55,7 +55,7 @@ pub enum HeapEntry {
 // Model Definitions
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Model {
-    pub entries: HashMap<String, ModelEntry>,
+    pub entries: FxHashMap<String, ModelEntry>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -64,7 +64,7 @@ pub enum ModelEntry {
     LitFloat(String),
     LitBool(bool),
     LitPerm(f64),
-    Ref(String, HashMap<String, ModelEntry>),
+    Ref(String, FxHashMap<String, ModelEntry>),
     NullRef(String),
     RecursiveRef(String),
     Var(String),
@@ -99,7 +99,7 @@ fn unwrap_counterexample<'a>(
             .call_extractedHeaps(converter_original)
         );
     let old_heaps_map = jni.stringmap_to_hashmap(old_heaps_scala);
-    let mut old_heaps = HashMap::new();
+    let mut old_heaps = FxHashMap::default();
     for (label, h) in old_heaps_map {
         let old_heap = unwrap_heap(env, jni, h);
         old_heaps.insert(label, old_heap);
@@ -115,7 +115,7 @@ fn unwrap_counterexample<'a>(
         .stringmap_to_hashmap(old_models_scala)
         .into_iter()
         .map(|(label, m)| (label, unwrap_model(env, jni, m)))
-        .collect::<HashMap<_, _>>();
+        .collect::<FxHashMap<_, _>>();
 
     SiliconCounterexample {
         //heap,
@@ -192,7 +192,7 @@ fn unwrap_model<'a>(env: &'a JNIEnv<'a>, jni: JniUtils<'a>, model: JObject<'a>) 
     let model_wrapper = silicon::reporting::ExtractedModel::with(env);
     let entries_scala = jni.unwrap_result(model_wrapper.call_entries(model));
     let map_string_scala = jni.stringmap_to_hashmap(entries_scala);
-    let mut entries = HashMap::new();
+    let mut entries = FxHashMap::default();
     for (name, entry_scala) in map_string_scala {
         let entry = unwrap_model_entry(env, jni, entry_scala, &mut entries);
         if let Some(e) = entry {
@@ -206,7 +206,7 @@ fn unwrap_model_entry<'a>(
     env: &'a JNIEnv<'a>,
     jni: JniUtils<'a>,
     entry: JObject<'a>,
-    entries: &mut HashMap<String, ModelEntry>,
+    entries: &mut FxHashMap<String, ModelEntry>,
 ) -> Option<ModelEntry> {
     match jni.class_name(entry).as_str() {
         "viper.silicon.reporting.LitIntEntry" => {
@@ -241,7 +241,7 @@ fn unwrap_model_entry<'a>(
                         jni.unwrap_result(product_wrapper.call_productElement(tuple_scala, 0));
                     Some((field, unwrap_model_entry(env, jni, element_scala, entries)?))
                 })
-                .collect::<HashMap<_, _>>();
+                .collect::<FxHashMap<_, _>>();
             entries.insert(name.clone(), ModelEntry::Ref(name.clone(), result.clone()));
             Some(ModelEntry::Ref(name, result))
         }
