@@ -18,8 +18,12 @@ extern crate serde;
 #[rustfmt::skip]
 #[path = "../gen/vir_gen.rs"]
 mod gen;
-pub use gen::*;
 
 pub mod common;
 pub mod converter;
+pub mod high;
 pub mod legacy;
+pub mod low;
+pub mod middle;
+pub mod polymorphic;
+pub mod snapshot;

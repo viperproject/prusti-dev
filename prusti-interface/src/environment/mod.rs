@@ -35,7 +35,7 @@ pub mod mir_utils;
 pub mod place_set;
 pub mod polonius_info;
 mod procedure;
-mod mir_dump;
+pub mod mir_dump;
 
 use self::collect_prusti_spec_visitor::CollectPrustiSpecVisitor;
 use self::collect_closure_defs_visitor::CollectClosureDefsVisitor;

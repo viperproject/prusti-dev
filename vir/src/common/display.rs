@@ -32,3 +32,11 @@ pub(crate) macro foreach($template: expr, $values: expr) {{
     }
     buf
 }}
+
+pub(crate) macro foreach2($template: expr, $values1: expr, $values2: expr) {{
+    let mut buf = String::new();
+    for (value1, value2) in $values1.zip($values2) {
+        write!(buf, $template, value1, value2)?;
+    }
+    buf
+}}

@@ -128,6 +128,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
             }
             mir::AggregateKind::Adt(adt_def, variant_index, _, _, _) => {
                 let ty_with_variant = if adt_def.variants.len() > 1 {
+                    // FIXME: Shouls use adt_def.is_enum() as a check.
                     // FIXME: Most likely need to substitute the discriminant here.
                     let variant_def = &adt_def.variants[*variant_index];
                     let variant_name: &str = &variant_def.ident.as_str();

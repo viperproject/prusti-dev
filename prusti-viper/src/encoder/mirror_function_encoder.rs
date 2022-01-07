@@ -4,13 +4,12 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+use rustc_hash::{FxHashMap, FxHashSet};
 use rustc_hir::def_id::DefId;
-use rustc_hash::FxHashSet;
-
-use vir_crate::polymorphic::{self as vir, ExprIterator, WithIdentifier};
+use vir_crate::common::identifier::WithIdentifier;
+use vir_crate::polymorphic::{self as vir, ExprIterator};
 use prusti_interface::environment::borrowck::facts::Loan;
 use crate::encoder::encoder::Encoder;
-use rustc_hash::{FxHashMap};
 
 const MIRROR_DOMAIN_NAME: &str = "MirrorDomain";
 

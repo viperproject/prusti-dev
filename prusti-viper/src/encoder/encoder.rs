@@ -28,7 +28,8 @@ use prusti_interface::specs::typed::SpecificationId;
 use prusti_interface::utils::{has_spec_only_attr, read_prusti_attrs};
 use prusti_interface::PrustiError;
 use prusti_specs::specifications::common::SpecIdRef;
-use vir_crate::polymorphic::{self as vir, WithIdentifier, ExprIterator};
+use vir_crate::polymorphic::{self as vir, ExprIterator};
+use vir_crate::common::identifier::WithIdentifier;
 use rustc_hir as hir;
 use rustc_hir::def_id::DefId;
 // use rustc::middle::const_val::ConstVal;
@@ -57,6 +58,7 @@ use crate::encoder::snapshot::interface::{SnapshotEncoderInterface, SnapshotEnco
 use crate::encoder::purifier;
 use crate::encoder::array_encoder::{ArrayTypesEncoder, EncodedArrayTypes, EncodedSliceTypes};
 use super::high::builtin_functions::HighBuiltinFunctionEncoderState;
+use super::middle::core_proof::{MidCoreProofEncoderState, MidCoreProofEncoderInterface};
 use super::mir::{
     pure::{PureFunctionEncoderState, PureFunctionEncoderInterface},
     types::{
@@ -80,6 +82,7 @@ pub struct Encoder<'v, 'tcx: 'v> {
     pub(super) high_builtin_function_encoder_state: HighBuiltinFunctionEncoderState,
     procedures: RefCell<FxHashMap<ProcedureDefId, vir::CfgMethod>>,
     programs: Vec<vir::Program>,
+    pub(super) mid_core_proof_encoder_state: MidCoreProofEncoderState,
     pub(super) mir_type_encoder_state: MirTypeEncoderState<'tcx>,
     pub(super) high_type_encoder_state: HighTypeEncoderState<'tcx>,
     pub(super) pure_function_encoder_state: PureFunctionEncoderState<'tcx>,
@@ -144,6 +147,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             builtin_methods: RefCell::new(FxHashMap::default()),
             high_builtin_function_encoder_state: Default::default(),
             programs: Vec::new(),
+            mid_core_proof_encoder_state: Default::default(),
             procedures: RefCell::new(FxHashMap::default()),
             mir_type_encoder_state: Default::default(),
             high_type_encoder_state: Default::default(),
@@ -221,6 +225,10 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
 
     pub fn get_viper_programs(&mut self) -> Vec<vir::Program> {
         std::mem::take(&mut self.programs)
+    }
+
+    pub fn get_core_proof_programs(&mut self) -> Vec<prusti_common::vir::program::Program> {
+        self.take_core_proof_programs().into_iter().map(prusti_common::vir::program::Program::Low).collect()
     }
 
     pub(in crate::encoder) fn register_encoding_error(&self, encoding_error: SpannedEncodingError) {
@@ -844,6 +852,15 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             let proc_def_path = self.env.get_item_def_path(proc_def_id);
             info!("Encoding: {} ({})", proc_name, proc_def_path);
             assert!(substs.is_empty());
+
+            if config::only_lifetimes_core() {
+                if let Err(error) = self.encode_lifetimes_core_proof(proc_def_id) {
+                    self.register_encoding_error(error);
+                    debug!("Error encoding function: {:?}", proc_def_id);
+                }
+                continue;
+            }
+
             if self.is_pure(proc_def_id) {
                 // Check that the pure Rust function satisfies the basic
                 // requirements by trying to encode it as a Viper function,
