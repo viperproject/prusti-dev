@@ -103,13 +103,12 @@ pub fn rewrite_generics(gens: &syn::Generics) -> syn::AngleBracketedGenericArgum
     syn::parse_quote! { < #(#args),* > }
 }
 
-fn rewrite_method_inputs(
-    item_ty: &syn::Type,
+fn rewrite_method_inputs<T: ToTokens>(
+    item_ty: &T,
     method_inputs: &mut Punctuated<syn::FnArg, syn::Token![,]>,
 ) -> syn::punctuated::Punctuated<syn::Expr, syn::token::Comma> {
     let mut args: syn::punctuated::Punctuated<syn::Expr, syn::token::Comma> =
         syn::punctuated::Punctuated::new();
-
     for input in method_inputs.iter_mut() {
         let input_span = input.span();
         match input {
@@ -320,6 +319,8 @@ pub mod impls {
 pub mod traits {
     use super::*;
 
+    type AssocTypesToGenericsMap<'a> = HashMap<&'a syn::Ident, syn::TypeParam>;
+
     /// Generates a struct for a `syn::ItemTrait` which is used for checking
     /// compilation of external specs on traits.
     ///
@@ -362,14 +363,15 @@ pub mod traits {
     fn get_bounds_of_self(
         item_trait: &syn::ItemTrait,
     ) -> syn::punctuated::Punctuated<syn::TypeParamBound, syn::Token![+]> {
-        let mut bounds: syn::punctuated::Punctuated<syn::TypeParamBound, syn::Token![+]> = syn::punctuated::Punctuated::new();
+        let mut bounds: syn::punctuated::Punctuated<syn::TypeParamBound, syn::Token![+]> =
+            syn::punctuated::Punctuated::new();
 
         if let Some(ref where_clause) = item_trait.generics.where_clause {
             for where_predicate in where_clause.predicates.iter() {
                 if let syn::WherePredicate::Type(where_predicate_type) = where_predicate {
                     if let syn::Type::Path(bounded_type_path) = &where_predicate_type.bounded_ty {
                         let path_ident = bounded_type_path.path.get_ident();
-                        if  path_ident.is_some() && path_ident.unwrap() == "Self" {
+                        if path_ident.is_some() && path_ident.unwrap() == "Self" {
                             bounds.extend(where_predicate_type.bounds.clone());
                         }
                     }
@@ -443,18 +445,14 @@ pub mod traits {
     /// Contains all information of a newly generated struct with `StructGenerator`
     struct GeneratedStruct<'a> {
         item_trait: &'a syn::ItemTrait,
-        assoc_types_to_generics_map: HashMap<&'a syn::Ident, syn::TypeParam>,
+        assoc_types_to_generics_map: AssocTypesToGenericsMap<'a>,
         self_type_param_ident: syn::Ident,
         generated_struct: syn::ItemStruct,
     }
 
     impl<'a> GeneratedStruct<'a> {
         fn generate_impl(&self) -> syn::ItemImpl {
-            // TODO: Check that for every associated type on trait, there is a generic param in struct
-            // TODO: Use spans!
-
-            // Generate the impl block for the struct
-            let trait_ident = &self.item_trait.ident;
+            // Generate impl block
             let struct_ident = &self.generated_struct.ident;
             let generic_params = self
                 .generated_struct
@@ -469,60 +467,64 @@ pub mod traits {
                 .clone()
                 .into_token_stream();
 
-            let mut struct_impl: syn::ItemImpl = syn::parse_quote! {
+            let mut struct_impl: syn::ItemImpl = parse_quote_spanned! {self.item_trait.span()=>
                 #[allow(non_camel_case_types)]
                 impl< #generic_params > #struct_ident < #generic_params > #where_clause {}
             };
 
+            // Add items to impl block
             for trait_item in self.item_trait.items.iter() {
                 match trait_item {
                     syn::TraitItem::Type(_) => {
-                        // Associated types are ignored, they are encoded as generics in the struct
+                        // Ignore associated types, they are encoded as generics in the struct
                     }
                     syn::TraitItem::Method(trait_method) => {
-                        // Rewrite self
-                        let mut trait_method = trait_method.clone();
-                        let self_type_param_ident = &self.self_type_param_ident;
-                        let self_type_param: syn::Type = syn::parse_quote!(#self_type_param_ident);
-
-                        for attr in trait_method.attrs.iter_mut() {
-                            attr.tokens = rewrite_self(attr.tokens.clone());
-                        }
-                        let trait_method_args =
-                            rewrite_method_inputs(&self_type_param, &mut trait_method.sig.inputs);
-
-                        let output: syn::ReturnType = trait_method.sig.output.clone();
-                        let output_ts = output.into_token_stream();
-                        let output_ts = rewrite_access_to_assoc_types(
-                            output_ts,
-                            &self.assoc_types_to_generics_map,
-                        );
-                        trait_method.sig.output = syn::parse2(output_ts).unwrap();
-
-                        let signature = trait_method.sig.clone().into_token_stream();
-                        let signature = &rewrite_access_to_assoc_types(
-                            signature,
-                            &self.assoc_types_to_generics_map,
-                        );
-                        let attrs = &trait_method.attrs.clone();
-                        let trait_method_ident = &trait_method.sig.ident;
-                        let method: syn::ImplItemMethod = syn::parse_quote! {
-                            #[trusted]
-                            #[prusti::extern_spec]
-                            #(#attrs)*
-                            #signature  {
-                                #trait_ident :: #trait_method_ident ( #trait_method_args );
-                                unimplemented!();
-                            }
-                        };
+                        let method = self.generate_method_stub(trait_method);
                         struct_impl.items.push(syn::ImplItem::Method(method));
                     }
-                    // TODO: Better error handling
-                    _ => unimplemented!("Unimplemented trait item"),
+                    _ => unimplemented!("Unimplemented trait item for extern spec"),
                 };
             }
 
             struct_impl
+        }
+
+        /// Generates a "stub" implementation for a trait method
+        fn generate_method_stub(&self, trait_method: &syn::TraitItemMethod) -> syn::ImplItemMethod {
+            let mut trait_method_sig = trait_method.sig.clone();
+
+            // Rewrite occurrences of associated types in signature to defined generics
+            syn::visit_mut::visit_signature_mut(
+                &mut AssociatedTypeRewriter::new(&self.assoc_types_to_generics_map),
+                &mut trait_method_sig,
+            );
+            let trait_method_ident = &trait_method_sig.ident;
+
+            // Rewrite "self" to "_self" in method attributes and method inputs
+            let mut trait_method_attrs = trait_method.attrs.clone();
+            trait_method_attrs
+                .iter_mut()
+                .for_each(|attr| attr.tokens = rewrite_self(attr.tokens.clone()));
+            let trait_method_inputs =
+                rewrite_method_inputs(&self.self_type_param_ident, &mut trait_method_sig.inputs);
+
+            // Create the method signature
+            let trait_ident = &self.item_trait.ident;
+            let method_path: syn::ExprPath = parse_quote_spanned! {trait_method_ident.span()=>
+                #trait_ident :: #trait_method_ident
+            };
+
+            // Create method
+            return parse_quote_spanned! {trait_method.span()=>
+                #[trusted]
+                #[prusti::extern_spec]
+                #(#trait_method_attrs)*
+                #[allow(unused)]
+                #trait_method_sig  {
+                    #method_path ( #trait_method_inputs );
+                    unimplemented!();
+                }
+            };
         }
     }
 
@@ -537,19 +539,42 @@ pub mod traits {
         result
     }
 
-    // TODO ugly af
-    fn rewrite_access_to_assoc_types(
-        tokens: proc_macro2::TokenStream,
-        repl: &HashMap<&syn::Ident, syn::TypeParam>,
-    ) -> proc_macro2::TokenStream {
-        let mut tokens_str = tokens.to_string();
+    /// Given a map from associated types to generic type params, this struct
+    /// rewrites associated type paths to these generic params.
+    ///
+    /// # Example
+    /// Given a mapping `AssocType1 -> T_AssocType1, AssocType2 -> T_AssocType2`,
+    /// visiting a function
+    /// ```
+    /// fn foo(arg: Self::AssocType1) -> Self::AssocType2 { }
+    /// ```
+    /// results in
+    /// ```
+    /// fn foo(arg: T_AssocType1) -> T_AssocType2 { }
+    /// ```
+    ///
+    struct AssociatedTypeRewriter<'a> {
+        repl: &'a AssocTypesToGenericsMap<'a>,
+    }
 
-        for (k, v) in repl {
-            let k2 = &k.to_string();
-            let v2 = &v.ident.to_string();
-            tokens_str = tokens_str.replace(format!("Self :: {}", k2).as_str(), v2);
+    impl<'a> AssociatedTypeRewriter<'a> {
+        pub fn new(repl: &'a AssocTypesToGenericsMap<'a>) -> Self {
+            AssociatedTypeRewriter { repl }
         }
+    }
 
-        syn::parse_str(tokens_str.as_str()).unwrap()
+    impl<'a> syn::visit_mut::VisitMut for AssociatedTypeRewriter<'a> {
+        fn visit_type_path_mut(&mut self, ty_path: &mut syn::TypePath) {
+            let path = &ty_path.path;
+            if path.segments.len() == 2
+                && path.segments[0].ident.to_string() == "Self"
+                && self.repl.contains_key(&path.segments[1].ident)
+            {
+                let replacement = self.repl.get(&path.segments[1].ident).unwrap();
+                ty_path.path = parse_quote!(#replacement);
+            }
+
+            syn::visit_mut::visit_type_path_mut(self, ty_path);
+        }
     }
 }
