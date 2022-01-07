@@ -7,9 +7,10 @@
 use crate::{
     common::identifier::WithIdentifier, converter::type_substitution::Generic, polymorphic::ast::*,
 };
+use rustc_hash::FxHashMap;
 use std::{
     cmp::Ordering,
-    collections::{hash_map::DefaultHasher, HashMap},
+    collections::hash_map::DefaultHasher,
     fmt,
     hash::{Hash, Hasher},
     mem::discriminant,
@@ -203,7 +204,7 @@ impl Type {
     }
 
     /// Replace all generic types with their instantiations by using string substitution.
-    pub fn patch(self, substs: &HashMap<TypeVar, Type>) -> Self {
+    pub fn patch(self, substs: &FxHashMap<TypeVar, Type>) -> Self {
         self.substitute(substs)
     }
 

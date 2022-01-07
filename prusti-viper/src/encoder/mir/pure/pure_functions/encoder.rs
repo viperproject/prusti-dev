@@ -26,11 +26,12 @@ use crate::encoder::{
 use log::{debug, trace};
 use prusti_common::{config, vir::optimizations::functions::Simplifier, vir_local};
 use prusti_interface::{specs::typed, PrustiError};
+use rustc_hash::FxHashMap;
 use rustc_hir as hir;
 use rustc_hir::def_id::DefId;
 use rustc_middle::{mir, span_bug, ty};
 use rustc_span::Span;
-use std::{collections::HashMap, mem};
+use std::mem;
 use vir_crate::{
     common::identifier::WithIdentifier,
     high as vir_high,
@@ -451,7 +452,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
             .with_span(span)
     }
 
-    fn encode_substs(&self) -> SpannedEncodingResult<HashMap<vir::TypeVar, vir::Type>> {
+    fn encode_substs(&self) -> SpannedEncodingResult<FxHashMap<vir::TypeVar, vir::Type>> {
         self.encoder
             .type_substitution_polymorphic_type_map(self.tymap)
             .with_span(self.mir.span)

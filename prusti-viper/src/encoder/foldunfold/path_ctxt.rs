@@ -11,10 +11,8 @@ use crate::encoder::foldunfold::{
 };
 use log::{debug, trace};
 use prusti_common::utils::to_string::ToString;
-use std::{
-    collections::{HashMap, HashSet},
-    iter::FromIterator,
-};
+use rustc_hash::{FxHashMap, FxHashSet};
+use std::iter::FromIterator;
 use vir_crate::polymorphic::{self as vir, PermAmount};
 
 /// The fold-unfold context of a CFG path
@@ -24,7 +22,7 @@ pub struct PathCtxt<'a> {
     /// The definition of the predicates
     predicates: &'a Predicates,
     /// All usages of old expressions to consider
-    old_exprs: &'a HashMap<String, Vec<vir::Expr>>,
+    old_exprs: &'a FxHashMap<String, Vec<vir::Expr>>,
     /// A log of some of the relevant actions that lead to this fold-unfold context
     log: EventLog,
 }
@@ -33,17 +31,17 @@ impl<'a> PathCtxt<'a> {
     pub fn new(
         local_vars: Vec<vir::LocalVar>,
         predicates: &'a Predicates,
-        old_exprs: &'a HashMap<String, Vec<vir::Expr>>,
+        old_exprs: &'a FxHashMap<String, Vec<vir::Expr>>,
     ) -> Self {
         PathCtxt {
             state: State::new(
-                HashMap::from_iter(
+                FxHashMap::from_iter(
                     local_vars
                         .into_iter()
                         .map(|v| (vir::Expr::local(v), PermAmount::Write)),
                 ),
-                HashMap::new(),
-                HashSet::new(),
+                FxHashMap::default(),
+                FxHashSet::default(),
             ),
             predicates,
             old_exprs,
@@ -75,7 +73,7 @@ impl<'a> PathCtxt<'a> {
         self.predicates
     }
 
-    pub fn old_exprs(&self) -> &HashMap<String, Vec<vir::Expr>> {
+    pub fn old_exprs(&self) -> &FxHashMap<String, Vec<vir::Expr>> {
         self.old_exprs
     }
 
@@ -164,7 +162,7 @@ impl<'a> PathCtxt<'a> {
         if self.state != other.state {
             // Compute which paths are moved out
             /*
-            let moved_paths: HashSet<_> = if anti_join {
+            let moved_paths: FxHashSet<_> = if anti_join {
                 filter_with_prefix_in_other(
                     self.state.moved(),
                     other.state.moved()
@@ -176,7 +174,7 @@ impl<'a> PathCtxt<'a> {
             };
             */
             // TODO: Remove all paths that are not definitely initialised.
-            let moved_paths: HashSet<_> = ancestors(
+            let moved_paths: FxHashSet<_> = ancestors(
                 &self
                     .state
                     .moved()
@@ -357,7 +355,7 @@ impl<'a> PathCtxt<'a> {
             }
 
             // Compute preserved predicate permissions
-            let preserved_preds: HashSet<_> =
+            let preserved_preds: FxHashSet<_> =
                 intersection(&self.state.pred_places(), &other.state.pred_places());
             trace!("preserved_preds: {}", preserved_preds.iter().to_string());
 
@@ -806,7 +804,7 @@ fn find_variant(enum_place: &vir::Expr, variant_place: &vir::Expr) -> vir::Maybe
 pub fn find_unfolded_variant(state: &State, enum_place: &vir::Expr) -> vir::MaybeEnumVariantIndex {
     debug_assert!(enum_place.is_place());
     // Find an access permission for which req is a proper suffix and extract variant from it.
-    let variants: HashSet<_> = state
+    let variants: FxHashSet<_> = state
         .acc_places()
         .into_iter()
         .filter(|place| place.has_proper_prefix(enum_place) && place.is_variant())
@@ -840,13 +838,13 @@ pub fn find_unfolded_variant(state: &State, enum_place: &vir::Expr) -> vir::Mayb
 /// The elements from the first set that have any element in the second
 /// set as a prefix are dropped.
 pub fn compute_fold_target(
-    left: &HashSet<vir::Expr>,
-    right: &HashSet<vir::Expr>,
-) -> (HashSet<vir::Expr>, HashSet<vir::Expr>) {
-    let mut conflicting_base = HashSet::new();
+    left: &FxHashSet<vir::Expr>,
+    right: &FxHashSet<vir::Expr>,
+) -> (FxHashSet<vir::Expr>, FxHashSet<vir::Expr>) {
+    let mut conflicting_base = FxHashSet::default();
     // If we have an enum unfolded only in one, then we add that enum to
     // conflicting places.
-    let mut conflicting_base_check = |item: &vir::Expr, second_set: &HashSet<vir::Expr>| {
+    let mut conflicting_base_check = |item: &vir::Expr, second_set: &FxHashSet<vir::Expr>| {
         if let vir::Expr::Variant(vir::Variant { box ref base, .. }) = item {
             if !second_set.iter().any(|p| p.has_prefix(item)) {
                 // The enum corresponding to base is completely folded in second_set or unfolded
@@ -862,9 +860,9 @@ pub fn compute_fold_target(
         conflicting_base_check(right_item, left);
     }
 
-    let mut places = HashSet::new();
+    let mut places = FxHashSet::default();
     let mut place_check =
-        |item: &vir::Expr, item_set: &HashSet<vir::Expr>, other_set: &HashSet<vir::Expr>| {
+        |item: &vir::Expr, item_set: &FxHashSet<vir::Expr>, other_set: &FxHashSet<vir::Expr>| {
             let is_leaf = !item_set.iter().any(|p| p.has_proper_prefix(item));
             let below_all_others = !other_set.iter().any(|p| p.has_prefix(item));
             let no_conflict_base = !conflicting_base.iter().any(|base| item.has_prefix(base));
@@ -880,7 +878,7 @@ pub fn compute_fold_target(
     }
 
     let acc_places = places;
-    let pred_places: HashSet<_> = conflicting_base
+    let pred_places: FxHashSet<_> = conflicting_base
         .iter()
         .filter(|place| {
             !conflicting_base

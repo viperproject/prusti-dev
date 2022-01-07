@@ -5,10 +5,8 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use crate::{common::identifier::WithIdentifier, polymorphic::ast::*};
-use std::{
-    collections::{HashMap, HashSet},
-    fmt,
-};
+use rustc_hash::{FxHashMap, FxHashSet};
+use std::fmt;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum Predicate {
@@ -87,7 +85,7 @@ impl Predicate {
             variants
                 .iter()
                 .map(|(_, name, _)| name.to_string())
-                .collect::<HashSet<_>>()
+                .collect::<FxHashSet<_>>()
                 .len()
                 == variants.len()
         );

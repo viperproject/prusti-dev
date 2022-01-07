@@ -19,9 +19,10 @@ use crate::encoder::{
 use log::{debug, trace};
 use prusti_common::{vir_expr, vir_local};
 use prusti_specs::predicate;
+use rustc_hash::FxHashMap;
 use rustc_middle::{ty, ty::layout::IntegerExt};
 use rustc_target::abi::Integer;
-use std::{collections::HashMap, convert::TryInto, rc::Rc};
+use std::{convert::TryInto, rc::Rc};
 use vir_crate::{
     common::identifier::WithIdentifier,
     polymorphic as vir,
@@ -48,15 +49,15 @@ pub(super) struct SnapshotEncoder {
     /// This is necessary to be able to encode recursive types; when encoding
     /// a snapshot where once of the fields is the same type, it is enough to
     /// look up the resulting type from this hashmap.
-    in_progress: HashMap<PredicateType, Type>,
+    in_progress: FxHashMap<PredicateType, Type>,
 
     /// Maps predicate types to encoded snapshots.
-    encoded: HashMap<PredicateType, Snapshot>,
+    encoded: FxHashMap<PredicateType, Snapshot>,
 
     /// Interning table for functions.
-    functions: HashMap<vir::FunctionIdentifier, Rc<vir::Function>>,
+    functions: FxHashMap<vir::FunctionIdentifier, Rc<vir::Function>>,
     /// Interning table for domains.
-    domains: HashMap<String, vir::Domain>,
+    domains: FxHashMap<String, vir::Domain>,
 }
 
 /// Snapshot encoding flattens references and boxes. This function removes any
@@ -143,7 +144,7 @@ impl SnapshotEncoder {
         method: vir::CfgMethod,
     ) -> EncodingResult<vir::CfgMethod> {
         debug!("[snap] method: {:?}", method.name());
-        let tymap = HashMap::new();
+        let tymap = FxHashMap::default();
         let mut patcher = SnapshotPatcher {
             snapshot_encoder: self,
             encoder,
@@ -1603,7 +1604,7 @@ impl SnapshotEncoder {
         let mut domain_axioms = vec![];
         let mut variant_domain_funcs = vec![];
         let mut variant_snap_bodies = vec![];
-        let mut variant_names = HashMap::new();
+        let mut variant_names = FxHashMap::default();
 
         // a local called "self", both as a Ref and as a Snapshot
         let arg_ref_local = vir::LocalVar::new("self", predicate_type.clone());
@@ -1759,7 +1760,7 @@ impl SnapshotEncoder {
                 });
             }
 
-            let mut field_access_funcs = HashMap::new();
+            let mut field_access_funcs = FxHashMap::default();
 
             for (field_idx, field) in variant.fields.iter().enumerate() {
                 // encode field access function

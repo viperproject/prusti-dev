@@ -6,8 +6,8 @@
 
 use super::super::borrows::Borrow;
 use crate::{common::display, converter::type_substitution::Generic, polymorphic::ast::*};
+use rustc_hash::FxHashMap;
 use std::{
-    collections::HashMap,
     fmt,
     hash::{Hash, Hasher},
     mem,
@@ -1725,9 +1725,9 @@ impl Expr {
     // TODO: update this after type substitution is in place
     // /// Replace all generic types with their instantiations by using string substitution.
     // /// FIXME: this is a hack to support generics. See issue #187.
-    pub fn patch_types(self, substs: &HashMap<TypeVar, Type>) -> Self {
+    pub fn patch_types(self, substs: &FxHashMap<TypeVar, Type>) -> Self {
         struct TypePatcher<'a> {
-            substs: &'a HashMap<TypeVar, Type>,
+            substs: &'a FxHashMap<TypeVar, Type>,
         }
         impl<'a> ExprFolder for TypePatcher<'a> {
             fn fold_predicate_access_predicate(
