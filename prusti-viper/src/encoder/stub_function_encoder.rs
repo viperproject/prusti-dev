@@ -20,7 +20,7 @@ use crate::encoder::{
     },
     mir::types::MirTypeEncoderInterface,
 };
-use vir_crate::polymorphic::{self as vir, NameHash};
+use vir_crate::polymorphic as vir;
 use rustc_hir::def_id::DefId;
 use rustc_middle::mir;
 use log::{trace, debug};
@@ -95,7 +95,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> StubFunctionEncoder<'p, 'v, 'tcx> {
         Ok(function)
     }
 
-    pub fn encode_function_name(&self) -> NameHash {
+    pub fn encode_function_name(&self) -> String {
         // TODO: It would be nice to somehow mark that this function is a stub
         // in the encoding.
         self.encoder.encode_item_name(self.proc_def_id, "")

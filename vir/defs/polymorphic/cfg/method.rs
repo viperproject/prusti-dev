@@ -19,7 +19,7 @@ pub struct CfgMethod {
     // TODO: extract logic using (most) skipped fields to CfgMethodBuilder
     #[serde(skip)]
     pub(crate) uuid: Uuid,
-    pub(crate) method_name: NameHash,
+    pub(crate) method_name: String,
     pub(crate) formal_arg_count: usize,
     pub(crate) formal_returns: Vec<LocalVar>,
     // FIXME: This should be pub(in super::super). However, the optimization

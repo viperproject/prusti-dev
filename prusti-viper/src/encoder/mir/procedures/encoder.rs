@@ -54,7 +54,7 @@ struct ProcedureEncoder<'p, 'v: 'p, 'tcx: 'v> {
 
 impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
     fn encode(&mut self) -> SpannedEncodingResult<cfg::ProcedureDecl> {
-        let name = self.encoder.encode_item_name(self.def_id);
+        let name = self.encoder.encode_item_name(self.def_id, "");
         let mut procedure_builder = ProcedureBuilder::new(name);
         self.encode_body(&mut procedure_builder)?;
         Ok(procedure_builder.build())

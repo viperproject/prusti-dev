@@ -4,8 +4,12 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use vir_crate::polymorphic::NameHash;
+use prusti_common::config;
+//use vir::common::identifier::NameHash;
 use rustc_hash::{FxHashMap, FxHashSet};
+use rustc_middle::ty::TyCtxt;
+use rustc_span::def_id::DefId;
+use std::fmt::{Display, Formatter, Result};
 use log::debug;
 
 // Tracks if crate-unqiue and module-unique names are needed to ensure uniqueness
@@ -17,17 +21,17 @@ struct ShortName {
     mod_unique: (bool, String),
     short_name: String,
 }
-impl fmt::Display for ShortName {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", self.prefix);
+impl Display for ShortName {
+    fn fmt(&self, f: &mut Formatter) -> Result {
+        write!(f, "{}", self.prefix)?;
         if !self.project_unique.0 {
-            write!(f, "{}::", self.project_unique.1);
+            write!(f, "{}::", self.project_unique.1)?;
         }
         if !self.crate_unique.0 {
-            write!(f, "{}::", self.crate_unique.1);
+            write!(f, "{}::", self.crate_unique.1)?;
         }
         if !self.mod_unique.0 {
-            write!(f, "{}::", self.mod_unique.1);
+            write!(f, "{}::", self.mod_unique.1)?;
         }
         write!(f, "{}", self.short_name)
     }
@@ -54,7 +58,7 @@ impl ShortName {
 /// Name interner.
 /// This structure can be used to shorten long unique names without losing the uniqueness property.
 pub struct NameInterner {
-    name_to_short: FxHashMap<NameHash, ShortName>,
+    name_to_short: FxHashMap<String, ShortName>,
     locked: bool,
 }
 
@@ -67,28 +71,31 @@ impl NameInterner {
     }
 
     /// Intern a full unique name, returning a possibly readable string that uniquely identifies it.
-    pub fn intern(&mut self, prefix: &str, def_id: DefId, tcx: TyCtxt) -> NameHash {
+    pub fn intern(&mut self, prefix: &str, def_id: DefId, tcx: TyCtxt) -> String {
         let def_path = tcx.def_path(def_id);
         // The `to_string` gives each `DisambiguatedDefPathData` separated by "::"
         let crate_name = tcx.crate_name(def_path.krate).to_string();
+        let item_name = def_path.to_string_no_crate_verbose();
         // Assume that the friendly `tcx.opt_item_name` is the last one, use second-to-last as the mod unique, and others as crate unique.
-        let item_name = def_path.to_string_no_crate_verbose().rsplitn(3, "::");
-        let short_name = item_name.next().unwrap_or_default();
-        let mod_unique = item_name.next().unwrap_or_default();
+        let mut name_split = item_name.rsplitn(3, "::");
+        let short_name = name_split.next().unwrap_or_default().to_string();
+        let mod_unique = name_split.next().unwrap_or_default().to_string();
         // TODO: How does this work when we have a crate with multiple files
-        let crate_unique = item_name.next().unwrap_or_default();
+        let crate_unique = name_split.next().unwrap_or_default().to_string();
 
         let path_hash = tcx.def_path_hash(def_id);
-        let key = NameHash::new(path_hash.stable_crate_id().to_u64(), path_hash.local_hash());
+        //let key = NameHash::new(path_hash.stable_crate_id().to_u64(), path_hash.local_hash());
+        let key = path_hash.stable_crate_id().to_u64().to_string() + &path_hash.local_hash().to_string();
         let name = self.intern_name(prefix.to_string(), crate_name, crate_unique, mod_unique, short_name);
         // Uniqueness is ensured by `ShortName::update`; `Some` indicates a clash of the Hash
-        let old = self.name_to_short.insert(key, name);
+        let old = self.name_to_short.insert(key.clone(), name);
         assert!(old.is_none(), "Two name hashes have clashed! This is exceedingly rare");
+        key
     }
 
-    fn intern_name(&mut self, prefix: String, project_unique: String, crate_unique: String, mod_unique: String, short_name: String) -> ShortName {
+    fn intern_name(&mut self, prefix: String, crate_name: String, crate_unique: String, mod_unique: String, short_name: String) -> ShortName {
         if self.locked {
-            let full_name = format!("{}{}::{}::{}::{}", prefix, project_unique, crate_unique, mod_unique, short_name);
+            let full_name = format!("{}{}::{}::{}::{}", prefix, crate_name, crate_unique, mod_unique, short_name);
             let short_name = format!("{}{}", prefix, short_name);
             panic!(
                 "Attempting to add {} to the `NameInterner` after names have been read out, \
@@ -109,17 +116,18 @@ impl NameInterner {
         };
         // Intern mangled names only if `enable_name_mangling && intern_names`
         if !config::disable_name_mangling() && config::intern_names() {
-            for (_, mut value) in self.name_to_short {
+            for (_, value) in &mut self.name_to_short {
                 value.update(&mut name);
             }
         }
         name
     }
-
-    pub fn get_interned(&mut self, full_name: &NameHash) -> String {
+/*
+    pub fn get_interned(&mut self, full_name: &str) -> String {
         self.locked = true;
         self.name_to_short.get(full_name).unwrap().to_string()
     }
+*/
 }
 
 impl Default for NameInterner {

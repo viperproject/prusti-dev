@@ -23,7 +23,6 @@ use rustc_span::Span;
 use vir_crate::{
     common::expression::ExpressionIterator,
     high as vir_high,
-    polymorphic::NameHash,
 };
 
 use super::encoder::FunctionCallInfoHigh;
@@ -189,7 +188,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureEncoder<'p, 'v, 'tcx> {
         function
     }
 
-    fn encode_function_name(&self) -> NameHash {
+    fn encode_function_name(&self) -> String {
         self.encoder.encode_item_name(self.proc_def_id, "")
     }
 

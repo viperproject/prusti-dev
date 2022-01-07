@@ -16,18 +16,6 @@ use std::{
     mem::discriminant,
 };
 
-/// Temporary standing for a name, returned by `NameInterner::intern`.
-/// Can be exchanged for a real `String` name with `NameInterner::get_interned`,
-/// but only once all names have been interned.
-#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, Serialize, Deserialize, PartialOrd, Ord)]
-pub struct NameHash(u64, u64);
-
-impl NameHash {
-    pub fn new(crate_id: u64, local_id: u64) -> Self {
-        NameHash (crate_id, local_id)
-    }
-}
-
 /// The identifier of a statement. Used in error reporting.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct Position {

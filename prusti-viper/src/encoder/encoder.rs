@@ -28,7 +28,7 @@ use prusti_interface::specs::typed::SpecificationId;
 use prusti_interface::utils::{has_spec_only_attr, read_prusti_attrs};
 use prusti_interface::PrustiError;
 use prusti_specs::specifications::common::SpecIdRef;
-use vir_crate::polymorphic::{self as vir, ExprIterator, NameHash};
+use vir_crate::polymorphic::{self as vir, ExprIterator};
 use vir_crate::common::identifier::WithIdentifier;
 use rustc_hir as hir;
 use rustc_hir::def_id::DefId;
@@ -789,7 +789,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         expr
     }
 
-    pub fn encode_item_name(&self, def_id: DefId, prefix: &str) -> NameHash {
+    pub fn encode_item_name(&self, def_id: DefId, prefix: &str) -> String {
         self.name_interner.borrow_mut().intern(&format!("{}m_", prefix), def_id, self.env.tcx())
     }
 
@@ -949,7 +949,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         })
     }
 
-    pub fn encode_spec_func_name(&self, def_id: ProcedureDefId, kind: SpecFunctionKind) -> NameHash {
+    pub fn encode_spec_func_name(&self, def_id: ProcedureDefId, kind: SpecFunctionKind) -> String {
         let kind_name = match kind {
             SpecFunctionKind::Pre => "pre",
             SpecFunctionKind::Post => "post",

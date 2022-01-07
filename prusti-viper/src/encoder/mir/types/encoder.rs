@@ -35,7 +35,6 @@ use std::{
 use vir_crate::{
     common::expression::{less_equals, ExpressionIterator},
     high::{self as vir, visitors::ExpressionFolder},
-    polymorphic::NameHash,
 };
 
 pub struct TypeEncoder<'p, 'v: 'p, 'tcx: 'v> {
@@ -61,19 +60,19 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
             .collect()
     }
 
-    fn encode_enum_name(&self, did: DefId) -> NameHash {
+    fn encode_enum_name(&self, did: DefId) -> String {
         self.encoder.encode_item_name(did, "enum$")
     }
 
-    fn encode_union_name(&self, did: DefId) -> NameHash {
+    fn encode_union_name(&self, did: DefId) -> String {
         self.encoder.encode_item_name(did, "union$")
     }
 
-    fn encode_closure_name(&self, did: DefId) -> NameHash {
+    fn encode_closure_name(&self, did: DefId) -> String {
         self.encoder.encode_item_name(did, "closure$")
     }
 
-    fn encode_function_def_name(&self, did: DefId) -> NameHash {
+    fn encode_function_def_name(&self, did: DefId) -> String {
         self.encoder.encode_item_name(did, "fndef$")
     }
 
@@ -720,8 +719,8 @@ fn encode_box_name() -> String {
     "box$".to_string()
 }
 
-fn encode_struct_name<'v, 'tcx: 'v>(encoder: &Encoder<'v, 'tcx>, did: DefId) -> NameHash {
-    self.encoder.encode_item_name(did, "struct$")
+fn encode_struct_name<'v, 'tcx: 'v>(encoder: &Encoder<'v, 'tcx>, did: DefId) -> String {
+    encoder.encode_item_name(did, "struct$")
 }
 
 fn encode_variant<'v, 'tcx: 'v>(
