@@ -8,7 +8,8 @@ use crate::{
     common::{display, identifier::WithIdentifier},
     polymorphic::ast::*,
 };
-use std::{collections::HashMap, fmt};
+use rustc_hash::FxHashMap;
+use std::fmt;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct Function {
@@ -59,7 +60,7 @@ impl fmt::Display for Function {
 
 impl Function {
     pub fn inline_body(&self, args: Vec<Expr>) -> Expr {
-        let subst: HashMap<LocalVar, Expr> = self
+        let subst: FxHashMap<LocalVar, Expr> = self
             .formal_args
             .iter()
             .cloned()

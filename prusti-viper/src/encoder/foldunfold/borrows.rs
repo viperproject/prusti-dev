@@ -4,7 +4,8 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use std::{collections::HashMap, io};
+use rustc_hash::FxHashMap;
+use std::io;
 use vir_crate::polymorphic as vir;
 
 pub(super) struct BasicBlock<'a> {
@@ -21,14 +22,14 @@ pub(super) struct CFG<'a> {
     pub basic_blocks: Vec<BasicBlock<'a>>,
     /// Basic blocks that connect a pair of basic blocks. They are needed for performing
     /// fold-unfold operations on an edge.
-    pub edges: HashMap<(usize, usize), Vec<vir::Stmt>>,
+    pub edges: FxHashMap<(usize, usize), Vec<vir::Stmt>>,
 }
 
 impl<'a> CFG<'a> {
     pub(super) fn new() -> Self {
         Self {
             basic_blocks: Vec::new(),
-            edges: HashMap::new(),
+            edges: FxHashMap::default(),
         }
     }
     pub(super) fn add_block(&mut self, block: BasicBlock<'a>) {

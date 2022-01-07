@@ -10,11 +10,9 @@ use crate::encoder::{
 };
 use log::{debug, trace};
 use prusti_interface::{data::ProcedureDefId, environment::Environment};
+use rustc_hash::{FxHashMap, FxHashSet};
 use rustc_middle::ty::TyCtxt;
-use std::{
-    cell::{Ref, RefCell},
-    collections::{HashMap, HashSet},
-};
+use std::cell::{Ref, RefCell};
 use vir_crate::{
     high::{self as vir_high, operations::ty::Typed},
     polymorphic as vir_poly,
@@ -22,10 +20,10 @@ use vir_crate::{
 
 #[derive(Default)]
 pub(crate) struct HighBuiltinFunctionEncoderState {
-    // FIXME: This should be a HashMap into FunctionIdentifier.
-    builtin_functions_high: RefCell<HashSet<BuiltinFunctionHighKind>>,
+    // FIXME: This should be a FxHashMap into FunctionIdentifier.
+    builtin_functions_high: RefCell<FxHashSet<BuiltinFunctionHighKind>>,
     // FIXME: This should be removed once BuiltinEncoder is fully migrated to high.
-    builtin_functions: RefCell<HashMap<BuiltinFunctionKind, vir_poly::FunctionIdentifier>>,
+    builtin_functions: RefCell<FxHashMap<BuiltinFunctionKind, vir_poly::FunctionIdentifier>>,
 }
 
 #[derive(Clone, Debug, Hash, Eq, PartialEq)]

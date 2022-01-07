@@ -23,12 +23,12 @@ use log::{debug, trace};
 use prusti_common::{config, vir_local};
 use prusti_interface::specs::typed;
 use rustc_attr::IntType::SignedInt;
+use rustc_hash::FxHashMap;
 use rustc_hir::def_id::DefId;
 use rustc_middle::{ty, ty::layout::IntegerExt};
 use rustc_span::MultiSpan;
 use rustc_target::{abi, abi::Integer};
 use std::{
-    collections::HashMap,
     convert::TryInto,
     hash::{Hash, Hasher},
 };
@@ -501,7 +501,7 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
         //                 ty::List::identity_for_item(self.encoder.env().tcx(), adt_def.did);
 
         //             // FIXME: this is a hack to support generics. See issue #187.
-        //             let mut tymap = HashMap::new();
+        //             let mut tymap = FxHashMap::default();
 
         //             for (kind1, kind2) in own_substs.iter().zip(*subst) {
         //                 if let (

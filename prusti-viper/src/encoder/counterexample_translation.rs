@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use rustc_hash::{FxHashMap};
 use std::convert::TryFrom;
 
 use viper::silicon_counterexample::*;
@@ -47,8 +47,8 @@ pub fn backtranslate(
     let (result_sil_name, result_span, result_typ) = translator.result_to_process();
 
     // map those needed
-    let mut entries = HashMap::new();
-    let mut args = HashMap::new();
+    let mut entries = FxHashMap::default();
+    let mut args = FxHashMap::default();
 
     for (rust_name, span, vir_name, typ, is_arg) in entries_to_process {
         if !translator.is_pure {
@@ -117,7 +117,7 @@ pub struct CounterexampleTranslator<'ce, 'tcx> {
     silicon_counterexample: &'ce SiliconCounterexample,
     tcx: TyCtxt<'tcx>,
     is_pure: bool,
-    disc_info: HashMap<(ProcedureDefId, String), Vec<String>>,
+    disc_info: FxHashMap<(ProcedureDefId, String), Vec<String>>,
     var_debug_info: Vec<VarDebugInfo<'tcx>>,
     local_variable_manager: LocalVariableManager<'tcx>,
 }
@@ -212,7 +212,7 @@ impl<'ce, 'tcx> CounterexampleTranslator<'ce, 'tcx> {
         typ: Ty<'tcx>,
         sil_entry: Option<&ModelEntry>,
         vir_name: String,
-        silicon_ce_entries: &HashMap<String, ModelEntry>,
+        silicon_ce_entries: &FxHashMap<String, ModelEntry>,
     ) -> Option<Entry> {
         Some(match (typ.kind(), sil_entry) {
             (ty::TyKind::Bool, Some(ModelEntry::LitBool(value)))
@@ -341,7 +341,7 @@ impl<'ce, 'tcx> CounterexampleTranslator<'ce, 'tcx> {
         sil_entry: Option<&ModelEntry>,
         vir_name: String,
         subst: ty::subst::SubstsRef<'tcx>,
-        silicon_ce_entries: &HashMap<String, ModelEntry>,
+        silicon_ce_entries: &FxHashMap<String, ModelEntry>,
     ) -> Vec<(String, Entry)> {
         let mut field_entries = vec![];
         for f in &variant.fields {

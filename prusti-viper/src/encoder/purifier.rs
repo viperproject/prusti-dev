@@ -4,7 +4,8 @@
 // represent types like "snapshot of X". Resolve SnapOf in snapshot patcher.
 
 use vir_crate::polymorphic::{self as vir, ExprWalker, ExprFolder, StmtWalker, StmtFolder};
-use std::collections::{BTreeMap, BTreeSet, HashMap, HashSet};
+use rustc_hash::{FxHashMap, FxHashSet};
+use std::collections::{BTreeMap, BTreeSet};
 use log::{debug, trace};
 use crate::encoder::Encoder;
 use crate::encoder::high::types::HighTypeEncoderInterface;
@@ -19,7 +20,7 @@ pub fn purify_method(
     method: &mut vir::CfgMethod
 ) {
     // A set of candidate references to be purified.
-    let mut candidates = HashSet::new();
+    let mut candidates = FxHashSet::default();
     debug!("method: {}", method.name());
     for var in &method.local_vars {
         match var.typ {
@@ -63,7 +64,7 @@ pub fn purify_method(
         candidates
     );
 
-    let tymap = HashMap::new();
+    let tymap = FxHashMap::default();
     let mut purifier = Purifier::new(encoder, candidates, tymap);
 
     for block in &mut method.basic_blocks {
@@ -92,13 +93,13 @@ pub fn purify_method(
 #[derive(Debug, Default)]
 struct VarDependencyCollector {
     /// (Potentially) references that are dereferenced.
-    dereferenced_variables: HashSet<String>,
+    dereferenced_variables: FxHashSet<String>,
     /// (Potentially) references that borrow other variables.
-    borrowing_variables: HashSet<String>,
+    borrowing_variables: FxHashSet<String>,
     /// Variables that are potentially reborrowed.
-    dependencies: HashMap<String, HashSet<String>>,
+    dependencies: FxHashMap<String, FxHashSet<String>>,
     /// Variables that are potentially reborrowed.
-    dependents: HashMap<String, HashSet<String>>,
+    dependents: FxHashMap<String, FxHashSet<String>>,
 }
 
 impl VarDependencyCollector {
@@ -159,11 +160,11 @@ impl StmtWalker for VarDependencyCollector {
         let dependencies = collect_variables(source);
         let dependents = collect_variables(target);
         for dependent in &dependents {
-            let entry = self.dependencies.entry(dependent.clone()).or_insert_with(HashSet::new);
+            let entry = self.dependencies.entry(dependent.clone()).or_insert_with(FxHashSet::default);
             entry.extend(dependencies.iter().cloned());
         }
         for dependency in dependencies {
-            let entry = self.dependents.entry(dependency).or_insert_with(HashSet::new);
+            let entry = self.dependents.entry(dependency).or_insert_with(FxHashSet::default);
             entry.extend(dependents.iter().cloned());
         }
         match kind {
@@ -188,14 +189,14 @@ impl StmtWalker for VarDependencyCollector {
     }
 }
 
-fn collect_variables(expr: &vir::Expr) -> HashSet<String> {
-    let mut collector = VariableCollector { vars: HashSet::new() };
+fn collect_variables(expr: &vir::Expr) -> FxHashSet<String> {
+    let mut collector = VariableCollector { vars: FxHashSet::default() };
     ExprWalker::walk(&mut collector, expr);
     collector.vars
 }
 
 struct VariableCollector {
-    vars: HashSet<String>,
+    vars: FxHashSet<String>,
 }
 
 impl ExprWalker for VariableCollector {
@@ -223,19 +224,19 @@ fn translate_type<'tcx>(encoder: &Encoder<'_, 'tcx>, typ: vir::Type, tymap: &Sub
 
 struct Purifier<'p, 'v: 'p, 'tcx: 'v> {
     encoder: &'p Encoder<'v, 'tcx>,
-    vars: HashSet<String>,
+    vars: FxHashSet<String>,
     fresh_variables: Vec<vir::LocalVar>,
-    change_var_types: HashMap<String, vir::Type>,
+    change_var_types: FxHashMap<String, vir::Type>,
     tymap: SubstMap<'tcx>,
 }
 
 impl<'p, 'v: 'p, 'tcx: 'v> Purifier<'p, 'v, 'tcx> {
-    fn new(encoder: &'p Encoder<'v, 'tcx>, vars: HashSet<String>, tymap: SubstMap<'tcx>) -> Self {
+    fn new(encoder: &'p Encoder<'v, 'tcx>, vars: FxHashSet<String>, tymap: SubstMap<'tcx>) -> Self {
         Self {
             encoder,
             vars,
             fresh_variables: Vec::new(),
-            change_var_types: HashMap::new(),
+            change_var_types: FxHashMap::default(),
             tymap,
         }
     }

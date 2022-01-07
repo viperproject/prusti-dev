@@ -8,7 +8,8 @@ use crate::{
     common::{display, identifier::WithIdentifier},
     polymorphic::ast::*,
 };
-use std::{collections::HashMap, fmt};
+use rustc_hash::FxHashMap;
+use std::fmt;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct Domain {

@@ -4,8 +4,8 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+use rustc_hash::FxHashMap;
 use rustc_middle::ty;
-use std::collections::HashMap;
 use vir_crate::polymorphic::{self as vir, Expr, Type};
 
 /// Snapshot of a VIR type. This enum is internal to the snapshot encoding and
@@ -25,10 +25,10 @@ pub(super) enum Snapshot {
         /// For enums, it has as many entries as there are variants.
         /// The first function is the constructor, the hashmap encodes the
         /// field access functions, keyed by their name.
-        variants: Vec<(vir::DomainFunc, HashMap<String, vir::DomainFunc>)>,
+        variants: Vec<(vir::DomainFunc, FxHashMap<String, vir::DomainFunc>)>,
         /// Mapping of variant names (as used by Prusti) to variant indices
         /// in the [variants] vector. Empty for non-enums.
-        variant_names: HashMap<String, usize>,
+        variant_names: FxHashMap<String, usize>,
     }, // TODO: separate variant for enums and one-variant Complexes?
     /// Arrays
     Array {
