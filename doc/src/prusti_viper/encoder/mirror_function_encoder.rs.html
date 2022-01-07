@@ -295,49 +295,47 @@
 <span id="294">294</span>
 <span id="295">295</span>
 <span id="296">296</span>
-<span id="297">297</span>
 </pre><pre class="rust"><code><span class="comment">// © 2019, ETH Zurich</span>
 <span class="comment">//</span>
 <span class="comment">// This Source Code Form is subject to the terms of the Mozilla Public</span>
 <span class="comment">// License, v. 2.0. If a copy of the MPL was not distributed with this</span>
 <span class="comment">// file, You can obtain one at http://mozilla.org/MPL/2.0/.</span>
 
+<span class="kw">use</span> <span class="ident">rustc_hash</span>::{<a class="ident" href="../../../rustc_hash/type.FxHashMap.html">FxHashMap</a>, <a class="ident" href="../../../rustc_hash/type.FxHashSet.html">FxHashSet</a>};
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">rustc_hir::def_id::DefId</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/collections/hash/set/struct.HashSet.html">std::collections::HashSet</a>;
 <span class="kw">use</span> <a class="ident" href="../../../vir/common/identifier/trait.WithIdentifier.html">vir_crate::common::identifier::WithIdentifier</a>;
 <span class="kw">use</span> <span class="ident">vir_crate::polymorphic</span>::{<a class="self" href="../../../vir/polymorphic/index.html">self</a> <span class="kw">as</span> <span class="ident">vir</span>, <a class="ident" href="../../../vir/gen/polymorphic/ast/expr/trait.ExprIterator.html">ExprIterator</a>};
 <span class="kw">use</span> <a class="ident" href="../../../prusti_interface/environment/borrowck/facts/type.Loan.html">prusti_interface::environment::borrowck::facts::Loan</a>;
 <span class="kw">use</span> <a class="ident" href="../../../src/prusti_viper/encoder/encoder.rs.html#71-103"><span class="kw">crate</span>::encoder::encoder::Encoder</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/collections/hash/map/struct.HashMap.html">std::collections::HashMap</a>;
 
 <span class="kw">const</span> <span class="ident">MIRROR_DOMAIN_NAME</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> <span class="op">=</span> <span class="string">&quot;MirrorDomain&quot;</span>;
 
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">MirrorEncoder</span> {
     <span class="ident">domain</span>: <a class="ident" href="../../../vir/gen/polymorphic/ast/domain/struct.Domain.html">vir::Domain</a>,
-    <span class="ident">encoded</span>: <span class="ident">HashSet</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">DefId</a><span class="op">&gt;</span>,
+    <span class="ident">encoded</span>: <span class="ident">FxHashSet</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">DefId</a><span class="op">&gt;</span>,
 }
 
 <span class="comment">// mirror_caller_functions: RefCell&lt;Vec&lt;vir::Function&gt;&gt;</span>
 
-<span class="kw">impl</span> <a class="ident" href="../../../src/prusti_viper/encoder/mirror_function_encoder.rs.html#17-20">MirrorEncoder</a> {
+<span class="kw">impl</span> <a class="ident" href="../../../src/prusti_viper/encoder/mirror_function_encoder.rs.html#16-19">MirrorEncoder</a> {
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="self">Self</span> {
         <span class="self">Self</span> {
             <span class="ident">domain</span>: <a class="ident" href="../../../vir/gen/polymorphic/ast/domain/struct.Domain.html">vir::Domain</a> {
-                <span class="ident">name</span>: <a class="ident" href="../../../src/prusti_viper/encoder/mirror_function_encoder.rs.html#15">MIRROR_DOMAIN_NAME</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(),
+                <span class="ident">name</span>: <a class="ident" href="../../../src/prusti_viper/encoder/mirror_function_encoder.rs.html#14">MIRROR_DOMAIN_NAME</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(),
                 <span class="ident">functions</span>: <span class="macro">vec!</span>[],
                 <span class="ident">axioms</span>: <span class="macro">vec!</span>[],
                 <span class="ident">type_vars</span>: <span class="macro">vec!</span>[],
             },
-            <span class="ident">encoded</span>: <span class="ident">HashSet::new</span>(),
+            <span class="ident">encoded</span>: <span class="ident">FxHashSet::default</span>(),
         }
     }
 
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_domain</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><a class="ident" href="../../../vir/gen/polymorphic/ast/domain/struct.Domain.html">vir::Domain</a><span class="op">&gt;</span> {
-        <span class="kw">if</span> <a class="self" href="../../../src/prusti_viper/encoder/mirror_function_encoder.rs.html#38">self</a>.<span class="ident">encoded</span>.<span class="ident">is_empty</span>() {
+        <span class="kw">if</span> <a class="self" href="../../../src/prusti_viper/encoder/mirror_function_encoder.rs.html#37">self</a>.<span class="ident">encoded</span>.<span class="ident">is_empty</span>() {
             <span class="prelude-val">None</span>
         } <span class="kw">else</span> {
-            <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/prusti_viper/encoder/mirror_function_encoder.rs.html#38">self</a>.<span class="ident">domain</span>)
+            <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/prusti_viper/encoder/mirror_function_encoder.rs.html#37">self</a>.<span class="ident">domain</span>)
         }
     }
 
@@ -348,13 +346,13 @@
         <span class="ident">function</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../vir/gen/polymorphic/ast/function/struct.Function.html">vir::Function</a>,
     ) {
         <span class="comment">// don&#39;t encode a mirror for the same DefId multiple times</span>
-        <span class="kw">if</span> <a class="self" href="../../../src/prusti_viper/encoder/mirror_function_encoder.rs.html#47">self</a>.<span class="ident">encoded</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/prusti_viper/encoder/mirror_function_encoder.rs.html#49">def_id</a>) {
+        <span class="kw">if</span> <a class="self" href="../../../src/prusti_viper/encoder/mirror_function_encoder.rs.html#46">self</a>.<span class="ident">encoded</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/prusti_viper/encoder/mirror_function_encoder.rs.html#48">def_id</a>) {
             <span class="kw">return</span>;
         }
-        <a class="self" href="../../../src/prusti_viper/encoder/mirror_function_encoder.rs.html#47">self</a>.<span class="ident">encoded</span>.<span class="ident">insert</span>(<a class="ident" href="../../../src/prusti_viper/encoder/mirror_function_encoder.rs.html#49">def_id</a>);
+        <a class="self" href="../../../src/prusti_viper/encoder/mirror_function_encoder.rs.html#46">self</a>.<span class="ident">encoded</span>.<span class="ident">insert</span>(<a class="ident" href="../../../src/prusti_viper/encoder/mirror_function_encoder.rs.html#48">def_id</a>);
 
-        <a class="self" href="../../../src/prusti_viper/encoder/mirror_function_encoder.rs.html#47">self</a>.<a class="ident" href="../../../src/prusti_viper/encoder/mirror_function_encoder.rs.html#62-66">encode_mirror_simple</a>(<a class="ident" href="../../../src/prusti_viper/encoder/mirror_function_encoder.rs.html#49">def_id</a>, <a class="ident" href="../../../src/prusti_viper/encoder/mirror_function_encoder.rs.html#50">function</a>);
-        <a class="self" href="../../../src/prusti_viper/encoder/mirror_function_encoder.rs.html#47">self</a>.<a class="ident" href="../../../src/prusti_viper/encoder/mirror_function_encoder.rs.html#101-105">encode_mirror_axiomatized</a>(<a class="ident" href="../../../src/prusti_viper/encoder/mirror_function_encoder.rs.html#49">def_id</a>, <a class="ident" href="../../../src/prusti_viper/encoder/mirror_function_encoder.rs.html#50">function</a>);
+        <a class="self" href="../../../src/prusti_viper/encoder/mirror_function_encoder.rs.html#46">self</a>.<a class="ident" href="../../../src/prusti_viper/encoder/mirror_function_encoder.rs.html#61-65">encode_mirror_simple</a>(<a class="ident" href="../../../src/prusti_viper/encoder/mirror_function_encoder.rs.html#48">def_id</a>, <a class="ident" href="../../../src/prusti_viper/encoder/mirror_function_encoder.rs.html#49">function</a>);
+        <a class="self" href="../../../src/prusti_viper/encoder/mirror_function_encoder.rs.html#46">self</a>.<a class="ident" href="../../../src/prusti_viper/encoder/mirror_function_encoder.rs.html#100-104">encode_mirror_axiomatized</a>(<a class="ident" href="../../../src/prusti_viper/encoder/mirror_function_encoder.rs.html#48">def_id</a>, <a class="ident" href="../../../src/prusti_viper/encoder/mirror_function_encoder.rs.html#49">function</a>);
     }
 
     <span class="kw">fn</span> <span class="ident">encode_mirror_simple</span>(
@@ -364,24 +362,24 @@
     ) {
         <span class="comment">// create mirror function</span>
         <span class="kw">let</span> <span class="ident">mirror_func</span> <span class="op">=</span> <a class="ident" href="../../../vir/gen/polymorphic/ast/domain/struct.DomainFunc.html">vir::DomainFunc</a> {
-            <span class="ident">name</span>: <span class="macro">format!</span>(<span class="string">&quot;mirror_simple${}&quot;</span>, <a class="ident" href="../../../src/prusti_viper/encoder/mirror_function_encoder.rs.html#65">function</a>.<span class="ident">name</span>),
-            <span class="ident">type_arguments</span>: <a class="ident" href="../../../src/prusti_viper/encoder/mirror_function_encoder.rs.html#65">function</a>.<span class="ident">type_arguments</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
-            <span class="ident">formal_args</span>: <a class="ident" href="../../../src/prusti_viper/encoder/mirror_function_encoder.rs.html#65">function</a>.<span class="ident">formal_args</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
-            <span class="ident">return_type</span>: <a class="ident" href="../../../src/prusti_viper/encoder/mirror_function_encoder.rs.html#65">function</a>.<span class="ident">return_type</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+            <span class="ident">name</span>: <span class="macro">format!</span>(<span class="string">&quot;mirror_simple${}&quot;</span>, <a class="ident" href="../../../src/prusti_viper/encoder/mirror_function_encoder.rs.html#64">function</a>.<span class="ident">name</span>),
+            <span class="ident">type_arguments</span>: <a class="ident" href="../../../src/prusti_viper/encoder/mirror_function_encoder.rs.html#64">function</a>.<span class="ident">type_arguments</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+            <span class="ident">formal_args</span>: <a class="ident" href="../../../src/prusti_viper/encoder/mirror_function_encoder.rs.html#64">function</a>.<span class="ident">formal_args</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+            <span class="ident">return_type</span>: <a class="ident" href="../../../src/prusti_viper/encoder/mirror_function_encoder.rs.html#64">function</a>.<span class="ident">return_type</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
             <span class="ident">unique</span>: <span class="bool-val">false</span>,
-            <span class="ident">domain_name</span>: <a class="ident" href="../../../src/prusti_viper/encoder/mirror_function_encoder.rs.html#15">MIRROR_DOMAIN_NAME</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(),
+            <span class="ident">domain_name</span>: <a class="ident" href="../../../src/prusti_viper/encoder/mirror_function_encoder.rs.html#14">MIRROR_DOMAIN_NAME</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(),
         };
 
         <span class="comment">// add postcondition to the original function</span>
         <span class="comment">// [result == mirror(args), true]</span>
-        <a class="ident" href="../../../src/prusti_viper/encoder/mirror_function_encoder.rs.html#65">function</a>.<span class="ident">posts</span>.<span class="ident">push</span>(<span class="ident">vir::Expr::InhaleExhale</span>( <a class="ident" href="../../../vir/gen/polymorphic/ast/expr/struct.InhaleExhale.html">vir::InhaleExhale</a> {
+        <a class="ident" href="../../../src/prusti_viper/encoder/mirror_function_encoder.rs.html#64">function</a>.<span class="ident">posts</span>.<span class="ident">push</span>(<span class="ident">vir::Expr::InhaleExhale</span>( <a class="ident" href="../../../vir/gen/polymorphic/ast/expr/struct.InhaleExhale.html">vir::InhaleExhale</a> {
             <span class="ident">inhale_expr</span>: <span class="kw">box</span> <span class="ident">vir::Expr::eq_cmp</span>(
                 <span class="ident">vir::Expr::local</span>(
-                    <span class="ident">vir::LocalVar::new</span>(<span class="string">&quot;__result&quot;</span>, <a class="ident" href="../../../src/prusti_viper/encoder/mirror_function_encoder.rs.html#65">function</a>.<span class="ident">return_type</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()),
+                    <span class="ident">vir::LocalVar::new</span>(<span class="string">&quot;__result&quot;</span>, <a class="ident" href="../../../src/prusti_viper/encoder/mirror_function_encoder.rs.html#64">function</a>.<span class="ident">return_type</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()),
                 ),
                 <span class="ident">vir::Expr::domain_func_app</span>(
-                    <a class="ident" href="../../../src/prusti_viper/encoder/mirror_function_encoder.rs.html#68">mirror_func</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
-                    <a class="ident" href="../../../src/prusti_viper/encoder/mirror_function_encoder.rs.html#65">function</a>.<span class="ident">formal_args</span>.<span class="ident">iter</span>()
+                    <a class="ident" href="../../../src/prusti_viper/encoder/mirror_function_encoder.rs.html#67">mirror_func</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+                    <a class="ident" href="../../../src/prusti_viper/encoder/mirror_function_encoder.rs.html#64">function</a>.<span class="ident">formal_args</span>.<span class="ident">iter</span>()
                         .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">cloned</a>()
                         .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="ident">vir::Expr::local</span>)
                         .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>(),
@@ -392,7 +390,7 @@
         }));
 
         <span class="comment">// add mirror function to mirror domain</span>
-        <a class="self" href="../../../src/prusti_viper/encoder/mirror_function_encoder.rs.html#63">self</a>.<span class="ident">domain</span>.<span class="ident">functions</span>.<span class="ident">push</span>(<a class="ident" href="../../../src/prusti_viper/encoder/mirror_function_encoder.rs.html#68">mirror_func</a>);
+        <a class="self" href="../../../src/prusti_viper/encoder/mirror_function_encoder.rs.html#62">self</a>.<span class="ident">domain</span>.<span class="ident">functions</span>.<span class="ident">push</span>(<a class="ident" href="../../../src/prusti_viper/encoder/mirror_function_encoder.rs.html#67">mirror_func</a>);
     }
 
     <span class="comment">// TODO: ...</span>
@@ -414,7 +412,7 @@ pub fn encode_mirror_of_pure_function(
     function: &amp;vir::Function,
 ) {
     /*
-    let snapshots: &amp;HashMap&lt;String, Box&lt;Snapshot&gt;&gt; = &amp;encoder.get_snapshots();
+    let snapshots: &amp;FxHashMap&lt;String, Box&lt;Snapshot&gt;&gt; = &amp;encoder.get_snapshots();
     let formal_args_without_nat: Vec&lt;vir::LocalVar&gt; =
         snapshot::encode_mirror_function_args_without_nat(&amp;function.formal_args, &amp;snapshots).unwrap();
 
