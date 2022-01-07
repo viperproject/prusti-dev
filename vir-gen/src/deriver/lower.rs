@@ -144,7 +144,7 @@ fn derive_lowerer(
     let methods = deriver.encoded_methods;
     let mut items = Vec::new();
     let final_trait = parse_quote! {
-        trait #deriver_trait_ident {
+        pub trait #deriver_trait_ident {
             type Error;
             #(#methods)*
         }
@@ -152,7 +152,7 @@ fn derive_lowerer(
     items.push(final_trait);
     let method_name = &deriver.user_trait_method_name;
     let user_trait = parse_quote! {
-        trait #user_trait_ident {
+        pub trait #user_trait_ident {
             type Output;
             fn #method_name(self, lowerer: &impl #deriver_trait_ident) -> Self::Output;
         }
@@ -198,6 +198,8 @@ impl<'a> Deriver<'a> {
             self.encode_enum(ident, source_enum)?;
         } else if let Ok(source_struct) = find_variant_struct(self.source_type_module, ident) {
             self.encode_struct(ident, source_struct)?;
+        } else if self.is_builtin_type(ident) {
+            self.encode_builtin(ident)?;
         } else {
             self.encode_stub(ident)?;
         }
@@ -321,6 +323,26 @@ impl<'a> Deriver<'a> {
         self.encoded_methods.push(method);
         Ok(())
     }
+    fn structs_match(
+        &self,
+        source_struct: &syn::ItemStruct,
+        target_struct: Option<&syn::ItemStruct>,
+    ) -> bool {
+        if let Some(target_struct) = target_struct {
+            for source_field in &source_struct.fields {
+                if !target_struct
+                    .fields
+                    .iter()
+                    .any(|target_field| source_field.ident == target_field.ident)
+                {
+                    return false;
+                }
+            }
+            true
+        } else {
+            false
+        }
+    }
     fn encode_struct(
         &mut self,
         struct_ident: &syn::Ident,
@@ -330,7 +352,7 @@ impl<'a> Deriver<'a> {
         let name = self.encode_name(struct_ident);
         let parameter_type = self.encode_parameter_type(struct_ident);
         let return_type = self.encode_return_type(struct_ident);
-        let method = if target_struct.is_some() {
+        let method = if self.structs_match(source_struct, target_struct) {
             let mut fields = Vec::<syn::FieldValue>::new();
             for field in &source_struct.fields {
                 let field_name = field.ident.as_ref().unwrap();
@@ -382,6 +404,12 @@ impl<'a> Deriver<'a> {
                     fn #method_name(&self, variant: #parameter_type) -> #return_type;
                 }
             }
+        } else if self.target_has_variant(enum_ident, variant_ident) {
+            parse_quote! {
+                fn #method_name(&self) -> #return_type {
+                    #return_type::#variant_ident
+                }
+            }
         } else {
             parse_quote! {
                 fn #method_name(&self) -> #return_type;
@@ -416,11 +444,47 @@ impl<'a> Deriver<'a> {
             let method_name = self.encode_name_nested(container_ident, inner_ident);
             let parameter_type = self.encode_parameter_type(inner_ident);
             let return_type = self.encode_return_type(inner_ident);
-            let method = parse_quote! {
-                fn #method_name(&self, #container_ident < #parameter_type >) -> #container_ident < #return_type >;
+            let method = if container_ident == "Box" {
+                let inner_method_name = self.encode_name(inner_ident);
+                parse_quote! {
+                    #[allow(clippy::boxed_local)]
+                    fn #method_name(&self, ty: #container_ident < #parameter_type >) -> #container_ident < #return_type > {
+                        Box::new(self.#inner_method_name(*ty))
+                    }
+                }
+            } else if container_ident == "Vec" {
+                let inner_method_name = self.encode_name(inner_ident);
+                parse_quote! {
+                    fn #method_name(&self, ty: #container_ident < #parameter_type >) -> #container_ident < #return_type > {
+                        ty.into_iter().map(|element| self.#inner_method_name(element)).collect()
+                    }
+                }
+            } else if container_ident == "Option" {
+                let inner_method_name = self.encode_name(inner_ident);
+                parse_quote! {
+                    fn #method_name(&self, ty: #container_ident < #parameter_type >) -> #container_ident < #return_type > {
+                        ty.map(|element| self.#inner_method_name(element))
+                    }
+                }
+            } else {
+                parse_quote! {
+                    fn #method_name(&self, _: #container_ident < #parameter_type >) -> #container_ident < #return_type >;
+                }
             };
             self.encoded_methods.push(method);
         }
+        Ok(())
+    }
+
+    fn encode_builtin(&mut self, ident: &syn::Ident) -> syn::Result<()> {
+        let method_name = self.encode_name(ident);
+        let parameter_type = self.encode_parameter_type(ident);
+        let method = parse_quote! {
+            fn #method_name(&self, value: #parameter_type) -> #parameter_type {
+                value
+            }
+        };
+        self.encoded_methods.push(method);
         Ok(())
     }
 

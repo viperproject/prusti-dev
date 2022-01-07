@@ -4,7 +4,10 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use crate::polymorphic::{ast::*, gather_labels::gather_labels};
+use crate::{
+    common::identifier::WithIdentifier,
+    polymorphic::{ast::*, gather_labels::gather_labels},
+};
 use rustc_hash::{FxHashMap, FxHashSet};
 use std::{collections::VecDeque, fmt, iter::FromIterator};
 use uuid::Uuid;

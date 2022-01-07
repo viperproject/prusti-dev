@@ -22,6 +22,12 @@ pub(crate) struct Include {
     pub(crate) derive_macros: Vec<syn::Path>,
 }
 
+/// copy_from!
+pub(crate) struct CopyModule {
+    /// Path from which we want to include components.
+    pub(crate) path: syn::Path,
+}
+
 pub(crate) struct RawBlock {
     /// The name of the block.
     pub(crate) name: syn::Ident,

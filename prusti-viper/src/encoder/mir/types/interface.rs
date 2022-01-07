@@ -55,6 +55,12 @@ pub(crate) trait MirTypeEncoderInterface<'tcx> {
         ty: ty::Ty<'tcx>,
     ) -> Option<(vir_high::Expression, vir_high::Expression)>;
     fn encode_type_def(&self, ty: &vir_high::Type) -> SpannedEncodingResult<vir_high::TypeDecl>;
+    fn encode_adt_def(
+        &self,
+        adt_def: &'tcx ty::AdtDef,
+        substs: ty::subst::SubstsRef<'tcx>,
+        variant_index: Option<rustc_target::abi::VariantIdx>,
+    ) -> SpannedEncodingResult<vir_high::TypeDecl>;
     fn encode_type_invariant_def_high(
         &self,
         ty: ty::Ty<'tcx>,
@@ -210,6 +216,14 @@ impl<'v, 'tcx: 'v> MirTypeEncoderInterface<'tcx> for super::super::super::Encode
         }
         let encoded_type = self.mir_type_encoder_state.encoded_type_decls.borrow()[ty].clone();
         Ok(encoded_type)
+    }
+    fn encode_adt_def(
+        &self,
+        adt_def: &'tcx ty::AdtDef,
+        substs: ty::subst::SubstsRef<'tcx>,
+        variant_index: Option<rustc_target::abi::VariantIdx>,
+    ) -> SpannedEncodingResult<vir_high::TypeDecl> {
+        super::encoder::encode_adt_def(self, adt_def, substs, variant_index)
     }
     fn encode_type_invariant_def_high(
         &self,
