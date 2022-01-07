@@ -6,7 +6,7 @@
 
 use crate::encoder::foldunfold::{perm::*, FoldUnfoldError};
 use log::{debug, trace};
-use rustc_hash::{FxHashMap as HashMap, FxHashSet as HashSet};
+use rustc_hash::{FxHashMap, FxHashSet};
 use std::{
     borrow::Borrow,
     fmt,
@@ -17,30 +17,30 @@ use vir_crate::polymorphic::{self as vir, ExprIterator, PermAmount};
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct State {
     /// paths on which we (may) have a full access permission
-    acc: HashMap<vir::Expr, PermAmount>,
+    acc: FxHashMap<vir::Expr, PermAmount>,
     /// paths on which we (may) have a full predicate permission
-    pred: HashMap<vir::Expr, PermAmount>,
+    pred: FxHashMap<vir::Expr, PermAmount>,
     /// paths that have been "moved out" (for sure)
-    moved: HashSet<vir::Expr>,
+    moved: FxHashSet<vir::Expr>,
     /// Permissions currently framed
     framing_stack: Vec<PermSet>,
     /// Permissions that should be removed from the state
     /// This is a hack for restoring borrows
-    dropped: HashSet<Perm>,
+    dropped: FxHashSet<Perm>,
 }
 
 impl State {
     pub fn new(
-        acc: HashMap<vir::Expr, PermAmount>,
-        pred: HashMap<vir::Expr, PermAmount>,
-        moved: HashSet<vir::Expr>,
+        acc: FxHashMap<vir::Expr, PermAmount>,
+        pred: FxHashMap<vir::Expr, PermAmount>,
+        moved: FxHashSet<vir::Expr>,
     ) -> Self {
         State {
             acc,
             pred,
             moved,
             framing_stack: vec![],
-            dropped: HashSet::default(),
+            dropped: FxHashSet::default(),
         }
     }
 
@@ -190,16 +190,16 @@ impl State {
         }
     }
 
-    pub fn acc(&self) -> &HashMap<vir::Expr, PermAmount> {
+    pub fn acc(&self) -> &FxHashMap<vir::Expr, PermAmount> {
         &self.acc
     }
 
-    pub fn acc_places(&self) -> HashSet<vir::Expr> {
+    pub fn acc_places(&self) -> FxHashSet<vir::Expr> {
         self.acc.keys().cloned().collect()
     }
 
-    pub fn acc_leaves(&self) -> HashSet<vir::Expr> {
-        let mut acc_leaves = HashSet::default();
+    pub fn acc_leaves(&self) -> FxHashSet<vir::Expr> {
+        let mut acc_leaves = FxHashSet::default();
         for place in self.acc.keys() {
             if !self.is_proper_prefix_of_some_acc(place) {
                 acc_leaves.insert(place.clone());
@@ -208,19 +208,19 @@ impl State {
         acc_leaves
     }
 
-    pub fn pred(&self) -> &HashMap<vir::Expr, PermAmount> {
+    pub fn pred(&self) -> &FxHashMap<vir::Expr, PermAmount> {
         &self.pred
     }
 
-    pub fn pred_places(&self) -> HashSet<vir::Expr> {
+    pub fn pred_places(&self) -> FxHashSet<vir::Expr> {
         self.pred.keys().cloned().collect()
     }
 
-    pub fn moved(&self) -> &HashSet<vir::Expr> {
+    pub fn moved(&self) -> &FxHashSet<vir::Expr> {
         &self.moved
     }
 
-    pub fn set_moved(&mut self, moved: HashSet<vir::Expr>) {
+    pub fn set_moved(&mut self, moved: FxHashSet<vir::Expr>) {
         self.moved = moved
     }
 

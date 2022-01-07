@@ -2,7 +2,7 @@ use super::super::ast::{
     expression::{visitors::ExpressionFolder, *},
     ty::{visitors::TypeFolder, *},
 };
-use rustc_hash::FxHashMap as HashMap;
+use rustc_hash::FxHashMap;
 
 impl Type {
     /// Return a type that represents a variant of the given enum.
@@ -70,13 +70,13 @@ impl super::super::ast::type_decl::Enum {
 }
 
 pub trait Generic {
-    fn substitute_types(self, substs: &HashMap<TypeVar, Type>) -> Self;
+    fn substitute_types(self, substs: &FxHashMap<TypeVar, Type>) -> Self;
 }
 
 impl Generic for Expression {
-    fn substitute_types(self, substs: &HashMap<TypeVar, Type>) -> Self {
+    fn substitute_types(self, substs: &FxHashMap<TypeVar, Type>) -> Self {
         struct TypeSubstitutor<'a> {
-            substs: &'a HashMap<TypeVar, Type>,
+            substs: &'a FxHashMap<TypeVar, Type>,
         }
         impl<'a> ExpressionFolder for TypeSubstitutor<'a> {
             fn fold_type(&mut self, ty: Type) -> Type {
@@ -89,9 +89,9 @@ impl Generic for Expression {
 }
 
 impl Generic for Type {
-    fn substitute_types(self, substs: &HashMap<TypeVar, Type>) -> Self {
+    fn substitute_types(self, substs: &FxHashMap<TypeVar, Type>) -> Self {
         struct TypeSubstitutor<'a> {
-            substs: &'a HashMap<TypeVar, Type>,
+            substs: &'a FxHashMap<TypeVar, Type>,
         }
         impl<'a> TypeFolder for TypeSubstitutor<'a> {
             fn fold_type_var(&mut self, var: TypeVar) -> Type {
@@ -108,7 +108,7 @@ impl Generic for Type {
 }
 
 // impl Generic for Vec<Type> {
-//     fn substitute_types(self, substs: &HashMap<TypeVar, Type>) -> Self {
+//     fn substitute_types(self, substs: &FxHashMap<TypeVar, Type>) -> Self {
 //         self.into_iter()
 //                     .map(|arg| arg.substitute_types(substs))
 //                     .collect()
@@ -116,7 +116,7 @@ impl Generic for Type {
 // }
 
 // impl Generic for Type {
-//     fn substitute_types(self, substs: &HashMap<TypeVar, Type>) -> Self {
+//     fn substitute_types(self, substs: &FxHashMap<TypeVar, Type>) -> Self {
 //         match self {
 //             Type::Bool | Type::Int(_)  | Type::FnPointer | Type::Never | Type::Str => self,
 //             Type::TypeVar(ref var) => substs.get(var).cloned().unwrap_or(self),

@@ -4,8 +4,11 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use crate::{common::display, polymorphic::ast::*};
-use rustc_hash::FxHashMap as HashMap;
+use crate::{
+    common::{display, identifier::WithIdentifier},
+    polymorphic::ast::*,
+};
+use rustc_hash::FxHashMap;
 use std::fmt;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]

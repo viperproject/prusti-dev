@@ -60,7 +60,7 @@ pub fn process_verification_request<'v, 't: 'v>(
         let viper_program = request.program.to_viper(&ast_factory);
         if config::dump_viper_program() {
             stopwatch.start_next("dumping viper program");
-            dump_program(&ast_utils, viper_program, &request.program.name);
+            dump_program(&ast_utils, viper_program, request.program.get_name());
             if config::print_hash() {
                 return viper::VerificationResult::Success;
             }

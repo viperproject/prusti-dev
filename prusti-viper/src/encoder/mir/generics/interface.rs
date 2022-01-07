@@ -5,7 +5,7 @@ use crate::encoder::{
     utils::transpose,
 };
 use log::debug;
-use rustc_hash::FxHashMap as HashMap;
+use rustc_hash::FxHashMap;
 use rustc_hir::def_id::DefId;
 use rustc_middle::{mir, span_bug, ty};
 use rustc_span::symbol::Symbol;
@@ -24,7 +24,7 @@ pub(crate) trait MirGenericsEncoderInterface<'tcx> {
     fn encode_substitution_map_high(
         &self,
         tymap: &SubstMap<'tcx>,
-    ) -> EncodingResult<HashMap<vir_high::ty::TypeVar, vir_high::Type>>;
+    ) -> EncodingResult<FxHashMap<vir_high::ty::TypeVar, vir_high::Type>>;
     /// For a function specified with the `def_id`, encode the full list list of
     /// its generic parameters.
     fn encode_generic_parameters_high(
@@ -69,8 +69,8 @@ impl<'v, 'tcx: 'v> MirGenericsEncoderInterface<'tcx> for super::super::super::En
     fn encode_substitution_map_high(
         &self,
         tymap: &SubstMap<'tcx>,
-    ) -> EncodingResult<HashMap<vir_high::ty::TypeVar, vir_high::Type>> {
-        let mut encoded_tymap = HashMap::default();
+    ) -> EncodingResult<FxHashMap<vir_high::ty::TypeVar, vir_high::Type>> {
+        let mut encoded_tymap = FxHashMap::default();
         for (ty, subst) in tymap {
             if let vir_high::Type::TypeVar(type_var) = self.encode_type_high(ty)? {
                 let encoded_substitution = self.encode_type_high(subst)?;

@@ -11,31 +11,31 @@ use crate::encoder::{
 };
 use log::{debug, trace};
 use prusti_interface::{data::ProcedureDefId, environment::Environment};
-use rustc_hash::{FxHashMap as HashMap, FxHashSet as HashSet};
+use rustc_hash::{FxHashMap, FxHashSet};
 use rustc_middle::ty::TyCtxt;
 use std::cell::{Ref, RefCell};
-use vir_crate::{high as vir_high, polymorphic as vir_poly};
+use vir_crate::{common::identifier::WithIdentifier, high as vir_high, polymorphic as vir_poly};
 
 type Key = (ProcedureDefId, Vec<vir_high::Type>);
 
 #[derive(Default)]
 pub(crate) struct PureFunctionEncoderState<'tcx> {
-    bodies_high: RefCell<HashMap<Key, vir_high::Expression>>,
-    bodies_poly: RefCell<HashMap<Key, vir_poly::Expr>>,
+    bodies_high: RefCell<FxHashMap<Key, vir_high::Expression>>,
+    bodies_poly: RefCell<FxHashMap<Key, vir_poly::Expr>>,
     /// Information necessary to encode a function call. FIXME: Remove this one
     /// and have only call_infos_high.
-    call_infos_poly: RefCell<HashMap<Key, FunctionCallInfo>>,
+    call_infos_poly: RefCell<FxHashMap<Key, FunctionCallInfo>>,
     /// Information necessary to encode a function call.
-    call_infos_high: RefCell<HashMap<Key, FunctionCallInfoHigh>>,
+    call_infos_high: RefCell<FxHashMap<Key, FunctionCallInfoHigh>>,
     /// Pure functions whose encoding started (and potentially already
     /// finished). This is used to break recursion.
-    pure_functions_encoding_started: RefCell<HashSet<Key>>,
+    pure_functions_encoding_started: RefCell<FxHashSet<Key>>,
     // A mapping from the function identifier to an information needed to encode
     // that function.
     function_descriptions:
-        RefCell<HashMap<vir_poly::FunctionIdentifier, FunctionDescription<'tcx>>>,
+        RefCell<FxHashMap<vir_poly::FunctionIdentifier, FunctionDescription<'tcx>>>,
     /// Mapping from keys on MIR level to function identifiers on VIR level.
-    function_identifiers: RefCell<HashMap<Key, vir_poly::FunctionIdentifier>>,
+    function_identifiers: RefCell<FxHashMap<Key, vir_poly::FunctionIdentifier>>,
 }
 
 /// The information necessary to encode a function definition.
@@ -52,13 +52,13 @@ pub(crate) trait PureFunctionEncoderInterface<'tcx> {
         parent_def_id: ProcedureDefId,
         substs: &SubstMap<'tcx>,
     ) -> SpannedEncodingResult<vir_poly::Expr>;
+
     /// Encode the body of the given procedure as a pure expression.
     fn encode_pure_expression_high(
         &self,
         proc_def_id: ProcedureDefId,
         parent_def_id: ProcedureDefId,
         substs: &SubstMap<'tcx>,
-        // FIXME: The return type should be vir_high::Expression
     ) -> SpannedEncodingResult<vir_high::Expression>;
 
     /// Encode the pure function definition.
@@ -351,7 +351,7 @@ impl<'v, 'tcx: 'v> PureFunctionEncoderInterface<'tcx>
 
             // Save the information necessary to encode the function definition.
             let function_identifier: vir_poly::FunctionIdentifier =
-                vir_poly::WithIdentifier::get_identifier(&function_call_info).into();
+                WithIdentifier::get_identifier(&function_call_info).into();
             let mut function_descriptions = self
                 .pure_function_encoder_state
                 .function_descriptions

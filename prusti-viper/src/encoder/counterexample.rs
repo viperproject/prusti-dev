@@ -109,7 +109,7 @@ pub enum Entry {
         name: String,
         field_entries: Vec<(String, Entry)>,
         //note: if fields are not named, their order is important!
-        //that is why no HashMap is used
+        //that is why no FxHashMap is used
     },
     Tuple(Vec<Entry>),
     Unknown,

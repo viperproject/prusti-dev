@@ -5,7 +5,7 @@ use rustc_span::def_id::DefId;
 use std::path::PathBuf;
 
 mod graphviz;
-mod lifetimes;
+pub mod lifetimes;
 mod mir;
 
 pub(crate) fn dump_mir_info(env: &Environment<'_>, def_id: DefId) {
