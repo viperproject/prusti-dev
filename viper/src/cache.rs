@@ -9,7 +9,7 @@ use std::{
     collections::HashMap,
     fs, io,
     ops::DerefMut,
-    path::PathBuf,
+    path::{Path, PathBuf},
     sync::{Arc, Mutex},
 };
 use verification_result::VerificationResult;
@@ -53,7 +53,7 @@ impl PersistentCache {
             },
         }
     }
-    pub fn save_cache(&self, cache_loc: &PathBuf) -> io::Result<()> {
+    pub fn save_cache(&self, cache_loc: &Path) -> io::Result<()> {
         // ResultCache::V2(...)
         match serde_json::to_string(&ResultCache::V1(self.data.clone())) {
             Ok(data) => fs::write(cache_loc, data),
