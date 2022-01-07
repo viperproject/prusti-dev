@@ -40,7 +40,7 @@ pub fn process_verification_request<'v, 't: 'v>(
     if config::print_hash() {
         println!(
             "Received verification request for: {}",
-            request.program.name
+            request.program.get_name()
         );
         println!("Hash of the request is: {}", request.get_hash());
         // Skip actual verification
