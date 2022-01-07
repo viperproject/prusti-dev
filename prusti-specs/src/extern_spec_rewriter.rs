@@ -363,14 +363,15 @@ pub mod traits {
     fn get_bounds_of_self(
         item_trait: &syn::ItemTrait,
     ) -> syn::punctuated::Punctuated<syn::TypeParamBound, syn::Token![+]> {
-        let mut bounds: syn::punctuated::Punctuated<syn::TypeParamBound, syn::Token![+]> = syn::punctuated::Punctuated::new();
+        let mut bounds: syn::punctuated::Punctuated<syn::TypeParamBound, syn::Token![+]> =
+            syn::punctuated::Punctuated::new();
 
         if let Some(ref where_clause) = item_trait.generics.where_clause {
             for where_predicate in where_clause.predicates.iter() {
                 if let syn::WherePredicate::Type(where_predicate_type) = where_predicate {
                     if let syn::Type::Path(bounded_type_path) = &where_predicate_type.bounded_ty {
                         let path_ident = bounded_type_path.path.get_ident();
-                        if  path_ident.is_some() && path_ident.unwrap() == "Self" {
+                        if path_ident.is_some() && path_ident.unwrap() == "Self" {
                             bounds.extend(where_predicate_type.bounds.clone());
                         }
                     }
@@ -495,12 +496,15 @@ pub mod traits {
             // Rewrite occurrences of associated types in signature to defined generics
             syn::visit_mut::visit_signature_mut(
                 &mut AssociatedTypeRewriter::new(&self.assoc_types_to_generics_map),
-                &mut trait_method_sig);
+                &mut trait_method_sig,
+            );
             let trait_method_ident = &trait_method_sig.ident;
 
             // Rewrite "self" to "_self" in method attributes and method inputs
             let mut trait_method_attrs = trait_method.attrs.clone();
-            trait_method_attrs.iter_mut().for_each(|attr| attr.tokens = rewrite_self(attr.tokens.clone()));
+            trait_method_attrs
+                .iter_mut()
+                .for_each(|attr| attr.tokens = rewrite_self(attr.tokens.clone()));
             let trait_method_inputs =
                 rewrite_method_inputs(&self.self_type_param_ident, &mut trait_method_sig.inputs);
 
@@ -520,7 +524,7 @@ pub mod traits {
                     #method_path ( #trait_method_inputs );
                     unimplemented!();
                 }
-            }
+            };
         }
     }
 
@@ -555,18 +559,17 @@ pub mod traits {
 
     impl<'a> AssociatedTypeRewriter<'a> {
         pub fn new(repl: &'a AssocTypesToGenericsMap<'a>) -> Self {
-            AssociatedTypeRewriter {
-                repl,
-            }
+            AssociatedTypeRewriter { repl }
         }
     }
 
-    impl<'a> syn::visit_mut::VisitMut  for AssociatedTypeRewriter<'a> {
+    impl<'a> syn::visit_mut::VisitMut for AssociatedTypeRewriter<'a> {
         fn visit_type_path_mut(&mut self, ty_path: &mut syn::TypePath) {
             let path = &ty_path.path;
-            if path.segments.len() == 2 &&
-                path.segments[0].ident.to_string() == "Self" &&
-                self.repl.contains_key(&path.segments[1].ident){
+            if path.segments.len() == 2
+                && path.segments[0].ident.to_string() == "Self"
+                && self.repl.contains_key(&path.segments[1].ident)
+            {
                 let replacement = self.repl.get(&path.segments[1].ident).unwrap();
                 ty_path.path = parse_quote!(#replacement);
             }
@@ -574,5 +577,4 @@ pub mod traits {
             syn::visit_mut::visit_type_path_mut(self, ty_path);
         }
     }
-
 }
