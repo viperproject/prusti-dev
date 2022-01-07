@@ -4,7 +4,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use rustc_hash::FxHashSet as HashSet;
+use rustc_hash::FxHashSet;
 use std::hash::Hash;
 use vir_crate::polymorphic as vir;
 
@@ -16,10 +16,10 @@ use vir_crate::polymorphic as vir;
 ///   { a, b.c, d.e.f, d.g }
 /// ) = { b.c.d, b.c.e }
 pub fn filter_proper_extensions_of(
-    left: &HashSet<vir::Expr>,
-    right: &HashSet<vir::Expr>,
-) -> HashSet<vir::Expr> {
-    let mut res = HashSet::default();
+    left: &FxHashSet<vir::Expr>,
+    right: &FxHashSet<vir::Expr>,
+) -> FxHashSet<vir::Expr> {
+    let mut res = FxHashSet::default();
     for left_item in left.iter() {
         for right_item in right.iter() {
             if left_item.has_proper_prefix(right_item) {
@@ -39,10 +39,10 @@ pub fn filter_proper_extensions_of(
 ///   { a, b.c, d.e.f, d.g }
 /// ) = { a, d.e }
 pub fn filter_not_proper_extensions_of(
-    left: &HashSet<vir::Expr>,
-    right: &HashSet<vir::Expr>,
-) -> HashSet<vir::Expr> {
-    let mut res = HashSet::default();
+    left: &FxHashSet<vir::Expr>,
+    right: &FxHashSet<vir::Expr>,
+) -> FxHashSet<vir::Expr> {
+    let mut res = FxHashSet::default();
     for left_item in left.iter() {
         let mut keep: bool = true;
         for right_item in right.iter() {
@@ -64,8 +64,8 @@ pub fn filter_not_proper_extensions_of(
 /// ancestors(
 ///   { a, b.c, b.c.e, d.e.f },
 /// ) = { a, b.c, d.e.f }
-pub fn ancestors(initial: &HashSet<vir::Expr>) -> HashSet<vir::Expr> {
-    let mut res = HashSet::default();
+pub fn ancestors(initial: &FxHashSet<vir::Expr>) -> FxHashSet<vir::Expr> {
+    let mut res = FxHashSet::default();
     // Filter paths that are an extension of some other path
     // This way, we avoid having both `d` and `d.g`
     for a in initial.iter() {
@@ -84,26 +84,29 @@ pub fn ancestors(initial: &HashSet<vir::Expr>) -> HashSet<vir::Expr> {
 }
 
 /// Returns the union of two sets
-pub fn union<T: Eq + Hash + Clone>(left: &HashSet<T>, right: &HashSet<T>) -> HashSet<T> {
+pub fn union<T: Eq + Hash + Clone>(left: &FxHashSet<T>, right: &FxHashSet<T>) -> FxHashSet<T> {
     left.clone().union(right).cloned().collect()
 }
 
 /// Returns the union of three sets
 pub fn union3<T: Eq + Hash + Clone>(
-    left: &HashSet<T>,
-    mid: &HashSet<T>,
-    right: &HashSet<T>,
-) -> HashSet<T> {
+    left: &FxHashSet<T>,
+    mid: &FxHashSet<T>,
+    right: &FxHashSet<T>,
+) -> FxHashSet<T> {
     left.clone()
         .union(mid)
         .cloned()
-        .collect::<HashSet<T>>()
+        .collect::<FxHashSet<T>>()
         .union(right)
         .cloned()
         .collect()
 }
 
 /// Returns the intersection of two sets
-pub fn intersection<T: Eq + Hash + Clone>(left: &HashSet<T>, right: &HashSet<T>) -> HashSet<T> {
+pub fn intersection<T: Eq + Hash + Clone>(
+    left: &FxHashSet<T>,
+    right: &FxHashSet<T>,
+) -> FxHashSet<T> {
     left.clone().intersection(right).cloned().collect()
 }

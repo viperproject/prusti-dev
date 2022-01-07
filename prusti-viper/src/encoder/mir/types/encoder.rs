@@ -23,7 +23,7 @@ use log::{debug, trace};
 use prusti_common::{config, vir_local};
 use prusti_interface::specs::typed;
 use rustc_attr::IntType::SignedInt;
-use rustc_hash::FxHashMap as HashMap;
+use rustc_hash::FxHashMap;
 use rustc_hir::def_id::DefId;
 use rustc_middle::{ty, ty::layout::IntegerExt};
 use rustc_span::MultiSpan;
@@ -58,14 +58,6 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
                 }
             })
             .collect()
-    }
-
-    fn encode_box_name(&self) -> String {
-        "box$".to_string()
-    }
-
-    fn encode_struct_name(&self, did: DefId) -> String {
-        format!("struct${}", self.encoder.encode_item_name(did))
     }
 
     fn encode_enum_name(&self, did: DefId) -> String {
@@ -124,7 +116,7 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
             ty::TyKind::Ref(_, ty, _) => vir::Type::reference(self.encoder.encode_type_high(ty)?),
 
             ty::TyKind::Adt(adt_def, substs) if adt_def.is_struct() => vir::Type::struct_(
-                self.encode_struct_name(adt_def.did),
+                encode_struct_name(self.encoder, adt_def.did),
                 self.encode_substs(substs),
             ),
 
@@ -133,7 +125,7 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
                     // FIXME: Currently fold-unfold assumes that everything that
                     // has only a single variant is a struct.
                     vir::Type::struct_(
-                        self.encode_struct_name(adt_def.did),
+                        encode_struct_name(self.encoder, adt_def.did),
                         self.encode_substs(substs),
                     )
                 } else {
@@ -281,24 +273,6 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
         }
     }
 
-    fn encode_variant(
-        &self,
-        name: String,
-        substs: ty::subst::SubstsRef<'tcx>,
-        variant: &ty::VariantDef,
-    ) -> SpannedEncodingResult<vir::type_decl::Struct> {
-        let tcx = self.encoder.env().tcx();
-        let mut fields = Vec::new();
-        for field in &variant.fields {
-            let field_name = crate::encoder::encoder::encode_field_name(&field.ident.as_str());
-            let field_ty = field.ty(tcx, substs);
-            let field = vir::FieldDecl::new(field_name, self.encoder.encode_type_high(field_ty)?);
-            fields.push(field);
-        }
-        let variant = vir::type_decl::Struct::new(name, fields);
-        Ok(variant)
-    }
-
     pub fn encode_type_def(self) -> SpannedEncodingResult<vir::TypeDecl> {
         debug!("Encode type predicate '{:?}'", self.ty);
         let type_decl = match self.ty.kind() {
@@ -340,50 +314,8 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
                     .filter_map(|ty| self.encoder.encode_type_high(ty.expect_ty()).ok())
                     .collect(),
             ),
-            ty::TyKind::Adt(adt_def, _subst) if adt_def.is_box() => {
-                let boxed_ty = self.encoder.encode_type_high(self.ty.boxed_ty())?;
-                let field = vir::FieldDecl::new("val_ref", boxed_ty);
-                vir::TypeDecl::struct_(self.encode_box_name(), vec![field])
-            }
-            ty::TyKind::Adt(adt_def, substs) if adt_def.is_struct() => {
-                debug!("ADT {:?} is a struct", adt_def);
-                let name = self.encode_struct_name(adt_def.did);
-                let variant = adt_def.non_enum_variant();
-                vir::TypeDecl::Struct(self.encode_variant(name, substs, variant)?)
-            }
-            ty::TyKind::Adt(adt_def, _substs) if adt_def.is_union() => {
-                return Err(SpannedEncodingError::unsupported(
-                    "unions are not supported",
-                    self.encoder.env().get_def_span(adt_def.did),
-                ));
-            }
-            ty::TyKind::Adt(adt_def, substs) if adt_def.is_enum() => {
-                let name = self.encode_struct_name(adt_def.did);
-                let num_variants = adt_def.variants.len();
-                debug!("ADT {:?} is enum with {} variants", adt_def, num_variants);
-                if num_variants == 1 {
-                    // FIXME: Currently fold-unfold assumes that everything that
-                    // has only a single variant is a struct.
-                    let variant = &adt_def.variants[0usize.into()];
-                    vir::TypeDecl::Struct(self.encode_variant(name, substs, variant)?)
-                } else {
-                    let tcx = self.encoder.env().tcx();
-                    let discriminant = vir::Expression::discriminant();
-                    let discriminant_bounds =
-                        compute_discriminant_bounds_high(adt_def, tcx, &discriminant);
-                    let discriminant_values = compute_discriminant_values(adt_def, tcx)
-                        .into_iter()
-                        .map(|value| value.into())
-                        .collect();
-                    let mut variants = Vec::new();
-                    for variant in &adt_def.variants {
-                        let name = &variant.ident.as_str();
-                        let encoded_variant =
-                            self.encode_variant((*name).to_string(), substs, variant)?;
-                        variants.push(encoded_variant);
-                    }
-                    vir::TypeDecl::enum_(name, discriminant_bounds, discriminant_values, variants)
-                }
+            ty::TyKind::Adt(adt_def, substs) => {
+                encode_adt_def(self.encoder, adt_def, substs, None)?
             }
             ty::TyKind::Never => vir::TypeDecl::never(),
             ty::TyKind::Param(param_ty) => {
@@ -569,7 +501,7 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
         //                 ty::List::identity_for_item(self.encoder.env().tcx(), adt_def.did);
 
         //             // FIXME: this is a hack to support generics. See issue #187.
-        //             let mut tymap = HashMap::default();
+        //             let mut tymap = FxHashMap::default();
 
         //             for (kind1, kind2) in own_substs.iter().zip(*subst) {
         //                 if let (
@@ -783,4 +715,95 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
     }
 }
 
-// struct HackyExprFolderb
+fn encode_box_name() -> String {
+    "box$".to_string()
+}
+
+fn encode_struct_name<'v, 'tcx: 'v>(encoder: &Encoder<'v, 'tcx>, did: DefId) -> String {
+    format!("struct${}", encoder.encode_item_name(did))
+}
+
+fn encode_variant<'v, 'tcx: 'v>(
+    encoder: &Encoder<'v, 'tcx>,
+    name: String,
+    substs: ty::subst::SubstsRef<'tcx>,
+    variant: &ty::VariantDef,
+) -> SpannedEncodingResult<vir::type_decl::Struct> {
+    let tcx = encoder.env().tcx();
+    let mut fields = Vec::new();
+    for field in &variant.fields {
+        let field_name = crate::encoder::encoder::encode_field_name(&field.ident.as_str());
+        let field_ty = field.ty(tcx, substs);
+        let field = vir::FieldDecl::new(field_name, encoder.encode_type_high(field_ty)?);
+        fields.push(field);
+    }
+    let variant = vir::type_decl::Struct::new(name, fields);
+    Ok(variant)
+}
+
+pub(super) fn encode_adt_def<'v, 'tcx>(
+    encoder: &Encoder<'v, 'tcx>,
+    adt_def: &'tcx ty::AdtDef,
+    substs: ty::subst::SubstsRef<'tcx>,
+    variant_index: Option<rustc_target::abi::VariantIdx>,
+) -> SpannedEncodingResult<vir::TypeDecl> {
+    if adt_def.is_box() {
+        debug!("ADT {:?} is a box", adt_def);
+        assert!(variant_index.is_none());
+        let boxed_ty = encoder.encode_type_high(substs.type_at(0))?;
+        let field = vir::FieldDecl::new("val_ref", boxed_ty);
+        Ok(vir::TypeDecl::struct_(encode_box_name(), vec![field]))
+    } else if adt_def.is_struct() {
+        debug!("ADT {:?} is a struct", adt_def);
+        assert!(variant_index.is_none());
+        let name = encode_struct_name(encoder, adt_def.did);
+        let variant = adt_def.non_enum_variant();
+        Ok(vir::TypeDecl::Struct(encode_variant(
+            encoder, name, substs, variant,
+        )?))
+    } else if adt_def.is_union() {
+        debug!("ADT {:?} is a union", adt_def);
+        assert!(variant_index.is_none());
+        Err(SpannedEncodingError::unsupported(
+            "unions are not supported",
+            encoder.env().get_def_span(adt_def.did),
+        ))
+    } else if adt_def.is_enum() {
+        debug!("ADT {:?} is an enum", adt_def);
+        let name = encode_struct_name(encoder, adt_def.did);
+        let num_variants = adt_def.variants.len();
+        debug!("ADT {:?} is enum with {} variants", adt_def, num_variants);
+        let type_decl = if num_variants == 1 {
+            // FIXME: Currently fold-unfold assumes that everything that
+            // has only a single variant is a struct.
+            let variant = &adt_def.variants[0usize.into()];
+            vir::TypeDecl::Struct(encode_variant(encoder, name, substs, variant)?)
+        } else if let Some(_variant_index) = variant_index {
+            // let variant = &adt_def.variants[variant_index];
+            // vir::TypeDecl::Struct(encode_variant(encoder, name, substs, variant)?)
+            unimplemented!("FIXME: How this should be implemented?")
+        } else {
+            let tcx = encoder.env().tcx();
+            let discriminant = vir::Expression::discriminant();
+            let discriminant_bounds = compute_discriminant_bounds_high(adt_def, tcx, &discriminant);
+            let discriminant_values = compute_discriminant_values(adt_def, tcx)
+                .into_iter()
+                .map(|value| value.into())
+                .collect();
+            let mut variants = Vec::new();
+            for variant in &adt_def.variants {
+                let name = &variant.ident.as_str();
+                let encoded_variant =
+                    encode_variant(encoder, (*name).to_string(), substs, variant)?;
+                variants.push(encoded_variant);
+            }
+            vir::TypeDecl::enum_(name, discriminant_bounds, discriminant_values, variants)
+        };
+        Ok(type_decl)
+    } else {
+        Err(SpannedEncodingError::internal(
+            format!("unexpected variant of adt_def: {:?}", adt_def),
+            encoder.env().get_def_span(adt_def.did),
+        ))
+    }
+}

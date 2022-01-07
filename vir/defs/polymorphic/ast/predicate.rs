@@ -4,8 +4,8 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use crate::polymorphic::ast::*;
-use rustc_hash::{FxHashMap as HashMap, FxHashSet as HashSet};
+use crate::{common::identifier::WithIdentifier, polymorphic::ast::*};
+use rustc_hash::{FxHashMap, FxHashSet};
 use std::fmt;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
@@ -85,7 +85,7 @@ impl Predicate {
             variants
                 .iter()
                 .map(|(_, name, _)| name.to_string())
-                .collect::<HashSet<_>>()
+                .collect::<FxHashSet<_>>()
                 .len()
                 == variants.len()
         );

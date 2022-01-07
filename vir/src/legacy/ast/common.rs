@@ -4,6 +4,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+use crate::common::identifier::WithIdentifier;
 use std::{
     cmp::Ordering,
     collections::HashMap,
@@ -12,10 +13,6 @@ use std::{
     mem::discriminant,
     ops,
 };
-
-pub trait WithIdentifier {
-    fn get_identifier(&self) -> String;
-}
 
 /// The identifier of a statement. Used in error reporting.
 #[derive(Debug, Copy, Clone, Serialize, Deserialize)]

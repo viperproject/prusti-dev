@@ -5,12 +5,15 @@ use super::{
 };
 use crate::encoder::{high::types::HighTypeEncoderInterface, mir::types::MirTypeEncoderInterface};
 use prusti_common::vir_local;
-use rustc_hash::{FxHashMap as HashMap, FxHashSet as HashSet};
+use rustc_hash::{FxHashMap, FxHashSet};
 use rustc_span::Span;
 use std::hash::Hash;
-use vir_crate::polymorphic::{
-    self as vir, compute_identifier, ExprWalker, FallibleExprWalker, FallibleStmtWalker,
-    FunctionIdentifier, PredicateAccessPredicate, StmtWalker, WithIdentifier,
+use vir_crate::{
+    common::identifier::WithIdentifier,
+    polymorphic::{
+        self as vir, compute_identifier, ExprWalker, FallibleExprWalker, FallibleStmtWalker,
+        FunctionIdentifier, PredicateAccessPredicate, StmtWalker,
+    },
 };
 
 /// Determining which of the collected functions should have bodies works as
@@ -65,27 +68,27 @@ struct Collector<'p, 'v: 'p, 'tcx: 'v> {
     encoder: &'p Encoder<'v, 'tcx>,
     /// The list of encoded methods for checking that they do not clash with
     /// functions.
-    method_names: HashSet<String>,
+    method_names: FxHashSet<String>,
     /// The set of all predicates that are mentioned in the method.
-    used_predicates: HashSet<vir::Type>,
+    used_predicates: FxHashSet<vir::Type>,
     /// The set of predicates whose bodies have to be included because they are
     /// unfolded in the method.
-    unfolded_predicates: HashSet<vir::Type>,
-    new_unfolded_predicates: HashSet<vir::Type>,
-    used_fields: HashSet<vir::Field>,
-    used_domains: HashSet<String>,
-    used_snap_domain_functions: HashSet<vir::FunctionIdentifier>,
+    unfolded_predicates: FxHashSet<vir::Type>,
+    new_unfolded_predicates: FxHashSet<vir::Type>,
+    used_fields: FxHashSet<vir::Field>,
+    used_domains: FxHashSet<String>,
+    used_snap_domain_functions: FxHashSet<vir::FunctionIdentifier>,
     /// The set of all functions that are mentioned in the method.
-    used_functions: HashSet<vir::FunctionIdentifier>,
+    used_functions: FxHashSet<vir::FunctionIdentifier>,
     /// The set of functions whose contracts were already checked.
-    checked_function_contracts: HashSet<vir::FunctionIdentifier>,
+    checked_function_contracts: FxHashSet<vir::FunctionIdentifier>,
     /// The set of all mirror functions that are mentioned in the method.
-    used_mirror_functions: HashSet<vir::FunctionIdentifier>,
+    used_mirror_functions: FxHashSet<vir::FunctionIdentifier>,
     /// The set of functions whose bodies have to be included because predicates
     /// in their preconditions are unfolded.
-    unfolded_functions: HashSet<vir::FunctionIdentifier>,
+    unfolded_functions: FxHashSet<vir::FunctionIdentifier>,
     /// Functions that are explicitly called in the program.
-    directly_called_functions: HashSet<vir::FunctionIdentifier>,
+    directly_called_functions: FxHashSet<vir::FunctionIdentifier>,
     in_directly_calling_state: bool,
 }
 
@@ -130,7 +133,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> Collector<'p, 'v, 'tcx> {
     fn get_used_fields(&self) -> Vec<vir::Field> {
         // TODO: Remove the deduplication once we switch to the offset-based
         // fields.
-        let used_fields: HashMap<_, _> = self
+        let used_fields: FxHashMap<_, _> = self
             .used_fields
             .iter()
             .map(|field| (&field.name, field))
@@ -296,7 +299,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> Collector<'p, 'v, 'tcx> {
     }
 }
 
-fn contains(container: &HashSet<vir::Type>, predicate_name: &str) -> bool {
+fn contains(container: &FxHashSet<vir::Type>, predicate_name: &str) -> bool {
     container.iter().any(|typ| typ.name() == predicate_name)
 }
 
@@ -487,7 +490,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> FallibleExprWalker for Collector<'p, 'v, 'tcx> {
 /// Collects all predicates that are unfolded.
 struct UnfoldedPredicateCollector {
     /// The predicates that are explicitly unfolded in the program.
-    unfolded_predicates: HashSet<vir::Type>,
+    unfolded_predicates: FxHashSet<vir::Type>,
 }
 
 impl StmtWalker for UnfoldedPredicateCollector {
@@ -543,7 +546,7 @@ impl ExprWalker for UnfoldedPredicateCollector {
 }
 
 struct UnfoldedPredicateChecker<'a> {
-    unfolded_predicates: &'a HashSet<vir::Type>,
+    unfolded_predicates: &'a FxHashSet<vir::Type>,
     found: bool,
 }
 

@@ -8,7 +8,7 @@ use crate::encoder::{
 #[rustfmt::skip]
 use ::log::trace;
 use prusti_common::{config, report::log};
-use rustc_hash::FxHashMap as HashMap;
+use rustc_hash::FxHashMap;
 use rustc_middle::ty;
 use std::cell::RefCell;
 use vir_crate::{high as vir_high, polymorphic as vir_poly};
@@ -19,14 +19,14 @@ pub(crate) struct HighTypeEncoderState<'tcx> {
     /// types.
     ///
     /// Note: this is only for caching.
-    encoded_types: RefCell<HashMap<ty::TyKind<'tcx>, vir_poly::Type>>,
-    lowered_high_types: RefCell<HashMap<vir_high::Type, vir_poly::Type>>,
-    lowered_types_inverse: RefCell<HashMap<vir_poly::Type, vir_high::Type>>,
+    encoded_types: RefCell<FxHashMap<ty::TyKind<'tcx>, vir_poly::Type>>,
+    lowered_high_types: RefCell<FxHashMap<vir_high::Type, vir_poly::Type>>,
+    lowered_types_inverse: RefCell<FxHashMap<vir_poly::Type, vir_high::Type>>,
 
-    // type_invariant_names: RefCell<HashMap<ty::TyKind<'tcx>, String>>,
-    type_invariants: RefCell<HashMap<String, vir_poly::FunctionIdentifier>>,
-    // viper_predicate_descriptions: RefCell<HashMap<String, ViperPredicateDescription>>,
-    viper_predicates: RefCell<HashMap<vir_poly::Type, vir_poly::Predicate>>,
+    // type_invariant_names: RefCell<FxHashMap<ty::TyKind<'tcx>, String>>,
+    type_invariants: RefCell<FxHashMap<String, vir_poly::FunctionIdentifier>>,
+    // viper_predicate_descriptions: RefCell<FxHashMap<String, ViperPredicateDescription>>,
+    viper_predicates: RefCell<FxHashMap<vir_poly::Type, vir_poly::Predicate>>,
 }
 
 // /// All necessary information for encoding a Viper predicate.
@@ -115,7 +115,7 @@ impl<'v, 'tcx: 'v> HighTypeEncoderInterfacePrivate for super::super::super::Enco
 pub(crate) trait HighTypeEncoderInterface<'tcx> {
     fn get_used_viper_predicates_map(
         &self,
-    ) -> SpannedEncodingResult<HashMap<vir_poly::Type, vir_poly::Predicate>>;
+    ) -> SpannedEncodingResult<FxHashMap<vir_poly::Type, vir_poly::Predicate>>;
     fn get_viper_predicate(
         &self,
         name: &vir_poly::Type,
@@ -128,7 +128,7 @@ pub(crate) trait HighTypeEncoderInterface<'tcx> {
     fn type_substitution_polymorphic_type_map(
         &self,
         tymap: &SubstMap<'tcx>,
-    ) -> EncodingResult<HashMap<vir_poly::TypeVar, vir_poly::Type>>;
+    ) -> EncodingResult<FxHashMap<vir_poly::TypeVar, vir_poly::Type>>;
     fn encode_type_invariant_use(&self, ty: ty::Ty<'tcx>) -> EncodingResult<String>;
     fn encode_type_invariant_def(
         &self,
@@ -145,9 +145,9 @@ pub(crate) trait HighTypeEncoderInterface<'tcx> {
 impl<'v, 'tcx: 'v> HighTypeEncoderInterface<'tcx> for super::super::super::Encoder<'v, 'tcx> {
     fn get_used_viper_predicates_map(
         &self,
-    ) -> SpannedEncodingResult<HashMap<vir_poly::Type, vir_poly::Predicate>> {
+    ) -> SpannedEncodingResult<FxHashMap<vir_poly::Type, vir_poly::Predicate>> {
         // let predicate_names = self.high_type_encoder_state.viper_predicate_descriptions.borrow().keys().map(|key: &String| key.to_owned()).collect::<Vec<String>>();
-        // let mut predicates = HashMap::default();
+        // let mut predicates = FxHashMap::default();
         // for predicate_name in predicate_names {
         //     let predicate = self.get_viper_predicate(&predicate_name)?;
         //     predicates.insert(predicate_name, predicate);
@@ -238,7 +238,7 @@ impl<'v, 'tcx: 'v> HighTypeEncoderInterface<'tcx> for super::super::super::Encod
     fn type_substitution_polymorphic_type_map(
         &self,
         tymap: &SubstMap<'tcx>,
-    ) -> EncodingResult<HashMap<vir_poly::TypeVar, vir_poly::Type>> {
+    ) -> EncodingResult<FxHashMap<vir_poly::TypeVar, vir_poly::Type>> {
         tymap
             .iter()
             .map(|(typ, subst)| {

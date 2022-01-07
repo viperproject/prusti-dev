@@ -34,16 +34,16 @@ pub fn define_vir(input: TokenStream, source_file: &std::path::Path) -> TokenStr
         }
         mem::swap(ir, &mut sentinel_item);
     }
-    for ir in &mut declarations.irs {
-        mem::swap(ir, &mut sentinel_item);
-        let (new_item, errors) = resolver::expand(sentinel_item, &declarations.components);
-        sentinel_item = new_item;
+    let mut resolved_irs = Vec::new();
+    for ir in declarations.irs {
+        let (new_item, errors) = resolver::expand(ir, &declarations.components, &resolved_irs);
         for error in errors {
             eprintln!("error in resolving declarations: {}", error);
             error_tokens.extend(error.to_compile_error());
         }
-        mem::swap(ir, &mut sentinel_item);
+        resolved_irs.push(new_item);
     }
+    declarations.irs = resolved_irs;
     let original_irs = declarations.irs.clone();
     for ir in &mut declarations.irs {
         mem::swap(ir, &mut sentinel_item);
