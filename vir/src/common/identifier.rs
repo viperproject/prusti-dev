@@ -13,6 +13,6 @@ pub struct NameHash(u64, u64);
 
 impl NameHash {
     pub fn new(crate_id: u64, local_id: u64) -> Self {
-        NameHash (crate_id, local_id)
+        NameHash(crate_id, local_id)
     }
 }

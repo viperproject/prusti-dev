@@ -86,10 +86,10 @@ impl NameInterner {
         let path_hash = tcx.def_path_hash(def_id);
         //let key = NameHash::new(path_hash.stable_crate_id().to_u64(), path_hash.local_hash());
         let key = path_hash.stable_crate_id().to_u64().to_string() + &path_hash.local_hash().to_string();
-        let name = self.intern_name(prefix.to_string(), crate_name, crate_unique, mod_unique, short_name);
-        // Uniqueness is ensured by `ShortName::update`; `Some` indicates a clash of the Hash
-        let old = self.name_to_short.insert(key.clone(), name);
-        assert!(old.is_none(), "Two name hashes have clashed! This is exceedingly rare");
+        if !self.name_to_short.contains_key(&key) {
+            let name = self.intern_name(prefix.to_string(), crate_name, crate_unique, mod_unique, short_name);
+            self.name_to_short.insert(key.clone(), name);
+        }
         key
     }
 
@@ -116,7 +116,7 @@ impl NameInterner {
         };
         // Intern mangled names only if `enable_name_mangling && intern_names`
         if !config::disable_name_mangling() && config::intern_names() {
-            for (_, value) in &mut self.name_to_short {
+            for value in self.name_to_short.values_mut() {
                 value.update(&mut name);
             }
         }
