@@ -26,8 +26,8 @@ pub(crate) struct MirTypeEncoderState<'tcx> {
 }
 
 pub(crate) trait MirTypeEncoderInterface<'tcx> {
-    fn get_type_definition_span(&self, ty: &vir_high::Type) -> MultiSpan;
-    // fn encode_value_field_high(&self, ty: ty::Ty<'tcx>) -> EncodingResult<vir_high::FieldDecl>;
+    fn get_type_definition_span(&self, ty: ty::Ty<'tcx>) -> MultiSpan;
+    fn get_type_definition_span_high(&self, ty: &vir_high::Type) -> MultiSpan;
     fn encode_raw_ref_field(
         &self,
         viper_field_name: String,
@@ -76,10 +76,13 @@ pub(crate) trait MirTypeEncoderInterface<'tcx> {
 }
 
 impl<'v, 'tcx: 'v> MirTypeEncoderInterface<'tcx> for super::super::super::Encoder<'v, 'tcx> {
-    fn get_type_definition_span(&self, ty: &vir_high::Type) -> MultiSpan {
-        let original_ty = self.decode_type_high(ty);
-        let type_encoder = TypeEncoder::new(self, original_ty);
+    fn get_type_definition_span(&self, ty: ty::Ty<'tcx>) -> MultiSpan {
+        let type_encoder = TypeEncoder::new(self, ty);
         type_encoder.get_definition_span()
+    }
+    fn get_type_definition_span_high(&self, ty: &vir_high::Type) -> MultiSpan {
+        let original_ty = self.decode_type_high(ty);
+        self.get_type_definition_span(original_ty)
     }
     fn encode_raw_ref_field(
         &self,

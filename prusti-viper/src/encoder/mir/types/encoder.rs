@@ -194,7 +194,7 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
 
             ty::TyKind::Foreign(..) => vir::Type::unsupported("foreign".to_string()),
 
-            ty => vir::Type::unsupported(format!("{:?}", ty)),
+            ty => vir::Type::unsupported(crate::utils::ty_to_string(ty)),
         };
         Ok(result)
     }

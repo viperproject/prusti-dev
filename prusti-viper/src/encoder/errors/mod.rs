@@ -10,6 +10,7 @@ pub use self::error_manager::*;
 pub use self::encoding_error::*;
 pub use self::encoding_error_kind::*;
 pub use self::with_span::*;
+pub use rustc_span::MultiSpan;
 
 mod conversions;
 mod spanned_encoding_error;

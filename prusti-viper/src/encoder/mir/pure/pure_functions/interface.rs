@@ -17,9 +17,14 @@ use std::cell::{Ref, RefCell};
 use vir_crate::{common::identifier::WithIdentifier, high as vir_high, polymorphic as vir_poly};
 
 type Key = (ProcedureDefId, Vec<vir_high::Type>);
+type FunctionConstructor<'v, 'tcx> = Box<
+    dyn FnOnce(
+        &crate::encoder::encoder::Encoder<'v, 'tcx>,
+    ) -> SpannedEncodingResult<vir_high::FunctionDecl>,
+>;
 
 #[derive(Default)]
-pub(crate) struct PureFunctionEncoderState<'tcx> {
+pub(crate) struct PureFunctionEncoderState<'v, 'tcx: 'v> {
     bodies_high: RefCell<FxHashMap<Key, vir_high::Expression>>,
     bodies_poly: RefCell<FxHashMap<Key, vir_poly::Expr>>,
     /// Information necessary to encode a function call. FIXME: Remove this one
@@ -36,6 +41,11 @@ pub(crate) struct PureFunctionEncoderState<'tcx> {
         RefCell<FxHashMap<vir_poly::FunctionIdentifier, FunctionDescription<'tcx>>>,
     /// Mapping from keys on MIR level to function identifiers on VIR level.
     function_identifiers: RefCell<FxHashMap<Key, vir_poly::FunctionIdentifier>>,
+    /// Encoded functions. The encoding of these functions was triggered by the
+    /// definition collector requesting their definition.
+    functions: RefCell<FxHashMap<String, std::rc::Rc<vir_high::FunctionDecl>>>,
+    /// Callbacks that know how to lazily construct the specified function.
+    function_constructors: RefCell<FxHashMap<String, FunctionConstructor<'v, 'tcx>>>,
 }
 
 /// The information necessary to encode a function definition.
@@ -45,7 +55,7 @@ pub(crate) struct FunctionDescription<'tcx> {
     substs: SubstMap<'tcx>,
 }
 
-pub(crate) trait PureFunctionEncoderInterface<'tcx> {
+pub(crate) trait PureFunctionEncoderInterface<'v, 'tcx> {
     fn encode_pure_expression(
         &self,
         proc_def_id: ProcedureDefId,
@@ -97,9 +107,23 @@ pub(crate) trait PureFunctionEncoderInterface<'tcx> {
         parent_def_id: ProcedureDefId,
         substs: &SubstMap<'tcx>,
     ) -> SpannedEncodingResult<(String, vir_high::Type)>;
+
+    /// Get the encoded function declaration.
+    ///
+    /// This will trigger the encoding of the function declaration if needed.
+    fn get_pure_function_decl_mir(
+        &self,
+        function_identifier: &str,
+    ) -> SpannedEncodingResult<std::rc::Rc<vir_high::FunctionDecl>>;
+
+    fn register_function_constructor_mir(
+        &self,
+        function_identifier: String,
+        constructor: FunctionConstructor<'v, 'tcx>,
+    ) -> SpannedEncodingResult<()>;
 }
 
-impl<'v, 'tcx: 'v> PureFunctionEncoderInterface<'tcx>
+impl<'v, 'tcx: 'v> PureFunctionEncoderInterface<'v, 'tcx>
     for crate::encoder::encoder::Encoder<'v, 'tcx>
 {
     fn encode_pure_expression_high(
@@ -424,5 +448,51 @@ impl<'v, 'tcx: 'v> PureFunctionEncoderInterface<'tcx>
             function_call_info.name.clone(),
             function_call_info.return_type.clone(),
         ))
+    }
+
+    fn get_pure_function_decl_mir(
+        &self,
+        function_identifier: &str,
+    ) -> SpannedEncodingResult<std::rc::Rc<vir_high::FunctionDecl>> {
+        let functions_borrow = self.pure_function_encoder_state.functions.borrow();
+        if let Some(function) = functions_borrow.get(function_identifier) {
+            // The function is already encoded.
+            Ok(function.clone())
+        } else {
+            drop(functions_borrow); // Release the borrow.
+
+            // The function is not yet encoded. Trigger the encoding.
+            if let Some(constructor) = self
+                .pure_function_encoder_state
+                .function_constructors
+                .borrow_mut()
+                .remove(function_identifier)
+            {
+                let function = std::rc::Rc::new(constructor(self)?);
+                let identifier = function.get_identifier();
+                assert_eq!(&identifier, function_identifier);
+                self.pure_function_encoder_state
+                    .functions
+                    .borrow_mut()
+                    .insert(identifier, function.clone());
+                Ok(function)
+            } else {
+                unreachable!("not found constructor for {}", function_identifier);
+            }
+        }
+    }
+
+    fn register_function_constructor_mir(
+        &self,
+        function_identifier: String,
+        constructor: FunctionConstructor<'v, 'tcx>,
+    ) -> SpannedEncodingResult<()> {
+        assert!(self
+            .pure_function_encoder_state
+            .function_constructors
+            .borrow_mut()
+            .insert(function_identifier, constructor)
+            .is_none());
+        Ok(())
     }
 }

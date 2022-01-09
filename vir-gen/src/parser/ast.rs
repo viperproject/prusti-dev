@@ -95,6 +95,12 @@ impl Parse for RawBlock {
 
 impl Parse for DeriveLower {
     fn parse(input: ParseStream) -> syn::Result<Self> {
+        let is_self_mut = if input.peek(syn::Token![mut]) {
+            input.parse::<syn::Token![mut]>()?;
+            true
+        } else {
+            false
+        };
         let user_trait_ident = input.parse()?;
         input.parse::<Token![,]>()?;
         let deriver_trait_ident = input.parse()?;
@@ -103,6 +109,7 @@ impl Parse for DeriveLower {
         input.parse::<Token![=>]>()?;
         let target_type = input.parse()?;
         Ok(Self {
+            is_self_mut,
             user_trait_ident,
             deriver_trait_ident,
             source_type,
