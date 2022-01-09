@@ -625,7 +625,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
             .with_span(span)?;
         let encoded_rhs =
             vir_high::Expression::function_call(function_name, type_arguments, args, return_type)
-                .set_default_pos(pos.into());
+                .set_default_position(pos.into());
         let mut state = states[&target_block].clone();
         state.substitute_value(&lhs, encoded_rhs);
         Ok(state)

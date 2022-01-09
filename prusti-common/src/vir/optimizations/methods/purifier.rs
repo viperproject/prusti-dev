@@ -15,7 +15,6 @@ use crate::config;
 use std::collections::{HashMap, HashSet};
 use std::{self, mem};
 use prusti_utils::force_matches;
-use vir::polymorphic::PredicateAccessPredicate;
 
 /// Purify vars.
 pub fn purify_vars(mut method: cfg::CfgMethod) -> cfg::CfgMethod {

@@ -1,5 +1,8 @@
 use super::super::{
-    ast::statement::visitors::StatementWalker,
+    ast::{
+        expression::Expression, predicate::visitors::PredicateWalker,
+        statement::visitors::StatementWalker,
+    },
     cfg::procedure::{BasicBlock, BasicBlockId, ProcedureDecl, Successor},
     visitors::ExpressionWalker,
     Predicate, Quantifier, Type, VariableDecl,
@@ -29,30 +32,17 @@ impl ProcedureDecl {
         struct Delegate<'a, Walker: ExpressionWalker> {
             expression_walker: &'a mut Walker,
         }
+        impl<'a, Walker: ExpressionWalker> PredicateWalker for Delegate<'a, Walker> {
+            fn walk_expression(&mut self, expression: &Expression) {
+                self.expression_walker.walk_expression(expression);
+            }
+        }
         impl<'a, Walker: ExpressionWalker> StatementWalker for Delegate<'a, Walker> {
+            fn walk_expression(&mut self, expression: &Expression) {
+                self.expression_walker.walk_expression(expression);
+            }
             fn walk_predicate(&mut self, predicate: &Predicate) {
-                match predicate {
-                    Predicate::MemoryBlockStack(predicate) => {
-                        self.expression_walker.walk_expression(&predicate.place);
-                        self.expression_walker.walk_expression(&predicate.size);
-                        self.expression_walker.walk_position(&predicate.position);
-                    }
-                    Predicate::MemoryBlockStackDrop(predicate) => {
-                        self.expression_walker.walk_expression(&predicate.place);
-                        self.expression_walker.walk_expression(&predicate.size);
-                        self.expression_walker.walk_position(&predicate.position);
-                    }
-                    Predicate::MemoryBlockHeap(predicate) => {
-                        self.expression_walker.walk_expression(&predicate.address);
-                        self.expression_walker.walk_expression(&predicate.size);
-                        self.expression_walker.walk_position(&predicate.position);
-                    }
-                    Predicate::MemoryBlockHeapDrop(predicate) => {
-                        self.expression_walker.walk_expression(&predicate.address);
-                        self.expression_walker.walk_expression(&predicate.size);
-                        self.expression_walker.walk_position(&predicate.position);
-                    }
-                }
+                PredicateWalker::walk_predicate(self, predicate);
             }
         }
         impl<'a, Walker: ExpressionWalker> ExpressionWalker for Delegate<'a, Walker> {}

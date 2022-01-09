@@ -104,7 +104,7 @@ impl Expression {
                 default_fold_expression(self, expression)
             }
 
-            fn fold_quantifier(&mut self, quantifier: Quantifier) -> Expression {
+            fn fold_quantifier_enum(&mut self, quantifier: Quantifier) -> Expression {
                 // TODO: the correct solution is the following:
                 // (1) skip replacements where `src` uses a quantified variable;
                 // (2) rename with a fresh name the quantified variables that conflict with `dst`.
@@ -145,12 +145,12 @@ impl Expression {
                     base,
                     position,
                 }: LabelledOld,
-            ) -> Expression {
-                Expression::LabelledOld(LabelledOld {
+            ) -> LabelledOld {
+                LabelledOld {
                     label: (self.substitutor)(label),
                     base,
                     position,
-                })
+                }
             }
         }
         OldExpressionLabelSubstitutor { substitutor }.fold_expression(self)
@@ -160,7 +160,7 @@ impl Expression {
     pub fn simplify_addr_of(self) -> Self {
         struct Simplifier;
         impl ExpressionFolder for Simplifier {
-            fn fold_field(
+            fn fold_field_enum(
                 &mut self,
                 Field {
                     base: receiver,
@@ -222,7 +222,7 @@ impl Expression {
         )
     }
     #[must_use]
-    pub fn set_default_pos(self, new_position: Position) -> Self {
+    pub fn set_default_position(self, new_position: Position) -> Self {
         struct DefaultPositionReplacer {
             new_position: Position,
         }
@@ -236,5 +236,14 @@ impl Expression {
             }
         }
         DefaultPositionReplacer { new_position }.fold_expression(self)
+    }
+    pub fn has_prefix(&self, potential_prefix: &Expression) -> bool {
+        if self == potential_prefix {
+            true
+        } else {
+            self.get_parent_ref()
+                .map(|parent| parent.has_prefix(potential_prefix))
+                .unwrap_or(false)
+        }
     }
 }

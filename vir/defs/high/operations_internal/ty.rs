@@ -42,6 +42,9 @@ impl Type {
             _ => None,
         }
     }
+    pub fn is_heap_primitive(&self) -> bool {
+        self.is_bool() || self.is_int() || self.is_float()
+    }
 }
 
 impl AsRef<str> for VariantIndex {
@@ -96,7 +99,7 @@ impl Generic for Type {
             substs: &'a FxHashMap<TypeVar, Type>,
         }
         impl<'a> TypeFolder for TypeSubstitutor<'a> {
-            fn fold_type_var(&mut self, var: TypeVar) -> Type {
+            fn fold_type_var_enum(&mut self, var: TypeVar) -> Type {
                 if let Some(new_type) = self.substs.get(&var).cloned() {
                     new_type
                 } else {
@@ -357,10 +360,10 @@ impl Typed for Quantifier {
 
 impl Typed for LetExpr {
     fn get_type(&self) -> &Type {
-        &self.variable.ty
+        self.body.get_type()
     }
     fn set_type(&mut self, new_type: Type) {
-        self.variable.ty = new_type;
+        self.body.set_type(new_type)
     }
 }
 

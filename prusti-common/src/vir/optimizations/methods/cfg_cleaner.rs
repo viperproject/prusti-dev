@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use crate::vir::polymorphic_vir::{self, cfg};
+use crate::vir::polymorphic_vir::{cfg};
 
 /// Merge consequitive basic blocks that are joined by only one edge.
 pub fn clean_cfg(mut method: cfg::CfgMethod) -> cfg::CfgMethod {

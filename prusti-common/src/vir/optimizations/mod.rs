@@ -8,7 +8,7 @@
 
 use crate::vir::polymorphic_vir::{CfgMethod, Program};
 use crate::vir::ToGraphViz;
-use crate::config::{self, optimizations, Optimizations};
+use crate::config;
 
 pub mod folding;
 pub mod functions;

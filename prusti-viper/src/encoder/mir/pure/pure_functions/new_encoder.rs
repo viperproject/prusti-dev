@@ -348,7 +348,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureEncoder<'p, 'v, 'tcx> {
 
         let post = post
             .replace_place(&encoded_return.into(), &pure_fn_return_variable.into())
-            .set_default_pos(postcondition_pos.into());
+            .set_default_position(postcondition_pos.into());
 
         Ok(post)
     }

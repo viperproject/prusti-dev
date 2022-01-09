@@ -58,6 +58,8 @@ use crate::encoder::purifier;
 use crate::encoder::array_encoder::{ArrayTypesEncoder, EncodedArrayTypes, EncodedSliceTypes};
 use super::high::builtin_functions::HighBuiltinFunctionEncoderState;
 use super::middle::core_proof::{MidCoreProofEncoderState, MidCoreProofEncoderInterface};
+use super::mir::procedures::MirProcedureEncoderState;
+use super::mir::type_layouts::MirTypeLayoutsEncoderState;
 use super::mir::{
     pure::{
         PureFunctionEncoderState, PureFunctionEncoderInterface,
@@ -84,10 +86,12 @@ pub struct Encoder<'v, 'tcx: 'v> {
     pub(super) high_builtin_function_encoder_state: HighBuiltinFunctionEncoderState,
     procedures: RefCell<FxHashMap<ProcedureDefId, vir::CfgMethod>>,
     programs: Vec<vir::Program>,
+    pub(super) mir_procedure_encoder_state: MirProcedureEncoderState,
+    pub(super) mir_type_layouts_encoder_state: MirTypeLayoutsEncoderState,
     pub(super) mid_core_proof_encoder_state: MidCoreProofEncoderState,
     pub(super) mir_type_encoder_state: MirTypeEncoderState<'tcx>,
     pub(super) high_type_encoder_state: HighTypeEncoderState<'tcx>,
-    pub(super) pure_function_encoder_state: PureFunctionEncoderState<'tcx>,
+    pub(super) pure_function_encoder_state: PureFunctionEncoderState<'v, 'tcx>,
     spec_functions: RefCell<FxHashMap<ProcedureDefId, Vec<vir::FunctionIdentifier>>>,
     type_discriminant_funcs: RefCell<FxHashMap<String, vir::FunctionIdentifier>>,
     type_cast_functions: RefCell<FxHashMap<(ty::Ty<'tcx>, ty::Ty<'tcx>), vir::FunctionIdentifier>>,
@@ -149,6 +153,8 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             builtin_methods: RefCell::new(FxHashMap::default()),
             high_builtin_function_encoder_state: Default::default(),
             programs: Vec::new(),
+            mir_procedure_encoder_state: Default::default(),
+            mir_type_layouts_encoder_state: Default::default(),
             mid_core_proof_encoder_state: Default::default(),
             procedures: RefCell::new(FxHashMap::default()),
             mir_type_encoder_state: Default::default(),

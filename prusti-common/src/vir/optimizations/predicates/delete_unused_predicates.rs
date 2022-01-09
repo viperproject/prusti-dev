@@ -6,10 +6,8 @@
 
 use crate::vir::polymorphic_vir::{
     ast::*,
-    cfg,
     cfg::CfgMethod,
     utils::{walk_functions, walk_methods},
-    CfgBlock,
 };
 use std::collections::{HashMap, HashSet};
 
