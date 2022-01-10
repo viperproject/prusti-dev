@@ -16,7 +16,7 @@ use rustc_middle::{mir, ty::FnSig, ty::subst::SubstsRef};
 use rustc_index::vec::Idx;
 use rustc_middle::ty::{self, Ty, TyCtxt, TyKind, TypeckResults};
 // use rustc_data_structures::indexed_vec::Idx;
-use std::collections::HashMap;
+use rustc_hash::{FxHashMap};
 use std::fmt;
 use crate::utils::type_visitor::{self, TypeVisitor};
 use prusti_interface::specs::typed;
@@ -202,7 +202,7 @@ impl<'tcx> ProcedureContractMirDef<'tcx> {
         target: places::Local,
     ) -> ProcedureContract<'tcx> {
         assert_eq!(self.args.len(), args.len());
-        let mut substitutions = HashMap::new();
+        let mut substitutions = FxHashMap::default();
         substitutions.insert(self.returned_value, target);
         for (from, to) in self.args.iter().zip(args) {
             substitutions.insert(*from, *to);
@@ -423,7 +423,7 @@ pub fn compute_procedure_contract<'p, 'a, 'tcx>(
     proc_def_id: ProcedureDefId,
     env: &Environment<'tcx>,
     specification: typed::SpecificationSet<'tcx>,
-    maybe_tymap: Option<&HashMap<ty::Ty<'tcx>, ty::Ty<'tcx>>>,
+    maybe_tymap: Option<&FxHashMap<ty::Ty<'tcx>, ty::Ty<'tcx>>>,
 ) -> EncodingResult<ProcedureContractMirDef<'tcx>>
 where
     'a: 'p,

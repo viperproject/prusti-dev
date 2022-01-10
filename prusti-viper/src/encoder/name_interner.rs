@@ -4,22 +4,22 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use std::collections::{HashMap, HashSet};
+use rustc_hash::{FxHashMap, FxHashSet};
 use log::debug;
 
 /// Name interner.
 /// This structure can be used to shorten long unique names without losing the uniqueness property.
 #[derive(Debug)]
 pub struct NameInterner {
-    name_to_symbol: HashMap<String, String>,
-    used_symbols: HashSet<String>,
+    name_to_symbol: FxHashMap<String, String>,
+    used_symbols: FxHashSet<String>,
 }
 
 impl NameInterner {
     pub fn new() -> Self {
         NameInterner {
-            name_to_symbol: HashMap::new(),
-            used_symbols: HashSet::new(),
+            name_to_symbol: FxHashMap::default(),
+            used_symbols: FxHashSet::default(),
         }
     }
 

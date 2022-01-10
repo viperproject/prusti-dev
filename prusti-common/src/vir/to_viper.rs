@@ -4,6 +4,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+use super::low_to_viper::{ToViper, ToViperDecl};
 use crate::{
     config,
     vir::{
@@ -16,14 +17,7 @@ use crate::{
 use prusti_utils::force_matches;
 use std::collections::HashMap;
 use viper::{self, AstFactory};
-
-pub trait ToViper<'v, T> {
-    fn to_viper(&self, ast: &AstFactory<'v>) -> T;
-}
-
-pub trait ToViperDecl<'v, T> {
-    fn to_viper_decl(&self, ast: &AstFactory<'v>) -> T;
-}
+use vir::common::identifier::WithIdentifier;
 
 impl<'v> ToViper<'v, viper::Program<'v>> for Program {
     fn to_viper(&self, ast: &AstFactory<'v>) -> viper::Program<'v> {

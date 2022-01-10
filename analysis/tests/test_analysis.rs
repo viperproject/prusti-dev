@@ -18,10 +18,18 @@ fn run_tests(mode: &str, path: &str, custom_args: Vec<String>) {
     config.mode = mode.parse().expect("Invalid mode");
     config.rustc_path = find_compiled_executable("analysis-driver");
     config.src_base = PathBuf::from(path);
+    assert!(config.src_base.is_dir());
+
+    // Filter the tests to run
+    if let Some(filter) = env::args().nth(1) {
+        config.filters.push(filter.clone());
+    }
+
     if let Some(lib_path) = option_env!("RUSTC_LIB_PATH") {
         config.run_lib_path = PathBuf::from(lib_path);
         config.compile_lib_path = PathBuf::from(lib_path);
     }
+
     compiletest::run_tests(&config);
 }
 
@@ -52,5 +60,10 @@ fn test_runner(_tests: &[&()]) {
         "ui",
         "tests/test_cases/definitely_accessible",
         vec!["--analysis=DefinitelyAccessibleAnalysis".into()],
+    );
+    run_tests(
+        "ui",
+        "tests/test_cases/framing",
+        vec!["--analysis=FramingAnalysis".into()],
     );
 }

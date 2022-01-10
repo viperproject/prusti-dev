@@ -32,7 +32,7 @@ pub fn prefixed_method_name_from_camel_raw(prefix: &str, ident: &syn::Ident) -> 
         }
     }
     match new_ident.as_ref() {
-        "struct" | "enum" | "union" | "type" => {
+        "struct" | "enum" | "union" | "type" | "ref" | "move" => {
             new_ident.push('_');
             new_ident
         }
@@ -41,7 +41,7 @@ pub fn prefixed_method_name_from_camel_raw(prefix: &str, ident: &syn::Ident) -> 
 }
 
 pub fn append_ident(ident: &syn::Ident, suffix: &str) -> syn::Ident {
-    let name = format!("{}{}", ident, suffix);
+    let name = format!("{}{}", ident, suffix).replace("__", "_");
     syn::Ident::new(&name, ident.span())
 }
 
@@ -115,7 +115,7 @@ pub fn extract_container(ty: &syn::Type) -> syn::Result<(&syn::Ident, Option<&sy
                     syn::PathArguments::AngleBracketed(syn::AngleBracketedGenericArguments {
                         args, ..
                     }),
-            } if (ident == "Box" || ident == "Vec") && args.len() == 1 => {
+            } if (ident == "Box" || ident == "Vec" || ident == "Option") && args.len() == 1 => {
                 if let syn::GenericArgument::Type(inner_ty) = &args[0] {
                     let inner_ident = unwrap_type_ident(inner_ty)?;
                     return Ok((inner_ident, Some(ident)));

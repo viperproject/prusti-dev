@@ -10,7 +10,7 @@ use crate::environment::procedure::BasicBlockIndex;
 use rustc_middle::mir;
 use rustc_middle::mir::visit::Visitor;
 use rustc_data_structures::graph::dominators::Dominators;
-use std::collections::{HashMap, HashSet};
+use rustc_hash::{FxHashMap, FxHashSet};
 use rustc_index::vec::{Idx, IndexVec};
 use log::{debug, trace};
 use crate::environment::mir_utils::RealEdges;
@@ -20,7 +20,7 @@ fn collect_loop_body(
     head: BasicBlockIndex,
     back_edge_source: BasicBlockIndex,
     real_edges: &RealEdges,
-    body: &mut HashSet<BasicBlockIndex>,
+    body: &mut FxHashSet<BasicBlockIndex>,
 ) {
     let mut work_queue = vec![back_edge_source];
     body.insert(back_edge_source);
@@ -81,7 +81,7 @@ pub struct PlaceAccess<'tcx> {
 #[derive(Debug)]
 struct AccessCollector<'b, 'tcx> {
     /// Loop body.
-    pub body: &'b HashSet<BasicBlockIndex>,
+    pub body: &'b FxHashSet<BasicBlockIndex>,
     /// The places that are defined before the loop and accessed inside a loop.
     pub accessed_places: Vec<PlaceAccess<'tcx>>,
 }
@@ -130,7 +130,7 @@ impl<'b, 'tcx> Visitor<'tcx> for AccessCollector<'b, 'tcx> {
 fn order_basic_blocks<'tcx>(
     mir: &mir::Body<'tcx>,
     real_edges: &RealEdges,
-    back_edges: &HashSet<(BasicBlockIndex, BasicBlockIndex)>,
+    back_edges: &FxHashSet<(BasicBlockIndex, BasicBlockIndex)>,
     loop_depth: &dyn Fn(BasicBlockIndex) -> usize,
 ) -> Vec<BasicBlockIndex> {
     let basic_blocks = mir.basic_blocks();
@@ -143,7 +143,7 @@ fn order_basic_blocks<'tcx>(
     fn visit<'tcx>(
         basic_blocks: &IndexVec<BasicBlockIndex, mir::BasicBlockData<'tcx>>,
         real_edges: &RealEdges,
-        back_edges: &HashSet<(BasicBlockIndex, BasicBlockIndex)>,
+        back_edges: &FxHashSet<(BasicBlockIndex, BasicBlockIndex)>,
         loop_depth: &dyn Fn(BasicBlockIndex) -> usize,
         current: BasicBlockIndex,
         sorted_blocks: &mut Vec<BasicBlockIndex>,
@@ -207,21 +207,21 @@ fn order_basic_blocks<'tcx>(
 #[derive(Clone)]
 pub struct ProcedureLoops {
     /// A list of basic blocks that are loop heads.
-    pub loop_heads: HashSet<BasicBlockIndex>,
+    pub loop_heads: FxHashSet<BasicBlockIndex>,
     /// The depth of each loop head, starting from one for a simple single loop.
-    pub loop_head_depths: HashMap<BasicBlockIndex, usize>,
+    pub loop_head_depths: FxHashMap<BasicBlockIndex, usize>,
     /// A map from loop heads to the corresponding bodies.
-    pub loop_bodies: HashMap<BasicBlockIndex, HashSet<BasicBlockIndex>>,
-    pub ordered_loop_bodies: HashMap<BasicBlockIndex, Vec<BasicBlockIndex>>,
+    pub loop_bodies: FxHashMap<BasicBlockIndex, FxHashSet<BasicBlockIndex>>,
+    pub ordered_loop_bodies: FxHashMap<BasicBlockIndex, Vec<BasicBlockIndex>>,
     /// A map from loop bodies to the ordered vector of enclosing loop heads (from outer to inner).
-    enclosing_loop_heads: HashMap<BasicBlockIndex, Vec<BasicBlockIndex>>,
+    enclosing_loop_heads: FxHashMap<BasicBlockIndex, Vec<BasicBlockIndex>>,
     /// A map from loop heads to the ordered blocks from which a CFG edge exits from the loop.
-    loop_exit_blocks: HashMap<BasicBlockIndex, Vec<BasicBlockIndex>>,
+    loop_exit_blocks: FxHashMap<BasicBlockIndex, Vec<BasicBlockIndex>>,
     /// A map from loop heads to the nonconditional blocks (i.e. those that are always executed
     /// in any loop iteration).
-    nonconditional_loop_blocks: HashMap<BasicBlockIndex, HashSet<BasicBlockIndex>>,
+    nonconditional_loop_blocks: FxHashMap<BasicBlockIndex, FxHashSet<BasicBlockIndex>>,
     /// Back edges.
-    pub back_edges: HashSet<(BasicBlockIndex, BasicBlockIndex)>,
+    pub back_edges: FxHashSet<(BasicBlockIndex, BasicBlockIndex)>,
     /// Dominators graph.
     dominators: Dominators<BasicBlockIndex>,
     /// The list of basic blocks ordered in the topological order (ignoring back edges).
@@ -233,7 +233,7 @@ impl ProcedureLoops {
     pub fn new<'a, 'tcx: 'a>(mir: &'a mir::Body<'tcx>, real_edges: &RealEdges) -> ProcedureLoops {
         let dominators = mir.dominators();
 
-        let mut back_edges: HashSet<(_, _)> = HashSet::new();
+        let mut back_edges: FxHashSet<(_, _)> = FxHashSet::default();
         for bb in mir.basic_blocks().indices() {
             for successor in real_edges.successors(bb) {
                 if dominators.is_dominated_by(bb, *successor) {
@@ -243,30 +243,30 @@ impl ProcedureLoops {
             }
         }
 
-        let mut loop_bodies = HashMap::new();
+        let mut loop_bodies = FxHashMap::default();
         for &(source, target) in back_edges.iter() {
-            let body = loop_bodies.entry(target).or_insert_with(HashSet::new);
+            let body = loop_bodies.entry(target).or_insert_with(FxHashSet::default);
             collect_loop_body(target, source, real_edges, body);
         }
 
-        let mut enclosing_loop_heads_set: HashMap<BasicBlockIndex, HashSet<BasicBlockIndex>> =
-            HashMap::new();
+        let mut enclosing_loop_heads_set: FxHashMap<BasicBlockIndex, FxHashSet<BasicBlockIndex>> =
+            FxHashMap::default();
         for (&loop_head, loop_body) in loop_bodies.iter() {
             for &block in loop_body.iter() {
                 let heads_set = enclosing_loop_heads_set
                     .entry(block)
-                    .or_insert_with(HashSet::new);
+                    .or_insert_with(FxHashSet::default);
                 heads_set.insert(loop_head);
             }
         }
 
-        let loop_heads: HashSet<_> = loop_bodies.keys().copied().collect();
-        let mut loop_head_depths = HashMap::new();
+        let loop_heads: FxHashSet<_> = loop_bodies.keys().copied().collect();
+        let mut loop_head_depths = FxHashMap::default();
         for &loop_head in loop_heads.iter() {
             loop_head_depths.insert(loop_head, enclosing_loop_heads_set[&loop_head].len());
         }
 
-        let mut enclosing_loop_heads = HashMap::new();
+        let mut enclosing_loop_heads = FxHashMap::default();
         for (&block, loop_heads) in enclosing_loop_heads_set.iter() {
             let mut heads: Vec<BasicBlockIndex> = loop_heads.iter().cloned().collect();
             heads.sort_by_key(|bbi| loop_head_depths[bbi]);
@@ -281,11 +281,11 @@ impl ProcedureLoops {
         };
 
         let ordered_blocks = order_basic_blocks(mir, real_edges, &back_edges, &get_loop_depth);
-        let block_order: HashMap<BasicBlockIndex, usize> = ordered_blocks
+        let block_order: FxHashMap<BasicBlockIndex, usize> = ordered_blocks
             .iter().cloned().enumerate().map(|(i, v)| (v, i)).collect();
         debug!("ordered_blocks: {:?}", ordered_blocks);
 
-        let mut ordered_loop_bodies = HashMap::new();
+        let mut ordered_loop_bodies = FxHashMap::default();
         for (&loop_head, loop_body) in loop_bodies.iter() {
             let mut ordered_body: Vec<_> = loop_body.iter().cloned().collect();
             ordered_body.sort_by_key(|bb| block_order[bb]);
@@ -298,14 +298,14 @@ impl ProcedureLoops {
         // They are those blocks in the loop that:
         // 1. have a SwitchInt terminator (TODO: can we remove this condition?)
         // 2. have an out-edge that exits from the loop
-        let mut loop_exit_blocks = HashMap::new();
+        let mut loop_exit_blocks = FxHashMap::default();
         for &loop_head in loop_heads.iter() {
             let loop_head_depth = loop_head_depths[&loop_head];
             let loop_body = &loop_bodies[&loop_head];
             let ordered_loop_body = &ordered_loop_bodies[&loop_head];
 
             let mut exit_blocks = vec![];
-            let mut border = HashSet::new();
+            let mut border = FxHashSet::default();
             border.insert(loop_head);
 
             for &curr_bb in ordered_loop_body {
@@ -339,7 +339,7 @@ impl ProcedureLoops {
 
         // The nonconditional blocks of a loop are those blocks of the loop body that dominate all
         // the blocks from which a back-edge starts.
-        let mut nonconditional_loop_blocks = HashMap::new();
+        let mut nonconditional_loop_blocks = FxHashMap::default();
         for (&loop_head, loop_body) in loop_bodies.iter() {
             nonconditional_loop_blocks.insert(loop_head, loop_body.clone());
         }

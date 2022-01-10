@@ -4,18 +4,17 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use crate::{converter::type_substitution::Generic, polymorphic::ast::*};
+use crate::{
+    common::identifier::WithIdentifier, converter::type_substitution::Generic, polymorphic::ast::*,
+};
+use rustc_hash::FxHashMap;
 use std::{
     cmp::Ordering,
-    collections::{hash_map::DefaultHasher, HashMap},
+    collections::hash_map::DefaultHasher,
     fmt,
     hash::{Hash, Hasher},
     mem::discriminant,
 };
-
-pub trait WithIdentifier {
-    fn get_identifier(&self) -> String;
-}
 
 /// The identifier of a statement. Used in error reporting.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
@@ -205,7 +204,7 @@ impl Type {
     }
 
     /// Replace all generic types with their instantiations by using string substitution.
-    pub fn patch(self, substs: &HashMap<TypeVar, Type>) -> Self {
+    pub fn patch(self, substs: &FxHashMap<TypeVar, Type>) -> Self {
         self.substitute(substs)
     }
 

@@ -43,17 +43,22 @@ RUSTFMT_CRATES = [
 
 RUSTFMT_PATHS = [
     'prusti-common/src/vir/to_viper.rs',
+    'prusti-common/src/vir/low_to_viper/mod.rs',
     'prusti-interface/src/environment/mir_dump/mod.rs',
     'prusti-tests/tests/verify_partial/**/*.rs',
     'prusti-viper/src/encoder/foldunfold/mod.rs',
     'prusti-viper/src/encoder/mir/mod.rs',
     'prusti-viper/src/encoder/high/mod.rs',
+    'prusti-viper/src/encoder/middle/mod.rs',
     'prusti-viper/src/encoder/snapshot/mod.rs',
+    'prusti-viper/src/encoder/lifetimes/mod.rs',
     'prusti-viper/src/encoder/definition_collector.rs',
     'vir/defs/high/mod.rs',
+    'vir/defs/middle/mod.rs',
     'vir/defs/polymorphic/mod.rs',
     'vir/defs/components/mod.rs',
     'vir/defs/snapshot/mod.rs',
+    'vir/defs/low/mod.rs',
 ]
 
 def default_linux_java_loc():

@@ -13,20 +13,18 @@ use crate::encoder::foldunfold::{
     requirements::*,
 };
 use log::{debug, trace};
-use std::{
-    collections::{HashMap, HashSet},
-    iter::FromIterator,
-};
+use rustc_hash::{FxHashMap, FxHashSet};
+use std::iter::FromIterator;
 use vir_crate::polymorphic::{self as vir, PermAmount};
 
 pub trait ExprFootprintGetter {
     /// Returns the precise footprint of an expression, that is the permissions that must be
     /// added/removed when executing an `inhale/exhale expr` statement.
-    fn get_footprint(&self, predicates: &Predicates) -> HashSet<Perm>;
+    fn get_footprint(&self, predicates: &Predicates) -> FxHashSet<Perm>;
 }
 
 impl ExprFootprintGetter for vir::Expr {
-    fn get_footprint(&self, predicates: &Predicates) -> HashSet<Perm> {
+    fn get_footprint(&self, predicates: &Predicates) -> FxHashSet<Perm> {
         trace!("get_footprint {}", self);
         let res = match self {
             vir::Expr::Local(_)
@@ -37,7 +35,7 @@ impl ExprFootprintGetter for vir::Expr {
             | vir::Expr::Const(_)
             | vir::Expr::FuncApp(_)
             | vir::Expr::DomainFuncApp(_)
-            | vir::Expr::InhaleExhale(_) => HashSet::new(),
+            | vir::Expr::InhaleExhale(_) => FxHashSet::default(),
 
             vir::Expr::Unfolding(vir::Unfolding {
                 arguments,
@@ -55,7 +53,7 @@ impl ExprFootprintGetter for vir::Expr {
                 let predicate = predicates.get(predicate_type).unwrap();
 
                 let pred_self_place: vir::Expr = predicate.self_place();
-                let places_in_pred: HashSet<Perm> = predicate
+                let places_in_pred: FxHashSet<Perm> = predicate
                     .get_body_footprint(variant)
                     .into_iter()
                     .map(|aop| {
@@ -94,7 +92,7 @@ impl ExprFootprintGetter for vir::Expr {
             vir::Expr::Seq(vir::Seq { elements, .. }) => elements
                 .iter()
                 .map(|e| e.get_footprint(predicates))
-                .fold(HashSet::new(), |mut hs, fp| {
+                .fold(FxHashSet::default(), |mut hs, fp| {
                     hs.extend(fp);
                     hs
                 }),
@@ -123,7 +121,7 @@ impl ExprFootprintGetter for vir::Expr {
                 assert!(variables
                     .iter()
                     .all(|var| !var.typ.is_typed_ref_or_type_var()));
-                let vars_places: HashSet<Perm> = variables
+                let vars_places: FxHashSet<Perm> = variables
                     .iter()
                     .map(|var| Acc(vir::Expr::local(var.clone()), PermAmount::Write))
                     .collect();
@@ -163,7 +161,7 @@ impl ExprFootprintGetter for vir::Expr {
 
             vir::Expr::MagicWand(_) => {
                 // We don't track magic wands resources
-                HashSet::new()
+                FxHashSet::default()
             }
 
             vir::Expr::LetExpr(_) => {
@@ -186,11 +184,11 @@ pub trait PredicateFootprintGetter {
     /// added/removed when executing a `fold/unfold pred` statement.
     /// When the method is called on a predicate encoding an enumeration and `maybe_variant` is
     /// `None` then the result is an under-approximation. The result is precise in all other cases.
-    fn get_body_footprint(&self, maybe_variant: &vir::MaybeEnumVariantIndex) -> HashSet<Perm>;
+    fn get_body_footprint(&self, maybe_variant: &vir::MaybeEnumVariantIndex) -> FxHashSet<Perm>;
 }
 
 impl PredicateFootprintGetter for vir::Predicate {
-    fn get_body_footprint(&self, maybe_variant: &vir::MaybeEnumVariantIndex) -> HashSet<Perm> {
+    fn get_body_footprint(&self, maybe_variant: &vir::MaybeEnumVariantIndex) -> FxHashSet<Perm> {
         match self {
             vir::Predicate::Struct(p) => {
                 assert!(maybe_variant.is_none());
@@ -209,7 +207,7 @@ impl PredicateFootprintGetter for vir::Predicate {
                     p.get_underapproximated_body_footprint()
                 }
             }
-            vir::Predicate::Bodyless(_, _) => HashSet::new(),
+            vir::Predicate::Bodyless(_, _) => FxHashSet::default(),
         }
     }
 }
@@ -217,18 +215,18 @@ impl PredicateFootprintGetter for vir::Predicate {
 pub trait StructPredicateFootprintGetter {
     /// Returns the footprint of the body of a predicate encoding a structure, that is the
     /// permissions that must be added/removed when executing a `fold/unfold pred` statement.
-    fn get_body_footprint(&self) -> HashSet<Perm>;
+    fn get_body_footprint(&self) -> FxHashSet<Perm>;
 }
 
 impl StructPredicateFootprintGetter for vir::StructPredicate {
-    fn get_body_footprint(&self) -> HashSet<Perm> {
+    fn get_body_footprint(&self) -> FxHashSet<Perm> {
         match self.body {
             Some(ref body) => {
                 // A predicate body should not contain unfolding expression
-                let predicates = HashMap::new();
+                let predicates = FxHashMap::default();
                 body.get_footprint(&predicates)
             }
-            None => HashSet::new(),
+            None => FxHashSet::default(),
         }
     }
 }
@@ -236,24 +234,24 @@ impl StructPredicateFootprintGetter for vir::StructPredicate {
 pub trait EnumPredicateFootprintGetter {
     /// Returns the footprint of the body of a predicate encoding an enumeration, that is the
     /// permissions that must be added/removed when executing a `fold/unfold pred` statement.
-    fn get_body_footprint(&self, variant: &vir::EnumVariantIndex) -> HashSet<Perm>;
+    fn get_body_footprint(&self, variant: &vir::EnumVariantIndex) -> FxHashSet<Perm>;
 
     /// Returns the footprint coontribution of a given variant of an enumeration.
-    fn get_variant_footprint(&self, variant: &vir::EnumVariantIndex) -> HashSet<Perm>;
+    fn get_variant_footprint(&self, variant: &vir::EnumVariantIndex) -> FxHashSet<Perm>;
 
     /// Returns the intersection of `get_body_footprint` called on each possible variant.
-    fn get_underapproximated_body_footprint(&self) -> HashSet<Perm>;
+    fn get_underapproximated_body_footprint(&self) -> FxHashSet<Perm>;
 }
 
 impl EnumPredicateFootprintGetter for vir::EnumPredicate {
-    fn get_body_footprint(&self, variant: &vir::EnumVariantIndex) -> HashSet<Perm> {
+    fn get_body_footprint(&self, variant: &vir::EnumVariantIndex) -> FxHashSet<Perm> {
         let mut perms = self.get_underapproximated_body_footprint();
         perms.extend(self.get_variant_footprint(variant));
         perms
     }
 
-    fn get_variant_footprint(&self, variant: &vir::EnumVariantIndex) -> HashSet<Perm> {
-        let mut perms = HashSet::new();
+    fn get_variant_footprint(&self, variant: &vir::EnumVariantIndex) -> FxHashSet<Perm> {
+        let mut perms = FxHashSet::default();
         let this: vir::Expr = self.this.clone().into();
         let variant_name = variant.get_variant_name();
         perms.insert(Perm::Acc(
@@ -264,8 +262,8 @@ impl EnumPredicateFootprintGetter for vir::EnumPredicate {
         perms
     }
 
-    fn get_underapproximated_body_footprint(&self) -> HashSet<Perm> {
-        let mut perms = HashSet::new();
+    fn get_underapproximated_body_footprint(&self) -> FxHashSet<Perm> {
+        let mut perms = FxHashSet::default();
         perms.insert(Perm::Acc(
             vir::Expr::from(self.this.clone()).field(self.discriminant_field.clone()),
             PermAmount::Write,

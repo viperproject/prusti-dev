@@ -10,7 +10,8 @@
 use crate::encoder::foldunfold::{action::Action, perm::Perm, FoldUnfoldError};
 use log::trace;
 use prusti_common::utils::to_string::ToString;
-use std::{cmp::Ordering, collections::HashMap, rc::Rc, sync::RwLock};
+use rustc_hash::FxHashMap;
+use std::{cmp::Ordering, rc::Rc, sync::RwLock};
 use vir_crate::polymorphic as vir;
 
 // Note: Now every PathCtxt has its own EventLog, because a Borrow no longer unique
@@ -22,7 +23,7 @@ pub(super) struct EventLog {
     /// Actions performed by the fold-unfold algorithm before the join. We can use a single
     /// CfgBlockIndex because fold-unfold algorithms generates a new basic block for dropped
     /// permissions.
-    prejoin_actions: HashMap<vir::CfgBlockIndex, Rc<RwLock<Vec<Action>>>>,
+    prejoin_actions: FxHashMap<vir::CfgBlockIndex, Rc<RwLock<Vec<Action>>>>,
 
     /// A list of accessibility predicates for which we inhaled `Read`
     /// permission when creating a borrow and original places from which
@@ -33,14 +34,14 @@ pub(super) struct EventLog {
     /// 1.  The access predicate.
     /// 2.  The rhs of the assignment that created this borrow.
     /// 3.  A unique number.
-    duplicated_reads: HashMap<vir::borrows::Borrow, Vec<(vir::Expr, vir::Expr, u32)>>,
+    duplicated_reads: FxHashMap<vir::borrows::Borrow, Vec<(vir::Expr, vir::Expr, u32)>>,
 
     /// The place that is blocked by a given borrow.
-    blocked_place: HashMap<vir::borrows::Borrow, vir::Expr>,
+    blocked_place: FxHashMap<vir::borrows::Borrow, vir::Expr>,
 
     /// A list of accessibility predicates that were converted from
     /// `Write` to `Read` when creating a borrow.
-    converted_to_read_places: HashMap<vir::borrows::Borrow, Vec<vir::Expr>>,
+    converted_to_read_places: FxHashMap<vir::borrows::Borrow, Vec<vir::Expr>>,
 
     /// A generator of unique IDs.
     id_generator: u32,
@@ -49,10 +50,10 @@ pub(super) struct EventLog {
 impl EventLog {
     pub fn new() -> Self {
         Self {
-            prejoin_actions: HashMap::new(),
-            duplicated_reads: HashMap::new(),
-            blocked_place: HashMap::new(),
-            converted_to_read_places: HashMap::new(),
+            prejoin_actions: FxHashMap::default(),
+            duplicated_reads: FxHashMap::default(),
+            blocked_place: FxHashMap::default(),
+            converted_to_read_places: FxHashMap::default(),
             id_generator: 0,
         }
     }

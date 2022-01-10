@@ -14,6 +14,12 @@ pub mod expression;
 pub mod field;
 pub mod function;
 pub mod position;
+pub mod predicate;
+pub mod statement;
 pub mod ty;
 pub mod type_decl;
 pub mod variable;
+
+pub use self::{
+    expression::Expression, function::FunctionDecl, statement::Statement, type_decl::TypeDecl,
+};
