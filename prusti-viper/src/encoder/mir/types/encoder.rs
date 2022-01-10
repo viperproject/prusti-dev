@@ -732,7 +732,7 @@ fn encode_variant<'v, 'tcx: 'v>(
     let tcx = encoder.env().tcx();
     let mut fields = Vec::new();
     for field in &variant.fields {
-        let field_name = crate::encoder::encoder::encode_field_name(&field.ident.as_str());
+        let field_name = crate::encoder::encoder::encode_field_name(&field.ident(tcx).as_str());
         let field_ty = field.ty(tcx, substs);
         let field = vir::FieldDecl::new(field_name, encoder.encode_type_high(field_ty)?);
         fields.push(field);
@@ -792,9 +792,8 @@ pub(super) fn encode_adt_def<'v, 'tcx>(
                 .collect();
             let mut variants = Vec::new();
             for variant in &adt_def.variants {
-                let name = &variant.ident.as_str();
-                let encoded_variant =
-                    encode_variant(encoder, (*name).to_string(), substs, variant)?;
+                let name = variant.ident(tcx).to_string();
+                let encoded_variant = encode_variant(encoder, name, substs, variant)?;
                 variants.push(encoded_variant);
             }
             vir::TypeDecl::enum_(name, discriminant_bounds, discriminant_values, variants)
