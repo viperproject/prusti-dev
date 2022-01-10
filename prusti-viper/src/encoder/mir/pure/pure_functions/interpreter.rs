@@ -89,8 +89,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionBackwardInterpreter<'p, 'v, 'tcx> {
                     .encode_projection(place.local, &place.projection[..])
                     .with_span(span)?;
                 let variant_field = if let ty::TyKind::Adt(adt_def, _subst) = place_ty.kind() {
-                    let variant_name = &adt_def.variants[variant_idx].ident.as_str();
-                    self.encoder.encode_enum_variant_field(variant_name)
+                    let tcx = self.encoder.env().tcx();
+                    let variant_name = adt_def.variants[variant_idx].ident(tcx).to_string();
+                    self.encoder.encode_enum_variant_field(&variant_name)
                 } else {
                     unreachable!()
                 };
@@ -846,7 +847,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                                 state.substitute_value(&encoded_lhs, snapshot);
                             }
 
-                            &mir::AggregateKind::Adt(adt_def, variant_index, subst, _, _) => {
+                            &mir::AggregateKind::Adt(adt_did, variant_index, subst, _, _) => {
+                                let tcx = self.encoder.env().tcx();
+                                let adt_def = tcx.adt_def(adt_did);
                                 let num_variants = adt_def.variants.len();
                                 let variant_def = &adt_def.variants[variant_index];
                                 let mut encoded_lhs_variant = encoded_lhs.clone();
@@ -857,17 +860,16 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                                         variant_index.index().into(),
                                     );
                                     encoded_lhs_variant =
-                                        encoded_lhs_variant.variant(&variant_def.ident.as_str());
+                                        encoded_lhs_variant.variant(&variant_def.ident(tcx).as_str());
                                 }
                                 let mut field_exprs = vec![];
                                 for (field_index, field) in variant_def.fields.iter().enumerate() {
                                     let operand = &operands[field_index];
-                                    let field_name = &field.ident.as_str();
-                                    let tcx = self.encoder.env().tcx();
+                                    let field_name = field.ident(tcx).to_string();
                                     let field_ty = field.ty(tcx, subst);
                                     let encoded_field = self.encoder
-                                            .encode_struct_field(field_name, field_ty)
-                                            .with_span(span)?;
+                                        .encode_struct_field(&field_name, field_ty)
+                                        .with_span(span)?;
 
                                     let field_place =
                                         encoded_lhs_variant.clone().field(encoded_field);
