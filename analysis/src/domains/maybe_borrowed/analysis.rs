@@ -5,8 +5,8 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use crate::{
-    abstract_interpretation::AnalysisResult, domains::MaybeBorrowedState, AnalysisError,
-    PointwiseState,
+    abstract_interpretation::AnalysisResult, domains::MaybeBorrowedState,
+    mir_utils::get_blocked_place, AnalysisError, PointwiseState,
 };
 use log::{error, trace};
 use rustc_borrowck::{consumers::RichLocation, BodyWithBorrowckFacts};
@@ -66,7 +66,7 @@ impl<'mir, 'tcx: 'mir> MaybeBorrowedAnalysis<'mir, 'tcx> {
                                 borrow_kind,
                                 borrowed_place,
                             );
-                            let blocked_place = self.get_blocked_place(*borrowed_place);
+                            let blocked_place = get_blocked_place(self.tcx, *borrowed_place);
                             trace!("      Blocking {:?}: {:?}", borrow_kind, blocked_place);
                             match borrow_kind {
                                 mir::BorrowKind::Shared => {
@@ -119,25 +119,5 @@ impl<'mir, 'tcx: 'mir> MaybeBorrowedAnalysis<'mir, 'tcx> {
         }
 
         Ok(analysis_state)
-    }
-
-    fn get_blocked_place(&self, borrowed: mir::Place<'tcx>) -> mir::Place<'tcx> {
-        for (place_ref, place_elem) in borrowed.iter_projections() {
-            match place_elem {
-                mir::ProjectionElem::Deref
-                | mir::ProjectionElem::Index(..)
-                | mir::ProjectionElem::ConstantIndex { .. }
-                | mir::ProjectionElem::Subslice { .. } => {
-                    return mir::Place {
-                        local: place_ref.local,
-                        projection: self.tcx.intern_place_elems(place_ref.projection),
-                    };
-                }
-                mir::ProjectionElem::Field(..) | mir::ProjectionElem::Downcast(..) => {
-                    // Continue
-                }
-            }
-        }
-        borrowed
     }
 }

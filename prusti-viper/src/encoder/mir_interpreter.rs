@@ -6,7 +6,7 @@
 
 use vir_crate::polymorphic as vir;
 use rustc_middle::mir;
-use std::collections::HashMap;
+use rustc_hash::{FxHashMap};
 use std::fmt::{self, Debug, Display};
 use std::iter::FromIterator;
 use std::marker::Sized;
@@ -22,7 +22,7 @@ pub trait BackwardMirInterpreter<'tcx> {
         &self,
         bb: mir::BasicBlock,
         terminator: &mir::Terminator<'tcx>,
-        states: HashMap<mir::BasicBlock, &Self::State>,
+        states: FxHashMap<mir::BasicBlock, &Self::State>,
     ) -> Result<Self::State, Self::Error>;
     fn apply_statement(
         &self,
@@ -44,7 +44,7 @@ pub fn run_backward_interpretation<'tcx, S, E, I>(
     I: BackwardMirInterpreter<'tcx, State = S, Error = E>
 {
     let basic_blocks = mir.basic_blocks();
-    let mut heads: HashMap<mir::BasicBlock, S> = HashMap::new();
+    let mut heads: FxHashMap<mir::BasicBlock, S> = FxHashMap::default();
 
     // Find the final basic blocks
     let mut pending_blocks: Vec<mir::BasicBlock> = basic_blocks
@@ -63,7 +63,7 @@ pub fn run_backward_interpretation<'tcx, S, E, I>(
 
         // Apply the terminator
         let terminator = bb_data.terminator();
-        let states = HashMap::from_iter(terminator.successors().map(|bb| (*bb, &heads[bb])));
+        let states = FxHashMap::from_iter(terminator.successors().map(|bb| (*bb, &heads[bb])));
         trace!("States before: {:?}", states);
         trace!("Apply terminator {:?}", terminator);
         let mut curr_state = interpreter.apply_terminator(curr_bb, terminator, states)?;
@@ -116,7 +116,7 @@ pub fn run_backward_interpretation_point_to_point<
     undef_state: S,
 ) -> Result<Option<S>, E> {
     let basic_blocks = mir.basic_blocks();
-    let mut heads: HashMap<mir::BasicBlock, S> = HashMap::new();
+    let mut heads: FxHashMap<mir::BasicBlock, S> = FxHashMap::default();
     trace!(
         "[start] run_backward_interpretation_point_to_point:\n - from final block {:?}, statement {}\n - and state {:?}\n - to initial block {:?}\n - using undef state {:?}",
         final_bbi,
@@ -146,7 +146,7 @@ pub fn run_backward_interpretation_point_to_point<
                 .flat_map(|bb| heads.get(bb))
                 .next()
                 .unwrap_or(&undef_state);
-            HashMap::from_iter(
+            FxHashMap::from_iter(
                 terminator
                     .successors()
                     .map(|bb| (*bb, heads.get(bb).unwrap_or(default_state))),
@@ -217,7 +217,7 @@ pub fn run_backward_interpretation_point_to_point<
 pub struct ExprBackwardInterpreterState {
     /// None if the expression is undefined.
     expr: Option<vir::Expr>,
-    substs: HashMap<vir::TypeVar, vir::Type>,
+    substs: FxHashMap<vir::TypeVar, vir::Type>,
 }
 
 impl Display for ExprBackwardInterpreterState {
@@ -232,20 +232,20 @@ impl Display for ExprBackwardInterpreterState {
 
 impl ExprBackwardInterpreterState {
     pub fn new(expr: Option<vir::Expr>) -> Self {
-        ExprBackwardInterpreterState { expr, substs: HashMap::new() }
+        ExprBackwardInterpreterState { expr, substs: FxHashMap::default() }
     }
 
     pub fn new_defined(expr: vir::Expr) -> Self {
-        ExprBackwardInterpreterState { expr: Some(expr), substs: HashMap::new() }
+        ExprBackwardInterpreterState { expr: Some(expr), substs: FxHashMap::default() }
     }
 
     pub fn new_undefined() -> Self {
-        ExprBackwardInterpreterState { expr: None, substs: HashMap::new() }
+        ExprBackwardInterpreterState { expr: None, substs: FxHashMap::default() }
     }
 
     pub fn new_defined_with_substs(
         expr: vir::Expr,
-        substs: HashMap<vir::TypeVar, vir::Type>,
+        substs: FxHashMap<vir::TypeVar, vir::Type>,
     ) -> Self {
         ExprBackwardInterpreterState { expr: Some(expr), substs }
     }

@@ -6,10 +6,8 @@
 
 use crate::encoder::foldunfold::FoldUnfoldError;
 use log::trace;
-use std::{
-    collections::{HashMap, HashSet},
-    fmt,
-};
+use rustc_hash::{FxHashMap, FxHashSet};
+use std::fmt;
 use vir_crate::polymorphic::{Expr, PermAmount, Position, Type};
 
 /// An access or predicate permission to a place
@@ -128,15 +126,15 @@ impl fmt::Debug for Perm {
 /// A set of permissions
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PermSet {
-    acc_perms: HashMap<Expr, PermAmount>,
-    pred_perms: HashMap<Expr, PermAmount>,
+    acc_perms: FxHashMap<Expr, PermAmount>,
+    pred_perms: FxHashMap<Expr, PermAmount>,
 }
 
 impl PermSet {
     pub fn empty() -> Self {
         PermSet {
-            acc_perms: HashMap::new(),
-            pred_perms: HashMap::new(),
+            acc_perms: FxHashMap::default(),
+            pred_perms: FxHashMap::default(),
         }
     }
 
@@ -178,7 +176,7 @@ impl fmt::Display for PermSet {
 
 pub trait PermIterator {
     fn collect_curr(&mut self) -> Vec<Perm>;
-    fn group_by_label(&mut self) -> HashMap<Option<String>, Vec<Perm>>;
+    fn group_by_label(&mut self) -> FxHashMap<Option<String>, Vec<Perm>>;
 }
 
 impl<T> PermIterator for T
@@ -189,8 +187,8 @@ where
         self.filter(|perm| perm.is_curr()).collect()
     }
 
-    fn group_by_label(&mut self) -> HashMap<Option<String>, Vec<Perm>> {
-        let mut res_perms = HashMap::new();
+    fn group_by_label(&mut self) -> FxHashMap<Option<String>, Vec<Perm>> {
+        let mut res_perms = FxHashMap::default();
         for perm in self {
             res_perms
                 .entry(perm.get_label().cloned())
@@ -204,9 +202,9 @@ where
 /// Note: since this function performs set difference, it does **not**
 /// panic if `left` has less permission than `right`.
 fn place_perm_difference(
-    mut left: HashMap<Expr, PermAmount>,
-    mut right: HashMap<Expr, PermAmount>,
-) -> HashMap<Expr, PermAmount> {
+    mut left: FxHashMap<Expr, PermAmount>,
+    mut right: FxHashMap<Expr, PermAmount>,
+) -> FxHashMap<Expr, PermAmount> {
     for (place, right_perm_amount) in right.drain() {
         if let Some(left_perm_amount) = left.get(&place) {
             match (*left_perm_amount, right_perm_amount) {
@@ -223,7 +221,7 @@ fn place_perm_difference(
 }
 
 /// Set difference that takes into account that removing `x.f` also removes any `x.f.g.h`
-pub fn perm_difference(left: HashSet<Perm>, right: HashSet<Perm>) -> HashSet<Perm> {
+pub fn perm_difference(left: FxHashSet<Perm>, right: FxHashSet<Perm>) -> FxHashSet<Perm> {
     trace!(
         "[enter] perm_difference(left={:?}, right={:?})",
         left,

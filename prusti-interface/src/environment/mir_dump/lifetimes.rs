@@ -13,7 +13,7 @@ use std::{
     rc::Rc,
 };
 
-pub(super) struct Lifetimes {
+pub struct Lifetimes {
     facts: Rc<BorrowckFacts>,
     output_facts: AllOutputFacts,
 }
@@ -37,7 +37,7 @@ impl super::graphviz::ToText for super::lifetimes::LifetimeWithInclusions {
 }
 
 impl Lifetimes {
-    pub(super) fn new(facts: Rc<BorrowckFacts>) -> Self {
+    pub fn new(facts: Rc<BorrowckFacts>) -> Self {
         let output_facts = polonius_engine::Output::compute(
             facts.input_facts.borrow().as_ref().unwrap(),
             polonius_engine::Algorithm::Naive,

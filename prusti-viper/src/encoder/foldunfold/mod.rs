@@ -14,13 +14,9 @@ use ::log::{debug, trace};
 use super::errors::SpannedEncodingError;
 use crate::encoder::{high::types::HighTypeEncoderInterface, mir::types::MirTypeEncoderInterface};
 use prusti_common::{config, report, utils::to_string::ToString, vir::ToGraphViz, Stopwatch};
+use rustc_hash::{FxHashMap, FxHashSet};
 use rustc_middle::mir;
-use std::{
-    self,
-    collections::{HashMap, HashSet},
-    fmt, mem,
-    ops::Deref,
-};
+use std::{self, fmt, mem, ops::Deref};
 use vir_crate::{
     polymorphic as vir,
     polymorphic::{
@@ -41,7 +37,7 @@ mod requirements;
 mod semantics;
 mod state;
 
-pub type Predicates = HashMap<vir::Type, vir::Predicate>;
+pub type Predicates = FxHashMap<vir::Type, vir::Predicate>;
 
 #[derive(Clone, Debug)]
 pub enum FoldUnfoldError {
@@ -139,7 +135,7 @@ impl From<SpannedEncodingError> for FoldUnfoldError {
 }
 
 fn add_unfolding_to_expr(expr: vir::Expr, pctxt: &PathCtxt) -> Result<vir::Expr, FoldUnfoldError> {
-    let pctxt_at_label = HashMap::new();
+    let pctxt_at_label = FxHashMap::default();
     // First, add unfolding only inside old expressions
     let expr = ExprReplacer::new(pctxt.clone(), &pctxt_at_label, true).fallible_fold(expr)?;
     // Then, add unfolding expressions everywhere else
@@ -148,7 +144,7 @@ fn add_unfolding_to_expr(expr: vir::Expr, pctxt: &PathCtxt) -> Result<vir::Expr,
 
 pub fn add_folding_unfolding_to_function(
     function: vir::Function,
-    predicates: HashMap<vir::Type, vir::Predicate>,
+    predicates: FxHashMap<vir::Type, vir::Predicate>,
 ) -> Result<vir::Function, FoldUnfoldError> {
     if config::dump_debug_info() {
         prusti_common::report::log::report(
@@ -162,7 +158,7 @@ pub fn add_folding_unfolding_to_function(
     let formal_vars = function.formal_args.clone();
     // Viper functions cannot contain label statements, so knowing all usages of old expressions
     // is not needed.
-    let old_exprs = HashMap::new();
+    let old_exprs = FxHashMap::default();
     let mut pctxt = PathCtxt::new(formal_vars, &predicates, &old_exprs);
     for pre in &function.pres {
         pctxt.apply_stmt(&vir::Stmt::Inhale(vir::Inhale { expr: pre.clone() }))?;
@@ -200,8 +196,8 @@ pub fn add_folding_unfolding_to_function(
 pub fn add_fold_unfold<'p, 'v: 'p, 'tcx: 'v>(
     encoder: &'p Encoder<'v, 'tcx>,
     cfg: vir::CfgMethod,
-    borrow_locations: &'p HashMap<Borrow, mir::Location>,
-    cfg_map: &'p HashMap<mir::BasicBlock, HashSet<CfgBlockIndex>>,
+    borrow_locations: &'p FxHashMap<Borrow, mir::Location>,
+    cfg_map: &'p FxHashMap<mir::BasicBlock, FxHashSet<CfgBlockIndex>>,
     method_pos: vir::Position,
 ) -> Result<vir::CfgMethod, FoldUnfoldError> {
     let _stopwatch =
@@ -211,7 +207,7 @@ pub fn add_fold_unfold<'p, 'v: 'p, 'tcx: 'v>(
     // Collect all old expressions used in the CFG
     let old_exprs = {
         struct OldExprCollector {
-            old_exprs: HashMap<String, Vec<vir::Expr>>,
+            old_exprs: FxHashMap<String, Vec<vir::Expr>>,
         }
         impl vir::ExprWalker for OldExprCollector {
             fn walk_labelled_old(
@@ -230,7 +226,7 @@ pub fn add_fold_unfold<'p, 'v: 'p, 'tcx: 'v>(
             }
         }
         let mut old_expr_collector = OldExprCollector {
-            old_exprs: HashMap::new(),
+            old_exprs: FxHashMap::default(),
         };
         cfg.walk_expressions(|expr| old_expr_collector.walk(expr));
         old_expr_collector.old_exprs
@@ -251,7 +247,7 @@ pub fn add_fold_unfold<'p, 'v: 'p, 'tcx: 'v>(
 struct FoldUnfold<'p, 'v: 'p, 'tcx: 'v> {
     encoder: &'p Encoder<'v, 'tcx>,
     initial_pctxt: PathCtxt<'p>,
-    pctxt_at_label: HashMap<String, PathCtxt<'p>>,
+    pctxt_at_label: FxHashMap<String, PathCtxt<'p>>,
     dump_debug_info: bool,
     /// Used for debugging the dump
     foldunfold_state_filter: String,
@@ -260,8 +256,8 @@ struct FoldUnfold<'p, 'v: 'p, 'tcx: 'v> {
     check_foldunfold_state: bool,
     /// The orignal CFG
     cfg: &'p vir::CfgMethod,
-    borrow_locations: &'p HashMap<vir::borrows::Borrow, mir::Location>,
-    cfg_map: &'p HashMap<mir::BasicBlock, HashSet<CfgBlockIndex>>,
+    borrow_locations: &'p FxHashMap<vir::borrows::Borrow, mir::Location>,
+    cfg_map: &'p FxHashMap<mir::BasicBlock, FxHashSet<CfgBlockIndex>>,
     method_pos: vir::Position,
 }
 
@@ -270,14 +266,14 @@ impl<'p, 'v: 'p, 'tcx: 'v> FoldUnfold<'p, 'v, 'tcx> {
         encoder: &'p Encoder<'v, 'tcx>,
         initial_pctxt: PathCtxt<'p>,
         cfg: &'p vir::CfgMethod,
-        borrow_locations: &'p HashMap<vir::borrows::Borrow, mir::Location>,
-        cfg_map: &'p HashMap<mir::BasicBlock, HashSet<CfgBlockIndex>>,
+        borrow_locations: &'p FxHashMap<vir::borrows::Borrow, mir::Location>,
+        cfg_map: &'p FxHashMap<mir::BasicBlock, FxHashSet<CfgBlockIndex>>,
         method_pos: vir::Position,
     ) -> Self {
         FoldUnfold {
             encoder,
             initial_pctxt,
-            pctxt_at_label: HashMap::new(),
+            pctxt_at_label: FxHashMap::default(),
             dump_debug_info: config::dump_debug_info_during_fold(),
             check_foldunfold_state: config::check_foldunfold_state(),
             foldunfold_state_filter: config::foldunfold_state_filter(),
@@ -1000,7 +996,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> vir::CfgReplacer<PathCtxt<'p>, ActionVec> for FoldUnf
                 vec![]
             };
 
-        let grouped_perms: HashMap<_, _> = exprs
+        let grouped_perms: FxHashMap<_, _> = exprs
             .iter()
             .flat_map(|e| e.get_required_permissions(pctxt.predicates()))
             .group_by_label();
@@ -1139,7 +1135,7 @@ pub(super) fn prepend_join<'p>(
 
 struct ExprReplacer<'b, 'a: 'b> {
     curr_pctxt: PathCtxt<'a>,
-    pctxt_at_label: &'b HashMap<String, PathCtxt<'a>>,
+    pctxt_at_label: &'b FxHashMap<String, PathCtxt<'a>>,
     lhs_pctxt: Option<PathCtxt<'a>>,
     wait_old_expr: bool,
 }
@@ -1147,7 +1143,7 @@ struct ExprReplacer<'b, 'a: 'b> {
 impl<'b, 'a: 'b> ExprReplacer<'b, 'a> {
     pub fn new(
         curr_pctxt: PathCtxt<'a>,
-        pctxt_at_label: &'b HashMap<String, PathCtxt<'a>>,
+        pctxt_at_label: &'b FxHashMap<String, PathCtxt<'a>>,
         wait_old_expr: bool,
     ) -> Self {
         ExprReplacer {

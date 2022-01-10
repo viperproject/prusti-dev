@@ -23,6 +23,14 @@ pub struct DefinitelyAccessibleState<'tcx> {
 }
 
 impl<'tcx> DefinitelyAccessibleState<'tcx> {
+    pub fn get_definitely_accessible(&self) -> &FxHashSet<mir::Place<'tcx>> {
+        &self.definitely_accessible
+    }
+
+    pub fn get_definitely_owned(&self) -> &FxHashSet<mir::Place<'tcx>> {
+        &self.definitely_owned
+    }
+
     pub fn check_invariant(&self, location: impl fmt::Debug) {
         for &owned_place in self.definitely_owned.iter() {
             debug_assert!(
