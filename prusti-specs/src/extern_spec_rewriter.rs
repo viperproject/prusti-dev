@@ -240,7 +240,7 @@ pub mod impls {
     use super::*;
 
     pub fn rewrite_extern_spec(item_impl: &mut syn::ItemImpl) -> syn::Result<TokenStream> {
-        let new_struct = generate_new_struct(&item_impl)?;
+        let new_struct = generate_new_struct(item_impl)?;
         let struct_ident = &new_struct.ident;
         let generic_args = rewrite_generics(&new_struct.generics);
 
@@ -351,7 +351,7 @@ pub mod traits {
     /// Given an extern spec for traits
     /// ```rust
     /// #[extern_spec]
-    /// trait SomeTrait where Self: OtherTrait {
+    /// trait SomeTrait {
     ///     type ArgTy;
     ///     type RetTy;
     ///
@@ -363,7 +363,7 @@ pub mod traits {
     /// struct Aux<TSelf, TArgTy, TRetTy> {
     ///     // phantom data for TSelf, TArgTy, TRetTy
     /// }
-    /// where TSelf: SomeTrait<ArgTy = TArgTy, RetTy = TRetTy> + OtherTrait
+    /// where TSelf: SomeTrait<ArgTy = TArgTy, RetTy = TRetTy>
     /// ```
     /// and a corresponding impl block with methods of `SomeTrait`.
     ///
@@ -382,42 +382,21 @@ pub mod traits {
 
     /// Returns an error when the macro was used in a wrong way on the trait
     fn validate_macro_usage(item_trait: &syn::ItemTrait) -> syn::Result<()> {
+        // Where clause not supported
+        if item_trait.generics.where_clause.as_ref().is_some() {
+            let span = item_trait.generics.where_clause.as_ref().unwrap().span();
+            return Err(syn::Error::new(span, "Where clauses for extern traits specs are not supported"));
+        }
+
         // Generics not supported
-        if item_trait.generics.params.len() > 0 {
+        if !item_trait.generics.params.is_empty() {
             return Err(syn::Error::new(
                 item_trait.span(),
                 "Generics in external trait specs are not supported",
             ));
         }
 
-        return Ok(());
-    }
-
-    /// Given a trait declaration, returns the bounds to `Self` in the where clause
-    /// # Example
-    /// ```
-    /// trait Foo where Self: Bar<Baz> + Qux, Self: Quux
-    /// ```
-    /// Returns `Bar<Baz> + Qux + Quux`
-    fn get_bounds_of_self(
-        item_trait: &syn::ItemTrait,
-    ) -> syn::punctuated::Punctuated<syn::TypeParamBound, syn::Token![+]> {
-        let mut bounds: syn::punctuated::Punctuated<syn::TypeParamBound, syn::Token![+]> =
-            syn::punctuated::Punctuated::new();
-
-        if let Some(ref where_clause) = item_trait.generics.where_clause {
-            for where_predicate in where_clause.predicates.iter() {
-                if let syn::WherePredicate::Type(where_predicate_type) = where_predicate {
-                    if let syn::Type::Path(bounded_type_path) = &where_predicate_type.bounded_ty {
-                        let path_ident = bounded_type_path.path.get_ident();
-                        if path_ident.is_some() && path_ident.unwrap() == "Self" {
-                            bounds.extend(where_predicate_type.bounds.clone());
-                        }
-                    }
-                }
-            }
-        }
-        bounds
+        Ok(())
     }
 
     /// Responsible for generating a struct
@@ -459,18 +438,20 @@ pub mod traits {
             .for_each(|generic_param| new_struct.generics.params.push(generic_param));
 
         // Add a new type parameter to struct which represents an implementation of the trait
-        let self_type_param_ident = syn::Ident::new("T_Self", item_trait.span());
+        let self_type_param_ident = syn::Ident::new("Prusti_T_Self", item_trait.span());
         new_struct.generics.params.push(syn::GenericParam::Type(
             parse_quote!(#self_type_param_ident),
         ));
 
         // Add a where clause which restricts this self type parameter to the trait
-        // and it's possible restrictions on Self
+        if item_trait.generics.where_clause.as_ref().is_some() {
+            let span = item_trait.generics.where_clause.as_ref().unwrap().span();
+            return Err(syn::Error::new(span, "Where clauses for extern traits specs are not supported"));
+        }
         let trait_assoc_type_idents = assoc_types_to_generics_map.keys();
         let trait_assoc_type_generics = assoc_types_to_generics_map.values();
-        let self_bounds_ts = get_bounds_of_self(item_trait);
         let self_where_clause: syn::WhereClause = parse_quote! {
-            where #self_type_param_ident: #trait_ident <#(#trait_assoc_type_idents = #trait_assoc_type_generics),*> + #self_bounds_ts
+            where #self_type_param_ident: #trait_ident <#(#trait_assoc_type_idents = #trait_assoc_type_generics),*>
         };
         new_struct.generics.where_clause = Some(self_where_clause);
 
@@ -616,7 +597,7 @@ pub mod traits {
         fn visit_type_path_mut(&mut self, ty_path: &mut syn::TypePath) {
             let path = &ty_path.path;
             if path.segments.len() == 2
-                && path.segments[0].ident.to_string() == "Self"
+                && path.segments[0].ident == "Self"
                 && self.repl.contains_key(&path.segments[1].ident)
             {
                 let replacement = self.repl.get(&path.segments[1].ident).unwrap();
