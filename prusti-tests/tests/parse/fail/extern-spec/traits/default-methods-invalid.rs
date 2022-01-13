@@ -11,7 +11,7 @@ trait MyTrait {
 #[extern_spec]
 trait MyTrait {
     #[ensures(result == 42)]
-    fn foo(&self) -> i32 { //~ ERROR: Default methods in external trait specs are disallowed because external specs are always trusted
+    fn foo(&self) -> i32 { //~ ERROR: Default methods in external trait specs are invalid
         43
     }
 }
