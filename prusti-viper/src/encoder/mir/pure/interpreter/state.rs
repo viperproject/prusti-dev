@@ -41,23 +41,6 @@ impl ExprBackwardInterpreterState {
         }
     }
 
-    pub(in super::super) fn new_undefined() -> Self {
-        ExprBackwardInterpreterState {
-            expr: None,
-            substs: FxHashMap::default(),
-        }
-    }
-
-    pub(in super::super) fn new_defined_with_substs(
-        expr: vir_high::Expression,
-        substs: FxHashMap<vir_high::ty::TypeVar, vir_high::Type>,
-    ) -> Self {
-        ExprBackwardInterpreterState {
-            expr: Some(expr),
-            substs,
-        }
-    }
-
     pub(super) fn expr(&self) -> Option<&vir_high::Expression> {
         self.expr.as_ref()
     }

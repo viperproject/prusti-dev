@@ -193,6 +193,8 @@ fn main() {
 
         rustc_args.push("-Zpolonius".to_owned());
         rustc_args.push("-Zalways-encode-mir".to_owned());
+        rustc_args.push("-Zcrate-attr=feature(type_ascription)".to_owned());
+        rustc_args.push("-Zcrate-attr=feature(stmt_expr_attributes)".to_owned());
         rustc_args.push("-Zcrate-attr=feature(register_tool)".to_owned());
         rustc_args.push("-Zcrate-attr=register_tool(prusti)".to_owned());
 

@@ -1140,11 +1140,11 @@ impl Expr {
             Expr::Local(LocalVar { ref typ, .. }, _)
             | Expr::Variant(_, Field { ref typ, .. }, _)
             | Expr::Field(_, Field { ref typ, .. }, _)
-            | Expr::AddrOf(_, ref typ, _)
-            | Expr::LetExpr(LocalVar { ref typ, .. }, _, _, _) => typ,
+            | Expr::AddrOf(_, ref typ, _) => typ,
             Expr::LabelledOld(_, box ref base, _)
             | Expr::Unfolding(_, _, box ref base, _, _, _)
-            | Expr::UnaryOp(_, box ref base, _) => base.get_type(),
+            | Expr::UnaryOp(_, box ref base, _)
+            | Expr::LetExpr(_, _, box ref base, _) => base.get_type(),
             Expr::FuncApp(_, _, _, ref typ, _) => typ,
             Expr::DomainFuncApp(ref func, _, _) => &func.return_type,
             Expr::Const(constant, ..) => match constant {

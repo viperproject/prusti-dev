@@ -10,6 +10,8 @@
 
 
 
+#![feature(type_ascription)]
+#![feature(stmt_expr_attributes)]
 #![feature(register_tool)]
 #![register_tool(prusti)]
 #[prelude_import]
@@ -43,21 +45,17 @@ fn borrows_fail(_x: &mut u32) {
     if !(*z == 2) { ::core::panicking::panic("assertion failed: *z == 2") };
     if !(a.f == 6) { ::core::panicking::panic("assertion failed: a.f == 6") };
 }
-#[allow(unused_must_use, unused_variables, dead_code)]
+#[allow(unused_must_use, unused_parens, unused_variables, dead_code)]
 #[prusti::spec_only]
 #[prusti::spec_id = "$(NUM_UUID)"]
-#[prusti::assertion =
-  "{/"kind/":{/"Expr/":{/"spec_id/":/"$(UUID)/",/"expr_id/":102}}}"]
-fn prusti_post_item_reborrow_$(NUM_UUID)<'a>(x:
-                                                                      &'a mut T,
-                                                                  result:
-                                                                      &'a mut u32) {
-
-    #[prusti::spec_only]
-    #[prusti::expr_id = "$(NUM_UUID)_102"]
-    || -> bool { before_expiry(*result) == x.f };
+fn prusti_pledge_item_reborrow_$(NUM_UUID)<'a>(x:
+                                                                        &'a mut T,
+                                                                    result:
+                                                                        &'a mut u32)
+ -> bool {
+    !!((before_expiry(*result) == x.f): bool)
 }
-#[prusti::pledge_spec_id_ref = ":$(NUM_UUID)"]
+#[prusti::pledge_spec_id_ref = "$(NUM_UUID)"]
 fn reborrow<'a>(x: &'a mut T) -> &'a mut u32 { &mut x.f }
 fn reborrow2(x: &mut T) -> &mut u32 { &mut x.f }
 fn reborrow_caller(a: T) {
@@ -68,4 +66,4 @@ fn reborrow_caller(a: T) {
     if !(a.f == 5) { ::core::panicking::panic("assertion failed: a.f == 5") };
 }
 fn main() {}
-Procedure(ProcedureSpecification { pres: [], posts: [], pledges: [Pledge { reference: None, lhs: None, rhs: Assertion { kind: Expr(Expression { spec_id: SpecificationId($(UUID)), id: ExpressionId(102), expr: DefId(0:14 ~ pledges[$(CRATE_ID)]::prusti_post_item_reborrow_$(NUM_UUID)::{closure#0}) }) } }], predicate_body: None, pure: false, trusted: false })
+Procedure(ProcedureSpecification { pres: [], posts: [], pledges: [Pledge { reference: None, lhs: None, rhs: DefId(0:12 ~ pledges[$(CRATE_ID)]::prusti_pledge_item_reborrow_$(NUM_UUID)) }], predicate_body: None, pure: false, trusted: false })

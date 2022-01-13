@@ -13,8 +13,10 @@ use crate::encoder::{
         types::HighTypeEncoderInterface,
     },
     mir::{
-        casts::CastsEncoderInterface, generics::MirGenericsEncoderInterface,
-        places::PlacesEncoderInterface, pure::PureFunctionEncoderInterface,
+        casts::CastsEncoderInterface,
+        generics::MirGenericsEncoderInterface,
+        places::PlacesEncoderInterface,
+        pure::{PureFunctionEncoderInterface, SpecificationEncoderInterface},
         types::MirTypeEncoderInterface,
     },
     mir_encoder::MirEncoder,
@@ -118,11 +120,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
             arguments.push(encoded_operand);
         }
         match aggregate {
-            mir::AggregateKind::Array(_) => {
-                let rhs = vir_high::Expression::constructor_no_pos(ty, arguments);
-                state.substitute_value(lhs, rhs);
-            }
-            mir::AggregateKind::Tuple => {
+            mir::AggregateKind::Array(_)
+            | mir::AggregateKind::Tuple
+            | mir::AggregateKind::Closure(_, _) => {
                 let rhs = vir_high::Expression::constructor_no_pos(ty, arguments);
                 state.substitute_value(lhs, rhs);
             }
@@ -140,12 +140,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
                 };
                 let rhs = vir_high::Expression::constructor_no_pos(ty_with_variant, arguments);
                 state.substitute_value(lhs, rhs);
-            }
-            mir::AggregateKind::Closure(_def_id, _subst) => {
-                return Err(SpannedEncodingError::unsupported(
-                    format!("Unsupported aggregate type: {:?}", aggregate),
-                    span,
-                ))
             }
             mir::AggregateKind::Generator(_def_id, _subst, _) => {
                 return Err(SpannedEncodingError::unsupported(
@@ -492,6 +486,26 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
                             span,
                         )?
                     }
+
+                    // Prusti-specific syntax
+                    // TODO: check we are in a spec function
+                    "prusti_contracts::exists"
+                    | "prusti_contracts::forall"
+                    | "prusti_contracts::specification_entailment"
+                    | "prusti_contracts::call_description" => {
+                        let expr = self.encoder.encode_prusti_operation_high(
+                            full_func_proc_name,
+                            span,
+                            substs,
+                            encoded_args,
+                            self.caller_def_id,
+                            &self.tymap,
+                        )?;
+                        let mut state = states[target_block].clone();
+                        state.substitute_value(&encoded_lhs, expr);
+                        state
+                    }
+
                     _ => {
                         if self.encoder.is_pure(def_id) {
                             self.encode_call_generic(

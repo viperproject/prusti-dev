@@ -21,9 +21,9 @@ use std::{
 /// to ensure that it is not included in these calculations.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, Serialize, Deserialize, PartialOrd, Ord)]
 pub struct Position {
-    pub(crate) line: i32,
-    pub(crate) column: i32,
-    pub(crate) id: u64,
+    pub line: i32,
+    pub column: i32,
+    pub id: u64,
 }
 
 impl Position {

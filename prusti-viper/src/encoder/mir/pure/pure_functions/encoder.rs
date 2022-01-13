@@ -15,7 +15,10 @@ use crate::encoder::{
     },
     foldunfold,
     high::{generics::HighGenericsEncoderInterface, types::HighTypeEncoderInterface},
-    mir::{generics::MirGenericsEncoderInterface, types::MirTypeEncoderInterface},
+    mir::{
+        generics::MirGenericsEncoderInterface, pure::SpecificationEncoderInterface,
+        types::MirTypeEncoderInterface,
+    },
     mir_encoder::{MirEncoder, PlaceEncoder, PlaceEncoding, PRECONDITION_LABEL, WAND_LHS_LABEL},
     mir_interpreter::{
         run_backward_interpretation, BackwardMirInterpreter, ExprBackwardInterpreterState,
@@ -28,7 +31,7 @@ use prusti_common::{config, vir::optimizations::functions::Simplifier, vir_local
 use prusti_interface::{specs::typed, PrustiError};
 use rustc_hash::FxHashMap;
 use rustc_hir as hir;
-use rustc_hir::def_id::DefId;
+use rustc_hir::def_id::{DefId, LocalDefId};
 use rustc_middle::{mir, span_bug, ty};
 use rustc_span::Span;
 use std::mem;
@@ -112,7 +115,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
                     arg_ty,
                 )
                 .with_span(span)?;
-            let new_place: vir::Expr = self.encode_local(arg)?.into();
+            let mut new_place: vir::Expr = self.encode_local(arg)?.into();
+            if let ty::TyKind::Ref(_, _, _) = arg_ty.kind() {
+                // patch references with an explicit snap app
+                // TODO: this probably needs to be adjusted when snapshots of
+                //       references are implemented
+                new_place = vir::Expr::snap_app(new_place);
+            }
             state.substitute_value(&target_place, new_place);
         }
 
@@ -151,7 +160,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
 
     pub fn encode_predicate_function(
         &self,
-        predicate_body: &typed::Assertion<'tcx>,
+        predicate_body: &LocalDefId,
     ) -> SpannedEncodingResult<vir::Function> {
         let function_name = self.encode_function_name();
         debug!("Encode predicate function {}", function_name);
@@ -169,12 +178,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
 
         let predicate_body_encoded = self.encoder.encode_assertion(
             predicate_body,
-            self.mir,
             None,
             &encoded_args,
             None,
             true,
-            None,
             ErrorCtxt::GenericExpression,
             self.parent_def_id,
             self.tymap,
@@ -336,12 +343,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
             debug!("Encode spec item: {:?}", item);
             func_spec.push(self.encoder.encode_assertion(
                 item,
-                self.mir,
                 None,
                 &encoded_args,
                 None,
                 true,
-                None,
                 ErrorCtxt::GenericExpression,
                 self.parent_def_id,
                 self.tymap,
@@ -374,12 +379,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
         for item in contract.functional_postcondition() {
             let encoded_postcond = self.encoder.encode_assertion(
                 item,
-                self.mir,
                 None,
                 &encoded_args,
                 Some(&encoded_return.clone().into()),
                 true,
-                None,
                 ErrorCtxt::GenericExpression,
                 self.parent_def_id,
                 self.tymap,
@@ -400,7 +403,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
         // Fix return variable
         let pure_fn_return_variable =
             vir_local! { __result: {self.encode_function_return_type()?} };
-
         let post = post
             .replace_place(&encoded_return.into(), &pure_fn_return_variable.into())
             .set_default_pos(postcondition_pos);

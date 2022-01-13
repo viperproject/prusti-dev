@@ -53,6 +53,7 @@ use rustc_middle::mir;
 use rustc_middle::mir::{TerminatorKind, AssertKind};
 use rustc_middle::ty::{self, layout, layout::IntegerExt, ParamEnv};
 use rustc_target::abi::Integer;
+use rustc_hir::def_id::LocalDefId;
 use rustc_index::vec::Idx;
 // use rustc_data_structures::indexed_vec::Idx;
 // use std;
@@ -68,9 +69,11 @@ use crate::encoder::errors::EncodingErrorKind;
 use crate::encoder::snapshot;
 use std::convert::TryInto;
 use vir_crate::polymorphic::Float;
+use vir_crate::common::expression::ExpressionIterator;
 use crate::utils::is_reference;
 use crate::encoder::mir::pure::PureFunctionEncoderInterface;
 use crate::encoder::mir::types::MirTypeEncoderInterface;
+use crate::encoder::mir::pure::SpecificationEncoderInterface;
 use super::encoder::SubstMap;
 use super::high::generics::HighGenericsEncoderInterface;
 
@@ -256,88 +259,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         assert_one_magic_wand(procedure_contract.borrow_infos.len()).with_span(mir_span)?;
         self.procedure_contract = Some(procedure_contract);
 
-        // Prepare assertions to check specification refinement
-        let mut precondition_weakening: Option<typed::Assertion> = None;
-        let mut postcondition_strengthening: Option<typed::Assertion> = None;
-        debug!("procedure_contract: {:?}", self.procedure_contract());
-        //trace!("def_id of proc: {:?}", &self.proc_def_id);
-        let impl_def_id = self.encoder.env().tcx().impl_of_method(self.proc_def_id);
-    //     //trace!("def_id of impl: {:?}", &impl_def_id);
-        if let Some(id) = impl_def_id {
-            let def_id_trait = self.encoder.env().tcx().trait_id_of_impl(id);
-            trace!("def_id of trait: {:?}", &def_id_trait);
-            // Trait implementation method refinement
-            // Choosing alternative C as discussed in
-            // https://ethz.ch/content/dam/ethz/special-interest/infk/chair-program-method/pm/documents/Education/Theses/Matthias_Erdin_MA_report.pdf
-            // pp 19-23
-            if let Some(id) = def_id_trait {
-                let proc_name = self
-                    .encoder
-                    .env()
-                    .tcx()
-                    .item_name(self.proc_def_id);
-                    // .as_symbol();
-                if let Some(assoc_item) = self.encoder.env().get_assoc_item(id, proc_name) {
-                    // TODO use the impl's specs if there are any (separately replace pre/post!)
-                    let procedure_trait_contract = self
-                        .encoder
-                        .get_procedure_contract_for_def(assoc_item.def_id)
-                        .with_span(mir_span)?;
-                    let typed::ProcedureSpecification {
-                        pres: proc_pre_specs,
-                        posts: proc_post_specs,
-                        pledges: proc_pledge_specs,
-                        ..
-                    } = self.mut_contract().specification.expect_mut_procedure();
-
-                    if proc_pre_specs.is_empty() {
-                        proc_pre_specs
-                            .extend_from_slice(procedure_trait_contract.functional_precondition())
-                    } else {
-                        let proc_pre = typed::Assertion {
-                            kind: box typed::AssertionKind::And(
-                                proc_pre_specs.clone()
-                            ),
-                        };
-                        let proc_trait_pre = typed::Assertion {
-                            kind: box typed::AssertionKind::And(
-                                procedure_trait_contract
-                                    .functional_precondition().to_vec(),
-                            ),
-                        };
-                        precondition_weakening = Some(typed::Assertion {
-                            kind: box typed::AssertionKind::Implies(proc_trait_pre, proc_pre),
-                        });
-                    }
-
-                    if proc_post_specs.is_empty() && proc_pledge_specs.is_empty() {
-                        proc_post_specs
-                            .extend_from_slice(procedure_trait_contract.functional_postcondition());
-                        proc_pledge_specs
-                            .extend_from_slice(procedure_trait_contract.pledges());
-                    } else {
-                        if !proc_pledge_specs.is_empty() {
-                            unimplemented!("Refining specifications with pledges is not supported");
-                        }
-                        let proc_post = typed::Assertion {
-                            kind: box typed::AssertionKind::And(
-                                proc_post_specs.clone()
-                            ),
-                        };
-                        let proc_trait_post = typed::Assertion {
-                            kind: box typed::AssertionKind::And(
-                                procedure_trait_contract
-                                    .functional_postcondition().to_vec(),
-                            ),
-                        };
-                        postcondition_strengthening = Some(typed::Assertion {
-                            kind: box typed::AssertionKind::Implies(proc_post, proc_trait_post),
-                        });
-                    }
-                }
-            }
-        }
-
         // Declare the formal return
         for local in self.mir.local_decls.indices().take(1) {
             let name = self.mir_encoder.encode_local_var_name(local);
@@ -432,6 +353,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             start_cfg_block,
             Successor::Goto(opt_body_head.unwrap_or(return_cfg_block)),
         );
+
+        // Prepare assertions to check specification refinement
+        let (precondition_weakening, postcondition_strengthening)
+            = self.encode_spec_refinement(PRECONDITION_LABEL)?;
 
         // Encode preconditions
         self.encode_preconditions(start_cfg_block, precondition_weakening)?;
@@ -1061,23 +986,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
     ) -> SpannedEncodingResult<(Vec<vir::Stmt>, Option<MirSuccessor>)> {
         debug!("Encode location {:?}", location);
 
-        // Encode statements to inform fold-unfold of the downcasts
-        let mut downcast_stmts = vec![];
-        for (place, variant_idx) in self.mir_encoder.get_downcasts_at_location(location).into_iter() {
-            let (encoded_place, pre_stmts, place_ty, _) = self
-                    // TODO: may need to look at place to decide the arrayaccesskind here
-                    .encode_projection(place.local, &place.projection, ArrayAccessKind::Shared, location)?;
-            downcast_stmts.extend(pre_stmts);
-            let variant_field = if let ty::TyKind::Adt(adt_def, _) = place_ty.kind() {
-                let tcx = self.encoder.env().tcx();
-                let variant_name = adt_def.variants[variant_idx].ident(tcx).to_string();
-                self.encoder.encode_enum_variant_field(&variant_name)
-            } else {
-                unreachable!()
-            };
-            downcast_stmts.push(vir::Stmt::Downcast( vir::Downcast {base: encoded_place, field: variant_field} ));
-        }
-
         let bb_data = &self.mir[location.block];
         let index = location.statement_index;
         let stmts_succ_res = if index < bb_data.statements.len() {
@@ -1113,8 +1021,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 } else {
                     format!("[mir] {:?}", bb_data.terminator())
                 };
-                let mut stmts = downcast_stmts;
-                stmts.extend(vec![
+                let stmts = vec![
                     vir::Stmt::comment(head_stmt),
                     vir::Stmt::comment(
                         format!("Unsupported feature: {}", unsupported_msg)
@@ -1123,7 +1030,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                         expr: false.into(),
                         position: pos,
                     })
-                ]);
+                ];
                 Ok((stmts, Some(MirSuccessor::Kill)))
             }
         }
@@ -3087,9 +2994,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             pre_mandatory_type_spec,
             pre_invs_spec,
             pre_func_spec,
-            _, // We don't care about verifying that the weakening is valid,
-               // since it isn't the task of the caller
-        ) = self.encode_precondition_expr(&procedure_contract, None, &tymap, fake_expr_spans)?;
+        ) = self.encode_precondition_expr(&procedure_contract, &tymap, fake_expr_spans)?;
         let pos = self
             .encoder
             .error_manager()
@@ -3155,12 +3060,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             post_func_spec,
             magic_wands,
             read_transfer,
-            _, // We don't care about verifying that the strengthening is valid,
-               // since it isn't the task of the caller
         ) = self.encode_postcondition_expr(
             Some(location),
             &procedure_contract,
-            None,
             &pre_label,
             &post_label,
             Some((location, &fake_exprs)),
@@ -3495,7 +3397,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
     fn encode_precondition_expr(
         &self,
         contract: &ProcedureContract<'tcx>,
-        precondition_weakening: Option<typed::Assertion<'tcx>>,
         tymap: &SubstMap<'tcx>,
         override_spans: FxHashMap<Local, Span> // spans for fake locals
     ) -> SpannedEncodingResult<(
@@ -3503,7 +3404,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         Vec<vir::Expr>,
         vir::Expr,
         vir::Expr,
-        Option<vir::Expr>,
     )> {
         let borrow_infos = &contract.borrow_infos;
         let maybe_blocked_paths = if !borrow_infos.is_empty() {
@@ -3568,12 +3468,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             // FIXME
             let value = self.encoder.encode_assertion(
                 assertion,
-                self.mir,
                 None,
                 &encoded_args,
                 None,
                 false,
-                None,
                 ErrorCtxt::GenericExpression,
                 self.proc_def_id,
                 tymap,
@@ -3583,11 +3481,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         let precondition_spans = MultiSpan::from_spans(
             func_precondition
                 .iter()
-                .flat_map(|ts| typed::Spanned::get_spans(
-                    ts,
-                    self.mir,
-                    self.encoder.env().tcx()
-                ))
+                .map(|ts| self.encoder.env().tcx().def_span(ts.to_def_id()))
                 .collect(),
         );
 
@@ -3605,45 +3499,206 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 );
             }
         }
-
-        let precondition_weakening = precondition_weakening.map(|pw| {
-            self.encoder.encode_assertion(
-                &pw,
-                self.mir,
-                None,
-                &encoded_args,
-                None,
-                false,
-                None,
-                ErrorCtxt::AssertMethodPreconditionWeakening(
-                    precondition_spans.clone()
-                ),
-                self.proc_def_id,
-                tymap,
-            )
-        }).map_or(Ok(None), |v| v.map(Some))?;
         Ok((
             type_spec.into_iter().conjoin(),
             mandatory_type_spec,
             invs_spec.into_iter().conjoin(),
             func_spec.into_iter().conjoin(),
-            precondition_weakening,
         ))
+    }
+
+    fn encode_spec_refinement(
+        &mut self,
+        pre_label: &str,
+    ) -> SpannedEncodingResult<(
+        Option<vir::Expr>, // precondition weakening
+        Option<vir::Expr>, // postcondition strengthening
+    )> {
+        // Encode arguments and return
+        let encoded_args = self.procedure_contract()
+            .args
+            .iter()
+            .map(|local| self.encode_prusti_local(*local).into())
+            .collect::<Vec<_>>();
+        let encoded_return = self
+            .encode_prusti_local(self.procedure_contract().returned_value).into();
+
+        // FIXME: ??? new tymap?
+        let tymap = FxHashMap::default();
+        debug!("procedure_contract: {:?}", self.procedure_contract());
+        //trace!("def_id of proc: {:?}", &self.proc_def_id);
+        let impl_def_id = self.encoder.env().tcx().impl_of_method(self.proc_def_id);
+        //trace!("def_id of impl: {:?}", &impl_def_id);
+        if let Some(id) = impl_def_id {
+            let def_id_trait = self.encoder.env().tcx().trait_id_of_impl(id);
+            trace!("def_id of trait: {:?}", &def_id_trait);
+            // Trait implementation method refinement
+            // Choosing alternative C as discussed in
+            // https://ethz.ch/content/dam/ethz/special-interest/infk/chair-program-method/pm/documents/Education/Theses/Matthias_Erdin_MA_report.pdf
+            // pp 19-23
+            if let Some(id) = def_id_trait {
+                let proc_name = self
+                    .encoder
+                    .env()
+                    .tcx()
+                    .item_name(self.proc_def_id);
+                if let Some(assoc_item) = self.encoder.env().get_assoc_item(id, proc_name) {
+                    let procedure_trait_contract = self
+                        .encoder
+                        .get_procedure_contract_for_def(assoc_item.def_id)
+                        .with_span(self.mir.span)?;
+                    let typed::ProcedureSpecification {
+                        pres: proc_pre_specs,
+                        posts: proc_post_specs,
+                        pledges: proc_pledge_specs,
+                        ..
+                    } = self.procedure_contract().specification.expect_procedure();
+
+                    let mut extend_pre: Option<&[LocalDefId]> = None;
+                    let mut extend_post: Option<&[LocalDefId]> = None;
+                    let mut extend_pledge: Option<&[typed::Pledge]> = None;
+                    let mut weakening: Option<vir::Expr> = None;
+                    let mut strengthening: Option<vir::Expr> = None;
+                    if proc_pre_specs.is_empty() {
+                        extend_pre = Some(procedure_trait_contract
+                            .functional_precondition());
+                    } else {
+                        let proc_pre = proc_pre_specs
+                            .iter()
+                            .map(|spec| self.encoder.encode_assertion(
+                                spec,
+                                None,
+                                &encoded_args,
+                                None,
+                                false,
+                                ErrorCtxt::GenericExpression,
+                                self.proc_def_id,
+                                &tymap,
+                            ))
+                            .collect::<Result<Vec<_>, _>>()?
+                            .into_iter()
+                            .conjoin();
+                        let proc_trait_pre = procedure_trait_contract
+                            .functional_precondition()
+                            .iter()
+                            .map(|spec| self.encoder.encode_assertion(
+                                spec,
+                                None,
+                                &encoded_args,
+                                None,
+                                false,
+                                ErrorCtxt::GenericExpression,
+                                self.proc_def_id,
+                                &tymap,
+                            ))
+                            .collect::<Result<Vec<_>, _>>()?
+                            .into_iter()
+                            .conjoin();
+                        weakening = Some(vir_expr! {
+                            [proc_trait_pre] ==> [proc_pre]
+                        });
+
+                        // TODO: set error context
+                        /* ErrorCtxt::AssertMethodPreconditionWeakening(
+                            precondition_spans.clone() //
+                        ), */
+                    }
+
+                    if proc_post_specs.is_empty() && proc_pledge_specs.is_empty() {
+                        extend_post = Some(procedure_trait_contract
+                            .functional_postcondition());
+                        extend_pledge = Some(procedure_trait_contract
+                            .pledges());
+                    } else {
+                        if !proc_pledge_specs.is_empty() {
+                            unimplemented!("Refining specifications with pledges is not supported");
+                        }
+                        let proc_post = proc_post_specs
+                            .iter()
+                            .map(|spec| self.encoder.encode_assertion(
+                                spec,
+                                Some(pre_label),
+                                &encoded_args,
+                                Some(&encoded_return),
+                                false,
+                                ErrorCtxt::GenericExpression,
+                                self.proc_def_id,
+                                &tymap,
+                            ))
+                            .collect::<Result<Vec<_>, _>>()?
+                            .into_iter()
+                            .conjoin();
+                        let proc_trait_post = procedure_trait_contract
+                            .functional_postcondition()
+                            .iter()
+                            .map(|spec| self.encoder.encode_assertion(
+                                spec,
+                                Some(pre_label),
+                                &encoded_args,
+                                Some(&encoded_return),
+                                false,
+                                ErrorCtxt::GenericExpression,
+                                self.proc_def_id,
+                                &tymap,
+                            ))
+                            .collect::<Result<Vec<_>, _>>()?
+                            .into_iter()
+                            .conjoin();
+                        strengthening = Some(self.wrap_arguments_into_old(
+                            vir_expr! {
+                                [proc_post] ==> [proc_trait_post]
+                            },
+                            pre_label,
+                            self.procedure_contract(),
+                            &encoded_args,
+                        )?);
+                        // TODO: set error context
+                        /* ErrorCtxt::AssertMethodPostconditionStrengthening(
+                            postcondition_span.clone() //
+                        ), */
+                    }
+
+                    // if the implementation has no specs but the trait does,
+                    // supplement the contract of the implementation with the
+                    // trait specs
+                    // FIXME: this could be done more cleanly where the contract
+                    //        for the implementation is created in the first
+                    //        place
+                    let typed::ProcedureSpecification {
+                        pres: ref mut proc_pre_specs,
+                        posts: ref mut proc_post_specs,
+                        pledges: ref mut proc_pledge_specs,
+                        ..
+                    } = self.mut_contract().specification.expect_mut_procedure();
+                    if let Some(pre) = extend_pre {
+                        proc_pre_specs.extend_from_slice(pre);
+                    }
+                    if let Some(post) = extend_post {
+                        proc_post_specs.extend_from_slice(post);
+                    }
+                    if let Some(pledge) = extend_pledge {
+                        proc_pledge_specs.extend_from_slice(pledge);
+                    }
+
+                    return Ok((weakening, strengthening));
+                }
+            }
+        }
+        Ok((None, None))
     }
 
     /// Encode precondition inhale on the definition side.
     fn encode_preconditions(
         &mut self,
         start_cfg_block: CfgBlockIndex,
-        precondition_weakening: Option<typed::Assertion<'tcx>>,
+        weakening_spec: Option<vir::Expr>,
     ) -> SpannedEncodingResult<()> {
         let tymap = FxHashMap::default();
         self.cfg_method
             .add_stmt(start_cfg_block, vir::Stmt::comment("Preconditions:"));
-        let (type_spec, mandatory_type_spec, invs_spec, func_spec, weakening_spec) =
+        let (type_spec, mandatory_type_spec, invs_spec, func_spec) =
             self.encode_precondition_expr(
                 self.procedure_contract(),
-                precondition_weakening,
                 &tymap,
                 FxHashMap::default()
             )?;
@@ -3766,12 +3821,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 let mut assertion_lhs = if let Some(body_lhs) = body_lhs {
                     self.encoder.encode_assertion(
                         body_lhs,
-                        self.mir,
                         Some(pre_label),
                         &encoded_args,
                         Some(&encoded_return),
                         false,
-                        None,
                         ErrorCtxt::GenericExpression,
                         self.proc_def_id,
                         tymap,
@@ -3781,12 +3834,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 };
                 let mut assertion_rhs = self.encoder.encode_assertion(
                     body_rhs,
-                    self.mir,
                     Some(pre_label),
                     &encoded_args,
                     Some(&encoded_return),
                     false,
-                    None,
                     ErrorCtxt::GenericExpression,
                     self.proc_def_id,
                     tymap,
@@ -3795,13 +3846,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     assertion_lhs,
                     pre_label,
                     contract,
-                    &encoded_args
+                    &encoded_args,
                 )?;
                 assertion_rhs = self.wrap_arguments_into_old(
                     assertion_rhs,
                     pre_label,
                     contract,
-                    &encoded_args
+                    &encoded_args,
                 )?;
                 let ty = self.locals.get_type(contract.returned_value);
                 let return_span = self.mir_encoder.get_local_span(
@@ -3885,7 +3936,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         &mut self,
         location: Option<mir::Location>,
         contract: &ProcedureContract<'tcx>,
-        postcondition_strengthening: Option<typed::Assertion<'tcx>>,
         pre_label: &str,
         post_label: &str,
         magic_wand_store_info: Option<(mir::Location, &FxHashMap<vir::Expr, vir::Expr>)>,
@@ -3900,7 +3950,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         vir::Expr,                   // Functional specification.
         Vec<vir::Expr>,              // Magic wands.
         Vec<(vir::Expr, vir::Expr)>, // Read permissions that need to be transferred to a new place.
-        Option<vir::Expr>, // Specification strengthening, in case of trait method implementation.
     )> {
         let mut type_spec = vec![];
         let mut invs_spec = vec![];
@@ -4004,22 +4053,20 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         for typed_assertion in func_postcondition {
             let mut assertion = self.encoder.encode_assertion(
                 typed_assertion,
-                self.mir,
                 Some(pre_label),
                 &encoded_args,
                 Some(&encoded_return),
                 false,
-                None,
                 ErrorCtxt::GenericExpression,
                 self.proc_def_id,
                 tymap,
             )?;
-            func_spec_spans.extend(typed::Spanned::get_spans(typed_assertion, self.mir, self.encoder.env().tcx()));
+            func_spec_spans.push(self.encoder.env().tcx().def_span(typed_assertion.to_def_id()));
             assertion = self.wrap_arguments_into_old(
                 assertion,
                 pre_label,
                 contract,
-                &encoded_args
+                &encoded_args,
             )?;
             func_spec.push(assertion);
         }
@@ -4031,39 +4078,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         invs_spec.push(
             self.encoder.encode_invariant_func_app(
                 self.locals.get_type(contract.returned_value),
-                encoded_return.clone(),
-            ).with_span(postcondition_span.clone())?
+                encoded_return,
+            ).with_span(postcondition_span)?
         );
-
-        // Encode possible strengthening, in case of trait method implementation
-        let strengthening_spec: Option<Expr> = postcondition_strengthening
-            .map(|ps|
-                self.encoder.encode_assertion(
-                    &ps,
-                    self.mir,
-                    Some(pre_label),
-                    &encoded_args,
-                    Some(&encoded_return),
-                    false,
-                    None,
-                    ErrorCtxt::AssertMethodPostconditionStrengthening(
-                        postcondition_span.clone()
-                    ),
-                    self.proc_def_id,
-                    tymap,
-                )
-            )
-            .map_or(Ok(None), |r| r.map(Some))
-            .and_then(|opt_assertion|
-                opt_assertion.map(|assertion|
-                    self.wrap_arguments_into_old(
-                        assertion,
-                        pre_label,
-                        contract,
-                        &encoded_args
-                    )
-                ).map_or(Ok(None), |r| r.map(Some))
-            )?;
 
         let full_func_spec = func_spec.into_iter()
             .conjoin()
@@ -4076,7 +4093,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             full_func_spec,
             magic_wands,
             read_transfer,
-            strengthening_spec,
         ))
     }
 
@@ -4279,7 +4295,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
     fn encode_postconditions(
         &mut self,
         return_cfg_block: CfgBlockIndex,
-        postcondition_strengthening: Option<typed::Assertion<'tcx>>,
+        strengthening_spec: Option<vir::Expr>,
     ) -> SpannedEncodingResult<()> {
         let tymap = FxHashMap::default();
         // This clone is only due to borrow checker restrictions
@@ -4297,11 +4313,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             func_spec,
             magic_wands,
             _,
-            strengthening_spec
         ) = self.encode_postcondition_expr(
             None,
             &contract,
-            postcondition_strengthening,
             PRECONDITION_LABEL,
             &postcondition_label,
             None,
@@ -4865,7 +4879,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
     fn encode_loop_invariant_specs(
         &self,
         loop_head: BasicBlockIndex,
-        loop_inv_block: BasicBlockIndex,
+        _loop_inv_block: BasicBlockIndex,
     ) -> SpannedEncodingResult<(Vec<vir::Expr>, MultiSpan)> {
         let spec_blocks = self.get_loop_spec_blocks(loop_head);
         trace!(
@@ -4877,51 +4891,27 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
 
         // `body_invariant!(..)` is desugared to a closure with special attributes,
         // which we can detect and use to retrieve the specification.
-        let mut specs = vec![];
+        let mut encoded_specs = vec![];
+        let mut encoded_spec_spans = vec![];
         for bbi in spec_blocks {
             for stmt in &self.mir.basic_blocks()[bbi].statements {
                 if let mir::StatementKind::Assign(box (
                     _,
                     mir::Rvalue::Aggregate(box mir::AggregateKind::Closure(cl_def_id, _), _),
                 )) = stmt.kind {
-                    specs.extend(self.encoder.get_loop_specs(cl_def_id).unwrap().invariant);
+                    if let Some(spec) = self.encoder.get_loop_specs(cl_def_id) {
+                        encoded_specs.push(self.encoder.encode_invariant(
+                            self.mir,
+                            bbi,
+                            self.proc_def_id,
+                            &tymap,
+                        )?);
+                        encoded_spec_spans.push(self.encoder.env().tcx().def_span(spec.invariant.to_def_id()));
+                    }
                 }
             }
         }
-        trace!("specs: {:?}", specs);
-
-        let mut encoded_specs = vec![];
-        let mut encoded_spec_spans = vec![];
-        if !specs.is_empty() {
-            let encoded_args: Vec<vir::Expr> = self
-                .mir
-                .args_iter()
-                .map(|local| self.mir_encoder.encode_local(local).map(|l| l.into()))
-                .collect::<Result<Vec<_>, _>>()?;
-            for assertion in &specs {
-                // TODO: Mmm... are these parameters correct?
-                let encoded_spec = self.encoder.encode_assertion(
-                    assertion,
-                    self.mir,
-                    Some(PRECONDITION_LABEL),
-                    &encoded_args,
-                    None,
-                    false,
-                    Some(loop_inv_block),
-                    ErrorCtxt::GenericExpression,
-                    self.proc_def_id,
-                    &tymap,
-                )?;
-                let spec_spans = typed::Spanned::get_spans(assertion, self.mir, self.encoder.env().tcx());
-                let spec_pos = self
-                    .encoder
-                    .error_manager()
-                    .register_span(spec_spans.clone());
-                encoded_specs.push(encoded_spec.set_default_pos(spec_pos));
-                encoded_spec_spans.extend(spec_spans);
-            }
-            trace!("encoded_specs: {:?}", encoded_specs);
-        }
+        trace!("encoded specs: {:?}", encoded_specs);
 
         Ok((encoded_specs, MultiSpan::from_spans(encoded_spec_spans)))
     }
@@ -5580,7 +5570,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
     }
 
     /// Assignment with a nullary op on the RHS.
-    /// Nullary types currently are sizeof and alignof.
+    /// Nullary ops currently are sizeof and alignof.
     /// [lhs] = [op] [op_ty]
     fn encode_assign_nullary_op(
         &mut self,
@@ -6211,17 +6201,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             }
 
             ty::TyKind::Adt(_, _)
+            | ty::TyKind::Closure(_, _)
             | ty::TyKind::Tuple(_)
             | ty::TyKind::Param(_)
             | ty::TyKind::Array(_, _) => {
                 self.encode_copy_snapshot_value(src, dst)?
-            }
-
-            ty::TyKind::Closure(_, _) => {
-                // TODO: (can a closure be copy-assigned?)
-                // encode a closure deep copy or at least a stub
-                debug!("warning: ty::TyKind::Closure not implemented yet");
-                Vec::new()
             }
 
             _ => {
@@ -6347,17 +6331,22 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 }
             }
 
-            mir::AggregateKind::Closure(def_id, _substs) => {
-                debug_assert!(!self.encoder.is_spec_closure(def_id), "spec closure: {:?}", def_id);
-                // TODO: assign to closure; this case should only handle assign
-                // of the same closure type (== instances of the same syntactic
-                // closure)
-                // closure state encoding should first be implemented in
-                // type_encoder
-                // this case might also need to assert history invariants?
-                //
-                // for now we generate nothing to at least allow
-                // let f = closure!(...);
+            mir::AggregateKind::Closure(def_id, substs) => {
+                // TODO: might need to assert history invariants?
+                assert!(!self.encoder.is_spec_closure(def_id), "spec closure: {:?}", def_id);
+                let cl_substs = substs.as_closure();
+                for (field_index, field_ty) in cl_substs.upvar_tys().enumerate() {
+                    let operand = &operands[field_index];
+                    let field_name = format!("closure_{}", field_index);
+                    let encoded_field = self.encoder
+                        .encode_raw_ref_field(field_name, field_ty)
+                        .with_span(span)?;
+                    stmts.extend(self.encode_assign_operand(
+                        &dst.clone().field(encoded_field),
+                        operand,
+                        location,
+                    )?);
+                }
             }
 
             mir::AggregateKind::Array(..) => {
@@ -6433,20 +6422,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         let span = self.mir_encoder.get_span_of_location(location);
         let (encoded_place, ty, variant_idx) = self.mir_encoder.encode_place(place).with_span(span)?;
         trace!("encode_place(ty={:?})", ty);
-        let (encoded_expr, encoding_stmts) = self.postprocess_place_encoding(encoded_place, encode_kind).with_span(span)?;
-
-        Ok((encoded_expr, encoding_stmts, ty, variant_idx))
-    }
-
-    fn encode_projection(
-        &mut self,
-        local: mir::Local,
-        projection: &[mir::PlaceElem<'tcx>],
-        encode_kind: ArrayAccessKind,
-        location: mir::Location,
-    ) -> SpannedEncodingResult<(vir::Expr, Vec<vir::Stmt>, ty::Ty<'tcx>, Option<usize>)> {
-        let span = self.mir_encoder.get_span_of_location(location);
-        let (encoded_place, ty, variant_idx) = self.mir_encoder.encode_projection(local, projection).with_span(span)?;
         let (encoded_expr, encoding_stmts) = self.postprocess_place_encoding(encoded_place, encode_kind).with_span(span)?;
 
         Ok((encoded_expr, encoding_stmts, ty, variant_idx))
