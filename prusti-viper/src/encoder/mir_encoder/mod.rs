@@ -132,7 +132,7 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
                         let tcx = self.encoder().env().tcx();
                         let variant_def = &adt_def.variants[variant_index.into()];
                         let encoded_variant = if num_variants != 1 {
-                            encoded_base.variant(&variant_def.ident(tcx).as_str())
+                            encoded_base.variant(variant_def.ident(tcx).as_str())
                         } else {
                             encoded_base
                         };
@@ -146,7 +146,7 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
                         let encoded_field = self
                             .encoder()
                             .encode_struct_field(
-                                &field.ident(tcx).as_str(),
+                                field.ident(tcx).as_str(),
                                 field_ty
                             )?;
                         let encoded_projection = encoded_variant.field(encoded_field);
