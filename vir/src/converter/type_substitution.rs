@@ -5,6 +5,7 @@ use super::super::polymorphic::*;
 use uuid::Uuid;
 
 pub trait Generic {
+    #[must_use]
     fn substitute(self, map: &FxHashMap<TypeVar, Type>) -> Self;
 }
 
