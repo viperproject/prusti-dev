@@ -240,7 +240,7 @@ pub mod impls {
     use super::*;
 
     pub fn rewrite_extern_spec(item_impl: &mut syn::ItemImpl) -> syn::Result<TokenStream> {
-        let new_struct = generate_new_struct(&item_impl)?;
+        let new_struct = generate_new_struct(item_impl)?;
         let struct_ident = &new_struct.ident;
         let generic_args = rewrite_generics(&new_struct.generics);
 
@@ -389,14 +389,14 @@ pub mod traits {
         }
 
         // Generics not supported
-        if item_trait.generics.params.len() > 0 {
+        if !item_trait.generics.params.is_empty() {
             return Err(syn::Error::new(
                 item_trait.span(),
                 "Generics in external trait specs are not supported",
             ));
         }
 
-        return Ok(());
+        Ok(())
     }
 
     /// Responsible for generating a struct
@@ -597,7 +597,7 @@ pub mod traits {
         fn visit_type_path_mut(&mut self, ty_path: &mut syn::TypePath) {
             let path = &ty_path.path;
             if path.segments.len() == 2
-                && path.segments[0].ident.to_string() == "Self"
+                && path.segments[0].ident == "Self"
                 && self.repl.contains_key(&path.segments[1].ident)
             {
                 let replacement = self.repl.get(&path.segments[1].ident).unwrap();
