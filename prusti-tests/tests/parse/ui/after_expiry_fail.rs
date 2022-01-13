@@ -5,16 +5,10 @@
 
 use prusti_contracts::*;
 
-#[after_expiry_if(a)]
+#[after_expiry(a, a)]
 fn test1() {}
 
-#[after_expiry_if(a => a)]
-fn test2() {}
-
-#[after_expiry(a, a)]
-fn test3() {}
-
 #[after_expiry(a => a, a)]
-fn test4() {}
+fn test2() {}
 
 fn main() {}

@@ -5,17 +5,11 @@
 
 use prusti_contracts::*;
 
-#[after_expiry_if(result => a, a)]
+#[after_expiry(a)]
 fn test1(a: bool) {}
 
-#[after_expiry_if(a, a)]
-fn test2(a: bool) {}
-
-#[after_expiry(a)]
-fn test3(a: bool) {}
-
 #[after_expiry(result => a)]
-fn test4(a: bool) {}
+fn test2(a: bool) {}
 
 #[after_expiry(
     result == match x {
@@ -24,7 +18,7 @@ fn test4(a: bool) {}
         _ => 0,
     }
 )]
-fn test5(x: u32) -> u32 {
+fn test3(x: u32) -> u32 {
     1
 }
 

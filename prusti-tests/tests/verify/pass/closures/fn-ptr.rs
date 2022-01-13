@@ -1,3 +1,5 @@
+// ignore-test
+
 use prusti_contracts::*;
 
 #[requires(add |= |a: i32, b: i32| [

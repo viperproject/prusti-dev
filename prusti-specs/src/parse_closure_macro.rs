@@ -8,36 +8,32 @@ pub(crate) struct ClosureWithSpec {
 
 impl Parse for ClosureWithSpec {
     fn parse(input: ParseStream) -> syn::Result<Self> {
-        let mut requires: Vec<syn::Expr> = vec! [];
-        let mut ensures: Vec<syn::Expr> = vec! [];
-        let mut cl: Option<syn::ExprClosure> = None;
+        let mut attrs = input.call(syn::Attribute::parse_outer)?;
+        let mut cl: syn::ExprClosure = input.parse()?;
 
-        while !input.is_empty() {
-            if input.peek(syn::Ident) {
-                let id: syn::Ident = input.parse()?;
-                let expr: syn::Expr = input.parse()?;
-                input.parse::<syn::Token![,]>()?;
+        let mut pres: Vec<syn::Result<syn::Expr>> = vec![];
+        let mut posts: Vec<syn::Result<syn::Expr>> = vec![];
 
-                if id == "requires" {
-                    requires.push(expr);
-                } else if id == "ensures" {
-                    ensures.push(expr);
-                } else {
-                    return Err(syn::Error::new(id.span(), "invalid closure specification"));
+        // collect and remove any specification attributes
+        // leave other attributes intact
+        attrs.drain_filter(|attr| {
+            if let Some(id) = attr.path.get_ident() {
+                match id.to_string().as_ref() {
+                    "requires" => pres.push(syn::parse2(attr.tokens.clone())),
+                    "ensures" => posts.push(syn::parse2(attr.tokens.clone())),
+                    _ => return false
                 }
+                true
             } else {
-                cl = Some(input.parse()?);
+                false
             }
-        }
+        });
+        cl.attrs = attrs;
 
-        if cl.is_none() {
-            return Err(syn::Error::new(input.span(), "closure specification without closure"));
-        }
-
-        Ok(ClosureWithSpec {
-            pres: requires,
-            posts: ensures,
-            cl: cl.unwrap()
+        Ok(Self {
+            pres: pres.into_iter().collect::<syn::Result<Vec<_>>>()?,
+            posts: posts.into_iter().collect::<syn::Result<Vec<_>>>()?,
+            cl,
         })
     }
 }

@@ -14,6 +14,8 @@
 
 
 
+#![feature(type_ascription)]
+#![feature(stmt_expr_attributes)]
 #![feature(register_tool)]
 #![register_tool(prusti)]
 #[prelude_import]
@@ -21,33 +23,21 @@ use std::prelude::rust_2018::*;
 #[macro_use]
 extern crate std;
 use prusti_contracts::*;
-#[allow(unused_must_use, unused_variables, dead_code)]
+#[allow(unused_must_use, unused_parens, unused_variables, dead_code)]
 #[prusti::spec_only]
 #[prusti::spec_id = "$(NUM_UUID)"]
-#[prusti::assertion =
-  "{/"kind/":{/"Expr/":{/"spec_id/":/"$(UUID)/",/"expr_id/":101}}}"]
 fn prusti_post_item_max_$(NUM_UUID)(a: i32, b: i32,
-                                                         result: i32) {
-
-    #[prusti::spec_only]
-    #[prusti::expr_id = "$(NUM_UUID)_101"]
-    || -> bool { result == a || result == b };
+                                                         result: i32)
+ -> bool {
+    !!((result == a || result == b): bool)
 }
-#[allow(unused_must_use, unused_variables, dead_code)]
+#[allow(unused_must_use, unused_parens, unused_variables, dead_code)]
 #[prusti::spec_only]
 #[prusti::spec_id = "$(NUM_UUID)"]
-#[prusti::assertion =
-  "{/"kind/":{/"And/":[{/"kind/":{/"Expr/":{/"spec_id/":/"$(UUID)/",/"expr_id/":101}}},{/"kind/":{/"Expr/":{/"spec_id/":/"$(UUID)/",/"expr_id/":102}}}]}}"]
 fn prusti_post_item_max_$(NUM_UUID)(a: i32, b: i32,
-                                                         result: i32) {
-
-    #[prusti::spec_only]
-    #[prusti::expr_id = "$(NUM_UUID)_101"]
-    || -> bool { result >= a };
-
-    #[prusti::spec_only]
-    #[prusti::expr_id = "$(NUM_UUID)_102"]
-    || -> bool { result >= b };
+                                                         result: i32)
+ -> bool {
+    !!((result >= a && result >= b): bool)
 }
 #[prusti::post_spec_id_ref = "$(NUM_UUID)"]
 #[prusti::post_spec_id_ref = "$(NUM_UUID)"]
@@ -64,31 +54,15 @@ fn test_max2() {
     let z = max(a, b);
     if !(z == 5) { ::core::panicking::panic("assertion failed: z == 5") };
 }
-#[allow(unused_must_use, unused_variables, dead_code)]
+#[allow(unused_must_use, unused_parens, unused_variables, dead_code)]
 #[prusti::spec_only]
 #[prusti::spec_id = "$(NUM_UUID)"]
-#[prusti::assertion =
-  "{/"kind/":{/"And/":[{/"kind/":{/"Expr/":{/"spec_id/":/"$(UUID)/",/"expr_id/":101}}},{/"kind/":{/"Implies/":[{/"kind/":{/"Expr/":{/"spec_id/":/"$(UUID)/",/"expr_id/":102}}},{/"kind/":{/"Expr/":{/"spec_id/":/"$(UUID)/",/"expr_id/":103}}}]}},{/"kind/":{/"Expr/":{/"spec_id/":/"$(UUID)/",/"expr_id/":104}}}]}}"]
-fn prusti_post_item_test_max3_$(NUM_UUID)(result: i32) {
-
-    #[prusti::spec_only]
-    #[prusti::expr_id = "$(NUM_UUID)_101"]
-    || -> bool { true };
-
-    #[prusti::spec_only]
-    #[prusti::expr_id = "$(NUM_UUID)_102"]
-    || -> bool { true };
-
-    #[prusti::spec_only]
-    #[prusti::expr_id = "$(NUM_UUID)_103"]
-    || -> bool { result == 3 };
-
-    #[prusti::spec_only]
-    #[prusti::expr_id = "$(NUM_UUID)_104"]
-    || -> bool { true || false };
+fn prusti_post_item_test_max3_$(NUM_UUID)(result: i32)
+ -> bool {
+    !!((true && ((!(true) || (result == 3))) && (true || false)): bool)
 }
 #[prusti::post_spec_id_ref = "$(NUM_UUID)"]
 fn test_max3() -> i32 { let a = 4; let b = 3; max(a, b) }
 fn main() {}
-Procedure(ProcedureSpecification { pres: [], posts: [Assertion { kind: Expr(Expression { spec_id: SpecificationId($(UUID)), id: ExpressionId(101), expr: DefId(0:8 ~ calls[$(CRATE_ID)]::prusti_post_item_max_$(NUM_UUID)::{closure#0}) }) }, Assertion { kind: And([Assertion { kind: Expr(Expression { spec_id: SpecificationId($(UUID)), id: ExpressionId(101), expr: DefId(0:10 ~ calls[$(CRATE_ID)]::prusti_post_item_max_$(NUM_UUID)::{closure#0}) }) }, Assertion { kind: Expr(Expression { spec_id: SpecificationId($(UUID)), id: ExpressionId(102), expr: DefId(0:11 ~ calls[$(CRATE_ID)]::prusti_post_item_max_$(NUM_UUID)::{closure#1}) }) }]) }], pledges: [], predicate_body: None, pure: false, trusted: false })
-Procedure(ProcedureSpecification { pres: [], posts: [Assertion { kind: And([Assertion { kind: Expr(Expression { spec_id: SpecificationId($(UUID)), id: ExpressionId(101), expr: DefId(0:14 ~ calls[$(CRATE_ID)]::prusti_post_item_test_max3_$(NUM_UUID)::{closure#0}) }) }, Assertion { kind: Implies(Assertion { kind: Expr(Expression { spec_id: SpecificationId($(UUID)), id: ExpressionId(102), expr: DefId(0:15 ~ calls[$(CRATE_ID)]::prusti_post_item_test_max3_$(NUM_UUID)::{closure#1}) }) }, Assertion { kind: Expr(Expression { spec_id: SpecificationId($(UUID)), id: ExpressionId(103), expr: DefId(0:16 ~ calls[$(CRATE_ID)]::prusti_post_item_test_max3_$(NUM_UUID)::{closure#2}) }) }) }, Assertion { kind: Expr(Expression { spec_id: SpecificationId($(UUID)), id: ExpressionId(104), expr: DefId(0:17 ~ calls[$(CRATE_ID)]::prusti_post_item_test_max3_$(NUM_UUID)::{closure#3}) }) }]) }], pledges: [], predicate_body: None, pure: false, trusted: false })
+Procedure(ProcedureSpecification { pres: [], posts: [DefId(0:10 ~ calls[$(CRATE_ID)]::prusti_post_item_test_max3_$(NUM_UUID))], pledges: [], predicate_body: None, pure: false, trusted: false })
+Procedure(ProcedureSpecification { pres: [], posts: [DefId(0:7 ~ calls[$(CRATE_ID)]::prusti_post_item_max_$(NUM_UUID)), DefId(0:8 ~ calls[$(CRATE_ID)]::prusti_post_item_max_$(NUM_UUID))], pledges: [], predicate_body: None, pure: false, trusted: false })

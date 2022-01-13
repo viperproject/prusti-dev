@@ -23,10 +23,10 @@ fn test5() {}
 #[requires(exists(||) || exists(||))]
 fn test6() {}
 
-#[requires(exists(|| 1+1 == 1+1, triggers=[1]))]
+#[requires(exists(|| 1+1 == 1+1, triggers=[(1,)]))]
 fn test7() {}
 
-#[requires(exists(|| true, triggers=[(1,2), 1]))]
+#[requires(exists(|| true, triggers=[(1,2), (1,)]))]
 fn test8() {}
 
 #[requires(exists(|| true, triggers=1))]
@@ -43,5 +43,11 @@ fn test12() {}
 
 #[requires(exists(|| 1+1 == 1+1, triggers=[(1,)]))]
 fn test13() {}
+
+#[requires(exists(|a: i32| true, triggers=[1]))]
+fn test14() {}
+
+#[requires(exists(|a: i32| true, triggers=[(1, 2), 1,]))]
+fn test15() {}
 
 fn main() {}

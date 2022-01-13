@@ -11,7 +11,4 @@ fn test1() {}
 #[requires(==> true)]
 fn test2() {}
 
-#[requires((true ==> true) || true)]
-fn test3() {}
-
 fn main() {}
