@@ -860,7 +860,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                                         variant_index.index().into(),
                                     );
                                     encoded_lhs_variant =
-                                        encoded_lhs_variant.variant(&variant_def.ident(tcx).as_str());
+                                        encoded_lhs_variant.variant(variant_def.ident(tcx).as_str());
                                 }
                                 let mut field_exprs = vec![];
                                 for (field_index, field) in variant_def.fields.iter().enumerate() {

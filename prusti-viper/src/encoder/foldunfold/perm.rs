@@ -97,6 +97,7 @@ impl Perm {
         }
     }
 
+    #[must_use]
     pub fn set_default_pos(self, pos: Position) -> Self {
         match self {
             Perm::Acc(expr, perm) => Perm::Acc(expr.set_default_pos(pos), perm),

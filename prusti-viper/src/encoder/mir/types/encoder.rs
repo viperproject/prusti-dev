@@ -319,7 +319,7 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
             }
             ty::TyKind::Never => vir::TypeDecl::never(),
             ty::TyKind::Param(param_ty) => {
-                vir::TypeDecl::type_var(format!("{}", param_ty.name.as_str()))
+                vir::TypeDecl::type_var(param_ty.name.as_str().to_string())
             }
             ty::TyKind::Closure(def_id, internal_substs) => {
                 let closure_substs = internal_substs.as_closure();
@@ -732,7 +732,7 @@ fn encode_variant<'v, 'tcx: 'v>(
     let tcx = encoder.env().tcx();
     let mut fields = Vec::new();
     for field in &variant.fields {
-        let field_name = crate::encoder::encoder::encode_field_name(&field.ident(tcx).as_str());
+        let field_name = crate::encoder::encoder::encode_field_name(field.ident(tcx).as_str());
         let field_ty = field.ty(tcx, substs);
         let field = vir::FieldDecl::new(field_name, encoder.encode_type_high(field_ty)?);
         fields.push(field);
