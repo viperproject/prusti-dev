@@ -88,14 +88,12 @@ pub fn rewrite_generics(gens: &syn::Generics) -> syn::AngleBracketedGenericArgum
     let args: Vec<syn::GenericArgument> = gens
         .params
         .clone()
-        .iter()
+        .into_iter()
         .map(|gp| {
             let ts = match gp {
                 syn::GenericParam::Type(syn::TypeParam { ident, .. })
-                | syn::GenericParam::Const(syn::ConstParam { ident, .. }) => {
-                    ident.into_token_stream()
-                }
-                syn::GenericParam::Lifetime(ld) => ld.lifetime.clone().into_token_stream(),
+                | syn::GenericParam::Const(syn::ConstParam { ident, .. }) => ident.into_token_stream(),
+                syn::GenericParam::Lifetime(ld) => ld.lifetime.into_token_stream(),
             };
             syn::parse2::<syn::GenericArgument>(ts).unwrap()
         })
@@ -149,7 +147,16 @@ fn rewrite_method_inputs<T: ToTokens>(
 pub mod mods {
     use super::*;
 
-    pub fn rewrite_mod(item_mod: &mut syn::ItemMod, path: &mut syn::Path) -> syn::Result<()> {
+    pub fn rewrite_extern_spec(item_mod: &mut syn::ItemMod) -> syn::Result<TokenStream> {
+        let mut path = syn::Path {
+            leading_colon: None,
+            segments: syn::punctuated::Punctuated::new(),
+        };
+        rewrite_mod(item_mod, &mut path)?;
+        Ok(quote!(#item_mod))
+    }
+
+    fn rewrite_mod(item_mod: &mut syn::ItemMod, path: &mut syn::Path) -> syn::Result<()> {
         if item_mod.content.is_none() {
             return Ok(());
         }
@@ -232,7 +239,24 @@ pub mod mods {
 pub mod impls {
     use super::*;
 
-    pub fn generate_new_struct(item_struct: &syn::ItemImpl) -> syn::Result<syn::ItemStruct> {
+    pub fn rewrite_extern_spec(item_impl: &mut syn::ItemImpl) -> syn::Result<TokenStream> {
+        let new_struct = generate_new_struct(&item_impl)?;
+        let struct_ident = &new_struct.ident;
+        let generic_args = rewrite_generics(&new_struct.generics);
+
+        let struct_ty: syn::Type = parse_quote_spanned! {item_impl.span()=>
+            #struct_ident #generic_args
+        };
+
+        let rewritten_item = rewrite_impl(item_impl, Box::from(struct_ty))?;
+
+        Ok(quote_spanned! {item_impl.span()=>
+            #new_struct
+            #rewritten_item
+        })
+    }
+
+    fn generate_new_struct(item_struct: &syn::ItemImpl) -> syn::Result<syn::ItemStruct> {
         let name_generator = NameGenerator::new();
         let struct_name = match name_generator.generate_struct_name(item_struct) {
             Ok(name) => name,
@@ -251,7 +275,7 @@ pub mod impls {
 
     /// Rewrite all methods in an impl block to calls to the specified methods.
     /// The result of this rewriting is then parsed in `ExternSpecResolver`.
-    pub fn rewrite_impl(
+    fn rewrite_impl(
         impl_item: &mut syn::ItemImpl,
         new_ty: Box<syn::Type>,
     ) -> syn::Result<TokenStream> {
@@ -334,7 +358,7 @@ pub mod traits {
     ///     fn foo(&self, arg: Self::ArgTy) -> Self::RetTy;
     /// }
     /// ```
-    /// it produces a s struct
+    /// it produces a struct
     /// ```rust
     /// struct Aux<TSelf, TArgTy, TRetTy> {
     ///     // phantom data for TSelf, TArgTy, TRetTy
@@ -343,12 +367,12 @@ pub mod traits {
     /// ```
     /// and a corresponding impl block with methods of `SomeTrait`.
     ///
-    pub fn handle_extern_spec_trait(item_trait: &syn::ItemTrait) -> syn::Result<TokenStream> {
+    pub fn rewrite_extern_spec(item_trait: &syn::ItemTrait) -> syn::Result<TokenStream> {
         validate_macro_usage(item_trait)?;
 
         let generated_struct = generate_new_struct(item_trait)?;
 
-        let trait_impl = generated_struct.generate_impl();
+        let trait_impl = generated_struct.generate_impl()?;
         let new_struct = generated_struct.generated_struct;
         Ok(quote_spanned! {item_trait.span()=>
                 #new_struct
@@ -358,19 +382,6 @@ pub mod traits {
 
     /// Returns an error when the macro was used in a wrong way on the trait
     fn validate_macro_usage(item_trait: &syn::ItemTrait) -> syn::Result<()> {
-        // Default methods not allowed
-        for item in item_trait.items.iter() {
-            if let syn::TraitItem::Method(item_method) = item {
-                if item_method.default.is_some() {
-                    return Err(syn::Error::new(
-                        item_method.default.as_ref().unwrap().span(),
-                        "Default methods in external trait specs are disallowed \
-                        because external specs are always trusted",
-                    ));
-                }
-            }
-        }
-
         // Generics not supported
         if item_trait.generics.params.len() > 0 {
             return Err(syn::Error::new(
@@ -423,10 +434,17 @@ pub mod traits {
         // Find associated types in trait
         let mut assoc_types_to_generics_map = HashMap::new();
         let associated_type_decls = get_associated_types(item_trait);
+
+        for &decl in associated_type_decls.iter() {
+            if decl.default.is_some() {
+                return Err(syn::Error::new(decl.span(), "Defaults for an associated types in external trait specs are invalid"));
+            }
+        }
+
         for associated_type_decl in associated_type_decls {
             let associated_type_ident = &associated_type_decl.ident;
             let generic_ident = syn::Ident::new(
-                format!("T_AssocType_{}", associated_type_ident).as_str(),
+                format!("Prusti_T_{}", associated_type_ident).as_str(),
                 associated_type_ident.span(),
             );
             let type_param: syn::TypeParam =
@@ -467,7 +485,6 @@ pub mod traits {
         Ok(gen)
     }
 
-    /// Contains all information of a newly generated struct with `StructGenerator`
     struct GeneratedStruct<'a> {
         item_trait: &'a syn::ItemTrait,
         assoc_types_to_generics_map: AssocTypesToGenericsMap<'a>,
@@ -476,7 +493,7 @@ pub mod traits {
     }
 
     impl<'a> GeneratedStruct<'a> {
-        fn generate_impl(&self) -> syn::ItemImpl {
+        fn generate_impl(&self) -> syn::Result<syn::ItemImpl> {
             // Generate impl block
             let struct_ident = &self.generated_struct.ident;
             let generic_params = self
@@ -504,6 +521,13 @@ pub mod traits {
                         // Ignore associated types, they are encoded as generics in the struct
                     }
                     syn::TraitItem::Method(trait_method) => {
+                        if trait_method.default.is_some() {
+                            return Err(syn::Error::new(
+                                trait_method.default.as_ref().unwrap().span(),
+                                "Default methods in external trait specs are invalid"
+                            ));
+                        }
+
                         let method = self.generate_method_stub(trait_method);
                         struct_impl.items.push(syn::ImplItem::Method(method));
                     }
@@ -511,7 +535,7 @@ pub mod traits {
                 };
             }
 
-            struct_impl
+            Ok(struct_impl)
         }
 
         /// Generates a "stub" implementation for a trait method
