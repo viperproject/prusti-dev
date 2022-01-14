@@ -10,10 +10,10 @@ trait Iterator {
 }
 
 #[extern_spec]
-trait Iterator { //~ ERROR: duplicate specification for std::iter::Iterator::next
+trait Iterator { 
     type Item;
 
-    #[requires(true)]
+    #[requires(true)] //~ ERROR: duplicate specification for std::iter::Iterator::next
     fn next(&mut self) -> Option<Self::Item>;
 }
 
