@@ -52,14 +52,6 @@ fn validate_macro_usage(item_trait: &syn::ItemTrait) -> syn::Result<()> {
         return Err(syn::Error::new(span, "Where clauses for extern traits specs are not supported"));
     }
 
-    // Generics not supported
-    if !item_trait.generics.params.is_empty() {
-        return Err(syn::Error::new(
-            item_trait.span(),
-            "Generics in external trait specs are not supported",
-        ));
-    }
-
     Ok(())
 }
 
@@ -74,6 +66,15 @@ fn generate_new_struct(item_trait: &syn::ItemTrait) -> syn::Result<GeneratedStru
     let mut new_struct: syn::ItemStruct = parse_quote_spanned! {item_trait.span()=>
         #[allow(non_camel_case_types)] struct #struct_ident {}
     };
+
+    let parsed_generics = parse_trait_type_params(item_trait)?;
+    // Generic type parameters are added as generics to the struct
+    for parsed_generic in parsed_generics.iter() {
+        if let ProvidedTypeParam::GenericType(type_param) = parsed_generic {
+            new_struct.generics.params.push(syn::GenericParam::Type(type_param.clone()));
+        }
+    }
+
     // Find associated types in trait
     let mut assoc_types_to_generics_map = HashMap::new();
     let associated_type_decls = get_associated_types(item_trait);
@@ -115,19 +116,37 @@ fn generate_new_struct(item_trait: &syn::ItemTrait) -> syn::Result<GeneratedStru
     let trait_assoc_type_idents = assoc_types_to_generics_map.keys();
     let trait_assoc_type_generics = assoc_types_to_generics_map.values();
     let self_where_clause: syn::WhereClause = parse_quote! {
-        where #self_type_param_ident: #trait_ident <#(#trait_assoc_type_idents = #trait_assoc_type_generics),*>
+        where #self_type_param_ident: #trait_ident <#(#parsed_generics),* #(#trait_assoc_type_idents = #trait_assoc_type_generics),*>
     };
     new_struct.generics.where_clause = Some(self_where_clause);
 
     add_phantom_data_for_generic_params(&mut new_struct);
 
-    let gen = GeneratedStruct {
+    Ok(GeneratedStruct {
         generated_struct: new_struct,
         item_trait,
         assoc_types_to_generics_map,
         self_type_param_ident,
-    };
-    Ok(gen)
+        parsed_generics,
+    })
+}
+
+fn parse_trait_type_params(item_trait: &syn::ItemTrait) -> syn::Result<Vec<ProvidedTypeParam>> {
+    let mut result = Vec::new();
+    for generic_param in item_trait.generics.params.iter() {
+        if let syn::GenericParam::Type(type_param) = generic_param {
+            let parameter = ProvidedTypeParam::try_parse(type_param);
+            if parameter.is_none() {
+                return Err(syn::Error::new(
+                    type_param.span(),
+                    "Generics in external trait specs must be annotated with exactly one of #[generic] or #[concrete]"
+                ));
+            }
+            result.push(parameter.unwrap());
+        }
+    }
+
+    Ok(result)
 }
 
 struct GeneratedStruct<'a> {
@@ -135,6 +154,7 @@ struct GeneratedStruct<'a> {
     assoc_types_to_generics_map: AssocTypesToGenericsMap<'a>,
     self_type_param_ident: syn::Ident,
     generated_struct: syn::ItemStruct,
+    parsed_generics: Vec<ProvidedTypeParam>
 }
 
 impl<'a> GeneratedStruct<'a> {
@@ -204,8 +224,9 @@ impl<'a> GeneratedStruct<'a> {
 
         // Create the method signature
         let trait_ident = &self.item_trait.ident;
+        let parsed_generics = &self.parsed_generics;
         let method_path: syn::ExprPath = parse_quote_spanned! {trait_method_ident.span()=>
-            #trait_ident :: #trait_method_ident
+            #trait_ident :: <#(#parsed_generics),*> :: #trait_method_ident
         };
 
         // Create method
@@ -269,5 +290,47 @@ impl<'a> syn::visit_mut::VisitMut for AssociatedTypeRewriter<'a> {
         }
 
         syn::visit_mut::visit_type_path_mut(self, ty_path);
+    }
+}
+
+#[derive(Debug)]
+enum ProvidedTypeParam {
+    /// Something non-concrete, i.e. `T`
+    ConcreteType(syn::TypeParam),
+    /// Something concrete, i.e. `i32`
+    GenericType(syn::TypeParam),
+}
+
+impl ProvidedTypeParam {
+    fn try_parse(from: &syn::TypeParam) -> Option<Self> {
+        if from.attrs.len() != 1 {
+            return None;
+        }
+
+        let path = &from.attrs[0].path;
+        if path.segments.len() != 1 {
+            return None;
+        }
+
+        // Closure for cloning and removing the attrs
+        let clone_without_attrs = || {
+            let mut cloned = from.clone();
+            cloned.attrs.clear();
+            cloned
+        };
+
+        match path.segments[0].ident.to_string().as_str() {
+            "generic" => Some(ProvidedTypeParam::GenericType(clone_without_attrs())),
+            "concrete" => Some(ProvidedTypeParam::ConcreteType(clone_without_attrs())),
+            _ => None
+        }
+    }
+}
+
+impl ToTokens for ProvidedTypeParam {
+    fn to_tokens(&self, tokens: &mut TokenStream) {
+        match &self {
+            ProvidedTypeParam::ConcreteType(ty_param) |  ProvidedTypeParam::GenericType(ty_param) => ty_param.to_tokens(tokens),
+        }
     }
 }
