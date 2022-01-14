@@ -225,8 +225,9 @@ impl<'a> GeneratedStruct<'a> {
         // Create the method signature
         let trait_ident = &self.item_trait.ident;
         let parsed_generics = &self.parsed_generics;
+        let self_param_ident = &self.self_type_param_ident;
         let method_path: syn::ExprPath = parse_quote_spanned! {trait_method_ident.span()=>
-            #trait_ident :: <#(#parsed_generics),*> :: #trait_method_ident
+            <#self_param_ident as #trait_ident :: <#(#parsed_generics),*> > :: #trait_method_ident
         };
 
         // Create method
