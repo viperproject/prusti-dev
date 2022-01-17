@@ -70,7 +70,7 @@ fn rewrite_impl(impl_item: &mut syn::ItemImpl, new_ty: Box<syn::Type>) -> syn::R
                     .push(parse_quote_spanned!(item_span=> #[trusted]));
 
                 let mut method_path: syn::ExprPath = parse_quote_spanned! {ident.span()=>
-                    #item_ty :: #ident
+                    < #item_ty > :: #ident
                 };
 
                 // Fix the span
