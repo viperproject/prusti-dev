@@ -42,7 +42,7 @@ pub fn rewrite_self(tokens: proc_macro2::TokenStream) -> proc_macro2::TokenStrea
 /// ```
 pub fn add_phantom_data_for_generic_params(item_struct: &mut syn::ItemStruct) {
     let fields = item_struct.generics.params.iter()
-        .map(|param| match param {
+        .flat_map(|param| match param {
             syn::GenericParam::Type(tp) => {
                 let ident = tp.ident.clone();
                 Some(quote!(::core::marker::PhantomData<#ident>))
@@ -52,8 +52,7 @@ pub fn add_phantom_data_for_generic_params(item_struct: &mut syn::ItemStruct) {
                 Some(quote!(&#ident ::core::marker::PhantomData<()>))
             }
             syn::GenericParam::Const(_cp) => None,
-        })
-        .flatten();
+        });
 
     item_struct.fields = syn::Fields::Unnamed(syn::parse_quote! { ( #(#fields),* ) });
 }
