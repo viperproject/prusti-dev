@@ -1,3 +1,4 @@
+//! Encoding of external specs for traits
 use crate::parse_quote_spanned;
 use crate::specifications::common::NameGenerator;
 use proc_macro2::TokenStream;
