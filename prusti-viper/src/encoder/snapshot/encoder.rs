@@ -375,6 +375,7 @@ impl SnapshotEncoder {
 
     /// Returns [true] iff the given type can be used as a quantified variable
     /// in a user-facing [forall].
+    #[allow(clippy::wrong_self_convention)]
     pub fn is_quantifiable<'p, 'v: 'p, 'tcx: 'v>(
         &mut self,
         encoder: &'p Encoder<'v, 'tcx>,
