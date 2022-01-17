@@ -1,4 +1,4 @@
-// error-pattern: Precondition of function snap$__$TY$__Snap$struct$m_A$ might not hold
+// error-pattern: Precondition of function snap$__$TY$__Snap$struct$m_issue_729_1$$A$ might not hold
 // FIXME: https://github.com/viperproject/prusti-dev/issues/729
 #![allow(unused_comparisons)]
 use prusti_contracts::*;
