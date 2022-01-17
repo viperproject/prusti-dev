@@ -13,6 +13,7 @@ use crate::legacy::ast::*;
 
 impl Expr {
     /// Apply the closure to all places in the expression.
+    #[must_use]
     pub fn fold_places<F>(self, f: F) -> Expr
     where
         F: Fn(Expr) -> Expr,
@@ -40,6 +41,7 @@ impl Expr {
     }
 
     /// Apply the closure to all expressions.
+    #[must_use]
     pub fn fold_expr<F>(self, f: F) -> Expr
     where
         F: Fn(Expr) -> Expr,

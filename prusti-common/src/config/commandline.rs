@@ -6,22 +6,22 @@ use std::env;
 #[derive(Clone, Debug)]
 pub struct CommandLine {
     /// Optional prefix that will limit args to those that begin with the defined prefix.
-    /// 
+    ///
     /// Example: The arg -Zdebug=true would become debug=true with a prefix of -Z
     prefix: Option<String>,
 
-    /// Character sequence that separates key, value pairs. The default separator is '=', 
+    /// Character sequence that separates key, value pairs. The default separator is '=',
     /// the separator pattern must only occur once in the flag or it will be ignored.
-    /// 
+    ///
     /// Example: debug=true is a valid key,val pair with separator of '='
     ///          debug= would be invalid because there is no value.
-    ///          debug+true would be valid with a separator of '+' 
+    ///          debug+true would be valid with a separator of '+'
     separator: String,
 
     /// Boolean indicating whether invalid flags should be ignored or result in a ConfigError
-    /// 
+    ///
     /// Note: the method get_remaining_args always
-    ///       returns the invalid args regardless of this boolean 
+    ///       returns the invalid args regardless of this boolean
     ignore_invalid: bool,
 }
 
@@ -37,16 +37,19 @@ impl CommandLine {
         }
     }
 
+    #[must_use]
     pub fn prefix(mut self, s: &str) -> Self {
         self.prefix = Some(s.into());
         self
     }
 
+    #[must_use]
     pub fn separator(mut self, s: &str) -> Self {
         self.separator = s.into();
         self
     }
 
+    #[must_use]
     pub fn ignore_invalid(mut self, ignore: bool) -> Self {
         self.ignore_invalid = ignore;
         self
@@ -113,7 +116,7 @@ impl Source for CommandLine {
                 }
 
                 continue;
-            } 
+            }
 
             // If arg is valid this can't panic
             let (key, val) = self.split_arg(&arg[prefix_pattern.len()..])
@@ -123,7 +126,7 @@ impl Source for CommandLine {
                 key.to_lowercase(),
                 Value::new(Some(&uri), val),
             );
-        } 
+        }
 
         Ok(m)
     }

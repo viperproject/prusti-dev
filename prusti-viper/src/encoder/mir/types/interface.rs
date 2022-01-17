@@ -178,7 +178,7 @@ impl<'v, 'tcx: 'v> MirTypeEncoderInterface<'tcx> for super::super::super::Encode
     ) -> EncodingResult<vir_high::ty::VariantIndex> {
         if let ty::TyKind::Adt(adt_def, _) = ty.kind() {
             let variant = &adt_def.variants[variant_index];
-            let name = variant.ident.to_string();
+            let name = variant.ident(self.env().tcx()).to_string();
             Ok(name.into())
         } else {
             Err(EncodingError::internal(format!("{:?} is not an enum", ty)))

@@ -132,7 +132,7 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
                         let tcx = self.encoder().env().tcx();
                         let variant_def = &adt_def.variants[variant_index.into()];
                         let encoded_variant = if num_variants != 1 {
-                            encoded_base.variant(&variant_def.ident.as_str())
+                            encoded_base.variant(variant_def.ident(tcx).as_str())
                         } else {
                             encoded_base
                         };
@@ -146,7 +146,7 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
                         let encoded_field = self
                             .encoder()
                             .encode_struct_field(
-                                &field.ident.as_str(),
+                                field.ident(tcx).as_str(),
                                 field_ty
                             )?;
                         let encoded_projection = encoded_variant.field(encoded_field);
@@ -829,7 +829,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
             .collect();
         match &macro_names_str[..] {
             ["core::panic::panic_2015", "core::macros::panic", "std::unimplemented"] => PanicCause::Unimplemented,
+            ["std::unimplemented", ..] => PanicCause::Unimplemented,
             ["core::panic::panic_2015", "core::macros::panic", "std::unreachable"] => PanicCause::Unreachable,
+            ["std::unreachable", ..] => PanicCause::Unreachable,
             ["std::assert", "std::debug_assert", ..] => PanicCause::DebugAssert,
             ["std::assert", ..] => PanicCause::Assert,
             ["std::panic::panic_2015", "std::panic", "std::debug_assert"] => PanicCause::DebugAssert,
