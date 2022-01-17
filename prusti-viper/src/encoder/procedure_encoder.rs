@@ -1069,8 +1069,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     .encode_projection(place.local, &place.projection, ArrayAccessKind::Shared, location)?;
             downcast_stmts.extend(pre_stmts);
             let variant_field = if let ty::TyKind::Adt(adt_def, _) = place_ty.kind() {
-                let variant_name = &adt_def.variants[variant_idx].ident.as_str();
-                self.encoder.encode_enum_variant_field(variant_name)
+                let tcx = self.encoder.env().tcx();
+                let variant_name = adt_def.variants[variant_idx].ident(tcx).to_string();
+                self.encoder.encode_enum_variant_field(&variant_name)
             } else {
                 unreachable!()
             };
@@ -5579,7 +5580,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
     }
 
     /// Assignment with a nullary op on the RHS.
-    /// Nullary types currently are creating boxes and sizeof.
+    /// Nullary types currently are sizeof and alignof.
     /// [lhs] = [op] [op_ty]
     fn encode_assign_nullary_op(
         &mut self,
@@ -5595,12 +5596,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             op_ty
         );
         match op {
-            mir::NullOp::Box => self.encode_assign_box(
-                op_ty,
-                encoded_lhs,
-                ty,
-                location,
-            ),
             mir::NullOp::SizeOf => {
                 // TODO: ParamEnv::empty() should probably be tyctxt.param_env(def_id_of_method)
                 let bytes = self.encoder.env().tcx()
@@ -6280,17 +6275,24 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 }
             }
 
-            mir::AggregateKind::Adt(adt_def, variant_index, subst, _, _) if !adt_def.is_union() => {
+            mir::AggregateKind::Adt(adt_did, variant_index, subst, _, _) => {
+                let tcx = self.encoder.env().tcx();
+                let adt_def = tcx.adt_def(adt_did);
+                if adt_def.is_union() {
+                    return Err(SpannedEncodingError::unsupported(
+                        "unions are not supported",
+                        span
+                    ));
+                }
                 let num_variants = adt_def.variants.len();
                 let variant_def = &adt_def.variants[variant_index];
                 let mut dst_base = dst.clone();
                 if num_variants != 1 {
                     // An enum.
-                    let tcx = self.encoder.env().tcx();
                     // Handle *signed* discriminats
                     let discr_value: vir::Expr = if let SignedInt(ity) = adt_def.repr.discr_type() {
                         let bit_size =
-                            Integer::from_attr(&self.encoder.env().tcx(), SignedInt(ity))
+                            Integer::from_attr(&tcx, SignedInt(ity))
                                 .size()
                                 .bits();
                         let shift = 128 - bit_size;
@@ -6313,8 +6315,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                         expr: vir::Expr::eq_cmp(discriminant, discr_value),
                     }));
 
-                    let variant_name = &variant_def.ident.as_str();
-                    let new_dst_base = dst_base.variant(variant_name);
+                    let variant_name = variant_def.ident(tcx).to_string();
+                    let new_dst_base = dst_base.variant(&variant_name);
                     let variant_field = if let vir::Expr::Variant( vir::Variant {variant_index: ref field, ..}) = new_dst_base {
                         field.clone()
                     } else {
@@ -6332,11 +6334,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 }
                 for (field_index, field) in variant_def.fields.iter().enumerate() {
                     let operand = &operands[field_index];
-                    let field_name = &field.ident.as_str();
-                    let tcx = self.encoder.env().tcx();
+                    let field_name = field.ident(tcx).to_string();
                     let field_ty = field.ty(tcx, subst);
                     let encoded_field = self.encoder
-                        .encode_struct_field(field_name, field_ty)
+                        .encode_struct_field(&field_name, field_ty)
                         .with_span(span)?;
                     stmts.extend(self.encode_assign_operand(
                         &dst_base.clone().field(encoded_field),
@@ -6344,14 +6345,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                         location,
                     )?);
                 }
-            }
-
-            mir::AggregateKind::Adt(..) => {
-                // It is a union
-                return Err(SpannedEncodingError::unsupported(
-                    "unions are not supported",
-                    span
-                ));
             }
 
             mir::AggregateKind::Closure(def_id, _substs) => {

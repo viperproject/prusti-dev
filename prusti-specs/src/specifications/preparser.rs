@@ -81,6 +81,7 @@ impl Parser {
         }
     }
     /// initializes the parser with a TokenStream and the last span
+    #[allow(clippy::wrong_self_convention)]
     fn from_token_stream_last_span(&self, tokens: TokenStream) -> Self {
         Self {
             tokens: tokens.into_iter().collect(),
@@ -373,6 +374,7 @@ impl Parser {
     }
 
     /// is there any non-prusti operator following the first thing?
+    #[allow(clippy::wrong_self_convention)]
     fn is_part_of_rust_expr(&mut self) -> bool {
         if let Some(token) = self.tokens.pop_front() {
             let result = !(self.peek_operator("|=") ||

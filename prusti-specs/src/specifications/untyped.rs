@@ -235,17 +235,17 @@ impl AssignExpressionId<TriggerSet> for common::TriggerSet<(), syn::Expr> {
         spec_id: SpecificationId,
         id_generator: &mut ExpressionIdGenerator,
     ) -> TriggerSet {
-        TriggerSet {
-            0: self.0
+        common::TriggerSet(
+            self.0
                 .into_iter()
-                .map(|x| common::Trigger {
-                    0: x.0
+                .map(|x| common::Trigger(
+                    x.0
                         .into_iter()
                         .map(|y| y.assign_id(spec_id, id_generator))
                         .collect()
-                })
+                ))
                 .collect()
-        }
+        )
     }
 }
 

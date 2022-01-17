@@ -262,7 +262,7 @@ impl<'ce, 'tcx> CounterexampleTranslator<'ce, 'tcx> {
             }
             (ty::TyKind::Adt(adt_def, subst), _) if adt_def.is_struct() => {
                 let variant = adt_def.variants.iter().next().unwrap();
-                let struct_name = variant.ident.name.to_ident_string();
+                let struct_name = variant.ident(self.tcx).name.to_ident_string();
                 let field_entries = self.translate_vardef(
                     variant,
                     sil_entry,
@@ -302,7 +302,7 @@ impl<'ce, 'tcx> CounterexampleTranslator<'ce, 'tcx> {
                     let discriminant = x.parse::<u32>().unwrap();
                     variant = adt_def.variants.iter().find(|x| get_discriminant_of_vardef(x) == Some(discriminant));
                     if let Some(v) = variant {
-                        variant_name = v.ident.name.to_ident_string();
+                        variant_name = v.ident(self.tcx).name.to_ident_string();
                     }
                 }
 
@@ -345,7 +345,7 @@ impl<'ce, 'tcx> CounterexampleTranslator<'ce, 'tcx> {
     ) -> Vec<(String, Entry)> {
         let mut field_entries = vec![];
         for f in &variant.fields {
-            let field_name = f.ident.name.to_ident_string();
+            let field_name = f.ident(self.tcx).name.to_ident_string();
             let typ = f.ty(self.tcx, subst);
 
             // extract recursively
