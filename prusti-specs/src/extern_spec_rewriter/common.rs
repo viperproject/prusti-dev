@@ -53,8 +53,7 @@ pub fn add_phantom_data_for_generic_params(item_struct: &mut syn::ItemStruct) {
             }
             syn::GenericParam::Const(_cp) => None,
         })
-        .filter(|ts| ts.is_some())
-        .map(|ts| ts.unwrap());
+        .flatten();
 
     item_struct.fields = syn::Fields::Unnamed(syn::parse_quote! { ( #(#fields),* ) });
 }
