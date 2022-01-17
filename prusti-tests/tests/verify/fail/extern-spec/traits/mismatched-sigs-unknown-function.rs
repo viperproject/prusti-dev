@@ -1,4 +1,3 @@
-// ignore-test
 extern crate prusti_contracts;
 use prusti_contracts::*;
 
@@ -6,7 +5,7 @@ use prusti_contracts::*;
 trait Iterator {
     type Item;
 
-    fn foo(&mut self); //~ ERROR: function or associated item not found
+    fn foo(&mut self); //~ ERROR: cannot find method or associated constant `foo` in trait `Iterator`
 }
 
 fn main() {

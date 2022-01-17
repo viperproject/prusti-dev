@@ -23,5 +23,6 @@ impl MyTrait<i32> for Impl {
 
 fn main() {
     let s = Impl{};
-    assert!(MyTrait::<i32>::get_value(&s) == 42 as i32);
+    assert!(MyTrait::<i32>::get_value(&s) == 42);
+    assert!(s.get_value() == 42);
 }
