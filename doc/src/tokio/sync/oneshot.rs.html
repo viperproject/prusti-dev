@@ -1,5 +1,7 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;tokio-1.14.0&#x2F;src&#x2F;sync&#x2F;oneshot.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>oneshot.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
-    <noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a class="sidebar-logo" href='../../../tokio/index.html'><div class='logo-container rust-logo'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container rust-logo" href='../../../tokio/index.html'><img src='../../../rust-logo.png' alt='logo'></a><nav class="sub"><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../../wheel.svg"></a></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">   1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.15.0/src/sync/oneshot.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>oneshot.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
+    <noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a class="sidebar-logo" href="../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
+        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../tokio/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><form class="search-form"><div class="search-container"><div>
+                                <input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../../wheel.svg"></a></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">   1</span>
 <span id="2">   2</span>
 <span id="3">   3</span>
 <span id="4">   4</span>
@@ -1185,6 +1187,156 @@
 <span id="1184">1184</span>
 <span id="1185">1185</span>
 <span id="1186">1186</span>
+<span id="1187">1187</span>
+<span id="1188">1188</span>
+<span id="1189">1189</span>
+<span id="1190">1190</span>
+<span id="1191">1191</span>
+<span id="1192">1192</span>
+<span id="1193">1193</span>
+<span id="1194">1194</span>
+<span id="1195">1195</span>
+<span id="1196">1196</span>
+<span id="1197">1197</span>
+<span id="1198">1198</span>
+<span id="1199">1199</span>
+<span id="1200">1200</span>
+<span id="1201">1201</span>
+<span id="1202">1202</span>
+<span id="1203">1203</span>
+<span id="1204">1204</span>
+<span id="1205">1205</span>
+<span id="1206">1206</span>
+<span id="1207">1207</span>
+<span id="1208">1208</span>
+<span id="1209">1209</span>
+<span id="1210">1210</span>
+<span id="1211">1211</span>
+<span id="1212">1212</span>
+<span id="1213">1213</span>
+<span id="1214">1214</span>
+<span id="1215">1215</span>
+<span id="1216">1216</span>
+<span id="1217">1217</span>
+<span id="1218">1218</span>
+<span id="1219">1219</span>
+<span id="1220">1220</span>
+<span id="1221">1221</span>
+<span id="1222">1222</span>
+<span id="1223">1223</span>
+<span id="1224">1224</span>
+<span id="1225">1225</span>
+<span id="1226">1226</span>
+<span id="1227">1227</span>
+<span id="1228">1228</span>
+<span id="1229">1229</span>
+<span id="1230">1230</span>
+<span id="1231">1231</span>
+<span id="1232">1232</span>
+<span id="1233">1233</span>
+<span id="1234">1234</span>
+<span id="1235">1235</span>
+<span id="1236">1236</span>
+<span id="1237">1237</span>
+<span id="1238">1238</span>
+<span id="1239">1239</span>
+<span id="1240">1240</span>
+<span id="1241">1241</span>
+<span id="1242">1242</span>
+<span id="1243">1243</span>
+<span id="1244">1244</span>
+<span id="1245">1245</span>
+<span id="1246">1246</span>
+<span id="1247">1247</span>
+<span id="1248">1248</span>
+<span id="1249">1249</span>
+<span id="1250">1250</span>
+<span id="1251">1251</span>
+<span id="1252">1252</span>
+<span id="1253">1253</span>
+<span id="1254">1254</span>
+<span id="1255">1255</span>
+<span id="1256">1256</span>
+<span id="1257">1257</span>
+<span id="1258">1258</span>
+<span id="1259">1259</span>
+<span id="1260">1260</span>
+<span id="1261">1261</span>
+<span id="1262">1262</span>
+<span id="1263">1263</span>
+<span id="1264">1264</span>
+<span id="1265">1265</span>
+<span id="1266">1266</span>
+<span id="1267">1267</span>
+<span id="1268">1268</span>
+<span id="1269">1269</span>
+<span id="1270">1270</span>
+<span id="1271">1271</span>
+<span id="1272">1272</span>
+<span id="1273">1273</span>
+<span id="1274">1274</span>
+<span id="1275">1275</span>
+<span id="1276">1276</span>
+<span id="1277">1277</span>
+<span id="1278">1278</span>
+<span id="1279">1279</span>
+<span id="1280">1280</span>
+<span id="1281">1281</span>
+<span id="1282">1282</span>
+<span id="1283">1283</span>
+<span id="1284">1284</span>
+<span id="1285">1285</span>
+<span id="1286">1286</span>
+<span id="1287">1287</span>
+<span id="1288">1288</span>
+<span id="1289">1289</span>
+<span id="1290">1290</span>
+<span id="1291">1291</span>
+<span id="1292">1292</span>
+<span id="1293">1293</span>
+<span id="1294">1294</span>
+<span id="1295">1295</span>
+<span id="1296">1296</span>
+<span id="1297">1297</span>
+<span id="1298">1298</span>
+<span id="1299">1299</span>
+<span id="1300">1300</span>
+<span id="1301">1301</span>
+<span id="1302">1302</span>
+<span id="1303">1303</span>
+<span id="1304">1304</span>
+<span id="1305">1305</span>
+<span id="1306">1306</span>
+<span id="1307">1307</span>
+<span id="1308">1308</span>
+<span id="1309">1309</span>
+<span id="1310">1310</span>
+<span id="1311">1311</span>
+<span id="1312">1312</span>
+<span id="1313">1313</span>
+<span id="1314">1314</span>
+<span id="1315">1315</span>
+<span id="1316">1316</span>
+<span id="1317">1317</span>
+<span id="1318">1318</span>
+<span id="1319">1319</span>
+<span id="1320">1320</span>
+<span id="1321">1321</span>
+<span id="1322">1322</span>
+<span id="1323">1323</span>
+<span id="1324">1324</span>
+<span id="1325">1325</span>
+<span id="1326">1326</span>
+<span id="1327">1327</span>
+<span id="1328">1328</span>
+<span id="1329">1329</span>
+<span id="1330">1330</span>
+<span id="1331">1331</span>
+<span id="1332">1332</span>
+<span id="1333">1333</span>
+<span id="1334">1334</span>
+<span id="1335">1335</span>
+<span id="1336">1336</span>
 </pre><pre class="rust"><code><span class="attribute">#![<span class="ident">cfg_attr</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;sync&quot;</span>), <span class="ident">allow</span>(<span class="ident">dead_code</span>, <span class="ident">unreachable_pub</span>))]</span>
 
 <span class="doccomment">//! A one-shot channel is used for sending a single message between</span>
@@ -1195,6 +1347,9 @@
 <span class="doccomment">//! The `Receiver` handle is used by the consumer to receive the value.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! Each handle can be used on separate tasks.</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! Since the `send` method is not async, it can be used anywhere. This includes</span>
+<span class="doccomment">//! sending between two runtimes, and using it from non-async code.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! # Examples</span>
 <span class="doccomment">//!</span>
@@ -1306,6 +1461,8 @@
 <span class="kw">use</span> <a class="ident" href="../../../src/tokio/loom/std/unsafe_cell.rs.html#2"><span class="kw">crate</span>::loom::cell::UnsafeCell</a>;
 <span class="kw">use</span> <a class="ident" href="../../../src/tokio/loom/std/atomic_usize.rs.html#6-8"><span class="kw">crate</span>::loom::sync::atomic::AtomicUsize</a>;
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/sync/struct.Arc.html"><span class="kw">crate</span>::loom::sync::Arc</a>;
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">tokio_unstable</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tracing&quot;</span>))]</span>
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::util::trace</span>;
 
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">std::future::Future</a>;
@@ -1399,6 +1556,8 @@
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Sender</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
     <span class="ident">inner</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Inner</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">tokio_unstable</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tracing&quot;</span>))]</span>
+    <span class="ident">resource_span</span>: <span class="ident">tracing::Span</span>,
 }
 
 <span class="doccomment">/// Receives a value from the associated [`Sender`].</span>
@@ -1489,6 +1648,12 @@
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Receiver</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
     <span class="ident">inner</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Inner</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">tokio_unstable</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tracing&quot;</span>))]</span>
+    <span class="ident">resource_span</span>: <span class="ident">tracing::Span</span>,
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">tokio_unstable</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tracing&quot;</span>))]</span>
+    <span class="ident">async_op_span</span>: <span class="ident">tracing::Span</span>,
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">tokio_unstable</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tracing&quot;</span>))]</span>
+    <span class="ident">async_op_poll_span</span>: <span class="ident">tracing::Span</span>,
 }
 
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">error</span> {
@@ -1512,29 +1677,29 @@
 
     <span class="comment">// ===== impl RecvError =====</span>
 
-    <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for</span> <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#314">RecvError</a> {
+    <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for</span> <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#327">RecvError</a> {
         <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">fmt</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-            <span class="macro">write!</span>(<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#329">fmt</a>, <span class="string">&quot;channel closed&quot;</span>)
+            <span class="macro">write!</span>(<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#342">fmt</a>, <span class="string">&quot;channel closed&quot;</span>)
         }
     }
 
-    <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/error/trait.Error.html">std::error::Error</a> <span class="kw">for</span> <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#314">RecvError</a> {}
+    <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/error/trait.Error.html">std::error::Error</a> <span class="kw">for</span> <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#327">RecvError</a> {}
 
     <span class="comment">// ===== impl TryRecvError =====</span>
 
-    <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for</span> <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#318-324">TryRecvError</a> {
+    <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for</span> <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#331-337">TryRecvError</a> {
         <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">fmt</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-            <span class="kw">match</span> <a class="self" href="../../../src/tokio/sync/oneshot.rs.html#339">self</a> {
-                <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#320">TryRecvError::Empty</a> =&gt; <span class="macro">write!</span>(<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#339">fmt</a>, <span class="string">&quot;channel empty&quot;</span>),
-                <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#323">TryRecvError::Closed</a> =&gt; <span class="macro">write!</span>(<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#339">fmt</a>, <span class="string">&quot;channel closed&quot;</span>),
+            <span class="kw">match</span> <a class="self" href="../../../src/tokio/sync/oneshot.rs.html#352">self</a> {
+                <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#333">TryRecvError::Empty</a> =&gt; <span class="macro">write!</span>(<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#352">fmt</a>, <span class="string">&quot;channel empty&quot;</span>),
+                <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#336">TryRecvError::Closed</a> =&gt; <span class="macro">write!</span>(<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#352">fmt</a>, <span class="string">&quot;channel closed&quot;</span>),
             }
         }
     }
 
-    <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/error/trait.Error.html">std::error::Error</a> <span class="kw">for</span> <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#318-324">TryRecvError</a> {}
+    <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/error/trait.Error.html">std::error::Error</a> <span class="kw">for</span> <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#331-337">TryRecvError</a> {}
 }
 
-<span class="kw">use</span> <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#307-348"><span class="self">self</span>::error</a>::<span class="kw-2">*</span>;
+<span class="kw">use</span> <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#320-361"><span class="self">self</span>::error</a>::<span class="kw-2">*</span>;
 
 <span class="kw">struct</span> <span class="ident">Inner</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
     <span class="doccomment">/// Manages the state of the inner cell.</span>
@@ -1550,7 +1715,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// The `TX_TASK_SET` bit in the `state` field is set if this field is</span>
     <span class="doccomment">/// initialized. If that bit is unset, this field may be uninitialized.</span>
-    <span class="ident">tx_task</span>: <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#377">Task</a>,
+    <span class="ident">tx_task</span>: <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#390">Task</a>,
 
     <span class="doccomment">/// The task to notify when the value is sent.</span>
     <span class="doccomment">///</span>
@@ -1558,37 +1723,37 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// The `RX_TASK_SET` bit in the `state` field is set if this field is</span>
     <span class="doccomment">/// initialized. If that bit is unset, this field may be uninitialized.</span>
-    <span class="ident">rx_task</span>: <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#377">Task</a>,
+    <span class="ident">rx_task</span>: <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#390">Task</a>,
 }
 
 <span class="kw">struct</span> <span class="ident">Task</span>(<span class="ident">UnsafeCell</span><span class="op">&lt;</span><span class="ident">MaybeUninit</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a><span class="op">&gt;</span><span class="op">&gt;</span>);
 
-<span class="kw">impl</span> <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#377">Task</a> {
+<span class="kw">impl</span> <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#390">Task</a> {
     <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">will_wake</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../src/tokio/sync/oneshot.rs.html#380">self</a>.<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#384-386">with_task</a>(<span class="op">|</span><span class="ident">w</span><span class="op">|</span> <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#381">w</a>.<span class="ident">will_wake</span>(<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#380">cx</a>.<span class="ident">waker</span>()))
+        <a class="self" href="../../../src/tokio/sync/oneshot.rs.html#393">self</a>.<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#397-399">with_task</a>(<span class="op">|</span><span class="ident">w</span><span class="op">|</span> <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#394">w</a>.<span class="ident">will_wake</span>(<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#393">cx</a>.<span class="ident">waker</span>()))
     }
 
     <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">with_task</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">R</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="ident">F</span>) -&gt; <span class="ident">R</span>
     <span class="kw">where</span>
         <span class="ident">F</span>: <span class="ident">FnOnce</span>(<span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a>) -&gt; <span class="ident">R</span>,
     {
-        <a class="self" href="../../../src/tokio/sync/oneshot.rs.html#384">self</a>.<span class="number">0</span>.<a class="ident" href="../../../src/tokio/loom/std/unsafe_cell.rs.html#9">with</a>(<span class="op">|</span><span class="ident">ptr</span><span class="op">|</span> {
-            <span class="kw">let</span> <span class="ident">waker</span>: <span class="kw-2">*const</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a> <span class="op">=</span> (<span class="kw-2">&amp;</span><span class="kw-2">*</span><a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#388">ptr</a>).<span class="ident">as_ptr</span>();
-            <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#384">f</a>(<span class="kw-2">&amp;</span><span class="kw-2">*</span><a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#389">waker</a>)
+        <a class="self" href="../../../src/tokio/sync/oneshot.rs.html#397">self</a>.<span class="number">0</span>.<a class="ident" href="../../../src/tokio/loom/std/unsafe_cell.rs.html#9">with</a>(<span class="op">|</span><span class="ident">ptr</span><span class="op">|</span> {
+            <span class="kw">let</span> <span class="ident">waker</span>: <span class="kw-2">*const</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a> <span class="op">=</span> (<span class="kw-2">&amp;</span><span class="kw-2">*</span><a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#401">ptr</a>).<span class="ident">as_ptr</span>();
+            <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#397">f</a>(<span class="kw-2">&amp;</span><span class="kw-2">*</span><a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#402">waker</a>)
         })
     }
 
     <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">drop_task</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-        <a class="self" href="../../../src/tokio/sync/oneshot.rs.html#394">self</a>.<span class="number">0</span>.<a class="ident" href="../../../src/tokio/loom/std/unsafe_cell.rs.html#13">with_mut</a>(<span class="op">|</span><span class="ident">ptr</span><span class="op">|</span> {
-            <span class="kw">let</span> <span class="ident">ptr</span>: <span class="kw-2">*mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a> <span class="op">=</span> (<span class="kw-2">&amp;mut</span> <span class="kw-2">*</span><a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#395">ptr</a>).<span class="ident">as_mut_ptr</span>();
-            <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#396">ptr</a>.<span class="ident">drop_in_place</span>();
+        <a class="self" href="../../../src/tokio/sync/oneshot.rs.html#407">self</a>.<span class="number">0</span>.<a class="ident" href="../../../src/tokio/loom/std/unsafe_cell.rs.html#13">with_mut</a>(<span class="op">|</span><span class="ident">ptr</span><span class="op">|</span> {
+            <span class="kw">let</span> <span class="ident">ptr</span>: <span class="kw-2">*mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a> <span class="op">=</span> (<span class="kw-2">&amp;mut</span> <span class="kw-2">*</span><a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#408">ptr</a>).<span class="ident">as_mut_ptr</span>();
+            <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#409">ptr</a>.<span class="ident">drop_in_place</span>();
         });
     }
 
     <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">set_task</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) {
-        <a class="self" href="../../../src/tokio/sync/oneshot.rs.html#401">self</a>.<span class="number">0</span>.<a class="ident" href="../../../src/tokio/loom/std/unsafe_cell.rs.html#13">with_mut</a>(<span class="op">|</span><span class="ident">ptr</span><span class="op">|</span> {
-            <span class="kw">let</span> <span class="ident">ptr</span>: <span class="kw-2">*mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a> <span class="op">=</span> (<span class="kw-2">&amp;mut</span> <span class="kw-2">*</span><a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#402">ptr</a>).<span class="ident">as_mut_ptr</span>();
-            <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#403">ptr</a>.<span class="ident">write</span>(<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#401">cx</a>.<span class="ident">waker</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
+        <a class="self" href="../../../src/tokio/sync/oneshot.rs.html#414">self</a>.<span class="number">0</span>.<a class="ident" href="../../../src/tokio/loom/std/unsafe_cell.rs.html#13">with_mut</a>(<span class="op">|</span><span class="ident">ptr</span><span class="op">|</span> {
+            <span class="kw">let</span> <span class="ident">ptr</span>: <span class="kw-2">*mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a> <span class="op">=</span> (<span class="kw-2">&amp;mut</span> <span class="kw-2">*</span><a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#415">ptr</a>).<span class="ident">as_mut_ptr</span>();
+            <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#416">ptr</a>.<span class="ident">write</span>(<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#414">cx</a>.<span class="ident">waker</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
         });
     }
 }
@@ -1626,20 +1791,88 @@
 <span class="doccomment">///     }</span>
 <span class="doccomment">/// }</span>
 <span class="doccomment">/// ```</span>
+<span class="attribute">#[<span class="ident">track_caller</span>]</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">channel</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>() -&gt; (<span class="ident">Sender</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <span class="ident">Receiver</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) {
-    <span class="kw">let</span> <span class="ident">inner</span> <span class="op">=</span> <span class="ident">Arc::new</span>(<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#352-375">Inner</a> {
-        <span class="ident">state</span>: <span class="ident">AtomicUsize::new</span>(<span class="ident">State::new</span>().<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1167">as_usize</a>()),
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">tokio_unstable</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tracing&quot;</span>))]</span>
+    <span class="kw">let</span> <span class="ident">resource_span</span> <span class="op">=</span> {
+        <span class="kw">let</span> <span class="ident">location</span> <span class="op">=</span> <span class="ident">std::panic::Location::caller</span>();
+
+        <span class="kw">let</span> <span class="ident">resource_span</span> <span class="op">=</span> <span class="macro">tracing::trace_span!</span>(
+            <span class="string">&quot;runtime.resource&quot;</span>,
+            <span class="ident">concrete_type</span> <span class="op">=</span> <span class="string">&quot;Sender|Receiver&quot;</span>,
+            <span class="ident">kind</span> <span class="op">=</span> <span class="string">&quot;Sync&quot;</span>,
+            <span class="ident">loc</span>.<span class="ident">file</span> <span class="op">=</span> <span class="ident">location</span>.<span class="ident">file</span>(),
+            <span class="ident">loc</span>.<span class="ident">line</span> <span class="op">=</span> <span class="ident">location</span>.<span class="ident">line</span>(),
+            <span class="ident">loc</span>.<span class="ident">col</span> <span class="op">=</span> <span class="ident">location</span>.<span class="ident">column</span>(),
+        );
+
+        <span class="ident">resource_span</span>.<span class="ident">in_scope</span>(<span class="op">|</span><span class="op">|</span> {
+            <span class="macro">tracing::trace!</span>(
+            <span class="ident">target</span>: <span class="string">&quot;runtime::resource::state_update&quot;</span>,
+            <span class="ident">tx_dropped</span> <span class="op">=</span> <span class="bool-val">false</span>,
+            <span class="ident">tx_dropped</span>.<span class="ident">op</span> <span class="op">=</span> <span class="string">&quot;override&quot;</span>,
+            )
+        });
+
+        <span class="ident">resource_span</span>.<span class="ident">in_scope</span>(<span class="op">|</span><span class="op">|</span> {
+            <span class="macro">tracing::trace!</span>(
+            <span class="ident">target</span>: <span class="string">&quot;runtime::resource::state_update&quot;</span>,
+            <span class="ident">rx_dropped</span> <span class="op">=</span> <span class="bool-val">false</span>,
+            <span class="ident">rx_dropped</span>.<span class="ident">op</span> <span class="op">=</span> <span class="string">&quot;override&quot;</span>,
+            )
+        });
+
+        <span class="ident">resource_span</span>.<span class="ident">in_scope</span>(<span class="op">|</span><span class="op">|</span> {
+            <span class="macro">tracing::trace!</span>(
+            <span class="ident">target</span>: <span class="string">&quot;runtime::resource::state_update&quot;</span>,
+            <span class="ident">value_sent</span> <span class="op">=</span> <span class="bool-val">false</span>,
+            <span class="ident">value_sent</span>.<span class="ident">op</span> <span class="op">=</span> <span class="string">&quot;override&quot;</span>,
+            )
+        });
+
+        <span class="ident">resource_span</span>.<span class="ident">in_scope</span>(<span class="op">|</span><span class="op">|</span> {
+            <span class="macro">tracing::trace!</span>(
+            <span class="ident">target</span>: <span class="string">&quot;runtime::resource::state_update&quot;</span>,
+            <span class="ident">value_received</span> <span class="op">=</span> <span class="bool-val">false</span>,
+            <span class="ident">value_received</span>.<span class="ident">op</span> <span class="op">=</span> <span class="string">&quot;override&quot;</span>,
+            )
+        });
+
+        <span class="ident">resource_span</span>
+    };
+
+    <span class="kw">let</span> <span class="ident">inner</span> <span class="op">=</span> <span class="ident">Arc::new</span>(<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#365-388">Inner</a> {
+        <span class="ident">state</span>: <span class="ident">AtomicUsize::new</span>(<span class="ident">State::new</span>().<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1317">as_usize</a>()),
         <span class="ident">value</span>: <span class="ident">UnsafeCell::new</span>(<span class="prelude-val">None</span>),
-        <span class="ident">tx_task</span>: <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#377">Task</a>(<span class="ident">UnsafeCell::new</span>(<span class="ident">MaybeUninit::uninit</span>())),
-        <span class="ident">rx_task</span>: <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#377">Task</a>(<span class="ident">UnsafeCell::new</span>(<span class="ident">MaybeUninit::uninit</span>())),
+        <span class="ident">tx_task</span>: <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#390">Task</a>(<span class="ident">UnsafeCell::new</span>(<span class="ident">MaybeUninit::uninit</span>())),
+        <span class="ident">rx_task</span>: <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#390">Task</a>(<span class="ident">UnsafeCell::new</span>(<span class="ident">MaybeUninit::uninit</span>())),
     });
 
-    <span class="kw">let</span> <span class="ident">tx</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#213-215">Sender</a> {
-        <span class="ident">inner</span>: <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#443">inner</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()),
+    <span class="kw">let</span> <span class="ident">tx</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#218-222">Sender</a> {
+        <span class="ident">inner</span>: <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#505">inner</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()),
+        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">tokio_unstable</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tracing&quot;</span>))]</span>
+        <span class="ident">resource_span</span>: <span class="ident">resource_span</span>.<span class="ident">clone</span>(),
     };
-    <span class="kw">let</span> <span class="ident">rx</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#303-305">Receiver</a> { <span class="ident">inner</span>: <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#443">inner</a>) };
 
-    (<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#450">tx</a>, <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#453">rx</a>)
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">tokio_unstable</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tracing&quot;</span>))]</span>
+    <span class="kw">let</span> <span class="ident">async_op_span</span> <span class="op">=</span> <span class="ident">resource_span</span>
+        .<span class="ident">in_scope</span>(<span class="op">|</span><span class="op">|</span> <span class="macro">tracing::trace_span!</span>(<span class="string">&quot;runtime.resource.async_op&quot;</span>, <span class="ident">source</span> <span class="op">=</span> <span class="string">&quot;Receiver::await&quot;</span>));
+
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">tokio_unstable</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tracing&quot;</span>))]</span>
+    <span class="kw">let</span> <span class="ident">async_op_poll_span</span> <span class="op">=</span>
+        <span class="ident">async_op_span</span>.<span class="ident">in_scope</span>(<span class="op">|</span><span class="op">|</span> <span class="macro">tracing::trace_span!</span>(<span class="string">&quot;runtime.resource.async_op.poll&quot;</span>));
+
+    <span class="kw">let</span> <span class="ident">rx</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#310-318">Receiver</a> {
+        <span class="ident">inner</span>: <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#505">inner</a>),
+        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">tokio_unstable</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tracing&quot;</span>))]</span>
+        <span class="ident">resource_span</span>: <span class="ident">resource_span</span>,
+        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">tokio_unstable</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tracing&quot;</span>))]</span>
+        <span class="ident">async_op_span</span>,
+        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">tokio_unstable</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tracing&quot;</span>))]</span>
+        <span class="ident">async_op_poll_span</span>,
+    };
+
+    (<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#512">tx</a>, <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#526">rx</a>)
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">Sender</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
@@ -1684,9 +1917,9 @@
     <span class="doccomment">/// }</span>
     <span class="doccomment">/// ```</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">send</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">t</span>: <span class="ident">T</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">T</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">inner</span> <span class="op">=</span> <a class="self" href="../../../src/tokio/sync/oneshot.rs.html#499">self</a>.<span class="ident">inner</span>.<span class="ident">take</span>().<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="ident">inner</span> <span class="op">=</span> <a class="self" href="../../../src/tokio/sync/oneshot.rs.html#580">self</a>.<span class="ident">inner</span>.<span class="ident">take</span>().<span class="ident">unwrap</span>();
 
-        <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#500">inner</a>.<span class="ident">value</span>.<a class="ident" href="../../../src/tokio/loom/std/unsafe_cell.rs.html#13">with_mut</a>(<span class="op">|</span><span class="ident">ptr</span><span class="op">|</span> <span class="kw">unsafe</span> {
+        <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#581">inner</a>.<span class="ident">value</span>.<a class="ident" href="../../../src/tokio/loom/std/unsafe_cell.rs.html#13">with_mut</a>(<span class="op">|</span><span class="ident">ptr</span><span class="op">|</span> <span class="kw">unsafe</span> {
             <span class="comment">// SAFETY: The receiver will not access the `UnsafeCell` unless the</span>
             <span class="comment">// channel has been marked as &quot;complete&quot; (the `VALUE_SENT` state bit</span>
             <span class="comment">// is set).</span>
@@ -1694,10 +1927,10 @@
             <span class="comment">// calling this method consumes `self`. Therefore, if it was possible to</span>
             <span class="comment">// call this method, we know that the `VALUE_SENT` bit is unset, and</span>
             <span class="comment">// the receiver is not currently accessing the `UnsafeCell`.</span>
-            <span class="kw-2">*</span><a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#502">ptr</a> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#499">t</a>);
+            <span class="kw-2">*</span><a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#583">ptr</a> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#580">t</a>);
         });
 
-        <span class="kw">if</span> <span class="op">!</span><a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#500">inner</a>.<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#915">complete</a>() {
+        <span class="kw">if</span> <span class="op">!</span><a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#581">inner</a>.<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1065">complete</a>() {
             <span class="kw">unsafe</span> {
                 <span class="comment">// SAFETY: The receiver will not access the `UnsafeCell` unless</span>
                 <span class="comment">// the channel has been marked as &quot;complete&quot;. Calling</span>
@@ -1705,9 +1938,18 @@
                 <span class="comment">// if it is not set. Thus, if `complete()` returned false, it is</span>
                 <span class="comment">// safe for us to access the value, because we know that the</span>
                 <span class="comment">// receiver will not.</span>
-                <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#500">inner</a>.<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1020">consume_value</a>().<span class="ident">unwrap</span>());
+                <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#581">inner</a>.<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1170">consume_value</a>().<span class="ident">unwrap</span>());
             }
         }
+
+        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">tokio_unstable</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tracing&quot;</span>))]</span>
+        <span class="self">self</span>.<span class="ident">resource_span</span>.<span class="ident">in_scope</span>(<span class="op">|</span><span class="op">|</span> {
+            <span class="macro">tracing::trace!</span>(
+            <span class="ident">target</span>: <span class="string">&quot;runtime::resource::state_update&quot;</span>,
+            <span class="ident">value_sent</span> <span class="op">=</span> <span class="bool-val">true</span>,
+            <span class="ident">value_sent</span>.<span class="ident">op</span> <span class="op">=</span> <span class="string">&quot;override&quot;</span>,
+            )
+        });
 
         <span class="prelude-val">Ok</span>(())
     }
@@ -1782,7 +2024,20 @@
     <span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">closed</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
         <span class="kw">use</span> <a class="ident" href="../../../src/tokio/future/poll_fn.rs.html#18-20"><span class="kw">crate</span>::future::poll_fn</a>;
 
-        <a class="ident" href="../../../src/tokio/future/poll_fn.rs.html#18-20">poll_fn</a>(<span class="op">|</span><span class="ident">cx</span><span class="op">|</span> <a class="self" href="../../../src/tokio/sync/oneshot.rs.html#595">self</a>.<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#675">poll_closed</a>(<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#598">cx</a>)).<span class="kw">await</span>
+        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">tokio_unstable</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tracing&quot;</span>))]</span>
+        <span class="kw">let</span> <span class="ident">resource_span</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">resource_span</span>.<span class="ident">clone</span>();
+        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">tokio_unstable</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tracing&quot;</span>))]</span>
+        <span class="kw">let</span> <span class="ident">closed</span> <span class="op">=</span> <span class="ident">trace::async_op</span>(
+            <span class="op">|</span><span class="op">|</span> <span class="ident">poll_fn</span>(<span class="op">|</span><span class="ident">cx</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">poll_closed</span>(<span class="ident">cx</span>)),
+            <span class="ident">resource_span</span>,
+            <span class="string">&quot;Sender::closed&quot;</span>,
+            <span class="string">&quot;poll_closed&quot;</span>,
+            <span class="bool-val">false</span>,
+        );
+        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">all</span>(<span class="ident">tokio_unstable</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tracing&quot;</span>)))]</span>
+        <span class="kw">let</span> <span class="ident">closed</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/future/poll_fn.rs.html#18-20">poll_fn</a>(<span class="op">|</span><span class="ident">cx</span><span class="op">|</span> <a class="self" href="../../../src/tokio/sync/oneshot.rs.html#685">self</a>.<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#778">poll_closed</a>(<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#699">cx</a>));
+
+        <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#699">closed</a>.<span class="kw">await</span>
     }
 
     <span class="doccomment">/// Returns `true` if the associated [`Receiver`] handle has been dropped.</span>
@@ -1813,10 +2068,10 @@
     <span class="doccomment">/// }</span>
     <span class="doccomment">/// ```</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_closed</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">let</span> <span class="ident">inner</span> <span class="op">=</span> <a class="self" href="../../../src/tokio/sync/oneshot.rs.html#628">self</a>.<span class="ident">inner</span>.<span class="ident">as_ref</span>().<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="ident">inner</span> <span class="op">=</span> <a class="self" href="../../../src/tokio/sync/oneshot.rs.html#731">self</a>.<span class="ident">inner</span>.<span class="ident">as_ref</span>().<span class="ident">unwrap</span>();
 
-        <span class="kw">let</span> <span class="ident">state</span> <span class="op">=</span> <span class="ident">State::load</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#629">inner</a>.<span class="ident">state</span>, <span class="ident">Acquire</span>);
-        <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#631">state</a>.<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1142">is_closed</a>()
+        <span class="kw">let</span> <span class="ident">state</span> <span class="op">=</span> <span class="ident">State::load</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#732">inner</a>.<span class="ident">state</span>, <span class="ident">Acquire</span>);
+        <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#734">state</a>.<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1292">is_closed</a>()
     }
 
     <span class="doccomment">/// Checks whether the oneshot channel has been closed, and if not, schedules the</span>
@@ -1861,45 +2116,45 @@
     <span class="doccomment">/// ```</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">poll_closed</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="comment">// Keep track of task budget</span>
-        <span class="kw">let</span> <span class="ident">coop</span> <span class="op">=</span> <span class="macro">ready!</span>(<a class="ident" href="../../../src/tokio/coop.rs.html#173"><span class="kw">crate</span>::coop::poll_proceed</a>(<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#675">cx</a>));
+        <span class="kw">let</span> <span class="ident">coop</span> <span class="op">=</span> <span class="macro">ready!</span>(<a class="ident" href="../../../src/tokio/coop.rs.html#169"><span class="kw">crate</span>::coop::poll_proceed</a>(<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#778">cx</a>));
 
-        <span class="kw">let</span> <span class="ident">inner</span> <span class="op">=</span> <a class="self" href="../../../src/tokio/sync/oneshot.rs.html#675">self</a>.<span class="ident">inner</span>.<span class="ident">as_ref</span>().<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="ident">inner</span> <span class="op">=</span> <a class="self" href="../../../src/tokio/sync/oneshot.rs.html#778">self</a>.<span class="ident">inner</span>.<span class="ident">as_ref</span>().<span class="ident">unwrap</span>();
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">state</span> <span class="op">=</span> <span class="ident">State::load</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#679">inner</a>.<span class="ident">state</span>, <span class="ident">Acquire</span>);
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">state</span> <span class="op">=</span> <span class="ident">State::load</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#782">inner</a>.<span class="ident">state</span>, <span class="ident">Acquire</span>);
 
-        <span class="kw">if</span> <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#681">state</a>.<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1142">is_closed</a>() {
-            <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#677">coop</a>.<a class="ident" href="../../../src/tokio/coop.rs.html#142">made_progress</a>();
+        <span class="kw">if</span> <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#784">state</a>.<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1292">is_closed</a>() {
+            <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#780">coop</a>.<a class="ident" href="../../../src/tokio/coop.rs.html#138">made_progress</a>();
             <span class="kw">return</span> <span class="ident">Poll::Ready</span>(());
         }
 
-        <span class="kw">if</span> <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#681">state</a>.<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1163">is_tx_task_set</a>() {
-            <span class="kw">let</span> <span class="ident">will_notify</span> <span class="op">=</span> <span class="kw">unsafe</span> { <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#679">inner</a>.<span class="ident">tx_task</span>.<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#380">will_wake</a>(<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#675">cx</a>) };
+        <span class="kw">if</span> <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#784">state</a>.<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1313">is_tx_task_set</a>() {
+            <span class="kw">let</span> <span class="ident">will_notify</span> <span class="op">=</span> <span class="kw">unsafe</span> { <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#782">inner</a>.<span class="ident">tx_task</span>.<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#393">will_wake</a>(<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#778">cx</a>) };
 
-            <span class="kw">if</span> <span class="op">!</span><a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#689">will_notify</a> {
-                <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#681">state</a> <span class="op">=</span> <span class="ident">State::unset_tx_task</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#679">inner</a>.<span class="ident">state</span>);
+            <span class="kw">if</span> <span class="op">!</span><a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#792">will_notify</a> {
+                <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#784">state</a> <span class="op">=</span> <span class="ident">State::unset_tx_task</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#782">inner</a>.<span class="ident">state</span>);
 
-                <span class="kw">if</span> <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#681">state</a>.<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1142">is_closed</a>() {
+                <span class="kw">if</span> <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#784">state</a>.<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1292">is_closed</a>() {
                     <span class="comment">// Set the flag again so that the waker is released in drop</span>
-                    <span class="ident">State::set_tx_task</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#679">inner</a>.<span class="ident">state</span>);
-                    <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#677">coop</a>.<a class="ident" href="../../../src/tokio/coop.rs.html#142">made_progress</a>();
+                    <span class="ident">State::set_tx_task</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#782">inner</a>.<span class="ident">state</span>);
+                    <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#780">coop</a>.<a class="ident" href="../../../src/tokio/coop.rs.html#138">made_progress</a>();
                     <span class="kw">return</span> <span class="ident">Ready</span>(());
                 } <span class="kw">else</span> {
-                    <span class="kw">unsafe</span> { <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#679">inner</a>.<span class="ident">tx_task</span>.<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#394">drop_task</a>() };
+                    <span class="kw">unsafe</span> { <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#782">inner</a>.<span class="ident">tx_task</span>.<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#407">drop_task</a>() };
                 }
             }
         }
 
-        <span class="kw">if</span> <span class="op">!</span><a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#681">state</a>.<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1163">is_tx_task_set</a>() {
+        <span class="kw">if</span> <span class="op">!</span><a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#784">state</a>.<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1313">is_tx_task_set</a>() {
             <span class="comment">// Attempt to set the task</span>
             <span class="kw">unsafe</span> {
-                <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#679">inner</a>.<span class="ident">tx_task</span>.<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#401">set_task</a>(<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#675">cx</a>);
+                <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#782">inner</a>.<span class="ident">tx_task</span>.<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#414">set_task</a>(<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#778">cx</a>);
             }
 
             <span class="comment">// Update the state</span>
-            <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#681">state</a> <span class="op">=</span> <span class="ident">State::set_tx_task</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#679">inner</a>.<span class="ident">state</span>);
+            <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#784">state</a> <span class="op">=</span> <span class="ident">State::set_tx_task</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#782">inner</a>.<span class="ident">state</span>);
 
-            <span class="kw">if</span> <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#681">state</a>.<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1142">is_closed</a>() {
-                <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#677">coop</a>.<a class="ident" href="../../../src/tokio/coop.rs.html#142">made_progress</a>();
+            <span class="kw">if</span> <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#784">state</a>.<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1292">is_closed</a>() {
+                <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#780">coop</a>.<a class="ident" href="../../../src/tokio/coop.rs.html#138">made_progress</a>();
                 <span class="kw">return</span> <span class="ident">Ready</span>(());
             }
         }
@@ -1910,8 +2165,16 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for</span> <span class="ident">Sender</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">inner</span>) <span class="op">=</span> <a class="self" href="../../../src/tokio/sync/oneshot.rs.html#725">self</a>.<span class="ident">inner</span>.<span class="ident">as_ref</span>() {
-            <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#726">inner</a>.<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#915">complete</a>();
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">inner</span>) <span class="op">=</span> <a class="self" href="../../../src/tokio/sync/oneshot.rs.html#828">self</a>.<span class="ident">inner</span>.<span class="ident">as_ref</span>() {
+            <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#829">inner</a>.<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1065">complete</a>();
+            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">tokio_unstable</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tracing&quot;</span>))]</span>
+            <span class="self">self</span>.<span class="ident">resource_span</span>.<span class="ident">in_scope</span>(<span class="op">|</span><span class="op">|</span> {
+                <span class="macro">tracing::trace!</span>(
+                <span class="ident">target</span>: <span class="string">&quot;runtime::resource::state_update&quot;</span>,
+                <span class="ident">tx_dropped</span> <span class="op">=</span> <span class="bool-val">true</span>,
+                <span class="ident">tx_dropped</span>.<span class="ident">op</span> <span class="op">=</span> <span class="string">&quot;override&quot;</span>,
+                )
+            });
         }
     }
 }
@@ -1977,8 +2240,16 @@
     <span class="doccomment">/// }</span>
     <span class="doccomment">/// ```</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">close</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">inner</span>) <span class="op">=</span> <a class="self" href="../../../src/tokio/sync/oneshot.rs.html#792">self</a>.<span class="ident">inner</span>.<span class="ident">as_ref</span>() {
-            <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#793">inner</a>.<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1001">close</a>();
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">inner</span>) <span class="op">=</span> <a class="self" href="../../../src/tokio/sync/oneshot.rs.html#903">self</a>.<span class="ident">inner</span>.<span class="ident">as_ref</span>() {
+            <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#904">inner</a>.<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1151">close</a>();
+            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">tokio_unstable</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tracing&quot;</span>))]</span>
+            <span class="self">self</span>.<span class="ident">resource_span</span>.<span class="ident">in_scope</span>(<span class="op">|</span><span class="op">|</span> {
+                <span class="macro">tracing::trace!</span>(
+                <span class="ident">target</span>: <span class="string">&quot;runtime::resource::state_update&quot;</span>,
+                <span class="ident">rx_dropped</span> <span class="op">=</span> <span class="bool-val">true</span>,
+                <span class="ident">rx_dropped</span>.<span class="ident">op</span> <span class="op">=</span> <span class="string">&quot;override&quot;</span>,
+                )
+            });
         }
     }
 
@@ -2045,135 +2316,166 @@
     <span class="doccomment">///     }</span>
     <span class="doccomment">/// }</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">try_recv</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span>, <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#318-324">TryRecvError</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">inner</span>) <span class="op">=</span> <a class="self" href="../../../src/tokio/sync/oneshot.rs.html#861">self</a>.<span class="ident">inner</span>.<span class="ident">as_ref</span>() {
-            <span class="kw">let</span> <span class="ident">state</span> <span class="op">=</span> <span class="ident">State::load</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#862">inner</a>.<span class="ident">state</span>, <span class="ident">Acquire</span>);
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">try_recv</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span>, <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#331-337">TryRecvError</a><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">inner</span>) <span class="op">=</span> <a class="self" href="../../../src/tokio/sync/oneshot.rs.html#980">self</a>.<span class="ident">inner</span>.<span class="ident">as_ref</span>() {
+            <span class="kw">let</span> <span class="ident">state</span> <span class="op">=</span> <span class="ident">State::load</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#981">inner</a>.<span class="ident">state</span>, <span class="ident">Acquire</span>);
 
-            <span class="kw">if</span> <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#863">state</a>.<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1089">is_complete</a>() {
+            <span class="kw">if</span> <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#982">state</a>.<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1239">is_complete</a>() {
                 <span class="comment">// SAFETY: If `state.is_complete()` returns true, then the</span>
                 <span class="comment">// `VALUE_SENT` bit has been set and the sender side of the</span>
                 <span class="comment">// channel will no longer attempt to access the inner</span>
                 <span class="comment">// `UnsafeCell`. Therefore, it is now safe for us to access the</span>
                 <span class="comment">// cell.</span>
-                <span class="kw">match</span> <span class="kw">unsafe</span> { <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#862">inner</a>.<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1020">consume_value</a>() } {
-                    <span class="prelude-val">Some</span>(<span class="ident">value</span>) =&gt; <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#872">value</a>),
-                    <span class="prelude-val">None</span> =&gt; <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#323">TryRecvError::Closed</a>),
+                <span class="kw">match</span> <span class="kw">unsafe</span> { <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#981">inner</a>.<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1170">consume_value</a>() } {
+                    <span class="prelude-val">Some</span>(<span class="ident">value</span>) =&gt; {
+                        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">tokio_unstable</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tracing&quot;</span>))]</span>
+                        <span class="self">self</span>.<span class="ident">resource_span</span>.<span class="ident">in_scope</span>(<span class="op">|</span><span class="op">|</span> {
+                            <span class="macro">tracing::trace!</span>(
+                            <span class="ident">target</span>: <span class="string">&quot;runtime::resource::state_update&quot;</span>,
+                            <span class="ident">value_received</span> <span class="op">=</span> <span class="bool-val">true</span>,
+                            <span class="ident">value_received</span>.<span class="ident">op</span> <span class="op">=</span> <span class="string">&quot;override&quot;</span>,
+                            )
+                        });
+                        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#991">value</a>)
+                    }
+                    <span class="prelude-val">None</span> =&gt; <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#336">TryRecvError::Closed</a>),
                 }
-            } <span class="kw">else</span> <span class="kw">if</span> <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#863">state</a>.<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1142">is_closed</a>() {
-                <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#323">TryRecvError::Closed</a>)
+            } <span class="kw">else</span> <span class="kw">if</span> <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#982">state</a>.<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1292">is_closed</a>() {
+                <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#336">TryRecvError::Closed</a>)
             } <span class="kw">else</span> {
                 <span class="comment">// Not ready, this does not clear `inner`</span>
-                <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#320">TryRecvError::Empty</a>);
+                <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#333">TryRecvError::Empty</a>);
             }
         } <span class="kw">else</span> {
-            <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#323">TryRecvError::Closed</a>)
+            <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#336">TryRecvError::Closed</a>)
         };
 
-        <a class="self" href="../../../src/tokio/sync/oneshot.rs.html#861">self</a>.<span class="ident">inner</span> <span class="op">=</span> <span class="prelude-val">None</span>;
-        <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#862">result</a>
+        <a class="self" href="../../../src/tokio/sync/oneshot.rs.html#980">self</a>.<span class="ident">inner</span> <span class="op">=</span> <span class="prelude-val">None</span>;
+        <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#981">result</a>
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for</span> <span class="ident">Receiver</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">inner</span>) <span class="op">=</span> <a class="self" href="../../../src/tokio/sync/oneshot.rs.html#891">self</a>.<span class="ident">inner</span>.<span class="ident">as_ref</span>() {
-            <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#892">inner</a>.<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1001">close</a>();
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">inner</span>) <span class="op">=</span> <a class="self" href="../../../src/tokio/sync/oneshot.rs.html#1020">self</a>.<span class="ident">inner</span>.<span class="ident">as_ref</span>() {
+            <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1021">inner</a>.<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1151">close</a>();
+            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">tokio_unstable</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tracing&quot;</span>))]</span>
+            <span class="self">self</span>.<span class="ident">resource_span</span>.<span class="ident">in_scope</span>(<span class="op">|</span><span class="op">|</span> {
+                <span class="macro">tracing::trace!</span>(
+                <span class="ident">target</span>: <span class="string">&quot;runtime::resource::state_update&quot;</span>,
+                <span class="ident">rx_dropped</span> <span class="op">=</span> <span class="bool-val">true</span>,
+                <span class="ident">rx_dropped</span>.<span class="ident">op</span> <span class="op">=</span> <span class="string">&quot;override&quot;</span>,
+                )
+            });
         }
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a> <span class="kw">for</span> <span class="ident">Receiver</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span>, <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#314">RecvError</a><span class="op">&gt;</span>;
+    <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span>, <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#327">RecvError</a><span class="op">&gt;</span>;
 
     <span class="kw">fn</span> <span class="ident">poll</span>(<span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Output</span><span class="op">&gt;</span> {
         <span class="comment">// If `inner` is `None`, then `poll()` has already completed.</span>
-        <span class="kw">let</span> <span class="ident">ret</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">inner</span>) <span class="op">=</span> <a class="self" href="../../../src/tokio/sync/oneshot.rs.html#901">self</a>.<span class="ident">as_ref</span>().<span class="ident">get_ref</span>().<span class="ident">inner</span>.<span class="ident">as_ref</span>() {
-            <span class="macro">ready!</span>(<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#903">inner</a>.<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#932">poll_recv</a>(<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#901">cx</a>))<span class="question-mark">?</span>
+        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">tokio_unstable</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tracing&quot;</span>))]</span>
+        <span class="kw">let</span> <span class="ident">_res_span</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">resource_span</span>.<span class="ident">clone</span>().<span class="ident">entered</span>();
+        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">tokio_unstable</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tracing&quot;</span>))]</span>
+        <span class="kw">let</span> <span class="ident">_ao_span</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">async_op_span</span>.<span class="ident">clone</span>().<span class="ident">entered</span>();
+        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">tokio_unstable</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tracing&quot;</span>))]</span>
+        <span class="kw">let</span> <span class="ident">_ao_poll_span</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">async_op_poll_span</span>.<span class="ident">clone</span>().<span class="ident">entered</span>();
+
+        <span class="kw">let</span> <span class="ident">ret</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">inner</span>) <span class="op">=</span> <a class="self" href="../../../src/tokio/sync/oneshot.rs.html#1038">self</a>.<span class="ident">as_ref</span>().<span class="ident">get_ref</span>().<span class="ident">inner</span>.<span class="ident">as_ref</span>() {
+            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">tokio_unstable</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tracing&quot;</span>))]</span>
+            <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="macro">ready!</span>(<span class="macro">trace_poll_op!</span>(<span class="string">&quot;poll_recv&quot;</span>, <span class="ident">inner</span>.<span class="ident">poll_recv</span>(<span class="ident">cx</span>)))<span class="question-mark">?</span>;
+
+            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">not</span>(<span class="ident">tokio_unstable</span>), <span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tracing&quot;</span>)))]</span>
+            <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="macro">ready!</span>(<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1047">inner</a>.<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1082">poll_recv</a>(<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1038">cx</a>))<span class="question-mark">?</span>;
+
+            <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1052">res</a>
         } <span class="kw">else</span> {
             <span class="macro">panic!</span>(<span class="string">&quot;called after complete&quot;</span>);
         };
 
-        <a class="self" href="../../../src/tokio/sync/oneshot.rs.html#901">self</a>.<span class="ident">inner</span> <span class="op">=</span> <span class="prelude-val">None</span>;
-        <span class="ident">Ready</span>(<span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#903">ret</a>))
+        <a class="self" href="../../../src/tokio/sync/oneshot.rs.html#1038">self</a>.<span class="ident">inner</span> <span class="op">=</span> <span class="prelude-val">None</span>;
+        <span class="ident">Ready</span>(<span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1047">ret</a>))
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">Inner</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">complete</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">let</span> <span class="ident">prev</span> <span class="op">=</span> <span class="ident">State::set_complete</span>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/tokio/sync/oneshot.rs.html#915">self</a>.<span class="ident">state</span>);
+        <span class="kw">let</span> <span class="ident">prev</span> <span class="op">=</span> <span class="ident">State::set_complete</span>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/tokio/sync/oneshot.rs.html#1065">self</a>.<span class="ident">state</span>);
 
-        <span class="kw">if</span> <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#916">prev</a>.<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1142">is_closed</a>() {
+        <span class="kw">if</span> <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1066">prev</a>.<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1292">is_closed</a>() {
             <span class="kw">return</span> <span class="bool-val">false</span>;
         }
 
-        <span class="kw">if</span> <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#916">prev</a>.<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1128">is_rx_task_set</a>() {
+        <span class="kw">if</span> <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1066">prev</a>.<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1278">is_rx_task_set</a>() {
             <span class="comment">// TODO: Consume waker?</span>
             <span class="kw">unsafe</span> {
-                <a class="self" href="../../../src/tokio/sync/oneshot.rs.html#915">self</a>.<span class="ident">rx_task</span>.<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#384-386">with_task</a>(<span class="ident">Waker::wake_by_ref</span>);
+                <a class="self" href="../../../src/tokio/sync/oneshot.rs.html#1065">self</a>.<span class="ident">rx_task</span>.<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#397-399">with_task</a>(<span class="ident">Waker::wake_by_ref</span>);
             }
         }
 
         <span class="bool-val">true</span>
     }
 
-    <span class="kw">fn</span> <span class="ident">poll_recv</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span>, <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#314">RecvError</a><span class="op">&gt;</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">poll_recv</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span>, <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#327">RecvError</a><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="comment">// Keep track of task budget</span>
-        <span class="kw">let</span> <span class="ident">coop</span> <span class="op">=</span> <span class="macro">ready!</span>(<a class="ident" href="../../../src/tokio/coop.rs.html#173"><span class="kw">crate</span>::coop::poll_proceed</a>(<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#932">cx</a>));
+        <span class="kw">let</span> <span class="ident">coop</span> <span class="op">=</span> <span class="macro">ready!</span>(<a class="ident" href="../../../src/tokio/coop.rs.html#169"><span class="kw">crate</span>::coop::poll_proceed</a>(<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1082">cx</a>));
 
         <span class="comment">// Load the state</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">state</span> <span class="op">=</span> <span class="ident">State::load</span>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/tokio/sync/oneshot.rs.html#932">self</a>.<span class="ident">state</span>, <span class="ident">Acquire</span>);
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">state</span> <span class="op">=</span> <span class="ident">State::load</span>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/tokio/sync/oneshot.rs.html#1082">self</a>.<span class="ident">state</span>, <span class="ident">Acquire</span>);
 
-        <span class="kw">if</span> <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#937">state</a>.<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1089">is_complete</a>() {
-            <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#934">coop</a>.<a class="ident" href="../../../src/tokio/coop.rs.html#142">made_progress</a>();
-            <span class="kw">match</span> <span class="kw">unsafe</span> { <a class="self" href="../../../src/tokio/sync/oneshot.rs.html#932">self</a>.<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1020">consume_value</a>() } {
-                <span class="prelude-val">Some</span>(<span class="ident">value</span>) =&gt; <span class="ident">Ready</span>(<span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#942">value</a>)),
-                <span class="prelude-val">None</span> =&gt; <span class="ident">Ready</span>(<span class="prelude-val">Err</span>(<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#314">RecvError</a>(()))),
+        <span class="kw">if</span> <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1087">state</a>.<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1239">is_complete</a>() {
+            <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1084">coop</a>.<a class="ident" href="../../../src/tokio/coop.rs.html#138">made_progress</a>();
+            <span class="kw">match</span> <span class="kw">unsafe</span> { <a class="self" href="../../../src/tokio/sync/oneshot.rs.html#1082">self</a>.<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1170">consume_value</a>() } {
+                <span class="prelude-val">Some</span>(<span class="ident">value</span>) =&gt; <span class="ident">Ready</span>(<span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1092">value</a>)),
+                <span class="prelude-val">None</span> =&gt; <span class="ident">Ready</span>(<span class="prelude-val">Err</span>(<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#327">RecvError</a>(()))),
             }
-        } <span class="kw">else</span> <span class="kw">if</span> <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#937">state</a>.<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1142">is_closed</a>() {
-            <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#934">coop</a>.<a class="ident" href="../../../src/tokio/coop.rs.html#142">made_progress</a>();
-            <span class="ident">Ready</span>(<span class="prelude-val">Err</span>(<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#314">RecvError</a>(())))
+        } <span class="kw">else</span> <span class="kw">if</span> <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1087">state</a>.<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1292">is_closed</a>() {
+            <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1084">coop</a>.<a class="ident" href="../../../src/tokio/coop.rs.html#138">made_progress</a>();
+            <span class="ident">Ready</span>(<span class="prelude-val">Err</span>(<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#327">RecvError</a>(())))
         } <span class="kw">else</span> {
-            <span class="kw">if</span> <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#937">state</a>.<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1128">is_rx_task_set</a>() {
-                <span class="kw">let</span> <span class="ident">will_notify</span> <span class="op">=</span> <span class="kw">unsafe</span> { <a class="self" href="../../../src/tokio/sync/oneshot.rs.html#932">self</a>.<span class="ident">rx_task</span>.<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#380">will_wake</a>(<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#932">cx</a>) };
+            <span class="kw">if</span> <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1087">state</a>.<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1278">is_rx_task_set</a>() {
+                <span class="kw">let</span> <span class="ident">will_notify</span> <span class="op">=</span> <span class="kw">unsafe</span> { <a class="self" href="../../../src/tokio/sync/oneshot.rs.html#1082">self</a>.<span class="ident">rx_task</span>.<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#393">will_wake</a>(<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1082">cx</a>) };
 
                 <span class="comment">// Check if the task is still the same</span>
-                <span class="kw">if</span> <span class="op">!</span><a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#950">will_notify</a> {
+                <span class="kw">if</span> <span class="op">!</span><a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1100">will_notify</a> {
                     <span class="comment">// Unset the task</span>
-                    <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#937">state</a> <span class="op">=</span> <span class="ident">State::unset_rx_task</span>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/tokio/sync/oneshot.rs.html#932">self</a>.<span class="ident">state</span>);
-                    <span class="kw">if</span> <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#937">state</a>.<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1089">is_complete</a>() {
+                    <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1087">state</a> <span class="op">=</span> <span class="ident">State::unset_rx_task</span>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/tokio/sync/oneshot.rs.html#1082">self</a>.<span class="ident">state</span>);
+                    <span class="kw">if</span> <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1087">state</a>.<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1239">is_complete</a>() {
                         <span class="comment">// Set the flag again so that the waker is released in drop</span>
-                        <span class="ident">State::set_rx_task</span>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/tokio/sync/oneshot.rs.html#932">self</a>.<span class="ident">state</span>);
+                        <span class="ident">State::set_rx_task</span>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/tokio/sync/oneshot.rs.html#1082">self</a>.<span class="ident">state</span>);
 
-                        <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#934">coop</a>.<a class="ident" href="../../../src/tokio/coop.rs.html#142">made_progress</a>();
+                        <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1084">coop</a>.<a class="ident" href="../../../src/tokio/coop.rs.html#138">made_progress</a>();
                         <span class="comment">// SAFETY: If `state.is_complete()` returns true, then the</span>
                         <span class="comment">// `VALUE_SENT` bit has been set and the sender side of the</span>
                         <span class="comment">// channel will no longer attempt to access the inner</span>
                         <span class="comment">// `UnsafeCell`. Therefore, it is now safe for us to access the</span>
                         <span class="comment">// cell.</span>
-                        <span class="kw">return</span> <span class="kw">match</span> <span class="kw">unsafe</span> { <a class="self" href="../../../src/tokio/sync/oneshot.rs.html#932">self</a>.<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1020">consume_value</a>() } {
-                            <span class="prelude-val">Some</span>(<span class="ident">value</span>) =&gt; <span class="ident">Ready</span>(<span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#967">value</a>)),
-                            <span class="prelude-val">None</span> =&gt; <span class="ident">Ready</span>(<span class="prelude-val">Err</span>(<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#314">RecvError</a>(()))),
+                        <span class="kw">return</span> <span class="kw">match</span> <span class="kw">unsafe</span> { <a class="self" href="../../../src/tokio/sync/oneshot.rs.html#1082">self</a>.<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1170">consume_value</a>() } {
+                            <span class="prelude-val">Some</span>(<span class="ident">value</span>) =&gt; <span class="ident">Ready</span>(<span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1117">value</a>)),
+                            <span class="prelude-val">None</span> =&gt; <span class="ident">Ready</span>(<span class="prelude-val">Err</span>(<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#327">RecvError</a>(()))),
                         };
                     } <span class="kw">else</span> {
-                        <span class="kw">unsafe</span> { <a class="self" href="../../../src/tokio/sync/oneshot.rs.html#932">self</a>.<span class="ident">rx_task</span>.<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#394">drop_task</a>() };
+                        <span class="kw">unsafe</span> { <a class="self" href="../../../src/tokio/sync/oneshot.rs.html#1082">self</a>.<span class="ident">rx_task</span>.<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#407">drop_task</a>() };
                     }
                 }
             }
 
-            <span class="kw">if</span> <span class="op">!</span><a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#937">state</a>.<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1128">is_rx_task_set</a>() {
+            <span class="kw">if</span> <span class="op">!</span><a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1087">state</a>.<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1278">is_rx_task_set</a>() {
                 <span class="comment">// Attempt to set the task</span>
                 <span class="kw">unsafe</span> {
-                    <a class="self" href="../../../src/tokio/sync/oneshot.rs.html#932">self</a>.<span class="ident">rx_task</span>.<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#401">set_task</a>(<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#932">cx</a>);
+                    <a class="self" href="../../../src/tokio/sync/oneshot.rs.html#1082">self</a>.<span class="ident">rx_task</span>.<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#414">set_task</a>(<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1082">cx</a>);
                 }
 
                 <span class="comment">// Update the state</span>
-                <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#937">state</a> <span class="op">=</span> <span class="ident">State::set_rx_task</span>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/tokio/sync/oneshot.rs.html#932">self</a>.<span class="ident">state</span>);
+                <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1087">state</a> <span class="op">=</span> <span class="ident">State::set_rx_task</span>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/tokio/sync/oneshot.rs.html#1082">self</a>.<span class="ident">state</span>);
 
-                <span class="kw">if</span> <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#937">state</a>.<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1089">is_complete</a>() {
-                    <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#934">coop</a>.<a class="ident" href="../../../src/tokio/coop.rs.html#142">made_progress</a>();
-                    <span class="kw">match</span> <span class="kw">unsafe</span> { <a class="self" href="../../../src/tokio/sync/oneshot.rs.html#932">self</a>.<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1020">consume_value</a>() } {
-                        <span class="prelude-val">Some</span>(<span class="ident">value</span>) =&gt; <span class="ident">Ready</span>(<span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#988">value</a>)),
-                        <span class="prelude-val">None</span> =&gt; <span class="ident">Ready</span>(<span class="prelude-val">Err</span>(<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#314">RecvError</a>(()))),
+                <span class="kw">if</span> <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1087">state</a>.<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1239">is_complete</a>() {
+                    <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1084">coop</a>.<a class="ident" href="../../../src/tokio/coop.rs.html#138">made_progress</a>();
+                    <span class="kw">match</span> <span class="kw">unsafe</span> { <a class="self" href="../../../src/tokio/sync/oneshot.rs.html#1082">self</a>.<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1170">consume_value</a>() } {
+                        <span class="prelude-val">Some</span>(<span class="ident">value</span>) =&gt; <span class="ident">Ready</span>(<span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1138">value</a>)),
+                        <span class="prelude-val">None</span> =&gt; <span class="ident">Ready</span>(<span class="prelude-val">Err</span>(<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#327">RecvError</a>(()))),
                     }
                 } <span class="kw">else</span> {
                     <span class="ident">Pending</span>
@@ -2186,11 +2488,11 @@
 
     <span class="doccomment">/// Called by `Receiver` to indicate that the value will never be received.</span>
     <span class="kw">fn</span> <span class="ident">close</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-        <span class="kw">let</span> <span class="ident">prev</span> <span class="op">=</span> <span class="ident">State::set_closed</span>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/tokio/sync/oneshot.rs.html#1001">self</a>.<span class="ident">state</span>);
+        <span class="kw">let</span> <span class="ident">prev</span> <span class="op">=</span> <span class="ident">State::set_closed</span>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/tokio/sync/oneshot.rs.html#1151">self</a>.<span class="ident">state</span>);
 
-        <span class="kw">if</span> <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1002">prev</a>.<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1163">is_tx_task_set</a>() <span class="op">&amp;&amp;</span> <span class="op">!</span><a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1002">prev</a>.<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1089">is_complete</a>() {
+        <span class="kw">if</span> <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1152">prev</a>.<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1313">is_tx_task_set</a>() <span class="op">&amp;&amp;</span> <span class="op">!</span><a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1152">prev</a>.<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1239">is_complete</a>() {
             <span class="kw">unsafe</span> {
-                <a class="self" href="../../../src/tokio/sync/oneshot.rs.html#1001">self</a>.<span class="ident">tx_task</span>.<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#384-386">with_task</a>(<span class="ident">Waker::wake_by_ref</span>);
+                <a class="self" href="../../../src/tokio/sync/oneshot.rs.html#1151">self</a>.<span class="ident">tx_task</span>.<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#397-399">with_task</a>(<span class="ident">Waker::wake_by_ref</span>);
             }
         }
     }
@@ -2205,7 +2507,7 @@
     <span class="doccomment">/// If `VALUE_SENT` is not set, then only the sender may call this method;</span>
     <span class="doccomment">/// if it is set, then only the receiver may call this method.</span>
     <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">consume_value</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-        <a class="self" href="../../../src/tokio/sync/oneshot.rs.html#1020">self</a>.<span class="ident">value</span>.<a class="ident" href="../../../src/tokio/loom/std/unsafe_cell.rs.html#13">with_mut</a>(<span class="op">|</span><span class="ident">ptr</span><span class="op">|</span> (<span class="kw-2">*</span><a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1021">ptr</a>).<span class="ident">take</span>())
+        <a class="self" href="../../../src/tokio/sync/oneshot.rs.html#1170">self</a>.<span class="ident">value</span>.<a class="ident" href="../../../src/tokio/loom/std/unsafe_cell.rs.html#13">with_mut</a>(<span class="op">|</span><span class="ident">ptr</span><span class="op">|</span> (<span class="kw-2">*</span><a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1171">ptr</a>).<span class="ident">take</span>())
     }
 }
 
@@ -2213,22 +2515,22 @@
 <span class="kw">unsafe</span> <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="kw">for</span> <span class="ident">Inner</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {}
 
 <span class="kw">fn</span> <span class="ident">mut_load</span>(<span class="ident">this</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/tokio/loom/std/atomic_usize.rs.html#6-8">AtomicUsize</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-    <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1028">this</a>.<a class="ident" href="../../../src/tokio/loom/std/atomic_usize.rs.html#29">with_mut</a>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> <span class="kw-2">*</span><a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1029">v</a>)
+    <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1178">this</a>.<a class="ident" href="../../../src/tokio/loom/std/atomic_usize.rs.html#29">with_mut</a>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> <span class="kw-2">*</span><a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1179">v</a>)
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for</span> <span class="ident">Inner</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <span class="kw">let</span> <span class="ident">state</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#410">State</a>(<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1028">mut_load</a>(<span class="kw-2">&amp;mut</span> <a class="self" href="../../../src/tokio/sync/oneshot.rs.html#1033">self</a>.<span class="ident">state</span>));
+        <span class="kw">let</span> <span class="ident">state</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#423">State</a>(<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1178">mut_load</a>(<span class="kw-2">&amp;mut</span> <a class="self" href="../../../src/tokio/sync/oneshot.rs.html#1183">self</a>.<span class="ident">state</span>));
 
-        <span class="kw">if</span> <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1034">state</a>.<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1128">is_rx_task_set</a>() {
+        <span class="kw">if</span> <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1184">state</a>.<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1278">is_rx_task_set</a>() {
             <span class="kw">unsafe</span> {
-                <a class="self" href="../../../src/tokio/sync/oneshot.rs.html#1033">self</a>.<span class="ident">rx_task</span>.<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#394">drop_task</a>();
+                <a class="self" href="../../../src/tokio/sync/oneshot.rs.html#1183">self</a>.<span class="ident">rx_task</span>.<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#407">drop_task</a>();
             }
         }
 
-        <span class="kw">if</span> <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1034">state</a>.<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1163">is_tx_task_set</a>() {
+        <span class="kw">if</span> <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1184">state</a>.<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1313">is_tx_task_set</a>() {
             <span class="kw">unsafe</span> {
-                <a class="self" href="../../../src/tokio/sync/oneshot.rs.html#1033">self</a>.<span class="ident">tx_task</span>.<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#394">drop_task</a>();
+                <a class="self" href="../../../src/tokio/sync/oneshot.rs.html#1183">self</a>.<span class="ident">tx_task</span>.<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#407">drop_task</a>();
             }
         }
     }
@@ -2238,8 +2540,8 @@
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">fmt</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
         <span class="kw">use</span> <span class="ident">std::sync::atomic::Ordering::Relaxed</span>;
 
-        <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1051">fmt</a>.<span class="ident">debug_struct</span>(<span class="string">&quot;Inner&quot;</span>)
-            .<span class="ident">field</span>(<span class="string">&quot;state&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">State::load</span>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/tokio/sync/oneshot.rs.html#1051">self</a>.<span class="ident">state</span>, <span class="ident">Relaxed</span>))
+        <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1201">fmt</a>.<span class="ident">debug_struct</span>(<span class="string">&quot;Inner&quot;</span>)
+            .<span class="ident">field</span>(<span class="string">&quot;state&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">State::load</span>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/tokio/sync/oneshot.rs.html#1201">self</a>.<span class="ident">state</span>, <span class="ident">Relaxed</span>))
             .<span class="ident">finish</span>()
     }
 }
@@ -2268,16 +2570,16 @@
 <span class="doccomment">/// If this bit is not set, the `tx_task` field may be uninitialized.</span>
 <span class="kw">const</span> <span class="ident">TX_TASK_SET</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> <span class="op">=</span> <span class="number">0b01000</span>;
 
-<span class="kw">impl</span> <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#410">State</a> {
-    <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#410">State</a> {
-        <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#410">State</a>(<span class="number">0</span>)
+<span class="kw">impl</span> <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#423">State</a> {
+    <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#423">State</a> {
+        <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#423">State</a>(<span class="number">0</span>)
     }
 
     <span class="kw">fn</span> <span class="ident">is_complete</span>(<span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../src/tokio/sync/oneshot.rs.html#1089">self</a>.<span class="number">0</span> <span class="op">&amp;</span> <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1074">VALUE_SENT</a> <span class="op">==</span> <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1074">VALUE_SENT</a>
+        <a class="self" href="../../../src/tokio/sync/oneshot.rs.html#1239">self</a>.<span class="number">0</span> <span class="op">&amp;</span> <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1224">VALUE_SENT</a> <span class="op">==</span> <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1224">VALUE_SENT</a>
     }
 
-    <span class="kw">fn</span> <span class="ident">set_complete</span>(<span class="ident">cell</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/tokio/loom/std/atomic_usize.rs.html#6-8">AtomicUsize</a>) -&gt; <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#410">State</a> {
+    <span class="kw">fn</span> <span class="ident">set_complete</span>(<span class="ident">cell</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/tokio/loom/std/atomic_usize.rs.html#6-8">AtomicUsize</a>) -&gt; <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#423">State</a> {
         <span class="comment">// This method is a compare-and-swap loop rather than a fetch-or like</span>
         <span class="comment">// other `set_$WHATEVER` methods on `State`. This is because we must</span>
         <span class="comment">// check if the state has been closed before setting the `VALUE_SENT`</span>
@@ -2291,86 +2593,86 @@
         <span class="comment">// `poll_recv` or `try_recv` call is occurring concurrently, both</span>
         <span class="comment">// threads may try to access the `UnsafeCell` if we were to set the</span>
         <span class="comment">// `VALUE_SENT` bit on a closed channel.</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">state</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1093">cell</a>.<span class="ident">load</span>(<span class="ident">Ordering::Relaxed</span>);
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">state</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1243">cell</a>.<span class="ident">load</span>(<span class="ident">Ordering::Relaxed</span>);
         <span class="kw">loop</span> {
-            <span class="kw">if</span> <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#410">State</a>(<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1107">state</a>).<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1142">is_closed</a>() {
+            <span class="kw">if</span> <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#423">State</a>(<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1257">state</a>).<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1292">is_closed</a>() {
                 <span class="kw">break</span>;
             }
             <span class="comment">// TODO: This could be `Release`, followed by an `Acquire` fence *if*</span>
             <span class="comment">// the `RX_TASK_SET` flag is set. However, `loom` does not support</span>
             <span class="comment">// fences yet.</span>
-            <span class="kw">match</span> <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1093">cell</a>.<span class="ident">compare_exchange_weak</span>(
-                <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1107">state</a>,
-                <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1107">state</a> <span class="op">|</span> <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1074">VALUE_SENT</a>,
+            <span class="kw">match</span> <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1243">cell</a>.<span class="ident">compare_exchange_weak</span>(
+                <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1257">state</a>,
+                <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1257">state</a> <span class="op">|</span> <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1224">VALUE_SENT</a>,
                 <span class="ident">Ordering::AcqRel</span>,
                 <span class="ident">Ordering::Acquire</span>,
             ) {
                 <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; <span class="kw">break</span>,
-                <span class="prelude-val">Err</span>(<span class="ident">actual</span>) =&gt; <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1107">state</a> <span class="op">=</span> <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1122">actual</a>,
+                <span class="prelude-val">Err</span>(<span class="ident">actual</span>) =&gt; <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1257">state</a> <span class="op">=</span> <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1272">actual</a>,
             }
         }
-        <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#410">State</a>(<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1107">state</a>)
+        <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#423">State</a>(<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1257">state</a>)
     }
 
     <span class="kw">fn</span> <span class="ident">is_rx_task_set</span>(<span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../src/tokio/sync/oneshot.rs.html#1128">self</a>.<span class="number">0</span> <span class="op">&amp;</span> <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1065">RX_TASK_SET</a> <span class="op">==</span> <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1065">RX_TASK_SET</a>
+        <a class="self" href="../../../src/tokio/sync/oneshot.rs.html#1278">self</a>.<span class="number">0</span> <span class="op">&amp;</span> <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1215">RX_TASK_SET</a> <span class="op">==</span> <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1215">RX_TASK_SET</a>
     }
 
-    <span class="kw">fn</span> <span class="ident">set_rx_task</span>(<span class="ident">cell</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/tokio/loom/std/atomic_usize.rs.html#6-8">AtomicUsize</a>) -&gt; <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#410">State</a> {
-        <span class="kw">let</span> <span class="ident">val</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1132">cell</a>.<span class="ident">fetch_or</span>(<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1065">RX_TASK_SET</a>, <span class="ident">AcqRel</span>);
-        <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#410">State</a>(<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1133">val</a> <span class="op">|</span> <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1065">RX_TASK_SET</a>)
+    <span class="kw">fn</span> <span class="ident">set_rx_task</span>(<span class="ident">cell</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/tokio/loom/std/atomic_usize.rs.html#6-8">AtomicUsize</a>) -&gt; <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#423">State</a> {
+        <span class="kw">let</span> <span class="ident">val</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1282">cell</a>.<span class="ident">fetch_or</span>(<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1215">RX_TASK_SET</a>, <span class="ident">AcqRel</span>);
+        <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#423">State</a>(<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1283">val</a> <span class="op">|</span> <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1215">RX_TASK_SET</a>)
     }
 
-    <span class="kw">fn</span> <span class="ident">unset_rx_task</span>(<span class="ident">cell</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/tokio/loom/std/atomic_usize.rs.html#6-8">AtomicUsize</a>) -&gt; <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#410">State</a> {
-        <span class="kw">let</span> <span class="ident">val</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1137">cell</a>.<span class="ident">fetch_and</span>(<span class="op">!</span><a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1065">RX_TASK_SET</a>, <span class="ident">AcqRel</span>);
-        <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#410">State</a>(<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1138">val</a> <span class="op">&amp;</span> <span class="op">!</span><a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1065">RX_TASK_SET</a>)
+    <span class="kw">fn</span> <span class="ident">unset_rx_task</span>(<span class="ident">cell</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/tokio/loom/std/atomic_usize.rs.html#6-8">AtomicUsize</a>) -&gt; <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#423">State</a> {
+        <span class="kw">let</span> <span class="ident">val</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1287">cell</a>.<span class="ident">fetch_and</span>(<span class="op">!</span><a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1215">RX_TASK_SET</a>, <span class="ident">AcqRel</span>);
+        <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#423">State</a>(<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1288">val</a> <span class="op">&amp;</span> <span class="op">!</span><a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1215">RX_TASK_SET</a>)
     }
 
     <span class="kw">fn</span> <span class="ident">is_closed</span>(<span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../src/tokio/sync/oneshot.rs.html#1142">self</a>.<span class="number">0</span> <span class="op">&amp;</span> <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1075">CLOSED</a> <span class="op">==</span> <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1075">CLOSED</a>
+        <a class="self" href="../../../src/tokio/sync/oneshot.rs.html#1292">self</a>.<span class="number">0</span> <span class="op">&amp;</span> <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1225">CLOSED</a> <span class="op">==</span> <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1225">CLOSED</a>
     }
 
-    <span class="kw">fn</span> <span class="ident">set_closed</span>(<span class="ident">cell</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/tokio/loom/std/atomic_usize.rs.html#6-8">AtomicUsize</a>) -&gt; <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#410">State</a> {
+    <span class="kw">fn</span> <span class="ident">set_closed</span>(<span class="ident">cell</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/tokio/loom/std/atomic_usize.rs.html#6-8">AtomicUsize</a>) -&gt; <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#423">State</a> {
         <span class="comment">// Acquire because we want all later writes (attempting to poll) to be</span>
         <span class="comment">// ordered after this.</span>
-        <span class="kw">let</span> <span class="ident">val</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1146">cell</a>.<span class="ident">fetch_or</span>(<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1075">CLOSED</a>, <span class="ident">Acquire</span>);
-        <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#410">State</a>(<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1149">val</a>)
+        <span class="kw">let</span> <span class="ident">val</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1296">cell</a>.<span class="ident">fetch_or</span>(<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1225">CLOSED</a>, <span class="ident">Acquire</span>);
+        <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#423">State</a>(<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1299">val</a>)
     }
 
-    <span class="kw">fn</span> <span class="ident">set_tx_task</span>(<span class="ident">cell</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/tokio/loom/std/atomic_usize.rs.html#6-8">AtomicUsize</a>) -&gt; <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#410">State</a> {
-        <span class="kw">let</span> <span class="ident">val</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1153">cell</a>.<span class="ident">fetch_or</span>(<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1082">TX_TASK_SET</a>, <span class="ident">AcqRel</span>);
-        <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#410">State</a>(<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1154">val</a> <span class="op">|</span> <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1082">TX_TASK_SET</a>)
+    <span class="kw">fn</span> <span class="ident">set_tx_task</span>(<span class="ident">cell</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/tokio/loom/std/atomic_usize.rs.html#6-8">AtomicUsize</a>) -&gt; <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#423">State</a> {
+        <span class="kw">let</span> <span class="ident">val</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1303">cell</a>.<span class="ident">fetch_or</span>(<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1232">TX_TASK_SET</a>, <span class="ident">AcqRel</span>);
+        <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#423">State</a>(<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1304">val</a> <span class="op">|</span> <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1232">TX_TASK_SET</a>)
     }
 
-    <span class="kw">fn</span> <span class="ident">unset_tx_task</span>(<span class="ident">cell</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/tokio/loom/std/atomic_usize.rs.html#6-8">AtomicUsize</a>) -&gt; <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#410">State</a> {
-        <span class="kw">let</span> <span class="ident">val</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1158">cell</a>.<span class="ident">fetch_and</span>(<span class="op">!</span><a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1082">TX_TASK_SET</a>, <span class="ident">AcqRel</span>);
-        <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#410">State</a>(<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1159">val</a> <span class="op">&amp;</span> <span class="op">!</span><a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1082">TX_TASK_SET</a>)
+    <span class="kw">fn</span> <span class="ident">unset_tx_task</span>(<span class="ident">cell</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/tokio/loom/std/atomic_usize.rs.html#6-8">AtomicUsize</a>) -&gt; <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#423">State</a> {
+        <span class="kw">let</span> <span class="ident">val</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1308">cell</a>.<span class="ident">fetch_and</span>(<span class="op">!</span><a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1232">TX_TASK_SET</a>, <span class="ident">AcqRel</span>);
+        <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#423">State</a>(<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1309">val</a> <span class="op">&amp;</span> <span class="op">!</span><a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1232">TX_TASK_SET</a>)
     }
 
     <span class="kw">fn</span> <span class="ident">is_tx_task_set</span>(<span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../src/tokio/sync/oneshot.rs.html#1163">self</a>.<span class="number">0</span> <span class="op">&amp;</span> <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1082">TX_TASK_SET</a> <span class="op">==</span> <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1082">TX_TASK_SET</a>
+        <a class="self" href="../../../src/tokio/sync/oneshot.rs.html#1313">self</a>.<span class="number">0</span> <span class="op">&amp;</span> <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1232">TX_TASK_SET</a> <span class="op">==</span> <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1232">TX_TASK_SET</a>
     }
 
     <span class="kw">fn</span> <span class="ident">as_usize</span>(<span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="../../../src/tokio/sync/oneshot.rs.html#1167">self</a>.<span class="number">0</span>
+        <a class="self" href="../../../src/tokio/sync/oneshot.rs.html#1317">self</a>.<span class="number">0</span>
     }
 
-    <span class="kw">fn</span> <span class="ident">load</span>(<span class="ident">cell</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/tokio/loom/std/atomic_usize.rs.html#6-8">AtomicUsize</a>, <span class="ident">order</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/sync/atomic/enum.Ordering.html">Ordering</a>) -&gt; <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#410">State</a> {
-        <span class="kw">let</span> <span class="ident">val</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1171">cell</a>.<span class="ident">load</span>(<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1171">order</a>);
-        <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#410">State</a>(<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1172">val</a>)
+    <span class="kw">fn</span> <span class="ident">load</span>(<span class="ident">cell</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/tokio/loom/std/atomic_usize.rs.html#6-8">AtomicUsize</a>, <span class="ident">order</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/sync/atomic/enum.Ordering.html">Ordering</a>) -&gt; <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#423">State</a> {
+        <span class="kw">let</span> <span class="ident">val</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1321">cell</a>.<span class="ident">load</span>(<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1321">order</a>);
+        <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#423">State</a>(<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1322">val</a>)
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#410">State</a> {
+<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#423">State</a> {
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">fmt</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1178">fmt</a>.<span class="ident">debug_struct</span>(<span class="string">&quot;State&quot;</span>)
-            .<span class="ident">field</span>(<span class="string">&quot;is_complete&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/tokio/sync/oneshot.rs.html#1178">self</a>.<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1089">is_complete</a>())
-            .<span class="ident">field</span>(<span class="string">&quot;is_closed&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/tokio/sync/oneshot.rs.html#1178">self</a>.<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1142">is_closed</a>())
-            .<span class="ident">field</span>(<span class="string">&quot;is_rx_task_set&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/tokio/sync/oneshot.rs.html#1178">self</a>.<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1128">is_rx_task_set</a>())
-            .<span class="ident">field</span>(<span class="string">&quot;is_tx_task_set&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/tokio/sync/oneshot.rs.html#1178">self</a>.<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1163">is_tx_task_set</a>())
+        <a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1328">fmt</a>.<span class="ident">debug_struct</span>(<span class="string">&quot;State&quot;</span>)
+            .<span class="ident">field</span>(<span class="string">&quot;is_complete&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/tokio/sync/oneshot.rs.html#1328">self</a>.<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1239">is_complete</a>())
+            .<span class="ident">field</span>(<span class="string">&quot;is_closed&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/tokio/sync/oneshot.rs.html#1328">self</a>.<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1292">is_closed</a>())
+            .<span class="ident">field</span>(<span class="string">&quot;is_rx_task_set&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/tokio/sync/oneshot.rs.html#1328">self</a>.<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1278">is_rx_task_set</a>())
+            .<span class="ident">field</span>(<span class="string">&quot;is_tx_task_set&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/tokio/sync/oneshot.rs.html#1328">self</a>.<a class="ident" href="../../../src/tokio/sync/oneshot.rs.html#1313">is_tx_task_set</a>())
             .<span class="ident">finish</span>()
     }
 }
 </code></pre></div>
-</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.59.0-nightly (404c8471a 2021-12-14)" ></div>
+</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.60.0-nightly (bd3cb5256 2022-01-16)" ></div>
 </body></html>

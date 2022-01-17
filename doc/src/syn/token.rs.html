@@ -1,5 +1,7 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;syn-1.0.82&#x2F;src&#x2F;token.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>token.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
-    <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a class="sidebar-logo" href='../../syn/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container rust-logo" href='../../syn/index.html'><img src='../../rust-logo.png' alt='logo'></a><nav class="sub"><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../wheel.svg"></a></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">   1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/syn-1.0.85/src/token.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>token.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
+    <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a class="sidebar-logo" href="../../syn/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
+        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../syn/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><form class="search-form"><div class="search-container"><div>
+                                <input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../wheel.svg"></a></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">   1</span>
 <span id="2">   2</span>
 <span id="3">   3</span>
 <span id="4">   4</span>
@@ -1104,15 +1106,15 @@
 
 <span class="kw">use</span> <a class="ident" href="../../src/syn/token.rs.html#145-147"><span class="self">self</span>::private::WithSpan</a>;
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;parsing&quot;</span>)]</span>
-<span class="kw">use</span> <a class="ident" href="../../src/syn/buffer.rs.html#135-144"><span class="kw">crate</span>::buffer::Cursor</a>;
+<span class="kw">use</span> <a class="ident" href="../../src/syn/buffer.rs.html#151-160"><span class="kw">crate</span>::buffer::Cursor</a>;
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;parsing&quot;</span>)]</span>
 <span class="kw">use</span> <a class="ident" href="../../src/syn/error.rs.html#15"><span class="kw">crate</span>::error::Result</a>;
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;parsing&quot;</span>)]</span>
 <span class="kw">use</span> <a class="ident" href="../../src/syn/lifetime.rs.html#118"><span class="kw">crate</span>::lifetime::Lifetime</a>;
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;parsing&quot;</span>)]</span>
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::lit</span>::{<a class="ident" href="../../src/syn/lit.rs.html#707">Lit</a>, <a class="ident" href="../../src/syn/lit.rs.html#687">LitBool</a>, <a class="ident" href="../../src/syn/lit.rs.html#679">LitByte</a>, <a class="ident" href="../../src/syn/lit.rs.html#678">LitByteStr</a>, <a class="ident" href="../../src/syn/lit.rs.html#680">LitChar</a>, <a class="ident" href="../../src/syn/lit.rs.html#682">LitFloat</a>, <a class="ident" href="../../src/syn/lit.rs.html#681">LitInt</a>, <a class="ident" href="../../src/syn/lit.rs.html#677">LitStr</a>};
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::lit</span>::{<a class="ident" href="../../src/syn/lit.rs.html#733">Lit</a>, <a class="ident" href="../../src/syn/lit.rs.html#713">LitBool</a>, <a class="ident" href="../../src/syn/lit.rs.html#705">LitByte</a>, <a class="ident" href="../../src/syn/lit.rs.html#704">LitByteStr</a>, <a class="ident" href="../../src/syn/lit.rs.html#706">LitChar</a>, <a class="ident" href="../../src/syn/lit.rs.html#708">LitFloat</a>, <a class="ident" href="../../src/syn/lit.rs.html#707">LitInt</a>, <a class="ident" href="../../src/syn/lit.rs.html#703">LitStr</a>};
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;parsing&quot;</span>)]</span>
-<span class="kw">use</span> <a class="ident" href="../../src/syn/lib.rs.html#812"><span class="kw">crate</span>::lookahead</a>;
+<span class="kw">use</span> <a class="ident" href="../../src/syn/lib.rs.html#815"><span class="kw">crate</span>::lookahead</a>;
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;parsing&quot;</span>)]</span>
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::parse</span>::{<a class="ident" href="../../src/syn/parse.rs.html#218-220">Parse</a>, <a class="ident" href="../../src/syn/parse.rs.html#228">ParseStream</a>};
 <span class="kw">use</span> <a class="ident" href="../../src/syn/span.rs.html#3-5"><span class="kw">crate</span>::span::IntoSpans</a>;
@@ -1140,7 +1142,7 @@
 <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">Token</span>: <a class="ident" href="../../src/syn/token.rs.html#140">private::Sealed</a> {
     <span class="comment">// Not public API.</span>
     <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">peek</span>(<span class="ident">cursor</span>: <a class="ident" href="../../src/syn/buffer.rs.html#135-144">Cursor</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>;
+    <span class="kw">fn</span> <span class="ident">peek</span>(<span class="ident">cursor</span>: <a class="ident" href="../../src/syn/buffer.rs.html#151-160">Cursor</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>;
 
     <span class="comment">// Not public API.</span>
     <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
@@ -1165,7 +1167,7 @@
 <span class="kw">impl</span> <a class="ident" href="../../src/syn/token.rs.html#140">private::Sealed</a> <span class="kw">for</span> <a class="ident" href="../../syn/struct.Ident.html">Ident</a> {}
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;parsing&quot;</span>)]</span>
-<span class="kw">fn</span> <span class="ident">peek_impl</span>(<span class="ident">cursor</span>: <a class="ident" href="../../src/syn/buffer.rs.html#135-144">Cursor</a>, <span class="ident">peek</span>: <span class="kw">fn</span>(<a class="ident" href="../../src/syn/parse.rs.html#228">ParseStream</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+<span class="kw">fn</span> <span class="ident">peek_impl</span>(<span class="ident">cursor</span>: <a class="ident" href="../../src/syn/buffer.rs.html#151-160">Cursor</a>, <span class="ident">peek</span>: <span class="kw">fn</span>(<a class="ident" href="../../src/syn/parse.rs.html#228">ParseStream</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
     <span class="kw">use</span> <a class="ident" href="../../src/syn/parse.rs.html#398-402"><span class="kw">crate</span>::parse::Unexpected</a>;
     <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/cell/struct.Cell.html">std::cell::Cell</a>;
     <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/rc/struct.Rc.html">std::rc::Rc</a>;
@@ -1198,14 +1200,14 @@
 }
 
 <span class="macro">impl_token!</span>(<span class="string">&quot;lifetime&quot;</span> <a class="ident" href="../../src/syn/lifetime.rs.html#19-22">Lifetime</a>);
-<span class="macro">impl_token!</span>(<span class="string">&quot;literal&quot;</span> <a class="ident" href="../../src/syn/lit.rs.html#17-52">Lit</a>);
-<span class="macro">impl_token!</span>(<span class="string">&quot;string literal&quot;</span> <a class="ident" href="../../src/syn/lit.rs.html#54-59">LitStr</a>);
-<span class="macro">impl_token!</span>(<span class="string">&quot;byte string literal&quot;</span> <a class="ident" href="../../src/syn/lit.rs.html#61-66">LitByteStr</a>);
-<span class="macro">impl_token!</span>(<span class="string">&quot;byte literal&quot;</span> <a class="ident" href="../../src/syn/lit.rs.html#68-73">LitByte</a>);
-<span class="macro">impl_token!</span>(<span class="string">&quot;character literal&quot;</span> <a class="ident" href="../../src/syn/lit.rs.html#75-80">LitChar</a>);
-<span class="macro">impl_token!</span>(<span class="string">&quot;integer literal&quot;</span> <a class="ident" href="../../src/syn/lit.rs.html#87-92">LitInt</a>);
-<span class="macro">impl_token!</span>(<span class="string">&quot;floating point literal&quot;</span> <a class="ident" href="../../src/syn/lit.rs.html#100-107">LitFloat</a>);
-<span class="macro">impl_token!</span>(<span class="string">&quot;boolean literal&quot;</span> <a class="ident" href="../../src/syn/lit.rs.html#115-121">LitBool</a>);
+<span class="macro">impl_token!</span>(<span class="string">&quot;literal&quot;</span> <a class="ident" href="../../src/syn/lit.rs.html#14-49">Lit</a>);
+<span class="macro">impl_token!</span>(<span class="string">&quot;string literal&quot;</span> <a class="ident" href="../../src/syn/lit.rs.html#51-56">LitStr</a>);
+<span class="macro">impl_token!</span>(<span class="string">&quot;byte string literal&quot;</span> <a class="ident" href="../../src/syn/lit.rs.html#58-63">LitByteStr</a>);
+<span class="macro">impl_token!</span>(<span class="string">&quot;byte literal&quot;</span> <a class="ident" href="../../src/syn/lit.rs.html#65-70">LitByte</a>);
+<span class="macro">impl_token!</span>(<span class="string">&quot;character literal&quot;</span> <a class="ident" href="../../src/syn/lit.rs.html#72-77">LitChar</a>);
+<span class="macro">impl_token!</span>(<span class="string">&quot;integer literal&quot;</span> <a class="ident" href="../../src/syn/lit.rs.html#84-89">LitInt</a>);
+<span class="macro">impl_token!</span>(<span class="string">&quot;floating point literal&quot;</span> <a class="ident" href="../../src/syn/lit.rs.html#97-104">LitFloat</a>);
+<span class="macro">impl_token!</span>(<span class="string">&quot;boolean literal&quot;</span> <a class="ident" href="../../src/syn/lit.rs.html#112-118">LitBool</a>);
 <span class="macro">impl_token!</span>(<span class="string">&quot;group token&quot;</span> <a class="ident" href="../../proc_macro2/struct.Group.html">proc_macro2::Group</a>);
 
 <span class="macro">macro_rules!</span> <span class="ident">impl_low_level_token</span> {
@@ -1226,15 +1228,15 @@
     };
 }
 
-<span class="macro">impl_low_level_token!</span>(<span class="string">&quot;punctuation token&quot;</span> <span class="ident">Punct</span> <a class="ident" href="../../src/syn/buffer.rs.html#259">punct</a>);
-<span class="macro">impl_low_level_token!</span>(<span class="string">&quot;literal&quot;</span> <span class="ident">Literal</span> <a class="ident" href="../../src/syn/buffer.rs.html#269">literal</a>);
-<span class="macro">impl_low_level_token!</span>(<span class="string">&quot;token&quot;</span> <span class="ident">TokenTree</span> <a class="ident" href="../../src/syn/buffer.rs.html#318">token_tree</a>);
+<span class="macro">impl_low_level_token!</span>(<span class="string">&quot;punctuation token&quot;</span> <span class="ident">Punct</span> <a class="ident" href="../../src/syn/buffer.rs.html#275">punct</a>);
+<span class="macro">impl_low_level_token!</span>(<span class="string">&quot;literal&quot;</span> <span class="ident">Literal</span> <a class="ident" href="../../src/syn/buffer.rs.html#285">literal</a>);
+<span class="macro">impl_low_level_token!</span>(<span class="string">&quot;token&quot;</span> <span class="ident">TokenTree</span> <a class="ident" href="../../src/syn/buffer.rs.html#334">token_tree</a>);
 
 <span class="comment">// Not public API.</span>
 <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;parsing&quot;</span>)]</span>
 <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">CustomToken</span> {
-    <span class="kw">fn</span> <span class="ident">peek</span>(<span class="ident">cursor</span>: <a class="ident" href="../../src/syn/buffer.rs.html#135-144">Cursor</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>;
+    <span class="kw">fn</span> <span class="ident">peek</span>(<span class="ident">cursor</span>: <a class="ident" href="../../src/syn/buffer.rs.html#151-160">Cursor</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>;
     <span class="kw">fn</span> <span class="ident">display</span>() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>;
 }
 
@@ -1243,7 +1245,7 @@
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;parsing&quot;</span>)]</span>
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="../../src/syn/token.rs.html#222-225">CustomToken</a><span class="op">&gt;</span> <a class="ident" href="../../src/syn/token.rs.html#126-134">Token</a> <span class="kw">for</span> <span class="ident">T</span> {
-    <span class="kw">fn</span> <span class="ident">peek</span>(<span class="ident">cursor</span>: <a class="ident" href="../../src/syn/buffer.rs.html#135-144">Cursor</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    <span class="kw">fn</span> <span class="ident">peek</span>(<span class="ident">cursor</span>: <a class="ident" href="../../src/syn/buffer.rs.html#151-160">Cursor</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
         <span class="op">&lt;</span><span class="self">Self</span> <span class="kw">as</span> <span class="ident">CustomToken</span><span class="op">&gt;</span><span class="ident">::peek</span>(<a class="ident" href="../../src/syn/token.rs.html#232">cursor</a>)
     }
 
@@ -1584,12 +1586,12 @@
 <span class="kw">impl</span> <a class="ident" href="../../src/syn/parse.rs.html#218-220">Parse</a> <span class="kw">for</span> <a class="ident" href="../../src/syn/token.rs.html#556-558">Underscore</a> {
     <span class="kw">fn</span> <span class="ident">parse</span>(<span class="ident">input</span>: <a class="ident" href="../../src/syn/parse.rs.html#228">ParseStream</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
         <a class="ident" href="../../src/syn/token.rs.html#571">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#1003-1005">step</a>(<span class="op">|</span><span class="ident">cursor</span><span class="op">|</span> {
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="ident">ident</span>, <span class="ident">rest</span>)) <span class="op">=</span> <a class="ident" href="../../src/syn/token.rs.html#572">cursor</a>.<a class="ident" href="../../src/syn/buffer.rs.html#249">ident</a>() {
+            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="ident">ident</span>, <span class="ident">rest</span>)) <span class="op">=</span> <a class="ident" href="../../src/syn/token.rs.html#572">cursor</a>.<a class="ident" href="../../src/syn/buffer.rs.html#265">ident</a>() {
                 <span class="kw">if</span> <a class="ident" href="../../src/syn/token.rs.html#573">ident</a> <span class="op">==</span> <span class="string">&quot;_&quot;</span> {
                     <span class="kw">return</span> <span class="prelude-val">Ok</span>((<a class="ident" href="../../src/syn/token.rs.html#556-558">Underscore</a>(<a class="ident" href="../../src/syn/token.rs.html#573">ident</a>.<span class="ident">span</span>()), <a class="ident" href="../../src/syn/token.rs.html#573">rest</a>));
                 }
             }
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="ident">punct</span>, <span class="ident">rest</span>)) <span class="op">=</span> <a class="ident" href="../../src/syn/token.rs.html#572">cursor</a>.<a class="ident" href="../../src/syn/buffer.rs.html#259">punct</a>() {
+            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="ident">punct</span>, <span class="ident">rest</span>)) <span class="op">=</span> <a class="ident" href="../../src/syn/token.rs.html#572">cursor</a>.<a class="ident" href="../../src/syn/buffer.rs.html#275">punct</a>() {
                 <span class="kw">if</span> <a class="ident" href="../../src/syn/token.rs.html#578">punct</a>.<span class="ident">as_char</span>() <span class="op">==</span> <span class="string">&#39;_&#39;</span> {
                     <span class="kw">return</span> <span class="prelude-val">Ok</span>((<a class="ident" href="../../src/syn/token.rs.html#556-558">Underscore</a>(<a class="ident" href="../../src/syn/token.rs.html#578">punct</a>.<span class="ident">span</span>()), <a class="ident" href="../../src/syn/token.rs.html#578">rest</a>));
                 }
@@ -1601,11 +1603,11 @@
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;parsing&quot;</span>)]</span>
 <span class="kw">impl</span> <a class="ident" href="../../src/syn/token.rs.html#126-134">Token</a> <span class="kw">for</span> <a class="ident" href="../../src/syn/token.rs.html#556-558">Underscore</a> {
-    <span class="kw">fn</span> <span class="ident">peek</span>(<span class="ident">cursor</span>: <a class="ident" href="../../src/syn/buffer.rs.html#135-144">Cursor</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="ident">ident</span>, <span class="ident">_rest</span>)) <span class="op">=</span> <a class="ident" href="../../src/syn/token.rs.html#590">cursor</a>.<a class="ident" href="../../src/syn/buffer.rs.html#249">ident</a>() {
+    <span class="kw">fn</span> <span class="ident">peek</span>(<span class="ident">cursor</span>: <a class="ident" href="../../src/syn/buffer.rs.html#151-160">Cursor</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="ident">ident</span>, <span class="ident">_rest</span>)) <span class="op">=</span> <a class="ident" href="../../src/syn/token.rs.html#590">cursor</a>.<a class="ident" href="../../src/syn/buffer.rs.html#265">ident</a>() {
             <span class="kw">return</span> <a class="ident" href="../../src/syn/token.rs.html#591">ident</a> <span class="op">==</span> <span class="string">&quot;_&quot;</span>;
         }
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="ident">punct</span>, <span class="ident">_rest</span>)) <span class="op">=</span> <a class="ident" href="../../src/syn/token.rs.html#590">cursor</a>.<a class="ident" href="../../src/syn/buffer.rs.html#259">punct</a>() {
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="ident">punct</span>, <span class="ident">_rest</span>)) <span class="op">=</span> <a class="ident" href="../../src/syn/token.rs.html#590">cursor</a>.<a class="ident" href="../../src/syn/buffer.rs.html#275">punct</a>() {
             <span class="kw">return</span> <a class="ident" href="../../src/syn/token.rs.html#594">punct</a>.<span class="ident">as_char</span>() <span class="op">==</span> <span class="string">&#39;_&#39;</span>;
         }
         <span class="bool-val">false</span>
@@ -1621,7 +1623,7 @@
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;parsing&quot;</span>)]</span>
 <span class="kw">impl</span> <a class="ident" href="../../src/syn/token.rs.html#126-134">Token</a> <span class="kw">for</span> <a class="ident" href="../../src/syn/token.rs.html#756-761">Paren</a> {
-    <span class="kw">fn</span> <span class="ident">peek</span>(<span class="ident">cursor</span>: <a class="ident" href="../../src/syn/buffer.rs.html#135-144">Cursor</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    <span class="kw">fn</span> <span class="ident">peek</span>(<span class="ident">cursor</span>: <a class="ident" href="../../src/syn/buffer.rs.html#151-160">Cursor</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
         <a class="ident" href="../../src/syn/lookahead.rs.html#162">lookahead::is_delimiter</a>(<a class="ident" href="../../src/syn/token.rs.html#610">cursor</a>, <span class="ident">Delimiter::Parenthesis</span>)
     }
 
@@ -1632,7 +1634,7 @@
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;parsing&quot;</span>)]</span>
 <span class="kw">impl</span> <a class="ident" href="../../src/syn/token.rs.html#126-134">Token</a> <span class="kw">for</span> <a class="ident" href="../../src/syn/token.rs.html#756-761">Brace</a> {
-    <span class="kw">fn</span> <span class="ident">peek</span>(<span class="ident">cursor</span>: <a class="ident" href="../../src/syn/buffer.rs.html#135-144">Cursor</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    <span class="kw">fn</span> <span class="ident">peek</span>(<span class="ident">cursor</span>: <a class="ident" href="../../src/syn/buffer.rs.html#151-160">Cursor</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
         <a class="ident" href="../../src/syn/lookahead.rs.html#162">lookahead::is_delimiter</a>(<a class="ident" href="../../src/syn/token.rs.html#621">cursor</a>, <span class="ident">Delimiter::Brace</span>)
     }
 
@@ -1643,7 +1645,7 @@
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;parsing&quot;</span>)]</span>
 <span class="kw">impl</span> <a class="ident" href="../../src/syn/token.rs.html#126-134">Token</a> <span class="kw">for</span> <a class="ident" href="../../src/syn/token.rs.html#756-761">Bracket</a> {
-    <span class="kw">fn</span> <span class="ident">peek</span>(<span class="ident">cursor</span>: <a class="ident" href="../../src/syn/buffer.rs.html#135-144">Cursor</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    <span class="kw">fn</span> <span class="ident">peek</span>(<span class="ident">cursor</span>: <a class="ident" href="../../src/syn/buffer.rs.html#151-160">Cursor</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
         <a class="ident" href="../../src/syn/lookahead.rs.html#162">lookahead::is_delimiter</a>(<a class="ident" href="../../src/syn/token.rs.html#632">cursor</a>, <span class="ident">Delimiter::Bracket</span>)
     }
 
@@ -1654,7 +1656,7 @@
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;parsing&quot;</span>)]</span>
 <span class="kw">impl</span> <a class="ident" href="../../src/syn/token.rs.html#126-134">Token</a> <span class="kw">for</span> <a class="ident" href="../../src/syn/token.rs.html#756-761">Group</a> {
-    <span class="kw">fn</span> <span class="ident">peek</span>(<span class="ident">cursor</span>: <a class="ident" href="../../src/syn/buffer.rs.html#135-144">Cursor</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    <span class="kw">fn</span> <span class="ident">peek</span>(<span class="ident">cursor</span>: <a class="ident" href="../../src/syn/buffer.rs.html#151-160">Cursor</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
         <a class="ident" href="../../src/syn/lookahead.rs.html#162">lookahead::is_delimiter</a>(<a class="ident" href="../../src/syn/token.rs.html#643">cursor</a>, <span class="ident">Delimiter::None</span>)
     }
 
@@ -1901,15 +1903,15 @@
 <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;parsing&quot;</span>)]</span>
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">parsing</span> {
-    <span class="kw">use</span> <a class="ident" href="../../src/syn/buffer.rs.html#135-144"><span class="kw">crate</span>::buffer::Cursor</a>;
-    <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::error</span>::{<a class="ident" href="../../src/syn/error.rs.html#82-84">Error</a>, <span class="prelude-ty">Result</span>};
+    <span class="kw">use</span> <a class="ident" href="../../src/syn/buffer.rs.html#151-160"><span class="kw">crate</span>::buffer::Cursor</a>;
+    <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::error</span>::{<a class="ident" href="../../src/syn/error.rs.html#83-85">Error</a>, <span class="prelude-ty">Result</span>};
     <span class="kw">use</span> <a class="ident" href="../../src/syn/parse.rs.html#228"><span class="kw">crate</span>::parse::ParseStream</a>;
     <span class="kw">use</span> <a class="ident" href="../../src/syn/span.rs.html#44-46"><span class="kw">crate</span>::span::FromSpans</a>;
     <span class="kw">use</span> <span class="ident">proc_macro2</span>::{<a class="ident" href="../../proc_macro2/enum.Spacing.html">Spacing</a>, <a class="ident" href="../../proc_macro2/struct.Span.html">Span</a>};
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">keyword</span>(<span class="ident">input</span>: <a class="ident" href="../../src/syn/parse.rs.html#228">ParseStream</a>, <span class="ident">token</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../proc_macro2/struct.Span.html">Span</a><span class="op">&gt;</span> {
         <a class="ident" href="../../src/syn/token.rs.html#896">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#1003-1005">step</a>(<span class="op">|</span><span class="ident">cursor</span><span class="op">|</span> {
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="ident">ident</span>, <span class="ident">rest</span>)) <span class="op">=</span> <a class="ident" href="../../src/syn/token.rs.html#897">cursor</a>.<a class="ident" href="../../src/syn/buffer.rs.html#249">ident</a>() {
+            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="ident">ident</span>, <span class="ident">rest</span>)) <span class="op">=</span> <a class="ident" href="../../src/syn/token.rs.html#897">cursor</a>.<a class="ident" href="../../src/syn/buffer.rs.html#265">ident</a>() {
                 <span class="kw">if</span> <a class="ident" href="../../src/syn/token.rs.html#898">ident</a> <span class="op">==</span> <a class="ident" href="../../src/syn/token.rs.html#896">token</a> {
                     <span class="kw">return</span> <span class="prelude-val">Ok</span>((<a class="ident" href="../../src/syn/token.rs.html#898">ident</a>.<span class="ident">span</span>(), <a class="ident" href="../../src/syn/token.rs.html#898">rest</a>));
                 }
@@ -1918,8 +1920,8 @@
         })
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">peek_keyword</span>(<span class="ident">cursor</span>: <a class="ident" href="../../src/syn/buffer.rs.html#135-144">Cursor</a>, <span class="ident">token</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="ident">ident</span>, <span class="ident">_rest</span>)) <span class="op">=</span> <a class="ident" href="../../src/syn/token.rs.html#907">cursor</a>.<a class="ident" href="../../src/syn/buffer.rs.html#249">ident</a>() {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">peek_keyword</span>(<span class="ident">cursor</span>: <a class="ident" href="../../src/syn/buffer.rs.html#151-160">Cursor</a>, <span class="ident">token</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="ident">ident</span>, <span class="ident">_rest</span>)) <span class="op">=</span> <a class="ident" href="../../src/syn/token.rs.html#907">cursor</a>.<a class="ident" href="../../src/syn/buffer.rs.html#265">ident</a>() {
             <a class="ident" href="../../src/syn/token.rs.html#908">ident</a> <span class="op">==</span> <a class="ident" href="../../src/syn/token.rs.html#907">token</a>
         } <span class="kw">else</span> {
             <span class="bool-val">false</span>
@@ -1938,7 +1940,7 @@
             <span class="macro">assert!</span>(<a class="ident" href="../../src/syn/token.rs.html#921">token</a>.<span class="ident">len</span>() <span class="op">&lt;</span><span class="op">=</span> <a class="ident" href="../../src/syn/token.rs.html#921">spans</a>.<span class="ident">len</span>());
 
             <span class="kw">for</span> (<span class="ident">i</span>, <span class="ident">ch</span>) <span class="kw">in</span> <a class="ident" href="../../src/syn/token.rs.html#921">token</a>.<span class="ident">chars</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">enumerate</a>() {
-                <span class="kw">match</span> <a class="ident" href="../../src/syn/token.rs.html#923">cursor</a>.<a class="ident" href="../../src/syn/buffer.rs.html#259">punct</a>() {
+                <span class="kw">match</span> <a class="ident" href="../../src/syn/token.rs.html#923">cursor</a>.<a class="ident" href="../../src/syn/buffer.rs.html#275">punct</a>() {
                     <span class="prelude-val">Some</span>((<span class="ident">punct</span>, <span class="ident">rest</span>)) =&gt; {
                         <a class="ident" href="../../src/syn/token.rs.html#921">spans</a>[<a class="ident" href="../../src/syn/token.rs.html#926">i</a>] <span class="op">=</span> <a class="ident" href="../../src/syn/token.rs.html#928">punct</a>.<span class="ident">span</span>();
                         <span class="kw">if</span> <a class="ident" href="../../src/syn/token.rs.html#928">punct</a>.<span class="ident">as_char</span>() <span class="op">!</span><span class="op">=</span> <a class="ident" href="../../src/syn/token.rs.html#926">ch</a> {
@@ -1958,9 +1960,9 @@
         })
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">peek_punct</span>(<span class="kw-2">mut</span> <span class="ident">cursor</span>: <a class="ident" href="../../src/syn/buffer.rs.html#135-144">Cursor</a>, <span class="ident">token</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">peek_punct</span>(<span class="kw-2">mut</span> <span class="ident">cursor</span>: <a class="ident" href="../../src/syn/buffer.rs.html#151-160">Cursor</a>, <span class="ident">token</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
         <span class="kw">for</span> (<span class="ident">i</span>, <span class="ident">ch</span>) <span class="kw">in</span> <a class="ident" href="../../src/syn/token.rs.html#947">token</a>.<span class="ident">chars</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">enumerate</a>() {
-            <span class="kw">match</span> <a class="ident" href="../../src/syn/token.rs.html#947">cursor</a>.<a class="ident" href="../../src/syn/buffer.rs.html#259">punct</a>() {
+            <span class="kw">match</span> <a class="ident" href="../../src/syn/token.rs.html#947">cursor</a>.<a class="ident" href="../../src/syn/buffer.rs.html#275">punct</a>() {
                 <span class="prelude-val">Some</span>((<span class="ident">punct</span>, <span class="ident">rest</span>)) =&gt; {
                     <span class="kw">if</span> <a class="ident" href="../../src/syn/token.rs.html#950">punct</a>.<span class="ident">as_char</span>() <span class="op">!</span><span class="op">=</span> <a class="ident" href="../../src/syn/token.rs.html#948">ch</a> {
                         <span class="kw">break</span>;
@@ -2026,5 +2028,5 @@
     }
 }
 </code></pre></div>
-</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="syn" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.59.0-nightly (404c8471a 2021-12-14)" ></div>
+</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="syn" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.60.0-nightly (bd3cb5256 2022-01-16)" ></div>
 </body></html>

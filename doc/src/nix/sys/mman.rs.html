@@ -1,5 +1,7 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;nix-0.23.0&#x2F;src&#x2F;sys&#x2F;mman.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mman.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
-    <noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a class="sidebar-logo" href='../../../nix/index.html'><div class='logo-container rust-logo'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container rust-logo" href='../../../nix/index.html'><img src='../../../rust-logo.png' alt='logo'></a><nav class="sub"><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../../wheel.svg"></a></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/nix-0.23.1/src/sys/mman.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mman.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
+    <noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a class="sidebar-logo" href="../../../nix/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
+        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../nix/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><form class="search-form"><div class="search-container"><div>
+                                <input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../../wheel.svg"></a></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -462,7 +464,35 @@
 <span id="461">461</span>
 <span id="462">462</span>
 <span id="463">463</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <a class="ident" href="../../../src/nix/lib.rs.html#91"><span class="kw">crate</span>::Result</a>;
+<span id="464">464</span>
+<span id="465">465</span>
+<span id="466">466</span>
+<span id="467">467</span>
+<span id="468">468</span>
+<span id="469">469</span>
+<span id="470">470</span>
+<span id="471">471</span>
+<span id="472">472</span>
+<span id="473">473</span>
+<span id="474">474</span>
+<span id="475">475</span>
+<span id="476">476</span>
+<span id="477">477</span>
+<span id="478">478</span>
+<span id="479">479</span>
+<span id="480">480</span>
+<span id="481">481</span>
+<span id="482">482</span>
+<span id="483">483</span>
+<span id="484">484</span>
+<span id="485">485</span>
+<span id="486">486</span>
+<span id="487">487</span>
+<span id="488">488</span>
+<span id="489">489</span>
+</pre><pre class="rust"><code><span class="doccomment">//! Memory management declarations.</span>
+
+<span class="kw">use</span> <a class="ident" href="../../../src/nix/lib.rs.html#91"><span class="kw">crate</span>::Result</a>;
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>))]</span>
 <span class="kw">use</span> <a class="ident" href="../../../src/nix/lib.rs.html#106-118"><span class="kw">crate</span>::NixPath</a>;
 <span class="kw">use</span> <a class="ident" href="../../../src/nix/errno.rs.html#774-909"><span class="kw">crate</span>::errno::Errno</a>;
@@ -494,7 +524,7 @@
 }
 
 <span class="macro">libc_bitflags!</span>{
-    <span class="doccomment">/// Additional parameters for `mmap()`.</span>
+    <span class="doccomment">/// Additional parameters for [`mmap`].</span>
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">MapFlags</span>: <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a> {
         <span class="doccomment">/// Compatibility flag. Ignored.</span>
         <span class="ident">MAP_FILE</span>;
@@ -605,7 +635,7 @@
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;ios&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;macos&quot;</span>))]</span>
         <span class="ident">MAP_JIT</span>;
         <span class="doccomment">/// Allows to use large pages, underlying alignment based on size.</span>
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;freesd&quot;</span>)]</span>
+        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;freebsd&quot;</span>)]</span>
         <span class="ident">MAP_ALIGNED_SUPER</span>;
         <span class="doccomment">/// Pages will be discarded in the core dumps.</span>
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;openbsd&quot;</span>)]</span>
@@ -615,7 +645,7 @@
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;netbsd&quot;</span>))]</span>
 <span class="macro">libc_bitflags!</span>{
-    <span class="doccomment">/// Options for `mremap()`.</span>
+    <span class="doccomment">/// Options for [`mremap`].</span>
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">MRemapFlags</span>: <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a> {
         <span class="doccomment">/// Permit the kernel to relocate the mapping to a new virtual address, if necessary.</span>
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>)]</span>
@@ -635,7 +665,7 @@
 <span class="macro">libc_enum!</span>{
     <span class="doccomment">/// Usage information for a range of memory to allow for performance optimizations by the kernel.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// Used by [`madvise`](./fn.madvise.html).</span>
+    <span class="doccomment">/// Used by [`madvise`].</span>
     <span class="attribute">#[<span class="ident">repr</span>(<span class="ident">i32</span>)]</span>
     <span class="attribute">#[<span class="ident">non_exhaustive</span>]</span>
     <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">MmapAdvise</span> {
@@ -674,7 +704,8 @@
             <span class="ident">all</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>, <span class="ident">any</span>(
                 <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;aarch64&quot;</span>,
                 <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;arm&quot;</span>,
-                <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;ppc&quot;</span>,
+                <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;powerpc&quot;</span>,
+                <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;powerpc64&quot;</span>,
                 <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;s390x&quot;</span>,
                 <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;x86&quot;</span>,
                 <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;x86_64&quot;</span>,
@@ -727,7 +758,7 @@
 }
 
 <span class="macro">libc_bitflags!</span>{
-    <span class="doccomment">/// Configuration flags for `msync`.</span>
+    <span class="doccomment">/// Configuration flags for [`msync`].</span>
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">MsFlags</span>: <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a> {
         <span class="doccomment">/// Schedule an update but return immediately.</span>
         <span class="ident">MS_ASYNC</span>;
@@ -745,7 +776,7 @@
 }
 
 <span class="macro">libc_bitflags!</span>{
-    <span class="doccomment">/// Flags for `mlockall`.</span>
+    <span class="doccomment">/// Flags for [`mlockall`].</span>
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">MlockAllFlags</span>: <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a> {
         <span class="doccomment">/// Lock pages that are currently mapped into the address space of the process.</span>
         <span class="ident">MCL_CURRENT</span>;
@@ -761,9 +792,11 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// # Safety</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// `addr` must meet all the requirements described in the `mlock(2)` man page.</span>
+<span class="doccomment">/// `addr` must meet all the requirements described in the [`mlock(2)`] man page.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// [`mlock(2)`]: https://man7.org/linux/man-pages/man2/mlock.2.html</span>
 <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">mlock</span>(<span class="ident">addr</span>: <span class="kw-2">*const</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>, <span class="ident">length</span>: <a class="ident" href="../../../libc/unix/type.size_t.html">size_t</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-    <span class="ident">Errno::result</span>(<span class="ident">libc::mlock</span>(<a class="ident" href="../../../src/nix/sys/mman.rs.html#301">addr</a>, <a class="ident" href="../../../src/nix/sys/mman.rs.html#301">length</a>)).<span class="ident">map</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>)
+    <span class="ident">Errno::result</span>(<span class="ident">libc::mlock</span>(<a class="ident" href="../../../src/nix/sys/mman.rs.html#306">addr</a>, <a class="ident" href="../../../src/nix/sys/mman.rs.html#306">length</a>)).<span class="ident">map</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>)
 }
 
 <span class="doccomment">/// Unlocks all memory pages that contain part of the address range with</span>
@@ -771,25 +804,28 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// # Safety</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// `addr` must meet all the requirements described in the `munlock(2)` man</span>
+<span class="doccomment">/// `addr` must meet all the requirements described in the [`munlock(2)`] man</span>
 <span class="doccomment">/// page.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// [`munlock(2)`]: https://man7.org/linux/man-pages/man2/munlock.2.html</span>
 <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">munlock</span>(<span class="ident">addr</span>: <span class="kw-2">*const</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>, <span class="ident">length</span>: <a class="ident" href="../../../libc/unix/type.size_t.html">size_t</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-    <span class="ident">Errno::result</span>(<span class="ident">libc::munlock</span>(<a class="ident" href="../../../src/nix/sys/mman.rs.html#312">addr</a>, <a class="ident" href="../../../src/nix/sys/mman.rs.html#312">length</a>)).<span class="ident">map</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>)
+    <span class="ident">Errno::result</span>(<span class="ident">libc::munlock</span>(<a class="ident" href="../../../src/nix/sys/mman.rs.html#319">addr</a>, <a class="ident" href="../../../src/nix/sys/mman.rs.html#319">length</a>)).<span class="ident">map</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>)
 }
 
 <span class="doccomment">/// Locks all memory pages mapped into this process&#39; address space.</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// Locked pages never move to the swap area.</span>
+<span class="doccomment">/// Locked pages never move to the swap area. For more information, see [`mlockall(2)`].</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// # Safety</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// `addr` must meet all the requirements described in the `mlockall(2)` man</span>
-<span class="doccomment">/// page.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">mlockall</span>(<span class="ident">flags</span>: <a class="ident" href="../../../src/nix/sys/mman.rs.html#283-291">MlockAllFlags</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-    <span class="kw">unsafe</span> { <span class="ident">Errno::result</span>(<span class="ident">libc::mlockall</span>(<a class="ident" href="../../../src/nix/sys/mman.rs.html#324">flags</a>.<a class="ident" href="../../../src/nix/sys/mman.rs.html#283-291">bits</a>())) }.<span class="ident">map</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>)
+<span class="doccomment">/// [`mlockall(2)`]: https://man7.org/linux/man-pages/man2/mlockall.2.html</span>
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">mlockall</span>(<span class="ident">flags</span>: <a class="ident" href="../../../src/nix/sys/mman.rs.html#286-294">MlockAllFlags</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="kw">unsafe</span> { <span class="ident">Errno::result</span>(<span class="ident">libc::mlockall</span>(<a class="ident" href="../../../src/nix/sys/mman.rs.html#328">flags</a>.<a class="ident" href="../../../src/nix/sys/mman.rs.html#286-294">bits</a>())) }.<span class="ident">map</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>)
 }
 
 <span class="doccomment">/// Unlocks all memory pages mapped into this process&#39; address space.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// For more information, see [`munlockall(2)`].</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// [`munlockall(2)`]: https://man7.org/linux/man-pages/man2/munlockall.2.html</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">munlockall</span>() -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
     <span class="kw">unsafe</span> { <span class="ident">Errno::result</span>(<span class="ident">libc::munlockall</span>()) }.<span class="ident">map</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>)
 }
@@ -798,14 +834,16 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// # Safety</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// See the `mmap(2)` man page for detailed requirements.</span>
-<span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">mmap</span>(<span class="ident">addr</span>: <span class="kw-2">*mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>, <span class="ident">length</span>: <a class="ident" href="../../../libc/unix/type.size_t.html">size_t</a>, <span class="ident">prot</span>: <a class="ident" href="../../../src/nix/sys/mman.rs.html#12-30">ProtFlags</a>, <span class="ident">flags</span>: <a class="ident" href="../../../src/nix/sys/mman.rs.html#32-150">MapFlags</a>, <span class="ident">fd</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>, <span class="ident">offset</span>: <a class="ident" href="../../../libc/unix/linux_like/linux/gnu/b64/type.off_t.html">off_t</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="kw-2">*mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="ident">ret</span> <span class="op">=</span> <span class="ident">libc::mmap</span>(<a class="ident" href="../../../src/nix/sys/mman.rs.html#338">addr</a>, <a class="ident" href="../../../src/nix/sys/mman.rs.html#338">length</a>, <a class="ident" href="../../../src/nix/sys/mman.rs.html#338">prot</a>.<a class="ident" href="../../../src/nix/sys/mman.rs.html#12-30">bits</a>(), <a class="ident" href="../../../src/nix/sys/mman.rs.html#338">flags</a>.<a class="ident" href="../../../src/nix/sys/mman.rs.html#32-150">bits</a>(), <a class="ident" href="../../../src/nix/sys/mman.rs.html#338">fd</a>, <a class="ident" href="../../../src/nix/sys/mman.rs.html#338">offset</a>);
+<span class="doccomment">/// See the [`mmap(2)`] man page for detailed requirements.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// [`mmap(2)`]: https://man7.org/linux/man-pages/man2/mmap.2.html</span>
+<span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">mmap</span>(<span class="ident">addr</span>: <span class="kw-2">*mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>, <span class="ident">length</span>: <a class="ident" href="../../../libc/unix/type.size_t.html">size_t</a>, <span class="ident">prot</span>: <a class="ident" href="../../../src/nix/sys/mman.rs.html#14-32">ProtFlags</a>, <span class="ident">flags</span>: <a class="ident" href="../../../src/nix/sys/mman.rs.html#34-152">MapFlags</a>, <span class="ident">fd</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>, <span class="ident">offset</span>: <a class="ident" href="../../../libc/unix/linux_like/linux/gnu/b64/type.off_t.html">off_t</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="kw-2">*mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a><span class="op">&gt;</span> {
+    <span class="kw">let</span> <span class="ident">ret</span> <span class="op">=</span> <span class="ident">libc::mmap</span>(<a class="ident" href="../../../src/nix/sys/mman.rs.html#348">addr</a>, <a class="ident" href="../../../src/nix/sys/mman.rs.html#348">length</a>, <a class="ident" href="../../../src/nix/sys/mman.rs.html#348">prot</a>.<a class="ident" href="../../../src/nix/sys/mman.rs.html#14-32">bits</a>(), <a class="ident" href="../../../src/nix/sys/mman.rs.html#348">flags</a>.<a class="ident" href="../../../src/nix/sys/mman.rs.html#34-152">bits</a>(), <a class="ident" href="../../../src/nix/sys/mman.rs.html#348">fd</a>, <a class="ident" href="../../../src/nix/sys/mman.rs.html#348">offset</a>);
 
-    <span class="kw">if</span> <a class="ident" href="../../../src/nix/sys/mman.rs.html#339">ret</a> <span class="op">==</span> <span class="ident">libc::MAP_FAILED</span> {
+    <span class="kw">if</span> <a class="ident" href="../../../src/nix/sys/mman.rs.html#349">ret</a> <span class="op">==</span> <span class="ident">libc::MAP_FAILED</span> {
         <span class="prelude-val">Err</span>(<span class="ident">Errno::last</span>())
     } <span class="kw">else</span> {
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/nix/sys/mman.rs.html#339">ret</a>)
+        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/nix/sys/mman.rs.html#349">ret</a>)
     }
 }
 
@@ -821,11 +859,11 @@
     <span class="ident">addr</span>: <span class="kw-2">*mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>,
     <span class="ident">old_size</span>: <a class="ident" href="../../../libc/unix/type.size_t.html">size_t</a>,
     <span class="ident">new_size</span>: <a class="ident" href="../../../libc/unix/type.size_t.html">size_t</a>,
-    <span class="ident">flags</span>: <a class="ident" href="../../../src/nix/sys/mman.rs.html#153-169">MRemapFlags</a>,
+    <span class="ident">flags</span>: <a class="ident" href="../../../src/nix/sys/mman.rs.html#155-171">MRemapFlags</a>,
     <span class="ident">new_address</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="op">*</span> <span class="kw-2">mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a><span class="op">&gt;</span>,
 ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="kw-2">*mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a><span class="op">&gt;</span> {
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>)]</span>
-    <span class="kw">let</span> <span class="ident">ret</span> <span class="op">=</span> <span class="ident">libc::mremap</span>(<a class="ident" href="../../../src/nix/sys/mman.rs.html#357">addr</a>, <a class="ident" href="../../../src/nix/sys/mman.rs.html#358">old_size</a>, <a class="ident" href="../../../src/nix/sys/mman.rs.html#359">new_size</a>, <a class="ident" href="../../../src/nix/sys/mman.rs.html#360">flags</a>.<a class="ident" href="../../../src/nix/sys/mman.rs.html#153-169">bits</a>(), <a class="ident" href="../../../src/nix/sys/mman.rs.html#361">new_address</a>.<span class="ident">unwrap_or</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/core/ptr/fn.null_mut.html">std::ptr::null_mut</a>()));
+    <span class="kw">let</span> <span class="ident">ret</span> <span class="op">=</span> <span class="ident">libc::mremap</span>(<a class="ident" href="../../../src/nix/sys/mman.rs.html#367">addr</a>, <a class="ident" href="../../../src/nix/sys/mman.rs.html#368">old_size</a>, <a class="ident" href="../../../src/nix/sys/mman.rs.html#369">new_size</a>, <a class="ident" href="../../../src/nix/sys/mman.rs.html#370">flags</a>.<a class="ident" href="../../../src/nix/sys/mman.rs.html#155-171">bits</a>(), <a class="ident" href="../../../src/nix/sys/mman.rs.html#371">new_address</a>.<span class="ident">unwrap_or</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/core/ptr/fn.null_mut.html">std::ptr::null_mut</a>()));
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;netbsd&quot;</span>)]</span>
     <span class="kw">let</span> <span class="ident">ret</span> <span class="op">=</span> <span class="ident">libc::mremap</span>(
         <span class="ident">addr</span>,
@@ -835,10 +873,10 @@
         <span class="ident">flags</span>.<span class="ident">bits</span>(),
         );
 
-    <span class="kw">if</span> <a class="ident" href="../../../src/nix/sys/mman.rs.html#364">ret</a> <span class="op">==</span> <span class="ident">libc::MAP_FAILED</span> {
+    <span class="kw">if</span> <a class="ident" href="../../../src/nix/sys/mman.rs.html#374">ret</a> <span class="op">==</span> <span class="ident">libc::MAP_FAILED</span> {
         <span class="prelude-val">Err</span>(<span class="ident">Errno::last</span>())
     } <span class="kw">else</span> {
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/nix/sys/mman.rs.html#364">ret</a>)
+        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/nix/sys/mman.rs.html#374">ret</a>)
     }
 }
 
@@ -846,20 +884,24 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// # Safety</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// `addr` must meet all the requirements described in the `munmap(2)` man</span>
+<span class="doccomment">/// `addr` must meet all the requirements described in the [`munmap(2)`] man</span>
 <span class="doccomment">/// page.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// [`munmap(2)`]: https://man7.org/linux/man-pages/man2/munmap.2.html</span>
 <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">munmap</span>(<span class="ident">addr</span>: <span class="kw-2">*mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>, <span class="ident">len</span>: <a class="ident" href="../../../libc/unix/type.size_t.html">size_t</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-    <span class="ident">Errno::result</span>(<span class="ident">libc::munmap</span>(<a class="ident" href="../../../src/nix/sys/mman.rs.html#387">addr</a>, <a class="ident" href="../../../src/nix/sys/mman.rs.html#387">len</a>)).<span class="ident">map</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>)
+    <span class="ident">Errno::result</span>(<span class="ident">libc::munmap</span>(<a class="ident" href="../../../src/nix/sys/mman.rs.html#399">addr</a>, <a class="ident" href="../../../src/nix/sys/mman.rs.html#399">len</a>)).<span class="ident">map</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>)
 }
 
 <span class="doccomment">/// give advice about use of memory</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// # Safety</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// See the `madvise(2)` man page.  Take special care when using</span>
-<span class="doccomment">/// `MmapAdvise::MADV_FREE`.</span>
-<span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">madvise</span>(<span class="ident">addr</span>: <span class="kw-2">*mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>, <span class="ident">length</span>: <a class="ident" href="../../../libc/unix/type.size_t.html">size_t</a>, <span class="ident">advise</span>: <a class="ident" href="../../../src/nix/sys/mman.rs.html#171-263">MmapAdvise</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-    <span class="ident">Errno::result</span>(<span class="ident">libc::madvise</span>(<a class="ident" href="../../../src/nix/sys/mman.rs.html#397">addr</a>, <a class="ident" href="../../../src/nix/sys/mman.rs.html#397">length</a>, <a class="ident" href="../../../src/nix/sys/mman.rs.html#397">advise</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>)).<span class="ident">map</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>)
+<span class="doccomment">/// See the [`madvise(2)`] man page.  Take special care when using</span>
+<span class="doccomment">/// [`MmapAdvise::MADV_FREE`].</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// [`madvise(2)`]: https://man7.org/linux/man-pages/man2/madvise.2.html</span>
+<span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">madvise</span>(<span class="ident">addr</span>: <span class="kw-2">*mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>, <span class="ident">length</span>: <a class="ident" href="../../../libc/unix/type.size_t.html">size_t</a>, <span class="ident">advise</span>: <a class="ident" href="../../../src/nix/sys/mman.rs.html#173-266">MmapAdvise</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="ident">Errno::result</span>(<span class="ident">libc::madvise</span>(<a class="ident" href="../../../src/nix/sys/mman.rs.html#411">addr</a>, <a class="ident" href="../../../src/nix/sys/mman.rs.html#411">length</a>, <a class="ident" href="../../../src/nix/sys/mman.rs.html#411">advise</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>)).<span class="ident">map</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>)
 }
 
 <span class="doccomment">/// Set protection of memory mapping.</span>
@@ -887,44 +929,56 @@
 <span class="doccomment">/// slice[0] = 0xFF;</span>
 <span class="doccomment">/// assert_eq!(slice[0], 0xFF);</span>
 <span class="doccomment">/// ```</span>
-<span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">mprotect</span>(<span class="ident">addr</span>: <span class="kw-2">*mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>, <span class="ident">length</span>: <a class="ident" href="../../../libc/unix/type.size_t.html">size_t</a>, <span class="ident">prot</span>: <a class="ident" href="../../../src/nix/sys/mman.rs.html#12-30">ProtFlags</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-    <span class="ident">Errno::result</span>(<span class="ident">libc::mprotect</span>(<a class="ident" href="../../../src/nix/sys/mman.rs.html#426">addr</a>, <a class="ident" href="../../../src/nix/sys/mman.rs.html#426">length</a>, <a class="ident" href="../../../src/nix/sys/mman.rs.html#426">prot</a>.<a class="ident" href="../../../src/nix/sys/mman.rs.html#12-30">bits</a>())).<span class="ident">map</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>)
+<span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">mprotect</span>(<span class="ident">addr</span>: <span class="kw-2">*mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>, <span class="ident">length</span>: <a class="ident" href="../../../libc/unix/type.size_t.html">size_t</a>, <span class="ident">prot</span>: <a class="ident" href="../../../src/nix/sys/mman.rs.html#14-32">ProtFlags</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="ident">Errno::result</span>(<span class="ident">libc::mprotect</span>(<a class="ident" href="../../../src/nix/sys/mman.rs.html#440">addr</a>, <a class="ident" href="../../../src/nix/sys/mman.rs.html#440">length</a>, <a class="ident" href="../../../src/nix/sys/mman.rs.html#440">prot</a>.<a class="ident" href="../../../src/nix/sys/mman.rs.html#14-32">bits</a>())).<span class="ident">map</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>)
 }
 
 <span class="doccomment">/// synchronize a mapped region</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// # Safety</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// `addr` must meet all the requirements described in the `msync(2)` man</span>
+<span class="doccomment">/// `addr` must meet all the requirements described in the [`msync(2)`] man</span>
 <span class="doccomment">/// page.</span>
-<span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">msync</span>(<span class="ident">addr</span>: <span class="kw-2">*mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>, <span class="ident">length</span>: <a class="ident" href="../../../libc/unix/type.size_t.html">size_t</a>, <span class="ident">flags</span>: <a class="ident" href="../../../src/nix/sys/mman.rs.html#265-281">MsFlags</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-    <span class="ident">Errno::result</span>(<span class="ident">libc::msync</span>(<a class="ident" href="../../../src/nix/sys/mman.rs.html#436">addr</a>, <a class="ident" href="../../../src/nix/sys/mman.rs.html#436">length</a>, <a class="ident" href="../../../src/nix/sys/mman.rs.html#436">flags</a>.<a class="ident" href="../../../src/nix/sys/mman.rs.html#265-281">bits</a>())).<span class="ident">map</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>)
+<span class="doccomment">///</span>
+<span class="doccomment">/// [`msync(2)`]: https://man7.org/linux/man-pages/man2/msync.2.html</span>
+<span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">msync</span>(<span class="ident">addr</span>: <span class="kw-2">*mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>, <span class="ident">length</span>: <a class="ident" href="../../../libc/unix/type.size_t.html">size_t</a>, <span class="ident">flags</span>: <a class="ident" href="../../../src/nix/sys/mman.rs.html#268-284">MsFlags</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="ident">Errno::result</span>(<span class="ident">libc::msync</span>(<a class="ident" href="../../../src/nix/sys/mman.rs.html#452">addr</a>, <a class="ident" href="../../../src/nix/sys/mman.rs.html#452">length</a>, <a class="ident" href="../../../src/nix/sys/mman.rs.html#452">flags</a>.<a class="ident" href="../../../src/nix/sys/mman.rs.html#268-284">bits</a>())).<span class="ident">map</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>)
 }
 
+<span class="doccomment">/// Creates and opens a new, or opens an existing, POSIX shared memory object.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// For more information, see [`shm_open(3)`].</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// [`shm_open(3)`]: https://man7.org/linux/man-pages/man3/shm_open.3.html</span>
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>))]</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">shm_open</span><span class="op">&lt;</span><span class="ident">P</span>: <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> <span class="op">+</span> <a class="ident" href="../../../src/nix/lib.rs.html#106-118">NixPath</a><span class="op">&gt;</span>(<span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">P</span>, <span class="ident">flag</span>: <a class="ident" href="../../../src/nix/fcntl.rs.html#42-166">OFlag</a>, <span class="ident">mode</span>: <a class="ident" href="../../../src/nix/sys/stat.rs.html#25-44">Mode</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="ident">ret</span> <span class="op">=</span> <a class="ident" href="../../../src/nix/sys/mman.rs.html#441">name</a>.<a class="ident" href="../../../src/nix/lib.rs.html#116-117">with_nix_path</a>(<span class="op">|</span><span class="ident">cstr</span><span class="op">|</span> {
+    <span class="kw">let</span> <span class="ident">ret</span> <span class="op">=</span> <a class="ident" href="../../../src/nix/sys/mman.rs.html#462">name</a>.<a class="ident" href="../../../src/nix/lib.rs.html#116-117">with_nix_path</a>(<span class="op">|</span><span class="ident">cstr</span><span class="op">|</span> {
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;macos&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;ios&quot;</span>))]</span>
         <span class="kw">unsafe</span> {
             <span class="ident">libc::shm_open</span>(<span class="ident">cstr</span>.<span class="ident">as_ptr</span>(), <span class="ident">flag</span>.<span class="ident">bits</span>(), <span class="ident">mode</span>.<span class="ident">bits</span>() <span class="kw">as</span> <span class="ident">libc::c_uint</span>)
         }
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;macos&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;ios&quot;</span>)))]</span>
         <span class="kw">unsafe</span> {
-            <span class="ident">libc::shm_open</span>(<a class="ident" href="../../../src/nix/sys/mman.rs.html#442">cstr</a>.<span class="ident">as_ptr</span>(), <a class="ident" href="../../../src/nix/sys/mman.rs.html#441">flag</a>.<a class="ident" href="../../../src/nix/fcntl.rs.html#42-166">bits</a>(), <a class="ident" href="../../../src/nix/sys/mman.rs.html#441">mode</a>.<a class="ident" href="../../../src/nix/sys/stat.rs.html#25-44">bits</a>() <span class="kw">as</span> <a class="ident" href="../../../nix/sys/stat/type.mode_t.html">libc::mode_t</a>)
+            <span class="ident">libc::shm_open</span>(<a class="ident" href="../../../src/nix/sys/mman.rs.html#463">cstr</a>.<span class="ident">as_ptr</span>(), <a class="ident" href="../../../src/nix/sys/mman.rs.html#462">flag</a>.<a class="ident" href="../../../src/nix/fcntl.rs.html#42-166">bits</a>(), <a class="ident" href="../../../src/nix/sys/mman.rs.html#462">mode</a>.<a class="ident" href="../../../src/nix/sys/stat.rs.html#25-44">bits</a>() <span class="kw">as</span> <a class="ident" href="../../../nix/sys/stat/type.mode_t.html">libc::mode_t</a>)
         }
     })<span class="question-mark">?</span>;
 
-    <span class="ident">Errno::result</span>(<a class="ident" href="../../../src/nix/sys/mman.rs.html#442">ret</a>)
+    <span class="ident">Errno::result</span>(<a class="ident" href="../../../src/nix/sys/mman.rs.html#463">ret</a>)
 }
 
+<span class="doccomment">/// Performs the converse of [`shm_open`], removing an object previously created.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// For more information, see [`shm_unlink(3)`].</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// [`shm_unlink(3)`]: https://man7.org/linux/man-pages/man3/shm_unlink.3.html</span>
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>))]</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">shm_unlink</span><span class="op">&lt;</span><span class="ident">P</span>: <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> <span class="op">+</span> <a class="ident" href="../../../src/nix/lib.rs.html#106-118">NixPath</a><span class="op">&gt;</span>(<span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">P</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="ident">ret</span> <span class="op">=</span> <a class="ident" href="../../../src/nix/sys/mman.rs.html#457">name</a>.<a class="ident" href="../../../src/nix/lib.rs.html#116-117">with_nix_path</a>(<span class="op">|</span><span class="ident">cstr</span><span class="op">|</span> {
-        <span class="kw">unsafe</span> { <span class="ident">libc::shm_unlink</span>(<a class="ident" href="../../../src/nix/sys/mman.rs.html#458">cstr</a>.<span class="ident">as_ptr</span>()) }
+    <span class="kw">let</span> <span class="ident">ret</span> <span class="op">=</span> <a class="ident" href="../../../src/nix/sys/mman.rs.html#483">name</a>.<a class="ident" href="../../../src/nix/lib.rs.html#116-117">with_nix_path</a>(<span class="op">|</span><span class="ident">cstr</span><span class="op">|</span> {
+        <span class="kw">unsafe</span> { <span class="ident">libc::shm_unlink</span>(<a class="ident" href="../../../src/nix/sys/mman.rs.html#484">cstr</a>.<span class="ident">as_ptr</span>()) }
     })<span class="question-mark">?</span>;
 
-    <span class="ident">Errno::result</span>(<a class="ident" href="../../../src/nix/sys/mman.rs.html#458">ret</a>).<span class="ident">map</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>)
+    <span class="ident">Errno::result</span>(<a class="ident" href="../../../src/nix/sys/mman.rs.html#484">ret</a>).<span class="ident">map</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>)
 }
 </code></pre></div>
-</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="nix" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.59.0-nightly (404c8471a 2021-12-14)" ></div>
+</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="nix" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.60.0-nightly (bd3cb5256 2022-01-16)" ></div>
 </body></html>
