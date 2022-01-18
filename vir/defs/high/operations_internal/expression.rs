@@ -51,6 +51,7 @@ impl Expression {
             _ => false,
         }
     }
+    #[must_use]
     pub fn replace_place(self, target: &Expression, replacement: &Expression) -> Self {
         debug_assert!(target.is_place());
         if let Some(ty) = replacement.get_type().forget_variant() {
@@ -84,6 +85,7 @@ impl Expression {
         };
         replacer.fold_expression(self)
     }
+    #[must_use]
     pub fn replace_multiple_places(self, replacements: &[(Expression, Expression)]) -> Self {
         struct PlaceReplacer<'a> {
             replacements: &'a [(Expression, Expression)],
@@ -121,6 +123,7 @@ impl Expression {
         }
         PlaceReplacer { replacements }.fold_expression(self)
     }
+    #[must_use]
     pub fn map_old_expression_label<F>(self, substitutor: F) -> Self
     where
         F: Fn(String) -> String,
@@ -153,6 +156,7 @@ impl Expression {
         OldExpressionLabelSubstitutor { substitutor }.fold_expression(self)
     }
     /// Simplify `Deref(AddrOf(P))` to `P`.
+    #[must_use]
     pub fn simplify_addr_of(self) -> Self {
         struct Simplifier;
         impl ExpressionFolder for Simplifier {
@@ -217,6 +221,7 @@ impl Expression {
             return_type,
         )
     }
+    #[must_use]
     pub fn set_default_pos(self, new_position: Position) -> Self {
         struct DefaultPositionReplacer {
             new_position: Position,

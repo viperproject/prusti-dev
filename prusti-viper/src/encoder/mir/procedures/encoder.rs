@@ -196,7 +196,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
     ) -> SpannedEncodingResult<()> {
         let span = self.encoder.get_span_of_location(self.mir, location);
         match aggregate_kind {
-            mir::AggregateKind::Adt(adt_def, variant_index, substs, _, active_field_index) => {
+            mir::AggregateKind::Adt(adt_did, variant_index, substs, _, active_field_index) => {
+                let adt_def = self.encoder.env().tcx().adt_def(*adt_did);
                 assert!(
                     active_field_index.is_none(),
                     "field index should be set only for unions"

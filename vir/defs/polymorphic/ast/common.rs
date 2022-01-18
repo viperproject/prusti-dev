@@ -195,6 +195,7 @@ impl Type {
     }
 
     /// Construct a new VIR type that corresponds to an enum variant.
+    #[must_use]
     pub fn variant(self, variant: &str) -> Self {
         match self {
             Type::TypedRef(mut typed_ref) => {
@@ -206,6 +207,7 @@ impl Type {
     }
 
     /// Replace all generic types with their instantiations by using string substitution.
+    #[must_use]
     pub fn patch(self, substs: &FxHashMap<TypeVar, Type>) -> Self {
         self.substitute(substs)
     }
@@ -259,6 +261,7 @@ impl Type {
     }
 
     // TODO: this is a temporary solution for converting the encoded type in type encoder as a snapshot variant, which ould be cleaner
+    #[must_use]
     pub fn convert_to_snapshot(&self) -> Self {
         match self {
             Type::TypedRef(typed_ref) => Type::Snapshot(typed_ref.clone().into()),

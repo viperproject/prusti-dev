@@ -6,6 +6,7 @@ use rustc_hash::FxHashMap;
 
 impl Type {
     /// Return a type that represents a variant of the given enum.
+    #[must_use]
     pub fn variant(self, variant: VariantIndex) -> Self {
         match self {
             Type::Enum(Enum {
@@ -70,6 +71,7 @@ impl super::super::ast::type_decl::Enum {
 }
 
 pub trait Generic {
+    #[must_use]
     fn substitute_types(self, substs: &FxHashMap<TypeVar, Type>) -> Self;
 }
 
