@@ -94,7 +94,7 @@ lazy_static! {
         settings.set_default("full_compilation", false).unwrap();
         settings.set_default("json_communication", false).unwrap();
         settings.set_default("optimizations","all").unwrap();
-        settings.set_default("intern_names", false).unwrap();
+        settings.set_default("intern_names", true).unwrap();
         settings.set_default("enable_purification_optimization", false).unwrap();
         settings.set_default("enable_manual_axiomatization", false).unwrap();
         settings.set_default::<Option<i64>>("verification_deadline", None).unwrap();

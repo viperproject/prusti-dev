@@ -22,6 +22,7 @@ pub const RETURN_LABEL: &str = "end_of_method";
 #[derivative(Hash)]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CfgMethod {
+    #[derivative(Hash = "ignore")]
     pub method_name: String,
     pub formal_arg_count: usize,
     pub formal_returns: Vec<LocalVar>,

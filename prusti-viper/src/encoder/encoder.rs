@@ -790,7 +790,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     }
 
     pub fn encode_item_name(&self, def_id: DefId) -> String {
-        let full_name = format!("m_{}", encode_identifier(self.env.get_absolute_item_name(def_id)));
+        let full_name = format!("m_{}", encode_identifier(self.env.get_unique_item_name(def_id)));
         let short_name = format!("m_{}", encode_identifier(
             self.env.tcx().opt_item_name(def_id)
                 .map(|s| s.name.to_ident_string())
@@ -848,7 +848,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         while !self.encoding_queue.borrow().is_empty() {
             let (proc_def_id, substs) = self.encoding_queue.borrow_mut().pop().unwrap();
 
-            let proc_name = self.env.get_absolute_item_name(proc_def_id);
+            let proc_name = self.env.get_unique_item_name(proc_def_id);
             let proc_def_path = self.env.get_item_def_path(proc_def_id);
             info!("Encoding: {} ({})", proc_name, proc_def_path);
             assert!(substs.is_empty());
@@ -957,7 +957,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         let full_name = format!(
             "sf_{}_{}",
             kind_name,
-            encode_identifier(self.env.get_absolute_item_name(def_id))
+            encode_identifier(self.env.get_unique_item_name(def_id))
         );
         let short_name = format!(
             "sf_{}_{}",
