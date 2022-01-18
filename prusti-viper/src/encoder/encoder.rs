@@ -790,7 +790,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     }
 
     pub fn encode_item_name(&self, def_id: DefId) -> String {
-        let full_name = format!("m_{}", encode_identifier(self.env.get_item_def_path(def_id)));
+        let full_name = format!("m_{}", encode_identifier(self.env.get_absolute_item_name(def_id)));
         let short_name = format!("m_{}", encode_identifier(
             self.env.tcx().opt_item_name(def_id)
                 .map(|s| s.name.to_ident_string())
@@ -957,7 +957,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         let full_name = format!(
             "sf_{}_{}",
             kind_name,
-            encode_identifier(self.env.get_item_def_path(def_id))
+            encode_identifier(self.env.get_absolute_item_name(def_id))
         );
         let short_name = format!(
             "sf_{}_{}",
