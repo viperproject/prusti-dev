@@ -367,6 +367,7 @@ impl<EID: Clone + Debug, ET: Clone + Debug, AT: Clone + Debug> ProcedureSpecific
     ///
     /// In other words, any pre-/post-condition provided by `other` will overwrite any provided by
     /// `self`.
+    #[must_use]
     pub fn refine(&self, other: &Self) -> Self {
         let pres = if other.pres.is_empty() {
             self.pres.clone()

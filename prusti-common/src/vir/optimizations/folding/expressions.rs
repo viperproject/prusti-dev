@@ -27,6 +27,7 @@ use crate::vir::polymorphic_vir::FallibleExprFolder;
 
 
 pub trait FoldingOptimizer {
+    #[must_use]
     fn optimize(self) -> Self;
 }
 

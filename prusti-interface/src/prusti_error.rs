@@ -125,11 +125,13 @@ impl PrustiError {
         self.is_disabled
     }
 
+    #[must_use]
     pub fn set_help<S: ToString>(mut self, message: S) -> Self {
         self.help = Some(message.to_string());
         self
     }
 
+    #[must_use]
     pub fn add_note<S: ToString>(mut self, message: S, opt_span: Option<Span>) -> Self {
         self.notes.push((message.to_string(), opt_span.map(MultiSpan::from)));
         self
@@ -163,6 +165,7 @@ impl PrustiError {
     /// Set the span of the failing assertion expression.
     ///
     /// Note: this is a noop if `opt_span` is None
+    #[must_use]
     pub fn set_failing_assertion(mut self, opt_span: Option<&MultiSpan>) -> Self {
         if let Some(span) = opt_span {
             let note = "the failing assertion is here".to_string();
@@ -174,6 +177,7 @@ impl PrustiError {
     /// Convert the original error span to a note, and add a new error span.
     ///
     /// Note: this is a noop if `opt_span` is None
+    #[must_use]
     pub fn push_primary_span(mut self, opt_span: Option<&MultiSpan>) -> Self {
         if let Some(span) = opt_span {
             self.notes.push(("the error originates here".to_string(), Some(self.span)));

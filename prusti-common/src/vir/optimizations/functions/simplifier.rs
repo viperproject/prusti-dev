@@ -10,6 +10,7 @@ use crate::vir::polymorphic_vir::ast::{self, ExprFolder};
 
 pub trait Simplifier {
     /// Simplify by doing constant evaluation.
+    #[must_use]
     fn simplify(self) -> Self;
 }
 
@@ -26,6 +27,7 @@ impl Simplifier for ast::Function {
 }
 
 impl Simplifier for ast::Expr {
+    #[must_use]
     fn simplify(self) -> Self {
         let mut folder = ExprSimplifier {};
         folder.fold(self)

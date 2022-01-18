@@ -70,6 +70,7 @@ impl<'a> Verifier<'a> {
         }
     }
 
+    #[must_use]
     pub fn parse_command_line(self, args: &[String]) -> Self {
         self.ast_utils.with_local_frame(16, || {
             let args = self.jni.new_seq(
@@ -86,6 +87,7 @@ impl<'a> Verifier<'a> {
         self
     }
 
+    #[must_use]
     pub fn start(self) -> Self {
         self.ast_utils.with_local_frame(16, || {
             self.jni

@@ -375,6 +375,7 @@ impl SnapshotEncoder {
 
     /// Returns [true] iff the given type can be used as a quantified variable
     /// in a user-facing [forall].
+    #[allow(clippy::wrong_self_convention)]
     pub fn is_quantifiable<'p, 'v: 'p, 'tcx: 'v>(
         &mut self,
         encoder: &'p Encoder<'v, 'tcx>,
@@ -726,12 +727,13 @@ impl SnapshotEncoder {
                     // or adt_def.variants[0].fields ?
                     let field_ty = field.ty(tcx, subst);
                     fields.push(SnapshotField {
-                        name: encode_field_name(&field.ident.to_string()),
+                        name: encode_field_name(&field.ident(tcx).to_string()),
                         access: self.snap_app(
                             encoder,
                             Expr::field(
                                 arg_expr.clone(),
-                                encoder.encode_struct_field(&field.ident.to_string(), field_ty)?,
+                                encoder
+                                    .encode_struct_field(&field.ident(tcx).to_string(), field_ty)?,
                             ),
                             tymap,
                         )?,
@@ -774,13 +776,15 @@ impl SnapshotEncoder {
                     for field in &variant.fields {
                         let field_ty = field.ty(tcx, subst);
                         fields.push(SnapshotField {
-                            name: encode_field_name(&field.ident.to_string()),
+                            name: encode_field_name(&field.ident(tcx).to_string()),
                             access: self.snap_app(
                                 encoder,
                                 Expr::field(
                                     field_base.clone(),
-                                    encoder
-                                        .encode_struct_field(&field.ident.to_string(), field_ty)?,
+                                    encoder.encode_struct_field(
+                                        &field.ident(tcx).to_string(),
+                                        field_ty,
+                                    )?,
                                 ),
                                 tymap,
                             )?,
@@ -846,7 +850,7 @@ impl SnapshotEncoder {
                 );
 
                 let array_collect_func_app =
-                    array_collect_func.apply(vec![arg_expr.clone(), 0.into()]);
+                    array_collect_func.apply(vec![arg_expr.clone(), 0usize.into()]);
 
                 let snap_body = cons.apply(vec![array_collect_func_app]);
 
