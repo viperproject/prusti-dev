@@ -1,4 +1,4 @@
-//~ ERROR Consistency error: expected the same type, but got Snap$struct$m_issue_709_3$$A and Ref
+//~ ERROR Consistency error: expected the same type, but got Snap$struct$m_A and Ref
 extern crate prusti_contracts;
 use prusti_contracts::*;
 
