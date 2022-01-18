@@ -127,6 +127,7 @@ impl Expr {
         }
     }
 
+    #[must_use]
     pub fn set_pos(self, position: Position) -> Self {
         match self {
             Expr::Local(Local { variable, .. }) => Expr::Local(Local { variable, position }),
@@ -326,6 +327,7 @@ impl Expr {
     }
 
     // Replace all Position::default() positions with `pos`
+    #[must_use]
     pub fn set_default_pos(self, pos: Position) -> Self {
         struct DefaultPosReplacer {
             new_pos: Position,
@@ -766,6 +768,7 @@ impl Expr {
     }
 
     /// Reconstruct place from the place components.
+    #[must_use]
     pub fn reconstruct_place(self, components: Vec<PlaceComponent>) -> Expr {
         components
             .into_iter()
@@ -796,6 +799,7 @@ impl Expr {
         Expr::Local(Local { variable, position })
     }
 
+    #[must_use]
     pub fn variant(self, index: &str) -> Self {
         assert!(self.is_place());
         let field_name = format!("enum_{}", index);
@@ -808,6 +812,7 @@ impl Expr {
         })
     }
 
+    #[must_use]
     pub fn field(self, field: Field) -> Self {
         Expr::Field(FieldExpr {
             base: Box::new(self),
@@ -816,6 +821,7 @@ impl Expr {
         })
     }
 
+    #[must_use]
     pub fn addr_of(self) -> Self {
         let addr_type = self.get_type().clone();
         Expr::AddrOf(AddrOf {
@@ -941,6 +947,7 @@ impl Expr {
     }
 
     /// Puts an `old[label](..)` around the expression
+    #[must_use]
     pub fn old<S: fmt::Display + ToString>(self, label: S) -> Self {
         match self {
             Expr::Local(..) => {
@@ -1023,6 +1030,7 @@ impl Expr {
     }
 
     /// Remove access predicates.
+    #[must_use]
     pub fn purify(self) -> Self {
         struct Purifier;
         impl ExprFolder for Purifier {
@@ -1276,6 +1284,7 @@ impl Expr {
         }
     }
 
+    #[must_use]
     pub fn negate(self) -> Self {
         if let Expr::UnaryOp(UnaryOp {
             op_kind: UnaryOpKind::Not,
@@ -1289,6 +1298,7 @@ impl Expr {
         }
     }
 
+    #[must_use]
     pub fn map_labels<F>(self, f: F) -> Self
     where
         F: Fn(String) -> Option<String>,
@@ -1315,6 +1325,7 @@ impl Expr {
     }
 
     /// Simplify `Deref(AddrOf(P))` to `P`.
+    #[must_use]
     pub fn simplify_addr_of(self) -> Self {
         struct Simplifier;
         impl ExprFolder for Simplifier {
@@ -1346,6 +1357,7 @@ impl Expr {
     }
 
     // TODO polymorphic: convert following 2 functions after type substitution is updated
+    #[must_use]
     pub fn replace_place(self, target: &Expr, replacement: &Expr) -> Self {
         // TODO: disabled for snapshot patching
         /*
@@ -1455,6 +1467,7 @@ impl Expr {
         .fold(self)
     }
 
+    #[must_use]
     pub fn replace_multiple_places(self, replacements: &[(Expr, Expr)]) -> Self {
         // TODO: disabled for snapshot patching
         /*
@@ -1578,6 +1591,7 @@ impl Expr {
 
     /// Replaces expressions like `old[l5](old[l5](_9.val_ref).foo.bar)`
     /// into `old[l5](_9.val_ref.foo.bar)`
+    #[must_use]
     pub fn remove_redundant_old(self) -> Self {
         struct RedundantOldRemover {
             current_label: Option<String>,
@@ -1609,6 +1623,7 @@ impl Expr {
     }
 
     /// Leaves a conjunction of `acc(..)` expressions
+    #[must_use]
     pub fn filter_perm_conjunction(self) -> Self {
         struct PermConjunctionFilter();
         impl ExprFolder for PermConjunctionFilter {
@@ -1725,6 +1740,7 @@ impl Expr {
     // TODO: update this after type substitution is in place
     // /// Replace all generic types with their instantiations by using string substitution.
     // /// FIXME: this is a hack to support generics. See issue #187.
+    #[must_use]
     pub fn patch_types(self, substs: &FxHashMap<TypeVar, Type>) -> Self {
         struct TypePatcher<'a> {
             substs: &'a FxHashMap<TypeVar, Type>,
@@ -1820,6 +1836,7 @@ impl Expr {
     /// Remove read permissions. For example, if the expression is
     /// `acc(x.f, read) && acc(P(x.f), write)`, then after the
     /// transformation it will be: `acc(P(x.f), write)`.
+    #[must_use]
     pub fn remove_read_permissions(self) -> Self {
         struct ReadPermRemover {}
         impl ExprFolder for ReadPermRemover {

@@ -496,6 +496,7 @@ impl Stmt {
     }
 
     // TODO: Potentially add more variants based on how they are used in encoders
+    #[must_use]
     pub fn set_pos(self, position: Position) -> Self {
         match self {
             Stmt::PackageMagicWand(PackageMagicWand {
@@ -517,6 +518,7 @@ impl Stmt {
     }
 
     // Replace a Position::default() position with `pos`
+    #[must_use]
     pub fn set_default_pos(self, pos: Position) -> Self {
         if self.pos().iter().any(|x| x.is_default()) {
             self.set_pos(pos)
@@ -526,6 +528,7 @@ impl Stmt {
     }
 
     // Replace all Position::default() positions in expressions with `pos`
+    #[must_use]
     pub fn set_default_expr_pos(self, pos: Position) -> Self {
         self.map_expr(|e| e.set_default_pos(pos))
     }
