@@ -1045,4 +1045,5 @@ pub(crate) fn encode_identifier(ident: String) -> String {
         .replace(';', "$semic$")
         .replace(' ', "$space$")
         .replace('&', "$amp$")
+        .replace('*', "$star$")
 }
