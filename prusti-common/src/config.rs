@@ -10,6 +10,7 @@ use config_crate::{Config, Environment, File, FileFormat};
 use self::commandline::CommandLine;
 use std::collections::HashSet;
 use std::env;
+use std::path::PathBuf;
 use std::sync::RwLock;
 use serde::Deserialize;
 
@@ -70,7 +71,7 @@ lazy_static! {
         settings.set_default("check_panics", true).unwrap();
         settings.set_default("encode_unsigned_num_constraint", false).unwrap();
         settings.set_default("simplify_encoding", true).unwrap();
-        settings.set_default("log_dir", "./log/").unwrap();
+        settings.set_default("log_dir", "log").unwrap();
         settings.set_default("dump_debug_info", false).unwrap();
         settings.set_default("dump_debug_info_during_fold", false).unwrap();
         settings.set_default("ignore_regions", false).unwrap();
@@ -268,9 +269,9 @@ pub fn foldunfold_state_filter() -> String {
     read_setting("foldunfold_state_filter")
 }
 
-/// In which folder should we sore log/dumps?
-pub fn log_dir() -> String {
-    read_setting("log_dir")
+/// In which folder should we store log/dumps?
+pub fn log_dir() -> PathBuf {
+    PathBuf::from(read_setting::<String>("log_dir"))
 }
 
 /// Check binary operations for overflows
