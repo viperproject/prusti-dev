@@ -5,7 +5,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use prusti_launch::get_rust_toolchain_channel;
-use std::process::Command;
+use std::{path::PathBuf, process::Command};
 
 fn main() {
     if let Err(code) = process(std::env::args().skip(1)) {
@@ -29,12 +29,12 @@ where
     let clean_args = args.skip_while(|x| x == "prusti");
 
     let cargo_path = std::env::var("CARGO_PATH").unwrap_or_else(|_| "cargo".to_string());
-    let original_cargo_target =
-        std::env::var("CARGO_TARGET_DIR").unwrap_or_else(|_| "target".to_string());
-    let cargo_target = format!("{}/verify", original_cargo_target);
-    let prusti_log_dir =
-        std::env::var("PRUSTI_LOG_DIR").unwrap_or_else(|_| format!("{}/log", cargo_target));
-
+    let mut cargo_target =
+        PathBuf::from(std::env::var("CARGO_TARGET_DIR").unwrap_or_else(|_| "target".to_string()));
+    cargo_target.push("verify");
+    let prusti_log_dir = std::env::var("PRUSTI_LOG_DIR")
+        .map(PathBuf::from)
+        .unwrap_or_else(|_| cargo_target.join("log"));
     let exit_status = Command::new(cargo_path)
         .arg("check")
         .args(clean_args)
