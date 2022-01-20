@@ -6,14 +6,10 @@
 
 pub mod commandline;
 
-use config_crate::{Config, Environment, File, FileFormat};
 use self::commandline::CommandLine;
-use std::collections::HashSet;
-use std::env;
-use std::path::PathBuf;
-use std::sync::RwLock;
+use config_crate::{Config, Environment, File, FileFormat};
 use serde::Deserialize;
-
+use std::{collections::HashSet, env, path::PathBuf, sync::RwLock};
 
 #[derive(Debug, PartialEq, Eq)]
 pub struct Optimizations {
@@ -44,7 +40,7 @@ impl Optimizations {
     }
 
     fn all_enabled() -> Self {
-        Optimizations{
+        Optimizations {
             inline_constant_functions: true,
             delete_unused_predicates: true,
             optimize_folding: true,
@@ -72,7 +68,7 @@ lazy_static! {
         settings.set_default("encode_unsigned_num_constraint", false).unwrap();
         settings.set_default("simplify_encoding", true).unwrap();
         settings.set_default("log_dir", "log").unwrap();
-        settings.set_default("cache_path", "./cache/data.json").unwrap();
+        settings.set_default("cache_path", String::from(PathBuf::from("cache").with_file_name("data.json").to_string_lossy())).unwrap();
         settings.set_default("dump_debug_info", false).unwrap();
         settings.set_default("dump_debug_info_during_fold", false).unwrap();
         settings.set_default("ignore_regions", false).unwrap();
@@ -168,7 +164,12 @@ fn get_keys(settings: &Config) -> HashSet<String> {
 
 fn check_keys(settings: &Config, allowed_keys: &HashSet<String>, source: &str) {
     for key in settings.cache.clone().into_table().unwrap().keys() {
-        assert!(allowed_keys.contains(key), "{} contains unknown configuration flag: “{}”", source, key);
+        assert!(
+            allowed_keys.contains(key),
+            "{} contains unknown configuration flag: “{}”",
+            source,
+            key
+        );
     }
 }
 
@@ -278,8 +279,8 @@ pub fn log_dir() -> PathBuf {
 }
 
 /// In which folder should we store the Verification cache
-pub fn cache_path() -> String {
-    read_setting("cache_path")
+pub fn cache_path() -> PathBuf {
+    PathBuf::from(read_setting::<String>("cache_path"))
 }
 
 /// Check binary operations for overflows
@@ -426,7 +427,7 @@ pub fn optimizations() -> Optimizations {
 
     let mut opt = Optimizations::all_disabled();
 
-    for s in optimizations_string.split(','){
+    for s in optimizations_string.split(',') {
         let trimmed = s.trim();
         match trimmed {
             "all" => opt = Optimizations::all_enabled(),
@@ -439,7 +440,7 @@ pub fn optimizations() -> Optimizations {
             "remove_unused_vars" => opt.remove_unused_vars = true,
             "remove_trivial_assertions" => opt.remove_trivial_assertions = true,
             "clean_cfg" => opt.clean_cfg = true,
-            _ => warn!("Ignoring Unkown optimization '{}'", trimmed)
+            _ => warn!("Ignoring Unkown optimization '{}'", trimmed),
         }
     }
 

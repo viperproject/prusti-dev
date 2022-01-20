@@ -49,10 +49,10 @@ fn run_on_files<F: FnMut(&PathBuf)>(dir: &PathBuf, run: &mut F) {
         let path = entry.unwrap().path();
         std::fs::copy(path, &test_file).unwrap();
         run(&test_file);
+        std::fs::remove_file(&test_file).unwrap();
         has_files = true;
     }
     assert!(has_files, "Dir \"{:?}\" did not constain any files!", dir);
-    std::fs::remove_file(&test_file).unwrap();
 }
 
 #[test]
@@ -77,7 +77,14 @@ fn test_prusti_rustc_caching() {
         let mut hash_lines = stdout.lines()
             .skip_while(|line| !line.starts_with("Received verification request for: "));
         while let Some(l1) = hash_lines.next() {
-            let full_name = l1.strip_prefix("Received verification request for: ").unwrap();
+            let mut full_name = l1.strip_prefix("Received verification request for: ").unwrap().to_string();
+            if cfg!(target_os = "windows") {
+                full_name = full_name.chars()
+                    .map(|x| match x { 
+                        '\\' | '/' | ':' | '*' | '?' | '"' | '<' | '>' | '|' => '-',
+                        _ => x
+                    }).collect();
+            }
             let mut name = full_name.split(".rs_");
             let _filename = name.next().unwrap();
             let fn_name = name.next().unwrap();

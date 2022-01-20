@@ -420,7 +420,7 @@ fn verify_programs(env: &Environment, programs: Vec<Program>)
         stopwatch.start_next("attach current thread to the JVM");
         let viper_thread = viper.attach_current_thread();
         stopwatch.finish();
-        let mut cache = PersistentCache::load_cache(config::cache_path().into());
+        let mut cache = PersistentCache::load_cache(config::cache_path());
         verification_requests.map(|(program_name, request)| {
             let result = process_verification_request_cache(&viper_thread, request, &mut cache);
             (program_name, result)
