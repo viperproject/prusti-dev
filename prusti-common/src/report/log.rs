@@ -12,7 +12,7 @@ use std::io::{self, Write};
 use std::path::PathBuf;
 
 fn log_dir() -> Option<PathBuf> {
-    let log_dir: PathBuf = config::log_dir().into();
+    let log_dir = config::log_dir();
     fs::create_dir_all(&log_dir).ok()?;
     if log_dir.is_dir() {
         Some(log_dir)
