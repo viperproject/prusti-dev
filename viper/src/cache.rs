@@ -41,6 +41,7 @@ enum ResultCache {
 
 impl PersistentCache {
     pub fn load_cache(cache_loc: PathBuf) -> Self {
+        info!("Loading cache from \"{}\"", cache_loc.display());
         let data_str = fs::read_to_string(&cache_loc).unwrap_or_default();
         let data_res = serde_json::from_str(&data_str);
         PersistentCache {
@@ -54,6 +55,7 @@ impl PersistentCache {
         }
     }
     pub fn save_cache(&self, cache_loc: &Path) -> io::Result<()> {
+        info!("Saving cache to \"{}\"", cache_loc.display());
         // ResultCache::V2(...)
         match serde_json::to_string(&ResultCache::V1(self.data.clone())) {
             Ok(data) => fs::write(cache_loc, data),
