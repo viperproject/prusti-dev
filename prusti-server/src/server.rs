@@ -54,7 +54,7 @@ where
     let viper = Arc::new(Viper::new_with_args(config::extra_jvm_args()));
     stopwatch.finish();
 
-    let cache_data = PersistentCache::load_cache(config::cache_path().into());
+    let cache_data = PersistentCache::load_cache(config::cache_path());
     let cache = Arc::new(Mutex::new(cache_data));
     let build_verification_request_handler = |viper_arc: Arc<Viper>, cache| {
         move |request: VerificationRequest| {
