@@ -85,7 +85,7 @@ use prusti_server::tokio::runtime::Builder;
 //         let backend = VerificationBackend::from_str(&config::viper_backend());
 
 //         let mut verifier_args: Vec<String> = vec![];
-//         let log_path: PathBuf = PathBuf::from(config::log_dir()).join("viper_tmp");
+//         let log_path: PathBuf = config::log_dir().join("viper_tmp");
 //         create_dir_all(&log_path).unwrap();
 //         let report_path: PathBuf = log_path.join("report.csv");
 //         let log_dir_str = log_path.to_str().unwrap();

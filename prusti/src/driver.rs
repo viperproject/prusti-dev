@@ -40,7 +40,7 @@ use lazy_static::lazy_static;
 use log::{info, warn};
 use prusti_common::{config, report::user, Stopwatch};
 use rustc_interface::interface::try_print_query_stack;
-use std::{borrow::Cow, env, panic, path::PathBuf};
+use std::{borrow::Cow, env, panic};
 
 /// Link to report Prusti bugs
 const BUG_REPORT_URL: &str = "https://github.com/viperproject/prusti-dev/issues/new";
@@ -205,7 +205,7 @@ fn main() {
         if config::dump_debug_info() {
             rustc_args.push(format!(
                 "-Zdump-mir-dir={}",
-                PathBuf::from(config::log_dir())
+                config::log_dir()
                     .join("mir")
                     .to_str()
                     .expect("failed to configure dump-mir-dir")
