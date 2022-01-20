@@ -103,7 +103,7 @@ lazy_static! {
         settings.set_default("hide_uuids", false).unwrap();
         settings.set_default("counterexample", false).unwrap();
         settings.set_default("print_hash", false).unwrap();
-        settings.set_default("enable_cache", true).unwrap();
+        settings.set_default("enable_cache", false).unwrap();
 
         // Flags for debugging Prusti that can change verification results.
         settings.set_default("disable_name_mangling", false).unwrap();
