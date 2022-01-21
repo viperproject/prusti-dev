@@ -157,8 +157,26 @@ fn max3(a: i32, b: i32, c: i32) -> i32 {
 }
 ```
 
-When running Prusti on this example, it highlights the failing assertion and thus enables us to quickly locate and fix the issue. 
+When running Prusti on this example, it highlights the failing assertion and thus enables us to quickly locate and fix the issue.
 
 ## Configuration
 
 Prusti offers a many flags to configure its behavior. See [Providing Flags](https://viperproject.github.io/prusti-dev/dev-guide/config/providing.html) for how to provide these flags and [List of Configuration Flags](https://viperproject.github.io/prusti-dev/dev-guide/config/flags.html) in the developer guide.
+
+## Caching
+
+When using the "Prusti Assistant" extension, the result of verification for each Rust function will be cached to improve future verification speeds. This cache can be cleared by clicking the trashcan button in the status bar.
+
+When running Prusti from the command line, caching is disabled by default. To enable it, set the [`CACHE_PATH`](https://viperproject.github.io/prusti-dev/dev-guide/config/flags.html#cache_path) flag to a location where the cache file should be saved.
+
+A Rust function will be re-verified if:
+
+- The function signature is changed (including name or specification)
+- The function body is changed (including changes in the signatures of any other functions it calls)
+- In some cases, if the containing file is changed
+
+The cache will reuse a result even if:
+
+- Local variables and arguments are renamed
+- The location of a function within a file changes
+- Modifying comments, newlines, spaces etc. &mdash; most things that *clearly* do not change the behaviour of a function (*clearly* is the imperative albeit loose word; changing `1+1` to `2` will require re-verification)

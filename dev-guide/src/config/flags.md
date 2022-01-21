@@ -4,6 +4,7 @@
 | --- | --- | --- |
 | [`ASSERT_TIMEOUT`](#assert_timeout) | `u64` | `10_000` |
 | [`BE_RUSTC`](#be_rustc) | `bool` | `false` |
+| [`CACHE_PATH`](#cache_path) | `String` | `""` |
 | [`CHECK_OVERFLOWS`](#check_overflows) | `bool` | `true` |
 | [`CHECK_FOLDUNFOLD_STATE`](#check_foldunfold_state) | `bool` | `false` |
 | [`CHECK_PANICS`](#check_panics) | `bool` | `true` |
@@ -17,6 +18,7 @@
 | [`DUMP_PATH_CTXT_IN_DEBUG_INFO`](#dump_path_ctxt_in_debug_info) | `bool` | `false` |
 | [`DUMP_REBORROWING_DAG_IN_DEBUG_INFO`](#dump_reborrowing_dag_in_debug_info) | `bool` | `false` |
 | [`DUMP_VIPER_PROGRAM`](#dump_viper_program) | `bool` | `false` |
+| [`ENABLE_CACHE`](#enable_cache) | `bool` | `true` |
 | [`ENABLE_VERIFY_ONLY_BASIC_BLOCK_PATH`](#enable_verify_only_basic_block_path) | `bool` | `false` |
 | [`ENCODE_UNSIGNED_NUM_CONSTRAINT`](#encode_unsigned_num_constraint) | `bool` | `false` |
 | [`EXTRA_JVM_ARGS`](#extra_jvm_args) | `Vec<String>` | `vec![]` |
@@ -26,11 +28,12 @@
 | [`HIDE_UUIDS`](#hide_uuids) | `bool` | `false` |
 | [`JSON_COMMUNICATION`](#json_communication) | `bool` | `false` |
 | [`LOG`](#log) | `Option<String>` | `None` |
-| [`LOG_DIR`](#log_dir) | `String` | `"./log/"` |
+| [`LOG_DIR`](#log_dir) | `String` | `"log"` |
 | [`LOG_STYLE`](#log_style) | `String` | `"auto"` |
 | [`NO_VERIFY`](#no_verify) | `bool` | `false` |
 | [`PRINT_COLLECTED_VERFICATION_ITEMS`](#print_collected_verfication_items) | `bool` | `false` |
 | [`PRINT_DESUGARED_SPECS`](#print_desugared_specs) | `bool` | `false` |
+| [`PRINT_HASH`](#print_hash) | `bool` | `false` |
 | [`PRINT_TYPECKD_SPECS`](#print_typeckd_specs) | `bool` | `false` | `bool` | `false` |
 | [`QUIET`](#quiet) | `bool` | `false` |
 | [`SERVER_ADDRESS`](#server_address) | `Option<String>` | `None` |
@@ -50,6 +53,10 @@ Maximum time (in milliseconds) for the verifier to spend on a single assertion. 
 ## `BE_RUSTC`
 
 When enabled, Prusti will behave like `rustc`.
+
+## `CACHE_PATH`
+
+Path to a cache file, where verification cache will be loaded from and saved to. The default empty string disables saving any cache to disk. A path to a file which does not yet exist will result in using an empty cache, but then creating and saving to that location on exit.
 
 ## `CHECK_OVERFLOWS`
 
@@ -105,6 +112,10 @@ When enabled, reborrowing DAGs will be output in debug files.
 
 When enabled, the encoded Viper program will be output.
 
+## `ENABLE_CACHE`
+
+Controls if verification requests (to verify individual `fn`s) are cached to improve future verification. By default the cache is only saved in memory (of the `prusti-server` if enabled). For long-running verification projects use [`CACHE_PATH`](#cache_path) to save to disk.
+
 ## `ENABLE_VERIFY_ONLY_BASIC_BLOCK_PATH`
 
 When enabled, only the path given in [`VERIFY_ONLY_BASIC_BLOCK_PATH`](#verify_only_basic_block_path) will be verified.
@@ -158,6 +169,11 @@ When enabled, verification is skipped altogether.
 ## `PRINT_DESUGARED_SPECS`
 
 When enabled, prints the AST with desugared specifications.
+
+
+## `PRINT_HASH`
+
+A debugging option, which, when enabled, prints the hash of a verification request (the hash is used for caching). This is instead of performing verification &mdash; this option is similar to `NO_VERIFY`, except that this flag stops the verification process at a later stage.
 
 ## `PRINT_TYPECKD_SPECS`
 
