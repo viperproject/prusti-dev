@@ -81,14 +81,22 @@ where
                 warp::reject::custom(BincodeReject(err))
             })
         })
-        .map(build_verification_request_handler(viper, cache))
+        .map(build_verification_request_handler(viper, cache.clone()))
         .map(|result| {
             warp::http::Response::new(
                 bincode::serialize(&result).expect("could not encode verification result"),
             )
         });
 
-    let endpoints = json_verify.or(bincode_verify);
+    let save_cache = warp::post()
+        .and(warp::path("save"))
+        .and(warp::path::end())
+        .map(move || {
+            cache.lock().unwrap().save();
+            warp::reply::html("Saved")
+        });
+
+    let endpoints = json_verify.or(bincode_verify).or(save_cache);
 
     // Here we use a single thread because
     // 1. Viper is not thread safe yet (Silicon issue #578), and
