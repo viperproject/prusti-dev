@@ -36,10 +36,8 @@ enum ResultCache {
 impl From<(PathBuf, ResultCache)> for PersistentCache {
     /// Used when loading cache from disk
     fn from((load_loc, rc): (PathBuf, ResultCache)) -> Self {
-        let data = match rc {
-            ResultCache::V1(data) => data,
-            // ResultCache::V2(...) => ...
-        };
+        let ResultCache::V1(data) = rc;
+        // ResultCache::V2(...)
         PersistentCache {
             updated: false,
             load_loc,
@@ -65,8 +63,7 @@ impl PersistentCache {
                         info!("Loaded cache from \"{}\"", cache_loc.display());
                         data_res = Some(data);
                     }
-                    Err(e) =>
-                        error!("Failed to read cache from \"{}\": {e}", cache_loc.display()),
+                    Err(e) => error!("Failed to read cache from \"{}\": {e}", cache_loc.display()),
                 }
             }
         }
@@ -75,19 +72,17 @@ impl PersistentCache {
             data_res.unwrap_or_else(|| {
                 info!("Cache file doesn't exist or is invalid. Using fresh cache.");
                 ResultCache::V1(HashMap::new())
-            })
+            }),
         ))
     }
     pub fn save_cache(&self, cache_loc: &Path) {
         match fs::File::create(cache_loc) {
             Ok(f) => {
                 info!("Saving cache to \"{}\"", cache_loc.display());
-                bincode::serialize_into(
-                    &mut io::BufWriter::new(f),
-                    &ResultCache::from(self)
-                ).unwrap_or_else(|e| error!("Failed to write cache: {e}"));
+                bincode::serialize_into(&mut io::BufWriter::new(f), &ResultCache::from(self))
+                    .unwrap_or_else(|e| error!("Failed to write cache: {e}"));
             }
-            Err(e) => error!("Failed to create cache file: {e}")
+            Err(e) => error!("Failed to create cache file: {e}"),
         }
     }
 }
