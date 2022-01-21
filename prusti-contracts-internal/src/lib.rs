@@ -62,3 +62,30 @@ pub fn extern_spec(attr: TokenStream, tokens: TokenStream) -> TokenStream {
 pub fn predicate(tokens: TokenStream) -> TokenStream {
     prusti_specs::predicate(tokens.into()).into()
 }
+
+/// Types can be annotated with the `#[model]` macro:
+/// ```rust
+/// #[model]
+/// struct Iter<'a, i32> {
+///     position: usize,
+///     len: usize,
+/// }
+/// ```
+/// This creates a model for the `Iter` type defined in the standard library to be used
+/// as an abstraction in specifications.
+///
+/// The model can then be used in specifications:
+/// ```rust
+/// #[ensures( result.model().position == 0 )]
+/// #[ensures( result.model().len == slice.len() )]
+/// fn create_iter(slice: &[i32]) -> std::slice::Iter<'_, i32> {
+///     slice.iter()
+/// }
+/// ```
+/// ## Caution
+/// The model is only to be used in specifications and never in code which will be executed.
+/// Using `.model()` will cause panics during runtime.
+#[proc_macro_attribute]
+pub fn model(_attr: TokenStream, tokens: TokenStream) -> TokenStream {
+    prusti_specs::type_model(_attr.into(), tokens.into()).into()
+}
