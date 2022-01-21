@@ -68,7 +68,7 @@ lazy_static! {
         settings.set_default("encode_unsigned_num_constraint", false).unwrap();
         settings.set_default("simplify_encoding", true).unwrap();
         settings.set_default("log_dir", "log").unwrap();
-        settings.set_default("cache_path", String::from(PathBuf::from("cache").with_file_name("data.json").to_string_lossy())).unwrap();
+        settings.set_default("cache_path", "").unwrap();
         settings.set_default("dump_debug_info", false).unwrap();
         settings.set_default("dump_debug_info_during_fold", false).unwrap();
         settings.set_default("ignore_regions", false).unwrap();
@@ -103,7 +103,7 @@ lazy_static! {
         settings.set_default("hide_uuids", false).unwrap();
         settings.set_default("counterexample", false).unwrap();
         settings.set_default("print_hash", false).unwrap();
-        settings.set_default("enable_cache", false).unwrap();
+        settings.set_default("enable_cache", true).unwrap();
 
         // Flags for debugging Prusti that can change verification results.
         settings.set_default("disable_name_mangling", false).unwrap();
