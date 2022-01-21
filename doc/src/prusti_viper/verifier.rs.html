@@ -429,6 +429,7 @@
 <span id="426">426</span>
 <span id="427">427</span>
 <span id="428">428</span>
+<span id="429">429</span>
 </pre><pre class="rust"><code><span class="comment">// © 2019, ETH Zurich</span>
 <span class="comment">//</span>
 <span class="comment">// This Source Code Form is subject to the terms of the Mozilla Public</span>
@@ -448,13 +449,13 @@
 <span class="kw">use</span> <a class="ident" href="../../prusti_interface/prusti_error/struct.PrustiError.html">prusti_interface::PrustiError</a>;
 <span class="comment">// use prusti_interface::specifications::TypedSpecificationMap;</span>
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/time/struct.Instant.html">std::time::Instant</a>;
-<span class="kw">use</span> <span class="ident">viper</span>::{<a class="self" href="../../viper/index.html">self</a>, <a class="ident" href="../../viper/verification_backend/enum.VerificationBackend.html">VerificationBackend</a>, <a class="ident" href="../../viper/viper/struct.Viper.html">Viper</a>};
+<span class="kw">use</span> <span class="ident">viper</span>::{<a class="self" href="../../viper/index.html">self</a>, <a class="ident" href="../../viper/cache/struct.PersistentCache.html">PersistentCache</a>, <a class="ident" href="../../viper/verification_backend/enum.VerificationBackend.html">VerificationBackend</a>, <a class="ident" href="../../viper/viper/struct.Viper.html">Viper</a>};
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/path/struct.PathBuf.html">std::path::PathBuf</a>;
-<span class="kw">use</span> <span class="ident">std::fs</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/std/fs/fn.create_dir_all.html">create_dir_all</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/fs/fn.canonicalize.html">canonicalize</a>};
+<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/fs/index.html">std::fs</a>;
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsString.html">std::ffi::OsString</a>;
 <span class="kw">use</span> <a class="ident" href="../../prusti_interface/specs/typed/index.html">prusti_interface::specs::typed</a>;
 <span class="kw">use</span> <span class="ident">::log</span>::{<span class="ident">info</span>, <span class="ident">debug</span>, <span class="ident">error</span>};
-<span class="kw">use</span> <span class="ident">prusti_server</span>::{<a class="ident" href="../../prusti_server/verification_request/struct.VerificationRequest.html">VerificationRequest</a>, <a class="ident" href="../../prusti_server/verification_request/struct.ViperBackendConfig.html">ViperBackendConfig</a>, <a class="ident" href="../../prusti_server/client/struct.PrustiClient.html">PrustiClient</a>, <a class="ident" href="../../prusti_server/process_verification/fn.process_verification_request.html">process_verification_request</a>, <a class="ident" href="../../prusti_server/server/fn.spawn_server_thread.html">spawn_server_thread</a>};
+<span class="kw">use</span> <span class="ident">prusti_server</span>::{<a class="ident" href="../../prusti_server/verification_request/struct.VerificationRequest.html">VerificationRequest</a>, <a class="ident" href="../../prusti_server/verification_request/struct.ViperBackendConfig.html">ViperBackendConfig</a>, <a class="ident" href="../../prusti_server/client/struct.PrustiClient.html">PrustiClient</a>, <a class="ident" href="../../prusti_server/process_verification/fn.process_verification_request_cache.html">process_verification_request_cache</a>, <a class="ident" href="../../prusti_server/server/fn.spawn_server_thread.html">spawn_server_thread</a>};
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/span_encoding/constant.DUMMY_SP.html">rustc_span::DUMMY_SP</a>;
 <span class="kw">use</span> <a class="ident" href="../../tokio/runtime/builder/struct.Builder.html">prusti_server::tokio::runtime::Builder</a>;
 
@@ -517,7 +518,7 @@
 
 <span class="comment">//         let mut verifier_args: Vec&lt;String&gt; = vec![];</span>
 <span class="comment">//         let log_path: PathBuf = config::log_dir().join(&quot;viper_tmp&quot;);</span>
-<span class="comment">//         create_dir_all(&amp;log_path).unwrap();</span>
+<span class="comment">//         fs::create_dir_all(&amp;log_path).unwrap();</span>
 <span class="comment">//         let report_path: PathBuf = log_path.join(&quot;report.csv&quot;);</span>
 <span class="comment">//         let log_dir_str = log_path.to_str().unwrap();</span>
 <span class="comment">//         if let VerificationBackend::Silicon = backend {</span>
@@ -851,9 +852,10 @@
         <a class="ident" href="../../src/prusti_viper/verifier.rs.html#418">stopwatch</a>.<span class="ident">start_next</span>(<span class="string">&quot;attach current thread to the JVM&quot;</span>);
         <span class="kw">let</span> <span class="ident">viper_thread</span> <span class="op">=</span> <a class="ident" href="../../src/prusti_viper/verifier.rs.html#419">viper</a>.<span class="ident">attach_current_thread</span>();
         <a class="ident" href="../../src/prusti_viper/verifier.rs.html#418">stopwatch</a>.<span class="ident">finish</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">cache</span> <span class="op">=</span> <span class="ident">PersistentCache::load_cache</span>(<span class="ident">config::cache_path</span>());
         <a class="ident" href="../../src/prusti_viper/verifier.rs.html#374">verification_requests</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="op">|</span>(<span class="ident">program_name</span>, <span class="ident">request</span>)<span class="op">|</span> {
-            <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <a class="ident" href="../../prusti_server/process_verification/fn.process_verification_request.html">process_verification_request</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/prusti_viper/verifier.rs.html#421">viper_thread</a>, <a class="ident" href="../../src/prusti_viper/verifier.rs.html#423">request</a>);
-            (<a class="ident" href="../../src/prusti_viper/verifier.rs.html#423">program_name</a>, <a class="ident" href="../../src/prusti_viper/verifier.rs.html#424">result</a>)
+            <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <a class="ident" href="../../prusti_server/process_verification/fn.process_verification_request_cache.html">process_verification_request_cache</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/prusti_viper/verifier.rs.html#421">viper_thread</a>, <a class="ident" href="../../src/prusti_viper/verifier.rs.html#424">request</a>, <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/prusti_viper/verifier.rs.html#423">cache</a>);
+            (<a class="ident" href="../../src/prusti_viper/verifier.rs.html#424">program_name</a>, <a class="ident" href="../../src/prusti_viper/verifier.rs.html#425">result</a>)
         }).<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>()
     }
 }

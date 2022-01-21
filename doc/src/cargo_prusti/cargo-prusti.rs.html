@@ -56,6 +56,10 @@
 <span id="53">53</span>
 <span id="54">54</span>
 <span id="55">55</span>
+<span id="56">56</span>
+<span id="57">57</span>
+<span id="58">58</span>
+<span id="59">59</span>
 </pre><pre class="rust"><code><span class="comment">// © 2020, ETH Zurich</span>
 <span class="comment">//</span>
 <span class="comment">// This Source Code Form is subject to the terms of the Mozilla Public</span>
@@ -93,6 +97,9 @@
     <span class="kw">let</span> <span class="ident">prusti_log_dir</span> <span class="op">=</span> <span class="ident">std::env::var</span>(<span class="string">&quot;PRUSTI_LOG_DIR&quot;</span>)
         .<span class="ident">map</span>(<span class="ident">PathBuf::from</span>)
         .<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <a class="ident" href="../../src/cargo_prusti/cargo-prusti.rs.html#32">cargo_target</a>.<span class="ident">join</span>(<span class="string">&quot;log&quot;</span>));
+    <span class="kw">let</span> <span class="ident">prusti_cache_file</span> <span class="op">=</span> <span class="ident">std::env::var</span>(<span class="string">&quot;PRUSTI_CACHE_PATH&quot;</span>)
+        .<span class="ident">map</span>(<span class="ident">PathBuf::from</span>)
+        .<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <a class="ident" href="../../src/cargo_prusti/cargo-prusti.rs.html#32">cargo_target</a>.<span class="ident">join</span>(<span class="string">&quot;cache.bin&quot;</span>));
     <span class="kw">let</span> <span class="ident">exit_status</span> <span class="op">=</span> <span class="ident">Command::new</span>(<a class="ident" href="../../src/cargo_prusti/cargo-prusti.rs.html#31">cargo_path</a>)
         .<span class="ident">arg</span>(<span class="string">&quot;check&quot;</span>)
         .<span class="ident">args</span>(<a class="ident" href="../../src/cargo_prusti/cargo-prusti.rs.html#29">clean_args</a>)
@@ -102,13 +109,14 @@
         .<span class="ident">env</span>(<span class="string">&quot;PRUSTI_QUIET&quot;</span>, <span class="string">&quot;true&quot;</span>)
         .<span class="ident">env</span>(<span class="string">&quot;PRUSTI_FULL_COMPILATION&quot;</span>, <span class="string">&quot;true&quot;</span>)
         .<span class="ident">env</span>(<span class="string">&quot;PRUSTI_LOG_DIR&quot;</span>, <a class="ident" href="../../src/cargo_prusti/cargo-prusti.rs.html#35">prusti_log_dir</a>)
+        .<span class="ident">env</span>(<span class="string">&quot;PRUSTI_CACHE_PATH&quot;</span>, <a class="ident" href="../../src/cargo_prusti/cargo-prusti.rs.html#38">prusti_cache_file</a>)
         .<span class="ident">status</span>()
         .<span class="ident">expect</span>(<span class="string">&quot;could not run cargo&quot;</span>);
 
-    <span class="kw">if</span> <a class="ident" href="../../src/cargo_prusti/cargo-prusti.rs.html#38">exit_status</a>.<span class="ident">success</span>() {
+    <span class="kw">if</span> <a class="ident" href="../../src/cargo_prusti/cargo-prusti.rs.html#41">exit_status</a>.<span class="ident">success</span>() {
         <span class="prelude-val">Ok</span>(())
     } <span class="kw">else</span> {
-        <span class="prelude-val">Err</span>(<a class="ident" href="../../src/cargo_prusti/cargo-prusti.rs.html#38">exit_status</a>.<span class="ident">code</span>().<span class="ident">unwrap_or</span>(<span class="op">-</span><span class="number">1</span>))
+        <span class="prelude-val">Err</span>(<a class="ident" href="../../src/cargo_prusti/cargo-prusti.rs.html#41">exit_status</a>.<span class="ident">code</span>().<span class="ident">unwrap_or</span>(<span class="op">-</span><span class="number">1</span>))
     }
 }
 </code></pre></div>
