@@ -388,54 +388,91 @@ pub fn closure(tokens: TokenStream, drop_spec: bool) -> TokenStream {
         }
     }
 }
+pub struct SpecItemImplBlockGenerator {
+    spec_impl_block: syn::ItemImpl,
+    // TODO: Use FxHashMap
+    generated_attributes_for_spec_item: HashMap<syn::ImplItemMethod, Vec<syn::Attribute>>,
+}
+
+impl SpecItemImplBlockGenerator {
+    pub fn from(impl_block: &syn::ItemImpl, self_ty: Box<syn::Type>) -> Self {
+        let mut generated_attributes_for_spec_item: HashMap<syn::ImplItemMethod, Vec<syn::Attribute>> =
+            HashMap::new();
+        let mut generated_spec_items: Vec<syn::ImplItem> = Vec::new();
+        for item in &impl_block.items {
+            match item {
+                // TODO: if let
+                syn::ImplItem::Method(method) => {
+                    let mut method_item = untyped::AnyFnItem::ImplMethod(method.clone()); // TODO ugly
+                    let prusti_attributes: Vec<_> = extract_prusti_attributes(&mut method_item);
+
+                    let maybe_gen = generate_spec_and_assertions(prusti_attributes, &method_item);
+                    if maybe_gen.is_err() {
+                        panic!("nope");
+                    }
+    
+                    let (spec_items, generated_attributes) = maybe_gen.unwrap();
+
+                    // let (spec_items, generated_attributes) = handle_result!(
+                    //     generate_spec_and_assertions(prusti_attributes, &method_item)
+                    // );
+                    generated_spec_items.extend(spec_items.into_iter().map(|spec_item| {
+                        match spec_item {
+                            syn::Item::Fn(spec_item_fn) => {
+                                syn::ImplItem::Method(syn::ImplItemMethod {
+                                    attrs: spec_item_fn.attrs,
+                                    vis: spec_item_fn.vis,
+                                    defaultness: None,
+                                    sig: spec_item_fn.sig,
+                                    block: *spec_item_fn.block,
+                                })
+                            }
+                            x => unimplemented!("Unexpected variant: {:?}", x),
+                        }
+                    }));
+
+                    generated_attributes_for_spec_item.insert(method.clone(), generated_attributes); // TODO: ugly
+                }
+                _ => (),
+            }
+        }
+
+        let spec_impl_block = syn::ItemImpl {
+            attrs: Vec::new(),
+            defaultness: impl_block.defaultness,
+            unsafety: impl_block.unsafety,
+            impl_token: impl_block.impl_token,
+            generics: impl_block.generics.clone(),
+            trait_: None,
+            self_ty: self_ty.clone(),
+            brace_token: impl_block.brace_token,
+            items: generated_spec_items,
+        };
+
+        SpecItemImplBlockGenerator {
+            spec_impl_block,
+            generated_attributes_for_spec_item,
+        }
+    }
+
+    pub fn get_generated_attributes(&self, method: &syn::ImplItemMethod) -> Option<&Vec<syn::Attribute>> {
+        self.generated_attributes_for_spec_item.get(method).clone().to_owned()
+    }
+}
 
 pub fn refine_trait_spec(_attr: TokenStream, tokens: TokenStream) -> TokenStream {
     let mut impl_block: syn::ItemImpl = handle_result!(syn::parse2(tokens));
-    let mut new_items = Vec::new();
-    let mut generated_spec_items = Vec::new();
-    for item in impl_block.items {
-        match item {
-            syn::ImplItem::Method(method) => {
-                let mut method_item = untyped::AnyFnItem::ImplMethod(method);
-                let prusti_attributes: Vec<_> = extract_prusti_attributes(&mut method_item);
-                let (spec_items, generated_attributes) = handle_result!(
-                    generate_spec_and_assertions(prusti_attributes, &method_item)
-                );
-                generated_spec_items.extend(spec_items.into_iter().map(|spec_item| {
-                    match spec_item {
-                        syn::Item::Fn(spec_item_fn) => {
-                            syn::ImplItem::Method(syn::ImplItemMethod {
-                                attrs: spec_item_fn.attrs,
-                                vis: spec_item_fn.vis,
-                                defaultness: None,
-                                sig: spec_item_fn.sig,
-                                block: *spec_item_fn.block,
-                            })
-                        }
-                        x => unimplemented!("Unexpected variant: {:?}", x),
-                    }
-                }));
-                let new_item = parse_quote_spanned! {method_item.span()=>
-                    #(#generated_attributes)*
-                    #method_item
-                };
-                new_items.push(new_item);
-            },
-            _ => new_items.push(item),
+    let self_ty = impl_block.self_ty.clone(); // TODO: ugly
+    let block_generator = SpecItemImplBlockGenerator::from(&impl_block, self_ty);
+
+    // let mut new_items = Vec::new();
+    for item in impl_block.items.iter_mut() {
+        if let syn::ImplItem::Method(method) = item {
+            method.attrs = block_generator.get_generated_attributes(&method).unwrap().clone(); // TODO: ugly
         }
     }
-    impl_block.items = new_items;
-    let spec_impl_block = syn::ItemImpl {
-        attrs: Vec::new(),
-        defaultness: impl_block.defaultness,
-        unsafety: impl_block.unsafety,
-        impl_token: impl_block.impl_token,
-        generics: impl_block.generics.clone(),
-        trait_: None,
-        self_ty: impl_block.self_ty.clone(),
-        brace_token: impl_block.brace_token,
-        items: generated_spec_items,
-    };
+    // impl_block.items = new_items;
+    let spec_impl_block = &block_generator.spec_impl_block;
     quote_spanned! {impl_block.span()=>
         #spec_impl_block
         #impl_block
@@ -473,7 +510,11 @@ impl syn::parse::Parse for PredicateFn {
         let _brace_token = syn::braced!(brace_content in input);
         let body = brace_content.parse()?;
 
-        Ok(PredicateFn { visibility, fn_sig, body })
+        Ok(PredicateFn {
+            visibility,
+            fn_sig,
+            body,
+        })
     }
 }
 

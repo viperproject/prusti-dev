@@ -131,21 +131,9 @@ pub(crate) struct NameGenerator {}
 impl NameGenerator {
     pub(crate) fn new() -> Self { Self { } }
     pub(crate) fn generate_struct_name(&self, item: &syn::ItemImpl) -> Result<String, String> {
-        let mut path_str: String = String::new();
-
-        match &*item.self_ty {
-            syn::Type::Path (ty_path) => {
-                for seg in ty_path.path.segments.iter() {
-                    path_str.push_str(&seg.ident.to_string());
-                }
-            }
-            _ => {
-                return Err("expected a path".to_string());
-            }
-        };
+        let name_ty = self.generate_name_for_type(&*item.self_ty)?;
         let uuid = Uuid::new_v4().to_simple();
-
-        Ok(format!("PrustiStruct{}_{}", path_str, uuid))
+        Ok(format!("PrustiStruct{}_{}", name_ty, uuid))
     }
 
     pub(crate) fn generate_struct_name_for_trait(&self, item: &syn::ItemTrait) -> String {
@@ -156,6 +144,24 @@ impl NameGenerator {
     pub(crate) fn generate_mod_name(&self, ident: &syn::Ident) -> String {
         let uuid = Uuid::new_v4().to_simple();
         format!("{}_{}", ident, uuid)
+    }
+
+    fn generate_name_for_type(&self, ty: &syn::Type) -> Result<String, String> {
+        Ok(match ty {
+            syn::Type::Path(ty_path) => {
+                ty_path.path.segments.iter()
+                    .map(|seg| seg.ident.to_string())
+                    .collect::<Vec<String>>()
+                    .join("")
+            },
+            syn::Type::Slice(ty_slice) => {
+                let ty = &*ty_slice.elem;
+                format!("Slice{}", self.generate_name_for_type(&ty)?.as_str())
+            },
+            _ => {
+                return Err(format!("could not generate name for type {:?}", ty))
+            }
+        })
     }
 }
 
@@ -457,5 +463,41 @@ impl<EID: Clone + Debug, ET: Clone + Debug, AT: Clone + Debug> SpecificationSet<
             return spec;
         }
         unreachable!("expected Struct: {:?}", self);
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    mod name_generator {
+        use crate::specifications::common::NameGenerator;
+        use regex::Regex;
+
+        const PATTERN: &str = r#"(.*)([0-9a-fA-F]{32})"#;
+
+        #[test]
+        fn generate_name_for_slice() {
+            let item: syn::ItemImpl = syn::parse_quote!{impl [i32] {}};
+
+            let name_generator = NameGenerator {};
+            let name = name_generator.generate_struct_name(&item).unwrap();
+
+            assert_uuid_prefix("PrustiStructSlicei32_", &name);
+        }
+
+        #[test]
+        fn generate_name_for_path() {
+            let item: syn::ItemImpl = syn::parse_quote!{impl std::option::Option<i32> {}};
+            let name_generator = NameGenerator {};
+            let name = name_generator.generate_struct_name(&item).unwrap();
+            assert_uuid_prefix("PrustiStructstdoptionOption_", &name);
+        }
+
+        fn assert_uuid_prefix(prefix: &str, actual: &str) {
+            let re = Regex::new(PATTERN).unwrap();
+            let captures = re.captures(actual)
+                .expect(format!("Regex '{}' did not match '{}'", PATTERN, actual).as_str());
+            assert_eq!(3, captures.len());
+            assert_eq!(prefix, captures.get(1).unwrap().as_str());
+        }
     }
 }
