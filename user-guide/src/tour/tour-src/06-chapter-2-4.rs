@@ -20,7 +20,7 @@ struct Node {
 /*
     Chapter 2.4 - Push
 
-    So let's write pushing a value onto a list. 
+    So let's write pushing a value onto a list.
     push mutates the list, so we'll want to take &mut self
 */
 
@@ -41,7 +41,7 @@ impl List {
     /*
     // (2) compile this before proceeding
     pub fn push(&mut self, elem: i32) {
-        
+
         let new_node = Node {
             elem: elem,
             next: self.head, // this should be the old list
@@ -53,7 +53,7 @@ impl List {
     }
     */
 
-    /* 
+    /*
     // (3) What if we put something back? Namely, the node that we're creating.
     // Rust does not accept this for exception safety.
     pub fn push(&mut self, elem: i32) {
@@ -61,7 +61,7 @@ impl List {
             elem: elem,
             next: self.head,
         });
-    
+
         self.head = Link::More(new_node);
     }
     */
@@ -74,7 +74,7 @@ impl List {
             elem: elem,
             next: mem::replace(&mut self.head, Link::Empty),
         });
-    
+
         self.head = Link::More(new_node);
     }
 

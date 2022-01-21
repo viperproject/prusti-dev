@@ -1,8 +1,8 @@
 /*
     Chapter 2.6 - Testing
-    Alright, so we've got push and pop written, now we can actually test out our stack! 
-    Rust and cargo support testing as a first-class feature, 
-    so this will be super easy. 
+    Alright, so we've got push and pop written, now we can actually test out our stack!
+    Rust and cargo support testing as a first-class feature,
+    so this will be super easy.
     All we have to do is write a function, and annotate it with #[test].
 */
 
@@ -60,8 +60,8 @@ struct Node {
 #[requires(src.is_empty())]
 #[ensures(dest.is_empty())]
 #[ensures(old(dest.len()) == result.len())]
-#[ensures(forall(|i: usize| (0 <= i && i < result.len()) ==> 
-                old(dest.lookup(i)) == result.lookup(i)))] 
+#[ensures(forall(|i: usize| (0 <= i && i < result.len()) ==>
+                old(dest.lookup(i)) == result.lookup(i)))]
 fn replace(dest: &mut Link, src: Link) -> Link {
     mem::replace(dest, src)
 }
@@ -87,7 +87,7 @@ impl List {
         }
     }
 
-    #[ensures(self.len() == old(self.len()) + 1)] 
+    #[ensures(self.len() == old(self.len()) + 1)]
     #[ensures(self.lookup(0) == elem)]
     #[ensures(forall(|i: usize| (1 <= i && i < self.len()) ==>
         old(self.lookup(i-1)) == self.lookup(i)))]

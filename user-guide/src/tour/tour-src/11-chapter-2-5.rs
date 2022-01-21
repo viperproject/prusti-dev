@@ -54,8 +54,8 @@ struct Node {
 #[requires(src.is_empty())]
 #[ensures(dest.is_empty())]
 #[ensures(old(dest.len()) == result.len())]
-#[ensures(forall(|i: usize| (0 <= i && i < result.len()) ==> 
-                old(dest.lookup(i)) == result.lookup(i)))] 
+#[ensures(forall(|i: usize| (0 <= i && i < result.len()) ==>
+                old(dest.lookup(i)) == result.lookup(i)))]
 fn replace(dest: &mut Link, src: Link) -> Link {
     mem::replace(dest, src)
 }
@@ -81,7 +81,7 @@ impl List {
         }
     }
 
-    #[ensures(self.len() == old(self.len()) + 1)] 
+    #[ensures(self.len() == old(self.len()) + 1)]
     #[ensures(self.lookup(0) == elem)]
     #[ensures(forall(|i: usize| (1 <= i && i < self.len()) ==>
         old(self.lookup(i-1)) == self.lookup(i)))]

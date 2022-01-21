@@ -22,8 +22,8 @@ struct Node {
 #[ensures(dest.is_empty())]
 #[ensures(old(dest.len()) == result.len())]
 // (5) make sure that replace leaves elements in the result untouched
-//#[ensures(forall(|i: usize| (0 <= i && i < result.len()) ==> 
-//                old(dest.lookup(i)) == result.lookup(i)))] 
+//#[ensures(forall(|i: usize| (0 <= i && i < result.len()) ==>
+//                old(dest.lookup(i)) == result.lookup(i)))]
 fn replace(dest: &mut Link, src: Link) -> Link {
     mem::replace(dest, src)
 }
@@ -53,10 +53,10 @@ impl List {
     //      a) The length of the list increases by one: check
     //      b) The first element is the pushed one: check
     //      c) All other elements have not been changed
-    #[ensures(self.len() == old(self.len()) + 1)] 
+    #[ensures(self.len() == old(self.len()) + 1)]
     #[ensures(self.lookup(0) == elem)]
     #[ensures(forall(|i: usize| (1 <= i && i < self.len()) ==>
-    old(self.lookup(i-1)) == self.lookup(i)))] // (2) specify property c) 
+    old(self.lookup(i-1)) == self.lookup(i)))] // (2) specify property c)
                                                // Why does it fail?
                                                // The spec for replace is not strong enough!
     pub fn push(&mut self, elem: i32) {
@@ -90,7 +90,7 @@ impl Link {
     }
 
     #[pure]
-    #[requires(0 <= index && index < self.len())] 
+    #[requires(0 <= index && index < self.len())]
     pub fn lookup(&self, index: usize) -> i32 {
         match self {
             Link::Empty => unreachable!(),
