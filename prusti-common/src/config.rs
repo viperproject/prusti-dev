@@ -6,14 +6,10 @@
 
 pub mod commandline;
 
-use config_crate::{Config, Environment, File, FileFormat};
 use self::commandline::CommandLine;
-use std::collections::HashSet;
-use std::env;
-use std::path::PathBuf;
-use std::sync::RwLock;
+use config_crate::{Config, Environment, File, FileFormat};
 use serde::Deserialize;
-
+use std::{collections::HashSet, env, path::PathBuf, sync::RwLock};
 
 #[derive(Debug, PartialEq, Eq)]
 pub struct Optimizations {
@@ -44,7 +40,7 @@ impl Optimizations {
     }
 
     fn all_enabled() -> Self {
-        Optimizations{
+        Optimizations {
             inline_constant_functions: true,
             delete_unused_predicates: true,
             optimize_folding: true,
@@ -72,6 +68,7 @@ lazy_static! {
         settings.set_default("encode_unsigned_num_constraint", false).unwrap();
         settings.set_default("simplify_encoding", true).unwrap();
         settings.set_default("log_dir", "log").unwrap();
+        settings.set_default("cache_path", "").unwrap();
         settings.set_default("dump_debug_info", false).unwrap();
         settings.set_default("dump_debug_info_during_fold", false).unwrap();
         settings.set_default("ignore_regions", false).unwrap();
@@ -105,6 +102,8 @@ lazy_static! {
         settings.set_default("print_collected_verification_items", false).unwrap();
         settings.set_default("hide_uuids", false).unwrap();
         settings.set_default("counterexample", false).unwrap();
+        settings.set_default("print_hash", false).unwrap();
+        settings.set_default("enable_cache", true).unwrap();
 
         // Flags for debugging Prusti that can change verification results.
         settings.set_default("disable_name_mangling", false).unwrap();
@@ -165,7 +164,12 @@ fn get_keys(settings: &Config) -> HashSet<String> {
 
 fn check_keys(settings: &Config, allowed_keys: &HashSet<String>, source: &str) {
     for key in settings.cache.clone().into_table().unwrap().keys() {
-        assert!(allowed_keys.contains(key), "{} contains unknown configuration flag: “{}”", source, key);
+        assert!(
+            allowed_keys.contains(key),
+            "{} contains unknown configuration flag: “{}”",
+            source,
+            key
+        );
     }
 }
 
@@ -274,6 +278,11 @@ pub fn log_dir() -> PathBuf {
     PathBuf::from(read_setting::<String>("log_dir"))
 }
 
+/// In which folder should we store the Verification cache
+pub fn cache_path() -> PathBuf {
+    PathBuf::from(read_setting::<String>("cache_path"))
+}
+
 /// Check binary operations for overflows
 pub fn check_overflows() -> bool {
     read_setting("check_overflows")
@@ -337,6 +346,16 @@ pub fn hide_uuids() -> bool {
 /// Should Prusti produce a counterexample.
 pub fn produce_counterexample() -> bool {
     read_setting("counterexample")
+}
+
+/// Should Prusti print VerificationRequest hashes.
+pub fn print_hash() -> bool {
+    read_setting("print_hash")
+}
+
+/// Should Prusti ignore cached verification results.
+pub fn enable_cache() -> bool {
+    read_setting("enable_cache")
 }
 
 /**
@@ -408,7 +427,7 @@ pub fn optimizations() -> Optimizations {
 
     let mut opt = Optimizations::all_disabled();
 
-    for s in optimizations_string.split(','){
+    for s in optimizations_string.split(',') {
         let trimmed = s.trim();
         match trimmed {
             "all" => opt = Optimizations::all_enabled(),
@@ -421,7 +440,7 @@ pub fn optimizations() -> Optimizations {
             "remove_unused_vars" => opt.remove_unused_vars = true,
             "remove_trivial_assertions" => opt.remove_trivial_assertions = true,
             "clean_cfg" => opt.clean_cfg = true,
-            _ => warn!("Ignoring Unkown optimization '{}'", trimmed)
+            _ => warn!("Ignoring Unkown optimization '{}'", trimmed),
         }
     }
 

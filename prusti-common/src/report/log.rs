@@ -27,6 +27,13 @@ pub fn build_writer<S: ToString>(namespace: &str, name: S) -> io::Result<Box<dyn
             let mut path = log_dir.join(namespace);
             fs::create_dir_all(&path)?;
             let mut name_string = name.to_string();
+            if cfg!(target_os = "windows") {
+                name_string = name_string.chars()
+                    .map(|x| match x { 
+                        '\\' | '/' | ':' | '*' | '?' | '"' | '<' | '>' | '|' => '-',
+                        _ => x
+                    }).collect();
+            }
             if name_string.len() > config::max_log_file_name_length() {
                 let end = name_string.rfind('.').unwrap();
                 let start = end - (name_string.len() - config::max_log_file_name_length());

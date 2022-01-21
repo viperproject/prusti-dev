@@ -17,13 +17,13 @@ use prusti_interface::environment::Environment;
 use prusti_interface::PrustiError;
 // use prusti_interface::specifications::TypedSpecificationMap;
 use std::time::Instant;
-use viper::{self, VerificationBackend, Viper};
+use viper::{self, PersistentCache, VerificationBackend, Viper};
 use std::path::PathBuf;
-use std::fs::{create_dir_all, canonicalize};
+use std::fs;
 use std::ffi::OsString;
 use prusti_interface::specs::typed;
 use ::log::{info, debug, error};
-use prusti_server::{VerificationRequest, ViperBackendConfig, PrustiClient, process_verification_request, spawn_server_thread};
+use prusti_server::{VerificationRequest, ViperBackendConfig, PrustiClient, process_verification_request_cache, spawn_server_thread};
 use rustc_span::DUMMY_SP;
 use prusti_server::tokio::runtime::Builder;
 
@@ -86,7 +86,7 @@ use prusti_server::tokio::runtime::Builder;
 
 //         let mut verifier_args: Vec<String> = vec![];
 //         let log_path: PathBuf = config::log_dir().join("viper_tmp");
-//         create_dir_all(&log_path).unwrap();
+//         fs::create_dir_all(&log_path).unwrap();
 //         let report_path: PathBuf = log_path.join("report.csv");
 //         let log_dir_str = log_path.to_str().unwrap();
 //         if let VerificationBackend::Silicon = backend {
@@ -420,8 +420,9 @@ fn verify_programs(env: &Environment, programs: Vec<Program>)
         stopwatch.start_next("attach current thread to the JVM");
         let viper_thread = viper.attach_current_thread();
         stopwatch.finish();
+        let mut cache = PersistentCache::load_cache(config::cache_path());
         verification_requests.map(|(program_name, request)| {
-            let result = process_verification_request(&viper_thread, request);
+            let result = process_verification_request_cache(&viper_thread, request, &mut cache);
             (program_name, result)
         }).collect()
     }
