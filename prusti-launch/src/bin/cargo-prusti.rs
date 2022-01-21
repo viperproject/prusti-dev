@@ -37,7 +37,7 @@ where
         .unwrap_or_else(|_| cargo_target.join("log"));
     let prusti_cache_file = std::env::var("PRUSTI_CACHE_PATH")
         .map(PathBuf::from)
-        .unwrap_or_else(|_| cargo_target.join("cache.json"));
+        .unwrap_or_else(|_| cargo_target.join("cache.bin"));
     let exit_status = Command::new(cargo_path)
         .arg("check")
         .args(clean_args)
