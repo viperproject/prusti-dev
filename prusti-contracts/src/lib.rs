@@ -84,6 +84,9 @@ mod private {
     /// A macro for defining a predicate using prusti expression syntax instead
     /// of just Rust expressions.
     pub use prusti_contracts_internal::predicate;
+
+    /// Macro for creating type [models](prusti_contracts_internal::model).
+    pub use prusti_contracts_internal::model;
 }
 
 
