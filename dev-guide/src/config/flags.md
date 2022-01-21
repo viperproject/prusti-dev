@@ -170,7 +170,6 @@ When enabled, verification is skipped altogether.
 
 When enabled, prints the AST with desugared specifications.
 
-
 ## `PRINT_HASH`
 
 A debugging option, which, when enabled, prints the hash of a verification request (the hash is used for caching). This is instead of performing verification &mdash; this option is similar to `NO_VERIFY`, except that this flag stops the verification process at a later stage.
