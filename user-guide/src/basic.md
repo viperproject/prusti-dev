@@ -173,7 +173,7 @@ A Rust function will be re-verified if:
 
 - The function signature is changed (including name or specification)
 - The function body is changed (including changes in the signatures of any other functions it calls)
-- In some cases, if the containing file is changed
+- In some cases, if the name of the containing file is changed
 
 The cache will reuse a result even if:
 
