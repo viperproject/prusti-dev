@@ -3,7 +3,7 @@ use super::{
     cfg::method::ProcedureDecl,
 };
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, Hash)]
 pub struct Program {
     pub name: String,
     pub procedures: Vec<ProcedureDecl>,

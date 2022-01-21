@@ -6,13 +6,25 @@
 
 use prusti_common::{config, vir::program::Program};
 use serde::{Deserialize, Serialize};
-use std::str::FromStr;
+use std::{
+    collections::hash_map::DefaultHasher,
+    hash::{Hash, Hasher},
+    str::FromStr,
+};
 use viper::{self, VerificationBackend};
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, Hash)]
 pub struct VerificationRequest {
     pub program: Program,
     pub backend_config: ViperBackendConfig,
+}
+
+impl VerificationRequest {
+    pub(crate) fn get_hash(&self) -> u64 {
+        let mut hasher = DefaultHasher::new();
+        self.hash(&mut hasher);
+        hasher.finish()
+    }
 }
 
 /// The configuration for the viper backend, (i.e. verifier).

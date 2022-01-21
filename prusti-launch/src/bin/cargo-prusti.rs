@@ -35,6 +35,9 @@ where
     let prusti_log_dir = std::env::var("PRUSTI_LOG_DIR")
         .map(PathBuf::from)
         .unwrap_or_else(|_| cargo_target.join("log"));
+    let prusti_cache_file = std::env::var("PRUSTI_CACHE_PATH")
+        .map(PathBuf::from)
+        .unwrap_or_else(|_| cargo_target.join("cache.bin"));
     let exit_status = Command::new(cargo_path)
         .arg("check")
         .args(clean_args)
@@ -44,6 +47,7 @@ where
         .env("PRUSTI_QUIET", "true")
         .env("PRUSTI_FULL_COMPILATION", "true")
         .env("PRUSTI_LOG_DIR", prusti_log_dir)
+        .env("PRUSTI_CACHE_PATH", prusti_cache_file)
         .status()
         .expect("could not run cargo");
 
