@@ -80,6 +80,7 @@ impl Successor {
         }
     }
 
+    #[must_use]
     pub fn replace_target(self, src: CfgBlockIndex, dst: CfgBlockIndex) -> Self {
         assert_eq!(
             src.method_uuid, dst.method_uuid,

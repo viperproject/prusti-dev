@@ -13,6 +13,7 @@ use crate::polymorphic::{
 
 /// Substitute (map) expressions in a statement
 impl Stmt {
+    #[must_use]
     pub fn map_expr<F>(self, substitutor: F) -> Self
     where
         F: Fn(Expr) -> Expr,
@@ -63,6 +64,7 @@ impl Stmt {
 /// Substitute (map) old expressions in an expression
 impl Expr {
     #[allow(dead_code)]
+    #[must_use]
     pub fn map_old_expr<F>(self, substitutor: F) -> Self
     where
         F: Fn(&str, Expr) -> Expr,
@@ -95,6 +97,7 @@ impl Expr {
 
 /// In an expression, substitute labels of old expressions
 impl Expr {
+    #[must_use]
     pub fn map_old_expr_label<F>(self, substitutor: F) -> Self
     where
         F: Fn(String) -> String,
