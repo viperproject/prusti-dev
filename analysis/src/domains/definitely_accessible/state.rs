@@ -215,7 +215,7 @@ fn pretty_print_place<'tcx>(
                 variant = Some(variant_index);
             }
             mir::ProjectionElem::Field(field, field_ty) => {
-                let field_name = describe_field_from_ty(prev_ty, field, variant)?;
+                let field_name = describe_field_from_ty(tcx, prev_ty, field, variant)?;
                 pieces.push(format!(".{})", field_name));
                 prev_ty = field_ty;
                 variant = None;
@@ -234,13 +234,14 @@ fn pretty_print_place<'tcx>(
 
 /// End-user visible description of the `field_index`nth field of `ty`
 fn describe_field_from_ty(
+    tcx: TyCtxt<'_>,
     ty: ty::Ty<'_>,
     field: mir::Field,
     variant_index: Option<VariantIdx>,
 ) -> Option<String> {
     if ty.is_box() {
         // If the type is a box, the field is described from the boxed type
-        describe_field_from_ty(ty.boxed_ty(), field, variant_index)
+        describe_field_from_ty(tcx, ty.boxed_ty(), field, variant_index)
     } else {
         match *ty.kind() {
             ty::TyKind::Adt(def, _) => {
@@ -250,14 +251,14 @@ fn describe_field_from_ty(
                 } else {
                     def.non_enum_variant()
                 };
-                Some(variant.fields[field.index()].ident.to_string())
+                Some(variant.fields[field.index()].ident(tcx).to_string())
             }
             ty::TyKind::Tuple(_) => Some(field.index().to_string()),
             ty::TyKind::Ref(_, ty, _) | ty::TyKind::RawPtr(ty::TypeAndMut { ty, .. }) => {
-                describe_field_from_ty(ty, field, variant_index)
+                describe_field_from_ty(tcx, ty, field, variant_index)
             }
             ty::TyKind::Array(ty, _) | ty::TyKind::Slice(ty) => {
-                describe_field_from_ty(ty, field, variant_index)
+                describe_field_from_ty(tcx, ty, field, variant_index)
             }
             ty::TyKind::Closure(..) | ty::TyKind::Generator(..) => {
                 // Supporting these cases is complex

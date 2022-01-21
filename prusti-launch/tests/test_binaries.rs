@@ -121,6 +121,47 @@ fn test_prusti_rustc() {
 }
 
 #[test]
+fn test_prusti_rustc_dump() {
+    let prusti_rustc = find_executable_path("prusti-rustc");
+
+    run_on_test_files(|program: &PathBuf| {
+        let mut cmd = Command::new(&prusti_rustc);
+        cmd.arg("--edition=2018")
+            .arg(program)
+            .env("PRUSTI_DUMP_DEBUG_INFO", "true")
+            .env("PRUSTI_DUMP_DEBUG_INFO_DURING_FOLD", "true")
+            .env("PRUSTI_DUMP_PATH_CTXT_IN_DEBUG_INFO", "true")
+            .env("PRUSTI_DUMP_REBORROWING_DAG_IN_DEBUG_INFO", "true")
+            .env("PRUSTI_DUMP_BORROWCK_INFO", "true")
+            .env("PRUSTI_DUMP_VIPER_PROGRAM", "true")
+            .env("PRUSTI_PRINT_DESUGARED_SPECS", "true")
+            .env("PRUSTI_PRINT_TYPECKD_SPECS", "true")
+            .env("PRUSTI_LOG", "info")
+            .env("RUST_BACKTRACE", "1");
+        cmd
+    });
+}
+
+/*
+// The `PRUSTI_BE_RUSTC` flag doesn't change the behaviour of Prusti macros
+// so this test fails.
+#[test]
+fn test_prusti_be_rustc() {
+    let prusti_rustc = find_executable_path("prusti-rustc");
+
+    run_on_test_files(|program: &PathBuf| {
+        let mut cmd = Command::new(&prusti_rustc);
+        cmd.arg("--edition=2018")
+            .arg(program)
+            .env("PRUSTI_BE_RUSTC", "true")
+            .env("PRUSTI_LOG", "info")
+            .env("RUST_BACKTRACE", "1");
+        cmd
+    });
+}
+*/
+
+#[test]
 fn test_prusti_rustc_with_server() {
     let prusti_rustc = find_executable_path("prusti-rustc");
     let prusti_server = find_executable_path("prusti-server");

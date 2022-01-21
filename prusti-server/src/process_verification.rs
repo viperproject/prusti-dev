@@ -46,7 +46,7 @@ fn new_viper_verifier<'v, 't: 'v>(
     let mut verifier_args: Vec<String> = backend_config.verifier_args;
     let report_path: Option<PathBuf>;
     if config::dump_debug_info() {
-        let log_path: PathBuf = PathBuf::from(config::log_dir()).join("viper_tmp");
+        let log_path = config::log_dir().join("viper_tmp");
         create_dir_all(&log_path).unwrap();
         report_path = Some(log_path.join("report.csv"));
         let log_dir_str = log_path.to_str().unwrap();

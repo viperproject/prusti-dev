@@ -35,6 +35,7 @@ impl Trigger {
     }
 
     // TODO polymorphic: potentially remove usage of these 2 functions
+    #[must_use]
     pub fn replace_place(self, target: &Expr, replacement: &Expr) -> Self {
         Trigger(
             self.0
@@ -44,6 +45,7 @@ impl Trigger {
         )
     }
 
+    #[must_use]
     pub fn replace_multiple_places(self, replacements: &[(Expr, Expr)]) -> Self {
         Trigger(
             self.0

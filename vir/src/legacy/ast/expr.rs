@@ -381,6 +381,7 @@ impl Expr {
         }
     }
 
+    #[must_use]
     pub fn set_pos(self, pos: Position) -> Self {
         match self {
             Expr::Local(v, _) => Expr::Local(v, pos),
@@ -415,6 +416,7 @@ impl Expr {
     }
 
     // Replace all Position::default() positions with `pos`
+    #[must_use]
     pub fn set_default_pos(self, pos: Position) -> Self {
         struct DefaultPosReplacer {
             new_pos: Position,
@@ -719,6 +721,7 @@ impl Expr {
     }
 
     /// Reconstruct place from the place components.
+    #[must_use]
     pub fn reconstruct_place(self, components: Vec<PlaceComponent>) -> Expr {
         components
             .into_iter()
@@ -729,11 +732,12 @@ impl Expr {
     }
 
     // Methods from the old `Place` structure
-
+    #[must_use]
     pub fn local(local: LocalVar) -> Self {
         Expr::Local(local, Position::default())
     }
 
+    #[must_use]
     pub fn variant(self, index: &str) -> Self {
         assert!(self.is_place());
         let field_name = format!("enum_{}", index);
@@ -742,10 +746,12 @@ impl Expr {
         Expr::Variant(box self, variant, Position::default())
     }
 
+    #[must_use]
     pub fn field(self, field: Field) -> Self {
         Expr::Field(box self, field, Position::default())
     }
 
+    #[must_use]
     pub fn addr_of(self) -> Self {
         let type_name = self.get_type().name();
         Expr::AddrOf(box self, Type::TypedRef(type_name), Position::default())
@@ -865,6 +871,7 @@ impl Expr {
     }
 
     /// Puts an `old[label](..)` around the expression
+    #[must_use]
     pub fn old<S: fmt::Display + ToString>(self, label: S) -> Self {
         match self {
             Expr::Local(..) => {
@@ -944,6 +951,7 @@ impl Expr {
     }
 
     /// Remove access predicates.
+    #[must_use]
     pub fn purify(self) -> Self {
         struct Purifier;
         impl ExprFolder for Purifier {
@@ -1242,6 +1250,7 @@ impl Expr {
         }
     }
 
+    #[must_use]
     pub fn negate(self) -> Self {
         if let Expr::UnaryOp(UnaryOpKind::Not, box inner_expr, _pos) = self {
             inner_expr
@@ -1250,6 +1259,7 @@ impl Expr {
         }
     }
 
+    #[must_use]
     pub fn map_labels<F>(self, f: F) -> Self
     where
         F: Fn(String) -> Option<String>,
@@ -1268,6 +1278,7 @@ impl Expr {
         OldLabelReplacer { f }.fold(self)
     }
 
+    #[must_use]
     pub fn replace_place(self, target: &Expr, replacement: &Expr) -> Self {
         // TODO: disabled for snapshot patching
         /*
@@ -1398,6 +1409,7 @@ impl Expr {
         .fold(self)
     }
 
+    #[must_use]
     pub fn replace_multiple_places(self, replacements: &[(Expr, Expr)]) -> Self {
         // TODO: disabled for snapshot patching
         /*
@@ -1561,6 +1573,7 @@ impl Expr {
 
     /// Replaces expressions like `old[l5](old[l5](_9.val_ref).foo.bar)`
     /// into `old[l5](_9.val_ref.foo.bar)`
+    #[must_use]
     pub fn remove_redundant_old(self) -> Self {
         struct RedundantOldRemover {
             current_label: Option<String>,
@@ -1585,6 +1598,7 @@ impl Expr {
     }
 
     /// Leaves a conjunction of `acc(..)` expressions
+    #[must_use]
     pub fn filter_perm_conjunction(self) -> Self {
         struct PermConjunctionFilter();
         impl ExprFolder for PermConjunctionFilter {
@@ -1669,6 +1683,7 @@ impl Expr {
     }
 
     /// Replace all generic types with their instantiations by using substitution.
+    #[must_use]
     pub fn patch_types(self, substs: &HashMap<String, String>) -> Self {
         struct TypePatcher<'a> {
             substs: &'a HashMap<String, String>,
@@ -1906,6 +1921,7 @@ impl Expr {
     /// Remove read permissions. For example, if the expression is
     /// `acc(x.f, read) && acc(P(x.f), write)`, then after the
     /// transformation it will be: `acc(P(x.f), write)`.
+    #[must_use]
     pub fn remove_read_permissions(self) -> Self {
         struct ReadPermRemover {}
         impl ExprFolder for ReadPermRemover {

@@ -474,7 +474,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> vir::CfgReplacer<PathCtxt<'p>, ActionVec> for FoldUnf
                                     vec![format!("Acc:\n{}", acc), format!("Pred:\n{}", pred)]
                                 })
                             })
-                            .unwrap_or_else(std::vec::Vec::new)
+                            .unwrap_or_default()
                     })
                 },
             );

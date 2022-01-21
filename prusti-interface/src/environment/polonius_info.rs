@@ -300,7 +300,7 @@ pub fn graphviz<'tcx>(
     let borrowck_out_facts = Output::compute(&borrowck_in_facts, Algorithm::Naive, true);
 
     use std::io::Write;
-    let graph_path = PathBuf::from(config::log_dir())
+    let graph_path = config::log_dir()
             .join("nll-facts")
             .join(def_path.to_filename_friendly_no_crate())
             .join("polonius.dot");
@@ -674,7 +674,7 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
         let facts = env.local_mir_borrowck_facts(def_id.expect_local());
 
         // // Read relations between region IDs and local variables.
-        // let renumber_path = PathBuf::from(config::log_dir())
+        // let renumber_path = config::log_dir()
         //     .join("mir")
         //     .join(format!(
         //         "{}.{}.-------.renumber.0.mir",
