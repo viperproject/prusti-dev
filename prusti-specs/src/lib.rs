@@ -391,13 +391,13 @@ pub fn closure(tokens: TokenStream, drop_spec: bool) -> TokenStream {
 pub struct SpecItemImplBlockGenerator {
     spec_impl_block: syn::ItemImpl,
     // TODO: Use FxHashMap
-    generated_attributes_for_spec_item: HashMap<syn::ImplItemMethod, Vec<syn::Attribute>>,
+    generated_attributes_for_spec_item: std::collections::HashMap<syn::ImplItemMethod, Vec<syn::Attribute>>,
 }
 
 impl SpecItemImplBlockGenerator {
     pub fn from(impl_block: &syn::ItemImpl, self_ty: Box<syn::Type>) -> Self {
-        let mut generated_attributes_for_spec_item: HashMap<syn::ImplItemMethod, Vec<syn::Attribute>> =
-            HashMap::new();
+        let mut generated_attributes_for_spec_item: std::collections::HashMap<syn::ImplItemMethod, Vec<syn::Attribute>> =
+            std::collections::HashMap::new();
         let mut generated_spec_items: Vec<syn::ImplItem> = Vec::new();
         for item in &impl_block.items {
             match item {
