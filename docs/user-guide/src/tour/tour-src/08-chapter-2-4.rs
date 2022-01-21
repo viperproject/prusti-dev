@@ -51,12 +51,12 @@ impl List {
     //      a) The length of the list increases by one: check
     //      b) The first element is the pushed one
     //      c) All other elements have not been changed
-    #[ensures(self.len() == old(self.len()) + 1)] 
+    #[ensures(self.len() == old(self.len()) + 1)]
     #[ensures(self.lookup(0) == elem)] // (2) express property b)
     pub fn push(&mut self, elem: i32) {
         let new_node = Box::new(Node {
             elem: elem,
-            next: replace(&mut self.head, Link::Empty), 
+            next: replace(&mut self.head, Link::Empty),
         });
 
         self.head = Link::More(new_node);
@@ -85,7 +85,7 @@ impl Link {
 
     // (4)
     #[pure]
-    #[requires(0 <= index && index < self.len())] // (6) no fix as there's no 
+    #[requires(0 <= index && index < self.len())] // (6) no fix as there's no
                                                   // relation between being empty and length 0
     pub fn lookup(&self, index: usize) -> i32 {
         match self {

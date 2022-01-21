@@ -5,7 +5,7 @@
 
     > List a = Empty | Elem a (List a)
 
-    A list is a sum type (Rust: enum)  
+    A list is a sum type (Rust: enum)
 
     For now, we only support storing 32-bit integers
 */
