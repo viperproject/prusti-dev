@@ -85,9 +85,7 @@ impl PersistentCache {
             Err(e) => error!("Failed to create cache file: {e}"),
         }
     }
-}
-impl Drop for PersistentCache {
-    fn drop(&mut self) {
+    pub fn save(&mut self) {
         // Save cache to disk, if changed and save path is valid
         if self.updated && !self.load_loc.as_os_str().is_empty() {
             let mut save_dir = self.load_loc.clone();
@@ -97,6 +95,11 @@ impl Drop for PersistentCache {
                 Err(e) => error!("Failed to create cache dir: {e}"),
             }
         }
+    }
+}
+impl Drop for PersistentCache {
+    fn drop(&mut self) {
+        self.save();
     }
 }
 
