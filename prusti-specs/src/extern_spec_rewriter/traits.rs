@@ -209,10 +209,8 @@ impl<'a> GeneratedStruct<'a> {
         let mut trait_method_sig = trait_method.sig.clone();
 
         // Rewrite occurrences of associated types in signature to defined generics
-        syn::visit_mut::visit_signature_mut(
-            &mut AssociatedTypeRewriter::new(&self.assoc_types_to_generics_map),
-            &mut trait_method_sig,
-        );
+        AssociatedTypeRewriter::new(&self.assoc_types_to_generics_map)
+                                .rewrite_method_sig(&mut trait_method_sig);
         let trait_method_ident = &trait_method_sig.ident;
 
         // Rewrite "self" to "_self" in method attributes and method inputs
@@ -254,45 +252,6 @@ fn get_associated_types(item_trait: &syn::ItemTrait) -> Vec<&syn::TraitItemType>
         }
     }
     result
-}
-
-/// Given a map from associated types to generic type params, this struct
-/// rewrites associated type paths to these generic params.
-///
-/// # Example
-/// Given a mapping `AssocType1 -> T_AssocType1, AssocType2 -> T_AssocType2`,
-/// visiting a function
-/// ```
-/// fn foo(arg: Self::AssocType1) -> Self::AssocType2 { }
-/// ```
-/// results in
-/// ```
-/// fn foo(arg: T_AssocType1) -> T_AssocType2 { }
-/// ```
-///
-struct AssociatedTypeRewriter<'a> {
-    repl: &'a AssocTypesToGenericsMap<'a>,
-}
-
-impl<'a> AssociatedTypeRewriter<'a> {
-    pub fn new(repl: &'a AssocTypesToGenericsMap<'a>) -> Self {
-        AssociatedTypeRewriter { repl }
-    }
-}
-
-impl<'a> syn::visit_mut::VisitMut for AssociatedTypeRewriter<'a> {
-    fn visit_type_path_mut(&mut self, ty_path: &mut syn::TypePath) {
-        let path = &ty_path.path;
-        if path.segments.len() == 2
-            && path.segments[0].ident == "Self"
-            && self.repl.contains_key(&path.segments[1].ident)
-        {
-            let replacement = self.repl.get(&path.segments[1].ident).unwrap();
-            ty_path.path = parse_quote!(#replacement);
-        }
-
-        syn::visit_mut::visit_type_path_mut(self, ty_path);
-    }
 }
 
 #[derive(Debug)]

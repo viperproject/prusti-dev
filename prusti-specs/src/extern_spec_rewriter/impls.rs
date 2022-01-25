@@ -1,26 +1,24 @@
-use crate::{span_overrider::SpanOverrider, specifications::common::NameGenerator};
-use proc_macro2::{Ident, Span, TokenStream};
-use quote::quote_spanned;
-use syn::spanned::Spanned;
 use super::common::*;
-use syn::visit_mut::VisitMut;
-use crate::SpecImplBlockGenerator;
-
+use crate::{span_overrider::SpanOverrider, specifications::common::NameGenerator};
+use proc_macro2::TokenStream;
+use quote::quote_spanned;
+use std::collections::HashMap;
+use syn::spanned::Spanned;
 
 pub fn rewrite_extern_spec(item_impl: &syn::ItemImpl) -> syn::Result<TokenStream> {
     let rewritten = rewrite_extern_spec_internal(item_impl)?;
 
     let new_struct = rewritten.generated_struct;
-    let impls = rewritten.generated_impls;
+    let new_impl = rewritten.generated_impl;
     Ok(quote_spanned! {item_impl.span()=>
         #new_struct
-        #(#impls),*
+        #new_impl
     })
 }
 
 struct RewrittenExternalSpecs {
     generated_struct: syn::ItemStruct,
-    generated_impls: Vec<syn::ItemImpl>,
+    generated_impl: syn::ItemImpl,
 }
 
 fn rewrite_extern_spec_internal(item_impl: &syn::ItemImpl) -> syn::Result<RewrittenExternalSpecs> {
@@ -33,23 +31,27 @@ fn rewrite_extern_spec_internal(item_impl: &syn::ItemImpl) -> syn::Result<Rewrit
     };
 
     if item_impl.trait_.is_some() {
-        let mut rewritten_impl = item_impl.clone();
+        let (_, trait_path, _) = item_impl.trait_.as_ref().unwrap();
+        if has_generic_arguments(trait_path) {
+            return Err(syn::Error::new(
+                item_impl.generics.params.span(),
+                "Generics for extern trait impls are not supported",
+            ));
+        }
 
-        rewrite_impl_2(&mut rewritten_impl, Box::from(struct_ty.clone()))?;
-        rewritten_impl.trait_ = None;
+        let rewritten_impl = rewrite_trait_impl(item_impl.clone(), Box::from(struct_ty))?;
 
         Ok(RewrittenExternalSpecs {
             generated_struct: new_struct,
-            generated_impls: vec![rewritten_impl]
+            generated_impl: rewritten_impl,
         })
-
     } else {
         let mut rewritten_item = item_impl.clone();
-        rewrite_impl(&mut rewritten_item, Box::from(struct_ty))?;
+        rewrite_plain_impl(&mut rewritten_item, Box::from(struct_ty))?;
 
         Ok(RewrittenExternalSpecs {
             generated_struct: new_struct,
-            generated_impls: vec![rewritten_item]
+            generated_impl: rewritten_item,
         })
     }
 }
@@ -73,7 +75,7 @@ fn generate_new_struct(item_impl: &syn::ItemImpl) -> syn::Result<syn::ItemStruct
 
 /// Rewrite all methods in an impl block to calls to the specified methods.
 /// The result of this rewriting is then parsed in `ExternSpecResolver`.
-fn rewrite_impl(impl_item: &mut syn::ItemImpl, new_ty: Box<syn::Type>) -> syn::Result<()> {
+fn rewrite_plain_impl(impl_item: &mut syn::ItemImpl, new_ty: Box<syn::Type>) -> syn::Result<()> {
     let item_ty = &mut impl_item.self_ty;
     if let syn::Type::Path(type_path) = item_ty.as_mut() {
         for seg in type_path.path.segments.iter_mut() {
@@ -84,44 +86,11 @@ fn rewrite_impl(impl_item: &mut syn::ItemImpl, new_ty: Box<syn::Type>) -> syn::R
     }
 
     for item in impl_item.items.iter_mut() {
-        let item_span = item.span();
         match item {
             syn::ImplItem::Method(method) => {
-                for attr in method.attrs.iter_mut() {
-                    attr.tokens = rewrite_self(attr.tokens.clone());
-                }
-
-                let args = rewrite_method_inputs(item_ty, &mut method.sig.inputs);
-                let ident = &method.sig.ident;
-
-                method
-                    .attrs
-                    .push(parse_quote_spanned!(item_span=> #[prusti::extern_spec]));
-                method
-                    .attrs
-                    .push(parse_quote_spanned!(item_span=> #[trusted]));
-                method
-                    .attrs
-                    .push(parse_quote_spanned!(item_span=> #[allow(dead_code)]));
-
-                let mut method_path: syn::ExprPath = parse_quote_spanned! {ident.span()=>
-                    < #item_ty > :: #ident
-                };
-
-                // Fix the span
-                syn::visit_mut::visit_expr_path_mut(
-                    &mut SpanOverrider::new(ident.span()),
-                    &mut method_path,
-                );
-
-                method.block = parse_quote_spanned! {item_span=>
-                    {
-                        #method_path (#args);
-                        unimplemented!()
-                    }
-                };
-            },
-            syn::ImplItem::Type(ty) => {
+                rewrite_method(method, item_ty, None);
+            }
+            syn::ImplItem::Type(_) => {
                 // ignore
             }
             _ => {
@@ -137,91 +106,120 @@ fn rewrite_impl(impl_item: &mut syn::ItemImpl, new_ty: Box<syn::Type>) -> syn::R
     Ok(())
 }
 
+fn rewrite_trait_impl(
+    impl_item: syn::ItemImpl,
+    new_ty: Box<syn::Type>,
+) -> syn::Result<syn::ItemImpl> {
+    let item_ty = impl_item.self_ty.clone();
 
-/// Rewrite all methods in an impl block to calls to the specified methods.
-/// The result of this rewriting is then parsed in `ExternSpecResolver`.
-fn rewrite_impl_2(impl_item: &mut syn::ItemImpl, new_ty: Box<syn::Type>) -> syn::Result<()> {
-    let (_, trait_path, _) = &impl_item.clone().trait_.unwrap();
-
-
-    let item_ty = &mut impl_item.self_ty;
-    if let syn::Type::Path(type_path) = item_ty.as_mut() {
-        for seg in type_path.path.segments.iter_mut() {
-            if let syn::PathArguments::AngleBracketed(genargs) = &mut seg.arguments {
-                genargs.colon2_token = Some(syn::token::Colon2::default());
+    // Collect declared associated types
+    let mut assoc_type_decls = HashMap::<&syn::Ident, syn::TypePath>::new();
+    for item in impl_item.items.iter() {
+        if let syn::ImplItem::Type(ty) = item {
+            if let syn::Type::Path(path) = &ty.ty {
+                assoc_type_decls.insert(&ty.ident, path.clone());
             }
         }
     }
 
-    for item in impl_item.items.iter_mut() {
-        let item_span = item.span();
-        match item {
-            syn::ImplItem::Method(method) => {
-                for attr in method.attrs.iter_mut() {
-                    attr.tokens = rewrite_self(attr.tokens.clone());
-                }
+    // Create new impl
+    let mut new_impl = impl_item.clone();
+    new_impl.self_ty = new_ty;
+    new_impl.trait_ = None;
+    new_impl.items.clear();
 
-                let args = rewrite_method_inputs(item_ty, &mut method.sig.inputs);
-                let ident = &method.sig.ident;
+    for item in impl_item.items.iter() {
+        if let syn::ImplItem::Method(method) = item {
+            let (_, trait_path, _) = &impl_item.trait_.as_ref().unwrap();
 
-                method
-                    .attrs
-                    .push(parse_quote_spanned!(item_span=> #[prusti::extern_spec]));
-                method
-                    .attrs
-                    .push(parse_quote_spanned!(item_span=> #[trusted]));
-                method
-                    .attrs
-                    .push(parse_quote_spanned!(item_span=> #[allow(dead_code)]));
+            let mut rewritten_method = method.clone();
+            rewrite_method(&mut rewritten_method, &item_ty, Some(&trait_path));
 
-                let mut method_path: syn::ExprPath = parse_quote_spanned! {ident.span()=>
-                    < #item_ty as #trait_path > :: #ident
-                };
+            // Rewrite occurences of associated types in method signature
+            let mut rewriter = AssociatedTypeRewriter::new(&assoc_type_decls);
+            rewriter.rewrite_method_sig(&mut rewritten_method.sig);
 
-                // Fix the span
-                syn::visit_mut::visit_expr_path_mut(
-                    &mut SpanOverrider::new(ident.span()),
-                    &mut method_path,
-                );
+            new_impl.items.push(syn::ImplItem::Method(rewritten_method));
+        }
+    }
 
-                method.block = parse_quote_spanned! {item_span=>
-                    {
-                        #method_path (#args);
-                        unimplemented!()
-                    }
-                };
+    Ok(new_impl)
+}
+
+fn rewrite_method(
+    method: &mut syn::ImplItemMethod,
+    original_ty: &Box<syn::Type>,
+    as_ty: Option<&syn::Path>,
+) {
+    let span = method.span();
+
+    for attr in method.attrs.iter_mut() {
+        attr.tokens = rewrite_self(attr.tokens.clone());
+    }
+
+    let args = rewrite_method_inputs(original_ty, &mut method.sig.inputs);
+    let ident = &method.sig.ident;
+
+    method
+        .attrs
+        .push(parse_quote_spanned!(span=> #[prusti::extern_spec]));
+    method.attrs.push(parse_quote_spanned!(span=> #[trusted]));
+    method
+        .attrs
+        .push(parse_quote_spanned!(span=> #[allow(dead_code)]));
+
+
+    let mut method_path: syn::ExprPath = match as_ty {
+        Some(type_path) =>
+            parse_quote_spanned! {ident.span()=>
+                < #original_ty as #type_path > :: #ident
             },
-            syn::ImplItem::Type(ty) => {
-                // ignore
-            }
-            _ => {
-                return Err(syn::Error::new(
-                    item.span(),
-                    "expected a method".to_string(),
-                ));
+        None => parse_quote_spanned! {ident.span()=>
+            < #original_ty > :: #ident
+        }
+    };
+
+
+    // Fix the span
+    syn::visit_mut::visit_expr_path_mut(&mut SpanOverrider::new(ident.span()), &mut method_path);
+
+    method.block = parse_quote_spanned! {span=>
+        {
+            #method_path (#args);
+            unimplemented!()
+        }
+    };
+}
+
+fn has_generic_arguments(path: &syn::Path) -> bool {
+    for seg in path.segments.iter() {
+        if let syn::PathArguments::AngleBracketed(args) = &seg.arguments {
+            if args.args.len() > 0 {
+                return true;
             }
         }
     }
-    impl_item.self_ty = new_ty;
-
-    Ok(())
+    false
 }
 
 #[cfg(test)]
 mod tests {
+    use super::rewrite_extern_spec_internal;
     use quote::ToTokens;
     use syn::parse_quote;
-    use super::rewrite_extern_spec_internal;
 
     fn assert_eq_tokenizable<T: ToTokens, U: ToTokens>(actual: T, expected: U) {
-        assert_eq!(actual.into_token_stream().to_string(), expected.into_token_stream().to_string());
+        assert_eq!(
+            actual.into_token_stream().to_string(),
+            expected.into_token_stream().to_string()
+        );
     }
 
     mod plain_impl {
         use super::*;
 
         #[test]
-        fn generated_struct(){
+        fn generated_struct() {
             let mut inp_impl: syn::ItemImpl = parse_quote!(
                 impl<'a, const CONST: i32, T> MyStruct<'a, CONST, T> {}
             );
@@ -229,7 +227,7 @@ mod tests {
             let rewritten = rewrite_extern_spec_internal(&mut inp_impl).unwrap();
 
             let struct_ident = &rewritten.generated_struct.ident;
-            let expected: syn::ItemStruct = parse_quote!{
+            let expected: syn::ItemStruct = parse_quote! {
                 #[allow (non_camel_case_types)]
                 struct #struct_ident<'a, const CONST: i32, T> (
                     &'a ::core::marker::PhantomData<()>,
@@ -279,8 +277,7 @@ mod tests {
                 }
             };
 
-            assert_eq!(rewritten.generated_impls.len(), 1);
-            assert_eq_tokenizable(rewritten.generated_impls[0].clone(), expected);
+            assert_eq_tokenizable(rewritten.generated_impl.clone(), expected);
         }
 
         #[test]
@@ -306,8 +303,7 @@ mod tests {
                 }
             };
 
-            assert_eq!(rewritten.generated_impls.len(), 1);
-            assert_eq_tokenizable(rewritten.generated_impls[0].clone(), expected);
+            assert_eq_tokenizable(rewritten.generated_impl.clone(), expected);
         }
 
         #[test]
@@ -337,8 +333,7 @@ mod tests {
                 }
             };
 
-            assert_eq!(rewritten.generated_impls.len(), 1);
-            assert_eq_tokenizable(rewritten.generated_impls[0].clone(), expected);
+            assert_eq_tokenizable(rewritten.generated_impl.clone(), expected);
         }
     }
 
@@ -372,18 +367,15 @@ mod tests {
                 }
             };
 
-            assert_eq!(rewritten.generated_impls.len(), 1);
-            assert_eq_tokenizable(rewritten.generated_impls[0].clone(), expected_impl);
+            assert_eq_tokenizable(rewritten.generated_impl.clone(), expected_impl);
         }
 
         #[test]
-        #[ignore]
-        // TODO
         fn associated_types() {
             let mut inp_impl: syn::ItemImpl = parse_quote!(
                 impl MyTrait for MyStruct {
                     type Result = i32;
-                    fn foo(&mut self, arg: i32) -> Self::Result;
+                    fn foo(&mut self) -> Self::Result;
                 }
             );
 
@@ -395,33 +387,27 @@ mod tests {
                     #[prusti::extern_spec]
                     #[trusted]
                     #[allow(dead_code)]
-                    fn foo(_self: &mut MyStruct, arg: i32) -> i32 {
-                        <MyStruct as MyTrait<Result = i32>> :: foo(_self, arg, );
+                    fn foo(_self: &mut MyStruct) -> i32 {
+                        <MyStruct as MyTrait> :: foo(_self, );
                         unimplemented!()
                     }
                 }
             };
 
-            assert_eq!(rewritten.generated_impls.len(), 1);
-            assert_eq_tokenizable(rewritten.generated_impls[0].clone(), expected_impl);
+            assert_eq_tokenizable(rewritten.generated_impl.clone(), expected_impl);
         }
 
         #[test]
-        #[ignore]
-        // TODO
         fn generics_not_supported() {
             let mut inp_impl: syn::ItemImpl = parse_quote!(
-                impl MyTrait<I, O, i32> for MyStruct {
-                    fn foo(&mut self, arg1: I, arg2: i32) -> O;
+                impl MyTrait<I> for MyStruct {
+                    fn foo(&mut self, arg1: I);
                 }
             );
 
             let rewritten = rewrite_extern_spec_internal(&mut inp_impl);
 
             assert!(rewritten.is_err());
-            // TODO: Check for conrete error
         }
-
     }
-
 }
