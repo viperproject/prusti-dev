@@ -1,5 +1,11 @@
-//! Processes `#[model]` attributed types
-//! Usage documentation can be found in the corresponding macro definition
+//! Processes `#[model]` attributed types.
+//!
+//! Usage documentation can be found in the corresponding macro definition.
+//!
+//! Given a `#[model]` attributed type `T`, this logic creates the following three items:
+//! * A struct `M` which holds the model's fields
+//! * An implementation of the `ToModel` trait (defined in prusti_contracts) for `T`.
+//!   The implementation is `unimplemented!()`, `#[pure]` and `#[trusted]`
 
 use super::parse_quote_spanned;
 use proc_macro2::{Ident, TokenStream};
@@ -10,6 +16,7 @@ use syn::{parse_quote, spanned::Spanned};
 // Generics should be marked with attributes to be "concrete" or "generic"
 // This logic is already existing for extern trait specs -> maybe want to extract common code.
 
+/// See module level documentation
 pub fn rewrite(item_struct: syn::ItemStruct) -> syn::Result<TokenStream> {
     let res = rewrite_internal(item_struct);
     match res {
@@ -21,8 +28,9 @@ pub fn rewrite(item_struct: syn::ItemStruct) -> syn::Result<TokenStream> {
 type TypeModelGenerationResult<R> = Result<R, TypeModelGenerationError>;
 
 fn rewrite_internal(item_struct: syn::ItemStruct) -> TypeModelGenerationResult<TypeModel> {
-    let model_struct = create_model_struct(&item_struct)?;
-    let to_model_trait = create_to_model_trait(&item_struct, &model_struct);
+    let idents = GeneratedIdents::generate(&item_struct);
+    let model_struct = create_model_struct(&item_struct, &idents)?;
+    let to_model_trait = create_to_model_trait(&item_struct, &model_struct, &idents);
     let model_impl = create_model_impl(&item_struct, &model_struct, &to_model_trait)?;
 
     Ok(TypeModel {
@@ -32,22 +40,18 @@ fn rewrite_internal(item_struct: syn::ItemStruct) -> TypeModelGenerationResult<T
     })
 }
 
-/// TODO: Docs
-///
+/// See module level documentation
 fn create_model_struct(
     item_struct: &syn::ItemStruct,
+    idents: &GeneratedIdents,
 ) -> TypeModelGenerationResult<syn::ItemStruct> {
     if item_struct.fields.len() == 0 {
         return Err(TypeModelGenerationError::MissingStructFields(item_struct.span()).into());
     }
 
-    let ident = &item_struct.ident;
 
     // Create model
-    let model_struct_ident = Ident::new(
-        format!("Prusti{}Model", ident).as_str(),
-        item_struct.ident.span(),
-    ); // TODO: randomize name! Maybe use name generator?
+    let model_struct_ident = &idents.model_struct_ident;
     let mut model_struct: syn::ItemStruct = parse_quote_spanned! {item_struct.span()=>
         #[derive(Copy, Clone)]
         struct #model_struct_ident {}
@@ -61,13 +65,11 @@ fn create_model_struct(
 fn create_to_model_trait(
     item_struct: &syn::ItemStruct,
     model_struct: &syn::ItemStruct,
+    idents: &GeneratedIdents,
 ) -> syn::ItemTrait {
     let ident = &model_struct.ident;
-    let to_model_trait_ident = Ident::new(
-        format!("Prusti{}ToModel", item_struct.ident).as_str(),
-        ident.span(),
-    );
 
+    let to_model_trait_ident = &idents.to_model_trait_ident;
     parse_quote_spanned! {item_struct.span()=>
         trait #to_model_trait_ident {
             #[trusted]
@@ -117,11 +119,41 @@ fn create_model_impl(
     })
 }
 
+/// [syn::Ident]s which are used for the generated items
+struct GeneratedIdents {
+    model_struct_ident: syn::Ident,
+    to_model_trait_ident: syn::Ident,
+}
+
+impl GeneratedIdents {
+    fn generate(item_struct: &syn::ItemStruct) -> Self {
+        let mut name = item_struct.ident.to_string();
+
+        for param in item_struct.generics.params.iter() {
+            if let syn::GenericParam::Type(ty_param) = param {
+                name.push_str(ty_param.ident.to_string().as_str());
+            }
+        }
+
+        GeneratedIdents {
+            model_struct_ident: Ident::new(
+                format!("Prusti{}Model", name).as_str(),
+                item_struct.ident.span()),
+            to_model_trait_ident: Ident::new(
+                format!("Prusti{}ToModel", name).as_str(),
+                item_struct.ident.span()),
+        }
+    }
+}
+
 /// Errors that can happen during model generation.
 /// These are mostly wrong usages of the macro by the user.
 #[derive(Debug)]
 enum TypeModelGenerationError {
+    /// Thrown when the model contains no fields
     MissingStructFields(proc_macro2::Span),
+
+    /// Thrown when using a const type param in the model
     ConstParamDisallowed(proc_macro2::Span),
 }
 
@@ -289,20 +321,20 @@ mod tests {
         let model = expect_ok(rewrite_internal(input));
         let expected_struct: syn::ItemStruct = parse_quote!(
             #[derive(Copy, Clone)]
-            struct PrustiFooModel(i32, u32, usize);
+            struct PrustiFooi32TModel(i32, u32, usize);
         );
         let expected_impl: syn::ItemImpl = parse_quote!(
-            impl PrustiFooToModel for Foo<i32, T> {
+            impl PrustiFooi32TToModel for Foo<i32, T> {
                 #[trusted]
                 #[pure]
-                fn model(&self) -> PrustiFooModel {
+                fn model(&self) -> PrustiFooi32TModel {
                     unimplemented!("Models can only be used in specifications")
                 }
             }
         );
 
-        assert_eq_tokenizable(expected_struct, model.model_struct);
-        assert_eq_tokenizable(expected_impl, model.model_impl);
+        assert_eq_tokenizable(model.model_struct, expected_struct);
+        assert_eq_tokenizable(model.model_impl, expected_impl);
     }
 
     #[test]
