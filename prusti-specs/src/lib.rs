@@ -388,13 +388,19 @@ pub fn closure(tokens: TokenStream, drop_spec: bool) -> TokenStream {
         }
     }
 }
-pub struct SpecItemImplBlockGenerator {
-    spec_impl_block: syn::ItemImpl,
-    // TODO: Use FxHashMap
+
+/// Given a [syn::ItemImpl] with methods containing specifications,
+/// [SpecImplBlockGenerator] generates a new impl block with the generated spec items.
+pub struct SpecImplBlockGenerator {
+    /// The generated specification block
+    generated_spec_impl_block: syn::ItemImpl,
+
+    /// Maps methods from the original impl block to the generated attributes
+    /// // TODO: Use FxHashMap
     generated_attributes_for_spec_item: std::collections::HashMap<syn::ImplItemMethod, Vec<syn::Attribute>>,
 }
 
-impl SpecItemImplBlockGenerator {
+impl SpecImplBlockGenerator {
     pub fn from(impl_block: &syn::ItemImpl, self_ty: Box<syn::Type>) -> Self {
         let mut generated_attributes_for_spec_item: std::collections::HashMap<syn::ImplItemMethod, Vec<syn::Attribute>> =
             std::collections::HashMap::new();
@@ -449,8 +455,8 @@ impl SpecItemImplBlockGenerator {
             items: generated_spec_items,
         };
 
-        SpecItemImplBlockGenerator {
-            spec_impl_block,
+        SpecImplBlockGenerator {
+            generated_spec_impl_block: spec_impl_block,
             generated_attributes_for_spec_item,
         }
     }
@@ -463,7 +469,7 @@ impl SpecItemImplBlockGenerator {
 pub fn refine_trait_spec(_attr: TokenStream, tokens: TokenStream) -> TokenStream {
     let mut impl_block: syn::ItemImpl = handle_result!(syn::parse2(tokens));
     let self_ty = impl_block.self_ty.clone(); // TODO: ugly
-    let block_generator = SpecItemImplBlockGenerator::from(&impl_block, self_ty);
+    let block_generator = SpecImplBlockGenerator::from(&impl_block, self_ty);
 
     // let mut new_items = Vec::new();
     for item in impl_block.items.iter_mut() {
@@ -472,7 +478,7 @@ pub fn refine_trait_spec(_attr: TokenStream, tokens: TokenStream) -> TokenStream
         }
     }
     // impl_block.items = new_items;
-    let spec_impl_block = &block_generator.spec_impl_block;
+    let spec_impl_block = &block_generator.generated_spec_impl_block;
     quote_spanned! {impl_block.span()=>
         #spec_impl_block
         #impl_block
