@@ -9,8 +9,10 @@ trait Incrementable {
 struct Number(i32);
 
 impl Incrementable for Number {
-    fn increment(&mut self) {
+    type Result = i32;
+    fn increment(&mut self) -> i32 {
         self.0 += 1;
+        self.0
     }
 }
 
