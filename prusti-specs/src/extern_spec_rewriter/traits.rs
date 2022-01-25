@@ -33,8 +33,6 @@ type AssocTypesToGenericsMap<'a> = HashMap<&'a syn::Ident, syn::TypeParam>;
 /// and a corresponding impl block with methods of `SomeTrait`.
 ///
 pub fn rewrite_extern_spec(item_trait: &syn::ItemTrait) -> syn::Result<TokenStream> {
-    validate_macro_usage(item_trait)?;
-
     let generated_struct = generate_new_struct(item_trait)?;
 
     let trait_impl = generated_struct.generate_impl()?;
@@ -43,17 +41,6 @@ pub fn rewrite_extern_spec(item_trait: &syn::ItemTrait) -> syn::Result<TokenStre
             #new_struct
             #trait_impl
     })
-}
-
-/// Returns an error when the macro was used in a wrong way on the trait
-fn validate_macro_usage(item_trait: &syn::ItemTrait) -> syn::Result<()> {
-    // Where clause not supported
-    if item_trait.generics.where_clause.as_ref().is_some() {
-        let span = item_trait.generics.where_clause.as_ref().unwrap().span();
-        return Err(syn::Error::new(span, "Where clauses for extern traits specs are not supported"));
-    }
-
-    Ok(())
 }
 
 /// Responsible for generating a struct
@@ -249,7 +236,6 @@ fn get_associated_types(item_trait: &syn::ItemTrait) -> Vec<&syn::TraitItemType>
     let mut result = Vec::new();
     for trait_item in item_trait.items.iter() {
         if let syn::TraitItem::Type(assoc_type) = trait_item {
-            // TODO: How to handle associated types with defaults?
             result.push(assoc_type);
         }
     }
