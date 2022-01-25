@@ -1,5 +1,6 @@
 use quote::{quote, quote_spanned, ToTokens};
 use syn::spanned::Spanned;
+use std::collections::HashMap;
 
 /// Rewrites every occurence of "self" to "_self" in a token stream
 pub fn rewrite_self(tokens: proc_macro2::TokenStream) -> proc_macro2::TokenStream {
@@ -112,4 +113,48 @@ pub fn rewrite_method_inputs<T: ToTokens>(
         args.push_punct(syn::token::Comma::default());
     }
     args
+}
+
+/// Given a map from associated types to anything tokenizable, this struct
+/// rewrites associated type paths to these tokens.
+///
+/// # Example
+/// Given a mapping from associated types to generic type params
+/// `[AssocType1 -> T_AssocType1, AssocType2 -> T_AssocType2]`,
+/// visiting a function
+/// ```
+/// fn foo(arg: Self::AssocType1) -> Self::AssocType2 { }
+/// ```
+/// results in
+/// ```
+/// fn foo(arg: T_AssocType1) -> T_AssocType2 { }
+/// ```
+///
+pub struct AssociatedTypeRewriter<'a, R: ToTokens> {
+    repl: &'a HashMap<&'a syn::Ident, R>,
+}
+
+impl<'a, R: ToTokens> AssociatedTypeRewriter<'a, R> {
+    pub fn new(repl: &'a HashMap<&'a syn::Ident, R>) -> Self {
+        AssociatedTypeRewriter { repl }
+    }
+
+    pub fn rewrite_method_sig(&mut self, signature: &mut syn::Signature) {
+        syn::visit_mut::visit_signature_mut(self,signature);
+    }
+}
+
+impl<'a, R: ToTokens> syn::visit_mut::VisitMut for AssociatedTypeRewriter<'a, R> {
+    fn visit_type_path_mut(&mut self, ty_path: &mut syn::TypePath) {
+        let path = &ty_path.path;
+        if path.segments.len() == 2
+            && path.segments[0].ident == "Self"
+            && self.repl.contains_key(&path.segments[1].ident)
+        {
+            let replacement = self.repl.get(&path.segments[1].ident).unwrap();
+            ty_path.path = syn::parse_quote!(#replacement);
+        }
+
+        syn::visit_mut::visit_type_path_mut(self, ty_path);
+    }
 }
