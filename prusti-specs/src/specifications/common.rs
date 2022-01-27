@@ -156,7 +156,7 @@ impl NameGenerator {
             },
             syn::Type::Slice(ty_slice) => {
                 let ty = &*ty_slice.elem;
-                format!("Slice{}", self.generate_name_for_type(&ty)?.as_str())
+                format!("Slice{}", self.generate_name_for_type(ty)?.as_str())
             },
             _ => {
                 return Err(format!("could not generate name for type {:?}", ty))

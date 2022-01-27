@@ -133,7 +133,7 @@ fn rewrite_trait_impl(
             let (_, trait_path, _) = &impl_item.trait_.as_ref().unwrap();
 
             let mut rewritten_method = method.clone();
-            rewrite_method(&mut rewritten_method, &item_ty, Some(&trait_path));
+            rewrite_method(&mut rewritten_method, &item_ty, Some(trait_path));
 
             // Rewrite occurences of associated types in method signature
             let mut rewriter = AssociatedTypeRewriter::new(&assoc_type_decls);
@@ -148,7 +148,7 @@ fn rewrite_trait_impl(
 
 fn rewrite_method(
     method: &mut syn::ImplItemMethod,
-    original_ty: &Box<syn::Type>,
+    original_ty: &syn::Type,
     as_ty: Option<&syn::Path>,
 ) {
     let span = method.span();
@@ -168,17 +168,14 @@ fn rewrite_method(
         .attrs
         .push(parse_quote_spanned!(span=> #[allow(dead_code)]));
 
-
     let mut method_path: syn::ExprPath = match as_ty {
-        Some(type_path) =>
-            parse_quote_spanned! {ident.span()=>
-                < #original_ty as #type_path > :: #ident
-            },
+        Some(type_path) => parse_quote_spanned! {ident.span()=>
+            < #original_ty as #type_path > :: #ident
+        },
         None => parse_quote_spanned! {ident.span()=>
             < #original_ty > :: #ident
-        }
+        },
     };
-
 
     // Fix the span
     syn::visit_mut::visit_expr_path_mut(&mut SpanOverrider::new(ident.span()), &mut method_path);
@@ -194,7 +191,7 @@ fn rewrite_method(
 fn has_generic_arguments(path: &syn::Path) -> bool {
     for seg in path.segments.iter() {
         if let syn::PathArguments::AngleBracketed(args) = &seg.arguments {
-            if args.args.len() > 0 {
+            if !args.args.is_empty() {
                 return true;
             }
         }
