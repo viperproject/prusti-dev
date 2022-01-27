@@ -11,9 +11,6 @@ mod private {
     /// A macro for writing a pledge on a function.
     pub use prusti_contracts_impl::after_expiry;
 
-    /// A macro for writing a conditional pledge on a function.
-    pub use prusti_contracts_impl::after_expiry_if;
-
     /// A macro for marking a function as pure.
     pub use prusti_contracts_impl::pure;
 
@@ -60,9 +57,6 @@ mod private {
     /// A macro for writing a pledge on a function.
     pub use prusti_contracts_internal::after_expiry;
 
-    /// A macro for writing a conditional pledge on a function.
-    pub use prusti_contracts_internal::after_expiry_if;
-
     /// A macro for marking a function as pure.
     pub use prusti_contracts_internal::pure;
 
@@ -97,6 +91,14 @@ pub fn before_expiry<T>(arg: T) -> T {
 /// context, that is at the beginning of the method call.
 pub fn old<T>(arg: T) -> T {
     arg
+}
+
+pub fn forall<T, F>(_trigger_set: T, _closure: F) -> bool {
+    true
+}
+
+pub fn exists<T, F>(_trigger_set: T, _closure: F) -> bool {
+    true
 }
 
 pub use private::*;

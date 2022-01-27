@@ -3,6 +3,7 @@
 
 // These feature flags are not needed when executing under Prusti
 // because it generates them for us.
+#![cfg_attr(feature = "prusti", feature(type_ascription))]
 #![cfg_attr(feature = "prusti", feature(register_tool))]
 #![cfg_attr(feature = "prusti", register_tool(prusti))]
 
@@ -55,20 +56,20 @@ predicate! {
 
 fn test_closures() {
     let cl1 = closure!(
-        requires(true),
-        ensures(true),
+        #[requires(true)]
+        #[ensures(true)]
         || -> usize { 1 }
     );
     assert_eq!(1usize, cl1());
 
     let cl2 = closure!(
-        requires(true),
+        #[requires(true)]
         || -> usize { 1 }
     );
     assert_eq!(1usize, cl2());
 
     let cl3 = closure!(
-        ensures(true),
+        #[ensures(true)]
         || -> usize { 1 }
     );
     assert_eq!(1usize, cl3());

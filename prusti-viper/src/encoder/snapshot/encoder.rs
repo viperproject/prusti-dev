@@ -691,12 +691,41 @@ impl SnapshotEncoder {
             }
             ty::TyKind::Bool => Ok(Snapshot::Primitive(Type::Bool)),
 
-            // TODO: closures, never type
+            // TODO: never type
             ty::TyKind::Tuple(substs) => {
                 let mut fields = vec![];
                 for (field_num, field_ty) in substs.iter().enumerate() {
                     let field_name = format!("tuple_{}", field_num);
                     let field_ty = field_ty.expect_ty(); // why not use substs?
+                    fields.push(SnapshotField {
+                        name: field_name.to_string(),
+                        access: self.snap_app(
+                            encoder,
+                            Expr::field(
+                                arg_expr.clone(),
+                                encoder.encode_raw_ref_field(field_name.to_string(), field_ty)?,
+                            ),
+                            tymap,
+                        )?,
+                        mir_type: field_ty,
+                        typ: self.encode_type(encoder, field_ty, tymap)?,
+                    });
+                }
+                self.encode_complex(
+                    encoder,
+                    vec![SnapshotVariant {
+                        discriminant: -1,
+                        fields,
+                        name: None,
+                    }],
+                    predicate_type,
+                )
+            }
+            ty::TyKind::Closure(_def_id, subst) => {
+                let cl_subst = subst.as_closure();
+                let mut fields = vec![];
+                for (field_num, field_ty) in cl_subst.upvar_tys().enumerate() {
+                    let field_name = format!("closure_{}", field_num);
                     fields.push(SnapshotField {
                         name: field_name.to_string(),
                         access: self.snap_app(

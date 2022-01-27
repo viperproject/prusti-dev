@@ -15,8 +15,7 @@
 /// This grammar doesn't yet handle the unintuitive precedence difference between `&&` and `||` operators.
 
 pub mod common;
-pub mod json;
-pub mod untyped;
 pub mod preparser;
+pub mod untyped;
 
 pub use common::SpecType;

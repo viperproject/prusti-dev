@@ -6,6 +6,8 @@ use prusti_contracts::*;
 // This includes fns which return borrows, or e.g. slices
 // where the fold-unfold algorithm doesn't handle the exhale well
 
+// TODO: re-enable closure features
+
 struct Struct {
     f1: u8,
     f2: Box<Enum>,
@@ -54,9 +56,10 @@ fn main() {
     // e.fn8(); -> Fold-unfold error
     fn8(Enum::Opt2(-2));
     //let b = Box::new(Enum::Opt1);
+    /*
     let cl = closure!(
-        requires(i > 10),
-        ensures(if let Enum::Opt3(s) = result { s.f1 == i } else { false }),
+        #[requires(i > 10)]
+        #[ensures(if let Enum::Opt3(s) = result { s.f1 == i } else { false })]
         |i:u8| -> Enum {
             Enum::Opt3(
                 Struct {
@@ -67,6 +70,7 @@ fn main() {
         }
     );
     fn7(cl);
+    */
 }
 
 fn fn1() { fn2(-3); }
@@ -120,15 +124,16 @@ fn fn6<'a, 'b, const SZ: i16>(a: &'a mut [i16; 6], b: &'b i16, c: &'a Enum) -> [
     [d[0], a[2]]
 }
 
-//#[requires(cl |= |a: u8| [
-//    requires(a >= 20),
-//    ensures(true)
-//])]
+/*
+#[requires(cl |= |a: u8| [
+    requires(a >= 20),
+    ensures(true)
+])]
 fn fn7<F: FnOnce(u8) -> Enum>(cl: F) {
     let e = cl(22);
     let cl2 = closure!(
-        requires(i > 2),
-        ensures(result == (i < 10)),
+        #[requires(i > 2)]
+        #[ensures(result == (i < 10))]
         |i:u8| -> bool { i < 10 }
     );
     let mut i = 3;
@@ -148,6 +153,7 @@ fn fn7<F: FnOnce(u8) -> Enum>(cl: F) {
     assert!(i == 10);
     fn8(e);
 }
+*/
 
 fn fn8(e: Enum) {
     let tpl = (11, 2);
