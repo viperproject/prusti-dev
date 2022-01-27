@@ -445,8 +445,8 @@ pub fn refine_trait_spec(_attr: TokenStream, tokens: TokenStream) -> TokenStream
 pub fn extern_spec(_attr: TokenStream, tokens:TokenStream) -> TokenStream {
     let item: syn::Item = handle_result!(syn::parse2(tokens));
     match item {
-        syn::Item::Impl(mut item_impl) => {
-            handle_result!(extern_spec_rewriter::impls::rewrite_extern_spec(&mut item_impl))
+        syn::Item::Impl(item_impl) => {
+            handle_result!(extern_spec_rewriter::impls::rewrite_extern_spec(&item_impl))
         }
         syn::Item::Trait(item_trait) => {
             handle_result!(extern_spec_rewriter::traits::rewrite_extern_spec(&item_trait))
