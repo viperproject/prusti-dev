@@ -1,4 +1,3 @@
-//ignore-test: Extern specs for different generics not supported
 extern crate prusti_contracts;
 use prusti_contracts::*;
 
@@ -11,34 +10,45 @@ struct Vec<i32> {
 
 #[model]
 struct Vec<u32> {
-    last_pushed: i32,
+    last_pushed: u32,
 }
 
-#[extern_spec]
-impl Vec<i32> {
-    #[ensures( result.model().last_pushed == -1 )]
-    fn new() -> Vec<i32>;
-
-    #[ensures( self.model().last_pushed == val )]
-    fn push(&mut self, val: i32);
+#[trusted]
+#[ensures( result.model().last_pushed == 0 )]
+fn create_vec_i32() -> Vec<i32> {
+    Vec::new()
 }
 
-#[extern_spec]
-impl Vec<u32> {
-    #[ensures( result.model().last_pushed == -1 )]
-    fn new() -> Vec<u32>;
+#[trusted]
+#[ensures( result.model().last_pushed == 0 )]
+fn create_vec_u32() -> Vec<u32> {
+    Vec::new()
+}
 
-    #[ensures( self.model().last_pushed == val as i32)]
-    fn push(&mut self, val: u32);
+#[trusted]
+#[ensures( v.model().last_pushed == val )]
+fn push_i32(v: &mut Vec<i32>, val: i32) {
+    v.push(val);
+}
+
+#[trusted]
+#[ensures( v.model().last_pushed == val )]
+fn push_u32(v: &mut Vec<u32>, val: u32) {
+    v.push(val);
+}
+
+#[requires( v_i32.model().last_pushed == 42 )]
+#[requires( v_u32.model().last_pushed == 43 )]
+fn check_model(v_i32: &Vec<i32>, v_u32: &Vec<u32>) {
+
 }
 
 fn main() {
     let mut v_i32: Vec<i32> = Vec::new();
     let mut v_u32: Vec<u32> = Vec::new();
 
-    v_i32.push(42);
-    v_u32.push(43);
+    push_i32(&mut v_i32, 42);
+    push_u32(&mut v_u32, 43);
 
-    assert!(v_i32.model().last_pushed == 42);
-    assert!(v_u32.model().last_pushed == 43);
+    check_model(&v_i32, &v_u32);
 }
