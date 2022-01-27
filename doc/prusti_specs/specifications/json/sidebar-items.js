@@ -1,1 +1,0 @@
-initSidebarItems({"enum":[["AssertionKind",""]],"fn":[["to_json_string",""]],"struct":[["Assertion",""],["Expression",""],["QuantifierVars",""],["SpecEntailmentVars",""],["Trigger",""],["TriggerSet",""]]});

@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["Arg","The representation of an argument to `forall` (for example `a: i32`)"],["Parser",""]],"type":[["AssertionWithoutId",""],["ExpressionWithoutId",""],["PledgeWithoutId",""]]});
+initSidebarItems({"fn":[["parse_prusti",""],["parse_prusti_pledge",""]],"struct":[["Arg","The representation of an argument to a quantifier (for example `a: i32`)"]]});

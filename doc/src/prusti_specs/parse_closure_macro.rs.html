@@ -40,10 +40,6 @@
 <span id="37">37</span>
 <span id="38">38</span>
 <span id="39">39</span>
-<span id="40">40</span>
-<span id="41">41</span>
-<span id="42">42</span>
-<span id="43">43</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">syn::parse</span>::{<a class="ident" href="../../syn/parse/trait.Parse.html">Parse</a>, <a class="ident" href="../../syn/parse/type.ParseStream.html">ParseStream</a>};
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">ClosureWithSpec</span> {
@@ -54,36 +50,32 @@
 
 <span class="kw">impl</span> <a class="ident" href="../../syn/parse/trait.Parse.html">Parse</a> <span class="kw">for</span> <a class="ident" href="../../src/prusti_specs/parse_closure_macro.rs.html#3-7">ClosureWithSpec</a> {
     <span class="kw">fn</span> <span class="ident">parse</span>(<span class="ident">input</span>: <a class="ident" href="../../syn/parse/type.ParseStream.html">ParseStream</a>) -&gt; <span class="ident">syn::Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">requires</span>: <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../syn/expr/enum.Expr.html">syn::Expr</a><span class="op">&gt;</span> <span class="op">=</span> <span class="macro">vec!</span> [];
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">ensures</span>: <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../syn/expr/enum.Expr.html">syn::Expr</a><span class="op">&gt;</span> <span class="op">=</span> <span class="macro">vec!</span> [];
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">cl</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../syn/expr/struct.ExprClosure.html">syn::ExprClosure</a><span class="op">&gt;</span> <span class="op">=</span> <span class="prelude-val">None</span>;
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">attrs</span> <span class="op">=</span> <a class="ident" href="../../src/prusti_specs/parse_closure_macro.rs.html#10">input</a>.<span class="ident">call</span>(<span class="ident">syn::Attribute::parse_outer</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">cl</span>: <a class="ident" href="../../syn/expr/struct.ExprClosure.html">syn::ExprClosure</a> <span class="op">=</span> <a class="ident" href="../../src/prusti_specs/parse_closure_macro.rs.html#10">input</a>.<span class="ident">parse</span>()<span class="question-mark">?</span>;
 
-        <span class="kw">while</span> <span class="op">!</span><a class="ident" href="../../src/prusti_specs/parse_closure_macro.rs.html#10">input</a>.<span class="ident">is_empty</span>() {
-            <span class="kw">if</span> <a class="ident" href="../../src/prusti_specs/parse_closure_macro.rs.html#10">input</a>.<span class="ident">peek</span>(<span class="ident">syn::Ident</span>) {
-                <span class="kw">let</span> <span class="ident">id</span>: <a class="ident" href="../../proc_macro2/struct.Ident.html">syn::Ident</a> <span class="op">=</span> <a class="ident" href="../../src/prusti_specs/parse_closure_macro.rs.html#10">input</a>.<span class="ident">parse</span>()<span class="question-mark">?</span>;
-                <span class="kw">let</span> <span class="ident">expr</span>: <a class="ident" href="../../syn/expr/enum.Expr.html">syn::Expr</a> <span class="op">=</span> <a class="ident" href="../../src/prusti_specs/parse_closure_macro.rs.html#10">input</a>.<span class="ident">parse</span>()<span class="question-mark">?</span>;
-                <a class="ident" href="../../src/prusti_specs/parse_closure_macro.rs.html#10">input</a>.<span class="ident">parse</span>::<span class="op">&lt;</span><span class="macro">syn::Token!</span>[,]<span class="op">&gt;</span>()<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">pres</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">syn::Result</span><span class="op">&lt;</span><a class="ident" href="../../syn/expr/enum.Expr.html">syn::Expr</a><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span> <span class="macro">vec!</span>[];
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">posts</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">syn::Result</span><span class="op">&lt;</span><a class="ident" href="../../syn/expr/enum.Expr.html">syn::Expr</a><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span> <span class="macro">vec!</span>[];
 
-                <span class="kw">if</span> <a class="ident" href="../../src/prusti_specs/parse_closure_macro.rs.html#17">id</a> <span class="op">==</span> <span class="string">&quot;requires&quot;</span> {
-                    <a class="ident" href="../../src/prusti_specs/parse_closure_macro.rs.html#11">requires</a>.<span class="ident">push</span>(<a class="ident" href="../../src/prusti_specs/parse_closure_macro.rs.html#18">expr</a>);
-                } <span class="kw">else</span> <span class="kw">if</span> <a class="ident" href="../../src/prusti_specs/parse_closure_macro.rs.html#17">id</a> <span class="op">==</span> <span class="string">&quot;ensures&quot;</span> {
-                    <a class="ident" href="../../src/prusti_specs/parse_closure_macro.rs.html#12">ensures</a>.<span class="ident">push</span>(<a class="ident" href="../../src/prusti_specs/parse_closure_macro.rs.html#18">expr</a>);
-                } <span class="kw">else</span> {
-                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">syn::Error::new</span>(<a class="ident" href="../../src/prusti_specs/parse_closure_macro.rs.html#17">id</a>.<span class="ident">span</span>(), <span class="string">&quot;invalid closure specification&quot;</span>));
+        <span class="comment">// collect and remove any specification attributes</span>
+        <span class="comment">// leave other attributes intact</span>
+        <a class="ident" href="../../src/prusti_specs/parse_closure_macro.rs.html#11">attrs</a>.<span class="ident">drain_filter</span>(<span class="op">|</span><span class="ident">attr</span><span class="op">|</span> {
+            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">id</span>) <span class="op">=</span> <a class="ident" href="../../src/prusti_specs/parse_closure_macro.rs.html#19">attr</a>.<span class="ident">path</span>.<span class="ident">get_ident</span>() {
+                <span class="kw">match</span> <a class="ident" href="../../src/prusti_specs/parse_closure_macro.rs.html#20">id</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>() {
+                    <span class="string">&quot;requires&quot;</span> =&gt; <a class="ident" href="../../src/prusti_specs/parse_closure_macro.rs.html#14">pres</a>.<span class="ident">push</span>(<span class="ident">syn::parse2</span>(<a class="ident" href="../../src/prusti_specs/parse_closure_macro.rs.html#19">attr</a>.<span class="ident">tokens</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())),
+                    <span class="string">&quot;ensures&quot;</span> =&gt; <a class="ident" href="../../src/prusti_specs/parse_closure_macro.rs.html#15">posts</a>.<span class="ident">push</span>(<span class="ident">syn::parse2</span>(<a class="ident" href="../../src/prusti_specs/parse_closure_macro.rs.html#19">attr</a>.<span class="ident">tokens</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())),
+                    <span class="kw">_</span> =&gt; <span class="kw">return</span> <span class="bool-val">false</span>
                 }
+                <span class="bool-val">true</span>
             } <span class="kw">else</span> {
-                <a class="ident" href="../../src/prusti_specs/parse_closure_macro.rs.html#13">cl</a> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../src/prusti_specs/parse_closure_macro.rs.html#10">input</a>.<span class="ident">parse</span>()<span class="question-mark">?</span>);
+                <span class="bool-val">false</span>
             }
-        }
+        });
+        <a class="ident" href="../../src/prusti_specs/parse_closure_macro.rs.html#12">cl</a>.<span class="ident">attrs</span> <span class="op">=</span> <a class="ident" href="../../src/prusti_specs/parse_closure_macro.rs.html#11">attrs</a>;
 
-        <span class="kw">if</span> <a class="ident" href="../../src/prusti_specs/parse_closure_macro.rs.html#13">cl</a>.<span class="ident">is_none</span>() {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">syn::Error::new</span>(<a class="ident" href="../../src/prusti_specs/parse_closure_macro.rs.html#10">input</a>.<span class="ident">span</span>(), <span class="string">&quot;closure specification without closure&quot;</span>));
-        }
-
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/prusti_specs/parse_closure_macro.rs.html#3-7">ClosureWithSpec</a> {
-            <span class="ident">pres</span>: <a class="ident" href="../../src/prusti_specs/parse_closure_macro.rs.html#11">requires</a>,
-            <span class="ident">posts</span>: <a class="ident" href="../../src/prusti_specs/parse_closure_macro.rs.html#12">ensures</a>,
-            <span class="ident">cl</span>: <a class="ident" href="../../src/prusti_specs/parse_closure_macro.rs.html#13">cl</a>.<span class="ident">unwrap</span>()
+        <span class="prelude-val">Ok</span>(<span class="self">Self</span> {
+            <span class="ident">pres</span>: <a class="ident" href="../../src/prusti_specs/parse_closure_macro.rs.html#14">pres</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>::<span class="op">&lt;</span><span class="ident">syn::Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>()<span class="question-mark">?</span>,
+            <span class="ident">posts</span>: <a class="ident" href="../../src/prusti_specs/parse_closure_macro.rs.html#15">posts</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>::<span class="op">&lt;</span><span class="ident">syn::Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>()<span class="question-mark">?</span>,
+            <a class="ident" href="../../src/prusti_specs/parse_closure_macro.rs.html#12">cl</a>,
         })
     }
 }
