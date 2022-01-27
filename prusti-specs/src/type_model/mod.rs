@@ -4,17 +4,20 @@
 //!
 //! Given a `#[model]` attributed type `T`, this logic creates the following three items:
 //! * A struct `M` which holds the model's fields
-//! * An implementation of the `ToModel` trait (defined in prusti_contracts) for `T`.
+//! * A trait which provides a `model` method to be used in specifications
+//! * An implementation of the aforementioned trait for `T`.
 //!   The implementation is `unimplemented!()`, `#[pure]` and `#[trusted]`
+//!
+//! The model struct `M` must be copyable.
+//!
+//! # Note
+//! This macro always generates a trait with a `model` method on the fly for every modelled type.
+//! With this design, one can even model external types which are not present in the local crate.
 
 use super::parse_quote_spanned;
 use proc_macro2::{Ident, TokenStream};
 use quote::ToTokens;
 use syn::{parse_quote, spanned::Spanned};
-
-// TODO: GENERICS
-// Generics should be marked with attributes to be "concrete" or "generic"
-// This logic is already existing for extern trait specs -> maybe want to extract common code.
 
 /// See module level documentation
 pub fn rewrite(item_struct: syn::ItemStruct) -> syn::Result<TokenStream> {
@@ -40,7 +43,6 @@ fn rewrite_internal(item_struct: syn::ItemStruct) -> TypeModelGenerationResult<T
     })
 }
 
-/// See module level documentation
 fn create_model_struct(
     item_struct: &syn::ItemStruct,
     idents: &GeneratedIdents,
@@ -49,8 +51,6 @@ fn create_model_struct(
         return Err(TypeModelGenerationError::MissingStructFields(item_struct.span()).into());
     }
 
-
-    // Create model
     let model_struct_ident = &idents.model_struct_ident;
     let mut model_struct: syn::ItemStruct = parse_quote_spanned! {item_struct.span()=>
         #[derive(Copy, Clone)]
@@ -61,7 +61,6 @@ fn create_model_struct(
     Ok(model_struct)
 }
 
-/// TODO: Docs
 fn create_to_model_trait(
     item_struct: &syn::ItemStruct,
     model_struct: &syn::ItemStruct,
@@ -79,7 +78,6 @@ fn create_to_model_trait(
     }
 }
 
-/// TODO: Docs
 fn create_model_impl(
     item_struct: &syn::ItemStruct,
     generated_model_struct: &syn::ItemStruct,

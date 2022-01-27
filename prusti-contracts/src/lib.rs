@@ -47,6 +47,9 @@ mod private {
     /// A macro for defining a predicate using prusti expression syntax instead
     /// of just Rust expressions.
     pub use prusti_contracts_impl::predicate;
+
+    /// Macro for creating type models.
+    pub use prusti_contracts_impl::model;
 }
 
 #[cfg(feature = "prusti")]
