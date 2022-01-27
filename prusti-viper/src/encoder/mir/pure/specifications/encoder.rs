@@ -255,7 +255,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecificationEncoder<'p, 'v, 'tcx> {
                                         self.encode_quantifier_arg(
                                             *arg,
                                             arg_ty,
-                                            &format!("{}_{}", vars.spec_id, vars.pre_id),
+                                            &format!("{}", vars.pre_id),
                                         )
                                         .with_span(span)?,
                                     );
@@ -294,7 +294,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecificationEncoder<'p, 'v, 'tcx> {
                                     self.encode_quantifier_arg(
                                         *arg,
                                         arg_ty,
-                                        &format!("{}_{}", vars.spec_id, vars.post_id),
+                                        &format!("{}", vars.post_id),
                                     )
                                     .with_span(span)?,
                                 );
@@ -304,7 +304,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecificationEncoder<'p, 'v, 'tcx> {
                                 self.encode_quantifier_arg(
                                     result_var,
                                     tcx.mk_ty(ty::TyKind::Int(ty::IntTy::I32)),
-                                    &format!("{}_{}", vars.spec_id, vars.post_id),
+                                    &format!("{}", vars.post_id),
                                 )
                                 .with_span(result_span)?,
                             );
@@ -380,7 +380,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecificationEncoder<'p, 'v, 'tcx> {
 
             // FIXME: figure out from where to get the span and replace “unwrap” with ?
             let encoded_arg = self
-                .encode_quantifier_arg(*arg, ty, &format!("{}_{}", vars.spec_id, vars.id))
+                .encode_quantifier_arg(*arg, ty, &format!("{}", vars.id))
                 .unwrap();
             if config::check_overflows() {
                 debug_assert!(self.encoder.env().type_is_copy(ty, ty::ParamEnv::empty()));
@@ -541,7 +541,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecificationEncoder<'p, 'v, 'tcx> {
         );
 
         // Replacement 2: rename the variables introduced by a quantification
-        let opt_forall_id = read_prusti_attr("expr_id", inner_attrs);
+        let opt_forall_id = read_prusti_attr("expr_id", inner_attrs)
+            .and_then(|s| s.split('_').nth(1).map(String::from));
         if let Some(forall_id) = opt_forall_id {
             // Skip the first argument, which is the captured state
             for local_arg_index in inner_mir.args_iter().skip(1) {

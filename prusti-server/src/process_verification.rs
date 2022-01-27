@@ -8,12 +8,47 @@ use crate::{VerificationRequest, ViperBackendConfig};
 use log::info;
 use prusti_common::{config, report::log::report, vir::ToViper, Stopwatch};
 use std::{fs::create_dir_all, path::PathBuf};
-use viper::{VerificationBackend, VerificationContext};
+use viper::{Cache, VerificationBackend, VerificationContext};
+
+pub fn process_verification_request_cache<'v, 't: 'v>(
+    verification_context: &'v VerificationContext<'t>,
+    request: VerificationRequest,
+    cache: impl Cache,
+) -> viper::VerificationResult {
+    if !config::enable_cache() || config::print_hash() {
+        process_verification_request(verification_context, request)
+    } else {
+        let hash = request.get_hash();
+        info!("Verification request hash: {}", hash);
+        // Try to load from cache and return `result`
+        if let Some(result) = cache.get(hash) {
+            info!("Using verification result from the cache");
+            return result;
+        }
+        let result = process_verification_request(verification_context, request);
+        // Save `result` to cache
+        cache.insert(hash, result.clone());
+        result
+    }
+}
 
 pub fn process_verification_request<'v, 't: 'v>(
     verification_context: &'v VerificationContext<'t>,
     request: VerificationRequest,
 ) -> viper::VerificationResult {
+    // Print hash of the `VerificationRequest`
+    if config::print_hash() {
+        println!(
+            "Received verification request for: {}",
+            request.program.get_name()
+        );
+        println!("Hash of the request is: {}", request.get_hash());
+        // Skip actual verification
+        if !config::dump_viper_program() {
+            return viper::VerificationResult::Success;
+        }
+    }
+
     let ast_utils = verification_context.new_ast_utils();
     ast_utils.with_local_frame(16, || {
         // Create a new verifier each time.
@@ -26,6 +61,9 @@ pub fn process_verification_request<'v, 't: 'v>(
         if config::dump_viper_program() {
             stopwatch.start_next("dumping viper program");
             dump_program(&ast_utils, viper_program, request.program.get_name());
+            if config::print_hash() {
+                return viper::VerificationResult::Success;
+            }
         }
         stopwatch.start_next("verification");
         verifier.verify(viper_program)

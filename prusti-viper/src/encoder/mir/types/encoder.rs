@@ -69,11 +69,11 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
     }
 
     fn encode_closure_name(&self, did: DefId) -> String {
-        format!("closure${}_{}", did.krate.as_u32(), did.index.as_u32())
+        format!("closure${}", self.encoder.encode_item_name(did))
     }
 
     fn encode_function_def_name(&self, did: DefId) -> String {
-        format!("fndef${}_{}", did.krate.as_u32(), did.index.as_u32())
+        format!("fndef${}", self.encoder.encode_item_name(did))
     }
 
     fn compute_array_len(&self, size: &ty::Const<'tcx>) -> u64 {
