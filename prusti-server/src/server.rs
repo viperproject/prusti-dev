@@ -4,16 +4,16 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use crate::{process_verification_request, VerificationRequest};
+use crate::{process_verification_request_cache, VerificationRequest};
 use log::info;
 use prusti_common::{config, Stopwatch};
 use std::{
     net::{Ipv4Addr, SocketAddr},
-    sync::{mpsc, Arc},
+    sync::{mpsc, Arc, Mutex},
     thread,
 };
 use tokio::runtime::Builder;
-use viper::Viper;
+use viper::{PersistentCache, Viper};
 use warp::Filter;
 
 #[derive(Debug)]
@@ -54,27 +54,26 @@ where
     let viper = Arc::new(Viper::new_with_args(config::extra_jvm_args()));
     stopwatch.finish();
 
-    let build_verification_request_handler = |viper_arc: Arc<Viper>| {
+    let cache_data = PersistentCache::load_cache(config::cache_path());
+    let cache = Arc::new(Mutex::new(cache_data));
+    let build_verification_request_handler = |viper_arc: Arc<Viper>, cache| {
         move |request: VerificationRequest| {
-            // Here it would be easy to cache the result of verification requests, as soon as
-            // `VerificationRequest` implements `Hash`.
             let stopwatch = Stopwatch::start("prusti-server", "attach thread to JVM");
             let viper_thread = viper_arc.attach_current_thread();
             stopwatch.finish();
-            process_verification_request(&viper_thread, request)
+            process_verification_request_cache(&viper_thread, request, &cache)
         }
     };
 
-    let json_verify = warp::path("json")
-        .and(warp::path("verify"))
-        .and(warp::path::end())
+    let json_verify = warp::path!("json" / "verify")
         .and(warp::body::json())
-        .map(build_verification_request_handler(viper.clone()))
+        .map(build_verification_request_handler(
+            viper.clone(),
+            cache.clone(),
+        ))
         .map(|response| warp::reply::json(&response));
 
-    let bincode_verify = warp::path("bincode")
-        .and(warp::path("verify"))
-        .and(warp::path::end())
+    let bincode_verify = warp::path!("bincode" / "verify")
         .and(warp::body::bytes())
         .and_then(|buf: warp::hyper::body::Bytes| async move {
             bincode::deserialize(&buf).map_err(|err| {
@@ -82,14 +81,22 @@ where
                 warp::reject::custom(BincodeReject(err))
             })
         })
-        .map(build_verification_request_handler(viper))
+        .map(build_verification_request_handler(viper, cache.clone()))
         .map(|result| {
             warp::http::Response::new(
                 bincode::serialize(&result).expect("could not encode verification result"),
             )
         });
 
-    let endpoints = json_verify.or(bincode_verify);
+    let save_cache = warp::post()
+        .and(warp::path("save"))
+        .and(warp::path::end())
+        .map(move || {
+            cache.lock().unwrap().save();
+            warp::reply::html("Saved")
+        });
+
+    let endpoints = json_verify.or(bincode_verify).or(save_cache);
 
     // Here we use a single thread because
     // 1. Viper is not thread safe yet (Silicon issue #578), and

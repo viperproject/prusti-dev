@@ -8,6 +8,7 @@ use crate::{
     common::identifier::WithIdentifier,
     legacy::{ast::*, gather_labels::gather_labels},
 };
+use derivative::Derivative;
 use std::{
     collections::{HashMap, HashSet, VecDeque},
     fmt,
@@ -17,24 +18,28 @@ use uuid::Uuid;
 
 pub const RETURN_LABEL: &str = "end_of_method";
 
+#[derive(Derivative)]
+#[derivative(Hash)]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CfgMethod {
+    #[derivative(Hash = "ignore")]
     pub method_name: String,
     pub formal_arg_count: usize,
     pub formal_returns: Vec<LocalVar>,
     pub local_vars: Vec<LocalVar>,
+    #[derivative(Hash = "ignore")]
     pub labels: HashSet<String>,
     pub basic_blocks: Vec<CfgBlock>,
     pub basic_blocks_labels: Vec<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, Hash)]
 pub struct CfgBlock {
     pub stmts: Vec<Stmt>,
     pub successor: Successor,
 }
 
-#[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize, Hash)]
 pub enum Successor {
     Undefined,
     Return,
@@ -42,7 +47,9 @@ pub enum Successor {
     GotoSwitch(Vec<(Expr, CfgBlockIndex)>, CfgBlockIndex),
 }
 
-#[derive(PartialEq, Eq, Clone, Copy, Hash, Serialize, Deserialize)]
+#[derive(Derivative)]
+#[derivative(Hash, PartialEq, Eq)]
+#[derive(Clone, Copy, Serialize, Deserialize)]
 pub struct CfgBlockIndex {
     pub block_index: usize,
 }

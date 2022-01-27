@@ -213,6 +213,16 @@ impl<'tcx> Environment<'tcx> {
         crate_name
     }
 
+    /// Get descriptive name prepended with crate name to make it unique.
+    pub fn get_unique_item_name(&self, def_id: DefId) -> String {
+        let def_path = self.tcx.def_path(def_id);
+        format!(
+            "{}::{}",
+            self.tcx.crate_name(def_path.krate),
+            self.tcx.def_path_str(def_id)
+        )
+    }
+
     /// Get the span of the given definition.
     pub fn get_def_span(&self, def_id: DefId) -> Span {
         self.tcx.def_span(def_id)

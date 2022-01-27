@@ -285,7 +285,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
                             let sf_pre_name = self.encoder.encode_spec_func_name(*def_id, SpecFunctionKind::Pre);
                             let qvars_pre: Vec<_> = vars.args
                                 .iter()
-                                .map(|(arg, arg_ty)| self.encode_quantifier_arg(*arg, arg_ty, &format!("{}_{}", vars.spec_id, vars.pre_id)))
+                                .map(|(arg, arg_ty)| self.encode_quantifier_arg(*arg, arg_ty, &format!("{}", vars.pre_id)))
                                 .collect();
                             let pre_conjunct = vir::Expr::forall(
                                 qvars_pre.clone(),
@@ -319,11 +319,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
                                 .map(|(arg, arg_ty)|
                                      self.encode_quantifier_arg(
                                          *arg, arg_ty,
-                                         &format!("{}_{}", vars.spec_id, vars.post_id)))
+                                         &format!("{}", vars.post_id)))
                                 .chain(std::iter::once(
                                     self.encode_quantifier_arg(
                                         result_var, tcx.mk_ty(ty::TyKind::Int(ty::IntTy::I32)),
-                                        &format!("{}_{}", vars.spec_id, vars.post_id))))
+                                        &format!("{}", vars.post_id))))
                                 .collect();
 
                             let post_conjunct = vir::Expr::forall(
@@ -394,7 +394,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
             //    ).with_span(?));
             //}
 
-            let encoded_arg = self.encode_quantifier_arg(*arg, ty, &format!("{}_{}", vars.spec_id, vars.id));
+            let encoded_arg = self.encode_quantifier_arg(*arg, ty, &format!("{}", vars.id));
             if config::check_overflows() {
                 debug_assert!(self.encoder.env().type_is_copy(ty, ty::ParamEnv::empty()));
                 bounds.extend(self.encoder.encode_type_bounds(&encoded_arg.clone().into(), ty));
@@ -540,7 +540,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
         );
 
         // Replacement 2: rename the variables introduced by a quantification
-        let opt_forall_id = read_prusti_attr("expr_id", inner_attrs);
+        let opt_forall_id = read_prusti_attr("expr_id", inner_attrs)
+            .and_then(|s| s.split('_').nth(1).map(String::from));
         if let Some(forall_id) = opt_forall_id {
             // Skip the first argument, which is the captured state
             for local_arg_index in inner_mir.args_iter().skip(1) {

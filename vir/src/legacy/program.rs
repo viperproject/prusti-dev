@@ -1,6 +1,6 @@
 use crate::legacy::{ast::*, cfg::CfgMethod};
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, Hash)]
 pub struct Program {
     pub name: String,
     pub domains: Vec<Domain>,
