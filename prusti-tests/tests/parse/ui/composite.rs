@@ -68,4 +68,13 @@ fn test22() {}
 #[requires(exists(|b: i32| b == 10) ==> true ==> exists(|a: u32, b: u32| a == 5))]
 fn test23() {}
 
+#[requires(true && true || true)]
+fn test24() {}
+
+#[requires(forall(|a: i32| a == 5) || forall(|a: i32| a == 5))]
+fn test25() {}
+
+#[requires(exists(|a: i32| a == 5) || exists(|a: i32| a == 5))]
+fn test26() {}
+
 fn main() {}

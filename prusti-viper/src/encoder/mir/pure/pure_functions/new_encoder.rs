@@ -304,10 +304,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureEncoder<'p, 'v, 'tcx> {
         for item in contract.functional_precondition() {
             conjuncts.push(self.encoder.encode_assertion_high(
                 item,
-                self.mir,
                 None,
                 &parameter_expressions,
-                None,
                 None,
                 ErrorCtxt::GenericExpression,
                 self.parent_def_id,
@@ -328,11 +326,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureEncoder<'p, 'v, 'tcx> {
         for item in contract.functional_postcondition() {
             conjuncts.push(self.encoder.encode_assertion_high(
                 item,
-                self.mir,
                 None,
                 &parameter_expressions,
                 Some(&vir_high::Expression::local_no_pos(encoded_return.clone())),
-                None,
                 ErrorCtxt::GenericExpression,
                 self.parent_def_id,
                 self.tymap,

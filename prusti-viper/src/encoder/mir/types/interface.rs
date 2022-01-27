@@ -68,6 +68,11 @@ pub(crate) trait MirTypeEncoderInterface<'tcx> {
     ) -> EncodingResult<vir_high::FunctionDecl>;
     fn encode_type_tag_use(&self, ty: ty::Ty<'tcx>) -> String;
     fn encode_type_tag_def(&self, ty: ty::Ty<'tcx>);
+    fn encode_type_bounds_high(
+        &self,
+        var: &vir_high::Expression,
+        ty: ty::Ty<'tcx>,
+    ) -> Vec<vir_high::Expression>;
 }
 
 impl<'v, 'tcx: 'v> MirTypeEncoderInterface<'tcx> for super::super::super::Encoder<'v, 'tcx> {
@@ -272,6 +277,21 @@ impl<'v, 'tcx: 'v> MirTypeEncoderInterface<'tcx> for super::super::super::Encode
             //     .type_tags
             //     .borrow_mut()
             //     .insert(tag_name, identifier);
+        }
+    }
+    fn encode_type_bounds_high(
+        &self,
+        var: &vir_high::Expression,
+        ty: ty::Ty<'tcx>,
+    ) -> Vec<vir_high::Expression> {
+        // FIXME: This should be replaced with the type invariant.
+        if let Some((lower_bound, upper_bound)) = self.get_integer_type_bounds(ty) {
+            vec![
+                less_equals(lower_bound, var.clone()),
+                less_equals(var.clone(), upper_bound),
+            ]
+        } else {
+            Vec::new()
         }
     }
 }
