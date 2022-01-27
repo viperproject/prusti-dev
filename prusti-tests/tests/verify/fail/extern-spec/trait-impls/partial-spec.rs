@@ -27,5 +27,5 @@ impl MyTrait for MyStruct {
 fn main(){
     let s = MyStruct {};
     let r = s.bar(20);
-    assert!(r == 30);
+    assert!(r == 30); //~ ERROR: [Prusti: verification error] the asserted expression might not hold
 }
