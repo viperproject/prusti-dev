@@ -48,7 +48,9 @@ fn create_model_struct(
     idents: &GeneratedIdents,
 ) -> TypeModelGenerationResult<syn::ItemStruct> {
     if item_struct.fields.is_empty() {
-        return Err(TypeModelGenerationError::MissingStructFields(item_struct.span()));
+        return Err(TypeModelGenerationError::MissingStructFields(
+            item_struct.span(),
+        ));
     }
 
     let model_struct_ident = &idents.model_struct_ident;
@@ -138,10 +140,12 @@ impl GeneratedIdents {
         GeneratedIdents {
             model_struct_ident: Ident::new(
                 format!("Prusti{}Model", name).as_str(),
-                item_struct.ident.span()),
+                item_struct.ident.span(),
+            ),
             to_model_trait_ident: Ident::new(
                 format!("Prusti{}ToModel", name).as_str(),
-                item_struct.ident.span()),
+                item_struct.ident.span(),
+            ),
         }
     }
 }
