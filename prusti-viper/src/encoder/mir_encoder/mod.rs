@@ -29,7 +29,6 @@ use std::convert::TryInto;
 use prusti_interface::environment::mir_utils::MirPlace;
 use crate::encoder::mir::types::MirTypeEncoderInterface;
 
-use downcast_detector::detect_downcasts;
 pub use place_encoding::{PlaceEncoding, ExprOrArrayBase};
 
 use super::encoder::SubstMap;
@@ -48,6 +47,15 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
 
     fn encode_local_var_name(&self, local: mir::Local) -> String {
         format!("{:?}", local)
+    }
+
+    fn encode_local_high(&self, local: mir::Local) -> SpannedEncodingResult<vir_crate::high::VariableDecl> {
+        let var_name = self.encode_local_var_name(local);
+        let typ = self
+            .encoder()
+            .encode_type_high(self.get_local_ty(local))
+            .with_span(self.get_local_span(local))?;
+        Ok(vir_crate::high::VariableDecl::new(var_name, typ))
     }
 
     fn encode_local(&self, local: mir::Local) -> SpannedEncodingResult<vir::LocalVar> {
@@ -796,7 +804,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
     }
 
     pub fn get_downcasts_at_location(&self, location: mir::Location) -> Vec<(MirPlace<'tcx>, abi::VariantIdx)> {
-        detect_downcasts(self.mir, location)
+        downcast_detector::detect_downcasts(self.mir, location)
     }
 
     pub fn get_span_of_basic_block(&self, bbi: mir::BasicBlock) -> Span {

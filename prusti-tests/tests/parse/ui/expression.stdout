@@ -6,6 +6,8 @@
 
 
 
+#![feature(type_ascription)]
+#![feature(stmt_expr_attributes)]
 #![feature(register_tool)]
 #![register_tool(prusti)]
 #[prelude_import]
@@ -13,36 +15,23 @@ use std::prelude::rust_2018::*;
 #[macro_use]
 extern crate std;
 use prusti_contracts::*;
-#[allow(unused_must_use, unused_variables, dead_code)]
+#[allow(unused_must_use, unused_parens, unused_variables, dead_code)]
 #[prusti::spec_only]
 #[prusti::spec_id = "$(NUM_UUID)"]
-#[prusti::assertion =
-  "{/"kind/":{/"And/":[{/"kind/":{/"Expr/":{/"spec_id/":/"$(UUID)/",/"expr_id/":101}}},{/"kind/":{/"Expr/":{/"spec_id/":/"$(UUID)/",/"expr_id/":102}}}]}}"]
-fn prusti_pre_item_test1_$(NUM_UUID)() {
-
-    #[prusti::spec_only]
-    #[prusti::expr_id = "$(NUM_UUID)_101"]
-    || -> bool { 1 == 1 };
-
-    #[prusti::spec_only]
-    #[prusti::expr_id = "$(NUM_UUID)_102"]
-    || -> bool { 1 != 2 };
+fn prusti_pre_item_test1_$(NUM_UUID)() -> bool {
+    !!((1 == 1 && 1 != 2): bool)
 }
 #[prusti::pre_spec_id_ref = "$(NUM_UUID)"]
 fn test1() {}
-#[allow(unused_must_use, unused_variables, dead_code)]
+#[allow(unused_must_use, unused_parens, unused_variables, dead_code)]
 #[prusti::spec_only]
 #[prusti::spec_id = "$(NUM_UUID)"]
-#[prusti::assertion =
-  "{/"kind/":{/"Expr/":{/"spec_id/":/"$(UUID)/",/"expr_id/":101}}}"]
-fn prusti_post_item_test2_$(NUM_UUID)(result: ()) {
-
-    #[prusti::spec_only]
-    #[prusti::expr_id = "$(NUM_UUID)_101"]
-    || -> bool { 1 == 1 || 1 == 2 };
+fn prusti_post_item_test2_$(NUM_UUID)(result: ())
+ -> bool {
+    !!((1 == 1 || 1 == 2): bool)
 }
 #[prusti::post_spec_id_ref = "$(NUM_UUID)"]
 fn test2() {}
 fn main() {}
-Procedure(ProcedureSpecification { pres: [], posts: [Assertion { kind: Expr(Expression { spec_id: SpecificationId($(UUID)), id: ExpressionId(101), expr: DefId(0:10 ~ expression[$(CRATE_ID)]::prusti_post_item_test2_$(NUM_UUID)::{closure#0}) }) }], pledges: [], predicate_body: None, pure: false, trusted: false })
-Procedure(ProcedureSpecification { pres: [Assertion { kind: And([Assertion { kind: Expr(Expression { spec_id: SpecificationId($(UUID)), id: ExpressionId(101), expr: DefId(0:6 ~ expression[$(CRATE_ID)]::prusti_pre_item_test1_$(NUM_UUID)::{closure#0}) }) }, Assertion { kind: Expr(Expression { spec_id: SpecificationId($(UUID)), id: ExpressionId(102), expr: DefId(0:7 ~ expression[$(CRATE_ID)]::prusti_pre_item_test1_$(NUM_UUID)::{closure#1}) }) }]) }], posts: [], pledges: [], predicate_body: None, pure: false, trusted: false })
+Procedure(ProcedureSpecification { pres: [DefId(0:5 ~ expression[$(CRATE_ID)]::prusti_pre_item_test1_$(NUM_UUID))], posts: [], pledges: [], predicate_body: None, pure: false, trusted: false })
+Procedure(ProcedureSpecification { pres: [], posts: [DefId(0:7 ~ expression[$(CRATE_ID)]::prusti_post_item_test2_$(NUM_UUID))], pledges: [], predicate_body: None, pure: false, trusted: false })

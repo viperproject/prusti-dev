@@ -11,6 +11,8 @@
 
 
 
+#![feature(type_ascription)]
+#![feature(stmt_expr_attributes)]
 #![feature(register_tool)]
 #![register_tool(prusti)]
 #[prelude_import]
@@ -19,22 +21,13 @@ use std::prelude::rust_2018::*;
 extern crate std;
 /// Tests for predicate parsing and desugaring
 use prusti_contracts::*;
-#[allow(unused_must_use, unused_variables, dead_code)]
+#[allow(unused_must_use, unused_parens, unused_variables, dead_code)]
 #[prusti::spec_only]
 #[prusti::spec_id = "$(NUM_UUID)"]
-#[prusti::assertion =
-  "{/"kind/":{/"ForAll/":[{/"spec_id/":/"$(UUID)/",/"expr_id/":101,/"count/":1},{/"kind/":{/"Expr/":{/"spec_id/":/"$(UUID)/",/"expr_id/":102}}},[]]}}"]
-fn prusti_pred_item_pred1_$(NUM_UUID)(a: bool) {
-
-    #[prusti::spec_only]
-    #[prusti::expr_id = "$(NUM_UUID)_101"]
-    |b: bool|
-        {
-
-            #[prusti::spec_only]
-            #[prusti::expr_id = "$(NUM_UUID)_102"]
-            || -> bool { a == b };
-        };
+fn prusti_pred_item_pred1_$(NUM_UUID)(a: bool) -> bool {
+    !!((forall((),
+               #[prusti::spec_only] |b: bool| -> bool { ((a == b): bool) })):
+           bool)
 }
 #[allow(unused_must_use, unused_variables, dead_code)]
 #[prusti::pure]
@@ -55,35 +48,21 @@ fn pred1(a: bool) -> bool {
                                                                                                    ::core::fmt::Display::fmt)],
                                                                  }))
 }
-#[allow(unused_must_use, unused_variables, dead_code)]
+#[allow(unused_must_use, unused_parens, unused_variables, dead_code)]
 #[prusti::spec_only]
 #[prusti::spec_id = "$(NUM_UUID)"]
-#[prusti::assertion =
-  "{/"kind/":{/"Expr/":{/"spec_id/":/"$(UUID)/",/"expr_id/":101}}}"]
-fn prusti_pre_item_use_pred1_$(NUM_UUID)() {
-
-    #[prusti::spec_only]
-    #[prusti::expr_id = "$(NUM_UUID)_101"]
-    || -> bool { pred1(true) };
+fn prusti_pre_item_use_pred1_$(NUM_UUID)() -> bool {
+    !!((pred1(true)): bool)
 }
 #[prusti::pre_spec_id_ref = "$(NUM_UUID)"]
 fn use_pred1() {}
-#[allow(unused_must_use, unused_variables, dead_code)]
+#[allow(unused_must_use, unused_parens, unused_variables, dead_code)]
 #[prusti::spec_only]
 #[prusti::spec_id = "$(NUM_UUID)"]
-#[prusti::assertion =
-  "{/"kind/":{/"Exists/":[{/"spec_id/":/"$(UUID)/",/"expr_id/":101,/"count/":1},{/"kind/":{/"Expr/":{/"spec_id/":/"$(UUID)/",/"expr_id/":102}}},[]]}}"]
-fn prusti_pred_item_pred2_$(NUM_UUID)(a: bool) {
-
-    #[prusti::spec_only]
-    #[prusti::expr_id = "$(NUM_UUID)_101"]
-    |b: bool|
-        {
-
-            #[prusti::spec_only]
-            #[prusti::expr_id = "$(NUM_UUID)_102"]
-            || -> bool { a == b };
-        };
+fn prusti_pred_item_pred2_$(NUM_UUID)(a: bool) -> bool {
+    !!((exists((),
+               #[prusti::spec_only] |b: bool| -> bool { ((a == b): bool) })):
+           bool)
 }
 #[allow(unused_must_use, unused_variables, dead_code)]
 #[prusti::pure]
@@ -104,39 +83,25 @@ fn pred2(a: bool) -> bool {
                                                                                                    ::core::fmt::Display::fmt)],
                                                                  }))
 }
-#[allow(unused_must_use, unused_variables, dead_code)]
+#[allow(unused_must_use, unused_parens, unused_variables, dead_code)]
 #[prusti::spec_only]
 #[prusti::spec_id = "$(NUM_UUID)"]
-#[prusti::assertion =
-  "{/"kind/":{/"Expr/":{/"spec_id/":/"$(UUID)/",/"expr_id/":101}}}"]
-fn prusti_pre_item_use_pred2_$(NUM_UUID)() {
-
-    #[prusti::spec_only]
-    #[prusti::expr_id = "$(NUM_UUID)_101"]
-    || -> bool { pred2(true) };
+fn prusti_pre_item_use_pred2_$(NUM_UUID)() -> bool {
+    !!((pred2(true)): bool)
 }
 #[prusti::pre_spec_id_ref = "$(NUM_UUID)"]
 fn use_pred2() {}
-#[allow(unused_must_use, unused_variables, dead_code)]
+#[allow(unused_must_use, unused_parens, unused_variables, dead_code)]
 #[prusti::spec_only]
 #[prusti::spec_id = "$(NUM_UUID)"]
-#[prusti::assertion =
-  "{/"kind/":{/"ForAll/":[{/"spec_id/":/"$(UUID)/",/"expr_id/":101,/"count/":1},{/"kind/":{/"Implies/":[{/"kind/":{/"Expr/":{/"spec_id/":/"$(UUID)/",/"expr_id/":102}}},{/"kind/":{/"Expr/":{/"spec_id/":/"$(UUID)/",/"expr_id/":103}}}]}},[]]}}"]
-fn prusti_pred_item_forall_implication_$(NUM_UUID)() {
-
-    #[prusti::spec_only]
-    #[prusti::expr_id = "$(NUM_UUID)_101"]
-    |x: usize|
-        {
-
-            #[prusti::spec_only]
-            #[prusti::expr_id = "$(NUM_UUID)_102"]
-            || -> bool { x != 0 };
-
-            #[prusti::spec_only]
-            #[prusti::expr_id = "$(NUM_UUID)_103"]
-            || -> bool { x * 2 != 0 };
-        };
+fn prusti_pred_item_forall_implication_$(NUM_UUID)()
+ -> bool {
+    !!((forall((),
+               #[prusti::spec_only] |x: usize| -> bool
+                                        {
+                                            (((!((x != 0)) || (x * 2 != 0))):
+                                                 bool)
+                                        })): bool)
 }
 #[allow(unused_must_use, unused_variables, dead_code)]
 #[prusti::pure]
@@ -157,26 +122,17 @@ fn forall_implication() -> bool {
                                                                                                    ::core::fmt::Display::fmt)],
                                                                  }))
 }
-#[allow(unused_must_use, unused_variables, dead_code)]
+#[allow(unused_must_use, unused_parens, unused_variables, dead_code)]
 #[prusti::spec_only]
 #[prusti::spec_id = "$(NUM_UUID)"]
-#[prusti::assertion =
-  "{/"kind/":{/"Exists/":[{/"spec_id/":/"$(UUID)/",/"expr_id/":101,/"count/":1},{/"kind/":{/"Implies/":[{/"kind/":{/"Expr/":{/"spec_id/":/"$(UUID)/",/"expr_id/":102}}},{/"kind/":{/"Expr/":{/"spec_id/":/"$(UUID)/",/"expr_id/":103}}}]}},[]]}}"]
-fn prusti_pred_item_exists_implication_$(NUM_UUID)() {
-
-    #[prusti::spec_only]
-    #[prusti::expr_id = "$(NUM_UUID)_101"]
-    |x: usize|
-        {
-
-            #[prusti::spec_only]
-            #[prusti::expr_id = "$(NUM_UUID)_102"]
-            || -> bool { x != 0 };
-
-            #[prusti::spec_only]
-            #[prusti::expr_id = "$(NUM_UUID)_103"]
-            || -> bool { x * 2 != 0 };
-        };
+fn prusti_pred_item_exists_implication_$(NUM_UUID)()
+ -> bool {
+    !!((exists((),
+               #[prusti::spec_only] |x: usize| -> bool
+                                        {
+                                            (((!((x != 0)) || (x * 2 != 0))):
+                                                 bool)
+                                        })): bool)
 }
 #[allow(unused_must_use, unused_variables, dead_code)]
 #[prusti::pure]
@@ -198,9 +154,9 @@ fn exists_implication() -> bool {
                                                                  }))
 }
 fn main() {}
-Procedure(ProcedureSpecification { pres: [Assertion { kind: Expr(Expression { spec_id: SpecificationId($(UUID)), id: ExpressionId(101), expr: DefId(0:10 ~ predicates[$(CRATE_ID)]::prusti_pre_item_use_pred1_$(NUM_UUID)::{closure#0}) }) }], posts: [], pledges: [], predicate_body: None, pure: false, trusted: false })
-Procedure(ProcedureSpecification { pres: [Assertion { kind: Expr(Expression { spec_id: SpecificationId($(UUID)), id: ExpressionId(101), expr: DefId(0:17 ~ predicates[$(CRATE_ID)]::prusti_pre_item_use_pred2_$(NUM_UUID)::{closure#0}) }) }], posts: [], pledges: [], predicate_body: None, pure: false, trusted: false })
-Procedure(ProcedureSpecification { pres: [], posts: [], pledges: [], predicate_body: Some(Assertion { kind: ForAll(QuantifierVars { spec_id: SpecificationId($(UUID)), id: ExpressionId(101), vars: [(_2, bool)] }, TriggerSet([]), Assertion { kind: Expr(Expression { spec_id: SpecificationId($(UUID)), id: ExpressionId(102), expr: DefId(0:7 ~ predicates[$(CRATE_ID)]::prusti_pred_item_pred1_$(NUM_UUID)::{closure#0}::{closure#0}) }) }) }), pure: true, trusted: true })
-Procedure(ProcedureSpecification { pres: [], posts: [], pledges: [], predicate_body: Some(Assertion { kind: Exists(QuantifierVars { spec_id: SpecificationId($(UUID)), id: ExpressionId(101), vars: [(_2, bool)] }, TriggerSet([]), Assertion { kind: Expr(Expression { spec_id: SpecificationId($(UUID)), id: ExpressionId(102), expr: DefId(0:14 ~ predicates[$(CRATE_ID)]::prusti_pred_item_pred2_$(NUM_UUID)::{closure#0}::{closure#0}) }) }) }), pure: true, trusted: true })
-Procedure(ProcedureSpecification { pres: [], posts: [], pledges: [], predicate_body: Some(Assertion { kind: Exists(QuantifierVars { spec_id: SpecificationId($(UUID)), id: ExpressionId(101), vars: [(_2, usize)] }, TriggerSet([]), Assertion { kind: Implies(Assertion { kind: Expr(Expression { spec_id: SpecificationId($(UUID)), id: ExpressionId(102), expr: DefId(0:26 ~ predicates[$(CRATE_ID)]::prusti_pred_item_exists_implication_$(NUM_UUID)::{closure#0}::{closure#0}) }) }, Assertion { kind: Expr(Expression { spec_id: SpecificationId($(UUID)), id: ExpressionId(103), expr: DefId(0:27 ~ predicates[$(CRATE_ID)]::prusti_pred_item_exists_implication_$(NUM_UUID)::{closure#0}::{closure#1}) }) }) }) }), pure: true, trusted: true })
-Procedure(ProcedureSpecification { pres: [], posts: [], pledges: [], predicate_body: Some(Assertion { kind: ForAll(QuantifierVars { spec_id: SpecificationId($(UUID)), id: ExpressionId(101), vars: [(_2, usize)] }, TriggerSet([]), Assertion { kind: Implies(Assertion { kind: Expr(Expression { spec_id: SpecificationId($(UUID)), id: ExpressionId(102), expr: DefId(0:21 ~ predicates[$(CRATE_ID)]::prusti_pred_item_forall_implication_$(NUM_UUID)::{closure#0}::{closure#0}) }) }, Assertion { kind: Expr(Expression { spec_id: SpecificationId($(UUID)), id: ExpressionId(103), expr: DefId(0:22 ~ predicates[$(CRATE_ID)]::prusti_pred_item_forall_implication_$(NUM_UUID)::{closure#0}::{closure#1}) }) }) }) }), pure: true, trusted: true })
+Procedure(ProcedureSpecification { pres: [], posts: [], pledges: [], predicate_body: Some(DefId(0:5 ~ predicates[$(CRATE_ID)]::prusti_pred_item_pred1_$(NUM_UUID))), pure: true, trusted: true })
+Procedure(ProcedureSpecification { pres: [], posts: [], pledges: [], predicate_body: Some(DefId(0:10 ~ predicates[$(CRATE_ID)]::prusti_pred_item_pred2_$(NUM_UUID))), pure: true, trusted: true })
+Procedure(ProcedureSpecification { pres: [DefId(0:8 ~ predicates[$(CRATE_ID)]::prusti_pre_item_use_pred1_$(NUM_UUID))], posts: [], pledges: [], predicate_body: None, pure: false, trusted: false })
+Procedure(ProcedureSpecification { pres: [DefId(0:13 ~ predicates[$(CRATE_ID)]::prusti_pre_item_use_pred2_$(NUM_UUID))], posts: [], pledges: [], predicate_body: None, pure: false, trusted: false })
+Procedure(ProcedureSpecification { pres: [], posts: [], pledges: [], predicate_body: Some(DefId(0:15 ~ predicates[$(CRATE_ID)]::prusti_pred_item_forall_implication_$(NUM_UUID))), pure: true, trusted: true })
+Procedure(ProcedureSpecification { pres: [], posts: [], pledges: [], predicate_body: Some(DefId(0:18 ~ predicates[$(CRATE_ID)]::prusti_pred_item_exists_implication_$(NUM_UUID))), pure: true, trusted: true })

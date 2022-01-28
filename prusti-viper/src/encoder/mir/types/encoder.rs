@@ -322,19 +322,13 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
                 vir::TypeDecl::type_var(param_ty.name.as_str().to_string())
             }
             ty::TyKind::Closure(def_id, internal_substs) => {
-                let closure_substs = internal_substs.as_closure();
-                match closure_substs.tupled_upvars_ty().kind() {
-                    ty::TyKind::Tuple(elems) => {
-                        let arguments = elems
-                            .iter()
-                            .filter_map(|ty| self.encoder.encode_type_high(ty.expect_ty()).ok())
-                            .collect();
-                        let name = self.encode_closure_name(*def_id);
-                        vir::TypeDecl::closure(name, arguments)
-                    }
-
-                    _ => unreachable!(),
-                }
+                let cl_substs = internal_substs.as_closure();
+                let arguments = cl_substs
+                    .upvar_tys()
+                    .filter_map(|ty| self.encoder.encode_type_high(ty).ok())
+                    .collect();
+                let name = self.encode_closure_name(*def_id);
+                vir::TypeDecl::closure(name, arguments)
             }
             ty::TyKind::Array(elem_ty, size) => {
                 let array_len = self.compute_array_len(size);
