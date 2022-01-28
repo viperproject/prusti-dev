@@ -47,8 +47,8 @@ fn create_model_struct(
     item_struct: &syn::ItemStruct,
     idents: &GeneratedIdents,
 ) -> TypeModelGenerationResult<syn::ItemStruct> {
-    if item_struct.fields.len() == 0 {
-        return Err(TypeModelGenerationError::MissingStructFields(item_struct.span()).into());
+    if item_struct.fields.is_empty() {
+        return Err(TypeModelGenerationError::MissingStructFields(item_struct.span()));
     }
 
     let model_struct_ident = &idents.model_struct_ident;

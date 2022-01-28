@@ -181,7 +181,7 @@ impl<'v, 'tcx> intravisit::Visitor<'tcx> for ModelUsageVisitor<'v, 'tcx> {
             if let Some(method_decl_hir_id) = maybe_method_decl_hir_id {
                 let attrs = self.tcx.hir().attrs(method_decl_hir_id);
 
-                if has_model_attr(&attrs) && !self.is_embedded_in_spec(expr.hir_id) {
+                if has_model_attr(attrs) && !self.is_embedded_in_spec(expr.hir_id) {
                     self.model_usages_in_non_spec_code.push(call_span);
                 }
             }
