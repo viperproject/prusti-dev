@@ -21,7 +21,6 @@ mod mir_interpreter;
 mod name_interner;
 mod places;
 mod procedure_encoder;
-mod spec_encoder;
 mod spec_function_encoder;
 pub use spec_function_encoder::SpecFunctionKind;
 mod stub_function_encoder;

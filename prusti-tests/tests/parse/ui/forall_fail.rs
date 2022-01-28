@@ -23,10 +23,10 @@ fn test5() {}
 #[requires(forall(||) || forall(||))]
 fn test6() {}
 
-#[requires(forall(|| 1+1 == 1+1, triggers=[1]))]
+#[requires(forall(|| 1+1 == 1+1, triggers=[(1,)]))]
 fn test7() {}
 
-#[requires(forall(|| true, triggers=[(1,2), 1]))]
+#[requires(forall(|| true, triggers=[(1,2), (1,)]))]
 fn test8() {}
 
 #[requires(forall(|| true, triggers=1))]
@@ -43,5 +43,11 @@ fn test12() {}
 
 #[requires(forall(|| 1+1 == 1+1, triggers=[(1,)]))]
 fn test13() {}
+
+#[requires(forall(|a: i32| true, triggers=[1]))]
+fn test14() {}
+
+#[requires(forall(|a: i32| true, triggers=[(1, 2), 1,]))]
+fn test15() {}
 
 fn main() {}

@@ -1,4 +1,3 @@
-#![feature(type_ascription)]
 #![allow(unused_variables)]
 #![allow(dead_code)]
 #![allow(unused_must_use)]

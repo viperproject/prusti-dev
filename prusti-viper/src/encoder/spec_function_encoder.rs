@@ -3,6 +3,7 @@ use crate::encoder::{Encoder, borrows::ProcedureContract};
 use crate::encoder::errors::{SpannedEncodingResult, ErrorCtxt, WithSpan};
 use crate::encoder::borrows::compute_procedure_contract;
 use crate::encoder::mir_encoder::{MirEncoder, PlaceEncoder};
+use crate::encoder::mir::pure::SpecificationEncoderInterface;
 use prusti_interface::{
     environment::{
         Procedure,
@@ -32,7 +33,6 @@ pub struct SpecFunctionEncoder<'p, 'v: 'p, 'tcx: 'v> {
     span: Span,
     proc_def_id: ProcedureDefId,
     is_closure: bool,
-    mir: &'p mir::Body<'tcx>,
     mir_encoder: MirEncoder<'p, 'v, 'tcx>,
     tymap: &'p SubstMap<'tcx>,
 }
@@ -46,7 +46,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecFunctionEncoder<'p, 'v, 'tcx> {
             span: procedure.get_span(),
             proc_def_id: procedure.get_id(),
             is_closure: encoder.env().tcx().is_closure(procedure.get_id()),
-            mir: procedure.get_mir(),
             mir_encoder: MirEncoder::new(encoder, procedure.get_mir(), procedure.get_id()),
             tymap,
         }
@@ -90,14 +89,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecFunctionEncoder<'p, 'v, 'tcx> {
         for item in contract.functional_precondition() {
             func_spec.push(self.encoder.encode_assertion(
                 item,
-                self.mir,
                 None,
                 &encoded_args
                     .iter()
                     .map(|e| -> vir::Expr { e.into() }).collect::<Vec<_>>(),
                 None,
                 true,
-                None,
                 ErrorCtxt::GenericExpression,
                 self.proc_def_id,
                 self.tymap,
@@ -136,14 +133,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecFunctionEncoder<'p, 'v, 'tcx> {
         for item in contract.functional_postcondition() {
             func_spec.push(self.encoder.encode_assertion(
                 item,
-                self.mir,
                 None,
                 &encoded_args
                     .iter()
                     .map(|e| -> vir::Expr { e.into() }).collect::<Vec<_>>(),
                 Some(&encoded_return.clone().into()),
                 true,
-                None,
                 ErrorCtxt::GenericExpression,
                 self.proc_def_id,
                 self.tymap,

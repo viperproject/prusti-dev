@@ -15,7 +15,6 @@ use crate::encoder::foldunfold;
 use crate::encoder::places;
 use crate::encoder::procedure_encoder::ProcedureEncoder;
 use crate::encoder::stub_function_encoder::StubFunctionEncoder;
-use crate::encoder::spec_encoder::encode_spec_assertion;
 use crate::encoder::SpecFunctionKind;
 use crate::encoder::spec_function_encoder::SpecFunctionEncoder;
 use prusti_common::{vir_expr, vir_local};
@@ -31,7 +30,7 @@ use prusti_specs::specifications::common::SpecIdRef;
 use vir_crate::polymorphic::{self as vir, ExprIterator};
 use vir_crate::common::identifier::WithIdentifier;
 use rustc_hir as hir;
-use rustc_hir::def_id::DefId;
+use rustc_hir::def_id::{DefId, LocalDefId};
 // use rustc::middle::const_val::ConstVal;
 use rustc_middle::mir;
 // use rustc::mir::interpret::GlobalId;
@@ -60,7 +59,10 @@ use crate::encoder::array_encoder::{ArrayTypesEncoder, EncodedArrayTypes, Encode
 use super::high::builtin_functions::HighBuiltinFunctionEncoderState;
 use super::middle::core_proof::{MidCoreProofEncoderState, MidCoreProofEncoderInterface};
 use super::mir::{
-    pure::{PureFunctionEncoderState, PureFunctionEncoderInterface},
+    pure::{
+        PureFunctionEncoderState, PureFunctionEncoderInterface,
+        SpecificationEncoderInterface,
+    },
     types::{
         compute_discriminant_bounds, compute_discriminant_values,
         MirTypeEncoderState, MirTypeEncoderInterface,
@@ -70,7 +72,7 @@ use super::high::types::{HighTypeEncoderState, HighTypeEncoderInterface};
 
 pub struct Encoder<'v, 'tcx: 'v> {
     env: &'v Environment<'tcx>,
-    def_spec: &'v typed::DefSpecificationMap<'tcx>,
+    def_spec: &'v typed::DefSpecificationMap,
     error_manager: RefCell<ErrorManager<'tcx>>,
     procedure_contracts: RefCell<FxHashMap<
         ProcedureDefId,
@@ -113,7 +115,7 @@ pub fn encode_field_name(field_name: &str) -> String {
 impl<'v, 'tcx> Encoder<'v, 'tcx> {
     pub fn new(
         env: &'v Environment<'tcx>,
-        def_spec: &'v typed::DefSpecificationMap<'tcx>,
+        def_spec: &'v typed::DefSpecificationMap,
     ) -> Self {
         let source_path = env.source_path();
         let source_filename = source_path.file_name().unwrap().to_str().unwrap();
@@ -210,7 +212,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         self.env
     }
 
-    pub fn def_spec(&self) -> &'v typed::DefSpecificationMap<'tcx> {
+    pub fn def_spec(&self) -> &'v typed::DefSpecificationMap {
         self.def_spec
     }
 
@@ -296,13 +298,13 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
 
     /// Get the loop invariant attached to a function with a
     /// `prusti::loop_body_invariant_spec` attribute.
-    pub fn get_loop_specs(&self, def_id: DefId) -> Option<typed::LoopSpecification<'tcx>> {
+    pub fn get_loop_specs(&self, def_id: DefId) -> Option<typed::LoopSpecification> {
         let spec = self.def_spec.get(&def_id)?;
         Some(spec.expect_loop().clone())
     }
 
     /// Get the specifications attached to the `def_id` function.
-    pub fn get_procedure_specs(&self, def_id: DefId) -> Option<typed::ProcedureSpecification<'tcx>> {
+    pub fn get_procedure_specs(&self, def_id: DefId) -> Option<typed::ProcedureSpecification> {
         let spec = self.def_spec.get(&def_id)?;
         Some(spec.expect_procedure().clone())
     }
@@ -415,13 +417,15 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     pub fn encode_value_expr(&self, base: vir::Expr, ty: ty::Ty<'tcx>) -> EncodingResult<vir::Expr> {
         match ty.kind() {
             ty::TyKind::Adt(_, _)
+            | ty::TyKind::Closure(_, _)
             | ty::TyKind::Array(..)
             | ty::TyKind::Tuple(_) => {
                 Ok(base) // don't use a field for tuples and ADTs
             }
             _ => {
                 let value_field = self.encode_value_field(ty)?;
-                Ok(base.field(value_field))
+                let pos = base.pos();
+                Ok(base.field(value_field).set_pos(pos))
             }
         }
     }
@@ -656,39 +660,6 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         Ok(self.spec_functions.borrow()[&def_id].clone())
     }
 
-    /// See `spec_encoder::encode_spec_assertion` for a description of the arguments.
-    #[allow(clippy::too_many_arguments)]
-    pub fn encode_assertion(
-        &self,
-        assertion: &typed::Assertion<'tcx>,
-        mir: &mir::Body<'tcx>,
-        pre_label: Option<&str>,
-        target_args: &[vir::Expr],
-        target_return: Option<&vir::Expr>,
-        targets_are_values: bool,
-        assertion_location: Option<mir::BasicBlock>,
-        error: ErrorCtxt,
-        parent_def_id: ProcedureDefId,
-        tymap: &SubstMap<'tcx>,
-    ) -> SpannedEncodingResult<vir::Expr> {
-        trace!("encode_assertion {:?}", assertion);
-        let encoded_assertion = encode_spec_assertion(
-            self,
-            assertion,
-            pre_label,
-            target_args,
-            target_return,
-            targets_are_values,
-            assertion_location,
-            parent_def_id,
-            tymap,
-        )?;
-        Ok(encoded_assertion.set_default_pos(
-            self.error_manager()
-                .register(typed::Spanned::get_spans(assertion, mir, self.env().tcx()), error, parent_def_id)
-        ))
-    }
-
     /// Checks whether the given type implements structural equality
     /// by either being a primitive type or by deriving the Eq trait.
     pub fn has_structural_eq_impl(&self, ty: ty::Ty<'tcx>) -> bool {
@@ -705,7 +676,8 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             | ty::TyKind::Array(..)
             | ty::TyKind::Slice(..)
             | ty::TyKind::Param(_) => true,
-            ty::TyKind::Adt(_, _) => {
+            ty::TyKind::Adt(_, _)
+            | ty::TyKind::Closure(_, _) => {
                 self.env().tcx().has_structural_eq_impls(ty)
             }
             _ => false,
@@ -907,7 +879,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         result
     }
 
-    pub fn get_predicate_body(&self, def_id: ProcedureDefId) -> Option<&typed::Assertion<'tcx>> {
+    pub fn get_predicate_body(&self, def_id: ProcedureDefId) -> Option<&LocalDefId> {
         let result = self.def_spec.get(&def_id).and_then(|spec| spec.expect_procedure().predicate_body.as_ref());
         trace!("get_predicate_body {:?} = {:?}", def_id, result);
         result

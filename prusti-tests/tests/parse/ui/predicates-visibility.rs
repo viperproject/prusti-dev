@@ -8,7 +8,7 @@
 use prusti_contracts::*;
 
 mod foo {
-    use super::predicate;
+    use super::{predicate, forall};
     predicate! {
         pub fn pred1(a: bool) -> bool {
             forall(|b: bool| a == b)

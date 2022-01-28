@@ -1,0 +1,328 @@
+// © 2022, ETH Zurich
+//
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
+use crate::encoder::{
+    encoder::SubstMap,
+    errors::{EncodingError, EncodingResult, SpannedEncodingResult, WithSpan},
+    high::types::HighTypeEncoderInterface,
+    mir::{
+        pure::{specifications::utils::extract_closure_from_ty, PureFunctionEncoderInterface},
+        types::MirTypeEncoderInterface,
+    },
+    mir_encoder::{MirEncoder, PlaceEncoder},
+    Encoder,
+};
+use prusti_common::config;
+use rustc_hash::FxHashSet;
+use rustc_hir::def_id::DefId;
+use rustc_middle::ty;
+use rustc_span::{MultiSpan, Span};
+use vir_crate::{
+    common::expression::{BinaryOperationHelpers, ExpressionIterator, QuantifierHelpers},
+    high::{Expression, FieldDecl, Trigger, VariableDecl},
+    polymorphic::ExprIterator,
+};
+
+// TODO: this variant (poly) should not need to exist, eventually should be
+//       replaced by the high variant + lowering
+
+pub(super) fn inline_closure<'tcx>(
+    encoder: &Encoder<'_, 'tcx>,
+    def_id: DefId,
+    cl_expr: vir_crate::polymorphic::Expr,
+    args: Vec<vir_crate::polymorphic::LocalVar>,
+    parent_def_id: DefId,
+    tymap: &SubstMap<'tcx>,
+) -> SpannedEncodingResult<vir_crate::polymorphic::Expr> {
+    let mir = encoder.env().local_mir(def_id.expect_local());
+    assert_eq!(mir.arg_count, args.len() + 1);
+    let mir_encoder = MirEncoder::new(encoder, &mir, def_id);
+    let mut body_replacements = vec![];
+    for (arg_idx, arg_local) in mir.args_iter().enumerate() {
+        let local = mir_encoder.encode_local(arg_local).unwrap();
+        let local_ty = mir.local_decls[arg_local].ty;
+        let local_span = mir_encoder.get_local_span(arg_local);
+        body_replacements.push((
+            encoder
+                .encode_value_expr(vir_crate::polymorphic::Expr::local(local), local_ty)
+                .with_span(local_span)?,
+            if arg_idx == 0 {
+                cl_expr.clone()
+            } else {
+                vir_crate::polymorphic::Expr::local(args[arg_idx - 1].clone())
+            },
+        ));
+    }
+    Ok(encoder
+        .encode_pure_expression(def_id, parent_def_id, tymap)?
+        .replace_multiple_places(&body_replacements))
+}
+
+#[allow(clippy::unnecessary_unwrap)]
+pub(super) fn inline_spec_item<'tcx>(
+    encoder: &Encoder<'_, 'tcx>,
+    def_id: DefId,
+    target_args: &[vir_crate::polymorphic::Expr],
+    target_return: Option<&vir_crate::polymorphic::Expr>,
+    targets_are_values: bool,
+    parent_def_id: DefId,
+    tymap: &SubstMap<'tcx>,
+) -> SpannedEncodingResult<vir_crate::polymorphic::Expr> {
+    let mir = encoder.env().local_mir(def_id.expect_local());
+    assert_eq!(
+        mir.arg_count,
+        target_args.len() + if target_return.is_some() { 1 } else { 0 }
+    );
+    let mir_encoder = MirEncoder::new(encoder, &mir, def_id);
+    let mut body_replacements = vec![];
+    for (arg_idx, arg_local) in mir.args_iter().enumerate() {
+        let local_span = mir_encoder.get_local_span(arg_local);
+        let mut local = mir_encoder.encode_local(arg_local).unwrap();
+        let local_ty = encoder.resolve_typaram(mir.local_decls[arg_local].ty, tymap);
+        // FIXME: `local` should be encoded with the substitution already applied
+        //        -> `mir_encoder` should take a `tymep`?
+        //        for now we replace the type of the encoded local
+        local.typ = encoder.encode_type(local_ty).with_span(local_span)?;
+        body_replacements.push((
+            if targets_are_values {
+                encoder
+                    .encode_value_expr(vir_crate::polymorphic::Expr::local(local), local_ty)
+                    .with_span(local_span)?
+            } else {
+                vir_crate::polymorphic::Expr::local(local)
+            },
+            if target_return.is_some() && arg_idx == mir.arg_count - 1 {
+                target_return.unwrap().clone()
+            } else {
+                target_args[arg_idx].clone()
+            },
+        ));
+    }
+    Ok(encoder
+        .encode_pure_expression(def_id, parent_def_id, tymap)?
+        .replace_multiple_places(&body_replacements))
+}
+
+pub(super) fn encode_quantifier<'tcx>(
+    encoder: &Encoder<'_, 'tcx>,
+    _span: Span,
+    substs: ty::subst::SubstsRef<'tcx>,
+    encoded_args: Vec<vir_crate::polymorphic::Expr>,
+    is_exists: bool,
+    parent_def_id: DefId,
+    tymap: &SubstMap<'tcx>,
+) -> SpannedEncodingResult<vir_crate::polymorphic::Expr> {
+    let tcx = encoder.env().tcx();
+
+    // Quantifiers are encoded as:
+    //   forall(
+    //     (
+    //       ( // trigger set 1
+    //         |qvars...| { <trigger expr 1> },
+    //         |qvars...| { <trigger expr 2> },
+    //       ),
+    //       ...,
+    //     ),
+    //     |qvars...| -> bool { <body expr> },
+    //   )
+
+    let cl_type_body = substs.type_at(1);
+    let (body_def_id, _, args, _) = extract_closure_from_ty(tcx, cl_type_body);
+
+    let mut encoded_qvars = vec![];
+    let mut bounds = vec![];
+    for (arg_idx, arg_ty) in args.iter().enumerate() {
+        let qvar_ty = encoder.encode_type(arg_ty).unwrap();
+        let qvar_name = format!(
+            "_{}_quant_{}",
+            arg_idx,
+            encoder.encode_item_name(body_def_id),
+        );
+        let encoded_qvar = vir_crate::polymorphic::LocalVar::new(qvar_name, qvar_ty);
+        if config::check_overflows() {
+            bounds.extend(encoder.encode_type_bounds(&encoded_qvar.clone().into(), arg_ty));
+        } else if config::encode_unsigned_num_constraint() {
+            if let ty::TyKind::Uint(_) = arg_ty.kind() {
+                let expr =
+                    vir_crate::polymorphic::Expr::le_cmp(0u32.into(), encoded_qvar.clone().into());
+                bounds.push(expr);
+            }
+        }
+        encoded_qvars.push(encoded_qvar);
+    }
+
+    let mut encoded_trigger_sets = vec![];
+    for (trigger_set_idx, ty_trigger_set) in substs.type_at(0).tuple_fields().enumerate() {
+        let mut encoded_triggers = vec![];
+        let mut set_spans = vec![];
+        for (trigger_idx, ty_trigger) in ty_trigger_set.tuple_fields().enumerate() {
+            let (trigger_def_id, trigger_span, _, _) = extract_closure_from_ty(tcx, ty_trigger);
+            let set_field = encoder
+                .encode_raw_ref_field(format!("tuple_{}", trigger_set_idx), ty_trigger_set)
+                .with_span(trigger_span)?;
+            let trigger_field = encoder
+                .encode_raw_ref_field(format!("tuple_{}", trigger_idx), ty_trigger)
+                .with_span(trigger_span)?;
+            let encoded_trigger = inline_closure(
+                encoder,
+                trigger_def_id,
+                encoded_args[0]
+                    .clone()
+                    .field(set_field)
+                    .field(trigger_field),
+                encoded_qvars.clone(),
+                parent_def_id,
+                tymap,
+            )?;
+            check_trigger(&encoded_trigger).with_span(trigger_span)?;
+            encoded_triggers.push(encoded_trigger);
+            set_spans.push(trigger_span);
+        }
+        let encoded_trigger_set = vir_crate::polymorphic::Trigger::new(encoded_triggers);
+        check_trigger_set(&encoded_qvars, &encoded_trigger_set)
+            .with_span(MultiSpan::from_spans(set_spans))?;
+        encoded_trigger_sets.push(encoded_trigger_set);
+    }
+
+    let encoded_body = inline_closure(
+        encoder,
+        body_def_id,
+        encoded_args[1].clone(),
+        encoded_qvars.clone(),
+        parent_def_id,
+        tymap,
+    )?;
+
+    // replace qvars with a nicer name based on quantifier depth to ensure that
+    // quantifiers remain stable for caching
+    let quantifier_depth = find_quantifier_depth(&encoded_body);
+    let mut qvar_replacements = vec![];
+    let mut fixed_qvars = vec![];
+    for (arg_idx, qvar) in encoded_qvars.iter().enumerate() {
+        let qvar_rep = vir_crate::polymorphic::LocalVar::new(
+            format!("_{}_quant_{}", arg_idx, quantifier_depth),
+            qvar.typ.clone(),
+        );
+        qvar_replacements.push((
+            vir_crate::polymorphic::Expr::local(qvar.clone()),
+            vir_crate::polymorphic::Expr::local(qvar_rep.clone()),
+        ));
+        fixed_qvars.push(qvar_rep);
+    }
+    let bounds = bounds
+        .into_iter()
+        .map(|bound| bound.replace_multiple_places(&qvar_replacements))
+        .collect::<Vec<_>>();
+    let encoded_body = encoded_body.replace_multiple_places(&qvar_replacements);
+    let encoded_trigger_sets = encoded_trigger_sets
+        .into_iter()
+        .map(|set| set.replace_multiple_places(&qvar_replacements))
+        .collect::<Vec<_>>();
+
+    let final_body = if bounds.is_empty() {
+        encoded_body
+    } else if is_exists {
+        vir_crate::polymorphic::Expr::and(bounds.into_iter().conjoin(), encoded_body)
+    } else {
+        vir_crate::polymorphic::Expr::implies(bounds.into_iter().conjoin(), encoded_body)
+    };
+    if is_exists {
+        Ok(vir_crate::polymorphic::Expr::exists(
+            fixed_qvars,
+            encoded_trigger_sets,
+            final_body,
+        ))
+    } else {
+        Ok(vir_crate::polymorphic::Expr::forall(
+            fixed_qvars,
+            encoded_trigger_sets,
+            final_body,
+        ))
+    }
+}
+
+fn find_quantifier_depth(expr: &vir_crate::polymorphic::Expr) -> usize {
+    use vir_crate::polymorphic::ExprWalker;
+    struct DepthChecker {
+        current_depth: usize,
+        max_depth: usize,
+    }
+    impl ExprWalker for DepthChecker {
+        fn walk_forall(&mut self, statement: &vir_crate::polymorphic::ForAll) {
+            self.current_depth += 1;
+            if self.current_depth >= self.max_depth {
+                self.max_depth = self.current_depth;
+            }
+            self.walk(&statement.body);
+            self.current_depth -= 1;
+        }
+        fn walk_exists(&mut self, statement: &vir_crate::polymorphic::Exists) {
+            self.current_depth += 1;
+            if self.current_depth >= self.max_depth {
+                self.max_depth = self.current_depth;
+            }
+            self.walk(&statement.body);
+            self.current_depth -= 1;
+        }
+    }
+    let mut checker = DepthChecker {
+        current_depth: 0,
+        max_depth: 0,
+    };
+    checker.walk(expr);
+    checker.max_depth
+}
+
+fn check_trigger(trigger: &vir_crate::polymorphic::Expr) -> EncodingResult<()> {
+    use vir_crate::polymorphic::FallibleExprFolder;
+    struct TriggerChecker {}
+    impl FallibleExprFolder for TriggerChecker {
+        type Error = EncodingError;
+        fn fallible_fold(
+            &mut self,
+            e: vir_crate::polymorphic::Expr,
+        ) -> Result<vir_crate::polymorphic::Expr, Self::Error> {
+            match e {
+                // legal triggers
+                vir_crate::polymorphic::Expr::Local(..)
+                | vir_crate::polymorphic::Expr::Const(..)
+                | vir_crate::polymorphic::Expr::FuncApp(..)
+                | vir_crate::polymorphic::Expr::DomainFuncApp(..) => Ok(e),
+                // everything else is illegal in triggers
+                _ => Err(EncodingError::incorrect(
+                    "only function calls are allowed in triggers",
+                )),
+            }
+        }
+    }
+    // TODO: more precise span: what is the span of the invalid expression?
+    (TriggerChecker {}).fallible_fold(trigger.clone())?;
+    Ok(())
+}
+
+fn check_trigger_set(
+    bound_vars: &[vir_crate::polymorphic::LocalVar],
+    trigger_set: &vir_crate::polymorphic::Trigger,
+) -> EncodingResult<()> {
+    let bound_vars_expr = bound_vars
+        .iter()
+        .map(|var| var.clone().into())
+        .collect::<Vec<_>>();
+    let mut found_bounded_vars = FxHashSet::default();
+    for term in trigger_set.elements() {
+        found_bounded_vars.extend(bound_vars_expr.iter().filter(|var| term.find(var)));
+    }
+    if bound_vars_expr
+        .iter()
+        .any(|var| !found_bounded_vars.contains(var))
+    {
+        // TODO: mention (+ span) the missing qvars in the error
+        return Err(EncodingError::incorrect(
+            "a trigger set must mention all bound variables",
+        ));
+    }
+    Ok(())
+}
