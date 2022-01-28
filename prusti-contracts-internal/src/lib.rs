@@ -65,8 +65,8 @@ pub fn predicate(tokens: TokenStream) -> TokenStream {
 /// Macro for creating models for a type.
 ///
 /// Types can be annotated with the `#[model]` macro:
-/// ```rust
-/// use std::iter::Iter;
+/// ```ignore
+/// use std::slice::Iter;
 /// #[model]
 /// struct Iter<'a, i32> {
 ///     position: usize,
@@ -78,7 +78,7 @@ pub fn predicate(tokens: TokenStream) -> TokenStream {
 /// to be `Copy`.
 ///
 /// The model can then be used in specifications:
-/// ```rust
+/// ```ignore
 /// #[ensures( result.model().position == 0 )]
 /// #[ensures( result.model().len == slice.len() )]
 /// #[trusted]
