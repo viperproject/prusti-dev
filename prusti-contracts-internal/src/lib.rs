@@ -94,7 +94,7 @@ pub fn predicate(tokens: TokenStream) -> TokenStream {
 /// * Specifications involving models can only be used in trusted functions or methods, i.e. on
 ///   explicitly `#[trusted]` methods or on `#[extern_spec]`s.
 /// * Models can not be generic, i.e. creating a model for `Vec<T>` is not possible. It is however
-///   possible to model monomorphized types, i.e. `Vec<i32>` and `Vec<u32>`
+///   possible to model concrete generic types, i.e. `Vec<i32>` and `Vec<u32>`
 #[proc_macro_attribute]
 pub fn model(_attr: TokenStream, tokens: TokenStream) -> TokenStream {
     prusti_specs::type_model(_attr.into(), tokens.into()).into()
