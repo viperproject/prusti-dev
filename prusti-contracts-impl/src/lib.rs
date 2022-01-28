@@ -54,4 +54,6 @@ pub fn predicate(_tokens: TokenStream) -> TokenStream {
 }
 
 #[proc_macro_attribute]
-pub fn model(_attr: TokenStream, _tokens: TokenStream) -> TokenStream { TokenStream::new() }
+pub fn model(_attr: TokenStream, _tokens: TokenStream) -> TokenStream {
+    TokenStream::new()
+}
