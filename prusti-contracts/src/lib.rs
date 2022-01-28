@@ -92,7 +92,6 @@ mod private {
     pub use prusti_contracts_internal::model;
 }
 
-
 /// This function is used to evaluate an expression in the context just
 /// before the borrows expires.
 pub fn before_expiry<T>(arg: T) -> T {

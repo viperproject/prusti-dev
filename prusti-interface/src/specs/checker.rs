@@ -11,7 +11,7 @@ use std::collections::HashMap;
 
 use crate::{
     environment::Environment,
-    utils::{has_prusti_attr, has_spec_only_attr, has_model_attr},
+    utils::{has_model_attr, has_prusti_attr, has_spec_only_attr},
     PrustiError,
 };
 
