@@ -73,6 +73,7 @@ fn create_to_model_trait(
         trait #to_model_trait_ident {
             #[trusted]
             #[pure]
+            #[prusti::model_generator]
             fn model(&self) -> #ident { unimplemented!() }
         }
     }
@@ -110,6 +111,7 @@ fn create_model_impl(
         impl #to_model_trait_ident for #impl_path {
             #[trusted]
             #[pure]
+            #[prusti::model_generator]
             fn model(&self) -> #model_struct_ident {
                 unimplemented!("Models can only be used in specifications")
             }
@@ -278,6 +280,7 @@ mod tests {
             impl PrustiFooToModel for Foo <> {
                 #[trusted]
                 #[pure]
+                #[prusti::model_generator]
                 fn model(&self) -> #model_ident {
                     unimplemented!("Models can only be used in specifications")
                 }
@@ -301,6 +304,7 @@ mod tests {
             impl PrustiFooToModel for Foo<'_, '_> {
                 #[trusted]
                 #[pure]
+                #[prusti::model_generator]
                 fn model(&self) -> PrustiFooModel {
                     unimplemented!("Models can only be used in specifications")
                 }
@@ -325,6 +329,7 @@ mod tests {
             impl PrustiFooi32TToModel for Foo<i32, T> {
                 #[trusted]
                 #[pure]
+                #[prusti::model_generator]
                 fn model(&self) -> PrustiFooi32TModel {
                     unimplemented!("Models can only be used in specifications")
                 }
@@ -348,6 +353,7 @@ mod tests {
             trait PrustiFooToModel {
                 #[trusted]
                 #[pure]
+                #[prusti::model_generator]
                 fn model(&self) -> PrustiFooModel {
                     unimplemented!()
                 }
