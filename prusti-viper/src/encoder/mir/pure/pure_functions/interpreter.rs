@@ -1046,22 +1046,16 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                         let value_field = self.encoder
                             .encode_raw_ref_field("tuple_0".to_string(), field_types[0].expect_ty())
                             .with_span(span)?;
-                        let value_field_value = self.encoder
-                            .encode_value_field(field_types[0].expect_ty()).with_span(span)?;
                         let check_field = self.encoder
                             .encode_raw_ref_field("tuple_1".to_string(), field_types[1].expect_ty())
                             .with_span(span)?;
-                        let check_field_value = self.encoder
-                            .encode_value_field(field_types[1].expect_ty()).with_span(span)?;
 
                         let lhs_value = encoded_lhs
                             .clone()
-                            .field(value_field)
-                            .field(value_field_value);
+                            .field(value_field);
                         let lhs_check = encoded_lhs
                             .clone()
-                            .field(check_field)
-                            .field(check_field_value);
+                            .field(check_field);
 
                         // Substitute a place of a value with an expression
                         state.substitute_value(&lhs_value, encoded_value);
