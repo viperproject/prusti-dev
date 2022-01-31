@@ -1,7 +1,9 @@
-use super::{expression::Expression, field::FieldDecl, ty::Type};
+pub(crate) use super::{expression::Expression, field::FieldDecl, ty::Type};
 use crate::common::display;
 
 #[derive_helpers]
+#[derive_visitors]
+#[derive(derive_more::From, derive_more::IsVariant)]
 pub enum TypeDecl {
     Bool,
     Int(Int),

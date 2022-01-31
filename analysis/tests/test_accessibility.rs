@@ -158,7 +158,7 @@ fn test_accessibility() {
             test_programs.len()
         );
         let gen_programs = generate_program_testing_accessible_paths(test_program);
-        assert!(gen_programs.len() > 0);
+        assert!(!gen_programs.is_empty());
         println!("The analysis generated {} programs", gen_programs.len());
         let limit = 10;
         if gen_programs.len() > limit {

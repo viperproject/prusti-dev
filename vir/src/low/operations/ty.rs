@@ -208,10 +208,10 @@ impl Typed for Quantifier {
 
 impl Typed for LetExpr {
     fn get_type(&self) -> &Type {
-        &self.variable.ty
+        self.body.get_type()
     }
     fn set_type(&mut self, new_type: Type) {
-        self.variable.ty = new_type;
+        self.body.set_type(new_type)
     }
 }
 

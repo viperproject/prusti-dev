@@ -46,9 +46,9 @@ pub struct Field {
     pub position: Position,
 }
 
-#[display(fmt = "old[{}]({})", label, base)]
+#[display(fmt = "old{}({})", "display::option!(label, \"[{}]\", \"\")", base)]
 pub struct LabelledOld {
-    pub label: String,
+    pub label: Option<String>,
     pub base: Box<Expression>,
     pub position: Position,
 }

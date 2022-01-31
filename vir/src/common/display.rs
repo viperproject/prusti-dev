@@ -40,3 +40,10 @@ pub(crate) macro foreach2($template: expr, $values1: expr, $values2: expr) {{
     }
     buf
 }}
+
+pub(crate) macro option_foreach($option: expr, $some_template: expr, $each_template: expr, $none_template: expr) {{
+    match $option {
+        Some(value) => format!($some_template, foreach!($each_template, value)),
+        None => $none_template.to_string(),
+    }
+}}

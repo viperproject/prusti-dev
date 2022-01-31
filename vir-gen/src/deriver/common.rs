@@ -1,3 +1,4 @@
+use crate::helpers::extract_container;
 use syn::spanned::Spanned;
 
 pub(super) struct DeriveInfo {
@@ -137,42 +138,29 @@ pub(super) fn type_to_indent(ty: &syn::Type) -> Result<&syn::Ident, syn::Error> 
     }
 }
 
-fn get_type_arg<'a>(ty: &'a syn::Type, main_type: &str) -> Option<&'a syn::Ident> {
-    if let syn::Type::Path(syn::TypePath {
-        qself: None,
-        path: syn::Path {
-            leading_colon: None,
-            segments,
-        },
-    }) = ty
-    {
-        if segments.len() == 1 && segments[0].ident == main_type {
-            if let syn::PathArguments::AngleBracketed(syn::AngleBracketedGenericArguments {
-                args,
-                ..
-            }) = &segments[0].arguments
-            {
-                assert_eq!(args.len(), 1);
-                if let syn::GenericArgument::Type(inner_type) = &args[0] {
-                    Some(type_to_indent(inner_type).unwrap())
-                } else {
-                    unreachable!()
-                }
-            } else {
-                unreachable!()
-            }
-        } else {
-            None
-        }
+pub(super) fn get_option_type_arg(ty: &syn::Type) -> Option<&syn::Ident> {
+    let (ident, containers) = extract_container(ty).unwrap();
+    if containers.len() == 1 && containers[0] == "Option" {
+        Some(ident)
     } else {
         None
     }
 }
 
-pub(super) fn get_option_type_arg(ty: &syn::Type) -> Option<&syn::Ident> {
-    get_type_arg(ty, "Option")
+pub(super) fn get_option_box_type_arg(ty: &syn::Type) -> Option<&syn::Ident> {
+    let (ident, containers) = extract_container(ty).unwrap();
+    if containers.len() == 2 && containers[0] == "Box" && containers[1] == "Option" {
+        Some(ident)
+    } else {
+        None
+    }
 }
 
 pub(super) fn get_vec_type_arg(ty: &syn::Type) -> Option<&syn::Ident> {
-    get_type_arg(ty, "Vec")
+    let (ident, containers) = extract_container(ty).unwrap();
+    if containers.len() == 1 && containers[0] == "Vec" {
+        Some(ident)
+    } else {
+        None
+    }
 }

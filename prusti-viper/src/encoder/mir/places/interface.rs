@@ -507,7 +507,7 @@ impl<'v, 'tcx: 'v> PlacesEncoderInterface<'tcx> for super::super::super::Encoder
                         vec![encoded_operand],
                         destination_type,
                     )
-                    .set_default_pos(position.into());
+                    .set_default_position(position.into());
                     return Ok(call);
                 } else {
                     // Don't check the cast

@@ -8,7 +8,6 @@
 #![feature(box_syntax)]
 #![feature(nll)]
 
-#![allow(unused_imports)]
 #![deny(unused_must_use)]
 
 #[macro_use]

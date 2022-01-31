@@ -17,9 +17,7 @@
 //! See: <https://github.com/viperproject/silicon/issues/387>
 
 
-use vir::polymorphic::FieldAccessPredicate;
-
-use crate::vir::polymorphic_vir::{ast, borrows, cfg};
+use crate::vir::polymorphic_vir::{ast, cfg};
 use std::cmp::Ordering;
 use std::collections::{HashMap, HashSet};
 use std::mem;

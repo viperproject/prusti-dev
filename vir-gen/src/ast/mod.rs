@@ -37,6 +37,8 @@ pub(crate) struct RawBlock {
 
 /// derive_lower!(source_type → target_type)
 pub(crate) struct DeriveLower {
+    /// Should `&mut self` be used?
+    pub(crate) is_self_mut: bool,
     /// The trait that the user can use for lowering.
     pub(crate) user_trait_ident: syn::Ident,
     /// The ident of the trait that needs to be implemented by the deriver struct.
