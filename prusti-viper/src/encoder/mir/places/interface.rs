@@ -9,7 +9,7 @@ use crate::encoder::{
 };
 use log::debug;
 use rustc_hir::def_id::DefId;
-use rustc_middle::{mir, span_bug, ty};
+use rustc_middle::{mir, ty};
 use rustc_span::Span;
 use vir_crate::{
     common::expression::{BinaryOperationHelpers, UnaryOperationHelpers},

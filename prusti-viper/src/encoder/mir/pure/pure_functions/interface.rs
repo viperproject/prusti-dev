@@ -4,16 +4,15 @@ use super::encoder::{FunctionCallInfo, FunctionCallInfoHigh, PureFunctionEncoder
 use crate::encoder::{
     encoder::SubstMap,
     errors::{SpannedEncodingResult, WithSpan},
-    high::generics::HighGenericsEncoderInterface,
     mir::generics::MirGenericsEncoderInterface,
     snapshot::interface::SnapshotEncoderInterface,
     stub_function_encoder::StubFunctionEncoder,
 };
 use log::{debug, trace};
-use prusti_interface::{data::ProcedureDefId, environment::Environment};
+use prusti_interface::data::ProcedureDefId;
 use rustc_hash::{FxHashMap, FxHashSet};
-use rustc_middle::ty::TyCtxt;
-use std::cell::{Ref, RefCell};
+
+use std::cell::RefCell;
 use vir_crate::{common::identifier::WithIdentifier, high as vir_high, polymorphic as vir_poly};
 
 type Key = (ProcedureDefId, Vec<vir_high::Type>);

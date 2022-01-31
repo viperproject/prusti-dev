@@ -4,38 +4,23 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use super::{
-    helpers::{compute_discriminant_bounds, compute_discriminant_values},
-    interface::MirTypeEncoderInterface,
-};
+use super::{helpers::compute_discriminant_values, interface::MirTypeEncoderInterface};
 use crate::encoder::{
-    builtin_encoder::BuiltinFunctionKind,
-    errors::{EncodingError, EncodingResult, SpannedEncodingError, SpannedEncodingResult},
-    foldunfold,
+    errors::{EncodingResult, SpannedEncodingError, SpannedEncodingResult},
     high::types::HighTypeEncoderInterface,
     mir::{
         generics::MirGenericsEncoderInterface, types::helpers::compute_discriminant_bounds_high,
     },
-    utils::{range_extract, PlusOne},
     Encoder,
 };
-use log::{debug, trace};
-use prusti_common::{config, vir_local};
-use prusti_interface::specs::typed;
-use rustc_attr::IntType::SignedInt;
-use rustc_hash::FxHashMap;
+use log::debug;
+use prusti_common::config;
+
 use rustc_hir::def_id::DefId;
-use rustc_middle::{ty, ty::layout::IntegerExt};
+use rustc_middle::ty;
 use rustc_span::MultiSpan;
-use rustc_target::{abi, abi::Integer};
-use std::{
-    convert::TryInto,
-    hash::{Hash, Hasher},
-};
-use vir_crate::{
-    common::expression::{less_equals, ExpressionIterator},
-    high::{self as vir, visitors::ExpressionFolder},
-};
+
+use vir_crate::high::{self as vir};
 
 pub struct TypeEncoder<'p, 'v: 'p, 'tcx: 'v> {
     encoder: &'p Encoder<'v, 'tcx>,

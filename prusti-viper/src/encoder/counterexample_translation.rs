@@ -1,15 +1,15 @@
 use rustc_hash::{FxHashMap};
-use std::convert::TryFrom;
+
 
 use viper::silicon_counterexample::*;
-use viper::VerificationError;
+
 use prusti_interface::data::ProcedureDefId;
 use crate::encoder::Encoder;
-use crate::encoder::places::{Local, LocalVariableManager, Place};
+use crate::encoder::places::{Local, LocalVariableManager};
 use crate::encoder::counterexample::*;
 
 use rustc_middle::mir::{self, VarDebugInfo};
-use rustc_middle::ty::{self, Ty, AdtKind, AdtDef, TyCtxt};
+use rustc_middle::ty::{self, Ty, TyCtxt};
 use rustc_span::Span;
 
 pub fn backtranslate(

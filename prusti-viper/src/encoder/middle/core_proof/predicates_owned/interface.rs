@@ -3,7 +3,6 @@ use crate::encoder::{
     high::types::HighTypeEncoderInterface,
     middle::core_proof::{
         compute_address::ComputeAddressInterface,
-        into_low::IntoLowInterface,
         lowerer::Lowerer,
         places::PlacesInterface,
         predicates_memory_block::PredicatesMemoryBlockInterface,
@@ -13,10 +12,7 @@ use crate::encoder::{
 };
 use rustc_hash::FxHashSet;
 use std::borrow::Cow;
-use vir_crate::{
-    common::{expression::ExpressionIterator, identifier::WithIdentifier},
-    low as vir_low, middle as vir_mid,
-};
+use vir_crate::{common::expression::ExpressionIterator, low as vir_low, middle as vir_mid};
 
 #[derive(Default)]
 pub(in super::super) struct PredicatesOwnedState {

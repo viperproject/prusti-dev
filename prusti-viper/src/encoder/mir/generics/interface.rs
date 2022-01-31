@@ -2,17 +2,13 @@ use crate::encoder::{
     encoder::SubstMap,
     errors::{EncodingError, EncodingResult},
     mir::types::MirTypeEncoderInterface,
-    utils::transpose,
 };
-use log::debug;
+
 use rustc_hash::FxHashMap;
 use rustc_hir::def_id::DefId;
-use rustc_middle::{mir, span_bug, ty};
+use rustc_middle::ty;
 use rustc_span::symbol::Symbol;
-use vir_crate::{
-    common::expression::BinaryOperationHelpers,
-    high::{self as vir_high, operations::ty::Typed},
-};
+use vir_crate::high::{self as vir_high};
 
 pub(crate) trait MirGenericsEncoderInterface<'tcx> {
     fn update_substitution_map(

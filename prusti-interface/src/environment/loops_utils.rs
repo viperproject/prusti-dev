@@ -4,7 +4,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use super::borrowck::facts;
+
 use super::place_set::PlaceSet;
 use crate::utils;
 use rustc_middle::{mir, ty::TyCtxt};

@@ -1,8 +1,6 @@
 use super::Environment;
-use crate::environment::mir_dump::graphviz::Graph;
-use prusti_common::config;
+
 use rustc_span::def_id::DefId;
-use std::path::PathBuf;
 
 mod graphviz;
 pub mod lifetimes;

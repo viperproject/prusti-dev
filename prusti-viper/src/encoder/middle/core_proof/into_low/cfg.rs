@@ -1,6 +1,5 @@
 use super::{IntoLow, IntoLowInterface};
 use crate::encoder::{
-    encoder::Encoder,
     errors::SpannedEncodingResult,
     middle::core_proof::{
         addresses::AddressesInterface, builtin_methods::BuiltinMethodsInterface, lowerer::Lowerer,
@@ -8,7 +7,7 @@ use crate::encoder::{
         predicates_owned::PredicatesOwnedInterface, snapshots::SnapshotsInterface,
     },
 };
-use std::collections::{HashMap, HashSet};
+
 use vir_crate::{
     common::identifier::WithIdentifier,
     low as vir_low,

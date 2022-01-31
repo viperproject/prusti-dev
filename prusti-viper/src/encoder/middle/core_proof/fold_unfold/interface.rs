@@ -1,16 +1,10 @@
 use super::helpers::{MemoryBlockSplitJoiner, OwnedUnFolder};
 use crate::encoder::{
     errors::SpannedEncodingResult,
-    high::types::HighTypeEncoderInterface,
-    middle::core_proof::{
-        addresses::AddressesInterface, compute_address::ComputeAddressInterface,
-        into_low::IntoLowInterface, lowerer::Lowerer, places::PlacesInterface,
-        predicates_owned::PredicatesOwnedInterface, snapshots::SnapshotsInterface,
-        utils::type_decl_encoder::TypeDeclWalker,
-    },
+    middle::core_proof::{lowerer::Lowerer, utils::type_decl_encoder::TypeDeclWalker},
 };
-use std::borrow::Cow;
-use vir_crate::{common::identifier::WithIdentifier, low as vir_low, middle as vir_mid};
+
+use vir_crate::{low as vir_low, middle as vir_mid};
 
 pub(in super::super) trait FoldUnfoldInterface {
     fn encode_fully_fold_owned_non_aliased(

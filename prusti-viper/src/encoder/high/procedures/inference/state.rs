@@ -2,8 +2,8 @@ use super::permission::{Permission, PermissionKind};
 use crate::encoder::errors::SpannedEncodingResult;
 use log::debug;
 use rustc_hash::FxHashSet;
-use std::collections::BTreeSet;
-use vir_crate::{high as vir_high, middle as vir_mid};
+
+use vir_crate::high as vir_high;
 
 pub(in super::super) struct FoldUnfoldState {
     owned_non_aliased: FxHashSet<vir_high::Expression>,

@@ -1,20 +1,11 @@
-use super::super::lower::IntoPolymorphic;
 use crate::encoder::{
-    encoder::SubstMap,
-    errors::{EncodingError, EncodingResult, SpannedEncodingResult, WithSpan},
+    errors::{EncodingError, EncodingResult, SpannedEncodingResult},
     mir::pure::PureFunctionEncoderInterface,
-    snapshot::interface::SnapshotEncoderInterface,
-    stub_function_encoder::StubFunctionEncoder,
 };
-use log::{debug, trace};
-use prusti_interface::{data::ProcedureDefId, environment::Environment};
-use rustc_hash::{FxHashMap, FxHashSet};
-use rustc_middle::ty::TyCtxt;
-use std::cell::{Ref, RefCell};
+
 use vir_crate::{
     high::{self as vir_high, operations::ty::Typed},
     middle::{self as vir_mid, operations::ToMiddleExpression},
-    polymorphic as vir_poly,
 };
 
 pub(crate) trait HighPureFunctionEncoderInterface<'tcx> {

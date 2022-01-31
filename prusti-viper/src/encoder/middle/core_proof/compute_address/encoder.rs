@@ -5,13 +5,7 @@ use crate::encoder::{
         utils::type_decl_encoder::TypeDeclWalker,
     },
 };
-use vir_crate::{
-    common::{
-        expression::{BinaryOperationHelpers, QuantifierHelpers},
-        identifier::WithIdentifier,
-    },
-    low as vir_low, middle as vir_mid,
-};
+use vir_crate::{common::identifier::WithIdentifier, low as vir_low, middle as vir_mid};
 
 pub(super) struct ComputeAddressEncoder;
 

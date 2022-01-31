@@ -3,9 +3,8 @@ use crate::encoder::{
 };
 use log::debug;
 use rustc_hir::def_id::DefId;
-use rustc_middle::mir;
-use rustc_span::Span;
-use vir_crate::{high as vir_high, middle as vir_mid};
+
+use vir_crate::middle as vir_mid;
 
 pub(crate) trait HighProcedureEncoderInterface<'tcx> {
     fn encode_procedure_core_proof(

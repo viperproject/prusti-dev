@@ -1,15 +1,8 @@
 use super::{super::utils::place_domain_encoder::PlaceExpressionDomainEncoder, AddressesInterface};
-use crate::encoder::{
-    errors::SpannedEncodingResult,
-    middle::core_proof::{
-        compute_address::ComputeAddressInterface,
-        lowerer::{DomainsLowererInterface, Lowerer},
-    },
-};
+use crate::encoder::{errors::SpannedEncodingResult, middle::core_proof::lowerer::Lowerer};
 use vir_crate::{
-    common::identifier::WithIdentifier,
     low as vir_low,
-    middle::{self as vir_mid, operations::ty::Typed},
+    middle::{self as vir_mid},
 };
 
 pub(super) struct PlaceAddressEncoder {}

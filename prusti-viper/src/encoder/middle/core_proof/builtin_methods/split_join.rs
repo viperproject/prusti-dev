@@ -2,19 +2,15 @@ use crate::encoder::{
     errors::SpannedEncodingResult,
     middle::core_proof::{
         addresses::AddressesInterface,
-        builtin_methods::BuiltinMethodsInterface,
         compute_address::ComputeAddressInterface,
-        into_low::IntoLowInterface,
         lowerer::Lowerer,
-        places::PlacesInterface,
         predicates_memory_block::PredicatesMemoryBlockInterface,
-        predicates_owned::PredicatesOwnedInterface,
         snapshots::{IntoSnapshot, SnapshotsInterface},
         type_layouts::TypeLayoutsInterface,
         utils::type_decl_encoder::TypeDeclWalker,
     },
 };
-use vir_crate::{common::identifier::WithIdentifier, low as vir_low, middle as vir_mid};
+use vir_crate::{low as vir_low, middle as vir_mid};
 use vir_low::macros::*;
 use vir_mid::{FieldDecl, Type};
 

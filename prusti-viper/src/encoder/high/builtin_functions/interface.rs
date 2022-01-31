@@ -1,20 +1,15 @@
 use super::{super::lower::IntoPolymorphic, encoder::encode_builtin_function_name_with_type_args};
 use crate::encoder::{
     builtin_encoder::{BuiltinEncoder, BuiltinFunctionKind},
-    encoder::SubstMap,
-    errors::{EncodingError, EncodingResult, SpannedEncodingResult, WithSpan},
     high::builtin_functions::encoder::encode_builtin_function_def,
-    mir::pure::PureFunctionEncoderInterface,
-    snapshot::interface::SnapshotEncoderInterface,
-    stub_function_encoder::StubFunctionEncoder,
 };
-use log::{debug, trace};
-use prusti_interface::{data::ProcedureDefId, environment::Environment};
+use log::trace;
+
 use rustc_hash::{FxHashMap, FxHashSet};
-use rustc_middle::ty::TyCtxt;
-use std::cell::{Ref, RefCell};
+
+use std::cell::RefCell;
 use vir_crate::{
-    high::{self as vir_high, operations::ty::Typed},
+    high::{self as vir_high},
     polymorphic as vir_poly,
 };
 

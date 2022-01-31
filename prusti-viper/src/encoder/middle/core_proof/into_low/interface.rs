@@ -1,31 +1,9 @@
-use super::MidCoreProofEncoderInterface;
 use crate::encoder::{
-    errors::{BuiltinMethodKind, ErrorCtxt, SpannedEncodingResult},
-    high::{type_layouts::HighTypeLayoutsEncoderInterface, types::HighTypeEncoderInterface},
-    middle::core_proof::{
-        addresses::AddressesInterface,
-        compute_address::ComputeAddressInterface,
-        errors::ErrorsInterface,
-        fold_unfold::FoldUnfoldInterface,
-        lowerer::{FunctionsLowererInterface, Lowerer, MethodsLowererInterface},
-        predicates_memory_block::PredicatesMemoryBlockInterface,
-        predicates_owned::PredicatesOwnedInterface,
-        snapshots::{IntoSnapshot, SnapshotsInterface},
-    },
-    Encoder,
+    errors::SpannedEncodingResult,
+    middle::core_proof::{lowerer::Lowerer, snapshots::IntoSnapshot},
 };
-use rustc_data_structures::fx::FxHashSet;
-use std::{
-    borrow::Cow,
-    collections::{BTreeMap, BTreeSet},
-};
-use vir_crate::{
-    common::{
-        expression::{ExpressionIterator, QuantifierHelpers},
-        identifier::WithIdentifier,
-    },
-    low as vir_low, middle as vir_mid,
-};
+
+use vir_crate::{low as vir_low, middle as vir_mid};
 
 pub(in super::super) trait IntoLowInterface {
     fn lower_expression(
