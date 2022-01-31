@@ -9,7 +9,6 @@ use crate::encoder::{
             action::Action, permission::PermissionKind, semantics::collect_permission_changes,
         },
         type_layouts::HighTypeLayoutsEncoderInterface,
-        types::HighTypeEncoderInterface,
     },
     mir::{errors::ErrorInterface, types::MirTypeEncoderInterface},
     Encoder,

@@ -4,9 +4,7 @@ use crate::encoder::{
     middle::core_proof::{
         into_low::IntoLowInterface,
         lowerer::{DomainsLowererInterface, Lowerer},
-        MidCoreProofEncoderInterface,
     },
-    Encoder,
 };
 use vir_crate::{
     common::identifier::WithIdentifier,

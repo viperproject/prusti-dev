@@ -20,11 +20,7 @@ use rustc_hash::FxHashSet;
 use rustc_hir::def_id::DefId;
 use rustc_middle::ty;
 use rustc_span::{MultiSpan, Span};
-use vir_crate::{
-    common::expression::{BinaryOperationHelpers, ExpressionIterator, QuantifierHelpers},
-    high::{Expression, FieldDecl, Trigger, VariableDecl},
-    polymorphic::ExprIterator,
-};
+use vir_crate::polymorphic::ExprIterator;
 
 // TODO: this variant (poly) should not need to exist, eventually should be
 //       replaced by the high variant + lowering

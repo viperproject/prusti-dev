@@ -4,9 +4,8 @@ use crate::encoder::{
     middle::core_proof::{lowerer::Lowerer, snapshots::interface::SnapshotsInterface},
 };
 use vir_crate::{
-    common::identifier::WithIdentifier,
     low::{self as vir_low},
-    middle::{self as vir_mid, operations::ty::Typed},
+    middle::{self as vir_mid},
 };
 
 impl IntoSnapshot for vir_mid::VariableDecl {

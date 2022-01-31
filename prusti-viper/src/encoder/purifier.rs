@@ -5,11 +5,11 @@
 
 use vir_crate::polymorphic::{self as vir, ExprWalker, ExprFolder, StmtWalker, StmtFolder};
 use rustc_hash::{FxHashMap, FxHashSet};
-use std::collections::{BTreeMap, BTreeSet};
+
 use log::{debug, trace};
 use crate::encoder::Encoder;
 use crate::encoder::high::types::HighTypeEncoderInterface;
-use crate::encoder::mir::types::MirTypeEncoderInterface;
+
 use crate::encoder::snapshot::interface::SnapshotEncoderInterface;
 
 use super::encoder::SubstMap;

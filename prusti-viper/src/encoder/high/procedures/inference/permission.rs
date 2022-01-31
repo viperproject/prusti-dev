@@ -1,4 +1,4 @@
-use vir_crate::{high as vir_high, middle as vir_mid};
+use vir_crate::high as vir_high;
 
 #[derive(Debug, Clone)]
 pub(in super::super) enum Permission {

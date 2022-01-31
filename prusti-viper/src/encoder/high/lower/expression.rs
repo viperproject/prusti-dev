@@ -1,7 +1,7 @@
 use super::super::types::interface::HighTypeEncoderInterfacePrivate;
 
 use super::IntoPolymorphic;
-use vir_crate::{high as vir_high, legacy as vir_low, polymorphic as vir_poly};
+use vir_crate::{high as vir_high, polymorphic as vir_poly};
 
 impl IntoPolymorphic<Box<vir_poly::Expr>> for Box<vir_high::Expression> {
     fn lower(&self, encoder: &impl HighTypeEncoderInterfacePrivate) -> Box<vir_poly::Expr> {

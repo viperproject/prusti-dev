@@ -5,8 +5,8 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use rustc_hash::FxHashMap;
-use rustc_middle::ty;
-use vir_crate::polymorphic::{self as vir, Expr, Type};
+
+use vir_crate::polymorphic::{self as vir, Type};
 
 /// Snapshot of a VIR type. This enum is internal to the snapshot encoding and
 /// should not need to be exposed to the encoder in general.

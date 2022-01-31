@@ -1,12 +1,9 @@
 use crate::encoder::{
     errors::SpannedEncodingResult,
-    mir::{
-        places::PlacesEncoderInterface, pure::PureFunctionEncoderInterface,
-        types::MirTypeEncoderInterface,
-    },
+    mir::{pure::PureFunctionEncoderInterface, types::MirTypeEncoderInterface},
 };
 use rustc_hash::FxHashSet;
-use rustc_middle::{mir, ty};
+use rustc_middle::ty;
 use std::cell::RefCell;
 use vir_crate::{common::identifier::WithIdentifier, high as vir_high};
 

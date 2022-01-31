@@ -6,35 +6,25 @@
 
 use super::interpreter::PureFunctionBackwardInterpreter;
 use crate::encoder::{
-    borrows::{compute_procedure_contract, ProcedureContract},
-    builtin_encoder::BuiltinFunctionKind,
+    borrows::ProcedureContract,
     encoder::SubstMap,
-    errors::{
-        EncodingError, EncodingResult, ErrorCtxt, PanicCause, SpannedEncodingError,
-        SpannedEncodingResult, WithSpan,
-    },
-    foldunfold,
+    errors::{ErrorCtxt, SpannedEncodingError, SpannedEncodingResult, WithSpan},
     high::{generics::HighGenericsEncoderInterface, types::HighTypeEncoderInterface},
-    mir::{
-        generics::MirGenericsEncoderInterface, pure::SpecificationEncoderInterface,
-        types::MirTypeEncoderInterface,
-    },
-    mir_encoder::{MirEncoder, PlaceEncoder, PlaceEncoding, PRECONDITION_LABEL, WAND_LHS_LABEL},
-    mir_interpreter::{
-        run_backward_interpretation, BackwardMirInterpreter, ExprBackwardInterpreterState,
-    },
-    snapshot::{self, interface::SnapshotEncoderInterface},
+    mir::pure::SpecificationEncoderInterface,
+    mir_encoder::PlaceEncoder,
+    mir_interpreter::run_backward_interpretation,
+    snapshot::interface::SnapshotEncoderInterface,
     Encoder,
 };
 use log::{debug, trace};
 use prusti_common::{config, vir::optimizations::functions::Simplifier, vir_local};
-use prusti_interface::{specs::typed, PrustiError};
+
 use rustc_hash::FxHashMap;
 use rustc_hir as hir;
 use rustc_hir::def_id::{DefId, LocalDefId};
-use rustc_middle::{mir, span_bug, ty};
+use rustc_middle::{mir, ty};
 use rustc_span::Span;
-use std::mem;
+
 use vir_crate::{
     common::identifier::WithIdentifier,
     high as vir_high,

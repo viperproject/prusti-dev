@@ -5,7 +5,7 @@ mod helpers;
 mod interface;
 
 pub(crate) use self::{
-    helpers::{compute_discriminant_bounds, compute_discriminant_values},
+    helpers::compute_discriminant_bounds,
     interface::{MirTypeEncoderInterface, MirTypeEncoderState},
 };
 

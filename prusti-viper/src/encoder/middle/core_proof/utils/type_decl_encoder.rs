@@ -1,14 +1,9 @@
 use crate::encoder::{
-    errors::SpannedEncodingResult,
-    high::types::HighTypeEncoderInterface,
-    middle::core_proof::lowerer::{DomainsLowererInterface, Lowerer},
+    errors::SpannedEncodingResult, high::types::HighTypeEncoderInterface,
+    middle::core_proof::lowerer::Lowerer,
 };
 use std::borrow::Cow;
-use vir_crate::{
-    common::identifier::WithIdentifier,
-    low as vir_low,
-    middle::{self as vir_mid, operations::ty::Typed},
-};
+use vir_crate::middle::{self as vir_mid};
 
 pub(in super::super) trait TypeDeclWalker {
     type Parameters;

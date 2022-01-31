@@ -7,16 +7,16 @@
 use super::loops;
 use crate::data::ProcedureDefId;
 use rustc_middle::mir::{self, Body as Mir, Rvalue, AggregateKind};
-use rustc_middle::mir::{BasicBlock, BasicBlockData, Terminator, TerminatorKind};
-use rustc_middle::ty::{self, Ty, TyCtxt};
-use std::cell::Ref;
+use rustc_middle::mir::{BasicBlock, BasicBlockData};
+use rustc_middle::ty::{Ty, TyCtxt};
+
 use std::rc::Rc;
 use std::collections::{HashSet, HashMap};
 use rustc_span::Span;
 use log::{trace, debug};
 use rustc_middle::mir::StatementKind;
 use rustc_hir::def_id;
-use std::iter::FromIterator;
+
 use crate::environment::mir_utils::RealEdges;
 use crate::environment::Environment;
 

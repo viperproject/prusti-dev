@@ -4,17 +4,13 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use super::{
-    places_utils::{union, union3},
-    Predicates,
-};
+use super::Predicates;
 use crate::encoder::foldunfold::{
     footprint::*,
     perm::{Perm::*, *},
-    places_utils::ancestors,
 };
 use log::{debug, trace};
-use rustc_hash::{FxHashMap, FxHashSet};
+use rustc_hash::FxHashSet;
 use std::iter::FromIterator;
 use vir_crate::polymorphic::{self as vir, PermAmount};
 

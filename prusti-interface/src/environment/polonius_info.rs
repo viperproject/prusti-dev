@@ -8,21 +8,16 @@ use std::collections::BTreeMap;
 use std::collections::BTreeSet;
 use rustc_hash::{FxHashMap, FxHashSet};
 use std::fmt;
-use std::path::PathBuf;
-
 use datafrog;
 use log::debug;
 use log::trace;
 use polonius_engine::Algorithm;
-use polonius_engine::Atom;
 use polonius_engine::Output;
 use rustc_index::vec::Idx;
 use rustc_middle::mir;
 use rustc_middle::ty;
-use rustc_span::def_id::{DefId, LOCAL_CRATE};
+use rustc_span::def_id::{DefId};
 use rustc_span::Span;
-use rustc_index::vec::IndexVec;
-
 use crate::environment::borrowck::facts::PointType;
 use crate::environment::borrowck::regions::{PlaceRegions, PlaceRegionsError};
 use crate::environment::mir_utils::AllPlaces;
@@ -31,12 +26,9 @@ use crate::environment::mir_utils::StatementAsAssign;
 use crate::environment::mir_utils::StatementAt;
 use crate::environment::polonius_info::facts::AllInputFacts;
 use crate::utils;
-
 use super::borrowck::facts;
 use super::borrowck::regions;
 use super::loops;
-use super::mir_analyses::initialization::compute_definitely_initialized;
-use super::mir_analyses::initialization::DefinitelyInitializedAnalysisResult;
 use super::procedure::Procedure;
 use super::Environment;
 use prusti_common::config;

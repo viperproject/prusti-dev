@@ -9,7 +9,6 @@
 use log::trace;
 use rustc_ast::ast;
 use rustc_data_structures::fx::FxHashSet;
-use rustc_index::vec::Idx;
 use rustc_middle::{
     mir,
     ty::{self, TyCtxt},
@@ -333,8 +332,7 @@ pub fn read_prusti_attrs(attr_name: &str, attrs: &[ast::Attribute]) -> Vec<Strin
                 continue;
             }
             use rustc_ast::{
-                token::{DelimToken, Lit, Token, TokenKind},
-                tokenstream::{TokenStream, TokenTree},
+                token::{Lit, Token, TokenKind},
             };
             fn extract_string(token: &Token) -> String {
                 force_matches!(&token.kind, TokenKind::Literal(Lit { symbol, .. }) => {
