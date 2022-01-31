@@ -2,6 +2,7 @@ use viper::AstFactory;
 
 mod ast;
 mod cfg;
+mod domain;
 mod program;
 
 pub trait ToViper<'v, T> {

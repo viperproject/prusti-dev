@@ -95,11 +95,14 @@ pub fn unwrap_type_ident(ty: &syn::Type) -> syn::Result<&syn::Ident> {
         }
         _ => {}
     }
-    Err(syn::Error::new(ty.span(), "type is not an ident"))
+    Err(syn::Error::new(
+        ty.span(),
+        format!("type {:?} is not an ident", ty),
+    ))
 }
 
 /// If the type is `Vec<T>` or `Box<T>` return the container type and `T`.
-pub fn extract_container(ty: &syn::Type) -> syn::Result<(&syn::Ident, Option<&syn::Ident>)> {
+pub fn extract_container(ty: &syn::Type) -> syn::Result<(&syn::Ident, Vec<&syn::Ident>)> {
     match ty {
         syn::Type::Path(syn::TypePath {
             qself: None,
@@ -117,8 +120,9 @@ pub fn extract_container(ty: &syn::Type) -> syn::Result<(&syn::Ident, Option<&sy
                     }),
             } if (ident == "Box" || ident == "Vec" || ident == "Option") && args.len() == 1 => {
                 if let syn::GenericArgument::Type(inner_ty) = &args[0] {
-                    let inner_ident = unwrap_type_ident(inner_ty)?;
-                    return Ok((inner_ident, Some(ident)));
+                    let (inner_ident, mut containers) = extract_container(inner_ty)?;
+                    containers.push(ident);
+                    return Ok((inner_ident, containers));
                 }
             }
             _ => {}
@@ -126,5 +130,5 @@ pub fn extract_container(ty: &syn::Type) -> syn::Result<(&syn::Ident, Option<&sy
         _ => {}
     }
     let ident = unwrap_type_ident(ty)?;
-    Ok((ident, None))
+    Ok((ident, Vec::new()))
 }

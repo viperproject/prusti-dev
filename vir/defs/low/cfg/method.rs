@@ -4,37 +4,21 @@ use crate::{
 };
 
 #[display(
-    fmt = "method {} {{\n{}\n{}}}\n",
+    fmt = "method {} ({})\n  returns ({})\n{}{}{}",
     name,
-    "display::foreach!(\"  var {};\n\", locals)",
-    "display::foreach!(\"{}\n\", basic_blocks)"
+    "display::cjoin(parameters)",
+    "display::cjoin(targets)",
+    "display::foreach!(\"  requires {}\n\", pres)",
+    "display::foreach!(\"  ensures {}\n\", posts)",
+    "display::option_foreach!(body, \"{{\n{}}}\", \"  {}\n\", \"\")"
 )]
-pub struct ProcedureDecl {
+/// A Viper method that performs a specific action such as havocking the given
+/// variable. Its body can have at most one basic block.
+pub struct MethodDecl {
     pub name: String,
-    pub locals: Vec<VariableDecl>,
-    pub basic_blocks: Vec<BasicBlock>,
-}
-
-#[display(
-    fmt = "  block {} {{\n{}\n    {}\n  }}\n",
-    label,
-    "display::foreach!(\"    {};\n\", statements)",
-    successor
-)]
-pub struct BasicBlock {
-    pub label: Label,
-    pub statements: Vec<Statement>,
-    pub successor: Successor,
-}
-
-#[display(fmt = "label {}", name)]
-pub struct Label {
-    pub name: String,
-}
-
-pub enum Successor {
-    Return,
-    Goto(Label),
-    #[display(fmt = "switch")]
-    GotoSwitch(Vec<(Expression, Label)>),
+    pub parameters: Vec<VariableDecl>,
+    pub targets: Vec<VariableDecl>,
+    pub pres: Vec<Expression>,
+    pub posts: Vec<Expression>,
+    pub body: Option<Vec<Statement>>,
 }

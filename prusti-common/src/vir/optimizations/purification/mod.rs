@@ -1,7 +1,7 @@
-use crate::vir::polymorphic_vir::{ast, cfg, utils::walk_method, Expr, Stmt, Position, Type, LocalVar, Field};
+use crate::vir::polymorphic_vir::{ast, cfg, utils::walk_method, Expr, Stmt, Type, LocalVar, Field};
 use prusti_utils::force_matches;
 use log::debug;
-use std::collections::{BTreeMap, BTreeSet, HashMap, HashSet};
+use std::collections::{BTreeSet, HashSet};
 
 /// This purifies local variables in a method body
 pub fn purify_methods(

@@ -8,7 +8,7 @@ use std::{
     collections::HashMap,
     env,
     fs,
-    path::PathBuf,
+    path::{PathBuf, Path},
     process::Command,
 };
 
@@ -42,7 +42,7 @@ fn find_executable_path(base_name: &str) -> PathBuf {
     );
 }
 
-fn run_on_files<F: FnMut(&PathBuf)>(dir: &PathBuf, run: &mut F) {
+fn run_on_files<F: FnMut(&Path)>(dir: &Path, run: &mut F) {
     let test_file = dir.join("test_file.rs");
     let mut has_files = false;
     for entry in fs::read_dir(dir).unwrap_or_else(|_| panic!("Did not find dir: {:?}", dir)) {
@@ -60,7 +60,7 @@ fn test_prusti_rustc_caching() {
     let prusti_rustc = find_executable_path("prusti-rustc");
 
     let mut hashes: HashMap<String, u64> = HashMap::new();
-    let mut run = |program: &PathBuf| {
+    let mut run = |program: &Path| {
         println!("Running {:?} on {:?}...", prusti_rustc, program);
         let out = Command::new(&prusti_rustc)
             .arg("--edition=2018")
@@ -80,7 +80,7 @@ fn test_prusti_rustc_caching() {
             let mut full_name = l1.strip_prefix("Received verification request for: ").unwrap().to_string();
             if cfg!(target_os = "windows") {
                 full_name = full_name.chars()
-                    .map(|x| match x { 
+                    .map(|x| match x {
                         '\\' | '/' | ':' | '*' | '?' | '"' | '<' | '>' | '|' => '-',
                         _ => x
                     }).collect();

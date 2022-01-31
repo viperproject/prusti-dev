@@ -3,4 +3,4 @@
 mod encoder;
 mod interface;
 
-pub(crate) use self::interface::MirProcedureEncoderInterface;
+pub(crate) use self::interface::{MirProcedureEncoderInterface, MirProcedureEncoderState};

@@ -9,7 +9,7 @@ pub use crate::polymorphic::FloatConst;
 
 #[derive_helpers]
 #[derive_visitors]
-#[derive(derive_more::From, derive_more::IsVariant)]
+#[derive(derive_more::From, derive_more::IsVariant, derive_more::Unwrap)]
 pub enum Expression {
     /// A local variable.
     Local(Local),

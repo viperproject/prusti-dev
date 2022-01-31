@@ -4,6 +4,8 @@ use std::collections::BTreeMap;
 #[must_use]
 pub struct ProcedureBuilder {
     name: String,
+    parameters: Vec<ast::expression::Local>,
+    returns: Vec<ast::expression::Local>,
     entry: Option<cfg::BasicBlockId>,
     basic_blocks: BTreeMap<cfg::BasicBlockId, cfg::BasicBlock>,
 }
@@ -17,9 +19,15 @@ pub struct BasicBlockBuilder<'a> {
 }
 
 impl ProcedureBuilder {
-    pub fn new(name: String) -> Self {
+    pub fn new(
+        name: String,
+        parameters: Vec<ast::expression::Local>,
+        returns: Vec<ast::expression::Local>,
+    ) -> Self {
         Self {
             name,
+            parameters,
+            returns,
             entry: None,
             basic_blocks: Default::default(),
         }
@@ -27,6 +35,8 @@ impl ProcedureBuilder {
     pub fn build(self) -> cfg::ProcedureDecl {
         cfg::ProcedureDecl {
             name: self.name,
+            parameters: self.parameters,
+            returns: self.returns,
             entry: self.entry.unwrap(),
             basic_blocks: self.basic_blocks,
         }

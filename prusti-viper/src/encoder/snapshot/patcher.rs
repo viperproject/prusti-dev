@@ -14,13 +14,13 @@ use crate::encoder::{
 };
 use vir_crate::polymorphic::{self as vir, ExprFolder, FallibleExprFolder, FallibleStmtFolder};
 
-pub(super) struct SnapshotPatcher<'v, 'tcx: 'v> {
-    pub(super) snapshot_encoder: &'v mut SnapshotEncoder,
-    pub(super) encoder: &'v Encoder<'v, 'tcx>,
-    pub(super) tymap: &'v SubstMap<'tcx>,
+pub(super) struct SnapshotPatcher<'p, 'v: 'p, 'tcx: 'v> {
+    pub(super) snapshot_encoder: &'p mut SnapshotEncoder,
+    pub(super) encoder: &'p Encoder<'v, 'tcx>,
+    pub(super) tymap: &'p SubstMap<'tcx>,
 }
 
-impl<'v, 'tcx: 'v> FallibleExprFolder for SnapshotPatcher<'v, 'tcx> {
+impl<'p, 'v: 'p, 'tcx: 'v> FallibleExprFolder for SnapshotPatcher<'p, 'v, 'tcx> {
     type Error = EncodingError;
 
     fn fallible_fold_snap_app(
@@ -214,7 +214,7 @@ impl<'v, 'tcx: 'v> FallibleExprFolder for SnapshotPatcher<'v, 'tcx> {
     }
 }
 
-impl<'v, 'tcx: 'v> FallibleStmtFolder for SnapshotPatcher<'v, 'tcx> {
+impl<'p, 'v: 'p, 'tcx: 'v> FallibleStmtFolder for SnapshotPatcher<'p, 'v, 'tcx> {
     type Error = EncodingError;
 
     fn fallible_fold_expr(&mut self, expr: vir::Expr) -> Result<vir::Expr, Self::Error> {
