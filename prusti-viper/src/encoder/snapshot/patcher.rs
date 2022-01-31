@@ -8,7 +8,6 @@ use crate::encoder::{
     encoder::SubstMap,
     errors::{EncodingError, EncodingResult},
     high::types::HighTypeEncoderInterface,
-    mir::types::MirTypeEncoderInterface,
     snapshot::encoder::SnapshotEncoder,
     Encoder,
 };

@@ -6,9 +6,8 @@ use crate::encoder::{
     middle::core_proof::lowerer::{DomainsLowererInterface, Lowerer},
 };
 use vir_crate::{
-    common::identifier::WithIdentifier,
     low as vir_low,
-    middle::{self as vir_mid, operations::ty::Typed},
+    middle::{self as vir_mid},
 };
 
 pub(in super::super) trait PlacesInterface {

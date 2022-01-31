@@ -4,13 +4,7 @@ use super::{
     FoldUnfoldState,
 };
 use crate::encoder::errors::SpannedEncodingResult;
-use vir_crate::{
-    high as vir_high,
-    middle::{
-        self as vir_mid,
-        operations::{ToMiddleExpression, ToMiddleStatement},
-    },
-};
+use vir_crate::high as vir_high;
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub(in super::super) enum ExpandedPermissionKind {

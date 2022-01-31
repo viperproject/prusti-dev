@@ -7,7 +7,7 @@
 use crate::utils::{self, is_prefix};
 use rustc_data_structures::fx::FxHashSet;
 use rustc_middle::{mir, ty::TyCtxt};
-use std::mem;
+
 
 /// A set of MIR places.
 ///

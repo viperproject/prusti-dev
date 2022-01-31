@@ -11,7 +11,6 @@
 #![feature(try_blocks)]
 #![feature(never_type)]
 
-#![allow(unused_imports)]
 #![deny(unused_must_use)]
 #![deny(unreachable_patterns)]
 // #![deny(unused_mut)]
@@ -27,7 +26,6 @@ extern crate rustc_ast;
 extern crate rustc_target;
 extern crate rustc_attr;
 extern crate rustc_data_structures;
-#[macro_use]
 extern crate lazy_static;
 
 pub mod encoder;

@@ -5,7 +5,7 @@ use crate::encoder::{
 };
 use log::*;
 use prusti_common::{report, utils::to_string::ToString};
-use std::{mem, ops::Deref};
+use std::ops::Deref;
 use vir_crate::polymorphic::{self as vir, CfgReplacer, ExprFolder};
 
 impl<'p, 'v: 'p, 'tcx: 'v> FoldUnfold<'p, 'v, 'tcx> {

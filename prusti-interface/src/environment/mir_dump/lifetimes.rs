@@ -1,12 +1,9 @@
 use crate::environment::{
-    borrowck::facts::{
-        AllInputFacts, AllOutputFacts, BorrowckFacts, Loan, Point, PointIndex, Region,
-    },
+    borrowck::facts::{AllInputFacts, AllOutputFacts, BorrowckFacts, Loan, PointIndex, Region},
     mir_dump::graphviz::{loan_to_text, to_sorted_text},
-    Environment,
 };
 use rustc_borrowck::consumers::{LocationTable, RichLocation};
-use rustc_span::def_id::DefId;
+
 use std::{
     cell::Ref,
     collections::{BTreeMap, BTreeSet},

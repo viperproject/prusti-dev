@@ -1,12 +1,8 @@
-use crate::encoder::{
-    errors::SpannedEncodingResult,
-    high::pure_functions::HighPureFunctionEncoderInterface,
-    middle::core_proof::{into_low::IntoLow, lowerer::Lowerer},
-};
+use crate::encoder::{errors::SpannedEncodingResult, middle::core_proof::lowerer::Lowerer};
 use std::collections::{BTreeMap, BTreeSet};
 use vir_crate::{
     common::identifier::WithIdentifier,
-    low::{self as vir_low, operations::ty::Typed},
+    low::{self as vir_low},
     middle as vir_mid,
 };
 

@@ -15,7 +15,7 @@ use prusti_common::report::log;
 use rustc_hir::def_id::DefId;
 use rustc_middle::mir;
 use ::log::trace;
-use crate::encoder::mir::types::MirTypeEncoderInterface;
+
 
 pub struct StubProcedureEncoder<'p, 'v: 'p, 'tcx: 'v>
  {

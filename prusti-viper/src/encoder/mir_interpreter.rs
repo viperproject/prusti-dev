@@ -12,7 +12,7 @@ use std::iter::FromIterator;
 use std::marker::Sized;
 use log::trace;
 use std::mem;
-use crate::encoder::errors::EncodingError;
+
 
 /// Backward interpreter for a loop-less MIR
 pub trait BackwardMirInterpreter<'tcx> {

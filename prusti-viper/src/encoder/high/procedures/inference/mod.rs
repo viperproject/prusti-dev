@@ -1,18 +1,9 @@
 use self::{state::FoldUnfoldState, visitor::Visitor};
-use crate::encoder::{
-    errors::{ErrorCtxt, SpannedEncodingResult},
-    high::{type_layouts::HighTypeLayoutsEncoderInterface, types::HighTypeEncoderInterface},
-    mir::{errors::ErrorInterface, types::MirTypeEncoderInterface},
-    Encoder,
-};
+use crate::encoder::{errors::SpannedEncodingResult, Encoder};
 use rustc_hir::def_id::DefId;
 use vir_crate::{
-    common::position::Positioned,
-    high::{self as vir_high, operations::ty::Typed},
-    middle::{
-        self as vir_mid,
-        operations::{ToMiddleExpression, ToMiddleStatement},
-    },
+    high::{self as vir_high},
+    middle::{self as vir_mid},
 };
 
 mod action;

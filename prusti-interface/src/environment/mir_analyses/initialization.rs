@@ -18,16 +18,10 @@
 
 use crate::environment::place_set::PlaceSet;
 use analysis::{domains::DefinitelyInitializedAnalysis};
-use csv::{ReaderBuilder, WriterBuilder};
-use log::trace;
 use prusti_common::Stopwatch;
 use rustc_data_structures::fx::FxHashMap;
-use rustc_hir as hir;
 use rustc_hir::def_id::DefId;
-use rustc_index::vec::Idx;
 use rustc_middle::{mir, ty::TyCtxt};
-use serde::{Deserialize, Serialize};
-use std::{collections::HashMap, path::Path};
 use analysis::abstract_interpretation::{FixpointEngine, AbstractState};
 
 pub struct AnalysisResult<T> {

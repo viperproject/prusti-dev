@@ -61,33 +61,6 @@ impl Stmt {
     }
 }
 
-/// Substitute (map) old expressions in an expression
-impl Expr {
-    #[allow(dead_code)]
-    #[must_use]
-    pub fn map_old_expr<F>(self, substitutor: F) -> Self
-    where
-        F: Fn(&str, Expr) -> Expr,
-    {
-        trace!("Expr::map_old_expr {}", self);
-        struct ExprOldExprSubstitutor<T>
-        where
-            T: Fn(&str, Expr) -> Expr,
-        {
-            substitutor: T,
-        }
-        impl<T> ExprFolder for ExprOldExprSubstitutor<T>
-        where
-            T: Fn(&str, Expr) -> Expr,
-        {
-            fn fold_labelled_old(&mut self, x: String, y: Box<Expr>, p: Position) -> Expr {
-                (self.substitutor)(&x, *y).set_pos(p)
-            }
-        }
-        ExprOldExprSubstitutor { substitutor }.fold(self)
-    }
-}
-
 /// In an expression, substitute labels of old expressions
 impl Expr {
     #[must_use]

@@ -6,8 +6,8 @@
 
 use super::Predicates;
 use crate::encoder::foldunfold::{
-    action::*, footprint::*, log::EventLog, perm::*, places_utils::*, requirements::*,
-    semantics::ApplyOnState, state::*, FoldUnfoldError, FoldUnfoldError::FailedToObtain,
+    action::*, footprint::*, log::EventLog, perm::*, places_utils::*, semantics::ApplyOnState,
+    state::*, FoldUnfoldError, FoldUnfoldError::FailedToObtain,
 };
 use log::{debug, trace};
 use prusti_common::utils::to_string::ToString;

@@ -1,16 +1,8 @@
 use crate::encoder::{
-    errors::SpannedEncodingResult,
-    high::{
-        expressions::HighExpressionEncoderInterface, procedures::HighProcedureEncoderInterface,
-    },
-    mir::procedures::MirProcedureEncoderInterface,
+    errors::SpannedEncodingResult, high::procedures::HighProcedureEncoderInterface,
 };
 use rustc_hir::def_id::DefId;
-use vir_crate::{
-    common::identifier::WithIdentifier,
-    low::{self as vir_low, operations::ToLow},
-    middle as vir_mid,
-};
+use vir_crate::low::{self as vir_low};
 
 #[derive(Default)]
 pub(crate) struct MidCoreProofEncoderState {

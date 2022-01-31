@@ -1,6 +1,6 @@
-use super::{permission::Permission, state::FoldUnfoldState};
+use super::permission::Permission;
 use crate::encoder::errors::SpannedEncodingResult;
-use vir_crate::{high as vir_high, middle as vir_mid};
+use vir_crate::high as vir_high;
 
 pub(in super::super) fn collect_permission_changes(
     statement: &vir_high::Statement,

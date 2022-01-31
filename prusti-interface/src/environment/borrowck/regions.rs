@@ -4,24 +4,11 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-///! Code for finding `rustc::ty::sty::RegionVid` associated with local
-///! reference typed variables.
-
-use rustc_borrowck::BodyWithBorrowckFacts;
-
 use std::collections::HashMap;
-use std::fs::File;
 use std::io;
-use std::io::BufRead;
-use std::path::Path;
-
 use log::debug;
 use log::trace;
-use regex::Regex;
-
-use rustc_index::vec::Idx;
 use rustc_middle::{mir, ty};
-
 use crate::environment::borrowck::facts;
 
 #[derive(Debug)]

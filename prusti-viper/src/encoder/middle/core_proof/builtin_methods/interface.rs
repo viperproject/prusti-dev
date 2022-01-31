@@ -3,7 +3,6 @@ use crate::encoder::{
     errors::{BuiltinMethodKind, ErrorCtxt, SpannedEncodingResult},
     high::types::HighTypeEncoderInterface,
     middle::core_proof::{
-        addresses::AddressesInterface,
         builtin_methods::split_join::SplitJoinHelper,
         compute_address::ComputeAddressInterface,
         errors::ErrorsInterface,
@@ -16,14 +15,8 @@ use crate::encoder::{
     },
 };
 use rustc_hash::FxHashSet;
-use std::borrow::Cow;
-use vir_crate::{
-    common::{
-        expression::{ExpressionIterator, QuantifierHelpers},
-        identifier::WithIdentifier,
-    },
-    low as vir_low, middle as vir_mid,
-};
+
+use vir_crate::{common::expression::ExpressionIterator, low as vir_low, middle as vir_mid};
 
 #[derive(Default)]
 pub(in super::super) struct BuiltinMethodsState {

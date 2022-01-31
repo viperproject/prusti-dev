@@ -7,7 +7,7 @@
 use rustc_middle::mir;
 use rustc_middle::ty::Ty;
 use rustc_index::vec::{Idx, IndexVec};
-use std::{iter, ops};
+use std::{iter};
 
 /// A local variable used as an abstraction over both real Rust MIR local
 /// variables and temporary variables used in encoder.

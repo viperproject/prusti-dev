@@ -1,9 +1,8 @@
-use log::{debug, info};
+use log::{debug};
 use rustc_hir::{
     self as hir,
-    def_id::{DefId, LocalDefId},
+    def_id::{DefId},
     intravisit::{self, Visitor},
-    itemlikevisit::ItemLikeVisitor,
 };
 use rustc_middle::{hir::map::Map, ty::TyCtxt};
 use rustc_span::{MultiSpan, Span};

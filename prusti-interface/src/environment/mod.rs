@@ -6,19 +6,19 @@
 
 //! This module defines the interface provided to a verifier.
 
-use rustc_ast::ast;
-use rustc_hir as hir;
+
+
 use rustc_middle::mir;
 use rustc_hir::hir_id::HirId;
 use rustc_hir::def_id::{DefId, LocalDefId};
-use rustc_middle::ty::{self, TyCtxt, ParamEnv, WithOptConstParam};
+use rustc_middle::ty::{self, TyCtxt};
 use rustc_middle::ty::subst::SubstsRef;
 use rustc_trait_selection::infer::{TyCtxtInferExt, InferCtxtExt};
 use std::path::PathBuf;
-use std::cell::Ref;
+
 use rustc_span::{Span, MultiSpan, symbol::Symbol};
 use std::collections::HashSet;
-use log::{debug, warn, trace};
+use log::{debug, trace};
 use std::rc::Rc;
 use std::collections::HashMap;
 use std::cell::RefCell;

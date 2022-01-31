@@ -6,7 +6,7 @@
 
 use rustc_hir::Mutability;
 use rustc_middle::ty::{
-    AdtDef, FieldDef, ParamTy, ProjectionTy, Region, Slice, Ty, TyCtxt,
+    AdtDef, FieldDef, ParamTy, ProjectionTy, Region, Ty, TyCtxt,
     TypeFlags, TyKind, IntTy, UintTy, FloatTy, VariantDef, subst::SubstsRef, Const
 };
 use rustc_hir::def_id::DefId;

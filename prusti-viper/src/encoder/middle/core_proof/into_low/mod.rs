@@ -1,6 +1,5 @@
-use super::{lowerer::Lowerer, MidCoreProofEncoderInterface};
-use crate::encoder::{errors::SpannedEncodingResult, Encoder};
-use vir_crate::{low as vir_low, middle as vir_mid};
+use super::lowerer::Lowerer;
+use crate::encoder::errors::SpannedEncodingResult;
 
 mod cfg;
 mod expression;

@@ -5,10 +5,10 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use rustc_middle::mir::{self, TerminatorKind};
-use rustc_middle::ty;
+
 use rustc_index::vec::IndexVec;
-use std::collections::{HashSet, HashMap};
-use log::{trace, debug};
+
+
 
 /// A data structure to store the non-virtual CFG edges of a MIR body.
 pub struct RealEdges {

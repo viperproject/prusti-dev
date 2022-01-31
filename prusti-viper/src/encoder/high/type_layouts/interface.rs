@@ -1,7 +1,7 @@
 use crate::encoder::{
     errors::SpannedEncodingResult, mir::type_layouts::MirTypeLayoutsEncoderInterface,
 };
-use rustc_middle::{mir, ty};
+use rustc_middle::ty;
 use vir_crate::middle::{self as vir_mid, operations::ToMiddleExpression};
 
 pub(crate) trait HighTypeLayoutsEncoderInterface<'tcx> {

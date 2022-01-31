@@ -3,13 +3,7 @@ use crate::encoder::{
     high::{type_layouts::HighTypeLayoutsEncoderInterface, types::HighTypeEncoderInterface},
     middle::core_proof::{into_low::IntoLowInterface, lowerer::Lowerer, snapshots::IntoSnapshot},
 };
-use vir_crate::{
-    common::{
-        expression::{ExpressionIterator, QuantifierHelpers},
-        identifier::WithIdentifier,
-    },
-    low as vir_low, middle as vir_mid,
-};
+use vir_crate::{low as vir_low, middle as vir_mid};
 
 pub(in super::super) trait TypeLayoutsInterface {
     fn size_type(&mut self) -> SpannedEncodingResult<vir_low::Type>;
