@@ -39,8 +39,6 @@
 <span id="36">36</span>
 <span id="37">37</span>
 <span id="38">38</span>
-<span id="39">39</span>
-<span id="40">40</span>
 </pre><pre class="rust"><code><span class="comment">// © 2019, ETH Zurich</span>
 <span class="comment">//</span>
 <span class="comment">// This Source Code Form is subject to the terms of the Mozilla Public</span>
@@ -48,35 +46,33 @@
 <span class="comment">// file, You can obtain one at http://mozilla.org/MPL/2.0/.</span>
 
 <span class="kw">use</span> <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#56-62"><span class="kw">super</span>::Environment</a>;
-<span class="kw">use</span> <a class="ident" href="../../../src/prusti_interface/environment/borrowck/mod.rs.html#7"><span class="kw">super</span>::borrowck::facts</a>;
-<span class="kw">use</span> <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#30"><span class="kw">super</span>::loops</a>;
-<span class="kw">use</span> <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#31"><span class="kw">super</span>::loops_utils</a>::<span class="kw-2">*</span>;
-<span class="kw">use</span> <span class="ident"><span class="kw">super</span>::mir_analyses::initialization</span>::{
-    <a class="ident" href="../../../src/prusti_interface/environment/mir_analyses/initialization.rs.html#68-72">compute_definitely_initialized</a>, <a class="ident" href="../../../src/prusti_interface/environment/mir_analyses/initialization.rs.html#66">DefinitelyInitializedAnalysisResult</a>,
-};
-<span class="kw">use</span> <a class="ident" href="../../../src/prusti_interface/environment/polonius_info.rs.html#371-397"><span class="kw">super</span>::polonius_info::PoloniusInfo</a>;
-<span class="kw">use</span> <a class="ident" href="../../../src/prusti_interface/environment/procedure.rs.html#27-35"><span class="kw">super</span>::procedure::Procedure</a>;
+
+
+
+
+
+
 <span class="kw">use</span> <a class="ident" href="../../../src/prusti_interface/data.rs.html#13"><span class="kw">crate</span>::data::ProcedureDefId</a>;
-<span class="kw">use</span> <span class="ident">rustc_hir</span> <span class="kw">as</span> <span class="ident">hir</span>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/index.html">rustc_middle::mir</a>;
-<span class="kw">use</span> <span class="ident">rustc_middle::ty</span>::{<a class="self" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/index.html">self</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/context/struct.TyCtxt.html">TyCtxt</a>};
-<span class="kw">use</span> <span class="ident">rustc_index::vec::Idx</span>;
-<span class="kw">use</span> <a class="ident" href="../../../rustc_hash/type.FxHashMap.html">rustc_hash::FxHashMap</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/cell/index.html">std::cell</a>;
-<span class="kw">use</span> <span class="ident">std::collections</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/collections/btree/map/struct.BTreeMap.html">BTreeMap</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/collections/btree/set/struct.BTreeSet.html">BTreeSet</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/collections/hash/set/struct.HashSet.html">HashSet</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/collections/hash/map/struct.HashMap.html">HashMap</a>};
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/env/index.html">std::env</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/fs/struct.File.html">std::fs::File</a>;
-<span class="kw">use</span> <span class="ident">std::io</span>::{<a class="self" href="https://doc.rust-lang.org/nightly/std/io/index.html">self</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/buffered/bufwriter/struct.BufWriter.html">BufWriter</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>};
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/path/struct.PathBuf.html">std::path::PathBuf</a>;
-<span class="kw">use</span> <span class="ident">log</span>::{<span class="ident">trace</span>, <span class="ident">debug</span>};
-<span class="kw">use</span> <a class="ident" href="../../../prusti_common/config/index.html">prusti_common::config</a>;
-<span class="kw">use</span> <a class="ident" href="../../../src/prusti_interface/environment/mir_utils/real_edges.rs.html#14-17"><span class="kw">crate</span>::environment::mir_utils::RealEdges</a>;
+
+
+
+
+
+
+
+
+
+
+
+<span class="kw">use</span> <span class="ident">log</span>::{<span class="ident">trace</span>};
+
+
 
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">dump_borrowck_info</span>(<span class="ident">env</span>: <span class="kw-2">&amp;</span><span class="ident">Environment</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>, <span class="ident">procedures</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="../../../src/prusti_interface/data.rs.html#13">ProcedureDefId</a>]) {
     <span class="macro">trace!</span>(<span class="string">&quot;[dump_borrowck_info] enter&quot;</span>);
 
-    <span class="kw">for</span> <span class="ident">def_id</span> <span class="kw">in</span> <a class="ident" href="../../../src/prusti_interface/environment/dump_borrowck_info.rs.html#32">procedures</a> {
-        <a class="ident" href="../../../src/prusti_interface/environment/mir_dump/mod.rs.html#11"><span class="kw">crate</span>::environment::mir_dump::dump_mir_info</a>(<a class="ident" href="../../../src/prusti_interface/environment/dump_borrowck_info.rs.html#32">env</a>, <span class="kw-2">*</span><a class="ident" href="../../../src/prusti_interface/environment/dump_borrowck_info.rs.html#35">def_id</a>);
+    <span class="kw">for</span> <span class="ident">def_id</span> <span class="kw">in</span> <a class="ident" href="../../../src/prusti_interface/environment/dump_borrowck_info.rs.html#30">procedures</a> {
+        <a class="ident" href="../../../src/prusti_interface/environment/mir_dump/mod.rs.html#9"><span class="kw">crate</span>::environment::mir_dump::dump_mir_info</a>(<a class="ident" href="../../../src/prusti_interface/environment/dump_borrowck_info.rs.html#30">env</a>, <span class="kw-2">*</span><a class="ident" href="../../../src/prusti_interface/environment/dump_borrowck_info.rs.html#33">def_id</a>);
     }
 
     <span class="macro">trace!</span>(<span class="string">&quot;[dump_borrowck_info] exit&quot;</span>);

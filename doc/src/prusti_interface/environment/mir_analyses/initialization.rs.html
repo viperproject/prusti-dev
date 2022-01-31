@@ -120,12 +120,6 @@
 <span id="117">117</span>
 <span id="118">118</span>
 <span id="119">119</span>
-<span id="120">120</span>
-<span id="121">121</span>
-<span id="122">122</span>
-<span id="123">123</span>
-<span id="124">124</span>
-<span id="125">125</span>
 </pre><pre class="rust"><code><span class="comment">// © 2021, ETH Zurich</span>
 <span class="comment">//</span>
 <span class="comment">// This Source Code Form is subject to the terms of the Mozilla Public</span>
@@ -146,16 +140,10 @@
 
 <span class="kw">use</span> <a class="ident" href="../../../../src/prusti_interface/environment/place_set.rs.html#18-20"><span class="kw">crate</span>::environment::place_set::PlaceSet</a>;
 <span class="kw">use</span> <span class="ident">analysis</span>::{<a class="ident" href="../../../../analysis/domains/definitely_initialized/analysis/struct.DefinitelyInitializedAnalysis.html">domains::DefinitelyInitializedAnalysis</a>};
-<span class="kw">use</span> <span class="ident">csv</span>::{<a class="ident" href="../../../../csv/reader/struct.ReaderBuilder.html">ReaderBuilder</a>, <a class="ident" href="../../../../csv/writer/struct.WriterBuilder.html">WriterBuilder</a>};
-<span class="kw">use</span> <span class="ident">log::trace</span>;
 <span class="kw">use</span> <a class="ident" href="../../../../prusti_common/stopwatch/struct.Stopwatch.html">prusti_common::Stopwatch</a>;
 <span class="kw">use</span> <a class="ident" href="../../../../rustc_hash/type.FxHashMap.html">rustc_data_structures::fx::FxHashMap</a>;
-<span class="kw">use</span> <span class="ident">rustc_hir</span> <span class="kw">as</span> <span class="ident">hir</span>;
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">rustc_hir::def_id::DefId</a>;
-<span class="kw">use</span> <span class="ident">rustc_index::vec::Idx</span>;
 <span class="kw">use</span> <span class="ident">rustc_middle</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/index.html">mir</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/context/struct.TyCtxt.html">ty::TyCtxt</a>};
-<span class="kw">use</span> <span class="ident">serde</span>::{<a class="ident" href="../../../../serde/de/trait.Deserialize.html">Deserialize</a>, <a class="ident" href="../../../../serde/ser/trait.Serialize.html">Serialize</a>};
-<span class="kw">use</span> <span class="ident">std</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/std/collections/hash/map/struct.HashMap.html">collections::HashMap</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">path::Path</a>};
 <span class="kw">use</span> <span class="ident">analysis::abstract_interpretation</span>::{<a class="ident" href="../../../../analysis/abstract_interpretation/fixpoint_engine/trait.FixpointEngine.html">FixpointEngine</a>, <a class="ident" href="../../../../analysis/abstract_interpretation/abstract_state/trait.AbstractState.html">AbstractState</a>};
 
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">AnalysisResult</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
@@ -176,17 +164,17 @@
     <span class="doccomment">/// Get the initialization set before the first statement of the</span>
     <span class="doccomment">/// basic block.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_before_block</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">bb</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">mir::BasicBlock</a>) -&gt; <span class="kw-2">&amp;</span><span class="ident">T</span> {
-        <a class="self" href="../../../../src/prusti_interface/environment/mir_analyses/initialization.rs.html#50">self</a>.<span class="ident">before_block</span>
-            .<span class="ident">get</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../src/prusti_interface/environment/mir_analyses/initialization.rs.html#50">bb</a>)
-            .<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="macro">panic!</span>(<span class="string">&quot;Missing initialization info for block {:?}&quot;</span>, <a class="ident" href="../../../../src/prusti_interface/environment/mir_analyses/initialization.rs.html#50">bb</a>))
+        <a class="self" href="../../../../src/prusti_interface/environment/mir_analyses/initialization.rs.html#44">self</a>.<span class="ident">before_block</span>
+            .<span class="ident">get</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../src/prusti_interface/environment/mir_analyses/initialization.rs.html#44">bb</a>)
+            .<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="macro">panic!</span>(<span class="string">&quot;Missing initialization info for block {:?}&quot;</span>, <a class="ident" href="../../../../src/prusti_interface/environment/mir_analyses/initialization.rs.html#44">bb</a>))
     }
     <span class="doccomment">/// Get the initialization set after the statement.</span>
     <span class="doccomment">/// If `location.statement_index` is equal to the number of statements,</span>
     <span class="doccomment">/// returns the initialization set after the terminator.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_after_statement</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">location</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Location.html">mir::Location</a>) -&gt; <span class="kw-2">&amp;</span><span class="ident">T</span> {
-        <a class="self" href="../../../../src/prusti_interface/environment/mir_analyses/initialization.rs.html#58">self</a>.<span class="ident">after_statement</span>
-            .<span class="ident">get</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../src/prusti_interface/environment/mir_analyses/initialization.rs.html#58">location</a>)
-            .<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="macro">panic!</span>(<span class="string">&quot;Missing initialization info for location {:?}&quot;</span>, <a class="ident" href="../../../../src/prusti_interface/environment/mir_analyses/initialization.rs.html#58">location</a>))
+        <a class="self" href="../../../../src/prusti_interface/environment/mir_analyses/initialization.rs.html#52">self</a>.<span class="ident">after_statement</span>
+            .<span class="ident">get</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../src/prusti_interface/environment/mir_analyses/initialization.rs.html#52">location</a>)
+            .<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="macro">panic!</span>(<span class="string">&quot;Missing initialization info for location {:?}&quot;</span>, <a class="ident" href="../../../../src/prusti_interface/environment/mir_analyses/initialization.rs.html#52">location</a>))
     }
 }
 
@@ -199,14 +187,14 @@
     <span class="ident">tcx</span>: <span class="ident">TyCtxt</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
 ) -&gt; <span class="ident">DefinitelyInitializedAnalysisResult</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">stopwatch</span> <span class="op">=</span> <span class="ident">Stopwatch::start_debug</span>(<span class="string">&quot;prusti-client&quot;</span>, <span class="string">&quot;initialization analysis&quot;</span>);
-    <span class="kw">let</span> <span class="ident">analysis</span> <span class="op">=</span> <span class="ident">DefinitelyInitializedAnalysis::new</span>(<a class="ident" href="../../../../src/prusti_interface/environment/mir_analyses/initialization.rs.html#71">tcx</a>, <a class="ident" href="../../../../src/prusti_interface/environment/mir_analyses/initialization.rs.html#69">def_id</a>, <a class="ident" href="../../../../src/prusti_interface/environment/mir_analyses/initialization.rs.html#70">body</a>);
-    <span class="kw">let</span> <span class="ident">pointwise_state</span> <span class="op">=</span> <a class="ident" href="../../../../src/prusti_interface/environment/mir_analyses/initialization.rs.html#74">analysis</a>
+    <span class="kw">let</span> <span class="ident">analysis</span> <span class="op">=</span> <span class="ident">DefinitelyInitializedAnalysis::new</span>(<a class="ident" href="../../../../src/prusti_interface/environment/mir_analyses/initialization.rs.html#65">tcx</a>, <a class="ident" href="../../../../src/prusti_interface/environment/mir_analyses/initialization.rs.html#63">def_id</a>, <a class="ident" href="../../../../src/prusti_interface/environment/mir_analyses/initialization.rs.html#64">body</a>);
+    <span class="kw">let</span> <span class="ident">pointwise_state</span> <span class="op">=</span> <a class="ident" href="../../../../src/prusti_interface/environment/mir_analyses/initialization.rs.html#68">analysis</a>
         .<a class="ident" href="../../../../analysis/abstract_interpretation/fixpoint_engine/trait.FixpointEngine.html">run_fwd_analysis</a>()
         .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> {
             <span class="macro">panic!</span>(
                 <span class="string">&quot;Error while analyzing function at {:?}: {}&quot;</span>,
-                <a class="ident" href="../../../../src/prusti_interface/environment/mir_analyses/initialization.rs.html#70">body</a>.<span class="ident">span</span>,
-                <a class="ident" href="../../../../src/prusti_interface/environment/mir_analyses/initialization.rs.html#77">e</a>.<span class="ident">to_pretty_str</span>(<a class="ident" href="../../../../src/prusti_interface/environment/mir_analyses/initialization.rs.html#70">body</a>)
+                <a class="ident" href="../../../../src/prusti_interface/environment/mir_analyses/initialization.rs.html#64">body</a>.<span class="ident">span</span>,
+                <a class="ident" href="../../../../src/prusti_interface/environment/mir_analyses/initialization.rs.html#71">e</a>.<span class="ident">to_pretty_str</span>(<a class="ident" href="../../../../src/prusti_interface/environment/mir_analyses/initialization.rs.html#64">body</a>)
             )
         })
         .<span class="ident">unwrap</span>();
@@ -214,42 +202,42 @@
     <span class="comment">// Convert the pointwise_state to analysis_result.</span>
     <span class="comment">// TODO: Replace AnalysisResult with PointwiseState, to avoid this conversion.</span>
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">analysis_result</span> <span class="op">=</span> <span class="ident">AnalysisResult::new</span>();
-    <span class="kw">for</span> (<span class="ident">bb</span>, <span class="ident">bb_data</span>) <span class="kw">in</span> <a class="ident" href="../../../../src/prusti_interface/environment/mir_analyses/initialization.rs.html#70">body</a>.<span class="ident">basic_blocks</span>().<span class="ident">iter_enumerated</span>() {
-        <span class="kw">let</span> <span class="ident">num_statements</span> <span class="op">=</span> <a class="ident" href="../../../../src/prusti_interface/environment/mir_analyses/initialization.rs.html#89">bb_data</a>.<span class="ident">statements</span>.<span class="ident">len</span>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">location</span> <span class="op">=</span> <a class="ident" href="../../../../src/prusti_interface/environment/mir_analyses/initialization.rs.html#89">bb</a>.<span class="ident">start_location</span>();
-        <a class="ident" href="../../../../src/prusti_interface/environment/mir_analyses/initialization.rs.html#88">analysis_result</a>.<span class="ident">before_block</span>.<span class="ident">insert</span>(
-            <a class="ident" href="../../../../src/prusti_interface/environment/mir_analyses/initialization.rs.html#89">bb</a>,
-            <a class="ident" href="../../../../src/prusti_interface/environment/mir_analyses/initialization.rs.html#75">pointwise_state</a>
-                .<span class="ident">lookup_before</span>(<a class="ident" href="../../../../src/prusti_interface/environment/mir_analyses/initialization.rs.html#91">location</a>)
+    <span class="kw">for</span> (<span class="ident">bb</span>, <span class="ident">bb_data</span>) <span class="kw">in</span> <a class="ident" href="../../../../src/prusti_interface/environment/mir_analyses/initialization.rs.html#64">body</a>.<span class="ident">basic_blocks</span>().<span class="ident">iter_enumerated</span>() {
+        <span class="kw">let</span> <span class="ident">num_statements</span> <span class="op">=</span> <a class="ident" href="../../../../src/prusti_interface/environment/mir_analyses/initialization.rs.html#83">bb_data</a>.<span class="ident">statements</span>.<span class="ident">len</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">location</span> <span class="op">=</span> <a class="ident" href="../../../../src/prusti_interface/environment/mir_analyses/initialization.rs.html#83">bb</a>.<span class="ident">start_location</span>();
+        <a class="ident" href="../../../../src/prusti_interface/environment/mir_analyses/initialization.rs.html#82">analysis_result</a>.<span class="ident">before_block</span>.<span class="ident">insert</span>(
+            <a class="ident" href="../../../../src/prusti_interface/environment/mir_analyses/initialization.rs.html#83">bb</a>,
+            <a class="ident" href="../../../../src/prusti_interface/environment/mir_analyses/initialization.rs.html#69">pointwise_state</a>
+                .<span class="ident">lookup_before</span>(<a class="ident" href="../../../../src/prusti_interface/environment/mir_analyses/initialization.rs.html#85">location</a>)
                 .<span class="ident">unwrap</span>()
                 .<span class="ident">get_def_init_places</span>()
                 .<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()
                 .<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
         );
-        <span class="kw">while</span> <a class="ident" href="../../../../src/prusti_interface/environment/mir_analyses/initialization.rs.html#91">location</a>.<span class="ident">statement_index</span> <span class="op">&lt;</span> <a class="ident" href="../../../../src/prusti_interface/environment/mir_analyses/initialization.rs.html#90">num_statements</a> {
+        <span class="kw">while</span> <a class="ident" href="../../../../src/prusti_interface/environment/mir_analyses/initialization.rs.html#85">location</a>.<span class="ident">statement_index</span> <span class="op">&lt;</span> <a class="ident" href="../../../../src/prusti_interface/environment/mir_analyses/initialization.rs.html#84">num_statements</a> {
             <span class="comment">// `location` identifies a statement</span>
-            <span class="kw">let</span> <span class="ident">state</span> <span class="op">=</span> <a class="ident" href="../../../../src/prusti_interface/environment/mir_analyses/initialization.rs.html#75">pointwise_state</a>.<span class="ident">lookup_after</span>(<a class="ident" href="../../../../src/prusti_interface/environment/mir_analyses/initialization.rs.html#91">location</a>).<span class="ident">unwrap</span>();
-            <a class="ident" href="../../../../src/prusti_interface/environment/mir_analyses/initialization.rs.html#88">analysis_result</a>
+            <span class="kw">let</span> <span class="ident">state</span> <span class="op">=</span> <a class="ident" href="../../../../src/prusti_interface/environment/mir_analyses/initialization.rs.html#69">pointwise_state</a>.<span class="ident">lookup_after</span>(<a class="ident" href="../../../../src/prusti_interface/environment/mir_analyses/initialization.rs.html#85">location</a>).<span class="ident">unwrap</span>();
+            <a class="ident" href="../../../../src/prusti_interface/environment/mir_analyses/initialization.rs.html#82">analysis_result</a>
                 .<span class="ident">after_statement</span>
-                .<span class="ident">insert</span>(<a class="ident" href="../../../../src/prusti_interface/environment/mir_analyses/initialization.rs.html#91">location</a>, <a class="ident" href="../../../../src/prusti_interface/environment/mir_analyses/initialization.rs.html#103">state</a>.<span class="ident">get_def_init_places</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>());
-            <a class="ident" href="../../../../src/prusti_interface/environment/mir_analyses/initialization.rs.html#91">location</a> <span class="op">=</span> <a class="ident" href="../../../../src/prusti_interface/environment/mir_analyses/initialization.rs.html#91">location</a>.<span class="ident">successor_within_block</span>();
+                .<span class="ident">insert</span>(<a class="ident" href="../../../../src/prusti_interface/environment/mir_analyses/initialization.rs.html#85">location</a>, <a class="ident" href="../../../../src/prusti_interface/environment/mir_analyses/initialization.rs.html#97">state</a>.<span class="ident">get_def_init_places</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>());
+            <a class="ident" href="../../../../src/prusti_interface/environment/mir_analyses/initialization.rs.html#85">location</a> <span class="op">=</span> <a class="ident" href="../../../../src/prusti_interface/environment/mir_analyses/initialization.rs.html#85">location</a>.<span class="ident">successor_within_block</span>();
         }
         <span class="comment">// `location` identifies a terminator</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">states_after_block</span> <span class="op">=</span> <a class="ident" href="../../../../src/prusti_interface/environment/mir_analyses/initialization.rs.html#75">pointwise_state</a>.<span class="ident">lookup_after_block</span>(<a class="ident" href="../../../../src/prusti_interface/environment/mir_analyses/initialization.rs.html#89">bb</a>).<span class="ident">unwrap</span>().<span class="ident">values</span>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">opt_state_after_block</span> <span class="op">=</span> <a class="ident" href="../../../../src/prusti_interface/environment/mir_analyses/initialization.rs.html#110">states_after_block</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>().<span class="ident">cloned</span>();
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">curr_state</span>) <span class="op">=</span> <a class="ident" href="../../../../src/prusti_interface/environment/mir_analyses/initialization.rs.html#111">opt_state_after_block</a>.<span class="ident">as_mut</span>() {
-            <span class="kw">for</span> <span class="ident">state</span> <span class="kw">in</span> <a class="ident" href="../../../../src/prusti_interface/environment/mir_analyses/initialization.rs.html#110">states_after_block</a> {
-                <a class="ident" href="../../../../src/prusti_interface/environment/mir_analyses/initialization.rs.html#112">curr_state</a>.<a class="ident" href="../../../../analysis/abstract_interpretation/abstract_state/trait.AbstractState.html">join</a>(<a class="ident" href="../../../../src/prusti_interface/environment/mir_analyses/initialization.rs.html#113">state</a>);
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">states_after_block</span> <span class="op">=</span> <a class="ident" href="../../../../src/prusti_interface/environment/mir_analyses/initialization.rs.html#69">pointwise_state</a>.<span class="ident">lookup_after_block</span>(<a class="ident" href="../../../../src/prusti_interface/environment/mir_analyses/initialization.rs.html#83">bb</a>).<span class="ident">unwrap</span>().<span class="ident">values</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">opt_state_after_block</span> <span class="op">=</span> <a class="ident" href="../../../../src/prusti_interface/environment/mir_analyses/initialization.rs.html#104">states_after_block</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>().<span class="ident">cloned</span>();
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">curr_state</span>) <span class="op">=</span> <a class="ident" href="../../../../src/prusti_interface/environment/mir_analyses/initialization.rs.html#105">opt_state_after_block</a>.<span class="ident">as_mut</span>() {
+            <span class="kw">for</span> <span class="ident">state</span> <span class="kw">in</span> <a class="ident" href="../../../../src/prusti_interface/environment/mir_analyses/initialization.rs.html#104">states_after_block</a> {
+                <a class="ident" href="../../../../src/prusti_interface/environment/mir_analyses/initialization.rs.html#106">curr_state</a>.<a class="ident" href="../../../../analysis/abstract_interpretation/abstract_state/trait.AbstractState.html">join</a>(<a class="ident" href="../../../../src/prusti_interface/environment/mir_analyses/initialization.rs.html#107">state</a>);
             }
         }
-        <span class="kw">let</span> <span class="ident">state_after_block</span> <span class="op">=</span> <a class="ident" href="../../../../src/prusti_interface/environment/mir_analyses/initialization.rs.html#111">opt_state_after_block</a>.<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> <a class="ident" href="../../../../src/prusti_interface/environment/mir_analyses/initialization.rs.html#74">analysis</a>.<a class="ident" href="../../../../analysis/abstract_interpretation/fixpoint_engine/trait.FixpointEngine.html">new_bottom</a>());
-        <a class="ident" href="../../../../src/prusti_interface/environment/mir_analyses/initialization.rs.html#88">analysis_result</a>.<span class="ident">after_statement</span>.<span class="ident">insert</span>(
-            <a class="ident" href="../../../../src/prusti_interface/environment/mir_analyses/initialization.rs.html#91">location</a>,
-            <a class="ident" href="../../../../src/prusti_interface/environment/mir_analyses/initialization.rs.html#117">state_after_block</a>.<span class="ident">get_def_init_places</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
+        <span class="kw">let</span> <span class="ident">state_after_block</span> <span class="op">=</span> <a class="ident" href="../../../../src/prusti_interface/environment/mir_analyses/initialization.rs.html#105">opt_state_after_block</a>.<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> <a class="ident" href="../../../../src/prusti_interface/environment/mir_analyses/initialization.rs.html#68">analysis</a>.<a class="ident" href="../../../../analysis/abstract_interpretation/fixpoint_engine/trait.FixpointEngine.html">new_bottom</a>());
+        <a class="ident" href="../../../../src/prusti_interface/environment/mir_analyses/initialization.rs.html#82">analysis_result</a>.<span class="ident">after_statement</span>.<span class="ident">insert</span>(
+            <a class="ident" href="../../../../src/prusti_interface/environment/mir_analyses/initialization.rs.html#85">location</a>,
+            <a class="ident" href="../../../../src/prusti_interface/environment/mir_analyses/initialization.rs.html#111">state_after_block</a>.<span class="ident">get_def_init_places</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
         );
     }
-    <a class="ident" href="../../../../src/prusti_interface/environment/mir_analyses/initialization.rs.html#73">stopwatch</a>.<span class="ident">finish</span>();
-    <a class="ident" href="../../../../src/prusti_interface/environment/mir_analyses/initialization.rs.html#88">analysis_result</a>
+    <a class="ident" href="../../../../src/prusti_interface/environment/mir_analyses/initialization.rs.html#67">stopwatch</a>.<span class="ident">finish</span>();
+    <a class="ident" href="../../../../src/prusti_interface/environment/mir_analyses/initialization.rs.html#82">analysis_result</a>
 }
 </code></pre></div>
 </section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="prusti_interface" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.60.0-nightly (bd3cb5256 2022-01-16)" ></div>

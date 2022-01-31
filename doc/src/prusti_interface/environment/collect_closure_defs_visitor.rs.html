@@ -51,15 +51,15 @@
 <span id="48">48</span>
 <span id="49">49</span>
 <span id="50">50</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">rustc_hir::intravisit</span>::{<span class="ident">Visitor</span>, <span class="ident">NestedVisitorMap</span>, <span class="ident">ErasedMap</span>, <span class="ident">walk_expr</span>, <span class="ident">FnKind</span>};
+</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">rustc_hir::intravisit</span>::{<span class="ident">Visitor</span>, <span class="ident">NestedVisitorMap</span>, <span class="ident">walk_expr</span>};
 <span class="kw">use</span> <span class="ident">rustc_hir</span> <span class="kw">as</span> <span class="ident">hir</span>;
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/hir/map/struct.Map.html">rustc_middle::hir::map::Map</a>;
 <span class="kw">use</span> <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#56-62"><span class="kw">crate</span>::environment::Environment</a>;
-<span class="kw">use</span> <span class="ident">log</span>::{<span class="ident">trace</span>, <span class="ident">debug</span>};
+<span class="kw">use</span> <span class="ident">log</span>::{<span class="ident">trace</span>};
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">rustc_hir::def_id::DefId</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/span_encoding/struct.Span.html">rustc_span::Span</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/context/struct.TypeckResults.html">rustc_middle::ty::TypeckResults</a>;
-<span class="kw">use</span> <a class="ident" href="../../../src/prusti_interface/utils.rs.html#301"><span class="kw">crate</span>::utils::has_spec_only_attr</a>;
+
+
+<span class="kw">use</span> <a class="ident" href="../../../src/prusti_interface/utils.rs.html#300"><span class="kw">crate</span>::utils::has_spec_only_attr</a>;
 
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">CollectClosureDefsVisitor</span><span class="op">&lt;</span><span class="lifetime">&#39;env</span>, <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;env</span><span class="op">&gt;</span> {
     <span class="ident">env</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;env</span> <span class="ident">Environment</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
@@ -89,7 +89,7 @@
 
     <span class="kw">fn</span> <span class="ident">visit_expr</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">expr</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;tcx</span> <span class="ident">hir::Expr</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>) {
         <span class="kw">if</span> <span class="kw">let</span> <span class="ident">hir::ExprKind::Closure</span>(<span class="kw">_</span>, <span class="kw">_</span>, <span class="kw">_</span>, <span class="kw">_</span>, <span class="kw">_</span>) <span class="op">=</span> <a class="ident" href="../../../src/prusti_interface/environment/collect_closure_defs_visitor.rs.html#37">expr</a>.<span class="ident">kind</span> {
-            <span class="kw">if</span> <span class="op">!</span><a class="ident" href="../../../src/prusti_interface/utils.rs.html#301">has_spec_only_attr</a>(<a class="self" href="../../../src/prusti_interface/environment/collect_closure_defs_visitor.rs.html#37">self</a>.<span class="ident">map</span>.<span class="ident">attrs</span>(<a class="ident" href="../../../src/prusti_interface/environment/collect_closure_defs_visitor.rs.html#37">expr</a>.<span class="ident">hir_id</span>)) {
+            <span class="kw">if</span> <span class="op">!</span><a class="ident" href="../../../src/prusti_interface/utils.rs.html#300">has_spec_only_attr</a>(<a class="self" href="../../../src/prusti_interface/environment/collect_closure_defs_visitor.rs.html#37">self</a>.<span class="ident">map</span>.<span class="ident">attrs</span>(<a class="ident" href="../../../src/prusti_interface/environment/collect_closure_defs_visitor.rs.html#37">expr</a>.<span class="ident">hir_id</span>)) {
                 <span class="kw">let</span> <span class="ident">_tcx</span> <span class="op">=</span> <a class="self" href="../../../src/prusti_interface/environment/collect_closure_defs_visitor.rs.html#37">self</a>.<span class="ident">env</span>.<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#93">tcx</a>();
                 <span class="kw">let</span> <span class="ident">def_id</span> <span class="op">=</span> <a class="self" href="../../../src/prusti_interface/environment/collect_closure_defs_visitor.rs.html#37">self</a>.<span class="ident">map</span>.<span class="ident">local_def_id</span>(<a class="ident" href="../../../src/prusti_interface/environment/collect_closure_defs_visitor.rs.html#37">expr</a>.<span class="ident">hir_id</span>).<span class="ident">to_def_id</span>();
                 <span class="kw">let</span> <span class="ident">item_def_path</span> <span class="op">=</span> <a class="self" href="../../../src/prusti_interface/environment/collect_closure_defs_visitor.rs.html#37">self</a>.<span class="ident">env</span>.<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#209">get_item_def_path</a>(<a class="ident" href="../../../src/prusti_interface/environment/collect_closure_defs_visitor.rs.html#41">def_id</a>);

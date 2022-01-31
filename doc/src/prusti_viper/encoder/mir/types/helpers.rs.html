@@ -102,41 +102,15 @@
 <span id="99"> 99</span>
 <span id="100">100</span>
 <span id="101">101</span>
-<span id="102">102</span>
-<span id="103">103</span>
-<span id="104">104</span>
-<span id="105">105</span>
-<span id="106">106</span>
-<span id="107">107</span>
-<span id="108">108</span>
-<span id="109">109</span>
-<span id="110">110</span>
-<span id="111">111</span>
-<span id="112">112</span>
-<span id="113">113</span>
-<span id="114">114</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::encoder</span>::{
-    <a class="ident" href="../../../../../src/prusti_viper/encoder/builtin_encoder.rs.html#25-48">builtin_encoder::BuiltinFunctionKind</a>,
-    <span class="ident">errors</span>::{<a class="ident" href="../../../../../src/prusti_viper/encoder/errors/encoding_error.rs.html#15-18">EncodingError</a>, <a class="ident" href="../../../../../src/prusti_viper/encoder/errors/encoding_error.rs.html#20">EncodingResult</a>},
-    <a class="ident" href="../../../../../src/prusti_viper/encoder/mod.rs.html#15">foldunfold</a>,
-    <span class="ident">utils</span>::{<a class="ident" href="../../../../../src/prusti_viper/encoder/utils.rs.html#12">range_extract</a>, <a class="ident" href="../../../../../src/prusti_viper/encoder/utils.rs.html#32-34">PlusOne</a>},
-    <a class="ident" href="../../../../../src/prusti_viper/encoder/encoder.rs.html#75-109">Encoder</a>,
-};
-<span class="kw">use</span> <span class="ident">log</span>::{<span class="ident">debug</span>, <span class="ident">trace</span>};
-<span class="kw">use</span> <span class="ident">prusti_common</span>::{<a class="ident" href="../../../../../prusti_common/config/index.html">config</a>, <span class="ident">vir_local</span>};
-<span class="kw">use</span> <a class="ident" href="../../../../../prusti_interface/specs/typed/index.html">prusti_interface::specs::typed</a>;
-<span class="kw">use</span> <span class="ident">rustc_attr::IntType::SignedInt</span>;
-<span class="kw">use</span> <a class="ident" href="../../../../../rustc_hash/type.FxHashMap.html">rustc_hash::FxHashMap</a>;
+</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::encoder::utils</span>::{<a class="ident" href="../../../../../src/prusti_viper/encoder/utils.rs.html#12">range_extract</a>, <a class="ident" href="../../../../../src/prusti_viper/encoder/utils.rs.html#32-34">PlusOne</a>};
+
 <span class="kw">use</span> <span class="ident">rustc_middle</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/index.html">ty</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/layout/trait.IntegerExt.html">ty::layout::IntegerExt</a>};
-<span class="kw">use</span> <span class="ident">rustc_target</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_target/abi/index.html">abi</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_target/abi/enum.Integer.html">abi::Integer</a>};
-<span class="kw">use</span> <span class="ident">std</span>::{
-    <a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.TryInto.html">convert::TryInto</a>,
-    <span class="ident">hash</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/core/hash/trait.Hash.html">Hash</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/hash/trait.Hasher.html">Hasher</a>},
-};
+<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_target/abi/enum.Integer.html">rustc_target::abi::Integer</a>;
+
 <span class="kw">use</span> <span class="ident">vir_crate</span>::{
     <span class="ident">common::expression</span>::{<a class="ident" href="../../../../../vir/common/expression/fn.and.html">and</a>, <a class="ident" href="../../../../../vir/common/expression/fn.equals.html">equals</a>, <a class="ident" href="../../../../../vir/common/expression/fn.less_equals.html">less_equals</a>},
     <a class="ident" href="../../../../../vir/high/index.html">high</a> <span class="kw">as</span> <span class="ident">vir_high</span>,
-    <span class="ident">polymorphic</span>::{<a class="self" href="../../../../../vir/polymorphic/index.html">self</a> <span class="kw">as</span> <span class="ident">vir</span>, <a class="ident" href="../../../../../vir/gen/polymorphic/ast/expr_transformers/trait.ExprFolder.html">ExprFolder</a>},
+    <span class="ident">polymorphic</span>::{<a class="self" href="../../../../../vir/polymorphic/index.html">self</a> <span class="kw">as</span> <span class="ident">vir</span>},
 };
 
 <span class="doccomment">/// Compute the values that a discriminant can take.</span>
@@ -145,13 +119,13 @@
     <span class="ident">tcx</span>: <span class="ident">ty::TyCtxt</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
 ) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i128.html">i128</a><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">discr_values</span>: <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i128.html">i128</a><span class="op">&gt;</span> <span class="op">=</span> <span class="macro">vec!</span>[];
-    <span class="kw">let</span> <span class="ident">size</span> <span class="op">=</span> <span class="ident">ty::tls::with</span>(<span class="op">|</span><span class="ident">tcx</span><span class="op">|</span> <span class="ident">Integer::from_attr</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../../src/prusti_viper/encoder/mir/types/helpers.rs.html#31">tcx</a>, <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/types/helpers.rs.html#27">adt_def</a>.<span class="ident">repr</span>.<span class="ident">discr_type</span>()).<span class="ident">size</span>());
-    <span class="kw">for</span> (<span class="ident">_variant_idx</span>, <span class="ident">discr</span>) <span class="kw">in</span> <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/types/helpers.rs.html#27">adt_def</a>.<span class="ident">discriminants</span>(<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/types/helpers.rs.html#28">tcx</a>) {
+    <span class="kw">let</span> <span class="ident">size</span> <span class="op">=</span> <span class="ident">ty::tls::with</span>(<span class="op">|</span><span class="ident">tcx</span><span class="op">|</span> <span class="ident">Integer::from_attr</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../../src/prusti_viper/encoder/mir/types/helpers.rs.html#18">tcx</a>, <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/types/helpers.rs.html#14">adt_def</a>.<span class="ident">repr</span>.<span class="ident">discr_type</span>()).<span class="ident">size</span>());
+    <span class="kw">for</span> (<span class="ident">_variant_idx</span>, <span class="ident">discr</span>) <span class="kw">in</span> <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/types/helpers.rs.html#14">adt_def</a>.<span class="ident">discriminants</span>(<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/types/helpers.rs.html#15">tcx</a>) {
         <span class="comment">// Sign extend the raw representation to be an i128, to handle *signed* discriminants.</span>
         <span class="comment">// See also: https://github.com/rust-lang/rust/blob/b7ebc6b0c1ba3c27ebb17c0b496ece778ef11e18/compiler/rustc_middle/src/ty/util.rs#L35-L45</span>
-        <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/types/helpers.rs.html#30">discr_values</a>.<span class="ident">push</span>(<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/types/helpers.rs.html#31">size</a>.<span class="ident">sign_extend</span>(<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/types/helpers.rs.html#32">discr</a>.<span class="ident">val</span>) <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i128.html">i128</a>);
+        <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/types/helpers.rs.html#17">discr_values</a>.<span class="ident">push</span>(<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/types/helpers.rs.html#18">size</a>.<span class="ident">sign_extend</span>(<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/types/helpers.rs.html#19">discr</a>.<span class="ident">val</span>) <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i128.html">i128</a>);
     }
-    <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/types/helpers.rs.html#30">discr_values</a>
+    <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/types/helpers.rs.html#17">discr_values</a>
 }
 
 <span class="doccomment">/// Encode a disjunction that lists all possible discrimintant values.</span>
@@ -167,20 +141,20 @@
         <span class="ident">discriminant</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../../vir/gen/high/ast/expression/enum.Expression.html">vir_high::Expression</a>,
         <span class="ident">discr_values</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
     ) -&gt; <a class="ident" href="../../../../../vir/gen/high/ast/expression/enum.Expression.html">vir_high::Expression</a> {
-        <span class="kw">if</span> <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/types/helpers.rs.html#51">discr_values</a>.<span class="ident">is_empty</span>() {
+        <span class="kw">if</span> <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/types/helpers.rs.html#38">discr_values</a>.<span class="ident">is_empty</span>() {
             <span class="comment">// FIXME: A `false` here is unsound. See issues #38 and #158.</span>
             <span class="kw">return</span> <span class="bool-val">true</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
         }
         <span class="kw">use</span> <a class="ident" href="../../../../../vir/common/expression/trait.ExpressionIterator.html">vir_crate::common::expression::ExpressionIterator</a>;
-        <a class="ident" href="../../../../../src/prusti_viper/encoder/utils.rs.html#12">range_extract</a>(<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/types/helpers.rs.html#51">discr_values</a>)
+        <a class="ident" href="../../../../../src/prusti_viper/encoder/utils.rs.html#12">range_extract</a>(<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/types/helpers.rs.html#38">discr_values</a>)
             .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
             .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="op">|</span>(<span class="ident">from</span>, <span class="ident">to</span>)<span class="op">|</span> {
-                <span class="kw">if</span> <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/types/helpers.rs.html#60">from</a> <span class="op">==</span> <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/types/helpers.rs.html#60">to</a> {
-                    <a class="ident" href="../../../../../vir/common/expression/fn.equals.html">equals</a>(<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/types/helpers.rs.html#50">discriminant</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/types/helpers.rs.html#60">from</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
+                <span class="kw">if</span> <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/types/helpers.rs.html#47">from</a> <span class="op">==</span> <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/types/helpers.rs.html#47">to</a> {
+                    <a class="ident" href="../../../../../vir/common/expression/fn.equals.html">equals</a>(<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/types/helpers.rs.html#37">discriminant</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/types/helpers.rs.html#47">from</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
                 } <span class="kw">else</span> {
                     <a class="ident" href="../../../../../vir/common/expression/fn.and.html">and</a>(
-                        <a class="ident" href="../../../../../vir/common/expression/fn.less_equals.html">less_equals</a>(<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/types/helpers.rs.html#60">from</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(), <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/types/helpers.rs.html#50">discriminant</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()),
-                        <a class="ident" href="../../../../../vir/common/expression/fn.less_equals.html">less_equals</a>(<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/types/helpers.rs.html#50">discriminant</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/types/helpers.rs.html#60">to</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
+                        <a class="ident" href="../../../../../vir/common/expression/fn.less_equals.html">less_equals</a>(<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/types/helpers.rs.html#47">from</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(), <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/types/helpers.rs.html#37">discriminant</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()),
+                        <a class="ident" href="../../../../../vir/common/expression/fn.less_equals.html">less_equals</a>(<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/types/helpers.rs.html#37">discriminant</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/types/helpers.rs.html#47">to</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
                     )
                 }
             })
@@ -188,8 +162,8 @@
     }
 
     <span class="comment">// Handle *signed* discriminats</span>
-    <span class="kw">let</span> <span class="ident">discr_values</span> <span class="op">=</span> <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/types/helpers.rs.html#26-29">compute_discriminant_values</a>(<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/types/helpers.rs.html#42">adt_def</a>, <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/types/helpers.rs.html#43">tcx</a>);
-    <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/types/helpers.rs.html#47-52">build_discr_range_expr</a>(<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/types/helpers.rs.html#44">discriminant</a>, <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/types/helpers.rs.html#74">discr_values</a>)
+    <span class="kw">let</span> <span class="ident">discr_values</span> <span class="op">=</span> <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/types/helpers.rs.html#13-16">compute_discriminant_values</a>(<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/types/helpers.rs.html#29">adt_def</a>, <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/types/helpers.rs.html#30">tcx</a>);
+    <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/types/helpers.rs.html#34-39">build_discr_range_expr</a>(<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/types/helpers.rs.html#31">discriminant</a>, <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/types/helpers.rs.html#61">discr_values</a>)
 }
 
 <span class="doccomment">/// Encode a disjunction that lists all possible discrimintant values.</span>
@@ -205,20 +179,20 @@
         <span class="ident">discriminant_loc</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>,
         <span class="ident">discr_values</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
     ) -&gt; <a class="ident" href="../../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a> {
-        <span class="kw">if</span> <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/types/helpers.rs.html#89">discr_values</a>.<span class="ident">is_empty</span>() {
+        <span class="kw">if</span> <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/types/helpers.rs.html#76">discr_values</a>.<span class="ident">is_empty</span>() {
             <span class="comment">// A `false` here is unsound. See issues #38 and #158.</span>
             <span class="kw">return</span> <span class="bool-val">true</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
         }
         <span class="kw">use</span> <a class="ident" href="../../../../../vir/gen/polymorphic/ast/expr/trait.ExprIterator.html">vir_crate::polymorphic::ExprIterator</a>;
-        <a class="ident" href="../../../../../src/prusti_viper/encoder/utils.rs.html#12">range_extract</a>(<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/types/helpers.rs.html#89">discr_values</a>)
+        <a class="ident" href="../../../../../src/prusti_viper/encoder/utils.rs.html#12">range_extract</a>(<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/types/helpers.rs.html#76">discr_values</a>)
             .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
             .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="op">|</span>(<span class="ident">from</span>, <span class="ident">to</span>)<span class="op">|</span> {
-                <span class="kw">if</span> <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/types/helpers.rs.html#98">from</a> <span class="op">==</span> <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/types/helpers.rs.html#98">to</a> {
-                    <span class="ident">vir::Expr::eq_cmp</span>(<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/types/helpers.rs.html#88">discriminant_loc</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/types/helpers.rs.html#98">from</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
+                <span class="kw">if</span> <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/types/helpers.rs.html#85">from</a> <span class="op">==</span> <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/types/helpers.rs.html#85">to</a> {
+                    <span class="ident">vir::Expr::eq_cmp</span>(<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/types/helpers.rs.html#75">discriminant_loc</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/types/helpers.rs.html#85">from</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
                 } <span class="kw">else</span> {
                     <span class="ident">vir::Expr::and</span>(
-                        <span class="ident">vir::Expr::le_cmp</span>(<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/types/helpers.rs.html#98">from</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(), <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/types/helpers.rs.html#88">discriminant_loc</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()),
-                        <span class="ident">vir::Expr::le_cmp</span>(<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/types/helpers.rs.html#88">discriminant_loc</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/types/helpers.rs.html#98">to</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
+                        <span class="ident">vir::Expr::le_cmp</span>(<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/types/helpers.rs.html#85">from</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(), <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/types/helpers.rs.html#75">discriminant_loc</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()),
+                        <span class="ident">vir::Expr::le_cmp</span>(<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/types/helpers.rs.html#75">discriminant_loc</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/types/helpers.rs.html#85">to</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
                     )
                 }
             })
@@ -226,8 +200,8 @@
     }
 
     <span class="comment">// Handle *signed* discriminats</span>
-    <span class="kw">let</span> <span class="ident">discr_values</span> <span class="op">=</span> <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/types/helpers.rs.html#26-29">compute_discriminant_values</a>(<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/types/helpers.rs.html#82">adt_def</a>, <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/types/helpers.rs.html#83">tcx</a>);
-    <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/types/helpers.rs.html#87-90">build_discr_range_expr</a>(<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/types/helpers.rs.html#84">discriminant_loc</a>, <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/types/helpers.rs.html#112">discr_values</a>)
+    <span class="kw">let</span> <span class="ident">discr_values</span> <span class="op">=</span> <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/types/helpers.rs.html#13-16">compute_discriminant_values</a>(<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/types/helpers.rs.html#69">adt_def</a>, <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/types/helpers.rs.html#70">tcx</a>);
+    <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/types/helpers.rs.html#74-77">build_discr_range_expr</a>(<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/types/helpers.rs.html#71">discriminant_loc</a>, <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/types/helpers.rs.html#99">discr_values</a>)
 }
 </code></pre></div>
 </section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../../../../" data-current-crate="prusti_viper" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.60.0-nightly (bd3cb5256 2022-01-16)" ></div>

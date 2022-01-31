@@ -137,43 +137,17 @@
 <span id="134">134</span>
 <span id="135">135</span>
 <span id="136">136</span>
-<span id="137">137</span>
-<span id="138">138</span>
-<span id="139">139</span>
-<span id="140">140</span>
-<span id="141">141</span>
-<span id="142">142</span>
-<span id="143">143</span>
-<span id="144">144</span>
-<span id="145">145</span>
-<span id="146">146</span>
-<span id="147">147</span>
-<span id="148">148</span>
-<span id="149">149</span>
 </pre><pre class="rust"><code><span class="comment">// © 2019, ETH Zurich</span>
 <span class="comment">//</span>
 <span class="comment">// This Source Code Form is subject to the terms of the Mozilla Public</span>
 <span class="comment">// License, v. 2.0. If a copy of the MPL was not distributed with this</span>
 <span class="comment">// file, You can obtain one at http://mozilla.org/MPL/2.0/.</span>
 
-<span class="doccomment">///! Code for finding `rustc::ty::sty::RegionVid` associated with local</span>
-<span class="doccomment">///! reference typed variables.</span>
-
-<span class="kw">use</span> <span class="ident">rustc_borrowck::BodyWithBorrowckFacts</span>;
-
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/collections/hash/map/struct.HashMap.html">std::collections::HashMap</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/fs/struct.File.html">std::fs::File</a>;
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/index.html">std::io</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.BufRead.html">std::io::BufRead</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">std::path::Path</a>;
-
 <span class="kw">use</span> <span class="ident">log::debug</span>;
 <span class="kw">use</span> <span class="ident">log::trace</span>;
-<span class="kw">use</span> <a class="ident" href="../../../../regex/re_unicode/struct.Regex.html">regex::Regex</a>;
-
-<span class="kw">use</span> <span class="ident">rustc_index::vec::Idx</span>;
 <span class="kw">use</span> <span class="ident">rustc_middle</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/index.html">mir</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/index.html">ty</a>};
-
 <span class="kw">use</span> <a class="ident" href="../../../../src/prusti_interface/environment/borrowck/mod.rs.html#7"><span class="kw">crate</span>::environment::borrowck::facts</a>;
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
@@ -184,120 +158,120 @@
     <span class="ident">Unsupported</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>),
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../../src/prusti_interface/environment/borrowck/regions.rs.html#28">PlaceRegions</a> {
+<span class="kw">impl</span> <a class="ident" href="../../../../src/prusti_interface/environment/borrowck/regions.rs.html#15">PlaceRegions</a> {
     <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="self">Self</span> {
-        <a class="ident" href="../../../../src/prusti_interface/environment/borrowck/regions.rs.html#28">PlaceRegions</a>(<span class="ident">HashMap::new</span>())
+        <a class="ident" href="../../../../src/prusti_interface/environment/borrowck/regions.rs.html#15">PlaceRegions</a>(<span class="ident">HashMap::new</span>())
     }
 
     <span class="kw">fn</span> <span class="ident">add_local</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">local</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Local.html">mir::Local</a>, <span class="ident">rvid</span>: <a class="ident" href="../../../../src/prusti_interface/environment/borrowck/facts.rs.html#15">facts::Region</a>) {
-        <a class="self" href="../../../../src/prusti_interface/environment/borrowck/regions.rs.html#40">self</a>.<a class="ident" href="../../../../src/prusti_interface/environment/borrowck/regions.rs.html#44">add</a>(<a class="ident" href="../../../../src/prusti_interface/environment/borrowck/regions.rs.html#40">local</a>, <span class="macro">vec!</span>[], <a class="ident" href="../../../../src/prusti_interface/environment/borrowck/regions.rs.html#40">rvid</a>);
+        <a class="self" href="../../../../src/prusti_interface/environment/borrowck/regions.rs.html#27">self</a>.<a class="ident" href="../../../../src/prusti_interface/environment/borrowck/regions.rs.html#31">add</a>(<a class="ident" href="../../../../src/prusti_interface/environment/borrowck/regions.rs.html#27">local</a>, <span class="macro">vec!</span>[], <a class="ident" href="../../../../src/prusti_interface/environment/borrowck/regions.rs.html#27">rvid</a>);
     }
 
     <span class="kw">fn</span> <span class="ident">add</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">local</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Local.html">mir::Local</a>, <span class="ident">projections</span>: <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span>, <span class="ident">rvid</span>: <a class="ident" href="../../../../src/prusti_interface/environment/borrowck/facts.rs.html#15">facts::Region</a>) {
-        <a class="self" href="../../../../src/prusti_interface/environment/borrowck/regions.rs.html#44">self</a>.<span class="number">0</span>.<span class="ident">insert</span>((<a class="ident" href="../../../../src/prusti_interface/environment/borrowck/regions.rs.html#44">local</a>, <a class="ident" href="../../../../src/prusti_interface/environment/borrowck/regions.rs.html#44">projections</a>), <a class="ident" href="../../../../src/prusti_interface/environment/borrowck/regions.rs.html#44">rvid</a>);
+        <a class="self" href="../../../../src/prusti_interface/environment/borrowck/regions.rs.html#31">self</a>.<span class="number">0</span>.<span class="ident">insert</span>((<a class="ident" href="../../../../src/prusti_interface/environment/borrowck/regions.rs.html#31">local</a>, <a class="ident" href="../../../../src/prusti_interface/environment/borrowck/regions.rs.html#31">projections</a>), <a class="ident" href="../../../../src/prusti_interface/environment/borrowck/regions.rs.html#31">rvid</a>);
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">for_local</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">local</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Local.html">mir::Local</a>)-&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../../src/prusti_interface/environment/borrowck/facts.rs.html#15">facts::Region</a><span class="op">&gt;</span> {
-        <a class="self" href="../../../../src/prusti_interface/environment/borrowck/regions.rs.html#48">self</a>.<a class="ident" href="../../../../src/prusti_interface/environment/borrowck/regions.rs.html#53-54">for_place</a>(<a class="ident" href="../../../../src/prusti_interface/environment/borrowck/regions.rs.html#48">local</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()).<span class="ident">unwrap</span>()
+        <a class="self" href="../../../../src/prusti_interface/environment/borrowck/regions.rs.html#35">self</a>.<a class="ident" href="../../../../src/prusti_interface/environment/borrowck/regions.rs.html#40-41">for_place</a>(<a class="ident" href="../../../../src/prusti_interface/environment/borrowck/regions.rs.html#35">local</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()).<span class="ident">unwrap</span>()
     }
 
     <span class="doccomment">/// Determines the region of a MIR place. Right now, the only supported places are locals and tuples. Tuples cannot be nested inside other tuples.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">for_place</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">place</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Place.html">mir::Place</a>)
-        -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../../src/prusti_interface/environment/borrowck/facts.rs.html#15">facts::Region</a><span class="op">&gt;</span>, <a class="ident" href="../../../../src/prusti_interface/environment/borrowck/regions.rs.html#31-33">PlaceRegionsError</a><span class="op">&gt;</span>
+        -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../../src/prusti_interface/environment/borrowck/facts.rs.html#15">facts::Region</a><span class="op">&gt;</span>, <a class="ident" href="../../../../src/prusti_interface/environment/borrowck/regions.rs.html#18-20">PlaceRegionsError</a><span class="op">&gt;</span>
     {
-        <span class="kw">let</span> (<span class="ident">local</span>, <span class="ident">fields</span>) <span class="op">=</span> <span class="ident"><span class="self">Self</span>::translate_place</span>(<a class="ident" href="../../../../src/prusti_interface/environment/borrowck/regions.rs.html#53">place</a>)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<a class="self" href="../../../../src/prusti_interface/environment/borrowck/regions.rs.html#53">self</a>.<span class="number">0</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span>(<a class="ident" href="../../../../src/prusti_interface/environment/borrowck/regions.rs.html#56">local</a>, <a class="ident" href="../../../../src/prusti_interface/environment/borrowck/regions.rs.html#56">fields</a>)).<span class="ident">cloned</span>())
+        <span class="kw">let</span> (<span class="ident">local</span>, <span class="ident">fields</span>) <span class="op">=</span> <span class="ident"><span class="self">Self</span>::translate_place</span>(<a class="ident" href="../../../../src/prusti_interface/environment/borrowck/regions.rs.html#40">place</a>)<span class="question-mark">?</span>;
+        <span class="prelude-val">Ok</span>(<a class="self" href="../../../../src/prusti_interface/environment/borrowck/regions.rs.html#40">self</a>.<span class="number">0</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span>(<a class="ident" href="../../../../src/prusti_interface/environment/borrowck/regions.rs.html#43">local</a>, <a class="ident" href="../../../../src/prusti_interface/environment/borrowck/regions.rs.html#43">fields</a>)).<span class="ident">cloned</span>())
     }
 
     <span class="doccomment">/// Translates a place like _3.0.3.1 into a local (here _3) and a list of field projections like (here [0, 3, 1]).</span>
     <span class="kw">fn</span> <span class="ident">translate_place</span>(<span class="ident">place</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Place.html">mir::Place</a>)
-        -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Local.html">mir::Local</a>, <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span>), <a class="ident" href="../../../../src/prusti_interface/environment/borrowck/regions.rs.html#31-33">PlaceRegionsError</a><span class="op">&gt;</span>
+        -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Local.html">mir::Local</a>, <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span>), <a class="ident" href="../../../../src/prusti_interface/environment/borrowck/regions.rs.html#18-20">PlaceRegionsError</a><span class="op">&gt;</span>
     {
-        <span class="kw">let</span> <span class="ident">indices</span> <span class="op">=</span> <a class="ident" href="../../../../src/prusti_interface/environment/borrowck/regions.rs.html#61">place</a>.<span class="ident">projection</span>.<span class="ident">iter</span>()
-            .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="op">|</span><span class="ident">elem</span><span class="op">|</span> <span class="kw">match</span> <a class="ident" href="../../../../src/prusti_interface/environment/borrowck/regions.rs.html#65">elem</a> {
-                <span class="ident">mir::ProjectionElem::Field</span>(<span class="ident">f</span>, <span class="kw">_</span>) =&gt; <span class="prelude-val">Ok</span>(<a class="ident" href="../../../../src/prusti_interface/environment/borrowck/regions.rs.html#66">f</a>.<span class="ident">index</span>()),
+        <span class="kw">let</span> <span class="ident">indices</span> <span class="op">=</span> <a class="ident" href="../../../../src/prusti_interface/environment/borrowck/regions.rs.html#48">place</a>.<span class="ident">projection</span>.<span class="ident">iter</span>()
+            .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="op">|</span><span class="ident">elem</span><span class="op">|</span> <span class="kw">match</span> <a class="ident" href="../../../../src/prusti_interface/environment/borrowck/regions.rs.html#52">elem</a> {
+                <span class="ident">mir::ProjectionElem::Field</span>(<span class="ident">f</span>, <span class="kw">_</span>) =&gt; <span class="prelude-val">Ok</span>(<a class="ident" href="../../../../src/prusti_interface/environment/borrowck/regions.rs.html#53">f</a>.<span class="ident">index</span>()),
                 <span class="ident">mir::ProjectionElem::Deref</span> =&gt; {
-                    <span class="prelude-val">Err</span>(<a class="ident" href="../../../../src/prusti_interface/environment/borrowck/regions.rs.html#32">PlaceRegionsError::Unsupported</a>(
+                    <span class="prelude-val">Err</span>(<a class="ident" href="../../../../src/prusti_interface/environment/borrowck/regions.rs.html#19">PlaceRegionsError::Unsupported</a>(
                         <span class="string">&quot;determining the region of a dereferentiation is \
                         not supported&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>()
                     ))
                 }
                 <span class="ident">mir::ProjectionElem::Index</span>(<span class="kw">_</span>) =&gt; {
-                    <span class="prelude-val">Err</span>(<a class="ident" href="../../../../src/prusti_interface/environment/borrowck/regions.rs.html#32">PlaceRegionsError::Unsupported</a>(
+                    <span class="prelude-val">Err</span>(<a class="ident" href="../../../../src/prusti_interface/environment/borrowck/regions.rs.html#19">PlaceRegionsError::Unsupported</a>(
                         <span class="string">&quot;determining the region of array indexing is \
                         not supported&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>()
                     ))
                 }
                 <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/enum.ProjectionElem.html">mir::ProjectionElem::ConstantIndex</a>{..} =&gt; {
-                    <span class="prelude-val">Err</span>(<a class="ident" href="../../../../src/prusti_interface/environment/borrowck/regions.rs.html#32">PlaceRegionsError::Unsupported</a>(
+                    <span class="prelude-val">Err</span>(<a class="ident" href="../../../../src/prusti_interface/environment/borrowck/regions.rs.html#19">PlaceRegionsError::Unsupported</a>(
                         <span class="string">&quot;determining the region of constant indexing is \
                         not supported&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>()
                     ))
                 }
                 <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/enum.ProjectionElem.html">mir::ProjectionElem::Subslice</a>{..} =&gt; {
-                    <span class="prelude-val">Err</span>(<a class="ident" href="../../../../src/prusti_interface/environment/borrowck/regions.rs.html#32">PlaceRegionsError::Unsupported</a>(
+                    <span class="prelude-val">Err</span>(<a class="ident" href="../../../../src/prusti_interface/environment/borrowck/regions.rs.html#19">PlaceRegionsError::Unsupported</a>(
                         <span class="string">&quot;determining the region of a subslice is \
                         not supported&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>()
                     ))
                 }
                 <span class="ident">mir::ProjectionElem::Downcast</span>(<span class="kw">_</span>, <span class="kw">_</span>) =&gt; {
-                    <span class="prelude-val">Err</span>(<a class="ident" href="../../../../src/prusti_interface/environment/borrowck/regions.rs.html#32">PlaceRegionsError::Unsupported</a>(
+                    <span class="prelude-val">Err</span>(<a class="ident" href="../../../../src/prusti_interface/environment/borrowck/regions.rs.html#19">PlaceRegionsError::Unsupported</a>(
                         <span class="string">&quot;determining the region of a downcast is \
                         not supported&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>()
                     ))
                 }
             })
             .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>::<span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="kw">_</span>, <span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>()<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>((<a class="ident" href="../../../../src/prusti_interface/environment/borrowck/regions.rs.html#61">place</a>.<span class="ident">local</span>, <a class="ident" href="../../../../src/prusti_interface/environment/borrowck/regions.rs.html#64">indices</a>))
+        <span class="prelude-val">Ok</span>((<a class="ident" href="../../../../src/prusti_interface/environment/borrowck/regions.rs.html#48">place</a>.<span class="ident">local</span>, <a class="ident" href="../../../../src/prusti_interface/environment/borrowck/regions.rs.html#51">indices</a>))
     }
 }
 
 <span class="kw">fn</span> <span class="ident">extract_region_id</span>(<span class="ident">region</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/sty/enum.RegionKind.html">ty::RegionKind</a>) -&gt; <a class="ident" href="../../../../src/prusti_interface/environment/borrowck/facts.rs.html#15">facts::Region</a> {
-    <span class="kw">match</span> <a class="ident" href="../../../../src/prusti_interface/environment/borrowck/regions.rs.html#103">region</a> {
+    <span class="kw">match</span> <a class="ident" href="../../../../src/prusti_interface/environment/borrowck/regions.rs.html#90">region</a> {
         <span class="ident">ty::RegionKind::ReVar</span>(<span class="ident">rvid</span>) =&gt; {
-            <span class="kw-2">*</span><a class="ident" href="../../../../src/prusti_interface/environment/borrowck/regions.rs.html#105">rvid</a>
+            <span class="kw-2">*</span><a class="ident" href="../../../../src/prusti_interface/environment/borrowck/regions.rs.html#92">rvid</a>
         },
-        <span class="kw">_</span> =&gt; <span class="macro">unimplemented!</span>(<span class="string">&quot;region: {:?}&quot;</span>, <a class="ident" href="../../../../src/prusti_interface/environment/borrowck/regions.rs.html#103">region</a>),
+        <span class="kw">_</span> =&gt; <span class="macro">unimplemented!</span>(<span class="string">&quot;region: {:?}&quot;</span>, <a class="ident" href="../../../../src/prusti_interface/environment/borrowck/regions.rs.html#90">region</a>),
     }
 }
 
-<span class="kw">fn</span> <span class="ident">extract_region</span>(<span class="ident">place_regions</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../../src/prusti_interface/environment/borrowck/regions.rs.html#28">PlaceRegions</a>, <span class="ident">local</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Local.html">mir::Local</a>, <span class="ident">ty</span>: <span class="ident">ty::Ty</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) {
-    <span class="kw">match</span> <a class="ident" href="../../../../src/prusti_interface/environment/borrowck/regions.rs.html#112">ty</a>.<span class="ident">kind</span>() {
+<span class="kw">fn</span> <span class="ident">extract_region</span>(<span class="ident">place_regions</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../../src/prusti_interface/environment/borrowck/regions.rs.html#15">PlaceRegions</a>, <span class="ident">local</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Local.html">mir::Local</a>, <span class="ident">ty</span>: <span class="ident">ty::Ty</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) {
+    <span class="kw">match</span> <a class="ident" href="../../../../src/prusti_interface/environment/borrowck/regions.rs.html#99">ty</a>.<span class="ident">kind</span>() {
         <span class="ident">ty::TyKind::Ref</span>(<span class="ident">region</span>, <span class="kw">_</span>, <span class="kw">_</span>) =&gt; {
-            <a class="ident" href="../../../../src/prusti_interface/environment/borrowck/regions.rs.html#112">place_regions</a>.<a class="ident" href="../../../../src/prusti_interface/environment/borrowck/regions.rs.html#40">add_local</a>(<a class="ident" href="../../../../src/prusti_interface/environment/borrowck/regions.rs.html#112">local</a>, <a class="ident" href="../../../../src/prusti_interface/environment/borrowck/regions.rs.html#103">extract_region_id</a>(<a class="ident" href="../../../../src/prusti_interface/environment/borrowck/regions.rs.html#114">region</a>));
-            <span class="macro">debug!</span>(<span class="string">&quot;region: {:?}&quot;</span>, <a class="ident" href="../../../../src/prusti_interface/environment/borrowck/regions.rs.html#114">region</a>);
+            <a class="ident" href="../../../../src/prusti_interface/environment/borrowck/regions.rs.html#99">place_regions</a>.<a class="ident" href="../../../../src/prusti_interface/environment/borrowck/regions.rs.html#27">add_local</a>(<a class="ident" href="../../../../src/prusti_interface/environment/borrowck/regions.rs.html#99">local</a>, <a class="ident" href="../../../../src/prusti_interface/environment/borrowck/regions.rs.html#90">extract_region_id</a>(<a class="ident" href="../../../../src/prusti_interface/environment/borrowck/regions.rs.html#101">region</a>));
+            <span class="macro">debug!</span>(<span class="string">&quot;region: {:?}&quot;</span>, <a class="ident" href="../../../../src/prusti_interface/environment/borrowck/regions.rs.html#101">region</a>);
         }
         <span class="ident">ty::TyKind::Tuple</span>(<span class="ident">substs</span>) =&gt; {
-            <span class="kw">for</span> (<span class="ident">i</span>, <span class="ident">ty</span>) <span class="kw">in</span> <a class="ident" href="../../../../src/prusti_interface/environment/borrowck/regions.rs.html#118">substs</a>.<span class="ident">types</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">enumerate</a>() {
-                <span class="kw">match</span> <a class="ident" href="../../../../src/prusti_interface/environment/borrowck/regions.rs.html#119">ty</a>.<span class="ident">kind</span>() {
+            <span class="kw">for</span> (<span class="ident">i</span>, <span class="ident">ty</span>) <span class="kw">in</span> <a class="ident" href="../../../../src/prusti_interface/environment/borrowck/regions.rs.html#105">substs</a>.<span class="ident">types</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">enumerate</a>() {
+                <span class="kw">match</span> <a class="ident" href="../../../../src/prusti_interface/environment/borrowck/regions.rs.html#106">ty</a>.<span class="ident">kind</span>() {
                     <span class="ident">ty::TyKind::Ref</span>(<span class="ident">region</span>, <span class="kw">_</span>, <span class="kw">_</span>) =&gt; {
-                        <a class="ident" href="../../../../src/prusti_interface/environment/borrowck/regions.rs.html#112">place_regions</a>.<a class="ident" href="../../../../src/prusti_interface/environment/borrowck/regions.rs.html#44">add</a>(<a class="ident" href="../../../../src/prusti_interface/environment/borrowck/regions.rs.html#112">local</a>, <span class="macro">vec!</span>[<a class="ident" href="../../../../src/prusti_interface/environment/borrowck/regions.rs.html#119">i</a>], <a class="ident" href="../../../../src/prusti_interface/environment/borrowck/regions.rs.html#103">extract_region_id</a>(<a class="ident" href="../../../../src/prusti_interface/environment/borrowck/regions.rs.html#121">region</a>))
+                        <a class="ident" href="../../../../src/prusti_interface/environment/borrowck/regions.rs.html#99">place_regions</a>.<a class="ident" href="../../../../src/prusti_interface/environment/borrowck/regions.rs.html#31">add</a>(<a class="ident" href="../../../../src/prusti_interface/environment/borrowck/regions.rs.html#99">local</a>, <span class="macro">vec!</span>[<a class="ident" href="../../../../src/prusti_interface/environment/borrowck/regions.rs.html#106">i</a>], <a class="ident" href="../../../../src/prusti_interface/environment/borrowck/regions.rs.html#90">extract_region_id</a>(<a class="ident" href="../../../../src/prusti_interface/environment/borrowck/regions.rs.html#108">region</a>))
                     }
                     <span class="kw">_</span> =&gt; {
-                        <span class="macro">debug!</span>(<span class="string">&quot;does not contain regions: {:?}[{}]: {:?} {:?}&quot;</span>, <a class="ident" href="../../../../src/prusti_interface/environment/borrowck/regions.rs.html#112">local</a>, <a class="ident" href="../../../../src/prusti_interface/environment/borrowck/regions.rs.html#119">i</a>, <a class="ident" href="../../../../src/prusti_interface/environment/borrowck/regions.rs.html#119">ty</a>, <a class="ident" href="../../../../src/prusti_interface/environment/borrowck/regions.rs.html#119">ty</a>.<span class="ident">kind</span>());
+                        <span class="macro">debug!</span>(<span class="string">&quot;does not contain regions: {:?}[{}]: {:?} {:?}&quot;</span>, <a class="ident" href="../../../../src/prusti_interface/environment/borrowck/regions.rs.html#99">local</a>, <a class="ident" href="../../../../src/prusti_interface/environment/borrowck/regions.rs.html#106">i</a>, <a class="ident" href="../../../../src/prusti_interface/environment/borrowck/regions.rs.html#106">ty</a>, <a class="ident" href="../../../../src/prusti_interface/environment/borrowck/regions.rs.html#106">ty</a>.<span class="ident">kind</span>());
                     }
                 }
 
             }
         }
         <span class="kw">_</span> =&gt; {
-            <span class="macro">debug!</span>(<span class="string">&quot;does not contain regions: {:?}: {:?} {:?}&quot;</span>, <a class="ident" href="../../../../src/prusti_interface/environment/borrowck/regions.rs.html#112">local</a>, <a class="ident" href="../../../../src/prusti_interface/environment/borrowck/regions.rs.html#112">ty</a>, <a class="ident" href="../../../../src/prusti_interface/environment/borrowck/regions.rs.html#112">ty</a>.<span class="ident">kind</span>());
+            <span class="macro">debug!</span>(<span class="string">&quot;does not contain regions: {:?}: {:?} {:?}&quot;</span>, <a class="ident" href="../../../../src/prusti_interface/environment/borrowck/regions.rs.html#99">local</a>, <a class="ident" href="../../../../src/prusti_interface/environment/borrowck/regions.rs.html#99">ty</a>, <a class="ident" href="../../../../src/prusti_interface/environment/borrowck/regions.rs.html#99">ty</a>.<span class="ident">kind</span>());
         }
     }
 }
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">load_place_regions</span>(<span class="ident">body</span>: <span class="kw-2">&amp;</span><span class="ident">mir::Body</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="../../../../src/prusti_interface/environment/borrowck/regions.rs.html#28">PlaceRegions</a><span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">load_place_regions</span>(<span class="ident">body</span>: <span class="kw-2">&amp;</span><span class="ident">mir::Body</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="../../../../src/prusti_interface/environment/borrowck/regions.rs.html#15">PlaceRegions</a><span class="op">&gt;</span> {
     <span class="macro">trace!</span>(<span class="string">&quot;[enter] load_place_regions()&quot;</span>);
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">place_regions</span> <span class="op">=</span> <span class="ident">PlaceRegions::new</span>();
 
-    <span class="kw">for</span> (<span class="ident">local</span>, <span class="ident">local_decl</span>) <span class="kw">in</span> <a class="ident" href="../../../../src/prusti_interface/environment/borrowck/regions.rs.html#137">body</a>.<span class="ident">local_decls</span>.<span class="ident">iter_enumerated</span>() {
-        <span class="kw">let</span> <span class="ident">ty</span> <span class="op">=</span> <a class="ident" href="../../../../src/prusti_interface/environment/borrowck/regions.rs.html#141">local_decl</a>.<span class="ident">ty</span>;
-        <span class="macro">debug!</span>(<span class="string">&quot;local: {:?} {:?}&quot;</span>, <a class="ident" href="../../../../src/prusti_interface/environment/borrowck/regions.rs.html#141">local</a>, <a class="ident" href="../../../../src/prusti_interface/environment/borrowck/regions.rs.html#142">ty</a>);
-        <a class="ident" href="../../../../src/prusti_interface/environment/borrowck/regions.rs.html#112">extract_region</a>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../../src/prusti_interface/environment/borrowck/regions.rs.html#139">place_regions</a>,  <a class="ident" href="../../../../src/prusti_interface/environment/borrowck/regions.rs.html#141">local</a>, <a class="ident" href="../../../../src/prusti_interface/environment/borrowck/regions.rs.html#142">ty</a>);
+    <span class="kw">for</span> (<span class="ident">local</span>, <span class="ident">local_decl</span>) <span class="kw">in</span> <a class="ident" href="../../../../src/prusti_interface/environment/borrowck/regions.rs.html#124">body</a>.<span class="ident">local_decls</span>.<span class="ident">iter_enumerated</span>() {
+        <span class="kw">let</span> <span class="ident">ty</span> <span class="op">=</span> <a class="ident" href="../../../../src/prusti_interface/environment/borrowck/regions.rs.html#128">local_decl</a>.<span class="ident">ty</span>;
+        <span class="macro">debug!</span>(<span class="string">&quot;local: {:?} {:?}&quot;</span>, <a class="ident" href="../../../../src/prusti_interface/environment/borrowck/regions.rs.html#128">local</a>, <a class="ident" href="../../../../src/prusti_interface/environment/borrowck/regions.rs.html#129">ty</a>);
+        <a class="ident" href="../../../../src/prusti_interface/environment/borrowck/regions.rs.html#99">extract_region</a>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../../src/prusti_interface/environment/borrowck/regions.rs.html#126">place_regions</a>,  <a class="ident" href="../../../../src/prusti_interface/environment/borrowck/regions.rs.html#128">local</a>, <a class="ident" href="../../../../src/prusti_interface/environment/borrowck/regions.rs.html#129">ty</a>);
     }
 
     <span class="macro">trace!</span>(<span class="string">&quot;[exit] load_place_regions&quot;</span>);
-    <span class="prelude-val">Ok</span>(<a class="ident" href="../../../../src/prusti_interface/environment/borrowck/regions.rs.html#139">place_regions</a>)
+    <span class="prelude-val">Ok</span>(<a class="ident" href="../../../../src/prusti_interface/environment/borrowck/regions.rs.html#126">place_regions</a>)
 }
 </code></pre></div>
 </section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="prusti_interface" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.60.0-nightly (bd3cb5256 2022-01-16)" ></div>

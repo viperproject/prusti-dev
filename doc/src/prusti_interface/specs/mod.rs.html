@@ -277,27 +277,27 @@
 <span id="274">274</span>
 <span id="275">275</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_ast/ast/index.html">rustc_ast::ast</a>;
-<span class="kw">use</span> <span class="ident">rustc_hir</span>::{<span class="ident">intravisit</span>, <span class="ident">ItemKind</span>};
+<span class="kw">use</span> <span class="ident">rustc_hir</span>::{<span class="ident">intravisit</span>};
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/hir/map/struct.Map.html">rustc_middle::hir::map::Map</a>;
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/context/struct.TyCtxt.html">rustc_middle::ty::TyCtxt</a>;
 <span class="kw">use</span> <span class="ident">rustc_span</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/span_encoding/struct.Span.html">Span</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/struct.MultiSpan.html">MultiSpan</a>};
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/symbol/struct.Symbol.html">rustc_span::symbol::Symbol</a>;
+
 <span class="kw">use</span> <span class="ident">rustc_hir::def_id</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">DefId</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.LocalDefId.html">LocalDefId</a>};
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/collections/hash/map/struct.HashMap.html">std::collections::HashMap</a>;
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.TryInto.html">std::convert::TryInto</a>;
 <span class="kw">use</span> <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#56-62"><span class="kw">crate</span>::environment::Environment</a>;
 <span class="kw">use</span> <a class="ident" href="../../../src/prusti_interface/prusti_error.rs.html#22-35"><span class="kw">crate</span>::PrustiError</a>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::utils</span>::{
-    <a class="ident" href="../../../src/prusti_interface/utils.rs.html#301">has_spec_only_attr</a>, <a class="ident" href="../../../src/prusti_interface/utils.rs.html#306">has_extern_spec_attr</a>, <a class="ident" href="../../../src/prusti_interface/utils.rs.html#352">read_prusti_attr</a>, <a class="ident" href="../../../src/prusti_interface/utils.rs.html#311">read_prusti_attrs</a>, <a class="ident" href="../../../src/prusti_interface/utils.rs.html#277">has_prusti_attr</a>
+    <a class="ident" href="../../../src/prusti_interface/utils.rs.html#305">has_extern_spec_attr</a>, <a class="ident" href="../../../src/prusti_interface/utils.rs.html#350">read_prusti_attr</a>, <a class="ident" href="../../../src/prusti_interface/utils.rs.html#310">read_prusti_attrs</a>, <a class="ident" href="../../../src/prusti_interface/utils.rs.html#276">has_prusti_attr</a>
 };
 <span class="kw">use</span> <span class="ident">log::debug</span>;
 
 <span class="kw">pub</span> <span class="kw">mod</span> <a class="ident" href="../../../src/prusti_interface/specs/external.rs.html#1-138">external</a>;
 <span class="kw">pub</span> <span class="kw">mod</span> <a class="ident" href="../../../src/prusti_interface/specs/typed.rs.html#1-136">typed</a>;
-<span class="kw">pub</span> <span class="kw">mod</span> <a class="ident" href="../../../src/prusti_interface/specs/checker.rs.html#1-164">checker</a>;
+<span class="kw">pub</span> <span class="kw">mod</span> <a class="ident" href="../../../src/prusti_interface/specs/checker.rs.html#1-163">checker</a>;
 
 <span class="kw">use</span> <a class="ident" href="../../../prusti_interface/specs/typed/enum.SpecIdRef.html">typed::SpecIdRef</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
+
 <span class="kw">use</span> <a class="ident" href="../../../src/prusti_interface/specs/external.rs.html#13-25"><span class="kw">crate</span>::specs::external::ExternSpecResolver</a>;
 <span class="kw">use</span> <a class="ident" href="../../../prusti_interface/specs/typed/struct.SpecificationId.html">prusti_specs::specifications::common::SpecificationId</a>;
 
@@ -429,31 +429,31 @@
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">spec_id_refs</span> <span class="op">=</span> <span class="macro">vec!</span>[];
 
     <a class="ident" href="../../../src/prusti_interface/specs/mod.rs.html#151">spec_id_refs</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(
-        <a class="ident" href="../../../src/prusti_interface/utils.rs.html#311">read_prusti_attrs</a>(<span class="string">&quot;pre_spec_id_ref&quot;</span>, <a class="ident" href="../../../src/prusti_interface/specs/mod.rs.html#150">attrs</a>).<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(
+        <a class="ident" href="../../../src/prusti_interface/utils.rs.html#310">read_prusti_attrs</a>(<span class="string">&quot;pre_spec_id_ref&quot;</span>, <a class="ident" href="../../../src/prusti_interface/specs/mod.rs.html#150">attrs</a>).<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(
             <span class="op">|</span><span class="ident">raw_spec_id</span><span class="op">|</span> <span class="ident">SpecIdRef::Precondition</span>(<a class="ident" href="../../../src/prusti_interface/specs/mod.rs.html#144">parse_spec_id</a>(<a class="ident" href="../../../src/prusti_interface/specs/mod.rs.html#155">raw_spec_id</a>, <a class="ident" href="../../../src/prusti_interface/specs/mod.rs.html#150">def_id</a>))
         )
     );
     <a class="ident" href="../../../src/prusti_interface/specs/mod.rs.html#151">spec_id_refs</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(
-        <a class="ident" href="../../../src/prusti_interface/utils.rs.html#311">read_prusti_attrs</a>(<span class="string">&quot;post_spec_id_ref&quot;</span>, <a class="ident" href="../../../src/prusti_interface/specs/mod.rs.html#150">attrs</a>).<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(
+        <a class="ident" href="../../../src/prusti_interface/utils.rs.html#310">read_prusti_attrs</a>(<span class="string">&quot;post_spec_id_ref&quot;</span>, <a class="ident" href="../../../src/prusti_interface/specs/mod.rs.html#150">attrs</a>).<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(
             <span class="op">|</span><span class="ident">raw_spec_id</span><span class="op">|</span> <span class="ident">SpecIdRef::Postcondition</span>(<a class="ident" href="../../../src/prusti_interface/specs/mod.rs.html#144">parse_spec_id</a>(<a class="ident" href="../../../src/prusti_interface/specs/mod.rs.html#160">raw_spec_id</a>, <a class="ident" href="../../../src/prusti_interface/specs/mod.rs.html#150">def_id</a>))
         )
     );
     <a class="ident" href="../../../src/prusti_interface/specs/mod.rs.html#151">spec_id_refs</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(
         <span class="comment">// TODO: pledges with LHS that is not &quot;result&quot; would need to carry the</span>
         <span class="comment">// LHS expression through typing</span>
-        <a class="ident" href="../../../src/prusti_interface/utils.rs.html#311">read_prusti_attrs</a>(<span class="string">&quot;pledge_spec_id_ref&quot;</span>, <a class="ident" href="../../../src/prusti_interface/specs/mod.rs.html#150">attrs</a>).<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(
+        <a class="ident" href="../../../src/prusti_interface/utils.rs.html#310">read_prusti_attrs</a>(<span class="string">&quot;pledge_spec_id_ref&quot;</span>, <a class="ident" href="../../../src/prusti_interface/specs/mod.rs.html#150">attrs</a>).<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(
             <span class="op">|</span><span class="ident">raw_spec_id</span><span class="op">|</span> <a class="ident" href="../../../prusti_interface/specs/typed/enum.SpecIdRef.html">SpecIdRef::Pledge</a> { <span class="ident">lhs</span>: <span class="prelude-val">None</span>, <span class="ident">rhs</span>: <a class="ident" href="../../../src/prusti_interface/specs/mod.rs.html#144">parse_spec_id</a>(<a class="ident" href="../../../src/prusti_interface/specs/mod.rs.html#167">raw_spec_id</a>, <a class="ident" href="../../../src/prusti_interface/specs/mod.rs.html#150">def_id</a>) }
         )
     );
     <a class="ident" href="../../../src/prusti_interface/specs/mod.rs.html#151">spec_id_refs</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(
-        <a class="ident" href="../../../src/prusti_interface/utils.rs.html#352">read_prusti_attr</a>(<span class="string">&quot;pred_spec_id_ref&quot;</span>, <a class="ident" href="../../../src/prusti_interface/specs/mod.rs.html#150">attrs</a>).<span class="ident">map</span>(
+        <a class="ident" href="../../../src/prusti_interface/utils.rs.html#350">read_prusti_attr</a>(<span class="string">&quot;pred_spec_id_ref&quot;</span>, <a class="ident" href="../../../src/prusti_interface/specs/mod.rs.html#150">attrs</a>).<span class="ident">map</span>(
             <span class="op">|</span><span class="ident">raw_spec_id</span><span class="op">|</span> <span class="ident">SpecIdRef::Predicate</span>(<a class="ident" href="../../../src/prusti_interface/specs/mod.rs.html#144">parse_spec_id</a>(<a class="ident" href="../../../src/prusti_interface/specs/mod.rs.html#172">raw_spec_id</a>, <a class="ident" href="../../../src/prusti_interface/specs/mod.rs.html#150">def_id</a>))
         )
     );
     <span class="macro">debug!</span>(<span class="string">&quot;Function {:?} has specification ids {:?}&quot;</span>, <a class="ident" href="../../../src/prusti_interface/specs/mod.rs.html#150">def_id</a>, <a class="ident" href="../../../src/prusti_interface/specs/mod.rs.html#151">spec_id_refs</a>);
 
-    <span class="kw">let</span> <span class="ident">pure</span> <span class="op">=</span> <a class="ident" href="../../../src/prusti_interface/utils.rs.html#277">has_prusti_attr</a>(<a class="ident" href="../../../src/prusti_interface/specs/mod.rs.html#150">attrs</a>, <span class="string">&quot;pure&quot;</span>);
-    <span class="kw">let</span> <span class="ident">trusted</span> <span class="op">=</span> <a class="ident" href="../../../src/prusti_interface/utils.rs.html#277">has_prusti_attr</a>(<a class="ident" href="../../../src/prusti_interface/specs/mod.rs.html#150">attrs</a>, <span class="string">&quot;trusted&quot;</span>);
+    <span class="kw">let</span> <span class="ident">pure</span> <span class="op">=</span> <a class="ident" href="../../../src/prusti_interface/utils.rs.html#276">has_prusti_attr</a>(<a class="ident" href="../../../src/prusti_interface/specs/mod.rs.html#150">attrs</a>, <span class="string">&quot;pure&quot;</span>);
+    <span class="kw">let</span> <span class="ident">trusted</span> <span class="op">=</span> <a class="ident" href="../../../src/prusti_interface/utils.rs.html#276">has_prusti_attr</a>(<a class="ident" href="../../../src/prusti_interface/specs/mod.rs.html#150">attrs</a>, <span class="string">&quot;trusted&quot;</span>);
 
     <span class="kw">if</span> <a class="ident" href="../../../src/prusti_interface/specs/mod.rs.html#177">pure</a> <span class="op">|</span><span class="op">|</span> <a class="ident" href="../../../src/prusti_interface/specs/mod.rs.html#178">trusted</a> <span class="op">|</span><span class="op">|</span> <span class="op">!</span><a class="ident" href="../../../src/prusti_interface/specs/mod.rs.html#151">spec_id_refs</a>.<span class="ident">is_empty</span>() {
         <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/prusti_interface/specs/mod.rs.html#27-31">ProcedureSpecRefs</a> {
@@ -506,19 +506,19 @@
         <span class="kw">let</span> <span class="ident">attrs</span> <span class="op">=</span> <a class="self" href="../../../src/prusti_interface/specs/mod.rs.html#217">self</a>.<span class="ident">tcx</span>.<span class="ident">hir</span>().<span class="ident">attrs</span>(<a class="ident" href="../../../src/prusti_interface/specs/mod.rs.html#222">id</a>);
 
         <span class="comment">// Collect spec functions</span>
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">raw_spec_id</span>) <span class="op">=</span> <a class="ident" href="../../../src/prusti_interface/utils.rs.html#352">read_prusti_attr</a>(<span class="string">&quot;spec_id&quot;</span>, <a class="ident" href="../../../src/prusti_interface/specs/mod.rs.html#228">attrs</a>) {
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">raw_spec_id</span>) <span class="op">=</span> <a class="ident" href="../../../src/prusti_interface/utils.rs.html#350">read_prusti_attr</a>(<span class="string">&quot;spec_id&quot;</span>, <a class="ident" href="../../../src/prusti_interface/specs/mod.rs.html#228">attrs</a>) {
             <span class="kw">let</span> <span class="ident">spec_id</span>: <a class="ident" href="../../../prusti_interface/specs/typed/struct.SpecificationId.html">SpecificationId</a> <span class="op">=</span> <a class="ident" href="../../../src/prusti_interface/specs/mod.rs.html#144">parse_spec_id</a>(<a class="ident" href="../../../src/prusti_interface/specs/mod.rs.html#231">raw_spec_id</a>, <a class="ident" href="../../../src/prusti_interface/specs/mod.rs.html#227">def_id</a>);
             <a class="self" href="../../../src/prusti_interface/specs/mod.rs.html#217">self</a>.<span class="ident">spec_functions</span>.<span class="ident">insert</span>(<a class="ident" href="../../../src/prusti_interface/specs/mod.rs.html#232">spec_id</a>, <a class="ident" href="../../../src/prusti_interface/specs/mod.rs.html#226">local_id</a>);
 
             <span class="comment">// Collect loop specifications</span>
-            <span class="kw">if</span> <a class="ident" href="../../../src/prusti_interface/utils.rs.html#277">has_prusti_attr</a>(<a class="ident" href="../../../src/prusti_interface/specs/mod.rs.html#228">attrs</a>, <span class="string">&quot;loop_body_invariant_spec&quot;</span>) {
+            <span class="kw">if</span> <a class="ident" href="../../../src/prusti_interface/utils.rs.html#276">has_prusti_attr</a>(<a class="ident" href="../../../src/prusti_interface/specs/mod.rs.html#228">attrs</a>, <span class="string">&quot;loop_body_invariant_spec&quot;</span>) {
                 <a class="self" href="../../../src/prusti_interface/specs/mod.rs.html#217">self</a>.<span class="ident">loop_specs</span>.<span class="ident">push</span>(<a class="ident" href="../../../src/prusti_interface/specs/mod.rs.html#226">local_id</a>);
             }
         } <span class="kw">else</span> {
             <span class="comment">// Don&#39;t collect specs &quot;for&quot; spec items</span>
 
             <span class="comment">// Collect external function specifications</span>
-            <span class="kw">if</span> <a class="ident" href="../../../src/prusti_interface/utils.rs.html#306">has_extern_spec_attr</a>(<a class="ident" href="../../../src/prusti_interface/specs/mod.rs.html#228">attrs</a>) {
+            <span class="kw">if</span> <a class="ident" href="../../../src/prusti_interface/utils.rs.html#305">has_extern_spec_attr</a>(<a class="ident" href="../../../src/prusti_interface/specs/mod.rs.html#228">attrs</a>) {
                 <a class="self" href="../../../src/prusti_interface/specs/mod.rs.html#217">self</a>.<span class="ident">extern_resolver</span>.<a class="ident" href="../../../src/prusti_interface/specs/external.rs.html#43-50">add_extern_fn</a>(<a class="ident" href="../../../src/prusti_interface/specs/mod.rs.html#218">fn_kind</a>, <a class="ident" href="../../../src/prusti_interface/specs/mod.rs.html#219">fn_decl</a>, <a class="ident" href="../../../src/prusti_interface/specs/mod.rs.html#220">body_id</a>, <a class="ident" href="../../../src/prusti_interface/specs/mod.rs.html#221">span</a>, <a class="ident" href="../../../src/prusti_interface/specs/mod.rs.html#222">id</a>);
             }
 
@@ -538,7 +538,7 @@
         <span class="comment">// Collect closure specifications</span>
         <span class="kw">if</span> <span class="kw">let</span> <span class="ident">rustc_hir::StmtKind::Local</span>(<span class="ident">local</span>) <span class="op">=</span> <a class="ident" href="../../../src/prusti_interface/specs/mod.rs.html#256">stmt</a>.<span class="ident">kind</span> {
             <span class="kw">let</span> <span class="ident">attrs</span> <span class="op">=</span> <a class="self" href="../../../src/prusti_interface/specs/mod.rs.html#255">self</a>.<span class="ident">tcx</span>.<span class="ident">hir</span>().<span class="ident">attrs</span>(<a class="ident" href="../../../src/prusti_interface/specs/mod.rs.html#261">local</a>.<span class="ident">hir_id</span>);
-            <span class="kw">if</span> <a class="ident" href="../../../src/prusti_interface/utils.rs.html#277">has_prusti_attr</a>(<a class="ident" href="../../../src/prusti_interface/specs/mod.rs.html#262">attrs</a>, <span class="string">&quot;closure&quot;</span>) {
+            <span class="kw">if</span> <a class="ident" href="../../../src/prusti_interface/utils.rs.html#276">has_prusti_attr</a>(<a class="ident" href="../../../src/prusti_interface/specs/mod.rs.html#262">attrs</a>, <span class="string">&quot;closure&quot;</span>) {
                 <span class="kw">let</span> <span class="ident">init_expr</span> <span class="op">=</span> <a class="ident" href="../../../src/prusti_interface/specs/mod.rs.html#261">local</a>.<span class="ident">init</span>
                     .<span class="ident">expect</span>(<span class="string">&quot;closure on Local without assignment&quot;</span>);
                 <span class="kw">let</span> <span class="ident">local_id</span> <span class="op">=</span> <a class="self" href="../../../src/prusti_interface/specs/mod.rs.html#255">self</a>.<span class="ident">tcx</span>.<span class="ident">hir</span>().<span class="ident">local_def_id</span>(<a class="ident" href="../../../src/prusti_interface/specs/mod.rs.html#264">init_expr</a>.<span class="ident">hir_id</span>);
