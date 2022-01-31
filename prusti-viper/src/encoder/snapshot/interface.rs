@@ -2,7 +2,7 @@ use super::encoder::SnapshotEncoder;
 use crate::encoder::{encoder::SubstMap, errors::EncodingResult};
 use rustc_middle::{mir, ty};
 use std::{cell::RefCell, rc::Rc};
-use vir_crate::{high as vir_high, polymorphic as vir_poly};
+use vir_crate::polymorphic as vir_poly;
 
 #[derive(Default)]
 pub(crate) struct SnapshotEncoderState {

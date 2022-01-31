@@ -6,11 +6,10 @@
 
 use super::Predicates;
 use crate::encoder::foldunfold::{
-    footprint::*, path_ctxt::find_unfolded_variant, perm::*, requirements::*, state::*,
-    FoldUnfoldError,
+    footprint::*, path_ctxt::find_unfolded_variant, perm::*, state::*, FoldUnfoldError,
 };
-use log::{debug, trace};
-use rustc_hash::FxHashMap;
+use log::trace;
+
 use vir_crate::polymorphic as vir;
 
 fn inhale_expr(

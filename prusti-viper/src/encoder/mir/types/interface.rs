@@ -1,14 +1,12 @@
 use super::TypeEncoder;
 use crate::encoder::{
-    encoder::SubstMap,
     errors::{EncodingError, EncodingResult, SpannedEncodingResult},
     high::types::HighTypeEncoderInterface,
-    utils::transpose,
 };
-use rustc_hir::def_id::DefId;
+
 #[rustfmt::skip]
 use ::log::trace;
-use prusti_common::{config, report::log};
+
 use rustc_hash::FxHashMap;
 use rustc_middle::{mir, ty};
 use rustc_span::MultiSpan;

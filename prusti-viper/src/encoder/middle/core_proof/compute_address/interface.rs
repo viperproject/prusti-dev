@@ -1,21 +1,11 @@
 use super::encoder::ComputeAddressEncoder;
 use crate::encoder::{
     errors::SpannedEncodingResult,
-    high::types::HighTypeEncoderInterface,
-    middle::core_proof::{
-        addresses::AddressesInterface, lowerer::Lowerer, places::PlacesInterface,
-        utils::type_decl_encoder::TypeDeclWalker,
-    },
+    middle::core_proof::{lowerer::Lowerer, utils::type_decl_encoder::TypeDeclWalker},
 };
 use rustc_hash::FxHashSet;
-use std::borrow::Cow;
-use vir_crate::{
-    common::{
-        expression::{BinaryOperationHelpers, QuantifierHelpers},
-        identifier::WithIdentifier,
-    },
-    low as vir_low, middle as vir_mid,
-};
+
+use vir_crate::{low as vir_low, middle as vir_mid};
 
 #[derive(Default)]
 pub(in super::super) struct ComputeAddressState {

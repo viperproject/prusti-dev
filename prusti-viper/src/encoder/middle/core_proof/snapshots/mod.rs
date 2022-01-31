@@ -1,12 +1,5 @@
 use super::lowerer::Lowerer;
-use crate::encoder::{
-    errors::SpannedEncodingResult, middle::core_proof::MidCoreProofEncoderInterface, Encoder,
-};
-use vir_crate::{
-    common::identifier::WithIdentifier,
-    low as vir_low,
-    middle::{self as vir_mid, operations::ty::Typed},
-};
+use crate::encoder::errors::SpannedEncodingResult;
 
 mod expression;
 mod interface;

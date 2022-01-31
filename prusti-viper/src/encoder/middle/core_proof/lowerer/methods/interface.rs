@@ -1,16 +1,6 @@
-use crate::encoder::{
-    errors::SpannedEncodingResult,
-    high::pure_functions::HighPureFunctionEncoderInterface,
-    middle::core_proof::{
-        into_low::IntoLow,
-        lowerer::{DomainsLowererInterface, Lowerer},
-    },
-};
+use crate::encoder::{errors::SpannedEncodingResult, middle::core_proof::lowerer::Lowerer};
 use std::collections::BTreeMap;
-use vir_crate::{
-    low::{self as vir_low, operations::ty::Typed},
-    middle as vir_mid,
-};
+use vir_crate::low::{self as vir_low};
 
 #[derive(Default)]
 pub(in super::super) struct MethodsLowererState {

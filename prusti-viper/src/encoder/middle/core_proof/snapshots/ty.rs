@@ -1,13 +1,8 @@
 use super::{IntoSnapshot, SnapshotsInterface};
-use crate::encoder::{
-    errors::SpannedEncodingResult,
-    middle::core_proof::{lowerer::Lowerer, MidCoreProofEncoderInterface},
-    Encoder,
-};
+use crate::encoder::{errors::SpannedEncodingResult, middle::core_proof::lowerer::Lowerer};
 use vir_crate::{
-    common::identifier::WithIdentifier,
     low as vir_low,
-    middle::{self as vir_mid, operations::ty::Typed},
+    middle::{self as vir_mid},
 };
 
 impl IntoSnapshot for vir_mid::Type {

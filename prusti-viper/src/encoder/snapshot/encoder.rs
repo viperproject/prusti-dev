@@ -5,10 +5,8 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use crate::encoder::{
-    array_encoder::{EncodedArrayTypes, EncodedSliceTypes},
-    builtin_encoder::BuiltinFunctionKind,
     encoder::{encode_field_name, SubstMap},
-    errors::{EncodingError, EncodingResult, SpannedEncodingResult},
+    errors::{EncodingError, EncodingResult},
     foldunfold,
     high::types::HighTypeEncoderInterface,
     mir::types::MirTypeEncoderInterface,
@@ -16,19 +14,18 @@ use crate::encoder::{
     utils::range_extract,
     Encoder,
 };
-use log::{debug, trace};
+use log::debug;
 use prusti_common::{vir_expr, vir_local};
-use prusti_specs::predicate;
+
 use rustc_hash::FxHashMap;
 use rustc_middle::{ty, ty::layout::IntegerExt};
 use rustc_target::abi::Integer;
-use std::{convert::TryInto, rc::Rc};
+use std::rc::Rc;
 use vir_crate::{
     common::identifier::WithIdentifier,
     polymorphic as vir,
     polymorphic::{
-        ContainerOpKind, EnumVariantIndex, Expr, ExprIterator, FallibleExprFolder,
-        FallibleStmtFolder,
+        ContainerOpKind, Expr, ExprIterator, FallibleExprFolder, FallibleStmtFolder,
         Float::{F32, F64},
         PermAmount, Type,
     },

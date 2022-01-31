@@ -10,10 +10,8 @@ use super::{
     predicates_owned::{PredicatesOwnedInterface, PredicatesOwnedState},
     snapshots::SnapshotsState,
 };
-use crate::encoder::{
-    errors::SpannedEncodingResult, high::pure_functions::HighPureFunctionEncoderInterface, Encoder,
-};
-use std::collections::{BTreeMap, BTreeSet};
+use crate::encoder::{errors::SpannedEncodingResult, Encoder};
+
 use vir_crate::{
     low::{self as vir_low, operations::ty::Typed},
     middle as vir_mid,

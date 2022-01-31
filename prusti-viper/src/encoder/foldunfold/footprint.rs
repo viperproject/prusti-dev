@@ -8,13 +8,10 @@ use super::{
     places_utils::{union, union3},
     Predicates,
 };
-use crate::encoder::foldunfold::{
-    perm::{Perm::*, *},
-    requirements::*,
-};
-use log::{debug, trace};
+use crate::encoder::foldunfold::perm::{Perm::*, *};
+use log::trace;
 use rustc_hash::{FxHashMap, FxHashSet};
-use std::iter::FromIterator;
+
 use vir_crate::polymorphic::{self as vir, PermAmount};
 
 pub trait ExprFootprintGetter {

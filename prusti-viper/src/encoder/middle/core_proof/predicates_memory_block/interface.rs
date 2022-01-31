@@ -5,15 +5,11 @@ use crate::encoder::{
         lowerer::{
             DomainsLowererInterface, FunctionsLowererInterface, Lowerer, PredicatesLowererInterface,
         },
-        snapshots::IntoSnapshot,
         type_layouts::TypeLayoutsInterface,
     },
 };
 use rustc_hash::FxHashSet;
-use vir_crate::{
-    common::{expression::ExpressionIterator, identifier::WithIdentifier},
-    low as vir_low, middle as vir_mid,
-};
+use vir_crate::low as vir_low;
 
 #[derive(Default)]
 pub(in super::super) struct PredicatesMemoryBlockState {

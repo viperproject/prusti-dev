@@ -6,8 +6,7 @@
 
 use crate::encoder::{
     encoder::SubstMap,
-    errors::{EncodingError, EncodingResult, SpannedEncodingResult, WithSpan},
-    high::types::HighTypeEncoderInterface,
+    errors::SpannedEncodingResult,
     mir::{
         pure::{specifications::utils::extract_closure_from_ty, PureFunctionEncoderInterface},
         types::MirTypeEncoderInterface,
@@ -16,14 +15,12 @@ use crate::encoder::{
     Encoder,
 };
 use prusti_common::config;
-use rustc_hash::FxHashSet;
 use rustc_hir::def_id::DefId;
 use rustc_middle::ty;
-use rustc_span::{MultiSpan, Span};
+use rustc_span::Span;
 use vir_crate::{
     common::expression::{BinaryOperationHelpers, ExpressionIterator, QuantifierHelpers},
     high::{Expression, FieldDecl, Trigger, VariableDecl},
-    polymorphic::ExprIterator,
 };
 
 fn inline_closure_high<'tcx>(

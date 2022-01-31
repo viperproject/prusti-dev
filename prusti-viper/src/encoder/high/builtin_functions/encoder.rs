@@ -1,7 +1,7 @@
 use super::interface::BuiltinFunctionHighKind;
 use vir_crate::{
     common::expression::BinaryOperationHelpers,
-    high::{self as vir_high, operations::ty::Typed},
+    high::{self as vir_high},
 };
 
 pub(super) fn encode_builtin_function_def(kind: BuiltinFunctionHighKind) -> vir_high::FunctionDecl {

@@ -1,13 +1,11 @@
 use super::interface::PureFunctionEncoderInterface;
 use crate::encoder::{
-    borrows::{compute_procedure_contract, ProcedureContract},
     builtin_encoder::BuiltinFunctionKind,
     encoder::SubstMap,
     errors::{
-        EncodingError, EncodingResult, ErrorCtxt, PanicCause, SpannedEncodingError,
-        SpannedEncodingResult, WithSpan,
+        EncodingError, EncodingResult, ErrorCtxt, SpannedEncodingError, SpannedEncodingResult,
+        WithSpan,
     },
-    foldunfold,
     high::{
         builtin_functions::HighBuiltinFunctionEncoderInterface,
         generics::HighGenericsEncoderInterface, types::HighTypeEncoderInterface,
@@ -17,22 +15,20 @@ use crate::encoder::{
         types::MirTypeEncoderInterface,
     },
     mir_encoder::{MirEncoder, PlaceEncoder, PlaceEncoding, PRECONDITION_LABEL, WAND_LHS_LABEL},
-    mir_interpreter::{
-        run_backward_interpretation, BackwardMirInterpreter, ExprBackwardInterpreterState,
-    },
-    snapshot::{self, interface::SnapshotEncoderInterface},
+    mir_interpreter::{BackwardMirInterpreter, ExprBackwardInterpreterState},
+    snapshot::interface::SnapshotEncoderInterface,
     Encoder,
 };
 use log::{debug, trace};
-use prusti_common::{config, vir::optimizations::functions::Simplifier, vir_local};
-use prusti_interface::{specs::typed, PrustiError};
+use prusti_common::vir_local;
+
 use rustc_hash::FxHashMap;
-use rustc_hir as hir;
+
 use rustc_hir::def_id::DefId;
 use rustc_middle::{mir, span_bug, ty};
-use rustc_span::Span;
+
 use std::{convert::TryInto, mem};
-use vir_crate::polymorphic::{self as vir, ExprIterator};
+use vir_crate::polymorphic::{self as vir};
 
 pub(crate) struct PureFunctionBackwardInterpreter<'p, 'v: 'p, 'tcx: 'v> {
     encoder: &'p Encoder<'v, 'tcx>,

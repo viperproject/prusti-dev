@@ -12,7 +12,7 @@ use viper::VerificationError;
 use prusti_interface::PrustiError;
 use log::{debug, trace};
 use prusti_interface::data::ProcedureDefId;
-use backtrace::trace;
+
 
 /// The cause of a panic!()
 #[derive(Clone, Debug)]

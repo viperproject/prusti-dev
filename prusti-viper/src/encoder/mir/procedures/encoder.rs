@@ -11,11 +11,10 @@ use crate::encoder::{
 use prusti_interface::environment::{mir_dump::lifetimes::Lifetimes, Procedure};
 use rustc_data_structures::graph::WithStartNode;
 use rustc_hir::def_id::DefId;
-use rustc_middle::{mir, ty};
+use rustc_middle::mir;
 use vir_crate::high::{
     self as vir_high,
     builders::procedure::{BasicBlockBuilder, ProcedureBuilder},
-    operations::ty::Typed,
 };
 
 pub(super) fn encode_procedure<'v, 'tcx: 'v>(

@@ -4,7 +4,7 @@ use crate::encoder::{
 };
 use std::collections::BTreeMap;
 use vir_crate::{
-    low::{self as vir_low, operations::ty::Typed},
+    low::{self as vir_low},
     middle as vir_mid,
 };
 
