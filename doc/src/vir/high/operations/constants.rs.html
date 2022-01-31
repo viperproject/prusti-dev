@@ -47,112 +47,52 @@
 <span id="44">44</span>
 <span id="45">45</span>
 <span id="46">46</span>
-<span id="47">47</span>
-<span id="48">48</span>
-<span id="49">49</span>
-<span id="50">50</span>
-<span id="51">51</span>
-<span id="52">52</span>
-<span id="53">53</span>
-<span id="54">54</span>
-<span id="55">55</span>
-<span id="56">56</span>
-<span id="57">57</span>
-<span id="58">58</span>
-<span id="59">59</span>
-<span id="60">60</span>
-<span id="61">61</span>
-<span id="62">62</span>
-<span id="63">63</span>
-<span id="64">64</span>
-<span id="65">65</span>
-<span id="66">66</span>
-<span id="67">67</span>
-<span id="68">68</span>
-<span id="69">69</span>
-<span id="70">70</span>
-<span id="71">71</span>
-<span id="72">72</span>
-<span id="73">73</span>
-<span id="74">74</span>
-<span id="75">75</span>
-<span id="76">76</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">super</span>::<span class="kw">super</span>::ast</span>::{
-    <a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#3-3371">expression</a>::<span class="kw-2">*</span>,
-    <a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#3517-3521">position::Position</a>,
-    <span class="ident">ty</span>::{<a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#5722-5725">Float</a>, <a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#5702-5718">Int</a>, <a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#5669-5698">Type</a>},
+    <a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#3-3717">expression</a>::<span class="kw-2">*</span>,
+    <a class="ident" href="../../../../src/vir/common/position.rs.html#16-20">position::Position</a>,
+    <span class="ident">ty</span>::{<a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#6281-6284">Float</a>, <a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#6261-6277">Int</a>, <a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#6228-6257">Type</a>},
 };
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::common::constants</span>::{<span class="ident">derive_from</span>, <span class="ident">derive_from_into_primitive</span>, <span class="ident">derive_from_into_string</span>};
 
-<span class="kw">macro</span> <span class="ident">derive_from_into_primitive</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span>: <span class="ident">ty</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">variant</span>: <span class="ident">ident</span>) {
-    <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">ConstantValue</span> {
-        <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">value</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span>) -&gt; <span class="self">Self</span> {
-            <span class="self">Self</span>::<span class="macro-nonterminal">$</span><span class="macro-nonterminal">variant</span>(<span class="ident">value</span>.<span class="ident">into</span>())
-        }
-    }
-}
-<span class="kw">macro</span> <span class="ident">derive_from_into_string</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span>: <span class="ident">ty</span>) {
-    <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">ConstantValue</span> {
-        <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">value</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span>) -&gt; <span class="self">Self</span> {
-            <span class="ident"><span class="self">Self</span>::BigInt</span>(<span class="ident">value</span>.<span class="ident">to_string</span>())
-        }
-    }
-}
-<span class="kw">macro</span> <span class="ident">derive_from</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span>: <span class="ident">ty</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">vir_ty</span>: <span class="ident">expr</span>) {
-    <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Constant</span> {
-        <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">value</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span>) -&gt; <span class="self">Self</span> {
-            <span class="self">Self</span> {
-                <span class="ident">value</span>: <span class="ident">value</span>.<span class="ident">into</span>(),
-                <span class="ident">ty</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">vir_ty</span>,
-                <span class="ident">position</span>: <span class="ident">Position::default</span>(),
-            }
-        }
-    }
-    <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Expression</span> {
-        <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">value</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span>) -&gt; <span class="self">Self</span> {
-            <span class="ident"><span class="self">Self</span>::Constant</span>(<span class="ident">value</span>.<span class="ident">into</span>())
-        }
-    }
-}
+<span class="macro">derive_from_into_primitive!</span>(<a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#120-128">ConstantValue</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>, <span class="ident">Bool</span>);
+<span class="macro">derive_from!</span>(<a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#112-116">Constant</a>, <a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#25-58">Expression</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>, <a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#6237">Type::Bool</a>);
+<span class="macro">derive_from_into_primitive!</span>(<a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#120-128">ConstantValue</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i8.html">i8</a>, <span class="ident">Int</span>);
+<span class="macro">derive_from!</span>(<a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#112-116">Constant</a>, <a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#25-58">Expression</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i8.html">i8</a>, <a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#6239">Type::Int</a>(<a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#6262">Int::I8</a>));
+<span class="macro">derive_from_into_primitive!</span>(<a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#120-128">ConstantValue</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i16.html">i16</a>, <span class="ident">Int</span>);
+<span class="macro">derive_from!</span>(<a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#112-116">Constant</a>, <a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#25-58">Expression</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i16.html">i16</a>, <a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#6239">Type::Int</a>(<a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#6263">Int::I16</a>));
+<span class="macro">derive_from_into_primitive!</span>(<a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#120-128">ConstantValue</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>, <span class="ident">Int</span>);
+<span class="macro">derive_from!</span>(<a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#112-116">Constant</a>, <a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#25-58">Expression</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>, <a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#6239">Type::Int</a>(<a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#6264">Int::I32</a>));
+<span class="macro">derive_from_into_primitive!</span>(<a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#120-128">ConstantValue</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>, <span class="ident">Int</span>);
+<span class="macro">derive_from!</span>(<a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#112-116">Constant</a>, <a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#25-58">Expression</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>, <a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#6239">Type::Int</a>(<a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#6265">Int::I64</a>));
+<span class="macro">derive_from_into_string!</span>(<a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#120-128">ConstantValue</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i128.html">i128</a>);
+<span class="macro">derive_from!</span>(<a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#112-116">Constant</a>, <a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#25-58">Expression</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i128.html">i128</a>, <a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#6239">Type::Int</a>(<a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#6266">Int::I128</a>));
+<span class="macro">derive_from_into_string!</span>(<a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#120-128">ConstantValue</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.isize.html">isize</a>);
+<span class="macro">derive_from!</span>(<a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#112-116">Constant</a>, <a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#25-58">Expression</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.isize.html">isize</a>, <a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#6239">Type::Int</a>(<a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#6267">Int::Isize</a>));
+<span class="macro">derive_from_into_primitive!</span>(<a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#120-128">ConstantValue</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, <span class="ident">Int</span>);
+<span class="macro">derive_from!</span>(<a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#112-116">Constant</a>, <a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#25-58">Expression</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, <a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#6239">Type::Int</a>(<a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#6268">Int::U8</a>));
+<span class="macro">derive_from_into_primitive!</span>(<a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#120-128">ConstantValue</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>, <span class="ident">Int</span>);
+<span class="macro">derive_from!</span>(<a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#112-116">Constant</a>, <a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#25-58">Expression</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>, <a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#6239">Type::Int</a>(<a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#6269">Int::U16</a>));
+<span class="macro">derive_from_into_primitive!</span>(<a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#120-128">ConstantValue</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>, <span class="ident">Int</span>);
+<span class="macro">derive_from!</span>(<a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#112-116">Constant</a>, <a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#25-58">Expression</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>, <a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#6239">Type::Int</a>(<a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#6270">Int::U32</a>));
+<span class="macro">derive_from_into_string!</span>(<a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#120-128">ConstantValue</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>);
+<span class="macro">derive_from!</span>(<a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#112-116">Constant</a>, <a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#25-58">Expression</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>, <a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#6239">Type::Int</a>(<a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#6271">Int::U64</a>));
+<span class="macro">derive_from_into_string!</span>(<a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#120-128">ConstantValue</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u128.html">u128</a>);
+<span class="macro">derive_from!</span>(<a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#112-116">Constant</a>, <a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#25-58">Expression</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u128.html">u128</a>, <a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#6239">Type::Int</a>(<a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#6272">Int::U128</a>));
 
-<span class="macro">derive_from_into_primitive!</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>, <span class="ident">Bool</span>);
-<span class="macro">derive_from!</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>, <a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#5678">Type::Bool</a>);
-<span class="macro">derive_from_into_primitive!</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i8.html">i8</a>, <span class="ident">Int</span>);
-<span class="macro">derive_from!</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i8.html">i8</a>, <a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#5680">Type::Int</a>(<a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#5703">Int::I8</a>));
-<span class="macro">derive_from_into_primitive!</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i16.html">i16</a>, <span class="ident">Int</span>);
-<span class="macro">derive_from!</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i16.html">i16</a>, <a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#5680">Type::Int</a>(<a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#5704">Int::I16</a>));
-<span class="macro">derive_from_into_primitive!</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>, <span class="ident">Int</span>);
-<span class="macro">derive_from!</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>, <a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#5680">Type::Int</a>(<a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#5705">Int::I32</a>));
-<span class="macro">derive_from_into_primitive!</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>, <span class="ident">Int</span>);
-<span class="macro">derive_from!</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>, <a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#5680">Type::Int</a>(<a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#5706">Int::I64</a>));
-<span class="macro">derive_from_into_string!</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i128.html">i128</a>);
-<span class="macro">derive_from!</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i128.html">i128</a>, <a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#5680">Type::Int</a>(<a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#5707">Int::I128</a>));
-<span class="macro">derive_from_into_string!</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.isize.html">isize</a>);
-<span class="macro">derive_from!</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.isize.html">isize</a>, <a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#5680">Type::Int</a>(<a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#5708">Int::Isize</a>));
-<span class="macro">derive_from_into_primitive!</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, <span class="ident">Int</span>);
-<span class="macro">derive_from!</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, <a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#5680">Type::Int</a>(<a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#5709">Int::U8</a>));
-<span class="macro">derive_from_into_primitive!</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>, <span class="ident">Int</span>);
-<span class="macro">derive_from!</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>, <a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#5680">Type::Int</a>(<a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#5710">Int::U16</a>));
-<span class="macro">derive_from_into_primitive!</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>, <span class="ident">Int</span>);
-<span class="macro">derive_from!</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>, <a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#5680">Type::Int</a>(<a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#5711">Int::U32</a>));
-<span class="macro">derive_from_into_string!</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>);
-<span class="macro">derive_from!</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>, <a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#5680">Type::Int</a>(<a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#5712">Int::U64</a>));
-<span class="macro">derive_from_into_string!</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u128.html">u128</a>);
-<span class="macro">derive_from!</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u128.html">u128</a>, <a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#5680">Type::Int</a>(<a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#5713">Int::U128</a>));
+<span class="macro">derive_from!</span>(<a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#112-116">Constant</a>, <a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#25-58">Expression</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.f32.html">f32</a>, <a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#6240">Type::Float</a>(<a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#6282">Float::F32</a>));
+<span class="macro">derive_from_into_string!</span>(<a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#120-128">ConstantValue</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.f32.html">f32</a>);
+<span class="macro">derive_from!</span>(<a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#112-116">Constant</a>, <a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#25-58">Expression</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.f64.html">f64</a>, <a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#6240">Type::Float</a>(<a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#6283">Float::F64</a>));
+<span class="macro">derive_from_into_string!</span>(<a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#120-128">ConstantValue</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.f64.html">f64</a>);
 
-<span class="macro">derive_from!</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.f32.html">f32</a>, <a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#5681">Type::Float</a>(<a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#5723">Float::F32</a>));
-<span class="macro">derive_from_into_string!</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.f32.html">f32</a>);
-<span class="macro">derive_from!</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.f64.html">f64</a>, <a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#5681">Type::Float</a>(<a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#5724">Float::F64</a>));
-<span class="macro">derive_from_into_string!</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.f64.html">f64</a>);
-
-<span class="macro">derive_from_into_string!</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
-<span class="macro">derive_from!</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#5680">Type::Int</a>(<a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#5714">Int::Usize</a>));
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#119-127">ConstantValue</a> {
+<span class="macro">derive_from_into_string!</span>(<a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#120-128">ConstantValue</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
+<span class="macro">derive_from!</span>(<a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#112-116">Constant</a>, <a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#25-58">Expression</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#6239">Type::Int</a>(<a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#6273">Int::Usize</a>));
+<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#120-128">ConstantValue</a> {
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">value</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>) -&gt; <span class="self">Self</span> {
-        <span class="kw">let</span> <span class="ident">value</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u128.html">u128</a> <span class="op">=</span> <a class="ident" href="../../../../src/vir/high/operations/constants.rs.html#71">value</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
-        <span class="ident"><span class="self">Self</span>::BigInt</span>(<a class="ident" href="../../../../src/vir/high/operations/constants.rs.html#72">value</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>())
+        <span class="kw">let</span> <span class="ident">value</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u128.html">u128</a> <span class="op">=</span> <a class="ident" href="../../../../src/vir/high/operations/constants.rs.html#41">value</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
+        <span class="ident"><span class="self">Self</span>::BigInt</span>(<a class="ident" href="../../../../src/vir/high/operations/constants.rs.html#42">value</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>())
     }
 }
-<span class="macro">derive_from!</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>, <a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#5680">Type::Int</a>(<a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#5715">Int::Char</a>));
+<span class="macro">derive_from!</span>(<a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#112-116">Constant</a>, <a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#25-58">Expression</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>, <a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#6239">Type::Int</a>(<a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#6274">Int::Char</a>));
 </code></pre></div>
 </section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="vir" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.60.0-nightly (bd3cb5256 2022-01-16)" ></div>
 </body></html>

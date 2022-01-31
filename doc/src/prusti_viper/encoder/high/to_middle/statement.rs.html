@@ -25,7 +25,14 @@
 <span id="22">22</span>
 <span id="23">23</span>
 <span id="24">24</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <a class="ident" href="../../../../../src/prusti_viper/encoder/errors/spanned_encoding_error.rs.html#16-19"><span class="kw">crate</span>::encoder::errors::SpannedEncodingError</a>;
+<span id="25">25</span>
+<span id="26">26</span>
+<span id="27">27</span>
+<span id="28">28</span>
+<span id="29">29</span>
+<span id="30">30</span>
+<span id="31">31</span>
+</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::encoder::errors</span>::{<a class="ident" href="../../../../../src/prusti_viper/encoder/errors/spanned_encoding_error.rs.html#16-19">SpannedEncodingError</a>, <a class="ident" href="../../../../../src/prusti_viper/encoder/errors/spanned_encoding_error.rs.html#21">SpannedEncodingResult</a>};
 <span class="kw">use</span> <span class="ident">vir_crate</span>::{
     <a class="ident" href="../../../../../vir/high/index.html">high</a> <span class="kw">as</span> <span class="ident">vir_high</span>, <a class="ident" href="../../../../../vir/middle/index.html">middle</a> <span class="kw">as</span> <span class="ident">vir_mid</span>,
     <span class="ident">middle::operations</span>::{<a class="ident" href="../../../../../vir/gen/middle/derived_operations/trait.ToMiddleExpression.html">ToMiddleExpression</a>, <a class="ident" href="../../../../../vir/gen/middle/derived_operations/trait.ToMiddlePredicate.html">ToMiddlePredicate</a>, <a class="ident" href="../../../../../vir/gen/middle/derived_operations/trait.ToMiddleStatementLowerer.html">ToMiddleStatementLowerer</a>},
@@ -34,19 +41,26 @@
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> <a class="ident" href="../../../../../vir/gen/middle/derived_operations/trait.ToMiddleStatementLowerer.html">ToMiddleStatementLowerer</a> <span class="kw">for</span> <span class="ident"><span class="kw">crate</span>::encoder::Encoder</span><span class="op">&lt;</span><span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> {
     <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <a class="ident" href="../../../../../src/prusti_viper/encoder/errors/spanned_encoding_error.rs.html#16-19">SpannedEncodingError</a>;
 
-    <span class="kw">fn</span> <span class="ident">to_middle_statement_position</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">position</span>: <a class="ident" href="../../../../../vir/gen/high/ast/position/struct.Position.html">vir_high::Position</a>) -&gt; <a class="ident" href="../../../../../vir/gen/middle/ast/position/struct.Position.html">vir_mid::Position</a> {
-        <a class="ident" href="../../../../../src/prusti_viper/encoder/high/to_middle/statement.rs.html#10">position</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()
+    <span class="kw">fn</span> <span class="ident">to_middle_statement_position</span>(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        <span class="ident">position</span>: <a class="ident" href="../../../../../vir/common/position/struct.Position.html">vir_high::Position</a>,
+    ) -&gt; <span class="ident">SpannedEncodingResult</span><span class="op">&lt;</span><a class="ident" href="../../../../../vir/common/position/struct.Position.html">vir_mid::Position</a><span class="op">&gt;</span> {
+        <span class="macro">assert!</span>(<span class="op">!</span><a class="ident" href="../../../../../src/prusti_viper/encoder/high/to_middle/statement.rs.html#12">position</a>.<span class="ident">is_default</span>());
+        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../../../src/prusti_viper/encoder/high/to_middle/statement.rs.html#12">position</a>)
     }
 
     <span class="kw">fn</span> <span class="ident">to_middle_statement_expression</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">expression</span>: <a class="ident" href="../../../../../vir/gen/high/ast/expression/enum.Expression.html">vir_high::Expression</a>,
-    ) -&gt; <a class="ident" href="../../../../../vir/gen/middle/ast/expression/enum.Expression.html">vir_mid::Expression</a> {
-        <a class="ident" href="../../../../../src/prusti_viper/encoder/high/to_middle/statement.rs.html#16">expression</a>.<a class="ident" href="../../../../../vir/gen/middle/derived_operations/trait.ToMiddleExpression.html">to_middle_expression</a>(<a class="self" href="../../../../../src/prusti_viper/encoder/high/to_middle/statement.rs.html#15">self</a>)
+    ) -&gt; <span class="ident">SpannedEncodingResult</span><span class="op">&lt;</span><a class="ident" href="../../../../../vir/gen/middle/ast/expression/enum.Expression.html">vir_mid::Expression</a><span class="op">&gt;</span> {
+        <a class="ident" href="../../../../../src/prusti_viper/encoder/high/to_middle/statement.rs.html#20">expression</a>.<a class="ident" href="../../../../../vir/gen/middle/derived_operations/trait.ToMiddleExpression.html">to_middle_expression</a>(<a class="self" href="../../../../../src/prusti_viper/encoder/high/to_middle/statement.rs.html#19">self</a>)
     }
 
-    <span class="kw">fn</span> <span class="ident">to_middle_statement_predicate</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">predicate</span>: <a class="ident" href="../../../../../vir/gen/high/ast/predicate/enum.Predicate.html">vir_high::Predicate</a>) -&gt; <a class="ident" href="../../../../../vir/gen/middle/ast/predicate/enum.Predicate.html">vir_mid::Predicate</a> {
-        <a class="ident" href="../../../../../src/prusti_viper/encoder/high/to_middle/statement.rs.html#21">predicate</a>.<a class="ident" href="../../../../../vir/gen/middle/derived_operations/trait.ToMiddlePredicate.html">to_middle_predicate</a>(<a class="self" href="../../../../../src/prusti_viper/encoder/high/to_middle/statement.rs.html#21">self</a>)
+    <span class="kw">fn</span> <span class="ident">to_middle_statement_predicate</span>(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        <span class="ident">predicate</span>: <a class="ident" href="../../../../../vir/gen/high/ast/predicate/enum.Predicate.html">vir_high::Predicate</a>,
+    ) -&gt; <span class="ident">SpannedEncodingResult</span><span class="op">&lt;</span><a class="ident" href="../../../../../vir/gen/middle/ast/predicate/enum.Predicate.html">vir_mid::Predicate</a><span class="op">&gt;</span> {
+        <a class="ident" href="../../../../../src/prusti_viper/encoder/high/to_middle/statement.rs.html#27">predicate</a>.<a class="ident" href="../../../../../vir/gen/middle/derived_operations/trait.ToMiddlePredicate.html">to_middle_predicate</a>(<a class="self" href="../../../../../src/prusti_viper/encoder/high/to_middle/statement.rs.html#26">self</a>)
     }
 }
 </code></pre></div>

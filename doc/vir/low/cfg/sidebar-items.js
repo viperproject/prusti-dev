@@ -1,1 +1,1 @@
-initSidebarItems({"mod":[["method",""]],"struct":[["BasicBlock",""],["Label",""],["ProcedureDecl",""]]});
+initSidebarItems({"enum":[["Successor",""]],"mod":[["method",""],["procedure",""]],"struct":[["BasicBlock",""],["Label",""],["MethodDecl","A Viper method that performs a specific action such as havocking the given variable. Its body can have at most one basic block."],["ProcedureDecl",""]]});

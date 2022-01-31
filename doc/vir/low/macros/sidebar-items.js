@@ -1,0 +1,1 @@
+initSidebarItems({"macro":[["expr",""],["function",""],["method",""],["method_name",""],["predicate",""],["stmt",""],["stmtp","A statement with position"],["stmts",""],["ty",""],["var",""],["var_decls",""],["vars",""]]});

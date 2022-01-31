@@ -1,1 +1,1 @@
-initSidebarItems({"mod":[["constants",""],["expression",""],["helpers",""],["identifier",""],["predicate",""],["procedure",""],["special_variables",""],["successor",""],["ty",""]]});
+initSidebarItems({"mod":[["constants",""],["expression",""],["helpers",""],["identifier",""],["position",""],["predicate",""],["procedure",""],["special_variables",""],["statement",""],["successor",""],["ty",""],["type_decl",""]]});
