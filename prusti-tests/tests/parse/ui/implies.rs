@@ -20,4 +20,19 @@ fn test4() {}
 #[requires((true ==> true) ==> (true ==> true))]
 fn test5() {}
 
+#[requires(true -> true)]
+fn test21() {}
+
+#[requires(true -> true -> true)]
+fn test22() {}
+
+#[requires(true -> (true -> true))]
+fn test23() {}
+
+#[requires((true -> true) -> true)]
+fn test24() {}
+
+#[requires((true -> true) -> (true -> true))]
+fn test25() {}
+
 fn main() {}
