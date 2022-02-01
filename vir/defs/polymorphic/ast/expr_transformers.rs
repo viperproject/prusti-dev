@@ -245,7 +245,18 @@ pub trait ExprFolder: Sized {
         } = expr;
         Expr::ForAll(ForAll {
             variables,
-            triggers,
+            triggers: triggers
+                .iter()
+                .map(|set| {
+                    Trigger::new(
+                        set.elements()
+                            .iter()
+                            .cloned()
+                            .map(|expr| self.fold(expr))
+                            .collect::<Vec<_>>(),
+                    )
+                })
+                .collect::<Vec<_>>(),
             body: self.fold_boxed(body),
             position,
         })
@@ -260,7 +271,18 @@ pub trait ExprFolder: Sized {
         } = expr;
         Expr::Exists(Exists {
             variables,
-            triggers,
+            triggers: triggers
+                .iter()
+                .map(|set| {
+                    Trigger::new(
+                        set.elements()
+                            .iter()
+                            .cloned()
+                            .map(|expr| self.fold(expr))
+                            .collect::<Vec<_>>(),
+                    )
+                })
+                .collect::<Vec<_>>(),
             body: self.fold_boxed(body),
             position,
         })
@@ -512,8 +534,16 @@ pub trait ExprWalker: Sized {
     }
     fn walk_forall(&mut self, statement: &ForAll) {
         let ForAll {
-            variables, body, ..
+            variables,
+            triggers,
+            body,
+            ..
         } = statement;
+        for set in triggers {
+            for expr in set.elements() {
+                self.walk(expr);
+            }
+        }
         for var in variables {
             self.walk_local_var(var);
         }
@@ -521,8 +551,16 @@ pub trait ExprWalker: Sized {
     }
     fn walk_exists(&mut self, statement: &Exists) {
         let Exists {
-            variables, body, ..
+            variables,
+            triggers,
+            body,
+            ..
         } = statement;
+        for set in triggers {
+            for expr in set.elements() {
+                self.walk(expr);
+            }
+        }
         for var in variables {
             self.walk_local_var(var);
         }
@@ -849,7 +887,18 @@ pub trait FallibleExprFolder: Sized {
         } = expr;
         Ok(Expr::ForAll(ForAll {
             variables,
-            triggers,
+            triggers: triggers
+                .iter()
+                .map(|set| {
+                    Ok(Trigger::new(
+                        set.elements()
+                            .iter()
+                            .cloned()
+                            .map(|expr| self.fallible_fold(expr))
+                            .collect::<Result<Vec<_>, _>>()?,
+                    ))
+                })
+                .collect::<Result<Vec<_>, _>>()?,
             body: self.fallible_fold_boxed(body)?,
             position,
         }))
@@ -864,7 +913,18 @@ pub trait FallibleExprFolder: Sized {
         } = expr;
         Ok(Expr::Exists(Exists {
             variables,
-            triggers,
+            triggers: triggers
+                .iter()
+                .map(|set| {
+                    Ok(Trigger::new(
+                        set.elements()
+                            .iter()
+                            .cloned()
+                            .map(|expr| self.fallible_fold(expr))
+                            .collect::<Result<Vec<_>, _>>()?,
+                    ))
+                })
+                .collect::<Result<Vec<_>, _>>()?,
             body: self.fallible_fold_boxed(body)?,
             position,
         }))
@@ -1145,19 +1205,35 @@ pub trait FallibleExprWalker: Sized {
     }
     fn fallible_walk_forall(&mut self, statement: &ForAll) -> Result<(), Self::Error> {
         let ForAll {
-            variables, body, ..
+            variables,
+            triggers,
+            body,
+            ..
         } = statement;
         for var in variables {
             self.fallible_walk_local_var(var)?;
+        }
+        for set in triggers {
+            for expr in set.elements() {
+                self.fallible_walk(expr)?;
+            }
         }
         self.fallible_walk(body)
     }
     fn fallible_walk_exists(&mut self, statement: &Exists) -> Result<(), Self::Error> {
         let Exists {
-            variables, body, ..
+            variables,
+            triggers,
+            body,
+            ..
         } = statement;
         for var in variables {
             self.fallible_walk_local_var(var)?;
+        }
+        for set in triggers {
+            for expr in set.elements() {
+                self.fallible_walk(expr)?;
+            }
         }
         self.fallible_walk(body)
     }
