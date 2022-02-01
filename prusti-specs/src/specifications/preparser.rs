@@ -623,6 +623,8 @@ impl PrustiToken {
             PrustiBinaryOp::And
         } else if operator2("||", p1, p2, true) {
             PrustiBinaryOp::Or
+        } else if operator2("->", p1, p2, true) {
+            PrustiBinaryOp::Implies
         } else if operator2("..", p1, p2, true) {
             PrustiBinaryOp::Rust(RustOp::Range)
         } else if operator2("+=", p1, p2, true) {
