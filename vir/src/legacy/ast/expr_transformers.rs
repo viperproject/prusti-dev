@@ -382,10 +382,15 @@ pub trait ExprWalker: Sized {
     fn walk_forall(
         &mut self,
         vars: &[LocalVar],
-        _triggers: &[Trigger],
+        triggers: &[Trigger],
         body: &Expr,
         _pos: &Position,
     ) {
+        for set in triggers {
+            for expr in set.elements() {
+                self.walk(expr);
+            }
+        }
         for var in vars {
             self.walk_local_var(var);
         }
@@ -394,10 +399,15 @@ pub trait ExprWalker: Sized {
     fn walk_exists(
         &mut self,
         vars: &[LocalVar],
-        _triggers: &[Trigger],
+        triggers: &[Trigger],
         body: &Expr,
         _pos: &Position,
     ) {
+        for set in triggers {
+            for expr in set.elements() {
+                self.walk(expr);
+            }
+        }
         for var in vars {
             self.walk_local_var(var);
         }
