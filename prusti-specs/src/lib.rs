@@ -14,7 +14,7 @@ mod spec_attribute_kind;
 pub mod specifications;
 
 use proc_macro2::{Span, TokenStream, TokenTree};
-use quote::{quote, quote_spanned, ToTokens};
+use quote::{quote_spanned, ToTokens};
 use syn::spanned::Spanned;
 use std::convert::TryInto;
 
@@ -396,36 +396,15 @@ pub fn refine_trait_spec(_attr: TokenStream, tokens: TokenStream) -> TokenStream
 
 pub fn extern_spec(_attr: TokenStream, tokens:TokenStream) -> TokenStream {
     let item: syn::Item = handle_result!(syn::parse2(tokens));
-    let item_span = item.span();
     match item {
         syn::Item::Impl(mut item_impl) => {
-            let new_struct = handle_result!(
-                extern_spec_rewriter::generate_new_struct(&item_impl)
-            );
-
-            let struct_ident = &new_struct.ident;
-            let generic_args = extern_spec_rewriter::rewrite_generics(&new_struct.generics);
-
-            let struct_ty: syn::Type = parse_quote_spanned! {item_span=>
-                #struct_ident #generic_args
-            };
-
-            let rewritten_item = handle_result!(
-                extern_spec_rewriter::rewrite_impl(&mut item_impl, Box::from(struct_ty))
-            );
-
-            quote_spanned! {item_span=>
-                #new_struct
-                #rewritten_item
-            }
+            handle_result!(extern_spec_rewriter::impls::rewrite_extern_spec(&mut item_impl))
+        }
+        syn::Item::Trait(item_trait) => {
+            handle_result!(extern_spec_rewriter::traits::rewrite_extern_spec(&item_trait))
         }
         syn::Item::Mod(mut item_mod) => {
-            let mut path = syn::Path {
-                leading_colon: None,
-                segments: syn::punctuated::Punctuated::new(),
-            };
-            handle_result!(extern_spec_rewriter::rewrite_mod(&mut item_mod, &mut path));
-            quote!(#item_mod)
+            handle_result!(extern_spec_rewriter::mods::rewrite_extern_spec(&mut item_mod))
         }
         _ => { unimplemented!() }
     }
