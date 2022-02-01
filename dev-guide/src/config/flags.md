@@ -114,7 +114,7 @@ When enabled, the encoded Viper program will be output.
 
 ## `ENABLE_CACHE`
 
-Controls if verification requests (to verify individual `fn`s) are cached to improve future verification. By default the cache is only saved in memory (of the `prusti-server` if enabled). For long-running verification projects use [`CACHE_PATH`](#cache_path) to save to disk.
+When enabled, verification requests (to verify individual `fn`s) are cached to improve future verification. By default the cache is only saved in memory (of the `prusti-server` if enabled). For long-running verification projects use [`CACHE_PATH`](#cache_path) to save to disk.
 
 ## `ENABLE_VERIFY_ONLY_BASIC_BLOCK_PATH`
 
@@ -172,7 +172,7 @@ When enabled, prints the AST with desugared specifications.
 
 ## `PRINT_HASH`
 
-A debugging option, which, when enabled, prints the hash of a verification request (the hash is used for caching). This is instead of performing verification &mdash; this option is similar to `NO_VERIFY`, except that this flag stops the verification process at a later stage.
+When enabled, prints the hash of a verification request (the hash is used for caching). This is a debugging option which does not perform verification &mdash; it is similar to `NO_VERIFY`, except that this flag stops the verification process at a later stage.
 
 ## `PRINT_TYPECKD_SPECS`
 
