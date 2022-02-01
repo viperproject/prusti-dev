@@ -1,9 +1,8 @@
-use crate::{span_overrider::SpanOverrider, specifications::common::NameGenerator};
+use crate::{span_overrider::SpanOverrider, specifications::common::generate_struct_name};
 use proc_macro2::TokenStream;
 use quote::{quote, quote_spanned};
 use syn::spanned::Spanned;
 use super::common::*;
-
 
 pub fn rewrite_extern_spec(item_impl: &mut syn::ItemImpl) -> syn::Result<TokenStream> {
     let new_struct = generate_new_struct(item_impl)?;
@@ -23,11 +22,7 @@ pub fn rewrite_extern_spec(item_impl: &mut syn::ItemImpl) -> syn::Result<TokenSt
 }
 
 fn generate_new_struct(item_struct: &syn::ItemImpl) -> syn::Result<syn::ItemStruct> {
-    let name_generator = NameGenerator::new();
-    let struct_name = match name_generator.generate_struct_name(item_struct) {
-        Ok(name) => name,
-        Err(msg) => return Err(syn::Error::new(item_struct.span(), msg)),
-    };
+    let struct_name = generate_struct_name(item_struct);
     let struct_ident = syn::Ident::new(&struct_name, item_struct.span());
 
     let mut new_struct: syn::ItemStruct = parse_quote_spanned! {item_struct.span()=>
@@ -46,7 +41,7 @@ fn rewrite_impl(impl_item: &mut syn::ItemImpl, new_ty: Box<syn::Type>) -> syn::R
     if let syn::Type::Path(type_path) = item_ty.as_mut() {
         for seg in type_path.path.segments.iter_mut() {
             if let syn::PathArguments::AngleBracketed(genargs) = &mut seg.arguments {
-                genargs.colon2_token = Some(syn::token::Colon2::default());
+                genargs.colon2_token = Some(<syn::Token![::]>::default());
             }
         }
     }
