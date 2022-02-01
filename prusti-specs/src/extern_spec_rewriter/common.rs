@@ -1,28 +1,25 @@
+use proc_macro2::{TokenStream, TokenTree};
 use quote::{quote, quote_spanned, ToTokens};
 use syn::spanned::Spanned;
 
 /// Rewrites every occurence of "self" to "_self" in a token stream
-pub fn rewrite_self(tokens: proc_macro2::TokenStream) -> proc_macro2::TokenStream {
-    let mut new_tokens = proc_macro2::TokenStream::new();
-    for token in tokens.into_iter() {
-        match token {
-            proc_macro2::TokenTree::Group(group) => {
+pub fn rewrite_self(tokens: TokenStream) -> TokenStream {
+    TokenStream::from_iter(tokens
+        .into_iter()
+        .map(|token| match token {
+            TokenTree::Group(group) => {
                 let new_group =
                     proc_macro2::Group::new(group.delimiter(), rewrite_self(group.stream()));
-                new_tokens.extend(new_group.to_token_stream());
+                new_group.to_token_stream()
             }
-            proc_macro2::TokenTree::Ident(mut ident) => {
+            TokenTree::Ident(mut ident) => {
                 if ident == "self" {
                     ident = proc_macro2::Ident::new("_self", ident.span());
                 }
-                new_tokens.extend(ident.into_token_stream());
+                ident.into_token_stream()
             }
-            _ => {
-                new_tokens.extend(token.into_token_stream());
-            }
-        }
-    }
-    new_tokens
+            _ => token.into_token_stream(),
+        }))
 }
 
 /// Add `PhantomData` markers for each type parameter to silence errors
@@ -80,8 +77,8 @@ pub fn rewrite_generics(gens: &syn::Generics) -> syn::AngleBracketedGenericArgum
 pub fn rewrite_method_inputs<T: ToTokens>(
     item_ty: &T,
     method_inputs: &mut syn::punctuated::Punctuated<syn::FnArg, syn::Token![,]>,
-) -> syn::punctuated::Punctuated<syn::Expr, syn::token::Comma> {
-    let mut args: syn::punctuated::Punctuated<syn::Expr, syn::token::Comma> =
+) -> syn::punctuated::Punctuated<syn::Expr, syn::Token![,]> {
+    let mut args: syn::punctuated::Punctuated<syn::Expr, syn::Token![,]> =
         syn::punctuated::Punctuated::new();
     for input in method_inputs.iter_mut() {
         let input_span = input.span();
@@ -109,7 +106,7 @@ pub fn rewrite_method_inputs<T: ToTokens>(
                 }
             }
         }
-        args.push_punct(syn::token::Comma::default());
+        args.push_punct(<syn::Token![,]>::default());
     }
     args
 }
