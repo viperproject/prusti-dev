@@ -16,23 +16,26 @@ pub fn process_verification_request_cache<'v, 't: 'v>(
     cache: impl Cache,
 ) -> viper::VerificationResult {
     if !config::enable_cache() || config::print_hash() {
-        process_verification_request(verification_context, request)
+        process_verification_request::<true>(verification_context, request)
     } else {
         let hash = request.get_hash();
         info!("Verification request hash: {}", hash);
         // Try to load from cache and return `result`
         if let Some(result) = cache.get(hash) {
+            if config::dump_viper_program() {
+                process_verification_request::<false>(verification_context, request);
+            }
             info!("Using verification result from the cache");
             return result;
         }
-        let result = process_verification_request(verification_context, request);
+        let result = process_verification_request::<true>(verification_context, request);
         // Save `result` to cache
         cache.insert(hash, result.clone());
         result
     }
 }
 
-pub fn process_verification_request<'v, 't: 'v>(
+pub fn process_verification_request<'v, 't: 'v, const ACTUALLY_VERIFY: bool>(
     verification_context: &'v VerificationContext<'t>,
     request: VerificationRequest,
 ) -> viper::VerificationResult {
@@ -61,9 +64,9 @@ pub fn process_verification_request<'v, 't: 'v>(
         if config::dump_viper_program() {
             stopwatch.start_next("dumping viper program");
             dump_program(&ast_utils, viper_program, request.program.get_name());
-            if config::print_hash() {
-                return viper::VerificationResult::Success;
-            }
+        }
+        if config::print_hash() || !ACTUALLY_VERIFY {
+            return viper::VerificationResult::Success;
         }
         stopwatch.start_next("verification");
         verifier.verify(viper_program)
