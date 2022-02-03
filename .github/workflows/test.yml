@@ -11,7 +11,7 @@ env:
   PRUSTI_ASSERT_TIMEOUT: 60000
 
 jobs:
-  # Run a subset of the tests that used to fail often.
+  # Run Prusti reusing the cache from previous CI runs.
   # The goal here is to fail fast and give quick feedback to the developers.
   quick-tests:
     runs-on: ubuntu-latest
@@ -20,8 +20,6 @@ jobs:
     steps:
       - name: Check out the repo
         uses: actions/checkout@v2
-        with:
-          fetch-depth: 0 # deep clone, to allow us to use git merge-base
       - name: Set up Python 3
         uses: actions/setup-python@v2
         with:
@@ -35,8 +33,17 @@ jobs:
         uses: Swatinem/rust-cache@v1.3.0
       - name: Build with cargo
         run: python x.py build --all --verbose
-      - name: Run "quick" cargo tests
-        run: python x.py test --all --verbose quick
+      - name: Set Prusti cache path and key
+        run: |
+          echo "PRUSTI_CACHE_PATH='${{ env.GITHUB_WORKSPACE }}/prusti_cache.json'" >> $GITHUB_ENV
+          echo "YEAR=$(date +%Y)" >> $GITHUB_ENV
+      - name: Persist Prusti cache
+        uses: actions/cache@v2
+        with:
+          path: ${{ env.PRUSTI_CACHE_PATH }}
+          key: prusti-cache-${{ env.YEAR }}
+      - name: Run cargo tests
+        run: python x.py test --all --verbose
 
   # Run clippy checks on PRs.
   clippy-check:
@@ -77,8 +84,6 @@ jobs:
     steps:
       - name: Check out the repo
         uses: actions/checkout@v2
-        with:
-          fetch-depth: 0 # deep clone, to allow us to use git merge-base
       - name: Set up Python 3
         uses: actions/setup-python@v2
         with:
