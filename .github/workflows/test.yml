@@ -61,6 +61,8 @@ jobs:
   # The goal here is to fail fast and give quick feedback to the developers.
   quick-tests:
     runs-on: ubuntu-latest
+    env:
+      PRUSTI_CACHE_PATH: ${{ github.workspace }}/prusti_cache.bin
     steps:
       - name: Check out the repo
         uses: actions/checkout@v2
@@ -72,6 +74,14 @@ jobs:
         run: python x.py setup
       - name: Cache cargo
         uses: Swatinem/rust-cache@v1.3.0
+      - name: Prepare Prusti cache key
+        run: |
+          echo "PRUSTI_CACHE_KEY=prusti-cache-$(date +%Y-%m)" >> $GITHUB_ENV
+      - name: Persist Prusti cache
+        uses: actions/cache@v2
+        with:
+          path: ${{ env.PRUSTI_CACHE_PATH }}
+          key: ${{ env.PRUSTI_CACHE_KEY }}
       - name: Build with cargo
         run: python x.py build --all
       - name: Run quick tests
@@ -84,6 +94,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       PRUSTI_ENABLE_PURIFICATION_OPTIMIZATION: true
+      PRUSTI_CACHE_PATH: ${{ github.workspace }}/prusti_cache.bin
     steps:
       - name: Check out the repo
         uses: actions/checkout@v2
@@ -95,6 +106,14 @@ jobs:
         run: python x.py setup
       - name: Cache cargo
         uses: Swatinem/rust-cache@v1.3.0
+      - name: Prepare Prusti cache key
+        run: |
+          echo "PRUSTI_CACHE_KEY=prusti-cache-$(date +%Y-%m)" >> $GITHUB_ENV
+      - name: Persist Prusti cache
+        uses: actions/cache@v2
+        with:
+          path: ${{ env.PRUSTI_CACHE_PATH }}
+          key: ${{ env.PRUSTI_CACHE_KEY }}
       - name: Build with cargo
         run: python x.py build --all
       - name: Run quick tests
@@ -164,6 +183,8 @@ jobs:
         os: [ubuntu-latest, windows-latest, macos-latest]
       fail-fast: false
     runs-on: ${{ matrix.os }}
+    env:
+      PRUSTI_CACHE_PATH: ${{ github.workspace }}/prusti_cache.bin
     steps:
       - name: Check out the repo
         uses: actions/checkout@v2
@@ -179,6 +200,14 @@ jobs:
         run: python x.py setup
       - name: Cache cargo
         uses: Swatinem/rust-cache@v1.3.0
+      - name: Prepare Prusti cache key
+        run: |
+          echo "PRUSTI_CACHE_KEY=prusti-cache-$(date +%Y-%m)" >> $GITHUB_ENV
+      - name: Persist Prusti cache
+        uses: actions/cache@v2
+        with:
+          path: ${{ env.PRUSTI_CACHE_PATH }}
+          key: ${{ env.PRUSTI_CACHE_KEY }}
       - name: Build with cargo
         run: python x.py build --all
       - name: Run cargo tests
