@@ -15,7 +15,7 @@ fn main() {
                 .short("p")
                 .long("port")
                 .help("Sets the port on which to listen for incoming verification requests. Pass 0 to get a free one assigned by the OS.")
-                .required(true)
+                .default_value("0")
                 .takes_value(true)
                 .value_name("PORT"),
         )

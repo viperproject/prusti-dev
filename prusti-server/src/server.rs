@@ -4,7 +4,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use crate::{process_verification_request_cache, VerificationRequest};
+use crate::{process_verification_request, VerificationRequest};
 use log::info;
 use prusti_common::{config, Stopwatch};
 use std::{
@@ -61,7 +61,7 @@ where
             let stopwatch = Stopwatch::start("prusti-server", "attach thread to JVM");
             let viper_thread = viper_arc.attach_current_thread();
             stopwatch.finish();
-            process_verification_request_cache(&viper_thread, request, &cache)
+            process_verification_request(&viper_thread, request, &cache)
         }
     };
 
