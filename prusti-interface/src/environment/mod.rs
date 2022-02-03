@@ -36,6 +36,7 @@ pub mod place_set;
 pub mod polonius_info;
 mod procedure;
 pub mod mir_dump;
+mod traits;
 
 use self::collect_prusti_spec_visitor::CollectPrustiSpecVisitor;
 use self::collect_closure_defs_visitor::CollectClosureDefsVisitor;
@@ -312,19 +313,17 @@ impl<'tcx> Environment<'tcx> {
         if let Some(trait_id) = self.tcx().trait_of_item(proc_def_id) {
             debug!("Fetching implementations of method '{:?}' defined in trait '{}' with substs '{:?}'", proc_def_id, self.tcx().def_path_str(trait_id), substs);
 
-            /*
-                Note: In order to run ty::Instance::resolve, we disable diagnostics. In some cases
-                if method lookup fails, this method attaches delayed span bugs to the compiler session,
-                which will eventually be printed to stderr. With disabled diagnostics, these errors are ignored.
-                There is a change request pending for the Rust compiler to change that behaviour [1] which is not yet implemented.
-                [1]  https://github.com/rust-lang/compiler-team/issues/449
-             */
-            let diagnostic: &rustc_errors::Handler = self.tcx().sess.diagnostic();
-            let resolved_instance: Result<Option<ty::Instance<'tcx>>, rustc_errors::ErrorReported> = diagnostic.with_disabled_diagnostic(||  {
-                let param_env = ty::ParamEnv::reveal_all();
-                ty::Instance::resolve(self.tcx(), param_env, proc_def_id, substs)
-            });
-
+            // Note: In some cases, if tcx.resolve_instance fails to perform the
+            // method lookup, it attaches delayed span bugs to the compiler
+            // session. To avoid this, we have a copy of the corresponding files
+            // with lines reporting delayed span bugs commented out. There is a
+            // change request pending for the Rust compiler to change this
+            // behaviour [1], which is not yet implemented.
+            //
+            // [1]  https://github.com/rust-lang/compiler-team/issues/449
+            let param_env = ty::ParamEnv::reveal_all();
+            let key = ty::ParamEnvAnd { param_env, value: (proc_def_id, substs) };
+            let resolved_instance = traits::resolve_instance(self.tcx(), key);
             return match resolved_instance {
                 Ok(method_impl_instance) => {
                     let impl_method_def_id = method_impl_instance.map(|instance| instance.def_id());
@@ -336,8 +335,9 @@ impl<'tcx> Environment<'tcx> {
                     None
                 }
             };
+        } else {
+            None
         }
-        None
     }
 
     pub fn type_is_allowed_in_pure_functions(&self, ty: ty::Ty<'tcx>, param_env: ty::ParamEnv<'tcx>) -> bool {

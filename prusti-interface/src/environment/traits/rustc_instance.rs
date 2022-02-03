@@ -4,9 +4,14 @@
 // (https://github.com/rust-lang/rust/blob/86f5e177bca8121e1edc9864023a8ea61acf9034/LICENSE-APACHE)
 // and MIT
 // (https://github.com/rust-lang/rust/blob/86f5e177bca8121e1edc9864023a8ea61acf9034/LICENSE-MIT).
+//
+// Changes:
+// + Fix compilation errors.
+// + Use our copy of `codegen_fulfill_obligation` that does not record delayed
+//   span bugs, which is the main motivation for duplication.
 
 use rustc_errors::ErrorReported;
-use rustc_hir::def_id::{DefId, LocalDefId};
+use rustc_hir::def_id::DefId;
 use rustc_infer::infer::TyCtxtInferExt;
 use rustc_middle::ty::subst::SubstsRef;
 use rustc_middle::ty::{self, Binder, Instance, Ty, TyCtxt, TypeFoldable, TypeVisitor};
@@ -49,7 +54,7 @@ impl<'tcx> BoundVarsCollector<'tcx> {
     fn into_vars(self, tcx: TyCtxt<'tcx>) -> &'tcx ty::List<ty::BoundVariableKind> {
         let max = self.vars.iter().map(|(k, _)| *k).max().unwrap_or(0);
         for i in 0..max {
-            if let None = self.vars.get(&i) {
+            if self.vars.get(&i).is_none() {
                 panic!("Unknown variable: {:?}", i);
             }
         }
@@ -85,7 +90,7 @@ impl<'tcx> TypeVisitor<'tcx> for BoundVarsCollector<'tcx> {
                     }
                     Entry::Occupied(entry) => match entry.get() {
                         ty::BoundVariableKind::Ty(_) => {}
-                        _ => bug!("Conflicting bound vars"),
+                        _ => panic!("Conflicting bound vars"),
                     },
                 }
             }
@@ -105,7 +110,7 @@ impl<'tcx> TypeVisitor<'tcx> for BoundVarsCollector<'tcx> {
                     }
                     Entry::Occupied(entry) => match entry.get() {
                         ty::BoundVariableKind::Region(_) => {}
-                        _ => bug!("Conflicting bound vars"),
+                        _ => panic!("Conflicting bound vars"),
                     },
                 }
             }
@@ -117,8 +122,7 @@ impl<'tcx> TypeVisitor<'tcx> for BoundVarsCollector<'tcx> {
     }
 }
 
-#[instrument(level = "debug", skip(tcx))]
-fn resolve_instance<'tcx>(
+pub fn resolve_instance<'tcx>(
     tcx: TyCtxt<'tcx>,
     key: ty::ParamEnvAnd<'tcx, (DefId, SubstsRef<'tcx>)>,
 ) -> Result<Option<Instance<'tcx>>, ErrorReported> {
@@ -132,21 +136,6 @@ fn resolve_instance<'tcx>(
     inner_resolve_instance(tcx, param_env.and((ty::WithOptConstParam::unknown(did), substs)))
 }
 
-fn resolve_instance_of_const_arg<'tcx>(
-    tcx: TyCtxt<'tcx>,
-    key: ty::ParamEnvAnd<'tcx, (LocalDefId, DefId, SubstsRef<'tcx>)>,
-) -> Result<Option<Instance<'tcx>>, ErrorReported> {
-    let (param_env, (did, const_param_did, substs)) = key.into_parts();
-    inner_resolve_instance(
-        tcx,
-        param_env.and((
-            ty::WithOptConstParam { did: did.to_def_id(), const_param_did: Some(const_param_did) },
-            substs,
-        )),
-    )
-}
-
-#[instrument(level = "debug", skip(tcx))]
 fn inner_resolve_instance<'tcx>(
     tcx: TyCtxt<'tcx>,
     key: ty::ParamEnvAnd<'tcx, (ty::WithOptConstParam<DefId>, SubstsRef<'tcx>)>,
@@ -219,7 +208,7 @@ fn resolve_associated_item<'tcx>(
     let mut bound_vars_collector = BoundVarsCollector::new();
     trait_ref.visit_with(&mut bound_vars_collector);
     let trait_binder = ty::Binder::bind_with_vars(trait_ref, bound_vars_collector.into_vars(tcx));
-    let vtbl = tcx.codegen_fulfill_obligation((param_env, trait_binder))?;
+    let vtbl = super::rustc_codegen::codegen_fulfill_obligation(tcx, (param_env, trait_binder))?;
 
     // Now that we know which impl is being used, we can dispatch to
     // the actual function:
@@ -229,8 +218,8 @@ fn resolve_associated_item<'tcx>(
                 "resolving ImplSource::UserDefined: {:?}, {:?}, {:?}, {:?}",
                 param_env, trait_item_id, rcvr_substs, impl_data
             );
-            assert!(!rcvr_substs.needs_infer());
-            assert!(!trait_ref.needs_infer());
+            // assert!(!rcvr_substs.needs_infer());
+            // assert!(!trait_ref.needs_infer());
 
             let trait_def_id = tcx.trait_id_of_impl(impl_data.impl_def_id).unwrap();
             let trait_def = tcx.trait_def(trait_def_id);
@@ -238,7 +227,7 @@ fn resolve_associated_item<'tcx>(
                 .ancestors(tcx, impl_data.impl_def_id)?
                 .leaf_def(tcx, trait_item_id)
                 .unwrap_or_else(|| {
-                    bug!("{:?} not found in {:?}", trait_item_id, impl_data.impl_def_id);
+                    panic!("{:?} not found in {:?}", trait_item_id, impl_data.impl_def_id);
                 });
 
             let substs = tcx.infer_ctxt().enter(|infcx| {
@@ -387,9 +376,4 @@ fn resolve_associated_item<'tcx>(
         | traits::ImplSource::TraitUpcasting(_)
         | traits::ImplSource::ConstDrop(_) => None,
     })
-}
-
-pub fn provide(providers: &mut ty::query::Providers) {
-    *providers =
-        ty::query::Providers { resolve_instance, resolve_instance_of_const_arg, ..*providers };
 }

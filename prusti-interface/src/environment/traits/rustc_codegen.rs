@@ -1,11 +1,13 @@
 // This file was taken from the compiler:
-// https://github.com/rust-lang/rust/blob/86f5e177bca8121e1edc9864023a8ea61acf9034/compiler/rustc_trait_selection/src/traits/codegen.rs#L22
+// https://github.com/rust-lang/rust/blob/86f5e177bca8121e1edc9864023a8ea61acf9034/compiler/rustc_trait_selection/src/traits/codegen.rs
 // This file is licensed under Apache 2.0
 // (https://github.com/rust-lang/rust/blob/86f5e177bca8121e1edc9864023a8ea61acf9034/LICENSE-APACHE)
 // and MIT
 // (https://github.com/rust-lang/rust/blob/86f5e177bca8121e1edc9864023a8ea61acf9034/LICENSE-MIT).
 
 // Changes:
+// + Fix compilation errors.
+// + Remove all diagnostics (this is the main motivation for duplication).
 
 
 // This file contains various trait resolution methods used by codegen.
@@ -13,8 +15,9 @@
 // seems likely that they should eventually be merged into more
 // general routines.
 
-use crate::infer::{InferCtxt, TyCtxtInferExt};
-use crate::traits::{
+use log::debug;
+use rustc_trait_selection::infer::{InferCtxt, TyCtxtInferExt};
+use rustc_trait_selection::traits::{
     FulfillmentContext, ImplSource, Obligation, ObligationCause, SelectionContext, TraitEngine,
     Unimplemented,
 };
@@ -55,36 +58,36 @@ pub fn codegen_fulfill_obligation<'tcx>(
         let selection = match selcx.select(&obligation) {
             Ok(Some(selection)) => selection,
             Ok(None) => {
-                // Ambiguity can happen when monomorphizing during trans
-                // expands to some humongo type that never occurred
-                // statically -- this humongo type can then overflow,
-                // leading to an ambiguous result. So report this as an
-                // overflow bug, since I believe this is the only case
-                // where ambiguity can result.
-                infcx.tcx.sess.delay_span_bug(
-                    rustc_span::DUMMY_SP,
-                    &format!(
-                        "encountered ambiguity selecting `{:?}` during codegen, presuming due to \
-                         overflow or prior type error",
-                        trait_ref
-                    ),
-                );
+                // // Ambiguity can happen when monomorphizing during trans
+                // // expands to some humongo type that never occurred
+                // // statically -- this humongo type can then overflow,
+                // // leading to an ambiguous result. So report this as an
+                // // overflow bug, since I believe this is the only case
+                // // where ambiguity can result.
+                // infcx.tcx.sess.delay_span_bug(
+                //     rustc_span::DUMMY_SP,
+                //     &format!(
+                //         "encountered ambiguity selecting `{:?}` during codegen, presuming due to \
+                //          overflow or prior type error",
+                //         trait_ref
+                //     ),
+                // );
                 return Err(ErrorReported);
             }
             Err(Unimplemented) => {
-                // This can trigger when we probe for the source of a `'static` lifetime requirement
-                // on a trait object: `impl Foo for dyn Trait {}` has an implicit `'static` bound.
-                infcx.tcx.sess.delay_span_bug(
-                    rustc_span::DUMMY_SP,
-                    &format!(
-                        "Encountered error `Unimplemented` selecting `{:?}` during codegen",
-                        trait_ref
-                    ),
-                );
+                // // This can trigger when we probe for the source of a `'static` lifetime requirement
+                // // on a trait object: `impl Foo for dyn Trait {}` has an implicit `'static` bound.
+                // infcx.tcx.sess.delay_span_bug(
+                //     rustc_span::DUMMY_SP,
+                //     &format!(
+                //         "Encountered error `Unimplemented` selecting `{:?}` during codegen",
+                //         trait_ref
+                //     ),
+                // );
                 return Err(ErrorReported);
             }
             Err(e) => {
-                bug!("Encountered error `{:?}` selecting `{:?}` during codegen", e, trait_ref)
+                panic!("Encountered error `{:?}` selecting `{:?}` during codegen", e, trait_ref)
             }
         };
 
@@ -131,13 +134,13 @@ where
     // optimization to stop iterating early.
     let errors = fulfill_cx.select_all_or_error(infcx);
     if !errors.is_empty() {
-        infcx.tcx.sess.delay_span_bug(
-            rustc_span::DUMMY_SP,
-            &format!(
-                "Encountered errors `{:?}` resolving bounds outside of type inference",
-                errors
-            ),
-        );
+        // infcx.tcx.sess.delay_span_bug(
+        //     rustc_span::DUMMY_SP,
+        //     &format!(
+        //         "Encountered errors `{:?}` resolving bounds outside of type inference",
+        //         errors
+        //     ),
+        // );
     }
 
     let result = infcx.resolve_vars_if_possible(result);
