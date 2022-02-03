@@ -190,10 +190,10 @@ fn get_procedure_spec_ids(def_id: DefId, attrs: &[ast::Attribute]) -> Option<Pro
 
 impl<'a, 'tcx> intravisit::Visitor<'tcx> for SpecCollector<'a, 'tcx> {
     type Map = Map<'tcx>;
+    type NestedFilter = rustc_middle::hir::nested_filter::All;
 
-    fn nested_visit_map(&mut self) -> intravisit::NestedVisitorMap<Self::Map> {
-        let map = self.tcx.hir();
-        intravisit::NestedVisitorMap::All(map)
+    fn nested_visit_map(&mut self) -> Self::Map {
+        self.tcx.hir()
     }
 
     fn visit_trait_item(

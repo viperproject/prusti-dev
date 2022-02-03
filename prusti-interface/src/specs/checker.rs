@@ -36,9 +36,10 @@ struct CollectPredicatesVisitor<'v, 'tcx> {
 
 impl<'v, 'tcx> intravisit::Visitor<'tcx> for CollectPredicatesVisitor<'v, 'tcx> {
     type Map = Map<'tcx>;
+    type NestedFilter = rustc_middle::hir::nested_filter::All;
 
-    fn nested_visit_map(&mut self) -> intravisit::NestedVisitorMap<Self::Map> {
-        intravisit::NestedVisitorMap::All(self.tcx.hir())
+    fn nested_visit_map(&mut self) -> Self::Map {
+        self.tcx.hir()
     }
 
     fn visit_fn(
@@ -71,9 +72,10 @@ struct CheckPredicatesVisitor<'v, 'tcx> {
 
 impl<'v, 'tcx> Visitor<'tcx> for CheckPredicatesVisitor<'v, 'tcx> {
     type Map = Map<'tcx>;
+    type NestedFilter = rustc_middle::hir::nested_filter::All;
 
-    fn nested_visit_map(&mut self) -> intravisit::NestedVisitorMap<Self::Map> {
-        intravisit::NestedVisitorMap::All(self.tcx.hir())
+    fn nested_visit_map(&mut self) -> Self::Map {
+        self.tcx.hir()
     }
 
     fn visit_item(&mut self, i: &'tcx hir::Item<'tcx>) {

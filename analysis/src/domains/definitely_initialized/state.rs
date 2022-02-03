@@ -6,7 +6,7 @@
 
 use crate::{abstract_interpretation::AbstractState, mir_utils::*, AnalysisError};
 use rustc_data_structures::fx::FxHashSet;
-use rustc_middle::{mir, ty, ty::TyCtxt};
+use rustc_middle::{mir, ty::TyCtxt};
 use rustc_span::def_id::DefId;
 use serde::{ser::SerializeSeq, Serialize, Serializer};
 use std::{collections::BTreeSet, fmt, mem};
@@ -18,7 +18,7 @@ use std::{collections::BTreeSet, fmt, mem};
 /// set at the same time is illegal.
 #[derive(Clone)]
 pub struct DefinitelyInitializedState<'mir, 'tcx: 'mir> {
-    pub(super) def_init_places: FxHashSet<mir::Place<'tcx>>,
+    pub(super) def_init_places: FxHashSet<Place<'tcx>>,
     pub(super) def_id: DefId,
     pub(super) mir: &'mir mir::Body<'tcx>,
     pub(super) tcx: TyCtxt<'tcx>,
@@ -74,8 +74,12 @@ impl<'mir, 'tcx: 'mir> Serialize for DefinitelyInitializedState<'mir, 'tcx> {
 }
 
 impl<'mir, 'tcx: 'mir> DefinitelyInitializedState<'mir, 'tcx> {
-    pub fn get_def_init_places(&self) -> &FxHashSet<mir::Place<'tcx>> {
+    pub fn get_def_init_places(&self) -> &FxHashSet<Place<'tcx>> {
         &self.def_init_places
+    }
+
+    pub fn get_def_init_mir_places(&self) -> FxHashSet<mir::Place<'tcx>> {
+        self.def_init_places.iter().map(|place| **place).collect()
     }
 
     /// The top element of the lattice contains no places
@@ -115,6 +119,7 @@ impl<'mir, 'tcx: 'mir> DefinitelyInitializedState<'mir, 'tcx> {
 
     /// Sets `place` as definitely initialized (see place_set/insert()
     fn set_place_initialised(&mut self, place: mir::Place<'tcx>) {
+        let place = place.into();
         if cfg!(debug_assertions) {
             self.check_invariant();
         }
@@ -144,6 +149,7 @@ impl<'mir, 'tcx: 'mir> DefinitelyInitializedState<'mir, 'tcx> {
 
     /// Sets `place` as (possibly) uninitialised (see place_set/remove())
     fn set_place_uninitialised(&mut self, place: mir::Place<'tcx>) {
+        let place = place.into();
         if cfg!(debug_assertions) {
             self.check_invariant();
         }
@@ -228,11 +234,7 @@ impl<'mir, 'tcx: 'mir> DefinitelyInitializedState<'mir, 'tcx> {
                 self.set_place_initialised(target);
             }
             mir::StatementKind::StorageDead(local) => {
-                let place = mir::Place {
-                    local,
-                    projection: ty::List::empty(),
-                };
-                self.set_place_uninitialised(place);
+                self.set_place_uninitialised(local.into());
             }
             _ => {}
         }
@@ -376,7 +378,7 @@ impl<'mir, 'tcx: 'mir> AbstractState for DefinitelyInitializedState<'mir, 'tcx> 
         let mut intersection = FxHashSet::default();
         // TODO: make more efficient/modify self directly?
         let mut propagate_places_fn =
-            |place_set1: &FxHashSet<mir::Place<'tcx>>, place_set2: &FxHashSet<mir::Place<'tcx>>| {
+            |place_set1: &FxHashSet<Place<'tcx>>, place_set2: &FxHashSet<Place<'tcx>>| {
                 for &place in place_set1.iter() {
                     // find matching place in place_set2:
                     // if there is a matching place that contains exactly the same or more memory

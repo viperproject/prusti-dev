@@ -149,6 +149,8 @@ impl<'a> Verifier<'a> {
 
                 let verification_error_wrapper = silver::verifier::VerificationError::with(self.env);
 
+                let failure_context_wrapper = silver::verifier::FailureContext::with(self.env);
+
                 let has_identifier_wrapper = silver::ast::HasIdentifier::with(self.env);
 
                 let error_reason_wrapper = silver::verifier::ErrorReason::with(self.env);
@@ -187,33 +189,41 @@ impl<'a> Verifier<'a> {
                             self.jni.to_string(viper_error)
                         );
                     };
+                    let mut failure_contexts = self.jni.seq_to_vec(self
+                    .jni
+                    .unwrap_result(verification_error_wrapper.call_failureContexts(viper_error)));
 
-                    let option_original_counterexample = self
-                        .jni
-                        .unwrap_result(verification_error_wrapper.call_counterexample(viper_error));
-
-                    let counterexample: Option<SiliconCounterexample> = if !self
-                        .jni
-                        .is_instance_of(option_original_counterexample, "scala/None$")
-                    {
-                        let original_counterexample = self.jni.unwrap_result(
-                            scala::Some::with(self.env).call_get(option_original_counterexample),
-                        );
-                        if self.jni.is_instance_of(
-                            original_counterexample,
-                            "viper/silicon/interfaces/SiliconMappedCounterexample",
-                        ) {
-                            // only mapped counterexamples are processed
-                            Some(SiliconCounterexample::new(
-                                self.env,
-                                self.jni,
-                                original_counterexample,
-                            ))
+                    let counterexample: Option<SiliconCounterexample> = {
+                        if let Some(failure_context) = failure_contexts.pop() {
+                            let option_original_counterexample = self
+                                .jni
+                                .unwrap_result(failure_context_wrapper.call_counterExample(failure_context));
+                            if !self
+                                .jni
+                                .is_instance_of(option_original_counterexample, "scala/None$")
+                            {
+                                let original_counterexample = self.jni.unwrap_result(
+                                    scala::Some::with(self.env).call_get(option_original_counterexample),
+                                );
+                                if self.jni.is_instance_of(
+                                    original_counterexample,
+                                    "viper/silicon/interfaces/SiliconMappedCounterexample",
+                                ) {
+                                    // only mapped counterexamples are processed
+                                    Some(SiliconCounterexample::new(
+                                        self.env,
+                                        self.jni,
+                                        original_counterexample,
+                                    ))
+                                } else {
+                                    None
+                                }
+                            } else {
+                                None
+                            }
                         } else {
                             None
                         }
-                    } else {
-                        None
                     };
 
                     let reason = self

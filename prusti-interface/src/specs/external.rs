@@ -114,10 +114,10 @@ fn get_impl_type(qself: &rustc_hir::QPath<'_>) -> Option<DefId> {
 
 impl<'tcx> Visitor<'tcx> for ExternSpecVisitor<'tcx> {
     type Map = Map<'tcx>;
+    type NestedFilter = rustc_middle::hir::nested_filter::All;
 
-    fn nested_visit_map(&mut self) -> intravisit::NestedVisitorMap<Self::Map> {
-        let map = self.tcx.hir();
-        intravisit::NestedVisitorMap::All(map)
+    fn nested_visit_map(&mut self) -> Self::Map {
+        self.tcx.hir()
     }
 
     fn visit_expr(&mut self, ex: &'tcx rustc_hir::Expr<'tcx>) {
