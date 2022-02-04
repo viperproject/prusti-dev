@@ -48,6 +48,7 @@ trait Private {
         ty: &vir_mid::Type,
         fields: impl Iterator<Item = Cow<'a, vir_mid::FieldDecl>>,
     ) -> SpannedEncodingResult<()>;
+    #[allow(clippy::ptr_arg)] // Clippy false positive.
     fn snapshot_copy_except(
         &mut self,
         statements: &mut Vec<vir_low::Statement>,
@@ -242,6 +243,7 @@ pub(in super::super) trait SnapshotsInterface {
         argument: vir_low::Expression,
         position: vir_mid::Position,
     ) -> SpannedEncodingResult<vir_low::Expression>;
+    #[allow(clippy::ptr_arg)] // Clippy false positive.
     fn encode_snapshot_update(
         &mut self,
         statements: &mut Vec<vir_low::Statement>,
