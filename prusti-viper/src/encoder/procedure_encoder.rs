@@ -2260,6 +2260,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                                 // method.
                                 self.proc_def_id != def_id;
                             if is_pure_function {
+                                // The called method might be a trait method.
+                                // We try to resolve it to the concrete implementation.
+                                let impl_def_id = self.encoder.env()
+                                    .find_impl_of_trait_method_call(def_id, substs);
+                                let def_id = impl_def_id.unwrap_or(def_id);
+
                                 let (function_name, _) = self.encoder
                                     .encode_pure_function_use(def_id, self.proc_def_id, &tymap)
                                     .with_default_span(term.source_info.span)?;

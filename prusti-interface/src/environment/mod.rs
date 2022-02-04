@@ -308,7 +308,7 @@ impl<'tcx> Environment<'tcx> {
     }
 
     /// Given some procedure `proc_def_id` which is called, this method returns the actual method which will be executed when `proc_def_id` is defined on a trait.
-    /// Returns `None` if this method can not be found or the provided `proc_def_it` is no trait item.
+    /// Returns `None` if this method can not be found or the provided `proc_def_id` is no trait item.
     pub fn find_impl_of_trait_method_call(&self, proc_def_id: ProcedureDefId, substs: SubstsRef<'tcx>) -> Option<ProcedureDefId> {
         if let Some(trait_id) = self.tcx().trait_of_item(proc_def_id) {
             debug!("Fetching implementations of method '{:?}' defined in trait '{}' with substs '{:?}'", proc_def_id, self.tcx().def_path_str(trait_id), substs);
