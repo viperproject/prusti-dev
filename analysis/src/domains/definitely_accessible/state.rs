@@ -4,7 +4,10 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use crate::{mir_utils::is_prefix, PointwiseState};
+use crate::{
+    mir_utils::{is_prefix, Place},
+    PointwiseState,
+};
 use log::info;
 use rustc_data_structures::{fx::FxHashSet, stable_map::FxHashMap};
 use rustc_middle::{mir, ty, ty::TyCtxt};
@@ -16,18 +19,18 @@ use std::fmt;
 #[derive(Clone, Default, Eq, PartialEq)]
 pub struct DefinitelyAccessibleState<'tcx> {
     /// Places that are definitely not moved-out nor blocked by a *mutable* reference.
-    pub(super) definitely_accessible: FxHashSet<mir::Place<'tcx>>,
+    pub(super) definitely_accessible: FxHashSet<Place<'tcx>>,
     /// Places that are definitely not moved-out nor blocked by a *mutable or shared* reference.
     /// Considering pack/unpack operations, this should always be a subset of `definitely_accessible`.
-    pub(super) definitely_owned: FxHashSet<mir::Place<'tcx>>,
+    pub(super) definitely_owned: FxHashSet<Place<'tcx>>,
 }
 
 impl<'tcx> DefinitelyAccessibleState<'tcx> {
-    pub fn get_definitely_accessible(&self) -> &FxHashSet<mir::Place<'tcx>> {
+    pub fn get_definitely_accessible(&self) -> &FxHashSet<Place<'tcx>> {
         &self.definitely_accessible
     }
 
-    pub fn get_definitely_owned(&self) -> &FxHashSet<mir::Place<'tcx>> {
+    pub fn get_definitely_owned(&self) -> &FxHashSet<Place<'tcx>> {
         &self.definitely_owned
     }
 
@@ -165,7 +168,7 @@ impl<'mir, 'tcx: 'mir> PointwiseState<'mir, 'tcx, DefinitelyAccessibleState<'tcx
 fn pretty_print_place<'tcx>(
     tcx: TyCtxt<'tcx>,
     body: &mir::Body<'tcx>,
-    place: mir::Place<'tcx>,
+    place: Place<'tcx>,
 ) -> Option<String> {
     let mut pieces = vec![];
 

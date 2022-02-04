@@ -12,6 +12,7 @@ pub(in super::super) fn collect_permission_changes(
 }
 
 trait CollectPermissionChanges {
+    #[allow(clippy::ptr_arg)] // Clippy false positive.
     fn collect(
         &self,
         required_permissions: &mut Vec<Permission>,

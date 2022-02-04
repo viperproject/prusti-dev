@@ -4,22 +4,22 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+use crate::mir_utils::Place;
 use rustc_data_structures::fx::FxHashSet;
-use rustc_middle::mir;
 use serde::{ser::SerializeMap, Serialize, Serializer};
 
 #[derive(Clone, Default, Eq, PartialEq)]
 pub struct MaybeBorrowedState<'tcx> {
-    pub(super) maybe_shared_borrowed: FxHashSet<mir::Place<'tcx>>,
-    pub(super) maybe_mut_borrowed: FxHashSet<mir::Place<'tcx>>,
+    pub(super) maybe_shared_borrowed: FxHashSet<Place<'tcx>>,
+    pub(super) maybe_mut_borrowed: FxHashSet<Place<'tcx>>,
 }
 
 impl<'tcx> MaybeBorrowedState<'tcx> {
-    pub fn get_maybe_shared_borrowed(&self) -> &FxHashSet<mir::Place<'tcx>> {
+    pub fn get_maybe_shared_borrowed(&self) -> &FxHashSet<Place<'tcx>> {
         &self.maybe_shared_borrowed
     }
 
-    pub fn get_maybe_mut_borrowed(&self) -> &FxHashSet<mir::Place<'tcx>> {
+    pub fn get_maybe_mut_borrowed(&self) -> &FxHashSet<Place<'tcx>> {
         &self.maybe_mut_borrowed
     }
 }

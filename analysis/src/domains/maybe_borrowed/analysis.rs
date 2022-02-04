@@ -66,7 +66,8 @@ impl<'mir, 'tcx: 'mir> MaybeBorrowedAnalysis<'mir, 'tcx> {
                                 borrow_kind,
                                 borrowed_place,
                             );
-                            let blocked_place = get_blocked_place(self.tcx, *borrowed_place);
+                            let blocked_place =
+                                get_blocked_place(self.tcx, (*borrowed_place).into());
                             trace!("      Blocking {:?}: {:?}", borrow_kind, blocked_place);
                             match borrow_kind {
                                 mir::BorrowKind::Shared => {

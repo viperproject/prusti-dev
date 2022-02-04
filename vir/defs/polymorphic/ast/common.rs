@@ -417,7 +417,7 @@ impl Eq for SeqType {}
 
 impl Hash for SeqType {
     fn hash<H: Hasher>(&self, state: &mut H) {
-        (&*self.typ).hash(state);
+        (*self.typ).hash(state);
     }
 }
 
