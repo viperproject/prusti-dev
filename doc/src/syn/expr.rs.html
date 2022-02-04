@@ -1,7 +1,9 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/syn-1.0.85/src/expr.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>expr.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
-    <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a class="sidebar-logo" href="../../syn/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../syn/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><form class="search-form"><div class="search-container"><div>
-                                <input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../wheel.svg"></a></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">   1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/syn-1.0.86/src/expr.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>expr.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
+    <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../syn/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
+        </a><h2 class="location"></h2>
+    </nav>
+    <nav class="sidebar"><a class="sidebar-logo" href="../../syn/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
+        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../syn/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><div class="theme-picker hidden"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="22" height="22" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">   1</span>
 <span id="2">   2</span>
 <span id="3">   3</span>
 <span id="4">   4</span>
@@ -3906,8 +3908,8 @@
     <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)))]</span>
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ExprClosure</span> #<span class="ident">full</span> {
         <span class="kw">pub</span> <span class="ident">attrs</span>: <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../src/syn/attr.rs.html#12-156">Attribute</a><span class="op">&gt;</span>,
-        <span class="kw">pub</span> <span class="ident">asyncness</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="macro">Token!</span>[<span class="kw">async</span>]<span class="op">&gt;</span>,
         <span class="kw">pub</span> <span class="ident">movability</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="macro">Token!</span>[<span class="kw">static</span>]<span class="op">&gt;</span>,
+        <span class="kw">pub</span> <span class="ident">asyncness</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="macro">Token!</span>[<span class="kw">async</span>]<span class="op">&gt;</span>,
         <span class="kw">pub</span> <span class="ident">capture</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="macro">Token!</span>[<span class="kw">move</span>]<span class="op">&gt;</span>,
         <span class="kw">pub</span> <span class="ident">or1_token</span>: <span class="macro">Token!</span>[<span class="op">|</span>],
         <span class="kw">pub</span> <span class="ident">inputs</span>: <span class="ident">Punctuated</span><span class="op">&lt;</span><a class="ident" href="../../src/syn/pat.rs.html#5-101">Pat</a>, <span class="macro">Token!</span>[,]<span class="op">&gt;</span>,
@@ -4591,7 +4593,7 @@
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod</span> <span class="ident">parsing</span> {
     <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
     <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::parse</span>::{<a class="ident" href="../../src/syn/parse.rs.html#218-220">Parse</a>, <a class="ident" href="../../src/syn/parse.rs.html#228">ParseStream</a>, <span class="prelude-ty">Result</span>};
-    <span class="kw">use</span> <a class="ident" href="../../src/syn/lib.rs.html#437"><span class="kw">crate</span>::path</a>;
+    <span class="kw">use</span> <a class="ident" href="../../src/syn/lib.rs.html#439"><span class="kw">crate</span>::path</a>;
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
     <span class="kw">use</span> <a class="ident" href="../../proc_macro2/enum.TokenTree.html">proc_macro2::TokenTree</a>;
     <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html">std::cmp::Ordering</a>;
@@ -5016,9 +5018,9 @@
                 }))
             }
         } <span class="kw">else</span> <span class="kw">if</span> <a class="ident" href="../../src/syn/expr.rs.html#1488">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#580">peek</a>(<span class="macro">Token!</span>[<span class="kw">box</span>]) {
-            <a class="ident" href="../../src/syn/expr.rs.html#2291-2295">expr_box</a>(<a class="ident" href="../../src/syn/expr.rs.html#1488">input</a>, <a class="ident" href="../../src/syn/expr.rs.html#1490">attrs</a>, <a class="ident" href="../../src/syn/expr.rs.html#1488">allow_struct</a>).<span class="ident">map</span>(<a class="ident" href="../../src/syn/expr.rs.html#113">Expr::Box</a>)
+            <a class="ident" href="../../src/syn/expr.rs.html#2295-2299">expr_box</a>(<a class="ident" href="../../src/syn/expr.rs.html#1488">input</a>, <a class="ident" href="../../src/syn/expr.rs.html#1490">attrs</a>, <a class="ident" href="../../src/syn/expr.rs.html#1488">allow_struct</a>).<span class="ident">map</span>(<a class="ident" href="../../src/syn/expr.rs.html#113">Expr::Box</a>)
         } <span class="kw">else</span> <span class="kw">if</span> <a class="ident" href="../../src/syn/expr.rs.html#1488">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#580">peek</a>(<span class="macro">Token!</span>[<span class="kw-2">*</span>]) <span class="op">|</span><span class="op">|</span> <a class="ident" href="../../src/syn/expr.rs.html#1488">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#580">peek</a>(<span class="macro">Token!</span>[<span class="op">!</span>]) <span class="op">|</span><span class="op">|</span> <a class="ident" href="../../src/syn/expr.rs.html#1488">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#580">peek</a>(<span class="macro">Token!</span>[<span class="op">-</span>]) {
-            <a class="ident" href="../../src/syn/expr.rs.html#2314-2318">expr_unary</a>(<a class="ident" href="../../src/syn/expr.rs.html#1488">input</a>, <a class="ident" href="../../src/syn/expr.rs.html#1490">attrs</a>, <a class="ident" href="../../src/syn/expr.rs.html#1488">allow_struct</a>).<span class="ident">map</span>(<a class="ident" href="../../src/syn/expr.rs.html#213">Expr::Unary</a>)
+            <a class="ident" href="../../src/syn/expr.rs.html#2318-2322">expr_unary</a>(<a class="ident" href="../../src/syn/expr.rs.html#1488">input</a>, <a class="ident" href="../../src/syn/expr.rs.html#1490">attrs</a>, <a class="ident" href="../../src/syn/expr.rs.html#1488">allow_struct</a>).<span class="ident">map</span>(<a class="ident" href="../../src/syn/expr.rs.html#213">Expr::Unary</a>)
         } <span class="kw">else</span> {
             <a class="ident" href="../../src/syn/expr.rs.html#1544-1548">trailer_expr</a>(<a class="ident" href="../../src/syn/expr.rs.html#1490">attrs</a>, <a class="ident" href="../../src/syn/expr.rs.html#1488">input</a>, <a class="ident" href="../../src/syn/expr.rs.html#1488">allow_struct</a>)
         }
@@ -5233,7 +5235,7 @@
             <span class="op">|</span><span class="op">|</span> <a class="ident" href="../../src/syn/expr.rs.html#1713">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#580">peek</a>(<span class="macro">Token!</span>[<span class="kw">static</span>])
             <span class="op">|</span><span class="op">|</span> <a class="ident" href="../../src/syn/expr.rs.html#1713">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#580">peek</a>(<span class="macro">Token!</span>[<span class="kw">move</span>])
         {
-            <a class="ident" href="../../src/syn/expr.rs.html#2399">expr_closure</a>(<a class="ident" href="../../src/syn/expr.rs.html#1713">input</a>, <a class="ident" href="../../src/syn/expr.rs.html#1713">allow_struct</a>).<span class="ident">map</span>(<a class="ident" href="../../src/syn/expr.rs.html#126">Expr::Closure</a>)
+            <a class="ident" href="../../src/syn/expr.rs.html#2403">expr_closure</a>(<a class="ident" href="../../src/syn/expr.rs.html#1713">input</a>, <a class="ident" href="../../src/syn/expr.rs.html#1713">allow_struct</a>).<span class="ident">map</span>(<a class="ident" href="../../src/syn/expr.rs.html#126">Expr::Closure</a>)
         } <span class="kw">else</span> <span class="kw">if</span> <a class="ident" href="../../src/syn/expr.rs.html#1713">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#580">peek</a>(<a class="ident" href="../../src/syn/ident.rs.html#16">Ident</a>)
             <span class="op">|</span><span class="op">|</span> <a class="ident" href="../../src/syn/expr.rs.html#1713">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#580">peek</a>(<span class="macro">Token!</span>[::])
             <span class="op">|</span><span class="op">|</span> <a class="ident" href="../../src/syn/expr.rs.html#1713">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#580">peek</a>(<span class="macro">Token!</span>[<span class="op">&lt;</span>])
@@ -5615,7 +5617,11 @@
                 <span class="ident">let_token</span>: <a class="ident" href="../../src/syn/expr.rs.html#2109">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#464">parse</a>()<span class="question-mark">?</span>,
                 <span class="ident">pat</span>: <a class="ident" href="../../src/syn/pat.rs.html#734">pat::parsing::multi_pat_with_leading_vert</a>(<a class="ident" href="../../src/syn/expr.rs.html#2109">input</a>)<span class="question-mark">?</span>,
                 <span class="ident">eq_token</span>: <a class="ident" href="../../src/syn/expr.rs.html#2109">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#464">parse</a>()<span class="question-mark">?</span>,
-                <span class="ident">expr</span>: <span class="ident">Box::new</span>(<a class="ident" href="../../src/syn/expr.rs.html#2109">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#504">call</a>(<span class="ident">Expr::parse_without_eager_brace</span>)<span class="question-mark">?</span>),
+                <span class="ident">expr</span>: <span class="ident">Box::new</span>({
+                    <span class="kw">let</span> <span class="ident">allow_struct</span> <span class="op">=</span> <a class="ident" href="../../src/syn/expr.rs.html#1103">AllowStruct</a>(<span class="bool-val">false</span>);
+                    <span class="kw">let</span> <span class="ident">lhs</span> <span class="op">=</span> <a class="ident" href="../../src/syn/expr.rs.html#1488">unary_expr</a>(<a class="ident" href="../../src/syn/expr.rs.html#2109">input</a>, <a class="ident" href="../../src/syn/expr.rs.html#2116">allow_struct</a>)<span class="question-mark">?</span>;
+                    <a class="ident" href="../../src/syn/expr.rs.html#1278-1283">parse_expr</a>(<a class="ident" href="../../src/syn/expr.rs.html#2109">input</a>, <a class="ident" href="../../src/syn/expr.rs.html#2117">lhs</a>, <a class="ident" href="../../src/syn/expr.rs.html#2116">allow_struct</a>, <a class="ident" href="../../src/syn/expr.rs.html#1111">Precedence::Compare</a>)<span class="question-mark">?</span>
+                }),
             })
         }
     }
@@ -5624,15 +5630,15 @@
     <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;parsing&quot;</span>)))]</span>
     <span class="kw">impl</span> <a class="ident" href="../../src/syn/parse.rs.html#218-220">Parse</a> <span class="kw">for</span> <a class="ident" href="../../src/syn/expr.rs.html#475-491">ExprIf</a> {
         <span class="kw">fn</span> <span class="ident">parse</span>(<span class="ident">input</span>: <a class="ident" href="../../src/syn/parse.rs.html#228">ParseStream</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-            <span class="kw">let</span> <span class="ident">attrs</span> <span class="op">=</span> <a class="ident" href="../../src/syn/expr.rs.html#2123">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#504">call</a>(<span class="ident">Attribute::parse_outer</span>)<span class="question-mark">?</span>;
+            <span class="kw">let</span> <span class="ident">attrs</span> <span class="op">=</span> <a class="ident" href="../../src/syn/expr.rs.html#2127">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#504">call</a>(<span class="ident">Attribute::parse_outer</span>)<span class="question-mark">?</span>;
             <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/syn/expr.rs.html#475-491">ExprIf</a> {
-                <a class="ident" href="../../src/syn/expr.rs.html#2124">attrs</a>,
-                <span class="ident">if_token</span>: <a class="ident" href="../../src/syn/expr.rs.html#2123">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#464">parse</a>()<span class="question-mark">?</span>,
-                <span class="ident">cond</span>: <span class="ident">Box::new</span>(<a class="ident" href="../../src/syn/expr.rs.html#2123">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#504">call</a>(<span class="ident">Expr::parse_without_eager_brace</span>)<span class="question-mark">?</span>),
-                <span class="ident">then_branch</span>: <a class="ident" href="../../src/syn/expr.rs.html#2123">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#464">parse</a>()<span class="question-mark">?</span>,
+                <a class="ident" href="../../src/syn/expr.rs.html#2128">attrs</a>,
+                <span class="ident">if_token</span>: <a class="ident" href="../../src/syn/expr.rs.html#2127">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#464">parse</a>()<span class="question-mark">?</span>,
+                <span class="ident">cond</span>: <span class="ident">Box::new</span>(<a class="ident" href="../../src/syn/expr.rs.html#2127">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#504">call</a>(<span class="ident">Expr::parse_without_eager_brace</span>)<span class="question-mark">?</span>),
+                <span class="ident">then_branch</span>: <a class="ident" href="../../src/syn/expr.rs.html#2127">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#464">parse</a>()<span class="question-mark">?</span>,
                 <span class="ident">else_branch</span>: {
-                    <span class="kw">if</span> <a class="ident" href="../../src/syn/expr.rs.html#2123">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#580">peek</a>(<span class="macro">Token!</span>[<span class="kw">else</span>]) {
-                        <span class="prelude-val">Some</span>(<a class="ident" href="../../src/syn/expr.rs.html#2123">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#504">call</a>(<a class="ident" href="../../src/syn/expr.rs.html#2142">else_block</a>)<span class="question-mark">?</span>)
+                    <span class="kw">if</span> <a class="ident" href="../../src/syn/expr.rs.html#2127">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#580">peek</a>(<span class="macro">Token!</span>[<span class="kw">else</span>]) {
+                        <span class="prelude-val">Some</span>(<a class="ident" href="../../src/syn/expr.rs.html#2127">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#504">call</a>(<a class="ident" href="../../src/syn/expr.rs.html#2146">else_block</a>)<span class="question-mark">?</span>)
                     } <span class="kw">else</span> {
                         <span class="prelude-val">None</span>
                     }
@@ -5643,50 +5649,50 @@
 
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
     <span class="kw">fn</span> <span class="ident">else_block</span>(<span class="ident">input</span>: <a class="ident" href="../../src/syn/parse.rs.html#228">ParseStream</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="macro">Token!</span>[<span class="kw">else</span>], <span class="ident">Box</span><span class="op">&lt;</span><a class="ident" href="../../src/syn/expr.rs.html#14-253">Expr</a><span class="op">&gt;</span>)<span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">else_token</span>: <span class="macro">Token!</span>[<span class="kw">else</span>] <span class="op">=</span> <a class="ident" href="../../src/syn/expr.rs.html#2142">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#464">parse</a>()<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">else_token</span>: <span class="macro">Token!</span>[<span class="kw">else</span>] <span class="op">=</span> <a class="ident" href="../../src/syn/expr.rs.html#2146">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#464">parse</a>()<span class="question-mark">?</span>;
 
-        <span class="kw">let</span> <span class="ident">lookahead</span> <span class="op">=</span> <a class="ident" href="../../src/syn/expr.rs.html#2142">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#785">lookahead1</a>();
-        <span class="kw">let</span> <span class="ident">else_branch</span> <span class="op">=</span> <span class="kw">if</span> <a class="ident" href="../../src/syn/expr.rs.html#2142">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#580">peek</a>(<span class="macro">Token!</span>[<span class="kw">if</span>]) {
-            <a class="ident" href="../../src/syn/expr.rs.html#2142">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#464">parse</a>().<span class="ident">map</span>(<a class="ident" href="../../src/syn/expr.rs.html#150">Expr::If</a>)<span class="question-mark">?</span>
-        } <span class="kw">else</span> <span class="kw">if</span> <a class="ident" href="../../src/syn/expr.rs.html#2142">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#580">peek</a>(<a class="ident" href="../../src/syn/token.rs.html#756-761">token::Brace</a>) {
+        <span class="kw">let</span> <span class="ident">lookahead</span> <span class="op">=</span> <a class="ident" href="../../src/syn/expr.rs.html#2146">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#785">lookahead1</a>();
+        <span class="kw">let</span> <span class="ident">else_branch</span> <span class="op">=</span> <span class="kw">if</span> <a class="ident" href="../../src/syn/expr.rs.html#2146">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#580">peek</a>(<span class="macro">Token!</span>[<span class="kw">if</span>]) {
+            <a class="ident" href="../../src/syn/expr.rs.html#2146">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#464">parse</a>().<span class="ident">map</span>(<a class="ident" href="../../src/syn/expr.rs.html#150">Expr::If</a>)<span class="question-mark">?</span>
+        } <span class="kw">else</span> <span class="kw">if</span> <a class="ident" href="../../src/syn/expr.rs.html#2146">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#580">peek</a>(<a class="ident" href="../../src/syn/token.rs.html#756-761">token::Brace</a>) {
             <a class="ident" href="../../src/syn/expr.rs.html#110">Expr::Block</a>(<a class="ident" href="../../src/syn/expr.rs.html#333-343">ExprBlock</a> {
                 <span class="ident">attrs</span>: <span class="ident">Vec::new</span>(),
                 <span class="ident">label</span>: <span class="prelude-val">None</span>,
-                <span class="ident">block</span>: <a class="ident" href="../../src/syn/expr.rs.html#2142">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#464">parse</a>()<span class="question-mark">?</span>,
+                <span class="ident">block</span>: <a class="ident" href="../../src/syn/expr.rs.html#2146">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#464">parse</a>()<span class="question-mark">?</span>,
             })
         } <span class="kw">else</span> {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../src/syn/expr.rs.html#2145">lookahead</a>.<a class="ident" href="../../src/syn/lookahead.rs.html#109">error</a>());
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../src/syn/expr.rs.html#2149">lookahead</a>.<a class="ident" href="../../src/syn/lookahead.rs.html#109">error</a>());
         };
 
-        <span class="prelude-val">Ok</span>((<a class="ident" href="../../src/syn/expr.rs.html#2143">else_token</a>, <span class="ident">Box::new</span>(<a class="ident" href="../../src/syn/expr.rs.html#2146">else_branch</a>)))
+        <span class="prelude-val">Ok</span>((<a class="ident" href="../../src/syn/expr.rs.html#2147">else_token</a>, <span class="ident">Box::new</span>(<a class="ident" href="../../src/syn/expr.rs.html#2150">else_branch</a>)))
     }
 
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
     <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;parsing&quot;</span>)))]</span>
     <span class="kw">impl</span> <a class="ident" href="../../src/syn/parse.rs.html#218-220">Parse</a> <span class="kw">for</span> <a class="ident" href="../../src/syn/expr.rs.html#443-457">ExprForLoop</a> {
         <span class="kw">fn</span> <span class="ident">parse</span>(<span class="ident">input</span>: <a class="ident" href="../../src/syn/parse.rs.html#228">ParseStream</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">attrs</span> <span class="op">=</span> <a class="ident" href="../../src/syn/expr.rs.html#2164">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#504">call</a>(<span class="ident">Attribute::parse_outer</span>)<span class="question-mark">?</span>;
-            <span class="kw">let</span> <span class="ident">label</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../src/syn/expr.rs.html#1012-1021">Label</a><span class="op">&gt;</span> <span class="op">=</span> <a class="ident" href="../../src/syn/expr.rs.html#2164">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#464">parse</a>()<span class="question-mark">?</span>;
-            <span class="kw">let</span> <span class="ident">for_token</span>: <span class="macro">Token!</span>[<span class="kw">for</span>] <span class="op">=</span> <a class="ident" href="../../src/syn/expr.rs.html#2164">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#464">parse</a>()<span class="question-mark">?</span>;
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">attrs</span> <span class="op">=</span> <a class="ident" href="../../src/syn/expr.rs.html#2168">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#504">call</a>(<span class="ident">Attribute::parse_outer</span>)<span class="question-mark">?</span>;
+            <span class="kw">let</span> <span class="ident">label</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../src/syn/expr.rs.html#1012-1021">Label</a><span class="op">&gt;</span> <span class="op">=</span> <a class="ident" href="../../src/syn/expr.rs.html#2168">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#464">parse</a>()<span class="question-mark">?</span>;
+            <span class="kw">let</span> <span class="ident">for_token</span>: <span class="macro">Token!</span>[<span class="kw">for</span>] <span class="op">=</span> <a class="ident" href="../../src/syn/expr.rs.html#2168">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#464">parse</a>()<span class="question-mark">?</span>;
 
-            <span class="kw">let</span> <span class="ident">pat</span> <span class="op">=</span> <a class="ident" href="../../src/syn/pat.rs.html#734">pat::parsing::multi_pat_with_leading_vert</a>(<a class="ident" href="../../src/syn/expr.rs.html#2164">input</a>)<span class="question-mark">?</span>;
+            <span class="kw">let</span> <span class="ident">pat</span> <span class="op">=</span> <a class="ident" href="../../src/syn/pat.rs.html#734">pat::parsing::multi_pat_with_leading_vert</a>(<a class="ident" href="../../src/syn/expr.rs.html#2168">input</a>)<span class="question-mark">?</span>;
 
-            <span class="kw">let</span> <span class="ident">in_token</span>: <span class="macro">Token!</span>[<span class="kw">in</span>] <span class="op">=</span> <a class="ident" href="../../src/syn/expr.rs.html#2164">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#464">parse</a>()<span class="question-mark">?</span>;
-            <span class="kw">let</span> <span class="ident">expr</span>: <a class="ident" href="../../src/syn/expr.rs.html#14-253">Expr</a> <span class="op">=</span> <a class="ident" href="../../src/syn/expr.rs.html#2164">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#504">call</a>(<span class="ident">Expr::parse_without_eager_brace</span>)<span class="question-mark">?</span>;
+            <span class="kw">let</span> <span class="ident">in_token</span>: <span class="macro">Token!</span>[<span class="kw">in</span>] <span class="op">=</span> <a class="ident" href="../../src/syn/expr.rs.html#2168">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#464">parse</a>()<span class="question-mark">?</span>;
+            <span class="kw">let</span> <span class="ident">expr</span>: <a class="ident" href="../../src/syn/expr.rs.html#14-253">Expr</a> <span class="op">=</span> <a class="ident" href="../../src/syn/expr.rs.html#2168">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#504">call</a>(<span class="ident">Expr::parse_without_eager_brace</span>)<span class="question-mark">?</span>;
 
             <span class="kw">let</span> <span class="ident">content</span>;
-            <span class="kw">let</span> <span class="ident">brace_token</span> <span class="op">=</span> <span class="macro">braced!</span>(<span class="ident">content</span> <span class="kw">in</span> <a class="ident" href="../../src/syn/expr.rs.html#2164">input</a>);
-            <a class="ident" href="../../src/syn/attr.rs.html#503">attr::parsing::parse_inner</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/syn/expr.rs.html#2174">content</a>, <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/syn/expr.rs.html#2165">attrs</a>)<span class="question-mark">?</span>;
-            <span class="kw">let</span> <span class="ident">stmts</span> <span class="op">=</span> <a class="ident" href="../../src/syn/expr.rs.html#2174">content</a>.<a class="ident" href="../../src/syn/parse.rs.html#504">call</a>(<span class="ident">Block::parse_within</span>)<span class="question-mark">?</span>;
+            <span class="kw">let</span> <span class="ident">brace_token</span> <span class="op">=</span> <span class="macro">braced!</span>(<span class="ident">content</span> <span class="kw">in</span> <a class="ident" href="../../src/syn/expr.rs.html#2168">input</a>);
+            <a class="ident" href="../../src/syn/attr.rs.html#503">attr::parsing::parse_inner</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/syn/expr.rs.html#2178">content</a>, <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/syn/expr.rs.html#2169">attrs</a>)<span class="question-mark">?</span>;
+            <span class="kw">let</span> <span class="ident">stmts</span> <span class="op">=</span> <a class="ident" href="../../src/syn/expr.rs.html#2178">content</a>.<a class="ident" href="../../src/syn/parse.rs.html#504">call</a>(<span class="ident">Block::parse_within</span>)<span class="question-mark">?</span>;
 
             <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/syn/expr.rs.html#443-457">ExprForLoop</a> {
-                <a class="ident" href="../../src/syn/expr.rs.html#2165">attrs</a>,
-                <a class="ident" href="../../src/syn/expr.rs.html#2166">label</a>,
-                <a class="ident" href="../../src/syn/expr.rs.html#2167">for_token</a>,
-                <a class="ident" href="../../src/syn/expr.rs.html#2169">pat</a>,
-                <a class="ident" href="../../src/syn/expr.rs.html#2171">in_token</a>,
-                <span class="ident">expr</span>: <span class="ident">Box::new</span>(<a class="ident" href="../../src/syn/expr.rs.html#2172">expr</a>),
-                <span class="ident">body</span>: <a class="ident" href="../../src/syn/stmt.rs.html#3-13">Block</a> { <a class="ident" href="../../src/syn/expr.rs.html#2175">brace_token</a>, <a class="ident" href="../../src/syn/expr.rs.html#2177">stmts</a> },
+                <a class="ident" href="../../src/syn/expr.rs.html#2169">attrs</a>,
+                <a class="ident" href="../../src/syn/expr.rs.html#2170">label</a>,
+                <a class="ident" href="../../src/syn/expr.rs.html#2171">for_token</a>,
+                <a class="ident" href="../../src/syn/expr.rs.html#2173">pat</a>,
+                <a class="ident" href="../../src/syn/expr.rs.html#2175">in_token</a>,
+                <span class="ident">expr</span>: <span class="ident">Box::new</span>(<a class="ident" href="../../src/syn/expr.rs.html#2176">expr</a>),
+                <span class="ident">body</span>: <a class="ident" href="../../src/syn/stmt.rs.html#3-13">Block</a> { <a class="ident" href="../../src/syn/expr.rs.html#2179">brace_token</a>, <a class="ident" href="../../src/syn/expr.rs.html#2181">stmts</a> },
             })
         }
     }
@@ -5695,20 +5701,20 @@
     <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;parsing&quot;</span>)))]</span>
     <span class="kw">impl</span> <a class="ident" href="../../src/syn/parse.rs.html#218-220">Parse</a> <span class="kw">for</span> <a class="ident" href="../../src/syn/expr.rs.html#533-544">ExprLoop</a> {
         <span class="kw">fn</span> <span class="ident">parse</span>(<span class="ident">input</span>: <a class="ident" href="../../src/syn/parse.rs.html#228">ParseStream</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">attrs</span> <span class="op">=</span> <a class="ident" href="../../src/syn/expr.rs.html#2194">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#504">call</a>(<span class="ident">Attribute::parse_outer</span>)<span class="question-mark">?</span>;
-            <span class="kw">let</span> <span class="ident">label</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../src/syn/expr.rs.html#1012-1021">Label</a><span class="op">&gt;</span> <span class="op">=</span> <a class="ident" href="../../src/syn/expr.rs.html#2194">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#464">parse</a>()<span class="question-mark">?</span>;
-            <span class="kw">let</span> <span class="ident">loop_token</span>: <span class="macro">Token!</span>[<span class="kw">loop</span>] <span class="op">=</span> <a class="ident" href="../../src/syn/expr.rs.html#2194">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#464">parse</a>()<span class="question-mark">?</span>;
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">attrs</span> <span class="op">=</span> <a class="ident" href="../../src/syn/expr.rs.html#2198">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#504">call</a>(<span class="ident">Attribute::parse_outer</span>)<span class="question-mark">?</span>;
+            <span class="kw">let</span> <span class="ident">label</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../src/syn/expr.rs.html#1012-1021">Label</a><span class="op">&gt;</span> <span class="op">=</span> <a class="ident" href="../../src/syn/expr.rs.html#2198">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#464">parse</a>()<span class="question-mark">?</span>;
+            <span class="kw">let</span> <span class="ident">loop_token</span>: <span class="macro">Token!</span>[<span class="kw">loop</span>] <span class="op">=</span> <a class="ident" href="../../src/syn/expr.rs.html#2198">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#464">parse</a>()<span class="question-mark">?</span>;
 
             <span class="kw">let</span> <span class="ident">content</span>;
-            <span class="kw">let</span> <span class="ident">brace_token</span> <span class="op">=</span> <span class="macro">braced!</span>(<span class="ident">content</span> <span class="kw">in</span> <a class="ident" href="../../src/syn/expr.rs.html#2194">input</a>);
-            <a class="ident" href="../../src/syn/attr.rs.html#503">attr::parsing::parse_inner</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/syn/expr.rs.html#2199">content</a>, <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/syn/expr.rs.html#2195">attrs</a>)<span class="question-mark">?</span>;
-            <span class="kw">let</span> <span class="ident">stmts</span> <span class="op">=</span> <a class="ident" href="../../src/syn/expr.rs.html#2199">content</a>.<a class="ident" href="../../src/syn/parse.rs.html#504">call</a>(<span class="ident">Block::parse_within</span>)<span class="question-mark">?</span>;
+            <span class="kw">let</span> <span class="ident">brace_token</span> <span class="op">=</span> <span class="macro">braced!</span>(<span class="ident">content</span> <span class="kw">in</span> <a class="ident" href="../../src/syn/expr.rs.html#2198">input</a>);
+            <a class="ident" href="../../src/syn/attr.rs.html#503">attr::parsing::parse_inner</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/syn/expr.rs.html#2203">content</a>, <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/syn/expr.rs.html#2199">attrs</a>)<span class="question-mark">?</span>;
+            <span class="kw">let</span> <span class="ident">stmts</span> <span class="op">=</span> <a class="ident" href="../../src/syn/expr.rs.html#2203">content</a>.<a class="ident" href="../../src/syn/parse.rs.html#504">call</a>(<span class="ident">Block::parse_within</span>)<span class="question-mark">?</span>;
 
             <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/syn/expr.rs.html#533-544">ExprLoop</a> {
-                <a class="ident" href="../../src/syn/expr.rs.html#2195">attrs</a>,
-                <a class="ident" href="../../src/syn/expr.rs.html#2196">label</a>,
-                <a class="ident" href="../../src/syn/expr.rs.html#2197">loop_token</a>,
-                <span class="ident">body</span>: <a class="ident" href="../../src/syn/stmt.rs.html#3-13">Block</a> { <a class="ident" href="../../src/syn/expr.rs.html#2200">brace_token</a>, <a class="ident" href="../../src/syn/expr.rs.html#2202">stmts</a> },
+                <a class="ident" href="../../src/syn/expr.rs.html#2199">attrs</a>,
+                <a class="ident" href="../../src/syn/expr.rs.html#2200">label</a>,
+                <a class="ident" href="../../src/syn/expr.rs.html#2201">loop_token</a>,
+                <span class="ident">body</span>: <a class="ident" href="../../src/syn/stmt.rs.html#3-13">Block</a> { <a class="ident" href="../../src/syn/expr.rs.html#2204">brace_token</a>, <a class="ident" href="../../src/syn/expr.rs.html#2206">stmts</a> },
             })
         }
     }
@@ -5717,25 +5723,25 @@
     <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;parsing&quot;</span>)))]</span>
     <span class="kw">impl</span> <a class="ident" href="../../src/syn/parse.rs.html#218-220">Parse</a> <span class="kw">for</span> <a class="ident" href="../../src/syn/expr.rs.html#557-569">ExprMatch</a> {
         <span class="kw">fn</span> <span class="ident">parse</span>(<span class="ident">input</span>: <a class="ident" href="../../src/syn/parse.rs.html#228">ParseStream</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">attrs</span> <span class="op">=</span> <a class="ident" href="../../src/syn/expr.rs.html#2216">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#504">call</a>(<span class="ident">Attribute::parse_outer</span>)<span class="question-mark">?</span>;
-            <span class="kw">let</span> <span class="ident">match_token</span>: <span class="macro">Token!</span>[<span class="kw">match</span>] <span class="op">=</span> <a class="ident" href="../../src/syn/expr.rs.html#2216">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#464">parse</a>()<span class="question-mark">?</span>;
-            <span class="kw">let</span> <span class="ident">expr</span> <span class="op">=</span> <span class="ident">Expr::parse_without_eager_brace</span>(<a class="ident" href="../../src/syn/expr.rs.html#2216">input</a>)<span class="question-mark">?</span>;
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">attrs</span> <span class="op">=</span> <a class="ident" href="../../src/syn/expr.rs.html#2220">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#504">call</a>(<span class="ident">Attribute::parse_outer</span>)<span class="question-mark">?</span>;
+            <span class="kw">let</span> <span class="ident">match_token</span>: <span class="macro">Token!</span>[<span class="kw">match</span>] <span class="op">=</span> <a class="ident" href="../../src/syn/expr.rs.html#2220">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#464">parse</a>()<span class="question-mark">?</span>;
+            <span class="kw">let</span> <span class="ident">expr</span> <span class="op">=</span> <span class="ident">Expr::parse_without_eager_brace</span>(<a class="ident" href="../../src/syn/expr.rs.html#2220">input</a>)<span class="question-mark">?</span>;
 
             <span class="kw">let</span> <span class="ident">content</span>;
-            <span class="kw">let</span> <span class="ident">brace_token</span> <span class="op">=</span> <span class="macro">braced!</span>(<span class="ident">content</span> <span class="kw">in</span> <a class="ident" href="../../src/syn/expr.rs.html#2216">input</a>);
-            <a class="ident" href="../../src/syn/attr.rs.html#503">attr::parsing::parse_inner</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/syn/expr.rs.html#2221">content</a>, <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/syn/expr.rs.html#2217">attrs</a>)<span class="question-mark">?</span>;
+            <span class="kw">let</span> <span class="ident">brace_token</span> <span class="op">=</span> <span class="macro">braced!</span>(<span class="ident">content</span> <span class="kw">in</span> <a class="ident" href="../../src/syn/expr.rs.html#2220">input</a>);
+            <a class="ident" href="../../src/syn/attr.rs.html#503">attr::parsing::parse_inner</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/syn/expr.rs.html#2225">content</a>, <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/syn/expr.rs.html#2221">attrs</a>)<span class="question-mark">?</span>;
 
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">arms</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
-            <span class="kw">while</span> <span class="op">!</span><a class="ident" href="../../src/syn/expr.rs.html#2221">content</a>.<a class="ident" href="../../src/syn/parse.rs.html#740">is_empty</a>() {
-                <a class="ident" href="../../src/syn/expr.rs.html#2225">arms</a>.<span class="ident">push</span>(<a class="ident" href="../../src/syn/expr.rs.html#2221">content</a>.<a class="ident" href="../../src/syn/parse.rs.html#504">call</a>(<span class="ident">Arm::parse</span>)<span class="question-mark">?</span>);
+            <span class="kw">while</span> <span class="op">!</span><a class="ident" href="../../src/syn/expr.rs.html#2225">content</a>.<a class="ident" href="../../src/syn/parse.rs.html#740">is_empty</a>() {
+                <a class="ident" href="../../src/syn/expr.rs.html#2229">arms</a>.<span class="ident">push</span>(<a class="ident" href="../../src/syn/expr.rs.html#2225">content</a>.<a class="ident" href="../../src/syn/parse.rs.html#504">call</a>(<span class="ident">Arm::parse</span>)<span class="question-mark">?</span>);
             }
 
             <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/syn/expr.rs.html#557-569">ExprMatch</a> {
-                <a class="ident" href="../../src/syn/expr.rs.html#2217">attrs</a>,
-                <a class="ident" href="../../src/syn/expr.rs.html#2218">match_token</a>,
-                <span class="ident">expr</span>: <span class="ident">Box::new</span>(<a class="ident" href="../../src/syn/expr.rs.html#2219">expr</a>),
-                <a class="ident" href="../../src/syn/expr.rs.html#2222">brace_token</a>,
-                <a class="ident" href="../../src/syn/expr.rs.html#2225">arms</a>,
+                <a class="ident" href="../../src/syn/expr.rs.html#2221">attrs</a>,
+                <a class="ident" href="../../src/syn/expr.rs.html#2222">match_token</a>,
+                <span class="ident">expr</span>: <span class="ident">Box::new</span>(<a class="ident" href="../../src/syn/expr.rs.html#2223">expr</a>),
+                <a class="ident" href="../../src/syn/expr.rs.html#2226">brace_token</a>,
+                <a class="ident" href="../../src/syn/expr.rs.html#2229">arms</a>,
             })
         }
     }
@@ -5786,7 +5792,7 @@
         <span class="kw">fn</span> <span class="ident">parse</span>(<span class="ident">input</span>: <a class="ident" href="../../src/syn/parse.rs.html#228">ParseStream</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
             <span class="kw">let</span> <span class="ident">attrs</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
             <span class="kw">let</span> <span class="ident">allow_struct</span> <span class="op">=</span> <a class="ident" href="../../src/syn/expr.rs.html#1103">AllowStruct</a>(<span class="bool-val">true</span>);
-            <a class="ident" href="../../src/syn/expr.rs.html#2291-2295">expr_box</a>(<a class="ident" href="../../src/syn/expr.rs.html#2283">input</a>, <a class="ident" href="../../src/syn/expr.rs.html#2284">attrs</a>, <a class="ident" href="../../src/syn/expr.rs.html#2285">allow_struct</a>)
+            <a class="ident" href="../../src/syn/expr.rs.html#2295-2299">expr_box</a>(<a class="ident" href="../../src/syn/expr.rs.html#2287">input</a>, <a class="ident" href="../../src/syn/expr.rs.html#2288">attrs</a>, <a class="ident" href="../../src/syn/expr.rs.html#2289">allow_struct</a>)
         }
     }
 
@@ -5797,9 +5803,9 @@
         <span class="ident">allow_struct</span>: <a class="ident" href="../../src/syn/expr.rs.html#1103">AllowStruct</a>,
     ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/syn/expr.rs.html#345-355">ExprBox</a><span class="op">&gt;</span> {
         <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/syn/expr.rs.html#345-355">ExprBox</a> {
-            <a class="ident" href="../../src/syn/expr.rs.html#2293">attrs</a>,
-            <span class="ident">box_token</span>: <a class="ident" href="../../src/syn/expr.rs.html#2292">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#464">parse</a>()<span class="question-mark">?</span>,
-            <span class="ident">expr</span>: <span class="ident">Box::new</span>(<a class="ident" href="../../src/syn/expr.rs.html#1488">unary_expr</a>(<a class="ident" href="../../src/syn/expr.rs.html#2292">input</a>, <a class="ident" href="../../src/syn/expr.rs.html#2294">allow_struct</a>)<span class="question-mark">?</span>),
+            <a class="ident" href="../../src/syn/expr.rs.html#2297">attrs</a>,
+            <span class="ident">box_token</span>: <a class="ident" href="../../src/syn/expr.rs.html#2296">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#464">parse</a>()<span class="question-mark">?</span>,
+            <span class="ident">expr</span>: <span class="ident">Box::new</span>(<a class="ident" href="../../src/syn/expr.rs.html#1488">unary_expr</a>(<a class="ident" href="../../src/syn/expr.rs.html#2296">input</a>, <a class="ident" href="../../src/syn/expr.rs.html#2298">allow_struct</a>)<span class="question-mark">?</span>),
         })
     }
 
@@ -5809,7 +5815,7 @@
         <span class="kw">fn</span> <span class="ident">parse</span>(<span class="ident">input</span>: <a class="ident" href="../../src/syn/parse.rs.html#228">ParseStream</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
             <span class="kw">let</span> <span class="ident">attrs</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
             <span class="kw">let</span> <span class="ident">allow_struct</span> <span class="op">=</span> <a class="ident" href="../../src/syn/expr.rs.html#1103">AllowStruct</a>(<span class="bool-val">true</span>);
-            <a class="ident" href="../../src/syn/expr.rs.html#2314-2318">expr_unary</a>(<a class="ident" href="../../src/syn/expr.rs.html#2306">input</a>, <a class="ident" href="../../src/syn/expr.rs.html#2307">attrs</a>, <a class="ident" href="../../src/syn/expr.rs.html#2308">allow_struct</a>)
+            <a class="ident" href="../../src/syn/expr.rs.html#2318-2322">expr_unary</a>(<a class="ident" href="../../src/syn/expr.rs.html#2310">input</a>, <a class="ident" href="../../src/syn/expr.rs.html#2311">attrs</a>, <a class="ident" href="../../src/syn/expr.rs.html#2312">allow_struct</a>)
         }
     }
 
@@ -5820,9 +5826,9 @@
         <span class="ident">allow_struct</span>: <a class="ident" href="../../src/syn/expr.rs.html#1103">AllowStruct</a>,
     ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/syn/expr.rs.html#735-746">ExprUnary</a><span class="op">&gt;</span> {
         <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/syn/expr.rs.html#735-746">ExprUnary</a> {
-            <a class="ident" href="../../src/syn/expr.rs.html#2316">attrs</a>,
-            <span class="ident">op</span>: <a class="ident" href="../../src/syn/expr.rs.html#2315">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#464">parse</a>()<span class="question-mark">?</span>,
-            <span class="ident">expr</span>: <span class="ident">Box::new</span>(<a class="ident" href="../../src/syn/expr.rs.html#1488">unary_expr</a>(<a class="ident" href="../../src/syn/expr.rs.html#2315">input</a>, <a class="ident" href="../../src/syn/expr.rs.html#2317">allow_struct</a>)<span class="question-mark">?</span>),
+            <a class="ident" href="../../src/syn/expr.rs.html#2320">attrs</a>,
+            <span class="ident">op</span>: <a class="ident" href="../../src/syn/expr.rs.html#2319">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#464">parse</a>()<span class="question-mark">?</span>,
+            <span class="ident">expr</span>: <span class="ident">Box::new</span>(<a class="ident" href="../../src/syn/expr.rs.html#1488">unary_expr</a>(<a class="ident" href="../../src/syn/expr.rs.html#2319">input</a>, <a class="ident" href="../../src/syn/expr.rs.html#2321">allow_struct</a>)<span class="question-mark">?</span>),
         })
     }
 
@@ -5831,7 +5837,7 @@
     <span class="kw">impl</span> <a class="ident" href="../../src/syn/parse.rs.html#218-220">Parse</a> <span class="kw">for</span> <a class="ident" href="../../src/syn/expr.rs.html#399-415">ExprClosure</a> {
         <span class="kw">fn</span> <span class="ident">parse</span>(<span class="ident">input</span>: <a class="ident" href="../../src/syn/parse.rs.html#228">ParseStream</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
             <span class="kw">let</span> <span class="ident">allow_struct</span> <span class="op">=</span> <a class="ident" href="../../src/syn/expr.rs.html#1103">AllowStruct</a>(<span class="bool-val">true</span>);
-            <a class="ident" href="../../src/syn/expr.rs.html#2399">expr_closure</a>(<a class="ident" href="../../src/syn/expr.rs.html#2329">input</a>, <a class="ident" href="../../src/syn/expr.rs.html#2330">allow_struct</a>)
+            <a class="ident" href="../../src/syn/expr.rs.html#2403">expr_closure</a>(<a class="ident" href="../../src/syn/expr.rs.html#2333">input</a>, <a class="ident" href="../../src/syn/expr.rs.html#2334">allow_struct</a>)
         }
     }
 
@@ -5842,10 +5848,10 @@
             <span class="kw">let</span> <span class="ident">allow_struct</span> <span class="op">=</span> <a class="ident" href="../../src/syn/expr.rs.html#1103">AllowStruct</a>(<span class="bool-val">true</span>);
             <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/syn/expr.rs.html#628-640">ExprReference</a> {
                 <span class="ident">attrs</span>: <span class="ident">Vec::new</span>(),
-                <span class="ident">and_token</span>: <a class="ident" href="../../src/syn/expr.rs.html#2338">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#464">parse</a>()<span class="question-mark">?</span>,
+                <span class="ident">and_token</span>: <a class="ident" href="../../src/syn/expr.rs.html#2342">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#464">parse</a>()<span class="question-mark">?</span>,
                 <span class="ident">raw</span>: <span class="ident">Reserved::default</span>(),
-                <span class="ident">mutability</span>: <a class="ident" href="../../src/syn/expr.rs.html#2338">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#464">parse</a>()<span class="question-mark">?</span>,
-                <span class="ident">expr</span>: <span class="ident">Box::new</span>(<a class="ident" href="../../src/syn/expr.rs.html#1488">unary_expr</a>(<a class="ident" href="../../src/syn/expr.rs.html#2338">input</a>, <a class="ident" href="../../src/syn/expr.rs.html#2339">allow_struct</a>)<span class="question-mark">?</span>),
+                <span class="ident">mutability</span>: <a class="ident" href="../../src/syn/expr.rs.html#2342">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#464">parse</a>()<span class="question-mark">?</span>,
+                <span class="ident">expr</span>: <span class="ident">Box::new</span>(<a class="ident" href="../../src/syn/expr.rs.html#1488">unary_expr</a>(<a class="ident" href="../../src/syn/expr.rs.html#2342">input</a>, <a class="ident" href="../../src/syn/expr.rs.html#2343">allow_struct</a>)<span class="question-mark">?</span>),
             })
         }
     }
@@ -5855,7 +5861,7 @@
     <span class="kw">impl</span> <a class="ident" href="../../src/syn/parse.rs.html#218-220">Parse</a> <span class="kw">for</span> <a class="ident" href="../../src/syn/expr.rs.html#357-369">ExprBreak</a> {
         <span class="kw">fn</span> <span class="ident">parse</span>(<span class="ident">input</span>: <a class="ident" href="../../src/syn/parse.rs.html#228">ParseStream</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
             <span class="kw">let</span> <span class="ident">allow_struct</span> <span class="op">=</span> <a class="ident" href="../../src/syn/expr.rs.html#1103">AllowStruct</a>(<span class="bool-val">true</span>);
-            <a class="ident" href="../../src/syn/expr.rs.html#2567">expr_break</a>(<a class="ident" href="../../src/syn/expr.rs.html#2353">input</a>, <a class="ident" href="../../src/syn/expr.rs.html#2354">allow_struct</a>)
+            <a class="ident" href="../../src/syn/expr.rs.html#2567">expr_break</a>(<a class="ident" href="../../src/syn/expr.rs.html#2357">input</a>, <a class="ident" href="../../src/syn/expr.rs.html#2358">allow_struct</a>)
         }
     }
 
@@ -5864,7 +5870,7 @@
     <span class="kw">impl</span> <a class="ident" href="../../src/syn/parse.rs.html#218-220">Parse</a> <span class="kw">for</span> <a class="ident" href="../../src/syn/expr.rs.html#656-666">ExprReturn</a> {
         <span class="kw">fn</span> <span class="ident">parse</span>(<span class="ident">input</span>: <a class="ident" href="../../src/syn/parse.rs.html#228">ParseStream</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
             <span class="kw">let</span> <span class="ident">allow_struct</span> <span class="op">=</span> <a class="ident" href="../../src/syn/expr.rs.html#1103">AllowStruct</a>(<span class="bool-val">true</span>);
-            <a class="ident" href="../../src/syn/expr.rs.html#2588">expr_ret</a>(<a class="ident" href="../../src/syn/expr.rs.html#2362">input</a>, <a class="ident" href="../../src/syn/expr.rs.html#2363">allow_struct</a>)
+            <a class="ident" href="../../src/syn/expr.rs.html#2588">expr_ret</a>(<a class="ident" href="../../src/syn/expr.rs.html#2366">input</a>, <a class="ident" href="../../src/syn/expr.rs.html#2367">allow_struct</a>)
         }
     }
 
@@ -5874,8 +5880,8 @@
         <span class="kw">fn</span> <span class="ident">parse</span>(<span class="ident">input</span>: <a class="ident" href="../../src/syn/parse.rs.html#228">ParseStream</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
             <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/syn/expr.rs.html#698-708">ExprTryBlock</a> {
                 <span class="ident">attrs</span>: <span class="ident">Vec::new</span>(),
-                <span class="ident">try_token</span>: <a class="ident" href="../../src/syn/expr.rs.html#2371">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#464">parse</a>()<span class="question-mark">?</span>,
-                <span class="ident">block</span>: <a class="ident" href="../../src/syn/expr.rs.html#2371">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#464">parse</a>()<span class="question-mark">?</span>,
+                <span class="ident">try_token</span>: <a class="ident" href="../../src/syn/expr.rs.html#2375">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#464">parse</a>()<span class="question-mark">?</span>,
+                <span class="ident">block</span>: <a class="ident" href="../../src/syn/expr.rs.html#2375">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#464">parse</a>()<span class="question-mark">?</span>,
             })
         }
     }
@@ -5886,10 +5892,10 @@
         <span class="kw">fn</span> <span class="ident">parse</span>(<span class="ident">input</span>: <a class="ident" href="../../src/syn/parse.rs.html#228">ParseStream</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
             <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/syn/expr.rs.html#774-784">ExprYield</a> {
                 <span class="ident">attrs</span>: <span class="ident">Vec::new</span>(),
-                <span class="ident">yield_token</span>: <a class="ident" href="../../src/syn/expr.rs.html#2383">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#464">parse</a>()<span class="question-mark">?</span>,
+                <span class="ident">yield_token</span>: <a class="ident" href="../../src/syn/expr.rs.html#2387">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#464">parse</a>()<span class="question-mark">?</span>,
                 <span class="ident">expr</span>: {
-                    <span class="kw">if</span> <span class="op">!</span><a class="ident" href="../../src/syn/expr.rs.html#2383">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#740">is_empty</a>() <span class="op">&amp;&amp;</span> <span class="op">!</span><a class="ident" href="../../src/syn/expr.rs.html#2383">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#580">peek</a>(<span class="macro">Token!</span>[,]) <span class="op">&amp;&amp;</span> <span class="op">!</span><a class="ident" href="../../src/syn/expr.rs.html#2383">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#580">peek</a>(<span class="macro">Token!</span>[;]) {
-                        <span class="prelude-val">Some</span>(<a class="ident" href="../../src/syn/expr.rs.html#2383">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#464">parse</a>()<span class="question-mark">?</span>)
+                    <span class="kw">if</span> <span class="op">!</span><a class="ident" href="../../src/syn/expr.rs.html#2387">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#740">is_empty</a>() <span class="op">&amp;&amp;</span> <span class="op">!</span><a class="ident" href="../../src/syn/expr.rs.html#2387">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#580">peek</a>(<span class="macro">Token!</span>[,]) <span class="op">&amp;&amp;</span> <span class="op">!</span><a class="ident" href="../../src/syn/expr.rs.html#2387">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#580">peek</a>(<span class="macro">Token!</span>[;]) {
+                        <span class="prelude-val">Some</span>(<a class="ident" href="../../src/syn/expr.rs.html#2387">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#464">parse</a>()<span class="question-mark">?</span>)
                     } <span class="kw">else</span> {
                         <span class="prelude-val">None</span>
                     }
@@ -5900,35 +5906,31 @@
 
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
     <span class="kw">fn</span> <span class="ident">expr_closure</span>(<span class="ident">input</span>: <a class="ident" href="../../src/syn/parse.rs.html#228">ParseStream</a>, <span class="ident">allow_struct</span>: <a class="ident" href="../../src/syn/expr.rs.html#1103">AllowStruct</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/syn/expr.rs.html#399-415">ExprClosure</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">asyncness</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="macro">Token!</span>[<span class="kw">async</span>]<span class="op">&gt;</span> <span class="op">=</span> <a class="ident" href="../../src/syn/expr.rs.html#2399">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#464">parse</a>()<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">movability</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="macro">Token!</span>[<span class="kw">static</span>]<span class="op">&gt;</span> <span class="op">=</span> <span class="kw">if</span> <a class="ident" href="../../src/syn/expr.rs.html#2400">asyncness</a>.<span class="ident">is_none</span>() {
-            <a class="ident" href="../../src/syn/expr.rs.html#2399">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#464">parse</a>()<span class="question-mark">?</span>
-        } <span class="kw">else</span> {
-            <span class="prelude-val">None</span>
-        };
-        <span class="kw">let</span> <span class="ident">capture</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="macro">Token!</span>[<span class="kw">move</span>]<span class="op">&gt;</span> <span class="op">=</span> <a class="ident" href="../../src/syn/expr.rs.html#2399">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#464">parse</a>()<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">or1_token</span>: <span class="macro">Token!</span>[<span class="op">|</span>] <span class="op">=</span> <a class="ident" href="../../src/syn/expr.rs.html#2399">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#464">parse</a>()<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">movability</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="macro">Token!</span>[<span class="kw">static</span>]<span class="op">&gt;</span> <span class="op">=</span> <a class="ident" href="../../src/syn/expr.rs.html#2403">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#464">parse</a>()<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">asyncness</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="macro">Token!</span>[<span class="kw">async</span>]<span class="op">&gt;</span> <span class="op">=</span> <a class="ident" href="../../src/syn/expr.rs.html#2403">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#464">parse</a>()<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">capture</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="macro">Token!</span>[<span class="kw">move</span>]<span class="op">&gt;</span> <span class="op">=</span> <a class="ident" href="../../src/syn/expr.rs.html#2403">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#464">parse</a>()<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">or1_token</span>: <span class="macro">Token!</span>[<span class="op">|</span>] <span class="op">=</span> <a class="ident" href="../../src/syn/expr.rs.html#2403">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#464">parse</a>()<span class="question-mark">?</span>;
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">inputs</span> <span class="op">=</span> <span class="ident">Punctuated::new</span>();
         <span class="kw">loop</span> {
-            <span class="kw">if</span> <a class="ident" href="../../src/syn/expr.rs.html#2399">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#580">peek</a>(<span class="macro">Token!</span>[<span class="op">|</span>]) {
+            <span class="kw">if</span> <a class="ident" href="../../src/syn/expr.rs.html#2403">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#580">peek</a>(<span class="macro">Token!</span>[<span class="op">|</span>]) {
                 <span class="kw">break</span>;
             }
-            <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <a class="ident" href="../../src/syn/expr.rs.html#2468">closure_arg</a>(<a class="ident" href="../../src/syn/expr.rs.html#2399">input</a>)<span class="question-mark">?</span>;
+            <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <a class="ident" href="../../src/syn/expr.rs.html#2468">closure_arg</a>(<a class="ident" href="../../src/syn/expr.rs.html#2403">input</a>)<span class="question-mark">?</span>;
             <a class="ident" href="../../src/syn/expr.rs.html#2409">inputs</a>.<a class="ident" href="../../src/syn/punctuated.rs.html#164">push_value</a>(<a class="ident" href="../../src/syn/expr.rs.html#2414">value</a>);
-            <span class="kw">if</span> <a class="ident" href="../../src/syn/expr.rs.html#2399">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#580">peek</a>(<span class="macro">Token!</span>[<span class="op">|</span>]) {
+            <span class="kw">if</span> <a class="ident" href="../../src/syn/expr.rs.html#2403">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#580">peek</a>(<span class="macro">Token!</span>[<span class="op">|</span>]) {
                 <span class="kw">break</span>;
             }
-            <span class="kw">let</span> <span class="ident">punct</span>: <span class="macro">Token!</span>[,] <span class="op">=</span> <a class="ident" href="../../src/syn/expr.rs.html#2399">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#464">parse</a>()<span class="question-mark">?</span>;
+            <span class="kw">let</span> <span class="ident">punct</span>: <span class="macro">Token!</span>[,] <span class="op">=</span> <a class="ident" href="../../src/syn/expr.rs.html#2403">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#464">parse</a>()<span class="question-mark">?</span>;
             <a class="ident" href="../../src/syn/expr.rs.html#2409">inputs</a>.<a class="ident" href="../../src/syn/punctuated.rs.html#180">push_punct</a>(<a class="ident" href="../../src/syn/expr.rs.html#2419">punct</a>);
         }
 
-        <span class="kw">let</span> <span class="ident">or2_token</span>: <span class="macro">Token!</span>[<span class="op">|</span>] <span class="op">=</span> <a class="ident" href="../../src/syn/expr.rs.html#2399">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#464">parse</a>()<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">or2_token</span>: <span class="macro">Token!</span>[<span class="op">|</span>] <span class="op">=</span> <a class="ident" href="../../src/syn/expr.rs.html#2403">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#464">parse</a>()<span class="question-mark">?</span>;
 
-        <span class="kw">let</span> (<span class="ident">output</span>, <span class="ident">body</span>) <span class="op">=</span> <span class="kw">if</span> <a class="ident" href="../../src/syn/expr.rs.html#2399">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#580">peek</a>(<span class="macro">Token!</span>[-&gt;]) {
-            <span class="kw">let</span> <span class="ident">arrow_token</span>: <span class="macro">Token!</span>[-&gt;] <span class="op">=</span> <a class="ident" href="../../src/syn/expr.rs.html#2399">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#464">parse</a>()<span class="question-mark">?</span>;
-            <span class="kw">let</span> <span class="ident">ty</span>: <a class="ident" href="../../src/syn/ty.rs.html#5-92">Type</a> <span class="op">=</span> <a class="ident" href="../../src/syn/expr.rs.html#2399">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#464">parse</a>()<span class="question-mark">?</span>;
-            <span class="kw">let</span> <span class="ident">body</span>: <a class="ident" href="../../src/syn/stmt.rs.html#3-13">Block</a> <span class="op">=</span> <a class="ident" href="../../src/syn/expr.rs.html#2399">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#464">parse</a>()<span class="question-mark">?</span>;
+        <span class="kw">let</span> (<span class="ident">output</span>, <span class="ident">body</span>) <span class="op">=</span> <span class="kw">if</span> <a class="ident" href="../../src/syn/expr.rs.html#2403">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#580">peek</a>(<span class="macro">Token!</span>[-&gt;]) {
+            <span class="kw">let</span> <span class="ident">arrow_token</span>: <span class="macro">Token!</span>[-&gt;] <span class="op">=</span> <a class="ident" href="../../src/syn/expr.rs.html#2403">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#464">parse</a>()<span class="question-mark">?</span>;
+            <span class="kw">let</span> <span class="ident">ty</span>: <a class="ident" href="../../src/syn/ty.rs.html#5-92">Type</a> <span class="op">=</span> <a class="ident" href="../../src/syn/expr.rs.html#2403">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#464">parse</a>()<span class="question-mark">?</span>;
+            <span class="kw">let</span> <span class="ident">body</span>: <a class="ident" href="../../src/syn/stmt.rs.html#3-13">Block</a> <span class="op">=</span> <a class="ident" href="../../src/syn/expr.rs.html#2403">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#464">parse</a>()<span class="question-mark">?</span>;
             <span class="kw">let</span> <span class="ident">output</span> <span class="op">=</span> <a class="ident" href="../../src/syn/ty.rs.html#333">ReturnType::Type</a>(<a class="ident" href="../../src/syn/expr.rs.html#2426">arrow_token</a>, <span class="ident">Box::new</span>(<a class="ident" href="../../src/syn/expr.rs.html#2427">ty</a>));
             <span class="kw">let</span> <span class="ident">block</span> <span class="op">=</span> <a class="ident" href="../../src/syn/expr.rs.html#110">Expr::Block</a>(<a class="ident" href="../../src/syn/expr.rs.html#333-343">ExprBlock</a> {
                 <span class="ident">attrs</span>: <span class="ident">Vec::new</span>(),
@@ -5937,14 +5939,14 @@
             });
             (<a class="ident" href="../../src/syn/expr.rs.html#2429">output</a>, <a class="ident" href="../../src/syn/expr.rs.html#2430">block</a>)
         } <span class="kw">else</span> {
-            <span class="kw">let</span> <span class="ident">body</span> <span class="op">=</span> <a class="ident" href="../../src/syn/expr.rs.html#1454">ambiguous_expr</a>(<a class="ident" href="../../src/syn/expr.rs.html#2399">input</a>, <a class="ident" href="../../src/syn/expr.rs.html#2399">allow_struct</a>)<span class="question-mark">?</span>;
+            <span class="kw">let</span> <span class="ident">body</span> <span class="op">=</span> <a class="ident" href="../../src/syn/expr.rs.html#1454">ambiguous_expr</a>(<a class="ident" href="../../src/syn/expr.rs.html#2403">input</a>, <a class="ident" href="../../src/syn/expr.rs.html#2403">allow_struct</a>)<span class="question-mark">?</span>;
             (<a class="ident" href="../../src/syn/ty.rs.html#331">ReturnType::Default</a>, <a class="ident" href="../../src/syn/expr.rs.html#2437">body</a>)
         };
 
         <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/syn/expr.rs.html#399-415">ExprClosure</a> {
             <span class="ident">attrs</span>: <span class="ident">Vec::new</span>(),
-            <a class="ident" href="../../src/syn/expr.rs.html#2400">asyncness</a>,
-            <a class="ident" href="../../src/syn/expr.rs.html#2401">movability</a>,
+            <a class="ident" href="../../src/syn/expr.rs.html#2404">movability</a>,
+            <a class="ident" href="../../src/syn/expr.rs.html#2405">asyncness</a>,
             <a class="ident" href="../../src/syn/expr.rs.html#2406">capture</a>,
             <a class="ident" href="../../src/syn/expr.rs.html#2407">or1_token</a>,
             <a class="ident" href="../../src/syn/expr.rs.html#2409">inputs</a>,
@@ -6371,7 +6373,7 @@
             <a class="ident" href="../../src/syn/expr.rs.html#2865">float_repr</a>.<span class="ident">truncate</span>(<a class="ident" href="../../src/syn/expr.rs.html#2865">float_repr</a>.<span class="ident">len</span>() <span class="op">-</span> <span class="number">1</span>);
         }
         <span class="kw">for</span> <span class="ident">part</span> <span class="kw">in</span> <a class="ident" href="../../src/syn/expr.rs.html#2865">float_repr</a>.<span class="ident">split</span>(<span class="string">&#39;.&#39;</span>) {
-            <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <a class="ident" href="../../src/syn/lib.rs.html#942"><span class="kw">crate</span>::parse_str</a>(<a class="ident" href="../../src/syn/expr.rs.html#2870">part</a>).<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">err</span><span class="op">|</span> <span class="ident">Error::new</span>(<a class="ident" href="../../src/syn/expr.rs.html#2864">float</a>.<a class="ident" href="../../src/syn/lit.rs.html#493">span</a>(), <a class="ident" href="../../src/syn/expr.rs.html#2871">err</a>))<span class="question-mark">?</span>;
+            <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <a class="ident" href="../../src/syn/lib.rs.html#944"><span class="kw">crate</span>::parse_str</a>(<a class="ident" href="../../src/syn/expr.rs.html#2870">part</a>).<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">err</span><span class="op">|</span> <span class="ident">Error::new</span>(<a class="ident" href="../../src/syn/expr.rs.html#2864">float</a>.<a class="ident" href="../../src/syn/lit.rs.html#493">span</a>(), <a class="ident" href="../../src/syn/expr.rs.html#2871">err</a>))<span class="question-mark">?</span>;
             <span class="kw">let</span> <span class="ident">base</span> <span class="op">=</span> <span class="ident">mem::replace</span>(<a class="ident" href="../../src/syn/expr.rs.html#2864">e</a>, <a class="ident" href="../../src/syn/expr.rs.html#251">Expr::__TestExhaustive</a>(<a class="ident" href="../../src/syn/export.rs.html#36"><span class="kw">crate</span>::private</a>(())));
             <span class="kw-2">*</span><a class="ident" href="../../src/syn/expr.rs.html#2864">e</a> <span class="op">=</span> <a class="ident" href="../../src/syn/expr.rs.html#133">Expr::Field</a>(<a class="ident" href="../../src/syn/expr.rs.html#429-441">ExprField</a> {
                 <span class="ident">attrs</span>: <span class="ident">Vec::new</span>(),
@@ -6726,8 +6728,8 @@
     <span class="kw">impl</span> <a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">ToTokens</a> <span class="kw">for</span> <a class="ident" href="../../src/syn/expr.rs.html#399-415">ExprClosure</a> {
         <span class="kw">fn</span> <span class="ident">to_tokens</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">tokens</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>) {
             <a class="ident" href="../../src/syn/expr.rs.html#2917">outer_attrs_to_tokens</a>(<span class="kw-2">&amp;</span><a class="self" href="../../src/syn/expr.rs.html#3224">self</a>.<span class="ident">attrs</span>, <a class="ident" href="../../src/syn/expr.rs.html#3224">tokens</a>);
-            <a class="self" href="../../src/syn/expr.rs.html#3224">self</a>.<span class="ident">asyncness</span>.<a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a class="ident" href="../../src/syn/expr.rs.html#3224">tokens</a>);
             <a class="self" href="../../src/syn/expr.rs.html#3224">self</a>.<span class="ident">movability</span>.<a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a class="ident" href="../../src/syn/expr.rs.html#3224">tokens</a>);
+            <a class="self" href="../../src/syn/expr.rs.html#3224">self</a>.<span class="ident">asyncness</span>.<a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a class="ident" href="../../src/syn/expr.rs.html#3224">tokens</a>);
             <a class="self" href="../../src/syn/expr.rs.html#3224">self</a>.<span class="ident">capture</span>.<a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a class="ident" href="../../src/syn/expr.rs.html#3224">tokens</a>);
             <a class="self" href="../../src/syn/expr.rs.html#3224">self</a>.<span class="ident">or1_token</span>.<a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a class="ident" href="../../src/syn/expr.rs.html#3224">tokens</a>);
             <a class="self" href="../../src/syn/expr.rs.html#3224">self</a>.<span class="ident">inputs</span>.<a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a class="ident" href="../../src/syn/expr.rs.html#3224">tokens</a>);
@@ -7002,5 +7004,5 @@
     }
 }
 </code></pre></div>
-</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="syn" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.60.0-nightly (bd3cb5256 2022-01-16)" ></div>
+</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="syn" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.60.0-nightly (498eeb72f 2022-01-31)" ></div>
 </body></html>

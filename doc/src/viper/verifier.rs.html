@@ -1,7 +1,9 @@
 <!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `viper/src/verifier.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>verifier.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
-    <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a class="sidebar-logo" href="../../viper/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../viper/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><form class="search-form"><div class="search-container"><div>
-                                <input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../wheel.svg"></a></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
+    <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../viper/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
+        </a><h2 class="location"></h2>
+    </nav>
+    <nav class="sidebar"><a class="sidebar-logo" href="../../viper/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
+        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../viper/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><div class="theme-picker hidden"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="22" height="22" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -303,6 +305,16 @@
 <span id="300">300</span>
 <span id="301">301</span>
 <span id="302">302</span>
+<span id="303">303</span>
+<span id="304">304</span>
+<span id="305">305</span>
+<span id="306">306</span>
+<span id="307">307</span>
+<span id="308">308</span>
+<span id="309">309</span>
+<span id="310">310</span>
+<span id="311">311</span>
+<span id="312">312</span>
 </pre><pre class="rust"><code><span class="comment">// © 2019, ETH Zurich</span>
 <span class="comment">//</span>
 <span class="comment">// This Source Code Form is subject to the terms of the Mozilla Public</span>
@@ -454,6 +466,8 @@
 
                 <span class="kw">let</span> <span class="ident">verification_error_wrapper</span> <span class="op">=</span> <span class="ident">silver::verifier::VerificationError::with</span>(<a class="self" href="../../src/viper/verifier.rs.html#99">self</a>.<span class="ident">env</span>);
 
+                <span class="kw">let</span> <span class="ident">failure_context_wrapper</span> <span class="op">=</span> <span class="ident">silver::verifier::FailureContext::with</span>(<a class="self" href="../../src/viper/verifier.rs.html#99">self</a>.<span class="ident">env</span>);
+
                 <span class="kw">let</span> <span class="ident">has_identifier_wrapper</span> <span class="op">=</span> <span class="ident">silver::ast::HasIdentifier::with</span>(<a class="self" href="../../src/viper/verifier.rs.html#99">self</a>.<span class="ident">env</span>);
 
                 <span class="kw">let</span> <span class="ident">error_reason_wrapper</span> <span class="op">=</span> <span class="ident">silver::verifier::ErrorReason::with</span>(<a class="self" href="../../src/viper/verifier.rs.html#99">self</a>.<span class="ident">env</span>);
@@ -461,128 +475,136 @@
                 <span class="kw">for</span> <span class="ident">viper_error</span> <span class="kw">in</span> <a class="ident" href="../../src/viper/verifier.rs.html#146">viper_errors</a> {
                     <span class="kw">let</span> <span class="ident">is_verification_error</span> <span class="op">=</span> <a class="self" href="../../src/viper/verifier.rs.html#99">self</a>
                         .<span class="ident">jni</span>
-                        .<a class="ident" href="../../src/viper/jni_utils.rs.html#180">is_instance_of</a>(<a class="ident" href="../../src/viper/verifier.rs.html#156">viper_error</a>, <span class="string">&quot;viper/silver/verifier/VerificationError&quot;</span>);
+                        .<a class="ident" href="../../src/viper/jni_utils.rs.html#180">is_instance_of</a>(<a class="ident" href="../../src/viper/verifier.rs.html#158">viper_error</a>, <span class="string">&quot;viper/silver/verifier/VerificationError&quot;</span>);
 
-                    <span class="kw">if</span> <span class="op">!</span><a class="ident" href="../../src/viper/verifier.rs.html#157">is_verification_error</a> {
+                    <span class="kw">if</span> <span class="op">!</span><a class="ident" href="../../src/viper/verifier.rs.html#159">is_verification_error</a> {
                         <span class="kw">let</span> <span class="ident">is_aborted_exceptionally</span> <span class="op">=</span> <a class="self" href="../../src/viper/verifier.rs.html#99">self</a>
                             .<span class="ident">jni</span>
-                            .<a class="ident" href="../../src/viper/jni_utils.rs.html#180">is_instance_of</a>(<a class="ident" href="../../src/viper/verifier.rs.html#156">viper_error</a>, <span class="string">&quot;viper/silver/verifier/AbortedExceptionally&quot;</span>);
+                            .<a class="ident" href="../../src/viper/jni_utils.rs.html#180">is_instance_of</a>(<a class="ident" href="../../src/viper/verifier.rs.html#158">viper_error</a>, <span class="string">&quot;viper/silver/verifier/AbortedExceptionally&quot;</span>);
 
-                        <span class="kw">if</span> <a class="ident" href="../../src/viper/verifier.rs.html#162">is_aborted_exceptionally</a> {
+                        <span class="kw">if</span> <a class="ident" href="../../src/viper/verifier.rs.html#164">is_aborted_exceptionally</a> {
                             <span class="kw">let</span> <span class="ident">exception</span> <span class="op">=</span> <a class="self" href="../../src/viper/verifier.rs.html#99">self</a>.<span class="ident">jni</span>.<a class="ident" href="../../src/viper/jni_utils.rs.html#62">unwrap_result</a>(
                                 <span class="ident">silver::verifier::AbortedExceptionally::with</span>(<a class="self" href="../../src/viper/verifier.rs.html#99">self</a>.<span class="ident">env</span>)
-                                    .<span class="ident">call_cause</span>(<a class="ident" href="../../src/viper/verifier.rs.html#156">viper_error</a>),
+                                    .<span class="ident">call_cause</span>(<a class="ident" href="../../src/viper/verifier.rs.html#158">viper_error</a>),
                             );
                             <span class="kw">let</span> <span class="ident">stack_trace</span> <span class="op">=</span>
-                                <a class="self" href="../../src/viper/verifier.rs.html#99">self</a>.<span class="ident">jni</span>.<a class="ident" href="../../src/viper/jni_utils.rs.html#62">unwrap_result</a>(<a class="self" href="../../src/viper/verifier.rs.html#99">self</a>.<span class="ident">jni</span>.<a class="ident" href="../../src/viper/jni_utils.rs.html#29">get_stack_trace</a>(<a class="ident" href="../../src/viper/verifier.rs.html#167">exception</a>));
+                                <a class="self" href="../../src/viper/verifier.rs.html#99">self</a>.<span class="ident">jni</span>.<a class="ident" href="../../src/viper/jni_utils.rs.html#62">unwrap_result</a>(<a class="self" href="../../src/viper/verifier.rs.html#99">self</a>.<span class="ident">jni</span>.<a class="ident" href="../../src/viper/jni_utils.rs.html#29">get_stack_trace</a>(<a class="ident" href="../../src/viper/verifier.rs.html#169">exception</a>));
                             <span class="macro">error!</span>(
                                 <span class="string">&quot;The verification aborted due to the following exception: {}&quot;</span>,
-                                <a class="ident" href="../../src/viper/verifier.rs.html#171">stack_trace</a>
+                                <a class="ident" href="../../src/viper/verifier.rs.html#173">stack_trace</a>
                             );
                         } <span class="kw">else</span> {
                             <span class="macro">error!</span>(
                                 <span class="string">&quot;The verifier returned an unhandled error of type {}: {}&quot;</span>,
-                                <a class="self" href="../../src/viper/verifier.rs.html#99">self</a>.<span class="ident">jni</span>.<a class="ident" href="../../src/viper/jni_utils.rs.html#124">class_name</a>(<a class="ident" href="../../src/viper/verifier.rs.html#156">viper_error</a>),
-                                <a class="self" href="../../src/viper/verifier.rs.html#99">self</a>.<span class="ident">jni</span>.<a class="ident" href="../../src/viper/jni_utils.rs.html#117">to_string</a>(<a class="ident" href="../../src/viper/verifier.rs.html#156">viper_error</a>)
+                                <a class="self" href="../../src/viper/verifier.rs.html#99">self</a>.<span class="ident">jni</span>.<a class="ident" href="../../src/viper/jni_utils.rs.html#124">class_name</a>(<a class="ident" href="../../src/viper/verifier.rs.html#158">viper_error</a>),
+                                <a class="self" href="../../src/viper/verifier.rs.html#99">self</a>.<span class="ident">jni</span>.<a class="ident" href="../../src/viper/jni_utils.rs.html#117">to_string</a>(<a class="ident" href="../../src/viper/verifier.rs.html#158">viper_error</a>)
                             );
                         }
                         <span class="macro">unreachable!</span>(
                             <span class="string">&quot;The verifier returned an unknown error of type {}: {}&quot;</span>,
-                            <a class="self" href="../../src/viper/verifier.rs.html#99">self</a>.<span class="ident">jni</span>.<a class="ident" href="../../src/viper/jni_utils.rs.html#124">class_name</a>(<a class="ident" href="../../src/viper/verifier.rs.html#156">viper_error</a>),
-                            <a class="self" href="../../src/viper/verifier.rs.html#99">self</a>.<span class="ident">jni</span>.<a class="ident" href="../../src/viper/jni_utils.rs.html#117">to_string</a>(<a class="ident" href="../../src/viper/verifier.rs.html#156">viper_error</a>)
+                            <a class="self" href="../../src/viper/verifier.rs.html#99">self</a>.<span class="ident">jni</span>.<a class="ident" href="../../src/viper/jni_utils.rs.html#124">class_name</a>(<a class="ident" href="../../src/viper/verifier.rs.html#158">viper_error</a>),
+                            <a class="self" href="../../src/viper/verifier.rs.html#99">self</a>.<span class="ident">jni</span>.<a class="ident" href="../../src/viper/jni_utils.rs.html#117">to_string</a>(<a class="ident" href="../../src/viper/verifier.rs.html#158">viper_error</a>)
                         );
                     };
+                    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">failure_contexts</span> <span class="op">=</span> <a class="self" href="../../src/viper/verifier.rs.html#99">self</a>.<span class="ident">jni</span>.<a class="ident" href="../../src/viper/jni_utils.rs.html#132">seq_to_vec</a>(<a class="self" href="../../src/viper/verifier.rs.html#99">self</a>
+                    .<span class="ident">jni</span>
+                    .<a class="ident" href="../../src/viper/jni_utils.rs.html#62">unwrap_result</a>(<a class="ident" href="../../src/viper/verifier.rs.html#150">verification_error_wrapper</a>.<span class="ident">call_failureContexts</span>(<a class="ident" href="../../src/viper/verifier.rs.html#158">viper_error</a>)));
 
-                    <span class="kw">let</span> <span class="ident">option_original_counterexample</span> <span class="op">=</span> <a class="self" href="../../src/viper/verifier.rs.html#99">self</a>
-                        .<span class="ident">jni</span>
-                        .<a class="ident" href="../../src/viper/jni_utils.rs.html#62">unwrap_result</a>(<a class="ident" href="../../src/viper/verifier.rs.html#150">verification_error_wrapper</a>.<span class="ident">call_counterexample</span>(<a class="ident" href="../../src/viper/verifier.rs.html#156">viper_error</a>));
-
-                    <span class="kw">let</span> <span class="ident">counterexample</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../src/viper/silicon_counterexample.rs.html#8-16">SiliconCounterexample</a><span class="op">&gt;</span> <span class="op">=</span> <span class="kw">if</span> <span class="op">!</span><a class="self" href="../../src/viper/verifier.rs.html#99">self</a>
-                        .<span class="ident">jni</span>
-                        .<a class="ident" href="../../src/viper/jni_utils.rs.html#180">is_instance_of</a>(<a class="ident" href="../../src/viper/verifier.rs.html#191">option_original_counterexample</a>, <span class="string">&quot;scala/None$&quot;</span>)
-                    {
-                        <span class="kw">let</span> <span class="ident">original_counterexample</span> <span class="op">=</span> <a class="self" href="../../src/viper/verifier.rs.html#99">self</a>.<span class="ident">jni</span>.<a class="ident" href="../../src/viper/jni_utils.rs.html#62">unwrap_result</a>(
-                            <span class="ident">scala::Some::with</span>(<a class="self" href="../../src/viper/verifier.rs.html#99">self</a>.<span class="ident">env</span>).<span class="ident">call_get</span>(<a class="ident" href="../../src/viper/verifier.rs.html#191">option_original_counterexample</a>),
-                        );
-                        <span class="kw">if</span> <a class="self" href="../../src/viper/verifier.rs.html#99">self</a>.<span class="ident">jni</span>.<a class="ident" href="../../src/viper/jni_utils.rs.html#180">is_instance_of</a>(
-                            <a class="ident" href="../../src/viper/verifier.rs.html#199">original_counterexample</a>,
-                            <span class="string">&quot;viper/silicon/interfaces/SiliconMappedCounterexample&quot;</span>,
-                        ) {
-                            <span class="comment">// only mapped counterexamples are processed</span>
-                            <span class="prelude-val">Some</span>(<span class="ident">SiliconCounterexample::new</span>(
-                                <a class="self" href="../../src/viper/verifier.rs.html#99">self</a>.<span class="ident">env</span>,
-                                <a class="self" href="../../src/viper/verifier.rs.html#99">self</a>.<span class="ident">jni</span>,
-                                <a class="ident" href="../../src/viper/verifier.rs.html#199">original_counterexample</a>,
-                            ))
+                    <span class="kw">let</span> <span class="ident">counterexample</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../src/viper/silicon_counterexample.rs.html#8-16">SiliconCounterexample</a><span class="op">&gt;</span> <span class="op">=</span> {
+                        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">failure_context</span>) <span class="op">=</span> <a class="ident" href="../../src/viper/verifier.rs.html#192">failure_contexts</a>.<span class="ident">pop</span>() {
+                            <span class="kw">let</span> <span class="ident">option_original_counterexample</span> <span class="op">=</span> <a class="self" href="../../src/viper/verifier.rs.html#99">self</a>
+                                .<span class="ident">jni</span>
+                                .<a class="ident" href="../../src/viper/jni_utils.rs.html#62">unwrap_result</a>(<a class="ident" href="../../src/viper/verifier.rs.html#152">failure_context_wrapper</a>.<span class="ident">call_counterExample</span>(<a class="ident" href="../../src/viper/verifier.rs.html#197">failure_context</a>));
+                            <span class="kw">if</span> <span class="op">!</span><a class="self" href="../../src/viper/verifier.rs.html#99">self</a>
+                                .<span class="ident">jni</span>
+                                .<a class="ident" href="../../src/viper/jni_utils.rs.html#180">is_instance_of</a>(<a class="ident" href="../../src/viper/verifier.rs.html#198">option_original_counterexample</a>, <span class="string">&quot;scala/None$&quot;</span>)
+                            {
+                                <span class="kw">let</span> <span class="ident">original_counterexample</span> <span class="op">=</span> <a class="self" href="../../src/viper/verifier.rs.html#99">self</a>.<span class="ident">jni</span>.<a class="ident" href="../../src/viper/jni_utils.rs.html#62">unwrap_result</a>(
+                                    <span class="ident">scala::Some::with</span>(<a class="self" href="../../src/viper/verifier.rs.html#99">self</a>.<span class="ident">env</span>).<span class="ident">call_get</span>(<a class="ident" href="../../src/viper/verifier.rs.html#198">option_original_counterexample</a>),
+                                );
+                                <span class="kw">if</span> <a class="self" href="../../src/viper/verifier.rs.html#99">self</a>.<span class="ident">jni</span>.<a class="ident" href="../../src/viper/jni_utils.rs.html#180">is_instance_of</a>(
+                                    <a class="ident" href="../../src/viper/verifier.rs.html#205">original_counterexample</a>,
+                                    <span class="string">&quot;viper/silicon/interfaces/SiliconMappedCounterexample&quot;</span>,
+                                ) {
+                                    <span class="comment">// only mapped counterexamples are processed</span>
+                                    <span class="prelude-val">Some</span>(<span class="ident">SiliconCounterexample::new</span>(
+                                        <a class="self" href="../../src/viper/verifier.rs.html#99">self</a>.<span class="ident">env</span>,
+                                        <a class="self" href="../../src/viper/verifier.rs.html#99">self</a>.<span class="ident">jni</span>,
+                                        <a class="ident" href="../../src/viper/verifier.rs.html#205">original_counterexample</a>,
+                                    ))
+                                } <span class="kw">else</span> {
+                                    <span class="prelude-val">None</span>
+                                }
+                            } <span class="kw">else</span> {
+                                <span class="prelude-val">None</span>
+                            }
                         } <span class="kw">else</span> {
                             <span class="prelude-val">None</span>
                         }
-                    } <span class="kw">else</span> {
-                        <span class="prelude-val">None</span>
                     };
 
                     <span class="kw">let</span> <span class="ident">reason</span> <span class="op">=</span> <a class="self" href="../../src/viper/verifier.rs.html#99">self</a>
                         .<span class="ident">jni</span>
-                        .<a class="ident" href="../../src/viper/jni_utils.rs.html#62">unwrap_result</a>(<a class="ident" href="../../src/viper/verifier.rs.html#150">verification_error_wrapper</a>.<span class="ident">call_reason</span>(<a class="ident" href="../../src/viper/verifier.rs.html#156">viper_error</a>));
+                        .<a class="ident" href="../../src/viper/jni_utils.rs.html#62">unwrap_result</a>(<a class="ident" href="../../src/viper/verifier.rs.html#150">verification_error_wrapper</a>.<span class="ident">call_reason</span>(<a class="ident" href="../../src/viper/verifier.rs.html#158">viper_error</a>));
 
                     <span class="kw">let</span> <span class="ident">reason_pos</span> <span class="op">=</span> <a class="self" href="../../src/viper/verifier.rs.html#99">self</a>
                         .<span class="ident">jni</span>
-                        .<a class="ident" href="../../src/viper/jni_utils.rs.html#62">unwrap_result</a>(<a class="ident" href="../../src/viper/verifier.rs.html#154">error_reason_wrapper</a>.<span class="ident">call_pos</span>(<a class="ident" href="../../src/viper/verifier.rs.html#219">reason</a>));
+                        .<a class="ident" href="../../src/viper/jni_utils.rs.html#62">unwrap_result</a>(<a class="ident" href="../../src/viper/verifier.rs.html#156">error_reason_wrapper</a>.<span class="ident">call_pos</span>(<a class="ident" href="../../src/viper/verifier.rs.html#229">reason</a>));
 
                     <span class="kw">let</span> <span class="ident">reason_pos_id</span> <span class="op">=</span> <span class="kw">if</span> <a class="self" href="../../src/viper/verifier.rs.html#99">self</a>
                         .<span class="ident">jni</span>
-                        .<a class="ident" href="../../src/viper/jni_utils.rs.html#180">is_instance_of</a>(<a class="ident" href="../../src/viper/verifier.rs.html#223">reason_pos</a>, <span class="string">&quot;viper/silver/ast/HasIdentifier&quot;</span>)
+                        .<a class="ident" href="../../src/viper/jni_utils.rs.html#180">is_instance_of</a>(<a class="ident" href="../../src/viper/verifier.rs.html#233">reason_pos</a>, <span class="string">&quot;viper/silver/ast/HasIdentifier&quot;</span>)
                     {
                         <span class="prelude-val">Some</span>(
                             <a class="self" href="../../src/viper/verifier.rs.html#99">self</a>.<span class="ident">jni</span>.<a class="ident" href="../../src/viper/jni_utils.rs.html#111">get_string</a>(
                                 <a class="self" href="../../src/viper/verifier.rs.html#99">self</a>.<span class="ident">jni</span>
-                                    .<a class="ident" href="../../src/viper/jni_utils.rs.html#62">unwrap_result</a>(<a class="ident" href="../../src/viper/verifier.rs.html#152">has_identifier_wrapper</a>.<span class="ident">call_id</span>(<a class="ident" href="../../src/viper/verifier.rs.html#223">reason_pos</a>)),
+                                    .<a class="ident" href="../../src/viper/jni_utils.rs.html#62">unwrap_result</a>(<a class="ident" href="../../src/viper/verifier.rs.html#154">has_identifier_wrapper</a>.<span class="ident">call_id</span>(<a class="ident" href="../../src/viper/verifier.rs.html#233">reason_pos</a>)),
                             ),
                         )
                     } <span class="kw">else</span> {
                         <span class="macro">debug!</span>(
                             <span class="string">&quot;The verifier returned an error whose offending node position has no identifier: {:?}&quot;</span>,
-                            <a class="self" href="../../src/viper/verifier.rs.html#99">self</a>.<span class="ident">jni</span>.<a class="ident" href="../../src/viper/jni_utils.rs.html#117">to_string</a>(<a class="ident" href="../../src/viper/verifier.rs.html#156">viper_error</a>)
+                            <a class="self" href="../../src/viper/verifier.rs.html#99">self</a>.<span class="ident">jni</span>.<a class="ident" href="../../src/viper/jni_utils.rs.html#117">to_string</a>(<a class="ident" href="../../src/viper/verifier.rs.html#158">viper_error</a>)
                         );
                         <span class="prelude-val">None</span>
                     };
 
                     <span class="kw">let</span> <span class="ident">error_full_id</span> <span class="op">=</span> <a class="self" href="../../src/viper/verifier.rs.html#99">self</a>.<span class="ident">jni</span>.<a class="ident" href="../../src/viper/jni_utils.rs.html#111">get_string</a>(
                         <a class="self" href="../../src/viper/verifier.rs.html#99">self</a>.<span class="ident">jni</span>
-                            .<a class="ident" href="../../src/viper/jni_utils.rs.html#62">unwrap_result</a>(<a class="ident" href="../../src/viper/verifier.rs.html#150">verification_error_wrapper</a>.<span class="ident">call_fullId</span>(<a class="ident" href="../../src/viper/verifier.rs.html#156">viper_error</a>)),
+                            .<a class="ident" href="../../src/viper/jni_utils.rs.html#62">unwrap_result</a>(<a class="ident" href="../../src/viper/verifier.rs.html#150">verification_error_wrapper</a>.<span class="ident">call_fullId</span>(<a class="ident" href="../../src/viper/verifier.rs.html#158">viper_error</a>)),
                     );
 
                     <span class="kw">let</span> <span class="ident">pos</span> <span class="op">=</span> <a class="self" href="../../src/viper/verifier.rs.html#99">self</a>
                         .<span class="ident">jni</span>
-                        .<a class="ident" href="../../src/viper/jni_utils.rs.html#62">unwrap_result</a>(<a class="ident" href="../../src/viper/verifier.rs.html#150">verification_error_wrapper</a>.<span class="ident">call_pos</span>(<a class="ident" href="../../src/viper/verifier.rs.html#156">viper_error</a>));
+                        .<a class="ident" href="../../src/viper/jni_utils.rs.html#62">unwrap_result</a>(<a class="ident" href="../../src/viper/verifier.rs.html#150">verification_error_wrapper</a>.<span class="ident">call_pos</span>(<a class="ident" href="../../src/viper/verifier.rs.html#158">viper_error</a>));
 
                     <span class="kw">let</span> <span class="ident">message</span> <span class="op">=</span>
                         <a class="self" href="../../src/viper/verifier.rs.html#99">self</a>.<span class="ident">jni</span>.<a class="ident" href="../../src/viper/jni_utils.rs.html#117">to_string</a>(<a class="self" href="../../src/viper/verifier.rs.html#99">self</a>.<span class="ident">jni</span>.<a class="ident" href="../../src/viper/jni_utils.rs.html#62">unwrap_result</a>(
-                            <a class="ident" href="../../src/viper/verifier.rs.html#150">verification_error_wrapper</a>.<span class="ident">call_readableMessage</span>(<a class="ident" href="../../src/viper/verifier.rs.html#156">viper_error</a>),
+                            <a class="ident" href="../../src/viper/verifier.rs.html#150">verification_error_wrapper</a>.<span class="ident">call_readableMessage</span>(<a class="ident" href="../../src/viper/verifier.rs.html#158">viper_error</a>),
                         ));
 
                     <span class="kw">let</span> <span class="ident">pos_id</span> <span class="op">=</span>
                         <span class="kw">if</span> <a class="self" href="../../src/viper/verifier.rs.html#99">self</a>
                             .<span class="ident">jni</span>
-                            .<a class="ident" href="../../src/viper/jni_utils.rs.html#180">is_instance_of</a>(<a class="ident" href="../../src/viper/verifier.rs.html#250">pos</a>, <span class="string">&quot;viper/silver/ast/HasIdentifier&quot;</span>)
+                            .<a class="ident" href="../../src/viper/jni_utils.rs.html#180">is_instance_of</a>(<a class="ident" href="../../src/viper/verifier.rs.html#260">pos</a>, <span class="string">&quot;viper/silver/ast/HasIdentifier&quot;</span>)
                         {
                             <span class="prelude-val">Some</span>(<a class="self" href="../../src/viper/verifier.rs.html#99">self</a>.<span class="ident">jni</span>.<a class="ident" href="../../src/viper/jni_utils.rs.html#111">get_string</a>(
-                                <a class="self" href="../../src/viper/verifier.rs.html#99">self</a>.<span class="ident">jni</span>.<a class="ident" href="../../src/viper/jni_utils.rs.html#62">unwrap_result</a>(<a class="ident" href="../../src/viper/verifier.rs.html#152">has_identifier_wrapper</a>.<span class="ident">call_id</span>(<a class="ident" href="../../src/viper/verifier.rs.html#250">pos</a>)),
+                                <a class="self" href="../../src/viper/verifier.rs.html#99">self</a>.<span class="ident">jni</span>.<a class="ident" href="../../src/viper/jni_utils.rs.html#62">unwrap_result</a>(<a class="ident" href="../../src/viper/verifier.rs.html#154">has_identifier_wrapper</a>.<span class="ident">call_id</span>(<a class="ident" href="../../src/viper/verifier.rs.html#260">pos</a>)),
                             ))
                         } <span class="kw">else</span> {
                             <span class="macro">debug!</span>(
                                 <span class="string">&quot;The verifier returned an error whose position has no identifier: {:?}&quot;</span>,
-                                <a class="self" href="../../src/viper/verifier.rs.html#99">self</a>.<span class="ident">jni</span>.<a class="ident" href="../../src/viper/jni_utils.rs.html#117">to_string</a>(<a class="ident" href="../../src/viper/verifier.rs.html#156">viper_error</a>)
+                                <a class="self" href="../../src/viper/verifier.rs.html#99">self</a>.<span class="ident">jni</span>.<a class="ident" href="../../src/viper/jni_utils.rs.html#117">to_string</a>(<a class="ident" href="../../src/viper/verifier.rs.html#158">viper_error</a>)
                             );
                             <span class="prelude-val">None</span>
                         };
 
                     <a class="ident" href="../../src/viper/verifier.rs.html#144">errors</a>.<span class="ident">push</span>(<span class="ident">VerificationError::new</span>(
-                        <a class="ident" href="../../src/viper/verifier.rs.html#245">error_full_id</a>,
-                        <a class="ident" href="../../src/viper/verifier.rs.html#259">pos_id</a>,
-                        <a class="ident" href="../../src/viper/verifier.rs.html#227">reason_pos_id</a>,
-                        <a class="ident" href="../../src/viper/verifier.rs.html#254">message</a>,
-                        <a class="ident" href="../../src/viper/verifier.rs.html#195">counterexample</a>,
+                        <a class="ident" href="../../src/viper/verifier.rs.html#255">error_full_id</a>,
+                        <a class="ident" href="../../src/viper/verifier.rs.html#269">pos_id</a>,
+                        <a class="ident" href="../../src/viper/verifier.rs.html#237">reason_pos_id</a>,
+                        <a class="ident" href="../../src/viper/verifier.rs.html#264">message</a>,
+                        <a class="ident" href="../../src/viper/verifier.rs.html#196">counterexample</a>,
                     ))
                 }
 
@@ -597,14 +619,14 @@
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for</span> <span class="ident">Verifier</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
         <span class="comment">// Tell the verifier to stop its threads.</span>
-        <a class="self" href="../../src/viper/verifier.rs.html#293">self</a>.<span class="ident">jni</span>
-            .<a class="ident" href="../../src/viper/jni_utils.rs.html#62">unwrap_result</a>(<a class="self" href="../../src/viper/verifier.rs.html#293">self</a>.<span class="ident">verifier_wrapper</span>.<span class="ident">call_stop</span>(<a class="self" href="../../src/viper/verifier.rs.html#293">self</a>.<span class="ident">verifier_instance</span>));
+        <a class="self" href="../../src/viper/verifier.rs.html#303">self</a>.<span class="ident">jni</span>
+            .<a class="ident" href="../../src/viper/jni_utils.rs.html#62">unwrap_result</a>(<a class="self" href="../../src/viper/verifier.rs.html#303">self</a>.<span class="ident">verifier_wrapper</span>.<span class="ident">call_stop</span>(<a class="self" href="../../src/viper/verifier.rs.html#303">self</a>.<span class="ident">verifier_instance</span>));
         <span class="comment">// Delete the local reference to the verifier in the JVM</span>
         <span class="comment">// so that the JVM garbage collector can clean it up.</span>
-        <a class="self" href="../../src/viper/verifier.rs.html#293">self</a>.<span class="ident">jni</span>
-            .<a class="ident" href="../../src/viper/jni_utils.rs.html#62">unwrap_result</a>(<a class="self" href="../../src/viper/verifier.rs.html#293">self</a>.<span class="ident">env</span>.<span class="ident">delete_local_ref</span>(<a class="self" href="../../src/viper/verifier.rs.html#293">self</a>.<span class="ident">verifier_instance</span>));
+        <a class="self" href="../../src/viper/verifier.rs.html#303">self</a>.<span class="ident">jni</span>
+            .<a class="ident" href="../../src/viper/jni_utils.rs.html#62">unwrap_result</a>(<a class="self" href="../../src/viper/verifier.rs.html#303">self</a>.<span class="ident">env</span>.<span class="ident">delete_local_ref</span>(<a class="self" href="../../src/viper/verifier.rs.html#303">self</a>.<span class="ident">verifier_instance</span>));
     }
 }
 </code></pre></div>
-</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="viper" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.60.0-nightly (bd3cb5256 2022-01-16)" ></div>
+</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="viper" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.60.0-nightly (498eeb72f 2022-01-31)" ></div>
 </body></html>

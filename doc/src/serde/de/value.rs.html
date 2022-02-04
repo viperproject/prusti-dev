@@ -1,7 +1,9 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/serde-1.0.133/src/de/value.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>value.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
-    <noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a class="sidebar-logo" href="../../../serde/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../serde/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><form class="search-form"><div class="search-container"><div>
-                                <input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../../wheel.svg"></a></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">   1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/serde-1.0.136/src/de/value.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>value.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
+    <noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../serde/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
+        </a><h2 class="location"></h2>
+    </nav>
+    <nav class="sidebar"><a class="sidebar-logo" href="../../../serde/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
+        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../serde/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><div class="theme-picker hidden"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="22" height="22" alt="Pick another theme!" src="../../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">   1</span>
 <span id="2">   2</span>
 <span id="3">   3</span>
 <span id="4">   4</span>
@@ -1663,7 +1665,7 @@
 
 <span class="kw">use</span> <span class="ident"><span class="self">self</span>::private</span>::{<a class="ident" href="../../../src/serde/de/value.rs.html#1633">First</a>, <a class="ident" href="../../../src/serde/de/value.rs.html#1634">Second</a>};
 <span class="kw">use</span> <a class="ident" href="../../../src/serde/private/mod.rs.html#6">__private::size_hint</a>;
-<span class="kw">use</span> <span class="ident">de</span>::{<a class="self" href="../../../src/serde/lib.rs.html#262">self</a>, <a class="ident" href="../../../src/serde/de/mod.rs.html#899-1230">Deserializer</a>, <a class="ident" href="../../../src/serde/de/mod.rs.html#469-473">Expected</a>, <a class="ident" href="../../../src/serde/de/mod.rs.html#2250-2256">IntoDeserializer</a>, <a class="ident" href="../../../src/serde/de/mod.rs.html#1697-1729">SeqAccess</a>, <a class="ident" href="../../../src/serde/de/mod.rs.html#1276-1674">Visitor</a>};
+<span class="kw">use</span> <span class="ident">de</span>::{<a class="self" href="../../../src/serde/lib.rs.html#262">self</a>, <a class="ident" href="../../../src/serde/de/mod.rs.html#901-1232">Deserializer</a>, <a class="ident" href="../../../src/serde/de/mod.rs.html#471-475">Expected</a>, <a class="ident" href="../../../src/serde/de/mod.rs.html#2256-2262">IntoDeserializer</a>, <a class="ident" href="../../../src/serde/de/mod.rs.html#1703-1735">SeqAccess</a>, <a class="ident" href="../../../src/serde/de/mod.rs.html#1278-1680">Visitor</a>};
 <span class="kw">use</span> <a class="ident" href="../../../src/serde/lib.rs.html#263">ser</a>;
 
 <span class="comment">////////////////////////////////////////////////////////////////////////////////</span>
@@ -1696,7 +1698,7 @@
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;alloc&quot;</span>)))]</span>
 <span class="kw">type</span> <span class="ident">ErrorImpl</span> <span class="op">=</span> ();
 
-<span class="kw">impl</span> <a class="ident" href="../../../src/serde/de/mod.rs.html#297">de::Error</a> <span class="kw">for</span> <a class="ident" href="../../../src/serde/de/value.rs.html#52-54">Error</a> {
+<span class="kw">impl</span> <a class="ident" href="../../../src/serde/de/mod.rs.html#299">de::Error</a> <span class="kw">for</span> <a class="ident" href="../../../src/serde/de/value.rs.html#52-54">Error</a> {
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;alloc&quot;</span>))]</span>
     <span class="attribute">#[<span class="ident">cold</span>]</span>
     <span class="kw">fn</span> <span class="ident">custom</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">msg</span>: <span class="ident">T</span>) -&gt; <span class="self">Self</span>
@@ -1725,7 +1727,7 @@
     <span class="kw">where</span>
         <span class="ident">T</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">Display</a>,
     {
-        <a class="ident" href="../../../src/serde/de/mod.rs.html#297">de::Error::custom</a>(<a class="ident" href="../../../src/serde/de/value.rs.html#86">msg</a>)
+        <a class="ident" href="../../../src/serde/de/mod.rs.html#299">de::Error::custom</a>(<a class="ident" href="../../../src/serde/de/value.rs.html#86">msg</a>)
     }
 }
 
@@ -1761,7 +1763,7 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span>, <span class="ident">E</span><span class="op">&gt;</span> <span class="ident">IntoDeserializer</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span>, <span class="ident">E</span><span class="op">&gt;</span> <span class="kw">for</span> ()
 <span class="kw">where</span>
-    <span class="ident">E</span>: <a class="ident" href="../../../src/serde/de/mod.rs.html#297">de::Error</a>,
+    <span class="ident">E</span>: <a class="ident" href="../../../src/serde/de/mod.rs.html#299">de::Error</a>,
 {
     <span class="kw">type</span> <span class="ident">Deserializer</span> <span class="op">=</span> <span class="ident">UnitDeserializer</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>;
 
@@ -1781,7 +1783,7 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span>, <span class="ident">E</span><span class="op">&gt;</span> <span class="ident">de::Deserializer</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">UnitDeserializer</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>
 <span class="kw">where</span>
-    <span class="ident">E</span>: <a class="ident" href="../../../src/serde/de/mod.rs.html#297">de::Error</a>,
+    <span class="ident">E</span>: <a class="ident" href="../../../src/serde/de/mod.rs.html#299">de::Error</a>,
 {
     <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <span class="ident">E</span>;
 
@@ -1795,14 +1797,14 @@
     <span class="kw">where</span>
         <span class="ident">V</span>: <span class="ident">de::Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span>,
     {
-        <a class="ident" href="../../../src/serde/de/value.rs.html#156">visitor</a>.<a class="ident" href="../../../src/serde/de/mod.rs.html#1612-1614">visit_unit</a>()
+        <a class="ident" href="../../../src/serde/de/value.rs.html#156">visitor</a>.<a class="ident" href="../../../src/serde/de/mod.rs.html#1618-1620">visit_unit</a>()
     }
 
     <span class="kw">fn</span> <span class="ident">deserialize_option</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">visitor</span>: <span class="ident">V</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">V::Value</span>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">V</span>: <span class="ident">de::Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span>,
     {
-        <a class="ident" href="../../../src/serde/de/value.rs.html#163">visitor</a>.<a class="ident" href="../../../src/serde/de/mod.rs.html#1591-1593">visit_none</a>()
+        <a class="ident" href="../../../src/serde/de/value.rs.html#163">visitor</a>.<a class="ident" href="../../../src/serde/de/mod.rs.html#1597-1599">visit_none</a>()
     }
 }
 
@@ -1912,23 +1914,23 @@
     }
 }
 
-<span class="macro">primitive_deserializer!</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>, <span class="string">&quot;a `bool`.&quot;</span>, <span class="ident">BoolDeserializer</span>, <a class="ident" href="../../../src/serde/de/mod.rs.html#1307-1309">visit_bool</a>);
-<span class="macro">primitive_deserializer!</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i8.html">i8</a>, <span class="string">&quot;an `i8`.&quot;</span>, <span class="ident">I8Deserializer</span>, <a class="ident" href="../../../src/serde/de/mod.rs.html#1319-1321">visit_i8</a>);
-<span class="macro">primitive_deserializer!</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i16.html">i16</a>, <span class="string">&quot;an `i16`.&quot;</span>, <span class="ident">I16Deserializer</span>, <a class="ident" href="../../../src/serde/de/mod.rs.html#1331-1333">visit_i16</a>);
-<span class="macro">primitive_deserializer!</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>, <span class="string">&quot;an `i32`.&quot;</span>, <span class="ident">I32Deserializer</span>, <a class="ident" href="../../../src/serde/de/mod.rs.html#1343-1345">visit_i32</a>);
-<span class="macro">primitive_deserializer!</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>, <span class="string">&quot;an `i64`.&quot;</span>, <span class="ident">I64Deserializer</span>, <a class="ident" href="../../../src/serde/de/mod.rs.html#1353-1355">visit_i64</a>);
-<span class="macro">primitive_deserializer!</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.isize.html">isize</a>, <span class="string">&quot;an `isize`.&quot;</span>, <span class="ident">IsizeDeserializer</span>, <a class="ident" href="../../../src/serde/de/mod.rs.html#1353-1355">visit_i64</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>);
-<span class="macro">primitive_deserializer!</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, <span class="string">&quot;a `u8`.&quot;</span>, <span class="ident">U8Deserializer</span>, <a class="ident" href="../../../src/serde/de/mod.rs.html#1379-1381">visit_u8</a>);
-<span class="macro">primitive_deserializer!</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>, <span class="string">&quot;a `u16`.&quot;</span>, <span class="ident">U16Deserializer</span>, <a class="ident" href="../../../src/serde/de/mod.rs.html#1391-1393">visit_u16</a>);
-<span class="macro">primitive_deserializer!</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>, <span class="string">&quot;a `u64`.&quot;</span>, <span class="ident">U64Deserializer</span>, <a class="ident" href="../../../src/serde/de/mod.rs.html#1413-1415">visit_u64</a>);
-<span class="macro">primitive_deserializer!</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="string">&quot;a `usize`.&quot;</span>, <span class="ident">UsizeDeserializer</span>, <a class="ident" href="../../../src/serde/de/mod.rs.html#1413-1415">visit_u64</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>);
-<span class="macro">primitive_deserializer!</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.f32.html">f32</a>, <span class="string">&quot;an `f32`.&quot;</span>, <span class="ident">F32Deserializer</span>, <a class="ident" href="../../../src/serde/de/mod.rs.html#1439-1441">visit_f32</a>);
-<span class="macro">primitive_deserializer!</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.f64.html">f64</a>, <span class="string">&quot;an `f64`.&quot;</span>, <span class="ident">F64Deserializer</span>, <a class="ident" href="../../../src/serde/de/mod.rs.html#1449-1451">visit_f64</a>);
-<span class="macro">primitive_deserializer!</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>, <span class="string">&quot;a `char`.&quot;</span>, <span class="ident">CharDeserializer</span>, <a class="ident" href="../../../src/serde/de/mod.rs.html#1463-1465">visit_char</a>);
+<span class="macro">primitive_deserializer!</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>, <span class="string">&quot;a `bool`.&quot;</span>, <span class="ident">BoolDeserializer</span>, <a class="ident" href="../../../src/serde/de/mod.rs.html#1309-1311">visit_bool</a>);
+<span class="macro">primitive_deserializer!</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i8.html">i8</a>, <span class="string">&quot;an `i8`.&quot;</span>, <span class="ident">I8Deserializer</span>, <a class="ident" href="../../../src/serde/de/mod.rs.html#1321-1323">visit_i8</a>);
+<span class="macro">primitive_deserializer!</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i16.html">i16</a>, <span class="string">&quot;an `i16`.&quot;</span>, <span class="ident">I16Deserializer</span>, <a class="ident" href="../../../src/serde/de/mod.rs.html#1333-1335">visit_i16</a>);
+<span class="macro">primitive_deserializer!</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>, <span class="string">&quot;an `i32`.&quot;</span>, <span class="ident">I32Deserializer</span>, <a class="ident" href="../../../src/serde/de/mod.rs.html#1345-1347">visit_i32</a>);
+<span class="macro">primitive_deserializer!</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>, <span class="string">&quot;an `i64`.&quot;</span>, <span class="ident">I64Deserializer</span>, <a class="ident" href="../../../src/serde/de/mod.rs.html#1355-1357">visit_i64</a>);
+<span class="macro">primitive_deserializer!</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.isize.html">isize</a>, <span class="string">&quot;an `isize`.&quot;</span>, <span class="ident">IsizeDeserializer</span>, <a class="ident" href="../../../src/serde/de/mod.rs.html#1355-1357">visit_i64</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>);
+<span class="macro">primitive_deserializer!</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, <span class="string">&quot;a `u8`.&quot;</span>, <span class="ident">U8Deserializer</span>, <a class="ident" href="../../../src/serde/de/mod.rs.html#1383-1385">visit_u8</a>);
+<span class="macro">primitive_deserializer!</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>, <span class="string">&quot;a `u16`.&quot;</span>, <span class="ident">U16Deserializer</span>, <a class="ident" href="../../../src/serde/de/mod.rs.html#1395-1397">visit_u16</a>);
+<span class="macro">primitive_deserializer!</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>, <span class="string">&quot;a `u64`.&quot;</span>, <span class="ident">U64Deserializer</span>, <a class="ident" href="../../../src/serde/de/mod.rs.html#1417-1419">visit_u64</a>);
+<span class="macro">primitive_deserializer!</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="string">&quot;a `usize`.&quot;</span>, <span class="ident">UsizeDeserializer</span>, <a class="ident" href="../../../src/serde/de/mod.rs.html#1417-1419">visit_u64</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>);
+<span class="macro">primitive_deserializer!</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.f32.html">f32</a>, <span class="string">&quot;an `f32`.&quot;</span>, <span class="ident">F32Deserializer</span>, <a class="ident" href="../../../src/serde/de/mod.rs.html#1445-1447">visit_f32</a>);
+<span class="macro">primitive_deserializer!</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.f64.html">f64</a>, <span class="string">&quot;an `f64`.&quot;</span>, <span class="ident">F64Deserializer</span>, <a class="ident" href="../../../src/serde/de/mod.rs.html#1455-1457">visit_f64</a>);
+<span class="macro">primitive_deserializer!</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>, <span class="string">&quot;a `char`.&quot;</span>, <span class="ident">CharDeserializer</span>, <a class="ident" href="../../../src/serde/de/mod.rs.html#1469-1471">visit_char</a>);
 
 <span class="macro">serde_if_integer128!</span> {
-    <span class="macro">primitive_deserializer!</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i128.html">i128</a>, <span class="string">&quot;an `i128`.&quot;</span>, <span class="ident">I128Deserializer</span>, <a class="ident" href="../../../src/serde/de/mod.rs.html#1365-1367">visit_i128</a>);
-    <span class="macro">primitive_deserializer!</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u128.html">u128</a>, <span class="string">&quot;a `u128`.&quot;</span>, <span class="ident">U128Deserializer</span>, <a class="ident" href="../../../src/serde/de/mod.rs.html#1425-1427">visit_u128</a>);
+    <span class="macro">primitive_deserializer!</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i128.html">i128</a>, <span class="string">&quot;an `i128`.&quot;</span>, <span class="ident">I128Deserializer</span>, <a class="ident" href="../../../src/serde/de/mod.rs.html#1367-1369">visit_i128</a>);
+    <span class="macro">primitive_deserializer!</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u128.html">u128</a>, <span class="string">&quot;a `u128`.&quot;</span>, <span class="ident">U128Deserializer</span>, <a class="ident" href="../../../src/serde/de/mod.rs.html#1429-1431">visit_u128</a>);
 }
 
 <span class="doccomment">/// A deserializer holding a `u32`.</span>
@@ -1941,7 +1943,7 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span>, <span class="ident">E</span><span class="op">&gt;</span> <span class="ident">IntoDeserializer</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span>, <span class="ident">E</span><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>
 <span class="kw">where</span>
-    <span class="ident">E</span>: <a class="ident" href="../../../src/serde/de/mod.rs.html#297">de::Error</a>,
+    <span class="ident">E</span>: <a class="ident" href="../../../src/serde/de/mod.rs.html#299">de::Error</a>,
 {
     <span class="kw">type</span> <span class="ident">Deserializer</span> <span class="op">=</span> <span class="ident">U32Deserializer</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>;
 
@@ -1955,7 +1957,7 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span>, <span class="ident">E</span><span class="op">&gt;</span> <span class="ident">de::Deserializer</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">U32Deserializer</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>
 <span class="kw">where</span>
-    <span class="ident">E</span>: <a class="ident" href="../../../src/serde/de/mod.rs.html#297">de::Error</a>,
+    <span class="ident">E</span>: <a class="ident" href="../../../src/serde/de/mod.rs.html#299">de::Error</a>,
 {
     <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <span class="ident">E</span>;
 
@@ -1969,7 +1971,7 @@
     <span class="kw">where</span>
         <span class="ident">V</span>: <span class="ident">de::Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span>,
     {
-        <a class="ident" href="../../../src/serde/de/value.rs.html#330">visitor</a>.<a class="ident" href="../../../src/serde/de/mod.rs.html#1403-1405">visit_u32</a>(<a class="self" href="../../../src/serde/de/value.rs.html#330">self</a>.<span class="ident">value</span>)
+        <a class="ident" href="../../../src/serde/de/value.rs.html#330">visitor</a>.<a class="ident" href="../../../src/serde/de/mod.rs.html#1407-1409">visit_u32</a>(<a class="self" href="../../../src/serde/de/value.rs.html#330">self</a>.<span class="ident">value</span>)
     }
 
     <span class="kw">fn</span> <span class="ident">deserialize_enum</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span>(
@@ -1983,13 +1985,13 @@
     {
         <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <a class="ident" href="../../../src/serde/de/value.rs.html#339">name</a>;
         <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <a class="ident" href="../../../src/serde/de/value.rs.html#340">variants</a>;
-        <a class="ident" href="../../../src/serde/de/value.rs.html#341">visitor</a>.<a class="ident" href="../../../src/serde/de/mod.rs.html#1658-1660">visit_enum</a>(<a class="self" href="../../../src/serde/de/value.rs.html#338">self</a>)
+        <a class="ident" href="../../../src/serde/de/value.rs.html#341">visitor</a>.<a class="ident" href="../../../src/serde/de/mod.rs.html#1664-1666">visit_enum</a>(<a class="self" href="../../../src/serde/de/value.rs.html#338">self</a>)
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span>, <span class="ident">E</span><span class="op">&gt;</span> <span class="ident">de::EnumAccess</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">U32Deserializer</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>
 <span class="kw">where</span>
-    <span class="ident">E</span>: <a class="ident" href="../../../src/serde/de/mod.rs.html#297">de::Error</a>,
+    <span class="ident">E</span>: <a class="ident" href="../../../src/serde/de/mod.rs.html#299">de::Error</a>,
 {
     <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <span class="ident">E</span>;
     <span class="kw">type</span> <span class="ident">Variant</span> <span class="op">=</span> <span class="ident">private::UnitOnly</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>;
@@ -1998,7 +2000,7 @@
     <span class="kw">where</span>
         <span class="ident">T</span>: <span class="ident">de::DeserializeSeed</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span>,
     {
-        <a class="ident" href="../../../src/serde/de/value.rs.html#359">seed</a>.<a class="ident" href="../../../src/serde/de/mod.rs.html#769-771">deserialize</a>(<a class="self" href="../../../src/serde/de/value.rs.html#359">self</a>).<span class="ident">map</span>(<a class="ident" href="../../../src/serde/de/value.rs.html#1478">private::unit_only</a>)
+        <a class="ident" href="../../../src/serde/de/value.rs.html#359">seed</a>.<a class="ident" href="../../../src/serde/de/mod.rs.html#771-773">deserialize</a>(<a class="self" href="../../../src/serde/de/value.rs.html#359">self</a>).<span class="ident">map</span>(<a class="ident" href="../../../src/serde/de/value.rs.html#1478">private::unit_only</a>)
     }
 }
 
@@ -2023,7 +2025,7 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span>, <span class="lifetime">&#39;a</span>, <span class="ident">E</span><span class="op">&gt;</span> <span class="ident">IntoDeserializer</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span>, <span class="ident">E</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>
 <span class="kw">where</span>
-    <span class="ident">E</span>: <a class="ident" href="../../../src/serde/de/mod.rs.html#297">de::Error</a>,
+    <span class="ident">E</span>: <a class="ident" href="../../../src/serde/de/mod.rs.html#299">de::Error</a>,
 {
     <span class="kw">type</span> <span class="ident">Deserializer</span> <span class="op">=</span> <span class="ident">StrDeserializer</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">E</span><span class="op">&gt;</span>;
 
@@ -2037,7 +2039,7 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span>, <span class="lifetime">&#39;a</span>, <span class="ident">E</span><span class="op">&gt;</span> <span class="ident">de::Deserializer</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">StrDeserializer</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">E</span><span class="op">&gt;</span>
 <span class="kw">where</span>
-    <span class="ident">E</span>: <a class="ident" href="../../../src/serde/de/mod.rs.html#297">de::Error</a>,
+    <span class="ident">E</span>: <a class="ident" href="../../../src/serde/de/mod.rs.html#299">de::Error</a>,
 {
     <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <span class="ident">E</span>;
 
@@ -2045,7 +2047,7 @@
     <span class="kw">where</span>
         <span class="ident">V</span>: <span class="ident">de::Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span>,
     {
-        <a class="ident" href="../../../src/serde/de/value.rs.html#406">visitor</a>.<a class="ident" href="../../../src/serde/de/mod.rs.html#1481-1483">visit_str</a>(<a class="self" href="../../../src/serde/de/value.rs.html#406">self</a>.<span class="ident">value</span>)
+        <a class="ident" href="../../../src/serde/de/value.rs.html#406">visitor</a>.<a class="ident" href="../../../src/serde/de/mod.rs.html#1487-1489">visit_str</a>(<a class="self" href="../../../src/serde/de/value.rs.html#406">self</a>.<span class="ident">value</span>)
     }
 
     <span class="kw">fn</span> <span class="ident">deserialize_enum</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span>(
@@ -2059,7 +2061,7 @@
     {
         <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <a class="ident" href="../../../src/serde/de/value.rs.html#415">name</a>;
         <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <a class="ident" href="../../../src/serde/de/value.rs.html#416">variants</a>;
-        <a class="ident" href="../../../src/serde/de/value.rs.html#417">visitor</a>.<a class="ident" href="../../../src/serde/de/mod.rs.html#1658-1660">visit_enum</a>(<a class="self" href="../../../src/serde/de/value.rs.html#414">self</a>)
+        <a class="ident" href="../../../src/serde/de/value.rs.html#417">visitor</a>.<a class="ident" href="../../../src/serde/de/mod.rs.html#1664-1666">visit_enum</a>(<a class="self" href="../../../src/serde/de/value.rs.html#414">self</a>)
     }
 
     <span class="macro">forward_to_deserialize_any!</span> {
@@ -2071,7 +2073,7 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span>, <span class="lifetime">&#39;a</span>, <span class="ident">E</span><span class="op">&gt;</span> <span class="ident">de::EnumAccess</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">StrDeserializer</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">E</span><span class="op">&gt;</span>
 <span class="kw">where</span>
-    <span class="ident">E</span>: <a class="ident" href="../../../src/serde/de/mod.rs.html#297">de::Error</a>,
+    <span class="ident">E</span>: <a class="ident" href="../../../src/serde/de/mod.rs.html#299">de::Error</a>,
 {
     <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <span class="ident">E</span>;
     <span class="kw">type</span> <span class="ident">Variant</span> <span class="op">=</span> <span class="ident">private::UnitOnly</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>;
@@ -2080,7 +2082,7 @@
     <span class="kw">where</span>
         <span class="ident">T</span>: <span class="ident">de::DeserializeSeed</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span>,
     {
-        <a class="ident" href="../../../src/serde/de/value.rs.html#441">seed</a>.<a class="ident" href="../../../src/serde/de/mod.rs.html#769-771">deserialize</a>(<a class="self" href="../../../src/serde/de/value.rs.html#441">self</a>).<span class="ident">map</span>(<a class="ident" href="../../../src/serde/de/value.rs.html#1478">private::unit_only</a>)
+        <a class="ident" href="../../../src/serde/de/value.rs.html#441">seed</a>.<a class="ident" href="../../../src/serde/de/mod.rs.html#771-773">deserialize</a>(<a class="self" href="../../../src/serde/de/value.rs.html#441">self</a>).<span class="ident">map</span>(<a class="ident" href="../../../src/serde/de/value.rs.html#1478">private::unit_only</a>)
     }
 }
 
@@ -2116,7 +2118,7 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span>, <span class="ident">E</span><span class="op">&gt;</span> <span class="ident">de::Deserializer</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">BorrowedStrDeserializer</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span>, <span class="ident">E</span><span class="op">&gt;</span>
 <span class="kw">where</span>
-    <span class="ident">E</span>: <a class="ident" href="../../../src/serde/de/mod.rs.html#297">de::Error</a>,
+    <span class="ident">E</span>: <a class="ident" href="../../../src/serde/de/mod.rs.html#299">de::Error</a>,
 {
     <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <span class="ident">E</span>;
 
@@ -2124,7 +2126,7 @@
     <span class="kw">where</span>
         <span class="ident">V</span>: <span class="ident">de::Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span>,
     {
-        <a class="ident" href="../../../src/serde/de/value.rs.html#485">visitor</a>.<a class="ident" href="../../../src/serde/de/mod.rs.html#1498-1500">visit_borrowed_str</a>(<a class="self" href="../../../src/serde/de/value.rs.html#485">self</a>.<span class="ident">value</span>)
+        <a class="ident" href="../../../src/serde/de/value.rs.html#485">visitor</a>.<a class="ident" href="../../../src/serde/de/mod.rs.html#1504-1506">visit_borrowed_str</a>(<a class="self" href="../../../src/serde/de/value.rs.html#485">self</a>.<span class="ident">value</span>)
     }
 
     <span class="kw">fn</span> <span class="ident">deserialize_enum</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span>(
@@ -2138,7 +2140,7 @@
     {
         <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <a class="ident" href="../../../src/serde/de/value.rs.html#494">name</a>;
         <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <a class="ident" href="../../../src/serde/de/value.rs.html#495">variants</a>;
-        <a class="ident" href="../../../src/serde/de/value.rs.html#496">visitor</a>.<a class="ident" href="../../../src/serde/de/mod.rs.html#1658-1660">visit_enum</a>(<a class="self" href="../../../src/serde/de/value.rs.html#493">self</a>)
+        <a class="ident" href="../../../src/serde/de/value.rs.html#496">visitor</a>.<a class="ident" href="../../../src/serde/de/mod.rs.html#1664-1666">visit_enum</a>(<a class="self" href="../../../src/serde/de/value.rs.html#493">self</a>)
     }
 
     <span class="macro">forward_to_deserialize_any!</span> {
@@ -2150,7 +2152,7 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span>, <span class="ident">E</span><span class="op">&gt;</span> <span class="ident">de::EnumAccess</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">BorrowedStrDeserializer</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span>, <span class="ident">E</span><span class="op">&gt;</span>
 <span class="kw">where</span>
-    <span class="ident">E</span>: <a class="ident" href="../../../src/serde/de/mod.rs.html#297">de::Error</a>,
+    <span class="ident">E</span>: <a class="ident" href="../../../src/serde/de/mod.rs.html#299">de::Error</a>,
 {
     <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <span class="ident">E</span>;
     <span class="kw">type</span> <span class="ident">Variant</span> <span class="op">=</span> <span class="ident">private::UnitOnly</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>;
@@ -2159,7 +2161,7 @@
     <span class="kw">where</span>
         <span class="ident">T</span>: <span class="ident">de::DeserializeSeed</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span>,
     {
-        <a class="ident" href="../../../src/serde/de/value.rs.html#520">seed</a>.<a class="ident" href="../../../src/serde/de/mod.rs.html#769-771">deserialize</a>(<a class="self" href="../../../src/serde/de/value.rs.html#520">self</a>).<span class="ident">map</span>(<a class="ident" href="../../../src/serde/de/value.rs.html#1478">private::unit_only</a>)
+        <a class="ident" href="../../../src/serde/de/value.rs.html#520">seed</a>.<a class="ident" href="../../../src/serde/de/mod.rs.html#771-773">deserialize</a>(<a class="self" href="../../../src/serde/de/value.rs.html#520">self</a>).<span class="ident">map</span>(<a class="ident" href="../../../src/serde/de/value.rs.html#1478">private::unit_only</a>)
     }
 }
 
@@ -2194,7 +2196,7 @@
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;alloc&quot;</span>))]</span>
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span>, <span class="ident">E</span><span class="op">&gt;</span> <span class="ident">IntoDeserializer</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span>, <span class="ident">E</span><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>
 <span class="kw">where</span>
-    <span class="ident">E</span>: <a class="ident" href="../../../src/serde/de/mod.rs.html#297">de::Error</a>,
+    <span class="ident">E</span>: <a class="ident" href="../../../src/serde/de/mod.rs.html#299">de::Error</a>,
 {
     <span class="kw">type</span> <span class="ident">Deserializer</span> <span class="op">=</span> <span class="ident">StringDeserializer</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>;
 
@@ -2209,7 +2211,7 @@
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;alloc&quot;</span>))]</span>
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span>, <span class="ident">E</span><span class="op">&gt;</span> <span class="ident">de::Deserializer</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">StringDeserializer</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>
 <span class="kw">where</span>
-    <span class="ident">E</span>: <a class="ident" href="../../../src/serde/de/mod.rs.html#297">de::Error</a>,
+    <span class="ident">E</span>: <a class="ident" href="../../../src/serde/de/mod.rs.html#299">de::Error</a>,
 {
     <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <span class="ident">E</span>;
 
@@ -2217,7 +2219,7 @@
     <span class="kw">where</span>
         <span class="ident">V</span>: <span class="ident">de::Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span>,
     {
-        <a class="ident" href="../../../src/serde/de/value.rs.html#578">visitor</a>.<a class="ident" href="../../../src/serde/de/mod.rs.html#1522-1524">visit_string</a>(<a class="self" href="../../../src/serde/de/value.rs.html#578">self</a>.<span class="ident">value</span>)
+        <a class="ident" href="../../../src/serde/de/value.rs.html#578">visitor</a>.<a class="ident" href="../../../src/serde/de/mod.rs.html#1528-1530">visit_string</a>(<a class="self" href="../../../src/serde/de/value.rs.html#578">self</a>.<span class="ident">value</span>)
     }
 
     <span class="kw">fn</span> <span class="ident">deserialize_enum</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span>(
@@ -2231,7 +2233,7 @@
     {
         <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <a class="ident" href="../../../src/serde/de/value.rs.html#587">name</a>;
         <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <a class="ident" href="../../../src/serde/de/value.rs.html#588">variants</a>;
-        <a class="ident" href="../../../src/serde/de/value.rs.html#589">visitor</a>.<a class="ident" href="../../../src/serde/de/mod.rs.html#1658-1660">visit_enum</a>(<a class="self" href="../../../src/serde/de/value.rs.html#586">self</a>)
+        <a class="ident" href="../../../src/serde/de/value.rs.html#589">visitor</a>.<a class="ident" href="../../../src/serde/de/mod.rs.html#1664-1666">visit_enum</a>(<a class="self" href="../../../src/serde/de/value.rs.html#586">self</a>)
     }
 
     <span class="macro">forward_to_deserialize_any!</span> {
@@ -2244,7 +2246,7 @@
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;alloc&quot;</span>))]</span>
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span>, <span class="lifetime">&#39;a</span>, <span class="ident">E</span><span class="op">&gt;</span> <span class="ident">de::EnumAccess</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">StringDeserializer</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>
 <span class="kw">where</span>
-    <span class="ident">E</span>: <a class="ident" href="../../../src/serde/de/mod.rs.html#297">de::Error</a>,
+    <span class="ident">E</span>: <a class="ident" href="../../../src/serde/de/mod.rs.html#299">de::Error</a>,
 {
     <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <span class="ident">E</span>;
     <span class="kw">type</span> <span class="ident">Variant</span> <span class="op">=</span> <span class="ident">private::UnitOnly</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>;
@@ -2253,7 +2255,7 @@
     <span class="kw">where</span>
         <span class="ident">T</span>: <span class="ident">de::DeserializeSeed</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span>,
     {
-        <a class="ident" href="../../../src/serde/de/value.rs.html#614">seed</a>.<a class="ident" href="../../../src/serde/de/mod.rs.html#769-771">deserialize</a>(<a class="self" href="../../../src/serde/de/value.rs.html#614">self</a>).<span class="ident">map</span>(<a class="ident" href="../../../src/serde/de/value.rs.html#1478">private::unit_only</a>)
+        <a class="ident" href="../../../src/serde/de/value.rs.html#614">seed</a>.<a class="ident" href="../../../src/serde/de/mod.rs.html#771-773">deserialize</a>(<a class="self" href="../../../src/serde/de/value.rs.html#614">self</a>).<span class="ident">map</span>(<a class="ident" href="../../../src/serde/de/value.rs.html#1478">private::unit_only</a>)
     }
 }
 
@@ -2289,7 +2291,7 @@
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;alloc&quot;</span>))]</span>
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span>, <span class="lifetime">&#39;a</span>, <span class="ident">E</span><span class="op">&gt;</span> <span class="ident">IntoDeserializer</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span>, <span class="ident">E</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Cow</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a><span class="op">&gt;</span>
 <span class="kw">where</span>
-    <span class="ident">E</span>: <a class="ident" href="../../../src/serde/de/mod.rs.html#297">de::Error</a>,
+    <span class="ident">E</span>: <a class="ident" href="../../../src/serde/de/mod.rs.html#299">de::Error</a>,
 {
     <span class="kw">type</span> <span class="ident">Deserializer</span> <span class="op">=</span> <span class="ident">CowStrDeserializer</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">E</span><span class="op">&gt;</span>;
 
@@ -2304,7 +2306,7 @@
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;alloc&quot;</span>))]</span>
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span>, <span class="lifetime">&#39;a</span>, <span class="ident">E</span><span class="op">&gt;</span> <span class="ident">de::Deserializer</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">CowStrDeserializer</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">E</span><span class="op">&gt;</span>
 <span class="kw">where</span>
-    <span class="ident">E</span>: <a class="ident" href="../../../src/serde/de/mod.rs.html#297">de::Error</a>,
+    <span class="ident">E</span>: <a class="ident" href="../../../src/serde/de/mod.rs.html#299">de::Error</a>,
 {
     <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <span class="ident">E</span>;
 
@@ -2313,8 +2315,8 @@
         <span class="ident">V</span>: <span class="ident">de::Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span>,
     {
         <span class="kw">match</span> <a class="self" href="../../../src/serde/de/value.rs.html#673">self</a>.<span class="ident">value</span> {
-            <span class="ident">Cow::Borrowed</span>(<span class="ident">string</span>) =&gt; <a class="ident" href="../../../src/serde/de/value.rs.html#673">visitor</a>.<a class="ident" href="../../../src/serde/de/mod.rs.html#1481-1483">visit_str</a>(<a class="ident" href="../../../src/serde/de/value.rs.html#678">string</a>),
-            <span class="ident">Cow::Owned</span>(<span class="ident">string</span>) =&gt; <a class="ident" href="../../../src/serde/de/value.rs.html#673">visitor</a>.<a class="ident" href="../../../src/serde/de/mod.rs.html#1522-1524">visit_string</a>(<a class="ident" href="../../../src/serde/de/value.rs.html#679">string</a>),
+            <span class="ident">Cow::Borrowed</span>(<span class="ident">string</span>) =&gt; <a class="ident" href="../../../src/serde/de/value.rs.html#673">visitor</a>.<a class="ident" href="../../../src/serde/de/mod.rs.html#1487-1489">visit_str</a>(<a class="ident" href="../../../src/serde/de/value.rs.html#678">string</a>),
+            <span class="ident">Cow::Owned</span>(<span class="ident">string</span>) =&gt; <a class="ident" href="../../../src/serde/de/value.rs.html#673">visitor</a>.<a class="ident" href="../../../src/serde/de/mod.rs.html#1528-1530">visit_string</a>(<a class="ident" href="../../../src/serde/de/value.rs.html#679">string</a>),
         }
     }
 
@@ -2329,7 +2331,7 @@
     {
         <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <a class="ident" href="../../../src/serde/de/value.rs.html#685">name</a>;
         <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <a class="ident" href="../../../src/serde/de/value.rs.html#686">variants</a>;
-        <a class="ident" href="../../../src/serde/de/value.rs.html#687">visitor</a>.<a class="ident" href="../../../src/serde/de/mod.rs.html#1658-1660">visit_enum</a>(<a class="self" href="../../../src/serde/de/value.rs.html#684">self</a>)
+        <a class="ident" href="../../../src/serde/de/value.rs.html#687">visitor</a>.<a class="ident" href="../../../src/serde/de/mod.rs.html#1664-1666">visit_enum</a>(<a class="self" href="../../../src/serde/de/value.rs.html#684">self</a>)
     }
 
     <span class="macro">forward_to_deserialize_any!</span> {
@@ -2342,7 +2344,7 @@
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;alloc&quot;</span>))]</span>
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span>, <span class="lifetime">&#39;a</span>, <span class="ident">E</span><span class="op">&gt;</span> <span class="ident">de::EnumAccess</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">CowStrDeserializer</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">E</span><span class="op">&gt;</span>
 <span class="kw">where</span>
-    <span class="ident">E</span>: <a class="ident" href="../../../src/serde/de/mod.rs.html#297">de::Error</a>,
+    <span class="ident">E</span>: <a class="ident" href="../../../src/serde/de/mod.rs.html#299">de::Error</a>,
 {
     <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <span class="ident">E</span>;
     <span class="kw">type</span> <span class="ident">Variant</span> <span class="op">=</span> <span class="ident">private::UnitOnly</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>;
@@ -2351,7 +2353,7 @@
     <span class="kw">where</span>
         <span class="ident">T</span>: <span class="ident">de::DeserializeSeed</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span>,
     {
-        <a class="ident" href="../../../src/serde/de/value.rs.html#712">seed</a>.<a class="ident" href="../../../src/serde/de/mod.rs.html#769-771">deserialize</a>(<a class="self" href="../../../src/serde/de/value.rs.html#712">self</a>).<span class="ident">map</span>(<a class="ident" href="../../../src/serde/de/value.rs.html#1478">private::unit_only</a>)
+        <a class="ident" href="../../../src/serde/de/value.rs.html#712">seed</a>.<a class="ident" href="../../../src/serde/de/mod.rs.html#771-773">deserialize</a>(<a class="self" href="../../../src/serde/de/value.rs.html#712">self</a>).<span class="ident">map</span>(<a class="ident" href="../../../src/serde/de/value.rs.html#1478">private::unit_only</a>)
     }
 }
 
@@ -2387,7 +2389,7 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span>, <span class="lifetime">&#39;a</span>, <span class="ident">E</span><span class="op">&gt;</span> <span class="ident">IntoDeserializer</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span>, <span class="ident">E</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]
 <span class="kw">where</span>
-    <span class="ident">E</span>: <a class="ident" href="../../../src/serde/de/mod.rs.html#297">de::Error</a>,
+    <span class="ident">E</span>: <a class="ident" href="../../../src/serde/de/mod.rs.html#299">de::Error</a>,
 {
     <span class="kw">type</span> <span class="ident">Deserializer</span> <span class="op">=</span> <span class="ident">BytesDeserializer</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">E</span><span class="op">&gt;</span>;
 
@@ -2398,7 +2400,7 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span>, <span class="lifetime">&#39;a</span>, <span class="ident">E</span><span class="op">&gt;</span> <span class="ident">Deserializer</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">BytesDeserializer</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">E</span><span class="op">&gt;</span>
 <span class="kw">where</span>
-    <span class="ident">E</span>: <a class="ident" href="../../../src/serde/de/mod.rs.html#297">de::Error</a>,
+    <span class="ident">E</span>: <a class="ident" href="../../../src/serde/de/mod.rs.html#299">de::Error</a>,
 {
     <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <span class="ident">E</span>;
 
@@ -2406,7 +2408,7 @@
     <span class="kw">where</span>
         <span class="ident">V</span>: <span class="ident">Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span>,
     {
-        <a class="ident" href="../../../src/serde/de/value.rs.html#767">visitor</a>.<a class="ident" href="../../../src/serde/de/mod.rs.html#1540-1542">visit_bytes</a>(<a class="self" href="../../../src/serde/de/value.rs.html#767">self</a>.<span class="ident">value</span>)
+        <a class="ident" href="../../../src/serde/de/value.rs.html#767">visitor</a>.<a class="ident" href="../../../src/serde/de/mod.rs.html#1546-1548">visit_bytes</a>(<a class="self" href="../../../src/serde/de/value.rs.html#767">self</a>.<span class="ident">value</span>)
     }
 
     <span class="macro">forward_to_deserialize_any!</span> {
@@ -2446,7 +2448,7 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span>, <span class="ident">E</span><span class="op">&gt;</span> <span class="ident">Deserializer</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">BorrowedBytesDeserializer</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span>, <span class="ident">E</span><span class="op">&gt;</span>
 <span class="kw">where</span>
-    <span class="ident">E</span>: <a class="ident" href="../../../src/serde/de/mod.rs.html#297">de::Error</a>,
+    <span class="ident">E</span>: <a class="ident" href="../../../src/serde/de/mod.rs.html#299">de::Error</a>,
 {
     <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <span class="ident">E</span>;
 
@@ -2454,7 +2456,7 @@
     <span class="kw">where</span>
         <span class="ident">V</span>: <span class="ident">Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span>,
     {
-        <a class="ident" href="../../../src/serde/de/value.rs.html#815">visitor</a>.<a class="ident" href="../../../src/serde/de/mod.rs.html#1557-1559">visit_borrowed_bytes</a>(<a class="self" href="../../../src/serde/de/value.rs.html#815">self</a>.<span class="ident">value</span>)
+        <a class="ident" href="../../../src/serde/de/value.rs.html#815">visitor</a>.<a class="ident" href="../../../src/serde/de/mod.rs.html#1563-1565">visit_borrowed_bytes</a>(<a class="self" href="../../../src/serde/de/value.rs.html#815">self</a>.<span class="ident">value</span>)
     }
 
     <span class="macro">forward_to_deserialize_any!</span> {
@@ -2500,7 +2502,7 @@
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">E</span><span class="op">&gt;</span> <span class="ident">SeqDeserializer</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">E</span><span class="op">&gt;</span>
 <span class="kw">where</span>
     <span class="ident">I</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a>,
-    <span class="ident">E</span>: <a class="ident" href="../../../src/serde/de/mod.rs.html#297">de::Error</a>,
+    <span class="ident">E</span>: <a class="ident" href="../../../src/serde/de/mod.rs.html#299">de::Error</a>,
 {
     <span class="doccomment">/// Check for remaining elements after passing a `SeqDeserializer` to</span>
     <span class="doccomment">/// `Visitor::visit_seq`.</span>
@@ -2511,7 +2513,7 @@
         } <span class="kw">else</span> {
             <span class="comment">// First argument is the number of elements in the data, second</span>
             <span class="comment">// argument is the number of elements expected by the Deserialize.</span>
-            <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/serde/de/mod.rs.html#297">de::Error::invalid_length</a>(
+            <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/serde/de/mod.rs.html#299">de::Error::invalid_length</a>(
                 <a class="self" href="../../../src/serde/de/value.rs.html#869">self</a>.<span class="ident">count</span> <span class="op">+</span> <a class="ident" href="../../../src/serde/de/value.rs.html#870">remaining</a>,
                 <span class="kw-2">&amp;</span><a class="ident" href="../../../src/serde/de/value.rs.html#934">ExpectedInSeq</a>(<a class="self" href="../../../src/serde/de/value.rs.html#869">self</a>.<span class="ident">count</span>),
             ))
@@ -2523,7 +2525,7 @@
 <span class="kw">where</span>
     <span class="ident">I</span>: <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">T</span><span class="op">&gt;</span>,
     <span class="ident">T</span>: <span class="ident">IntoDeserializer</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span>, <span class="ident">E</span><span class="op">&gt;</span>,
-    <span class="ident">E</span>: <a class="ident" href="../../../src/serde/de/mod.rs.html#297">de::Error</a>,
+    <span class="ident">E</span>: <a class="ident" href="../../../src/serde/de/mod.rs.html#299">de::Error</a>,
 {
     <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <span class="ident">E</span>;
 
@@ -2531,7 +2533,7 @@
     <span class="kw">where</span>
         <span class="ident">V</span>: <span class="ident">de::Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span>,
     {
-        <span class="kw">let</span> <span class="ident">v</span> <span class="op">=</span> <span class="macro">try!</span>(<a class="ident" href="../../../src/serde/de/value.rs.html#892">visitor</a>.<a class="ident" href="../../../src/serde/de/mod.rs.html#1636-1638">visit_seq</a>(<span class="kw-2">&amp;mut</span> <a class="self" href="../../../src/serde/de/value.rs.html#892">self</a>));
+        <span class="kw">let</span> <span class="ident">v</span> <span class="op">=</span> <span class="macro">try!</span>(<a class="ident" href="../../../src/serde/de/value.rs.html#892">visitor</a>.<a class="ident" href="../../../src/serde/de/mod.rs.html#1642-1644">visit_seq</a>(<span class="kw-2">&amp;mut</span> <a class="self" href="../../../src/serde/de/value.rs.html#892">self</a>));
         <span class="macro">try!</span>(<a class="self" href="../../../src/serde/de/value.rs.html#892">self</a>.<a class="ident" href="../../../src/serde/de/value.rs.html#869">end</a>());
         <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/serde/de/value.rs.html#896">v</a>)
     }
@@ -2547,7 +2549,7 @@
 <span class="kw">where</span>
     <span class="ident">I</span>: <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">T</span><span class="op">&gt;</span>,
     <span class="ident">T</span>: <span class="ident">IntoDeserializer</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span>, <span class="ident">E</span><span class="op">&gt;</span>,
-    <span class="ident">E</span>: <a class="ident" href="../../../src/serde/de/mod.rs.html#297">de::Error</a>,
+    <span class="ident">E</span>: <a class="ident" href="../../../src/serde/de/mod.rs.html#299">de::Error</a>,
 {
     <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <span class="ident">E</span>;
 
@@ -2558,7 +2560,7 @@
         <span class="kw">match</span> <a class="self" href="../../../src/serde/de/value.rs.html#916">self</a>.<span class="ident">iter</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>() {
             <span class="prelude-val">Some</span>(<span class="ident">value</span>) =&gt; {
                 <a class="self" href="../../../src/serde/de/value.rs.html#916">self</a>.<span class="ident">count</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
-                <a class="ident" href="../../../src/serde/de/value.rs.html#916">seed</a>.<a class="ident" href="../../../src/serde/de/mod.rs.html#769-771">deserialize</a>(<a class="ident" href="../../../src/serde/de/value.rs.html#921">value</a>.<a class="ident" href="../../../src/serde/de/mod.rs.html#2255">into_deserializer</a>()).<span class="ident">map</span>(<span class="prelude-val">Some</span>)
+                <a class="ident" href="../../../src/serde/de/value.rs.html#916">seed</a>.<a class="ident" href="../../../src/serde/de/mod.rs.html#771-773">deserialize</a>(<a class="ident" href="../../../src/serde/de/value.rs.html#921">value</a>.<a class="ident" href="../../../src/serde/de/mod.rs.html#2261">into_deserializer</a>()).<span class="ident">map</span>(<span class="prelude-val">Some</span>)
             }
             <span class="prelude-val">None</span> =&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>),
         }
@@ -2571,7 +2573,7 @@
 
 <span class="kw">struct</span> <span class="ident">ExpectedInSeq</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
 
-<span class="kw">impl</span> <a class="ident" href="../../../src/serde/de/mod.rs.html#469-473">Expected</a> <span class="kw">for</span> <a class="ident" href="../../../src/serde/de/value.rs.html#934">ExpectedInSeq</a> {
+<span class="kw">impl</span> <a class="ident" href="../../../src/serde/de/mod.rs.html#471-475">Expected</a> <span class="kw">for</span> <a class="ident" href="../../../src/serde/de/value.rs.html#934">ExpectedInSeq</a> {
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">formatter</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
         <span class="kw">if</span> <a class="self" href="../../../src/serde/de/value.rs.html#937">self</a>.<span class="number">0</span> <span class="op">==</span> <span class="number">1</span> {
             <span class="macro">write!</span>(<a class="ident" href="../../../src/serde/de/value.rs.html#937">formatter</a>, <span class="string">&quot;1 element in sequence&quot;</span>)
@@ -2600,7 +2602,7 @@
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span>, <span class="ident">T</span>, <span class="ident">E</span><span class="op">&gt;</span> <span class="ident">IntoDeserializer</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span>, <span class="ident">E</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>
 <span class="kw">where</span>
     <span class="ident">T</span>: <span class="ident">IntoDeserializer</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span>, <span class="ident">E</span><span class="op">&gt;</span>,
-    <span class="ident">E</span>: <a class="ident" href="../../../src/serde/de/mod.rs.html#297">de::Error</a>,
+    <span class="ident">E</span>: <a class="ident" href="../../../src/serde/de/mod.rs.html#299">de::Error</a>,
 {
     <span class="kw">type</span> <span class="ident">Deserializer</span> <span class="op">=</span> <span class="ident">SeqDeserializer</span><span class="op">&lt;</span><span class="op">&lt;</span><span class="self">Self</span> <span class="kw">as</span> <span class="ident">IntoIterator</span><span class="op">&gt;</span><span class="ident">::IntoIter</span>, <span class="ident">E</span><span class="op">&gt;</span>;
 
@@ -2613,7 +2615,7 @@
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span>, <span class="ident">T</span>, <span class="ident">E</span><span class="op">&gt;</span> <span class="ident">IntoDeserializer</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span>, <span class="ident">E</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">BTreeSet</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>
 <span class="kw">where</span>
     <span class="ident">T</span>: <span class="ident">IntoDeserializer</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span>, <span class="ident">E</span><span class="op">&gt;</span> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/cmp/trait.Eq.html">Eq</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html">Ord</a>,
-    <span class="ident">E</span>: <a class="ident" href="../../../src/serde/de/mod.rs.html#297">de::Error</a>,
+    <span class="ident">E</span>: <a class="ident" href="../../../src/serde/de/mod.rs.html#299">de::Error</a>,
 {
     <span class="kw">type</span> <span class="ident">Deserializer</span> <span class="op">=</span> <span class="ident">SeqDeserializer</span><span class="op">&lt;</span><span class="op">&lt;</span><span class="self">Self</span> <span class="kw">as</span> <span class="ident">IntoIterator</span><span class="op">&gt;</span><span class="ident">::IntoIter</span>, <span class="ident">E</span><span class="op">&gt;</span>;
 
@@ -2627,7 +2629,7 @@
 <span class="kw">where</span>
     <span class="ident">T</span>: <span class="ident">IntoDeserializer</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span>, <span class="ident">E</span><span class="op">&gt;</span> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/cmp/trait.Eq.html">Eq</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/hash/trait.Hash.html">Hash</a>,
     <span class="ident">S</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/hash/trait.BuildHasher.html">BuildHasher</a>,
-    <span class="ident">E</span>: <a class="ident" href="../../../src/serde/de/mod.rs.html#297">de::Error</a>,
+    <span class="ident">E</span>: <a class="ident" href="../../../src/serde/de/mod.rs.html#299">de::Error</a>,
 {
     <span class="kw">type</span> <span class="ident">Deserializer</span> <span class="op">=</span> <span class="ident">SeqDeserializer</span><span class="op">&lt;</span><span class="op">&lt;</span><span class="self">Self</span> <span class="kw">as</span> <span class="ident">IntoIterator</span><span class="op">&gt;</span><span class="ident">::IntoIter</span>, <span class="ident">E</span><span class="op">&gt;</span>;
 
@@ -2661,7 +2663,7 @@
     <span class="kw">where</span>
         <span class="ident">V</span>: <span class="ident">de::Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span>,
     {
-        <a class="ident" href="../../../src/serde/de/value.rs.html#1022">visitor</a>.<a class="ident" href="../../../src/serde/de/mod.rs.html#1636-1638">visit_seq</a>(<a class="self" href="../../../src/serde/de/value.rs.html#1022">self</a>.<span class="ident">seq</span>)
+        <a class="ident" href="../../../src/serde/de/value.rs.html#1022">visitor</a>.<a class="ident" href="../../../src/serde/de/mod.rs.html#1642-1644">visit_seq</a>(<a class="self" href="../../../src/serde/de/value.rs.html#1022">self</a>.<span class="ident">seq</span>)
     }
 
     <span class="macro">forward_to_deserialize_any!</span> {
@@ -2707,7 +2709,7 @@
 <span class="kw">where</span>
     <span class="ident">I</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a>,
     <span class="ident">I::Item</span>: <a class="ident" href="../../../src/serde/de/value.rs.html#1619-1623">private::Pair</a>,
-    <span class="ident">E</span>: <a class="ident" href="../../../src/serde/de/mod.rs.html#297">de::Error</a>,
+    <span class="ident">E</span>: <a class="ident" href="../../../src/serde/de/mod.rs.html#299">de::Error</a>,
 {
     <span class="doccomment">/// Check for remaining elements after passing a `MapDeserializer` to</span>
     <span class="doccomment">/// `Visitor::visit_map`.</span>
@@ -2718,7 +2720,7 @@
         } <span class="kw">else</span> {
             <span class="comment">// First argument is the number of elements in the data, second</span>
             <span class="comment">// argument is the number of elements expected by the Deserialize.</span>
-            <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/serde/de/mod.rs.html#297">de::Error::invalid_length</a>(
+            <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/serde/de/mod.rs.html#299">de::Error::invalid_length</a>(
                 <a class="self" href="../../../src/serde/de/value.rs.html#1076">self</a>.<span class="ident">count</span> <span class="op">+</span> <a class="ident" href="../../../src/serde/de/value.rs.html#1077">remaining</a>,
                 <span class="kw-2">&amp;</span><a class="ident" href="../../../src/serde/de/value.rs.html#1359">ExpectedInMap</a>(<a class="self" href="../../../src/serde/de/value.rs.html#1076">self</a>.<span class="ident">count</span>),
             ))
@@ -2748,7 +2750,7 @@
     <span class="ident">I::Item</span>: <a class="ident" href="../../../src/serde/de/value.rs.html#1619-1623">private::Pair</a>,
     <span class="ident">First</span><span class="op">&lt;</span><span class="ident">I::Item</span><span class="op">&gt;</span>: <span class="ident">IntoDeserializer</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span>, <span class="ident">E</span><span class="op">&gt;</span>,
     <span class="ident">Second</span><span class="op">&lt;</span><span class="ident">I::Item</span><span class="op">&gt;</span>: <span class="ident">IntoDeserializer</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span>, <span class="ident">E</span><span class="op">&gt;</span>,
-    <span class="ident">E</span>: <a class="ident" href="../../../src/serde/de/mod.rs.html#297">de::Error</a>,
+    <span class="ident">E</span>: <a class="ident" href="../../../src/serde/de/mod.rs.html#299">de::Error</a>,
 {
     <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <span class="ident">E</span>;
 
@@ -2756,7 +2758,7 @@
     <span class="kw">where</span>
         <span class="ident">V</span>: <span class="ident">de::Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span>,
     {
-        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="macro">try!</span>(<a class="ident" href="../../../src/serde/de/value.rs.html#1117">visitor</a>.<a class="ident" href="../../../src/serde/de/mod.rs.html#1647-1649">visit_map</a>(<span class="kw-2">&amp;mut</span> <a class="self" href="../../../src/serde/de/value.rs.html#1117">self</a>));
+        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="macro">try!</span>(<a class="ident" href="../../../src/serde/de/value.rs.html#1117">visitor</a>.<a class="ident" href="../../../src/serde/de/mod.rs.html#1653-1655">visit_map</a>(<span class="kw-2">&amp;mut</span> <a class="self" href="../../../src/serde/de/value.rs.html#1117">self</a>));
         <span class="macro">try!</span>(<a class="self" href="../../../src/serde/de/value.rs.html#1117">self</a>.<a class="ident" href="../../../src/serde/de/value.rs.html#1076">end</a>());
         <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/serde/de/value.rs.html#1121">value</a>)
     }
@@ -2765,7 +2767,7 @@
     <span class="kw">where</span>
         <span class="ident">V</span>: <span class="ident">de::Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span>,
     {
-        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="macro">try!</span>(<a class="ident" href="../../../src/serde/de/value.rs.html#1126">visitor</a>.<a class="ident" href="../../../src/serde/de/mod.rs.html#1636-1638">visit_seq</a>(<span class="kw-2">&amp;mut</span> <a class="self" href="../../../src/serde/de/value.rs.html#1126">self</a>));
+        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="macro">try!</span>(<a class="ident" href="../../../src/serde/de/value.rs.html#1126">visitor</a>.<a class="ident" href="../../../src/serde/de/mod.rs.html#1642-1644">visit_seq</a>(<span class="kw-2">&amp;mut</span> <a class="self" href="../../../src/serde/de/value.rs.html#1126">self</a>));
         <span class="macro">try!</span>(<a class="self" href="../../../src/serde/de/value.rs.html#1126">self</a>.<a class="ident" href="../../../src/serde/de/value.rs.html#1076">end</a>());
         <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/serde/de/value.rs.html#1130">value</a>)
     }
@@ -2775,7 +2777,7 @@
         <span class="ident">V</span>: <span class="ident">de::Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span>,
     {
         <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <a class="ident" href="../../../src/serde/de/value.rs.html#1135">len</a>;
-        <a class="self" href="../../../src/serde/de/value.rs.html#1135">self</a>.<a class="ident" href="../../../src/serde/de/mod.rs.html#1084-1086">deserialize_seq</a>(<a class="ident" href="../../../src/serde/de/value.rs.html#1135">visitor</a>)
+        <a class="self" href="../../../src/serde/de/value.rs.html#1135">self</a>.<a class="ident" href="../../../src/serde/de/mod.rs.html#1086-1088">deserialize_seq</a>(<a class="ident" href="../../../src/serde/de/value.rs.html#1135">visitor</a>)
     }
 
     <span class="macro">forward_to_deserialize_any!</span> {
@@ -2791,7 +2793,7 @@
     <span class="ident">I::Item</span>: <a class="ident" href="../../../src/serde/de/value.rs.html#1619-1623">private::Pair</a>,
     <span class="ident">First</span><span class="op">&lt;</span><span class="ident">I::Item</span><span class="op">&gt;</span>: <span class="ident">IntoDeserializer</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span>, <span class="ident">E</span><span class="op">&gt;</span>,
     <span class="ident">Second</span><span class="op">&lt;</span><span class="ident">I::Item</span><span class="op">&gt;</span>: <span class="ident">IntoDeserializer</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span>, <span class="ident">E</span><span class="op">&gt;</span>,
-    <span class="ident">E</span>: <a class="ident" href="../../../src/serde/de/mod.rs.html#297">de::Error</a>,
+    <span class="ident">E</span>: <a class="ident" href="../../../src/serde/de/mod.rs.html#299">de::Error</a>,
 {
     <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <span class="ident">E</span>;
 
@@ -2802,7 +2804,7 @@
         <span class="kw">match</span> <a class="self" href="../../../src/serde/de/value.rs.html#1160">self</a>.<a class="ident" href="../../../src/serde/de/value.rs.html#1096">next_pair</a>() {
             <span class="prelude-val">Some</span>((<span class="ident">key</span>, <span class="ident">value</span>)) =&gt; {
                 <a class="self" href="../../../src/serde/de/value.rs.html#1160">self</a>.<span class="ident">value</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/serde/de/value.rs.html#1165">value</a>);
-                <a class="ident" href="../../../src/serde/de/value.rs.html#1160">seed</a>.<a class="ident" href="../../../src/serde/de/mod.rs.html#769-771">deserialize</a>(<a class="ident" href="../../../src/serde/de/value.rs.html#1165">key</a>.<a class="ident" href="../../../src/serde/de/mod.rs.html#2255">into_deserializer</a>()).<span class="ident">map</span>(<span class="prelude-val">Some</span>)
+                <a class="ident" href="../../../src/serde/de/value.rs.html#1160">seed</a>.<a class="ident" href="../../../src/serde/de/mod.rs.html#771-773">deserialize</a>(<a class="ident" href="../../../src/serde/de/value.rs.html#1165">key</a>.<a class="ident" href="../../../src/serde/de/mod.rs.html#2261">into_deserializer</a>()).<span class="ident">map</span>(<span class="prelude-val">Some</span>)
             }
             <span class="prelude-val">None</span> =&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>),
         }
@@ -2816,7 +2818,7 @@
         <span class="comment">// Panic because this indicates a bug in the program rather than an</span>
         <span class="comment">// expected failure.</span>
         <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <a class="ident" href="../../../src/serde/de/value.rs.html#1177">value</a>.<span class="ident">expect</span>(<span class="string">&quot;MapAccess::next_value called before next_key&quot;</span>);
-        <a class="ident" href="../../../src/serde/de/value.rs.html#1173">seed</a>.<a class="ident" href="../../../src/serde/de/mod.rs.html#769-771">deserialize</a>(<a class="ident" href="../../../src/serde/de/value.rs.html#1180">value</a>.<a class="ident" href="../../../src/serde/de/mod.rs.html#2255">into_deserializer</a>())
+        <a class="ident" href="../../../src/serde/de/value.rs.html#1173">seed</a>.<a class="ident" href="../../../src/serde/de/mod.rs.html#771-773">deserialize</a>(<a class="ident" href="../../../src/serde/de/value.rs.html#1180">value</a>.<a class="ident" href="../../../src/serde/de/mod.rs.html#2261">into_deserializer</a>())
     }
 
     <span class="kw">fn</span> <span class="ident">next_entry_seed</span><span class="op">&lt;</span><span class="ident">TK</span>, <span class="ident">TV</span><span class="op">&gt;</span>(
@@ -2830,8 +2832,8 @@
     {
         <span class="kw">match</span> <a class="self" href="../../../src/serde/de/value.rs.html#1185">self</a>.<a class="ident" href="../../../src/serde/de/value.rs.html#1096">next_pair</a>() {
             <span class="prelude-val">Some</span>((<span class="ident">key</span>, <span class="ident">value</span>)) =&gt; {
-                <span class="kw">let</span> <span class="ident">key</span> <span class="op">=</span> <span class="macro">try!</span>(<a class="ident" href="../../../src/serde/de/value.rs.html#1186">kseed</a>.<a class="ident" href="../../../src/serde/de/mod.rs.html#769-771">deserialize</a>(<a class="ident" href="../../../src/serde/de/value.rs.html#1194">key</a>.<a class="ident" href="../../../src/serde/de/mod.rs.html#2255">into_deserializer</a>()));
-                <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="macro">try!</span>(<a class="ident" href="../../../src/serde/de/value.rs.html#1187">vseed</a>.<a class="ident" href="../../../src/serde/de/mod.rs.html#769-771">deserialize</a>(<a class="ident" href="../../../src/serde/de/value.rs.html#1194">value</a>.<a class="ident" href="../../../src/serde/de/mod.rs.html#2255">into_deserializer</a>()));
+                <span class="kw">let</span> <span class="ident">key</span> <span class="op">=</span> <span class="macro">try!</span>(<a class="ident" href="../../../src/serde/de/value.rs.html#1186">kseed</a>.<a class="ident" href="../../../src/serde/de/mod.rs.html#771-773">deserialize</a>(<a class="ident" href="../../../src/serde/de/value.rs.html#1194">key</a>.<a class="ident" href="../../../src/serde/de/mod.rs.html#2261">into_deserializer</a>()));
+                <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="macro">try!</span>(<a class="ident" href="../../../src/serde/de/value.rs.html#1187">vseed</a>.<a class="ident" href="../../../src/serde/de/mod.rs.html#771-773">deserialize</a>(<a class="ident" href="../../../src/serde/de/value.rs.html#1194">value</a>.<a class="ident" href="../../../src/serde/de/mod.rs.html#2261">into_deserializer</a>()));
                 <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>((<a class="ident" href="../../../src/serde/de/value.rs.html#1195">key</a>, <a class="ident" href="../../../src/serde/de/value.rs.html#1196">value</a>)))
             }
             <span class="prelude-val">None</span> =&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>),
@@ -2849,7 +2851,7 @@
     <span class="ident">I::Item</span>: <a class="ident" href="../../../src/serde/de/value.rs.html#1619-1623">private::Pair</a>,
     <span class="ident">First</span><span class="op">&lt;</span><span class="ident">I::Item</span><span class="op">&gt;</span>: <span class="ident">IntoDeserializer</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span>, <span class="ident">E</span><span class="op">&gt;</span>,
     <span class="ident">Second</span><span class="op">&lt;</span><span class="ident">I::Item</span><span class="op">&gt;</span>: <span class="ident">IntoDeserializer</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span>, <span class="ident">E</span><span class="op">&gt;</span>,
-    <span class="ident">E</span>: <a class="ident" href="../../../src/serde/de/mod.rs.html#297">de::Error</a>,
+    <span class="ident">E</span>: <a class="ident" href="../../../src/serde/de/mod.rs.html#299">de::Error</a>,
 {
     <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <span class="ident">E</span>;
 
@@ -2860,7 +2862,7 @@
         <span class="kw">match</span> <a class="self" href="../../../src/serde/de/value.rs.html#1218">self</a>.<a class="ident" href="../../../src/serde/de/value.rs.html#1096">next_pair</a>() {
             <span class="prelude-val">Some</span>((<span class="ident">k</span>, <span class="ident">v</span>)) =&gt; {
                 <span class="kw">let</span> <span class="ident">de</span> <span class="op">=</span> <a class="ident" href="../../../src/serde/de/value.rs.html#1272">PairDeserializer</a>(<a class="ident" href="../../../src/serde/de/value.rs.html#1223">k</a>, <a class="ident" href="../../../src/serde/de/value.rs.html#1223">v</a>, <span class="ident">PhantomData</span>);
-                <a class="ident" href="../../../src/serde/de/value.rs.html#1218">seed</a>.<a class="ident" href="../../../src/serde/de/mod.rs.html#769-771">deserialize</a>(<a class="ident" href="../../../src/serde/de/value.rs.html#1224">de</a>).<span class="ident">map</span>(<span class="prelude-val">Some</span>)
+                <a class="ident" href="../../../src/serde/de/value.rs.html#1218">seed</a>.<a class="ident" href="../../../src/serde/de/mod.rs.html#771-773">deserialize</a>(<a class="ident" href="../../../src/serde/de/value.rs.html#1224">de</a>).<span class="ident">map</span>(<span class="prelude-val">Some</span>)
             }
             <span class="prelude-val">None</span> =&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>),
         }
@@ -2913,7 +2915,7 @@
 <span class="kw">where</span>
     <span class="ident">A</span>: <span class="ident">IntoDeserializer</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span>, <span class="ident">E</span><span class="op">&gt;</span>,
     <span class="ident">B</span>: <span class="ident">IntoDeserializer</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span>, <span class="ident">E</span><span class="op">&gt;</span>,
-    <span class="ident">E</span>: <a class="ident" href="../../../src/serde/de/mod.rs.html#297">de::Error</a>,
+    <span class="ident">E</span>: <a class="ident" href="../../../src/serde/de/mod.rs.html#299">de::Error</a>,
 {
     <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <span class="ident">E</span>;
 
@@ -2927,7 +2929,7 @@
     <span class="kw">where</span>
         <span class="ident">V</span>: <span class="ident">de::Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span>,
     {
-        <a class="self" href="../../../src/serde/de/value.rs.html#1288">self</a>.<a class="ident" href="../../../src/serde/de/mod.rs.html#1084-1086">deserialize_seq</a>(<a class="ident" href="../../../src/serde/de/value.rs.html#1288">visitor</a>)
+        <a class="self" href="../../../src/serde/de/value.rs.html#1288">self</a>.<a class="ident" href="../../../src/serde/de/mod.rs.html#1086-1088">deserialize_seq</a>(<a class="ident" href="../../../src/serde/de/value.rs.html#1288">visitor</a>)
     }
 
     <span class="kw">fn</span> <span class="ident">deserialize_seq</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">visitor</span>: <span class="ident">V</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">V::Value</span>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span>
@@ -2935,14 +2937,14 @@
         <span class="ident">V</span>: <span class="ident">de::Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span>,
     {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">pair_visitor</span> <span class="op">=</span> <a class="ident" href="../../../src/serde/de/value.rs.html#1325">PairVisitor</a>(<span class="prelude-val">Some</span>(<a class="self" href="../../../src/serde/de/value.rs.html#1295">self</a>.<span class="number">0</span>), <span class="prelude-val">Some</span>(<a class="self" href="../../../src/serde/de/value.rs.html#1295">self</a>.<span class="number">1</span>), <span class="ident">PhantomData</span>);
-        <span class="kw">let</span> <span class="ident">pair</span> <span class="op">=</span> <span class="macro">try!</span>(<a class="ident" href="../../../src/serde/de/value.rs.html#1295">visitor</a>.<a class="ident" href="../../../src/serde/de/mod.rs.html#1636-1638">visit_seq</a>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/serde/de/value.rs.html#1299">pair_visitor</a>));
+        <span class="kw">let</span> <span class="ident">pair</span> <span class="op">=</span> <span class="macro">try!</span>(<a class="ident" href="../../../src/serde/de/value.rs.html#1295">visitor</a>.<a class="ident" href="../../../src/serde/de/mod.rs.html#1642-1644">visit_seq</a>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/serde/de/value.rs.html#1299">pair_visitor</a>));
         <span class="kw">if</span> <a class="ident" href="../../../src/serde/de/value.rs.html#1299">pair_visitor</a>.<span class="number">1</span>.<span class="ident">is_none</span>() {
             <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/serde/de/value.rs.html#1300">pair</a>)
         } <span class="kw">else</span> {
-            <span class="kw">let</span> <span class="ident">remaining</span> <span class="op">=</span> <a class="ident" href="../../../src/serde/de/value.rs.html#1299">pair_visitor</a>.<a class="ident" href="../../../src/serde/de/mod.rs.html#1726">size_hint</a>().<span class="ident">unwrap</span>();
+            <span class="kw">let</span> <span class="ident">remaining</span> <span class="op">=</span> <a class="ident" href="../../../src/serde/de/value.rs.html#1299">pair_visitor</a>.<a class="ident" href="../../../src/serde/de/mod.rs.html#1732">size_hint</a>().<span class="ident">unwrap</span>();
             <span class="comment">// First argument is the number of elements in the data, second</span>
             <span class="comment">// argument is the number of elements expected by the Deserialize.</span>
-            <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/serde/de/mod.rs.html#297">de::Error::invalid_length</a>(<span class="number">2</span>, <span class="kw-2">&amp;</span><a class="ident" href="../../../src/serde/de/value.rs.html#934">ExpectedInSeq</a>(<span class="number">2</span> <span class="op">-</span> <a class="ident" href="../../../src/serde/de/value.rs.html#1304">remaining</a>)))
+            <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/serde/de/mod.rs.html#299">de::Error::invalid_length</a>(<span class="number">2</span>, <span class="kw-2">&amp;</span><a class="ident" href="../../../src/serde/de/value.rs.html#934">ExpectedInSeq</a>(<span class="number">2</span> <span class="op">-</span> <a class="ident" href="../../../src/serde/de/value.rs.html#1304">remaining</a>)))
         }
     }
 
@@ -2951,11 +2953,11 @@
         <span class="ident">V</span>: <span class="ident">de::Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span>,
     {
         <span class="kw">if</span> <a class="ident" href="../../../src/serde/de/value.rs.html#1311">len</a> <span class="op">==</span> <span class="number">2</span> {
-            <a class="self" href="../../../src/serde/de/value.rs.html#1311">self</a>.<a class="ident" href="../../../src/serde/de/mod.rs.html#1084-1086">deserialize_seq</a>(<a class="ident" href="../../../src/serde/de/value.rs.html#1311">visitor</a>)
+            <a class="self" href="../../../src/serde/de/value.rs.html#1311">self</a>.<a class="ident" href="../../../src/serde/de/mod.rs.html#1086-1088">deserialize_seq</a>(<a class="ident" href="../../../src/serde/de/value.rs.html#1311">visitor</a>)
         } <span class="kw">else</span> {
             <span class="comment">// First argument is the number of elements in the data, second</span>
             <span class="comment">// argument is the number of elements expected by the Deserialize.</span>
-            <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/serde/de/mod.rs.html#297">de::Error::invalid_length</a>(<span class="number">2</span>, <span class="kw-2">&amp;</span><a class="ident" href="../../../src/serde/de/value.rs.html#934">ExpectedInSeq</a>(<a class="ident" href="../../../src/serde/de/value.rs.html#1311">len</a>)))
+            <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/serde/de/mod.rs.html#299">de::Error::invalid_length</a>(<span class="number">2</span>, <span class="kw-2">&amp;</span><a class="ident" href="../../../src/serde/de/value.rs.html#934">ExpectedInSeq</a>(<a class="ident" href="../../../src/serde/de/value.rs.html#1311">len</a>)))
         }
     }
 }
@@ -2966,7 +2968,7 @@
 <span class="kw">where</span>
     <span class="ident">A</span>: <span class="ident">IntoDeserializer</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span>, <span class="ident">E</span><span class="op">&gt;</span>,
     <span class="ident">B</span>: <span class="ident">IntoDeserializer</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span>, <span class="ident">E</span><span class="op">&gt;</span>,
-    <span class="ident">E</span>: <a class="ident" href="../../../src/serde/de/mod.rs.html#297">de::Error</a>,
+    <span class="ident">E</span>: <a class="ident" href="../../../src/serde/de/mod.rs.html#299">de::Error</a>,
 {
     <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <span class="ident">E</span>;
 
@@ -2975,9 +2977,9 @@
         <span class="ident">T</span>: <span class="ident">de::DeserializeSeed</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span>,
     {
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">k</span>) <span class="op">=</span> <a class="self" href="../../../src/serde/de/value.rs.html#1335">self</a>.<span class="number">0</span>.<span class="ident">take</span>() {
-            <a class="ident" href="../../../src/serde/de/value.rs.html#1335">seed</a>.<a class="ident" href="../../../src/serde/de/mod.rs.html#769-771">deserialize</a>(<a class="ident" href="../../../src/serde/de/value.rs.html#1339">k</a>.<a class="ident" href="../../../src/serde/de/mod.rs.html#2255">into_deserializer</a>()).<span class="ident">map</span>(<span class="prelude-val">Some</span>)
+            <a class="ident" href="../../../src/serde/de/value.rs.html#1335">seed</a>.<a class="ident" href="../../../src/serde/de/mod.rs.html#771-773">deserialize</a>(<a class="ident" href="../../../src/serde/de/value.rs.html#1339">k</a>.<a class="ident" href="../../../src/serde/de/mod.rs.html#2261">into_deserializer</a>()).<span class="ident">map</span>(<span class="prelude-val">Some</span>)
         } <span class="kw">else</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">v</span>) <span class="op">=</span> <a class="self" href="../../../src/serde/de/value.rs.html#1335">self</a>.<span class="number">1</span>.<span class="ident">take</span>() {
-            <a class="ident" href="../../../src/serde/de/value.rs.html#1335">seed</a>.<a class="ident" href="../../../src/serde/de/mod.rs.html#769-771">deserialize</a>(<a class="ident" href="../../../src/serde/de/value.rs.html#1341">v</a>.<a class="ident" href="../../../src/serde/de/mod.rs.html#2255">into_deserializer</a>()).<span class="ident">map</span>(<span class="prelude-val">Some</span>)
+            <a class="ident" href="../../../src/serde/de/value.rs.html#1335">seed</a>.<a class="ident" href="../../../src/serde/de/mod.rs.html#771-773">deserialize</a>(<a class="ident" href="../../../src/serde/de/value.rs.html#1341">v</a>.<a class="ident" href="../../../src/serde/de/mod.rs.html#2261">into_deserializer</a>()).<span class="ident">map</span>(<span class="prelude-val">Some</span>)
         } <span class="kw">else</span> {
             <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>)
         }
@@ -2996,7 +2998,7 @@
 
 <span class="kw">struct</span> <span class="ident">ExpectedInMap</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
 
-<span class="kw">impl</span> <a class="ident" href="../../../src/serde/de/mod.rs.html#469-473">Expected</a> <span class="kw">for</span> <a class="ident" href="../../../src/serde/de/value.rs.html#1359">ExpectedInMap</a> {
+<span class="kw">impl</span> <a class="ident" href="../../../src/serde/de/mod.rs.html#471-475">Expected</a> <span class="kw">for</span> <a class="ident" href="../../../src/serde/de/value.rs.html#1359">ExpectedInMap</a> {
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">formatter</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
         <span class="kw">if</span> <a class="self" href="../../../src/serde/de/value.rs.html#1362">self</a>.<span class="number">0</span> <span class="op">==</span> <span class="number">1</span> {
             <span class="macro">write!</span>(<a class="ident" href="../../../src/serde/de/value.rs.html#1362">formatter</a>, <span class="string">&quot;1 element in map&quot;</span>)
@@ -3013,7 +3015,7 @@
 <span class="kw">where</span>
     <span class="ident">K</span>: <span class="ident">IntoDeserializer</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span>, <span class="ident">E</span><span class="op">&gt;</span> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/cmp/trait.Eq.html">Eq</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html">Ord</a>,
     <span class="ident">V</span>: <span class="ident">IntoDeserializer</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span>, <span class="ident">E</span><span class="op">&gt;</span>,
-    <span class="ident">E</span>: <a class="ident" href="../../../src/serde/de/mod.rs.html#297">de::Error</a>,
+    <span class="ident">E</span>: <a class="ident" href="../../../src/serde/de/mod.rs.html#299">de::Error</a>,
 {
     <span class="kw">type</span> <span class="ident">Deserializer</span> <span class="op">=</span> <span class="ident">MapDeserializer</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span>, <span class="op">&lt;</span><span class="self">Self</span> <span class="kw">as</span> <span class="ident">IntoIterator</span><span class="op">&gt;</span><span class="ident">::IntoIter</span>, <span class="ident">E</span><span class="op">&gt;</span>;
 
@@ -3028,7 +3030,7 @@
     <span class="ident">K</span>: <span class="ident">IntoDeserializer</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span>, <span class="ident">E</span><span class="op">&gt;</span> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/cmp/trait.Eq.html">Eq</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/hash/trait.Hash.html">Hash</a>,
     <span class="ident">V</span>: <span class="ident">IntoDeserializer</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span>, <span class="ident">E</span><span class="op">&gt;</span>,
     <span class="ident">S</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/hash/trait.BuildHasher.html">BuildHasher</a>,
-    <span class="ident">E</span>: <a class="ident" href="../../../src/serde/de/mod.rs.html#297">de::Error</a>,
+    <span class="ident">E</span>: <a class="ident" href="../../../src/serde/de/mod.rs.html#299">de::Error</a>,
 {
     <span class="kw">type</span> <span class="ident">Deserializer</span> <span class="op">=</span> <span class="ident">MapDeserializer</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span>, <span class="op">&lt;</span><span class="self">Self</span> <span class="kw">as</span> <span class="ident">IntoIterator</span><span class="op">&gt;</span><span class="ident">::IntoIter</span>, <span class="ident">E</span><span class="op">&gt;</span>;
 
@@ -3062,7 +3064,7 @@
     <span class="kw">where</span>
         <span class="ident">V</span>: <span class="ident">de::Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span>,
     {
-        <a class="ident" href="../../../src/serde/de/value.rs.html#1423">visitor</a>.<a class="ident" href="../../../src/serde/de/mod.rs.html#1647-1649">visit_map</a>(<a class="self" href="../../../src/serde/de/value.rs.html#1423">self</a>.<span class="ident">map</span>)
+        <a class="ident" href="../../../src/serde/de/value.rs.html#1423">visitor</a>.<a class="ident" href="../../../src/serde/de/mod.rs.html#1653-1655">visit_map</a>(<a class="self" href="../../../src/serde/de/value.rs.html#1423">self</a>.<span class="ident">map</span>)
     }
 
     <span class="kw">fn</span> <span class="ident">deserialize_enum</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span>(
@@ -3074,7 +3076,7 @@
     <span class="kw">where</span>
         <span class="ident">V</span>: <span class="ident">de::Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span>,
     {
-        <a class="ident" href="../../../src/serde/de/value.rs.html#1434">visitor</a>.<a class="ident" href="../../../src/serde/de/mod.rs.html#1658-1660">visit_enum</a>(<a class="self" href="../../../src/serde/de/value.rs.html#1431">self</a>)
+        <a class="ident" href="../../../src/serde/de/value.rs.html#1434">visitor</a>.<a class="ident" href="../../../src/serde/de/mod.rs.html#1664-1666">visit_enum</a>(<a class="self" href="../../../src/serde/de/value.rs.html#1431">self</a>)
     }
 
     <span class="macro">forward_to_deserialize_any!</span> {
@@ -3095,9 +3097,9 @@
     <span class="kw">where</span>
         <span class="ident">T</span>: <span class="ident">de::DeserializeSeed</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span>,
     {
-        <span class="kw">match</span> <a class="self" href="../../../src/serde/de/value.rs.html#1456">self</a>.<span class="ident">map</span>.<a class="ident" href="../../../src/serde/de/mod.rs.html#1789-1791">next_key_seed</a>(<a class="ident" href="../../../src/serde/de/value.rs.html#1456">seed</a>)<span class="question-mark">?</span> {
+        <span class="kw">match</span> <a class="self" href="../../../src/serde/de/value.rs.html#1456">self</a>.<span class="ident">map</span>.<a class="ident" href="../../../src/serde/de/mod.rs.html#1795-1797">next_key_seed</a>(<a class="ident" href="../../../src/serde/de/value.rs.html#1456">seed</a>)<span class="question-mark">?</span> {
             <span class="prelude-val">Some</span>(<span class="ident">key</span>) =&gt; <span class="prelude-val">Ok</span>((<a class="ident" href="../../../src/serde/de/value.rs.html#1461">key</a>, <a class="ident" href="../../../src/serde/de/value.rs.html#1536">private::map_as_enum</a>(<a class="self" href="../../../src/serde/de/value.rs.html#1456">self</a>.<span class="ident">map</span>))),
-            <span class="prelude-val">None</span> =&gt; <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/serde/de/mod.rs.html#297">de::Error::invalid_type</a>(<a class="ident" href="../../../src/serde/de/mod.rs.html#369">de::Unexpected::Map</a>, <span class="kw-2">&amp;</span><span class="string">&quot;enum&quot;</span>)),
+            <span class="prelude-val">None</span> =&gt; <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/serde/de/mod.rs.html#299">de::Error::invalid_type</a>(<a class="ident" href="../../../src/serde/de/mod.rs.html#371">de::Unexpected::Map</a>, <span class="kw-2">&amp;</span><span class="string">&quot;enum&quot;</span>)),
         }
     }
 }
@@ -3107,7 +3109,7 @@
 <span class="kw">mod</span> <span class="ident">private</span> {
     <span class="kw">use</span> <a class="ident" href="../../../src/serde/lib.rs.html#153-252">lib</a>::<span class="kw-2">*</span>;
 
-    <span class="kw">use</span> <span class="ident">de</span>::{<a class="self" href="../../../src/serde/lib.rs.html#262">self</a>, <a class="ident" href="../../../src/serde/de/mod.rs.html#763-772">DeserializeSeed</a>, <a class="ident" href="../../../src/serde/de/mod.rs.html#899-1230">Deserializer</a>, <a class="ident" href="../../../src/serde/de/mod.rs.html#1779-1882">MapAccess</a>, <a class="ident" href="../../../src/serde/de/mod.rs.html#331-392">Unexpected</a>, <a class="ident" href="../../../src/serde/de/mod.rs.html#2018-2214">VariantAccess</a>, <a class="ident" href="../../../src/serde/de/mod.rs.html#1276-1674">Visitor</a>};
+    <span class="kw">use</span> <span class="ident">de</span>::{<a class="self" href="../../../src/serde/lib.rs.html#262">self</a>, <a class="ident" href="../../../src/serde/de/mod.rs.html#765-774">DeserializeSeed</a>, <a class="ident" href="../../../src/serde/de/mod.rs.html#901-1232">Deserializer</a>, <a class="ident" href="../../../src/serde/de/mod.rs.html#1785-1888">MapAccess</a>, <a class="ident" href="../../../src/serde/de/mod.rs.html#333-394">Unexpected</a>, <a class="ident" href="../../../src/serde/de/mod.rs.html#2024-2220">VariantAccess</a>, <a class="ident" href="../../../src/serde/de/mod.rs.html#1278-1680">Visitor</a>};
 
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">UnitOnly</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span> {
         <span class="ident">marker</span>: <span class="ident">PhantomData</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>,
@@ -3124,7 +3126,7 @@
 
     <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span>, <span class="ident">E</span><span class="op">&gt;</span> <span class="ident">de::VariantAccess</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">UnitOnly</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>
     <span class="kw">where</span>
-        <span class="ident">E</span>: <a class="ident" href="../../../src/serde/de/mod.rs.html#297">de::Error</a>,
+        <span class="ident">E</span>: <a class="ident" href="../../../src/serde/de/mod.rs.html#299">de::Error</a>,
     {
         <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <span class="ident">E</span>;
 
@@ -3136,8 +3138,8 @@
         <span class="kw">where</span>
             <span class="ident">T</span>: <span class="ident">de::DeserializeSeed</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span>,
         {
-            <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/serde/de/mod.rs.html#297">de::Error::invalid_type</a>(
-                <a class="ident" href="../../../src/serde/de/mod.rs.html#375">Unexpected::UnitVariant</a>,
+            <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/serde/de/mod.rs.html#299">de::Error::invalid_type</a>(
+                <a class="ident" href="../../../src/serde/de/mod.rs.html#377">Unexpected::UnitVariant</a>,
                 <span class="kw-2">&amp;</span><span class="string">&quot;newtype variant&quot;</span>,
             ))
         }
@@ -3146,8 +3148,8 @@
         <span class="kw">where</span>
             <span class="ident">V</span>: <span class="ident">de::Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span>,
         {
-            <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/serde/de/mod.rs.html#297">de::Error::invalid_type</a>(
-                <a class="ident" href="../../../src/serde/de/mod.rs.html#375">Unexpected::UnitVariant</a>,
+            <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/serde/de/mod.rs.html#299">de::Error::invalid_type</a>(
+                <a class="ident" href="../../../src/serde/de/mod.rs.html#377">Unexpected::UnitVariant</a>,
                 <span class="kw-2">&amp;</span><span class="string">&quot;tuple variant&quot;</span>,
             ))
         }
@@ -3160,8 +3162,8 @@
         <span class="kw">where</span>
             <span class="ident">V</span>: <span class="ident">de::Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span>,
         {
-            <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/serde/de/mod.rs.html#297">de::Error::invalid_type</a>(
-                <a class="ident" href="../../../src/serde/de/mod.rs.html#375">Unexpected::UnitVariant</a>,
+            <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/serde/de/mod.rs.html#299">de::Error::invalid_type</a>(
+                <a class="ident" href="../../../src/serde/de/mod.rs.html#377">Unexpected::UnitVariant</a>,
                 <span class="kw-2">&amp;</span><span class="string">&quot;struct variant&quot;</span>,
             ))
         }
@@ -3182,21 +3184,21 @@
         <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <span class="ident">A::Error</span>;
 
         <span class="kw">fn</span> <span class="ident">unit_variant</span>(<span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
-            <a class="self" href="../../../src/serde/de/value.rs.html#1546">self</a>.<span class="ident">map</span>.<a class="ident" href="../../../src/serde/de/mod.rs.html#1856-1858">next_value</a>()
+            <a class="self" href="../../../src/serde/de/value.rs.html#1546">self</a>.<span class="ident">map</span>.<a class="ident" href="../../../src/serde/de/mod.rs.html#1862-1864">next_value</a>()
         }
 
         <span class="kw">fn</span> <span class="ident">newtype_variant_seed</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">seed</span>: <span class="ident">T</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T::Value</span>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span>
         <span class="kw">where</span>
             <span class="ident">T</span>: <span class="ident">DeserializeSeed</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span>,
         {
-            <a class="self" href="../../../src/serde/de/value.rs.html#1550">self</a>.<span class="ident">map</span>.<a class="ident" href="../../../src/serde/de/mod.rs.html#1802-1804">next_value_seed</a>(<a class="ident" href="../../../src/serde/de/value.rs.html#1550">seed</a>)
+            <a class="self" href="../../../src/serde/de/value.rs.html#1550">self</a>.<span class="ident">map</span>.<a class="ident" href="../../../src/serde/de/mod.rs.html#1808-1810">next_value_seed</a>(<a class="ident" href="../../../src/serde/de/value.rs.html#1550">seed</a>)
         }
 
         <span class="kw">fn</span> <span class="ident">tuple_variant</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">len</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="ident">visitor</span>: <span class="ident">V</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">V::Value</span>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span>
         <span class="kw">where</span>
             <span class="ident">V</span>: <span class="ident">Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span>,
         {
-            <a class="self" href="../../../src/serde/de/value.rs.html#1557">self</a>.<span class="ident">map</span>.<a class="ident" href="../../../src/serde/de/mod.rs.html#1802-1804">next_value_seed</a>(<a class="ident" href="../../../src/serde/de/value.rs.html#1580-1583">SeedTupleVariant</a> {
+            <a class="self" href="../../../src/serde/de/value.rs.html#1557">self</a>.<span class="ident">map</span>.<a class="ident" href="../../../src/serde/de/mod.rs.html#1808-1810">next_value_seed</a>(<a class="ident" href="../../../src/serde/de/value.rs.html#1580-1583">SeedTupleVariant</a> {
                 <span class="ident">len</span>: <a class="ident" href="../../../src/serde/de/value.rs.html#1557">len</a>,
                 <span class="ident">visitor</span>: <a class="ident" href="../../../src/serde/de/value.rs.html#1557">visitor</a>,
             })
@@ -3211,7 +3213,7 @@
             <span class="ident">V</span>: <span class="ident">Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span>,
         {
             <a class="self" href="../../../src/serde/de/value.rs.html#1568">self</a>.<span class="ident">map</span>
-                .<a class="ident" href="../../../src/serde/de/mod.rs.html#1802-1804">next_value_seed</a>(<a class="ident" href="../../../src/serde/de/value.rs.html#1599-1601">SeedStructVariant</a> { <span class="ident">visitor</span>: <a class="ident" href="../../../src/serde/de/value.rs.html#1570">visitor</a> })
+                .<a class="ident" href="../../../src/serde/de/mod.rs.html#1808-1810">next_value_seed</a>(<a class="ident" href="../../../src/serde/de/value.rs.html#1599-1601">SeedStructVariant</a> { <span class="ident">visitor</span>: <a class="ident" href="../../../src/serde/de/value.rs.html#1570">visitor</a> })
         }
     }
 
@@ -3230,7 +3232,7 @@
         <span class="kw">where</span>
             <span class="ident">D</span>: <span class="ident">Deserializer</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span>,
         {
-            <a class="ident" href="../../../src/serde/de/value.rs.html#1591">deserializer</a>.<a class="ident" href="../../../src/serde/de/mod.rs.html#1090-1092">deserialize_tuple</a>(<a class="self" href="../../../src/serde/de/value.rs.html#1591">self</a>.<span class="ident">len</span>, <a class="self" href="../../../src/serde/de/value.rs.html#1591">self</a>.<span class="ident">visitor</span>)
+            <a class="ident" href="../../../src/serde/de/value.rs.html#1591">deserializer</a>.<a class="ident" href="../../../src/serde/de/mod.rs.html#1092-1094">deserialize_tuple</a>(<a class="self" href="../../../src/serde/de/value.rs.html#1591">self</a>.<span class="ident">len</span>, <a class="self" href="../../../src/serde/de/value.rs.html#1591">self</a>.<span class="ident">visitor</span>)
         }
     }
 
@@ -3248,7 +3250,7 @@
         <span class="kw">where</span>
             <span class="ident">D</span>: <span class="ident">Deserializer</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span>,
         {
-            <a class="ident" href="../../../src/serde/de/value.rs.html#1609">deserializer</a>.<a class="ident" href="../../../src/serde/de/mod.rs.html#1106-1108">deserialize_map</a>(<a class="self" href="../../../src/serde/de/value.rs.html#1609">self</a>.<span class="ident">visitor</span>)
+            <a class="ident" href="../../../src/serde/de/value.rs.html#1609">deserializer</a>.<a class="ident" href="../../../src/serde/de/mod.rs.html#1108-1110">deserialize_map</a>(<a class="self" href="../../../src/serde/de/value.rs.html#1609">self</a>.<span class="ident">visitor</span>)
         }
     }
 
@@ -3272,5 +3274,5 @@
     <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">Second</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">T</span> <span class="kw">as</span> <span class="ident">Pair</span><span class="op">&gt;</span><span class="ident">::Second</span>;
 }
 </code></pre></div>
-</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="serde" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.60.0-nightly (bd3cb5256 2022-01-16)" ></div>
+</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="serde" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.60.0-nightly (498eeb72f 2022-01-31)" ></div>
 </body></html>

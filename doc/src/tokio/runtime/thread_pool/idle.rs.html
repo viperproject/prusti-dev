@@ -1,7 +1,9 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.15.0/src/runtime/thread_pool/idle.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>idle.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script src="../../../../crates.js"></script><script defer src="../../../../main.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script>
-    <noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a class="sidebar-logo" href="../../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../tokio/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><form class="search-form"><div class="search-container"><div>
-                                <input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../../../wheel.svg"></a></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.16.1/src/runtime/thread_pool/idle.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>idle.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script src="../../../../crates.js"></script><script defer src="../../../../main.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script>
+    <noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div>
+        </a><h2 class="location"></h2>
+    </nav>
+    <nav class="sidebar"><a class="sidebar-logo" href="../../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div>
+        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../tokio/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><div class="theme-picker hidden"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="22" height="22" alt="Pick another theme!" src="../../../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -223,6 +225,10 @@
 <span id="220">220</span>
 <span id="221">221</span>
 <span id="222">222</span>
+<span id="223">223</span>
+<span id="224">224</span>
+<span id="225">225</span>
+<span id="226">226</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Coordinates idling workers</span>
 
 <span class="kw">use</span> <a class="ident" href="../../../../src/tokio/loom/std/atomic_usize.rs.html#6-8"><span class="kw">crate</span>::loom::sync::atomic::AtomicUsize</a>;
@@ -275,7 +281,7 @@
         <span class="comment">// provide sufficient guarantees, so this load is done with `SeqCst` and</span>
         <span class="comment">// will pair with the `fetch_sub(1)` when transitioning out of</span>
         <span class="comment">// searching.</span>
-        <span class="kw">if</span> <span class="op">!</span><a class="self" href="../../../../src/tokio/runtime/thread_pool/idle.rs.html#43">self</a>.<a class="ident" href="../../../../src/tokio/runtime/thread_pool/idle.rs.html#135">notify_should_wakeup</a>() {
+        <span class="kw">if</span> <span class="op">!</span><a class="self" href="../../../../src/tokio/runtime/thread_pool/idle.rs.html#43">self</a>.<a class="ident" href="../../../../src/tokio/runtime/thread_pool/idle.rs.html#139">notify_should_wakeup</a>() {
             <span class="kw">return</span> <span class="prelude-val">None</span>;
         }
 
@@ -283,13 +289,13 @@
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">sleepers</span> <span class="op">=</span> <a class="self" href="../../../../src/tokio/runtime/thread_pool/idle.rs.html#43">self</a>.<span class="ident">sleepers</span>.<a class="ident" href="../../../../src/tokio/loom/std/mutex.rs.html#16">lock</a>();
 
         <span class="comment">// Check again, now that the lock is acquired</span>
-        <span class="kw">if</span> <span class="op">!</span><a class="self" href="../../../../src/tokio/runtime/thread_pool/idle.rs.html#43">self</a>.<a class="ident" href="../../../../src/tokio/runtime/thread_pool/idle.rs.html#135">notify_should_wakeup</a>() {
+        <span class="kw">if</span> <span class="op">!</span><a class="self" href="../../../../src/tokio/runtime/thread_pool/idle.rs.html#43">self</a>.<a class="ident" href="../../../../src/tokio/runtime/thread_pool/idle.rs.html#139">notify_should_wakeup</a>() {
             <span class="kw">return</span> <span class="prelude-val">None</span>;
         }
 
         <span class="comment">// A worker should be woken up, atomically increment the number of</span>
         <span class="comment">// searching workers as well as the number of unparked workers.</span>
-        <span class="ident">State::unpark_one</span>(<span class="kw-2">&amp;</span><a class="self" href="../../../../src/tokio/runtime/thread_pool/idle.rs.html#43">self</a>.<span class="ident">state</span>);
+        <span class="ident">State::unpark_one</span>(<span class="kw-2">&amp;</span><a class="self" href="../../../../src/tokio/runtime/thread_pool/idle.rs.html#43">self</a>.<span class="ident">state</span>, <span class="number">1</span>);
 
         <span class="comment">// Get the worker to unpark</span>
         <span class="kw">let</span> <span class="ident">ret</span> <span class="op">=</span> <a class="ident" href="../../../../src/tokio/runtime/thread_pool/idle.rs.html#58">sleepers</a>.<span class="ident">pop</span>();
@@ -315,7 +321,7 @@
 
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">transition_worker_to_searching</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
         <span class="kw">let</span> <span class="ident">state</span> <span class="op">=</span> <span class="ident">State::load</span>(<span class="kw-2">&amp;</span><a class="self" href="../../../../src/tokio/runtime/thread_pool/idle.rs.html#91">self</a>.<span class="ident">state</span>, <span class="ident">SeqCst</span>);
-        <span class="kw">if</span> <span class="number">2</span> <span class="op">*</span> <a class="ident" href="../../../../src/tokio/runtime/thread_pool/idle.rs.html#92">state</a>.<a class="ident" href="../../../../src/tokio/runtime/thread_pool/idle.rs.html#183">num_searching</a>() <span class="op">&gt;</span><span class="op">=</span> <a class="self" href="../../../../src/tokio/runtime/thread_pool/idle.rs.html#91">self</a>.<span class="ident">num_workers</span> {
+        <span class="kw">if</span> <span class="number">2</span> <span class="op">*</span> <a class="ident" href="../../../../src/tokio/runtime/thread_pool/idle.rs.html#92">state</a>.<a class="ident" href="../../../../src/tokio/runtime/thread_pool/idle.rs.html#187">num_searching</a>() <span class="op">&gt;</span><span class="op">=</span> <a class="self" href="../../../../src/tokio/runtime/thread_pool/idle.rs.html#91">self</a>.<span class="ident">num_workers</span> {
             <span class="kw">return</span> <span class="bool-val">false</span>;
         }
 
@@ -336,58 +342,62 @@
 
     <span class="doccomment">/// Unpark a specific worker. This happens if tasks are submitted from</span>
     <span class="doccomment">/// within the worker&#39;s park routine.</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">unpark_worker_by_id</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">worker_id</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">sleepers</span> <span class="op">=</span> <a class="self" href="../../../../src/tokio/runtime/thread_pool/idle.rs.html#114">self</a>.<span class="ident">sleepers</span>.<a class="ident" href="../../../../src/tokio/loom/std/mutex.rs.html#16">lock</a>();
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Returns `true` if the worker was parked before calling the method.</span>
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">unpark_worker_by_id</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">worker_id</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">sleepers</span> <span class="op">=</span> <a class="self" href="../../../../src/tokio/runtime/thread_pool/idle.rs.html#116">self</a>.<span class="ident">sleepers</span>.<a class="ident" href="../../../../src/tokio/loom/std/mutex.rs.html#16">lock</a>();
 
-        <span class="kw">for</span> <span class="ident">index</span> <span class="kw">in</span> <span class="number">0</span>..<a class="ident" href="../../../../src/tokio/runtime/thread_pool/idle.rs.html#115">sleepers</a>.<span class="ident">len</span>() {
-            <span class="kw">if</span> <a class="ident" href="../../../../src/tokio/runtime/thread_pool/idle.rs.html#115">sleepers</a>[<a class="ident" href="../../../../src/tokio/runtime/thread_pool/idle.rs.html#117">index</a>] <span class="op">==</span> <a class="ident" href="../../../../src/tokio/runtime/thread_pool/idle.rs.html#114">worker_id</a> {
-                <a class="ident" href="../../../../src/tokio/runtime/thread_pool/idle.rs.html#115">sleepers</a>.<span class="ident">swap_remove</span>(<a class="ident" href="../../../../src/tokio/runtime/thread_pool/idle.rs.html#117">index</a>);
+        <span class="kw">for</span> <span class="ident">index</span> <span class="kw">in</span> <span class="number">0</span>..<a class="ident" href="../../../../src/tokio/runtime/thread_pool/idle.rs.html#117">sleepers</a>.<span class="ident">len</span>() {
+            <span class="kw">if</span> <a class="ident" href="../../../../src/tokio/runtime/thread_pool/idle.rs.html#117">sleepers</a>[<a class="ident" href="../../../../src/tokio/runtime/thread_pool/idle.rs.html#119">index</a>] <span class="op">==</span> <a class="ident" href="../../../../src/tokio/runtime/thread_pool/idle.rs.html#116">worker_id</a> {
+                <a class="ident" href="../../../../src/tokio/runtime/thread_pool/idle.rs.html#117">sleepers</a>.<span class="ident">swap_remove</span>(<a class="ident" href="../../../../src/tokio/runtime/thread_pool/idle.rs.html#119">index</a>);
 
                 <span class="comment">// Update the state accordingly while the lock is held.</span>
-                <span class="ident">State::unpark_one</span>(<span class="kw-2">&amp;</span><a class="self" href="../../../../src/tokio/runtime/thread_pool/idle.rs.html#114">self</a>.<span class="ident">state</span>);
+                <span class="ident">State::unpark_one</span>(<span class="kw-2">&amp;</span><a class="self" href="../../../../src/tokio/runtime/thread_pool/idle.rs.html#116">self</a>.<span class="ident">state</span>, <span class="number">0</span>);
 
-                <span class="kw">return</span>;
+                <span class="kw">return</span> <span class="bool-val">true</span>;
             }
         }
+
+        <span class="bool-val">false</span>
     }
 
     <span class="doccomment">/// Returns `true` if `worker_id` is contained in the sleep set.</span>
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">is_parked</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">worker_id</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">let</span> <span class="ident">sleepers</span> <span class="op">=</span> <a class="self" href="../../../../src/tokio/runtime/thread_pool/idle.rs.html#130">self</a>.<span class="ident">sleepers</span>.<a class="ident" href="../../../../src/tokio/loom/std/mutex.rs.html#16">lock</a>();
-        <a class="ident" href="../../../../src/tokio/runtime/thread_pool/idle.rs.html#131">sleepers</a>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../src/tokio/runtime/thread_pool/idle.rs.html#130">worker_id</a>)
+        <span class="kw">let</span> <span class="ident">sleepers</span> <span class="op">=</span> <a class="self" href="../../../../src/tokio/runtime/thread_pool/idle.rs.html#134">self</a>.<span class="ident">sleepers</span>.<a class="ident" href="../../../../src/tokio/loom/std/mutex.rs.html#16">lock</a>();
+        <a class="ident" href="../../../../src/tokio/runtime/thread_pool/idle.rs.html#135">sleepers</a>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../src/tokio/runtime/thread_pool/idle.rs.html#134">worker_id</a>)
     }
 
     <span class="kw">fn</span> <span class="ident">notify_should_wakeup</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">let</span> <span class="ident">state</span> <span class="op">=</span> <a class="ident" href="../../../../src/tokio/runtime/thread_pool/idle.rs.html#28">State</a>(<a class="self" href="../../../../src/tokio/runtime/thread_pool/idle.rs.html#135">self</a>.<span class="ident">state</span>.<span class="ident">fetch_add</span>(<span class="number">0</span>, <span class="ident">SeqCst</span>));
-        <a class="ident" href="../../../../src/tokio/runtime/thread_pool/idle.rs.html#136">state</a>.<a class="ident" href="../../../../src/tokio/runtime/thread_pool/idle.rs.html#183">num_searching</a>() <span class="op">==</span> <span class="number">0</span> <span class="op">&amp;&amp;</span> <a class="ident" href="../../../../src/tokio/runtime/thread_pool/idle.rs.html#136">state</a>.<a class="ident" href="../../../../src/tokio/runtime/thread_pool/idle.rs.html#188">num_unparked</a>() <span class="op">&lt;</span> <a class="self" href="../../../../src/tokio/runtime/thread_pool/idle.rs.html#135">self</a>.<span class="ident">num_workers</span>
+        <span class="kw">let</span> <span class="ident">state</span> <span class="op">=</span> <a class="ident" href="../../../../src/tokio/runtime/thread_pool/idle.rs.html#28">State</a>(<a class="self" href="../../../../src/tokio/runtime/thread_pool/idle.rs.html#139">self</a>.<span class="ident">state</span>.<span class="ident">fetch_add</span>(<span class="number">0</span>, <span class="ident">SeqCst</span>));
+        <a class="ident" href="../../../../src/tokio/runtime/thread_pool/idle.rs.html#140">state</a>.<a class="ident" href="../../../../src/tokio/runtime/thread_pool/idle.rs.html#187">num_searching</a>() <span class="op">==</span> <span class="number">0</span> <span class="op">&amp;&amp;</span> <a class="ident" href="../../../../src/tokio/runtime/thread_pool/idle.rs.html#140">state</a>.<a class="ident" href="../../../../src/tokio/runtime/thread_pool/idle.rs.html#192">num_unparked</a>() <span class="op">&lt;</span> <a class="self" href="../../../../src/tokio/runtime/thread_pool/idle.rs.html#139">self</a>.<span class="ident">num_workers</span>
     }
 }
 
 <span class="kw">impl</span> <a class="ident" href="../../../../src/tokio/runtime/thread_pool/idle.rs.html#28">State</a> {
     <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">num_workers</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a class="ident" href="../../../../src/tokio/runtime/thread_pool/idle.rs.html#28">State</a> {
         <span class="comment">// All workers start in the unparked state</span>
-        <span class="kw">let</span> <span class="ident">ret</span> <span class="op">=</span> <a class="ident" href="../../../../src/tokio/runtime/thread_pool/idle.rs.html#28">State</a>(<a class="ident" href="../../../../src/tokio/runtime/thread_pool/idle.rs.html#142">num_workers</a> <span class="op">&lt;</span><span class="op">&lt;</span> <a class="ident" href="../../../../src/tokio/runtime/thread_pool/idle.rs.html#23">UNPARK_SHIFT</a>);
-        <span class="macro">debug_assert_eq!</span>(<a class="ident" href="../../../../src/tokio/runtime/thread_pool/idle.rs.html#142">num_workers</a>, <a class="ident" href="../../../../src/tokio/runtime/thread_pool/idle.rs.html#144">ret</a>.<a class="ident" href="../../../../src/tokio/runtime/thread_pool/idle.rs.html#188">num_unparked</a>());
-        <span class="macro">debug_assert_eq!</span>(<span class="number">0</span>, <a class="ident" href="../../../../src/tokio/runtime/thread_pool/idle.rs.html#144">ret</a>.<a class="ident" href="../../../../src/tokio/runtime/thread_pool/idle.rs.html#183">num_searching</a>());
-        <a class="ident" href="../../../../src/tokio/runtime/thread_pool/idle.rs.html#144">ret</a>
+        <span class="kw">let</span> <span class="ident">ret</span> <span class="op">=</span> <a class="ident" href="../../../../src/tokio/runtime/thread_pool/idle.rs.html#28">State</a>(<a class="ident" href="../../../../src/tokio/runtime/thread_pool/idle.rs.html#146">num_workers</a> <span class="op">&lt;</span><span class="op">&lt;</span> <a class="ident" href="../../../../src/tokio/runtime/thread_pool/idle.rs.html#23">UNPARK_SHIFT</a>);
+        <span class="macro">debug_assert_eq!</span>(<a class="ident" href="../../../../src/tokio/runtime/thread_pool/idle.rs.html#146">num_workers</a>, <a class="ident" href="../../../../src/tokio/runtime/thread_pool/idle.rs.html#148">ret</a>.<a class="ident" href="../../../../src/tokio/runtime/thread_pool/idle.rs.html#192">num_unparked</a>());
+        <span class="macro">debug_assert_eq!</span>(<span class="number">0</span>, <a class="ident" href="../../../../src/tokio/runtime/thread_pool/idle.rs.html#148">ret</a>.<a class="ident" href="../../../../src/tokio/runtime/thread_pool/idle.rs.html#187">num_searching</a>());
+        <a class="ident" href="../../../../src/tokio/runtime/thread_pool/idle.rs.html#148">ret</a>
     }
 
     <span class="kw">fn</span> <span class="ident">load</span>(<span class="ident">cell</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/tokio/loom/std/atomic_usize.rs.html#6-8">AtomicUsize</a>, <span class="ident">ordering</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/sync/atomic/enum.Ordering.html">Ordering</a>) -&gt; <a class="ident" href="../../../../src/tokio/runtime/thread_pool/idle.rs.html#28">State</a> {
-        <a class="ident" href="../../../../src/tokio/runtime/thread_pool/idle.rs.html#28">State</a>(<a class="ident" href="../../../../src/tokio/runtime/thread_pool/idle.rs.html#150">cell</a>.<span class="ident">load</span>(<a class="ident" href="../../../../src/tokio/runtime/thread_pool/idle.rs.html#150">ordering</a>))
+        <a class="ident" href="../../../../src/tokio/runtime/thread_pool/idle.rs.html#28">State</a>(<a class="ident" href="../../../../src/tokio/runtime/thread_pool/idle.rs.html#154">cell</a>.<span class="ident">load</span>(<a class="ident" href="../../../../src/tokio/runtime/thread_pool/idle.rs.html#154">ordering</a>))
     }
 
-    <span class="kw">fn</span> <span class="ident">unpark_one</span>(<span class="ident">cell</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/tokio/loom/std/atomic_usize.rs.html#6-8">AtomicUsize</a>) {
-        <a class="ident" href="../../../../src/tokio/runtime/thread_pool/idle.rs.html#154">cell</a>.<span class="ident">fetch_add</span>(<span class="number">1</span> <span class="op">|</span> (<span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <a class="ident" href="../../../../src/tokio/runtime/thread_pool/idle.rs.html#23">UNPARK_SHIFT</a>), <span class="ident">SeqCst</span>);
+    <span class="kw">fn</span> <span class="ident">unpark_one</span>(<span class="ident">cell</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/tokio/loom/std/atomic_usize.rs.html#6-8">AtomicUsize</a>, <span class="ident">num_searching</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
+        <a class="ident" href="../../../../src/tokio/runtime/thread_pool/idle.rs.html#158">cell</a>.<span class="ident">fetch_add</span>(<a class="ident" href="../../../../src/tokio/runtime/thread_pool/idle.rs.html#158">num_searching</a> <span class="op">|</span> (<span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <a class="ident" href="../../../../src/tokio/runtime/thread_pool/idle.rs.html#23">UNPARK_SHIFT</a>), <span class="ident">SeqCst</span>);
     }
 
     <span class="kw">fn</span> <span class="ident">inc_num_searching</span>(<span class="ident">cell</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/tokio/loom/std/atomic_usize.rs.html#6-8">AtomicUsize</a>, <span class="ident">ordering</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/sync/atomic/enum.Ordering.html">Ordering</a>) {
-        <a class="ident" href="../../../../src/tokio/runtime/thread_pool/idle.rs.html#158">cell</a>.<span class="ident">fetch_add</span>(<span class="number">1</span>, <a class="ident" href="../../../../src/tokio/runtime/thread_pool/idle.rs.html#158">ordering</a>);
+        <a class="ident" href="../../../../src/tokio/runtime/thread_pool/idle.rs.html#162">cell</a>.<span class="ident">fetch_add</span>(<span class="number">1</span>, <a class="ident" href="../../../../src/tokio/runtime/thread_pool/idle.rs.html#162">ordering</a>);
     }
 
     <span class="doccomment">/// Returns `true` if this is the final searching worker</span>
     <span class="kw">fn</span> <span class="ident">dec_num_searching</span>(<span class="ident">cell</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/tokio/loom/std/atomic_usize.rs.html#6-8">AtomicUsize</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">let</span> <span class="ident">state</span> <span class="op">=</span> <a class="ident" href="../../../../src/tokio/runtime/thread_pool/idle.rs.html#28">State</a>(<a class="ident" href="../../../../src/tokio/runtime/thread_pool/idle.rs.html#163">cell</a>.<span class="ident">fetch_sub</span>(<span class="number">1</span>, <span class="ident">SeqCst</span>));
-        <a class="ident" href="../../../../src/tokio/runtime/thread_pool/idle.rs.html#164">state</a>.<a class="ident" href="../../../../src/tokio/runtime/thread_pool/idle.rs.html#183">num_searching</a>() <span class="op">==</span> <span class="number">1</span>
+        <span class="kw">let</span> <span class="ident">state</span> <span class="op">=</span> <a class="ident" href="../../../../src/tokio/runtime/thread_pool/idle.rs.html#28">State</a>(<a class="ident" href="../../../../src/tokio/runtime/thread_pool/idle.rs.html#167">cell</a>.<span class="ident">fetch_sub</span>(<span class="number">1</span>, <span class="ident">SeqCst</span>));
+        <a class="ident" href="../../../../src/tokio/runtime/thread_pool/idle.rs.html#168">state</a>.<a class="ident" href="../../../../src/tokio/runtime/thread_pool/idle.rs.html#187">num_searching</a>() <span class="op">==</span> <span class="number">1</span>
     }
 
     <span class="doccomment">/// Track a sleeping worker</span>
@@ -396,42 +406,42 @@
     <span class="kw">fn</span> <span class="ident">dec_num_unparked</span>(<span class="ident">cell</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/tokio/loom/std/atomic_usize.rs.html#6-8">AtomicUsize</a>, <span class="ident">is_searching</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">dec</span> <span class="op">=</span> <span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <a class="ident" href="../../../../src/tokio/runtime/thread_pool/idle.rs.html#23">UNPARK_SHIFT</a>;
 
-        <span class="kw">if</span> <a class="ident" href="../../../../src/tokio/runtime/thread_pool/idle.rs.html#171">is_searching</a> {
-            <a class="ident" href="../../../../src/tokio/runtime/thread_pool/idle.rs.html#172">dec</a> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+        <span class="kw">if</span> <a class="ident" href="../../../../src/tokio/runtime/thread_pool/idle.rs.html#175">is_searching</a> {
+            <a class="ident" href="../../../../src/tokio/runtime/thread_pool/idle.rs.html#176">dec</a> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
         }
 
-        <span class="kw">let</span> <span class="ident">prev</span> <span class="op">=</span> <a class="ident" href="../../../../src/tokio/runtime/thread_pool/idle.rs.html#28">State</a>(<a class="ident" href="../../../../src/tokio/runtime/thread_pool/idle.rs.html#171">cell</a>.<span class="ident">fetch_sub</span>(<a class="ident" href="../../../../src/tokio/runtime/thread_pool/idle.rs.html#172">dec</a>, <span class="ident">SeqCst</span>));
-        <a class="ident" href="../../../../src/tokio/runtime/thread_pool/idle.rs.html#171">is_searching</a> <span class="op">&amp;&amp;</span> <a class="ident" href="../../../../src/tokio/runtime/thread_pool/idle.rs.html#178">prev</a>.<a class="ident" href="../../../../src/tokio/runtime/thread_pool/idle.rs.html#183">num_searching</a>() <span class="op">==</span> <span class="number">1</span>
+        <span class="kw">let</span> <span class="ident">prev</span> <span class="op">=</span> <a class="ident" href="../../../../src/tokio/runtime/thread_pool/idle.rs.html#28">State</a>(<a class="ident" href="../../../../src/tokio/runtime/thread_pool/idle.rs.html#175">cell</a>.<span class="ident">fetch_sub</span>(<a class="ident" href="../../../../src/tokio/runtime/thread_pool/idle.rs.html#176">dec</a>, <span class="ident">SeqCst</span>));
+        <a class="ident" href="../../../../src/tokio/runtime/thread_pool/idle.rs.html#175">is_searching</a> <span class="op">&amp;&amp;</span> <a class="ident" href="../../../../src/tokio/runtime/thread_pool/idle.rs.html#182">prev</a>.<a class="ident" href="../../../../src/tokio/runtime/thread_pool/idle.rs.html#187">num_searching</a>() <span class="op">==</span> <span class="number">1</span>
     }
 
     <span class="doccomment">/// Number of workers currently searching</span>
     <span class="kw">fn</span> <span class="ident">num_searching</span>(<span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="../../../../src/tokio/runtime/thread_pool/idle.rs.html#183">self</a>.<span class="number">0</span> <span class="op">&amp;</span> <a class="ident" href="../../../../src/tokio/runtime/thread_pool/idle.rs.html#25">SEARCH_MASK</a>
+        <a class="self" href="../../../../src/tokio/runtime/thread_pool/idle.rs.html#187">self</a>.<span class="number">0</span> <span class="op">&amp;</span> <a class="ident" href="../../../../src/tokio/runtime/thread_pool/idle.rs.html#25">SEARCH_MASK</a>
     }
 
     <span class="doccomment">/// Number of workers currently unparked</span>
     <span class="kw">fn</span> <span class="ident">num_unparked</span>(<span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        (<a class="self" href="../../../../src/tokio/runtime/thread_pool/idle.rs.html#188">self</a>.<span class="number">0</span> <span class="op">&amp;</span> <a class="ident" href="../../../../src/tokio/runtime/thread_pool/idle.rs.html#24">UNPARK_MASK</a>) <span class="op">&gt;</span><span class="op">&gt;</span> <a class="ident" href="../../../../src/tokio/runtime/thread_pool/idle.rs.html#23">UNPARK_SHIFT</a>
+        (<a class="self" href="../../../../src/tokio/runtime/thread_pool/idle.rs.html#192">self</a>.<span class="number">0</span> <span class="op">&amp;</span> <a class="ident" href="../../../../src/tokio/runtime/thread_pool/idle.rs.html#24">UNPARK_MASK</a>) <span class="op">&gt;</span><span class="op">&gt;</span> <a class="ident" href="../../../../src/tokio/runtime/thread_pool/idle.rs.html#23">UNPARK_SHIFT</a>
     }
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../../../src/tokio/runtime/thread_pool/idle.rs.html#28">State</a> {
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">src</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a class="ident" href="../../../../src/tokio/runtime/thread_pool/idle.rs.html#28">State</a> {
-        <a class="ident" href="../../../../src/tokio/runtime/thread_pool/idle.rs.html#28">State</a>(<a class="ident" href="../../../../src/tokio/runtime/thread_pool/idle.rs.html#194">src</a>)
+        <a class="ident" href="../../../../src/tokio/runtime/thread_pool/idle.rs.html#28">State</a>(<a class="ident" href="../../../../src/tokio/runtime/thread_pool/idle.rs.html#198">src</a>)
     }
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><a class="ident" href="../../../../src/tokio/runtime/thread_pool/idle.rs.html#28">State</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">src</span>: <a class="ident" href="../../../../src/tokio/runtime/thread_pool/idle.rs.html#28">State</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="ident" href="../../../../src/tokio/runtime/thread_pool/idle.rs.html#200">src</a>.<span class="number">0</span>
+        <a class="ident" href="../../../../src/tokio/runtime/thread_pool/idle.rs.html#204">src</a>.<span class="number">0</span>
     }
 }
 
 <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <a class="ident" href="../../../../src/tokio/runtime/thread_pool/idle.rs.html#28">State</a> {
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">fmt</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="ident" href="../../../../src/tokio/runtime/thread_pool/idle.rs.html#206">fmt</a>.<span class="ident">debug_struct</span>(<span class="string">&quot;worker::State&quot;</span>)
-            .<span class="ident">field</span>(<span class="string">&quot;num_unparked&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../../src/tokio/runtime/thread_pool/idle.rs.html#206">self</a>.<a class="ident" href="../../../../src/tokio/runtime/thread_pool/idle.rs.html#188">num_unparked</a>())
-            .<span class="ident">field</span>(<span class="string">&quot;num_searching&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../../src/tokio/runtime/thread_pool/idle.rs.html#206">self</a>.<a class="ident" href="../../../../src/tokio/runtime/thread_pool/idle.rs.html#183">num_searching</a>())
+        <a class="ident" href="../../../../src/tokio/runtime/thread_pool/idle.rs.html#210">fmt</a>.<span class="ident">debug_struct</span>(<span class="string">&quot;worker::State&quot;</span>)
+            .<span class="ident">field</span>(<span class="string">&quot;num_unparked&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../../src/tokio/runtime/thread_pool/idle.rs.html#210">self</a>.<a class="ident" href="../../../../src/tokio/runtime/thread_pool/idle.rs.html#192">num_unparked</a>())
+            .<span class="ident">field</span>(<span class="string">&quot;num_searching&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../../src/tokio/runtime/thread_pool/idle.rs.html#210">self</a>.<a class="ident" href="../../../../src/tokio/runtime/thread_pool/idle.rs.html#187">num_searching</a>())
             .<span class="ident">finish</span>()
     }
 }
@@ -446,5 +456,5 @@
     <span class="macro">assert_eq!</span>(<span class="number">0</span>, <span class="ident">state</span>.<span class="ident">num_searching</span>());
 }
 </code></pre></div>
-</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.60.0-nightly (bd3cb5256 2022-01-16)" ></div>
+</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.60.0-nightly (498eeb72f 2022-01-31)" ></div>
 </body></html>
