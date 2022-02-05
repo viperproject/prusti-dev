@@ -28,18 +28,9 @@ pub(super) fn infer_shape_operations<'v, 'tcx: 'v>(
             |writer| procedure.to_graphviz(writer).unwrap(),
         );
     }
-    let mut visitor = Visitor::new(
-        encoder,
-        proc_def_id,
-        FoldUnfoldState::with_parameters_and_return(
-            procedure
-                .parameters
-                .iter()
-                .map(|local| local.variable.clone()),
-            procedure.returns.iter().map(|local| local.variable.clone()),
-        ),
-    );
-    let shaped_procedure = visitor.infer_procedure(procedure)?;
+    let mut visitor = Visitor::new(encoder, proc_def_id);
+    let initial_state = FoldUnfoldState::new();
+    let shaped_procedure = visitor.infer_procedure(procedure, initial_state)?;
     visitor.cancel_crash_graphviz();
     if config::dump_debug_info() {
         let source_filename = encoder.env().source_file_name();

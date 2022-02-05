@@ -53,7 +53,9 @@ impl<'v> ToViper<'v, viper::Stmt<'v>> for Statement {
             Statement::Exhale(statement) => statement.to_viper(ast),
             Statement::Fold(statement) => statement.to_viper(ast),
             Statement::Unfold(statement) => statement.to_viper(ast),
+            Statement::Conditional(statement) => statement.to_viper(ast),
             Statement::MethodCall(statement) => statement.to_viper(ast),
+            Statement::Assign(statement) => statement.to_viper(ast),
         }
     }
 }
@@ -130,6 +132,21 @@ impl<'v> ToViper<'v, viper::Stmt<'v>> for statement::Unfold {
     }
 }
 
+impl<'v> ToViper<'v, viper::Stmt<'v>> for statement::Conditional {
+    fn to_viper(&self, ast: &AstFactory<'v>) -> viper::Stmt<'v> {
+        assert!(
+            !self.position.is_default(),
+            "Statement with default position: {}",
+            self
+        );
+        ast.if_stmt(
+            self.guard.to_viper(ast),
+            ast.seqn(&self.then_branch.to_viper(ast), &[]),
+            ast.seqn(&self.else_branch.to_viper(ast), &[]),
+        )
+    }
+}
+
 impl<'v> ToViper<'v, viper::Stmt<'v>> for statement::MethodCall {
     fn to_viper(&self, ast: &AstFactory<'v>) -> viper::Stmt<'v> {
         ast.method_call(
@@ -139,6 +156,14 @@ impl<'v> ToViper<'v, viper::Stmt<'v>> for statement::MethodCall {
         )
     }
 }
+
+impl<'v> ToViper<'v, viper::Stmt<'v>> for statement::Assign {
+    fn to_viper(&self, ast: &AstFactory<'v>) -> viper::Stmt<'v> {
+        let target_expression = Expression::local(self.target.clone(), self.position);
+        ast.abstract_assign(target_expression.to_viper(ast), self.value.to_viper(ast))
+    }
+}
+
 impl<'v> ToViper<'v, Vec<viper::Expr<'v>>> for Vec<Expression> {
     fn to_viper(&self, ast: &AstFactory<'v>) -> Vec<viper::Expr<'v>> {
         self.iter()
@@ -158,8 +183,8 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for Expression {
             Expression::PredicateAccessPredicate(expression) => expression.to_viper(ast),
             // Expression::FieldAccessPredicate(expression) => expression.to_viper(ast),
             // Expression::Unfolding(expression) => expression.to_viper(ast),
-            // Expression::UnaryOp(expression) => expression.to_viper(ast),
-            Expression::BinOp(expression) => expression.to_viper(ast),
+            Expression::UnaryOp(expression) => expression.to_viper(ast),
+            Expression::BinaryOp(expression) => expression.to_viper(ast),
             // Expression::ContainerOp(expression) => expression.to_viper(ast),
             // Expression::Seq(expression) => expression.to_viper(ast),
             // Expression::Conditional(expression) => expression.to_viper(ast),
@@ -244,7 +269,20 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for expression::PredicateAccessPredicate {
     }
 }
 
-impl<'v> ToViper<'v, viper::Expr<'v>> for expression::BinOp {
+impl<'v> ToViper<'v, viper::Expr<'v>> for expression::UnaryOp {
+    fn to_viper(&self, ast: &AstFactory<'v>) -> viper::Expr<'v> {
+        match self.op_kind {
+            expression::UnaryOpKind::Minus => {
+                ast.minus_with_pos(self.argument.to_viper(ast), self.position.to_viper(ast))
+            }
+            expression::UnaryOpKind::Not => {
+                ast.not_with_pos(self.argument.to_viper(ast), self.position.to_viper(ast))
+            }
+        }
+    }
+}
+
+impl<'v> ToViper<'v, viper::Expr<'v>> for expression::BinaryOp {
     fn to_viper(&self, ast: &AstFactory<'v>) -> viper::Expr<'v> {
         match self.op_kind {
             expression::BinaryOpKind::EqCmp => ast.eq_cmp_with_pos(

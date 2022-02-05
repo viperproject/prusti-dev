@@ -129,8 +129,22 @@ pub macro expr {
             $variable.clone()
         )
     },
+    (!$arg: tt) => {
+        $crate::low::ast::expression::Expression::unary_op(
+            $crate::low::ast::expression::UnaryOpKind::Not,
+            $crate::low::macros::expr!( $arg ),
+            Default::default(),
+        )
+    },
+    (-$arg: tt) => {
+        $crate::low::ast::expression::Expression::unary_op(
+            $crate::low::ast::expression::UnaryOpKind::Minus,
+            $crate::low::macros::expr!( $arg ),
+            Default::default(),
+        )
+    },
     ($lhs: tt ==> $rhs: tt) => {
-        $crate::low::ast::expression::Expression::bin_op(
+        $crate::low::ast::expression::Expression::binary_op(
             $crate::low::ast::expression::BinaryOpKind::Implies,
             $crate::low::macros::expr!( $lhs ),
             $crate::low::macros::expr!( $rhs ),
@@ -138,7 +152,7 @@ pub macro expr {
         )
     },
     ($lhs: tt == $rhs: tt) => {
-        $crate::low::ast::expression::Expression::bin_op(
+        $crate::low::ast::expression::Expression::binary_op(
             $crate::low::ast::expression::BinaryOpKind::EqCmp,
             $crate::low::macros::expr!( $lhs ),
             $crate::low::macros::expr!( $rhs ),
@@ -146,7 +160,7 @@ pub macro expr {
         )
     },
     ($lhs: tt <= $rhs: tt) => {
-        $crate::low::ast::expression::Expression::bin_op(
+        $crate::low::ast::expression::Expression::binary_op(
             $crate::low::ast::expression::BinaryOpKind::LtCmp,
             $crate::low::macros::expr!( $lhs ),
             $crate::low::macros::expr!( $rhs ),
@@ -154,7 +168,7 @@ pub macro expr {
         )
     },
     ($lhs: tt && $rhs: tt) => {
-        $crate::low::ast::expression::Expression::bin_op(
+        $crate::low::ast::expression::Expression::binary_op(
             $crate::low::ast::expression::BinaryOpKind::And,
             $crate::low::macros::expr!( $lhs ),
             $crate::low::macros::expr!( $rhs ),
@@ -166,6 +180,16 @@ pub macro expr {
     },
     ([ $e: expr ]) => { $e },
     (( $($tokens: tt)+ )) => { $crate::low::macros::expr!($($tokens)+) },
+}
+
+/// An expression with position
+pub macro exprp {
+    ($position:expr => $($tokens:tt)+ ) => {
+        {
+            let expression = $crate::low::macros::expr!($($tokens)+);
+            expression.set_default_position($position)
+        }
+    },
 }
 
 pub macro stmt {
@@ -192,6 +216,15 @@ pub macro stmt {
             $crate::low::macros::expr!($expr)
         )
     },
+    (call<$condition:ident> $method_name:ident<$ty:tt>( $($argument:tt),* )) => {
+        $crate::low::ast::statement::Statement::conditional_no_pos(
+            $condition,
+            vec![
+                $crate::low::macros::stmt!{ call $method_name<$ty>( $($argument),* ) }
+            ],
+            Vec::new(),
+        )
+    },
     (call $method_name:ident<$ty:tt>( $($argument:tt),* )) => {
         $crate::low::ast::statement::Statement::method_call_no_pos(
             $crate::low::macros::method_name!{ $method_name<$ty> },
@@ -199,9 +232,27 @@ pub macro stmt {
             Vec::new(),
         )
     },
+    (fold<$condition:ident> $predicate_name:ident<$ty:tt>( $($argument:tt),* )) => {
+        $crate::low::ast::statement::Statement::conditional_no_pos(
+            $condition,
+            vec![
+                $crate::low::macros::stmt!{ fold $predicate_name<$ty>( $($argument),* ) }
+            ],
+            Vec::new(),
+        )
+    },
     (fold $predicate_name:ident<$ty:tt>( $($argument:tt),* )) => {
         $crate::low::ast::statement::Statement::fold_no_pos(
             $crate::low::macros::expr!(acc($predicate_name<$ty>( $($argument),* )))
+        )
+    },
+    (unfold<$condition:ident> $predicate_name:ident<$ty:tt>( $($argument:tt),* )) => {
+        $crate::low::ast::statement::Statement::conditional_no_pos(
+            $condition,
+            vec![
+                $crate::low::macros::stmt!{ unfold $predicate_name<$ty>( $($argument),* ) }
+            ],
+            Vec::new(),
         )
     },
     (unfold $predicate_name:ident<$ty:tt>( $($argument:tt),* )) => {

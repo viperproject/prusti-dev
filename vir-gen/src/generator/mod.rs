@@ -25,6 +25,7 @@ impl ToTokens for CustomDerive {
             Self::New => tokens.extend(quote! {new}),
             Self::NewWithPos => tokens.extend(quote! {new_with_pos}),
             Self::PartialEq(options) => tokens.extend(quote! {PartialEq(#options)}),
+            Self::Ord(options) => tokens.extend(quote! {Ord(#options)}),
             Self::Hash(options) => tokens.extend(quote! {Hash(#options)}),
             Self::Other(ident) => tokens.extend(quote! {#ident}),
         }

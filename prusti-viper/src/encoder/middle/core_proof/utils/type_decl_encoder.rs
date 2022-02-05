@@ -7,17 +7,24 @@ use vir_crate::middle::{self as vir_mid};
 
 pub(in super::super) trait TypeDeclWalker {
     type Parameters;
+    const IS_ZST_PRIMITIVE: bool = false;
     fn before(
         &mut self,
         ty: &vir_mid::Type,
         parameters: &Self::Parameters,
         lowerer: &mut Lowerer,
     ) -> SpannedEncodingResult<()> {
+        let is_zst = lowerer.encoder.is_zst_mid(ty)?;
         match ty {
             vir_mid::Type::Bool | vir_mid::Type::Int(_) | vir_mid::Type::Float(_) => {
                 self.before_primitive(ty, parameters, lowerer)
             }
             // vir_mid::Type::TypeVar(TypeVar) => {},
+            vir_mid::Type::Tuple(_) | vir_mid::Type::Struct(_)
+                if is_zst && Self::IS_ZST_PRIMITIVE =>
+            {
+                self.before_primitive(ty, parameters, lowerer)
+            }
             vir_mid::Type::Tuple(_) | vir_mid::Type::Struct(_) => {
                 self.before_composite(ty, parameters, lowerer)
             }
@@ -46,13 +53,29 @@ pub(in super::super) trait TypeDeclWalker {
     ) -> SpannedEncodingResult<()> {
         Ok(())
     }
-    fn walk_primitive(
+    fn walk_primitive_and_zst(
         &mut self,
         _ty: &vir_mid::Type,
         _parameters: &Self::Parameters,
         _lowerer: &mut Lowerer,
     ) -> SpannedEncodingResult<()> {
         Ok(())
+    }
+    fn walk_primitive(
+        &mut self,
+        ty: &vir_mid::Type,
+        parameters: &Self::Parameters,
+        lowerer: &mut Lowerer,
+    ) -> SpannedEncodingResult<()> {
+        self.walk_primitive_and_zst(ty, parameters, lowerer)
+    }
+    fn walk_zst(
+        &mut self,
+        ty: &vir_mid::Type,
+        parameters: &Self::Parameters,
+        lowerer: &mut Lowerer,
+    ) -> SpannedEncodingResult<()> {
+        self.walk_primitive_and_zst(ty, parameters, lowerer)
     }
     /// This method must call `Self::walk_type`.
     fn walk_field(
@@ -102,11 +125,17 @@ pub(in super::super) trait TypeDeclWalker {
         lowerer: &mut Lowerer,
     ) -> SpannedEncodingResult<()> {
         self.before(ty, &parameters, lowerer)?;
+        let is_zst = lowerer.encoder.is_zst_mid(ty)?;
         match type_decl {
             vir_mid::TypeDecl::Bool | vir_mid::TypeDecl::Int(_) | vir_mid::TypeDecl::Float(_) => {
                 self.walk_primitive(ty, &parameters, lowerer)?;
             }
             // vir_mid::TypeDecl::TypeVar(TypeVar) => {},
+            vir_mid::TypeDecl::Tuple(_) | vir_mid::TypeDecl::Struct(_)
+                if is_zst && Self::IS_ZST_PRIMITIVE =>
+            {
+                self.walk_primitive(ty, &parameters, lowerer)?;
+            }
             vir_mid::TypeDecl::Tuple(tuple_decl) => {
                 self.walk_fields(ty, tuple_decl.iter_fields(), &parameters, lowerer)?;
             }
@@ -130,11 +159,17 @@ pub(in super::super) trait TypeDeclWalker {
         parameters: Self::Parameters,
         lowerer: &mut Lowerer,
     ) -> SpannedEncodingResult<()> {
+        let is_zst = lowerer.encoder.is_zst_mid(ty)?;
         match ty {
             vir_mid::Type::Bool | vir_mid::Type::Int(_) | vir_mid::Type::Float(_) => {
                 self.after_primitive(ty, parameters, lowerer)
             }
             // vir_mid::Type::TypeVar(TypeVar) => {},
+            vir_mid::Type::Tuple(_) | vir_mid::Type::Struct(_)
+                if is_zst && Self::IS_ZST_PRIMITIVE =>
+            {
+                self.after_primitive(ty, parameters, lowerer)
+            }
             vir_mid::Type::Tuple(_) | vir_mid::Type::Struct(_) => {
                 self.after_composite(ty, parameters, lowerer)
             }

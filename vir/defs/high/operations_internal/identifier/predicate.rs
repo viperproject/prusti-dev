@@ -1,5 +1,8 @@
 use super::{
-    super::super::ast::predicate::{self, Predicate},
+    super::{
+        super::ast::predicate::{self, Predicate},
+        ty::Typed,
+    },
     common::append_type_arguments,
 };
 use crate::common::identifier::WithIdentifier;
@@ -11,6 +14,7 @@ impl WithIdentifier for Predicate {
             Self::MemoryBlockStackDrop(predicate) => predicate.get_identifier(),
             Self::MemoryBlockHeap(predicate) => predicate.get_identifier(),
             Self::MemoryBlockHeapDrop(predicate) => predicate.get_identifier(),
+            Self::OwnedNonAliased(predicate) => predicate.get_identifier(),
         }
     }
 }
@@ -36,5 +40,11 @@ impl WithIdentifier for predicate::MemoryBlockHeap {
 impl WithIdentifier for predicate::MemoryBlockHeapDrop {
     fn get_identifier(&self) -> String {
         "MemoryBlockHeapDrop".to_string()
+    }
+}
+
+impl WithIdentifier for predicate::OwnedNonAliased {
+    fn get_identifier(&self) -> String {
+        format!("OwnedNonAliased${}", self.place.get_type().get_identifier())
     }
 }

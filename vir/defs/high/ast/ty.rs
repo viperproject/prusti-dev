@@ -34,6 +34,7 @@ pub enum Type {
     Unsupported(Unsupported),
 }
 
+#[derive(Copy)]
 pub enum Int {
     I8,
     I16,

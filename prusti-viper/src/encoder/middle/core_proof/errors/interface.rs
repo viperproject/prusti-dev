@@ -3,7 +3,6 @@ use crate::encoder::{
     middle::core_proof::lowerer::Lowerer,
     mir::procedures::MirProcedureEncoderInterface,
 };
-
 use vir_crate::low as vir_low;
 
 pub(in super::super) trait ErrorsInterface {

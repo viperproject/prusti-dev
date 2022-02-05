@@ -154,6 +154,7 @@ pub(crate) trait HighTypeEncoderInterface<'tcx> {
     ) -> EncodingResult<vir_poly::FunctionIdentifier>;
     fn encode_type_bounds(&self, var: &vir_poly::Expr, ty: ty::Ty<'tcx>) -> Vec<vir_poly::Expr>;
     fn decode_type_mid(&self, ty: &vir_mid::Type) -> SpannedEncodingResult<ty::Ty<'tcx>>;
+    fn is_zst_mid(&self, ty: &vir_mid::Type) -> SpannedEncodingResult<bool>;
     /// If the type is user defined, returns its span. Otherwise, returns the
     /// default span.
     fn get_type_definition_span_mid(&self, ty: &vir_mid::Type) -> SpannedEncodingResult<MultiSpan>;
@@ -337,6 +338,10 @@ impl<'v, 'tcx: 'v> HighTypeEncoderInterface<'tcx> for super::super::super::Encod
     fn decode_type_mid(&self, ty: &vir_mid::Type) -> SpannedEncodingResult<ty::Ty<'tcx>> {
         let high_type = self.decode_type_mid_into_high(ty.clone())?;
         Ok(self.decode_type_high(&high_type))
+    }
+    fn is_zst_mid(&self, ty: &vir_mid::Type) -> SpannedEncodingResult<bool> {
+        let high_type = self.decode_type_mid_into_high(ty.clone())?;
+        self.is_zst(&high_type)
     }
     fn get_type_definition_span_mid(&self, ty: &vir_mid::Type) -> SpannedEncodingResult<MultiSpan> {
         let high_type = self.decode_type_mid_into_high(ty.clone())?;

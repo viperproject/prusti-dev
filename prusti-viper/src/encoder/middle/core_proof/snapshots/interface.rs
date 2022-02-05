@@ -1,18 +1,18 @@
 use crate::encoder::{
-    errors::SpannedEncodingResult,
+    errors::{ErrorCtxt, SpannedEncodingResult},
     high::types::HighTypeEncoderInterface,
     middle::core_proof::{
+        adts::{AdtConstructor, AdtsInterface},
         lowerer::{DomainsLowererInterface, Lowerer, VariablesLowererInterface},
         predicates_memory_block::PredicatesMemoryBlockInterface,
+        types::TypesInterface,
     },
+    mir::errors::ErrorInterface,
 };
 use rustc_hash::FxHashSet;
-use std::{borrow::Cow, collections::BTreeMap};
+use std::collections::BTreeMap;
 use vir_crate::{
-    common::{
-        expression::{BinaryOperationHelpers, ExpressionIterator, QuantifierHelpers},
-        identifier::WithIdentifier,
-    },
+    common::identifier::WithIdentifier,
     low::{self as vir_low, operations::ToLow},
     middle::{self as vir_mid, operations::ty::Typed},
 };
@@ -20,33 +20,77 @@ use vir_crate::{
 use super::IntoSnapshot;
 
 #[derive(Default)]
+struct VariableVersionMap {
+    /// Mapping from variable names to their versions.
+    variable_versions: BTreeMap<String, u64>,
+}
+
+impl VariableVersionMap {
+    fn get(&self, variable: &str) -> u64 {
+        self.variable_versions.get(variable).cloned().unwrap_or(0)
+    }
+    fn set(&mut self, variable: String, version: u64) {
+        self.variable_versions.insert(variable, version);
+    }
+}
+
+#[derive(Default)]
+struct AllVariablesMap {
+    versions: BTreeMap<String, u64>,
+    types: BTreeMap<String, vir_mid::Type>,
+    positions: BTreeMap<String, vir_low::Position>,
+}
+
+impl AllVariablesMap {
+    fn names_clone(&self) -> Vec<String> {
+        self.versions.keys().cloned().collect()
+    }
+    fn get_type(&self, variable: &str) -> &vir_mid::Type {
+        &self.types[variable]
+    }
+    fn get_position(&self, variable: &str) -> vir_low::Position {
+        self.positions[variable]
+    }
+    fn new_version(&mut self, variable: &str) -> u64 {
+        let current_version = self.versions.get_mut(variable).unwrap();
+        *current_version += 1;
+        *current_version
+    }
+    fn new_version_or_default(
+        &mut self,
+        variable: &vir_mid::VariableDecl,
+        position: vir_low::Position,
+    ) -> u64 {
+        if self.versions.contains_key(&variable.name) {
+            let version = self.versions.get_mut(&variable.name).unwrap();
+            *version += 1;
+            *version
+        } else {
+            self.versions.insert(variable.name.clone(), 1);
+            self.types
+                .insert(variable.name.clone(), variable.ty.clone());
+            self.positions.insert(variable.name.clone(), position);
+            1
+        }
+    }
+}
+
+#[derive(Default)]
 pub(in super::super) struct SnapshotsState {
+    /// Used for decoding domain names into original types.
+    domain_types: BTreeMap<String, vir_mid::Type>,
     /// The list of types for which `to_bytes` was encoded.
     encoded_to_bytes: FxHashSet<vir_mid::Type>,
-    /// Mapping from variable names to their versions.
-    snapshot_variable_versions: BTreeMap<String, u64>,
+    all_variables: AllVariablesMap,
+    variables: BTreeMap<vir_mid::BasicBlockId, VariableVersionMap>,
+    current_variables: Option<VariableVersionMap>,
 }
 
 trait Private {
-    fn encode_validity_axiom_name(&self, ty: &vir_mid::Type) -> SpannedEncodingResult<String>;
-    fn insert_validity_axiom(
-        &mut self,
-        ty: &vir_mid::Type,
-        body: vir_low::Expression,
-    ) -> SpannedEncodingResult<()>;
-    fn encode_snapshot_domain_type(
-        &mut self,
-        ty: &vir_mid::Type,
-    ) -> SpannedEncodingResult<vir_low::Type>;
     fn insert_snapshot_axiom(
         &mut self,
         ty: &vir_mid::Type,
         axiom: vir_low::DomainAxiomDecl,
-    ) -> SpannedEncodingResult<()>;
-    fn encode_validity_axioms_with_fields<'a>(
-        &mut self,
-        ty: &vir_mid::Type,
-        fields: impl Iterator<Item = Cow<'a, vir_mid::FieldDecl>>,
     ) -> SpannedEncodingResult<()>;
     #[allow(clippy::ptr_arg)] // Clippy false positive.
     fn snapshot_copy_except(
@@ -59,32 +103,13 @@ trait Private {
     ) -> SpannedEncodingResult<(vir_low::Expression, vir_low::Expression)>;
     fn create_snapshot_variable(
         &mut self,
-        variable: &vir_mid::VariableDecl,
+        name: &str,
+        ty: &vir_mid::Type,
         version: u64,
     ) -> SpannedEncodingResult<vir_low::VariableDecl>;
 }
 
 impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
-    fn encode_validity_axiom_name(&self, ty: &vir_mid::Type) -> SpannedEncodingResult<String> {
-        Ok(format!("{}$validity_axiom", ty.get_identifier()))
-    }
-    fn insert_validity_axiom(
-        &mut self,
-        ty: &vir_mid::Type,
-        body: vir_low::Expression,
-    ) -> SpannedEncodingResult<()> {
-        let axiom = vir_low::DomainAxiomDecl {
-            name: self.encode_validity_axiom_name(ty)?,
-            body,
-        };
-        self.insert_snapshot_axiom(ty, axiom)
-    }
-    fn encode_snapshot_domain_type(
-        &mut self,
-        ty: &vir_mid::Type,
-    ) -> SpannedEncodingResult<vir_low::Type> {
-        Ok(vir_low::Type::domain(self.encode_snapshot_domain_name(ty)?))
-    }
     fn insert_snapshot_axiom(
         &mut self,
         ty: &vir_mid::Type,
@@ -93,37 +118,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
         let domain_name = self.encode_snapshot_domain_name(ty)?;
         self.declare_axiom(&domain_name, axiom)
     }
-    fn encode_validity_axioms_with_fields<'a>(
-        &mut self,
-        ty: &vir_mid::Type,
-        fields: impl Iterator<Item = Cow<'a, vir_mid::FieldDecl>>,
-    ) -> SpannedEncodingResult<()> {
-        let snapshot_type = ty.create_snapshot(self)?;
-        let snapshot = vir_low::VariableDecl::new("snapshot", snapshot_type);
-        let snapshot_valid =
-            self.encode_snapshot_validity_expression(snapshot.clone().into(), ty)?;
-        let mut conjuncts = Vec::new();
-        for field in fields {
-            let field_snapshot = self.encode_field_snapshot(
-                ty,
-                &field,
-                snapshot.clone().into(),
-                Default::default(),
-            )?;
-            let field_snapshot_valid =
-                self.encode_snapshot_validity_expression(field_snapshot.clone(), &field.ty)?;
-            conjuncts.push(field_snapshot_valid);
-        }
-        let body = vir_low::Expression::forall(
-            vec![snapshot],
-            vec![vir_low::Trigger::new(vec![snapshot_valid.clone()])],
-            vir_low::Expression::equals(snapshot_valid, conjuncts.into_iter().conjoin()),
-        );
-        self.insert_validity_axiom(ty, body)?;
-        Ok(())
-    }
     /// Copy all values of the old snapshot into the new snapshot, except the
     /// ones that belong to `place`.
+    ///
+    /// FIXME: Rewrite to use the new ADT based snapshot interface.
     fn snapshot_copy_except(
         &mut self,
         statements: &mut Vec<vir_low::Statement>,
@@ -201,22 +199,23 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
     }
     fn create_snapshot_variable(
         &mut self,
-        variable: &vir_mid::VariableDecl,
+        name: &str,
+        ty: &vir_mid::Type,
         version: u64,
     ) -> SpannedEncodingResult<vir_low::VariableDecl> {
-        let name = format!("{}$snapshot${}", variable.name, version);
-        let ty = variable.ty.create_snapshot(self)?;
+        let name = format!("{}$snapshot${}", name, version);
+        let ty = ty.create_snapshot(self)?;
         self.create_variable(name, ty)
     }
 }
 
 pub(in super::super) trait SnapshotsInterface {
     fn encode_snapshot_domain_name(&mut self, ty: &vir_mid::Type) -> SpannedEncodingResult<String>;
-    fn encode_snapshot_constructor_name(
-        &mut self,
-        ty: &vir_mid::Type,
-    ) -> SpannedEncodingResult<String>;
-    fn encode_snapshot_domain(
+    fn try_decoding_snapshot_type(
+        &self,
+        domain_name: &str,
+    ) -> SpannedEncodingResult<Option<vir_mid::Type>>;
+    fn encode_snapshot_domain_type(
         &mut self,
         ty: &vir_mid::Type,
     ) -> SpannedEncodingResult<vir_low::Type>;
@@ -229,7 +228,11 @@ pub(in super::super) trait SnapshotsInterface {
         argument: vir_low::Expression,
         ty: &vir_mid::Type,
     ) -> SpannedEncodingResult<vir_low::Expression>;
-    fn encode_validity_axioms(&mut self, ty: &vir_mid::Type) -> SpannedEncodingResult<()>;
+    fn declare_snapshot_constructors<'a>(
+        &mut self,
+        ty: &vir_mid::Type,
+        constructors: impl Iterator<Item = &'a AdtConstructor>,
+    ) -> SpannedEncodingResult<()>;
     fn encode_field_snapshot(
         &mut self,
         base_type: &vir_mid::Type,
@@ -237,10 +240,37 @@ pub(in super::super) trait SnapshotsInterface {
         base_snapshot: vir_low::Expression,
         position: vir_mid::Position,
     ) -> SpannedEncodingResult<vir_low::Expression>;
-    fn encode_snapshot_constant_constructor_call(
+    fn encode_constant_snapshot(
         &mut self,
         ty: &vir_mid::Type,
         argument: vir_low::Expression,
+        position: vir_mid::Position,
+    ) -> SpannedEncodingResult<vir_low::Expression>;
+    fn encode_snapshot_constructor_base_call(
+        &mut self,
+        ty: &vir_mid::Type,
+        arguments: Vec<vir_low::Expression>,
+        position: vir_mid::Position,
+    ) -> SpannedEncodingResult<vir_low::Expression>;
+    fn encode_snapshot_deconstructor_constant_call(
+        &mut self,
+        ty: &vir_mid::Type,
+        argument: vir_low::Expression,
+        position: vir_mid::Position,
+    ) -> SpannedEncodingResult<vir_low::Expression>;
+    fn encode_unary_op_call(
+        &mut self,
+        op: vir_mid::UnaryOpKind,
+        ty: &vir_mid::Type,
+        argument: vir_low::Expression,
+        position: vir_mid::Position,
+    ) -> SpannedEncodingResult<vir_low::Expression>;
+    fn encode_binary_op_call(
+        &mut self,
+        op: vir_mid::BinaryOpKind,
+        ty: &vir_mid::Type,
+        left: vir_low::Expression,
+        right: vir_low::Expression,
         position: vir_mid::Position,
     ) -> SpannedEncodingResult<vir_low::Expression>;
     #[allow(clippy::ptr_arg)] // Clippy false positive.
@@ -254,24 +284,44 @@ pub(in super::super) trait SnapshotsInterface {
     fn new_snapshot_variable_version(
         &mut self,
         variable: &vir_mid::VariableDecl,
+        span: vir_low::Position,
     ) -> SpannedEncodingResult<vir_low::VariableDecl>;
     fn current_snapshot_variable_version(
         &mut self,
         variable: &vir_mid::VariableDecl,
     ) -> SpannedEncodingResult<vir_low::VariableDecl>;
+    fn set_current_block_for_snapshots(
+        &mut self,
+        label: &vir_mid::BasicBlockId,
+        predecessors: &BTreeMap<vir_mid::BasicBlockId, Vec<vir_mid::BasicBlockId>>,
+        basic_blocks: &mut BTreeMap<
+            vir_mid::BasicBlockId,
+            (Vec<vir_low::Statement>, vir_low::Successor),
+        >,
+    ) -> SpannedEncodingResult<()>;
+    fn unset_current_block_for_snapshots(
+        &mut self,
+        label: vir_mid::BasicBlockId,
+    ) -> SpannedEncodingResult<()>;
 }
 
 impl<'p, 'v: 'p, 'tcx: 'v> SnapshotsInterface for Lowerer<'p, 'v, 'tcx> {
     fn encode_snapshot_domain_name(&mut self, ty: &vir_mid::Type) -> SpannedEncodingResult<String> {
-        Ok(format!("Snap${}", ty.get_identifier()))
+        let domain_name = format!("Snap${}", ty.get_identifier());
+        if !self.snapshots_state.domain_types.contains_key(&domain_name) {
+            self.snapshots_state
+                .domain_types
+                .insert(domain_name.clone(), ty.clone());
+        }
+        Ok(domain_name)
     }
-    fn encode_snapshot_constructor_name(
-        &mut self,
-        ty: &vir_mid::Type,
-    ) -> SpannedEncodingResult<String> {
-        Ok(format!("snap_constructor${}", ty.get_identifier()))
+    fn try_decoding_snapshot_type(
+        &self,
+        domain_name: &str,
+    ) -> SpannedEncodingResult<Option<vir_mid::Type>> {
+        Ok(self.snapshots_state.domain_types.get(domain_name).cloned())
     }
-    fn encode_snapshot_domain(
+    fn encode_snapshot_domain_type(
         &mut self,
         ty: &vir_mid::Type,
     ) -> SpannedEncodingResult<vir_low::Type> {
@@ -296,6 +346,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> SnapshotsInterface for Lowerer<'p, 'v, 'tcx> {
         }
         Ok(())
     }
+    // TODO: Rename this to type validity and move to
+    // prusti-viper/src/encoder/middle/core_proof/types/interface.rs
     fn encode_snapshot_validity_expression(
         &mut self,
         argument: vir_low::Expression,
@@ -310,71 +362,23 @@ impl<'p, 'v: 'p, 'tcx: 'v> SnapshotsInterface for Lowerer<'p, 'v, 'tcx> {
             Default::default(),
         )
     }
-    fn encode_validity_axioms(&mut self, ty: &vir_mid::Type) -> SpannedEncodingResult<()> {
-        use vir_low::macros::*;
-        let type_decl = self.encoder.get_type_decl_mid(ty)?;
-        match &type_decl {
-            // TODO: Refactor to remove code duplication with
-            // prusti-viper/src/encoder/middle/core_proof/lower/predicates/interface.rs
-            // and
-            // prusti-viper/src/encoder/middle/core_proof/lower/fold_unfold/interface.rs
-            vir_mid::TypeDecl::Bool => {
-                let true_snapshot = self.encode_snapshot_constant_constructor_call(
-                    ty,
-                    true.into(),
-                    Default::default(),
-                )?;
-                let false_snapshot = self.encode_snapshot_constant_constructor_call(
-                    ty,
-                    false.into(),
-                    Default::default(),
-                )?;
-                let body = vir_low::Expression::and(
-                    self.encode_snapshot_validity_expression(true_snapshot, ty)?,
-                    self.encode_snapshot_validity_expression(false_snapshot, ty)?,
-                );
-                self.insert_validity_axiom(ty, body)?;
+    fn declare_snapshot_constructors<'a>(
+        &mut self,
+        ty: &vir_mid::Type,
+        constructors: impl Iterator<Item = &'a AdtConstructor>,
+    ) -> SpannedEncodingResult<()> {
+        let domain_name = self.encode_snapshot_domain_name(ty)?;
+        for constructor in constructors {
+            self.insert_domain_function(
+                &domain_name,
+                constructor.create_constructor_function(&domain_name),
+            )?;
+            for function in constructor.create_destructor_functions(&domain_name) {
+                self.insert_domain_function(&domain_name, function)?;
             }
-            vir_mid::TypeDecl::Int(decl) => {
-                use vir_low::macros::*;
-                let variable = var! { variable: Int};
-                let snapshot = self.encode_snapshot_constant_constructor_call(
-                    ty,
-                    variable.clone().into(),
-                    Default::default(),
-                )?;
-                let snapshot_valid = self.encode_snapshot_validity_expression(snapshot, ty)?;
-                let mut conjuncts = Vec::new();
-                if let Some(lower_bound) = &decl.lower_bound {
-                    conjuncts.push(expr! { [lower_bound.clone().to_low(self)? ] <= variable });
-                }
-                if let Some(upper_bound) = &decl.upper_bound {
-                    conjuncts.push(expr! { variable <= [upper_bound.clone().to_low(self)? ] });
-                }
-                let body = vir_low::Expression::forall(
-                    vec![variable],
-                    vec![vir_low::Trigger::new(vec![snapshot_valid.clone()])],
-                    vir_low::Expression::equals(snapshot_valid, conjuncts.into_iter().conjoin()),
-                );
-                self.insert_validity_axiom(ty, body)?;
+            for axiom in constructor.create_injectivity_axioms(&domain_name) {
+                self.declare_axiom(&domain_name, axiom)?;
             }
-            vir_mid::TypeDecl::Float(_) => {
-                unimplemented!();
-            }
-            // vir_mid::TypeDecl::TypeVar(TypeVar) => {},
-            vir_mid::TypeDecl::Tuple(decl) => {
-                self.encode_validity_axioms_with_fields(ty, decl.iter_fields())?;
-            }
-            vir_mid::TypeDecl::Struct(decl) => {
-                self.encode_validity_axioms_with_fields(ty, decl.iter_fields())?;
-            }
-            // vir_mid::TypeDecl::Enum(Enum) => {},
-            // vir_mid::TypeDecl::Array(Array) => {},
-            // vir_mid::TypeDecl::Reference(Reference) => {},
-            // vir_mid::TypeDecl::Never => {},
-            // vir_mid::TypeDecl::Closure(Closure) => {},
-            // vir_mid::TypeDecl::Unsupported(Unsupported) => {},
-            x => unimplemented!("{}", x),
         }
         Ok(())
     }
@@ -386,35 +390,100 @@ impl<'p, 'v: 'p, 'tcx: 'v> SnapshotsInterface for Lowerer<'p, 'v, 'tcx> {
         position: vir_mid::Position,
     ) -> SpannedEncodingResult<vir_low::Expression> {
         let domain_name = self.encode_snapshot_domain_name(base_type)?;
-        let function_name = format!("snap_field${}${}", base_type.get_identifier(), field.name);
-        let return_type = self.encode_snapshot_domain_type(&field.ty)?;
-        self.create_domain_func_app(
-            domain_name,
-            function_name,
-            vec![base_snapshot],
-            return_type,
-            position,
-        )
+        let return_type = field.ty.create_snapshot(self)?;
+        Ok(self
+            .adt_destructor_base_call(&domain_name, &field.name, return_type, base_snapshot)?
+            .set_default_position(position))
     }
-    fn encode_snapshot_constant_constructor_call(
+    fn encode_constant_snapshot(
         &mut self,
         ty: &vir_mid::Type,
         mut argument: vir_low::Expression,
         position: vir_mid::Position,
     ) -> SpannedEncodingResult<vir_low::Expression> {
+        self.ensure_type_definition(ty)?;
         let domain_name = self.encode_snapshot_domain_name(ty)?;
-        let function_name = self.encode_snapshot_constructor_name(ty)?;
-        let return_type = ty.create_snapshot(self)?;
         let low_type = match &ty {
             vir_mid::Type::Bool => vir_low::Type::Bool,
             vir_mid::Type::Int(_) => vir_low::Type::Int,
             x => unimplemented!("{:?}", x),
         };
         vir_low::operations::ty::Typed::set_type(&mut argument, low_type);
+        Ok(self
+            .adt_constructor_constant_call(&domain_name, vec![argument])?
+            .set_default_position(position))
+    }
+    fn encode_snapshot_constructor_base_call(
+        &mut self,
+        ty: &vir_mid::Type,
+        arguments: Vec<vir_low::Expression>,
+        position: vir_mid::Position,
+    ) -> SpannedEncodingResult<vir_low::Expression> {
+        let domain_name = self.encode_snapshot_domain_name(ty)?;
+        let function_name = self.adt_constructor_base_name(&domain_name)?;
+        let return_type = ty.create_snapshot(self)?;
+        self.create_domain_func_app(domain_name, function_name, arguments, return_type, position)
+    }
+    fn encode_snapshot_deconstructor_constant_call(
+        &mut self,
+        ty: &vir_mid::Type,
+        argument: vir_low::Expression,
+        position: vir_mid::Position,
+    ) -> SpannedEncodingResult<vir_low::Expression> {
+        let domain_name = self.encode_snapshot_domain_name(ty)?;
+        let function_name = self.adt_destructor_constant_name(&domain_name)?;
+        let return_type = match &ty {
+            vir_mid::Type::Bool => vir_low::Type::Bool,
+            vir_mid::Type::Int(_) => vir_low::Type::Int,
+            x => unimplemented!("{:?}", x),
+        };
         self.create_domain_func_app(
             domain_name,
             function_name,
             vec![argument],
+            return_type,
+            position,
+        )
+    }
+    fn encode_unary_op_call(
+        &mut self,
+        op: vir_mid::UnaryOpKind,
+        ty: &vir_mid::Type,
+        argument: vir_low::Expression,
+        position: vir_mid::Position,
+    ) -> SpannedEncodingResult<vir_low::Expression> {
+        // FIXME: Encode evaluation and simplification axioms.
+        let domain_name = self.encode_snapshot_domain_name(ty)?;
+        let op = op.to_low(self)?;
+        let variant = self.encode_unary_op_variant(op, ty)?;
+        let function_name = self.adt_constructor_variant_name(&domain_name, &variant)?;
+        let return_type = ty.create_snapshot(self)?;
+        self.create_domain_func_app(
+            domain_name,
+            function_name,
+            vec![argument],
+            return_type,
+            position,
+        )
+    }
+    fn encode_binary_op_call(
+        &mut self,
+        op: vir_mid::BinaryOpKind,
+        ty: &vir_mid::Type,
+        left: vir_low::Expression,
+        right: vir_low::Expression,
+        position: vir_mid::Position,
+    ) -> SpannedEncodingResult<vir_low::Expression> {
+        // FIXME: Encode evaluation and simplification axioms.
+        let domain_name = self.encode_snapshot_domain_name(ty)?;
+        let op = op.to_low(self)?;
+        let variant = self.encode_binary_op_variant(op, ty)?;
+        let function_name = self.adt_constructor_variant_name(&domain_name, &variant)?;
+        let return_type = ty.create_snapshot(self)?;
+        self.create_domain_func_app(
+            domain_name,
+            function_name,
+            vec![left, right],
             return_type,
             position,
         )
@@ -428,8 +497,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> SnapshotsInterface for Lowerer<'p, 'v, 'tcx> {
     ) -> SpannedEncodingResult<()> {
         use vir_low::macros::*;
         let base = target.get_base();
+        self.ensure_type_definition(&base.ty)?;
         let old_snapshot = base.create_snapshot(self)?;
-        let new_snapshot = self.new_snapshot_variable_version(&base)?;
+        let new_snapshot = self.new_snapshot_variable_version(&base, position)?;
         self.snapshot_copy_except(statements, old_snapshot, new_snapshot, target, position)?;
         statements.push(stmtp! { position => assume ([target.create_snapshot(self)?] == [value]) });
         Ok(())
@@ -437,17 +507,18 @@ impl<'p, 'v: 'p, 'tcx: 'v> SnapshotsInterface for Lowerer<'p, 'v, 'tcx> {
     fn new_snapshot_variable_version(
         &mut self,
         variable: &vir_mid::VariableDecl,
+        position: vir_low::Position,
     ) -> SpannedEncodingResult<vir_low::VariableDecl> {
-        let versions = &mut self.snapshots_state.snapshot_variable_versions;
-        let new_version = if versions.contains_key(&variable.name) {
-            let version = versions.get_mut(&variable.name).unwrap();
-            *version += 1;
-            *version
-        } else {
-            versions.insert(variable.name.clone(), 1);
-            1
-        };
-        self.create_snapshot_variable(variable, new_version)
+        let new_version = self
+            .snapshots_state
+            .all_variables
+            .new_version_or_default(variable, position);
+        self.snapshots_state
+            .current_variables
+            .as_mut()
+            .unwrap()
+            .set(variable.name.clone(), new_version);
+        self.create_snapshot_variable(&variable.name, &variable.ty, new_version)
     }
     fn current_snapshot_variable_version(
         &mut self,
@@ -455,10 +526,75 @@ impl<'p, 'v: 'p, 'tcx: 'v> SnapshotsInterface for Lowerer<'p, 'v, 'tcx> {
     ) -> SpannedEncodingResult<vir_low::VariableDecl> {
         let version = self
             .snapshots_state
-            .snapshot_variable_versions
-            .get(&variable.name)
-            .cloned()
-            .unwrap_or(0);
-        self.create_snapshot_variable(variable, version)
+            .current_variables
+            .as_ref()
+            .unwrap()
+            .get(&variable.name);
+        self.create_snapshot_variable(&variable.name, &variable.ty, version)
+    }
+    fn set_current_block_for_snapshots(
+        &mut self,
+        label: &vir_mid::BasicBlockId,
+        predecessors: &BTreeMap<vir_mid::BasicBlockId, Vec<vir_mid::BasicBlockId>>,
+        basic_blocks: &mut BTreeMap<
+            vir_mid::BasicBlockId,
+            (Vec<vir_low::Statement>, vir_low::Successor),
+        >,
+    ) -> SpannedEncodingResult<()> {
+        let predecessor_labels = &predecessors[label];
+        let mut new_map = VariableVersionMap::default();
+        for variable in self.snapshots_state.all_variables.names_clone() {
+            let predecessor_maps = predecessor_labels
+                .iter()
+                .map(|label| &self.snapshots_state.variables[label])
+                .collect::<Vec<_>>();
+            let first_version = predecessor_maps[0].get(&variable);
+            let different = predecessor_maps
+                .iter()
+                .any(|map| map.get(&variable) != first_version);
+            if different {
+                let new_version = self.snapshots_state.all_variables.new_version(&variable);
+                let ty = self
+                    .snapshots_state
+                    .all_variables
+                    .get_type(&variable)
+                    .clone();
+                let new_variable = self.create_snapshot_variable(&variable, &ty, new_version)?;
+                for label in predecessor_labels {
+                    if let Some(&old_version) = self.snapshots_state.variables[label]
+                        .variable_versions
+                        .get(&variable)
+                    {
+                        let (statements, _) = basic_blocks.get_mut(label).unwrap();
+                        let old_variable =
+                            self.create_snapshot_variable(&variable, &ty, old_version)?;
+                        let position = self.encoder.change_error_context(
+                            // FIXME: Get a more precise span.
+                            self.snapshots_state.all_variables.get_position(&variable),
+                            ErrorCtxt::Unexpected,
+                        );
+                        let statement = vir_low::macros::stmtp! { position => assume (new_variable == old_variable) };
+                        statements.push(statement);
+                    }
+                }
+                new_map.set(variable, new_version);
+            } else {
+                new_map.set(variable, first_version);
+            }
+        }
+        self.snapshots_state.current_variables = Some(new_map);
+        Ok(())
+    }
+    fn unset_current_block_for_snapshots(
+        &mut self,
+        label: vir_mid::BasicBlockId,
+    ) -> SpannedEncodingResult<()> {
+        let current_variables = self.snapshots_state.current_variables.take().unwrap();
+        assert!(self
+            .snapshots_state
+            .variables
+            .insert(label, current_variables)
+            .is_none());
+        Ok(())
     }
 }

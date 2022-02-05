@@ -48,6 +48,11 @@ pub(in super::super::super) trait DomainsLowererInterface {
         domain_name: &str,
         axiom: vir_low::DomainAxiomDecl,
     ) -> SpannedEncodingResult<()>;
+    fn insert_domain_function(
+        &mut self,
+        domain_name: &str,
+        domain_function: vir_low::DomainFunctionDecl,
+    ) -> SpannedEncodingResult<()>;
     fn declare_domain_function(
         &mut self,
         domain_name: std::borrow::Cow<'_, String>,
@@ -91,6 +96,24 @@ impl<'p, 'v: 'p, 'tcx: 'v> DomainsLowererInterface for Lowerer<'p, 'v, 'tcx> {
         domain.axioms.push(axiom);
         Ok(())
     }
+    fn insert_domain_function(
+        &mut self,
+        domain_name: &str,
+        domain_function: vir_low::DomainFunctionDecl,
+    ) -> SpannedEncodingResult<()> {
+        assert!(
+            !self.domains_state.functions.contains(&domain_function.name),
+            "already exists: {}",
+            domain_function.name
+        );
+        self.domains_state
+            .functions
+            .insert(domain_function.name.clone());
+        let domain_name = domain_name.to_string();
+        let domain = self.borrow_domain(domain_name)?;
+        domain.functions.push(domain_function);
+        Ok(())
+    }
     fn declare_domain_function(
         &mut self,
         domain_name: std::borrow::Cow<'_, String>,
@@ -104,12 +127,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> DomainsLowererInterface for Lowerer<'p, 'v, 'tcx> {
                 parameters: parameters.into_owned(),
                 return_type: return_type.into_owned(),
             };
-            self.domains_state
-                .functions
-                .insert(function_name.to_string());
-            let domain_name = domain_name.into_owned();
-            let domain = self.borrow_domain(domain_name)?;
-            domain.functions.push(domain_function);
+            self.insert_domain_function(&domain_name, domain_function)?;
         }
         Ok(())
     }
