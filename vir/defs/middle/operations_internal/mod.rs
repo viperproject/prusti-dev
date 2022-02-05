@@ -1,4 +1,5 @@
 copy_module!(crate::high::operations_internal::expression);
+copy_module!(crate::high::operations_internal::graphviz);
 copy_module!(crate::high::operations_internal::statement);
 pub mod identifier;
 copy_module!(crate::high::operations_internal::predicate);

@@ -1,73 +1,12 @@
-use std::{
-    collections::{BTreeMap, BTreeSet},
-    io::Write,
-};
+use super::graph::{Edge, EdgeKind, Graph, HeaderRow, Node, Row, Table};
+use std::io::Write;
 
-use super::{
-    builders::{NodeBuilder, TableBuilder},
-    to_text::ToText,
-};
-
-pub(in super::super) struct Graph {
-    pub(super) column_names: Vec<String>,
-    pub(super) nodes: Vec<Node>,
-    pub(super) edges: Vec<Edge>,
-    pub(super) exit_targets: BTreeSet<String>,
-    pub(super) tables: Vec<Table>,
-}
-
-pub(super) struct Node {
-    pub(super) node_id: String,
-    pub(super) rows: Vec<Row>,
-}
-
-pub(super) enum EdgeKind {
-    Normal,
-    Unwind,
-    Imaginary,
-}
-
-pub(super) struct Edge {
-    source: String,
-    target: String,
-    kind: EdgeKind,
-}
-
-pub(super) enum Row {
-    Map(BTreeMap<String, String>),
-    Seq(Vec<String>),
-    Single(String),
-}
-
-pub(super) struct HeaderRow {
-    pub(super) column_names: Vec<String>,
-}
-
-pub(super) struct Table {
-    pub(super) table_name: String,
-    pub(super) header: HeaderRow,
-    pub(super) rows: Vec<Row>,
-}
-
-fn to_string_vector(slice: &[&str]) -> Vec<String> {
-    slice.iter().map(|s| s.to_text()).collect()
-}
-
-fn create_node_id<S: ToText>(node_id: &S) -> String {
-    format!("node{}", node_id.to_text())
+fn create_node_id(node_id: &str) -> String {
+    format!("node{}", node_id)
 }
 
 impl Graph {
-    pub(in super::super) fn with_columns(column_names: &[&str]) -> Self {
-        Self {
-            column_names: to_string_vector(column_names),
-            nodes: Default::default(),
-            edges: Default::default(),
-            exit_targets: Default::default(),
-            tables: Default::default(),
-        }
-    }
-    pub(in super::super) fn write(&self, writer: &mut dyn Write) -> std::io::Result<()> {
+    pub fn write(&self, writer: &mut dyn Write) -> std::io::Result<()> {
         writeln!(writer, "digraph CFG {{")?;
         writeln!(writer, "graph [fontname=monospace];")?;
         writeln!(writer, "node [fontname=monospace];")?;
@@ -91,68 +30,6 @@ impl Graph {
         }
         writeln!(writer, "}}")?;
         Ok(())
-    }
-    pub(in super::super) fn create_table<'a>(
-        &'a mut self,
-        table_name: &str,
-        column_names: &[&str],
-    ) -> TableBuilder<'a> {
-        TableBuilder {
-            graph: self,
-            table_name: table_name.to_string(),
-            header: HeaderRow {
-                column_names: to_string_vector(column_names),
-            },
-            rows: Vec::new(),
-        }
-    }
-    pub(in super::super) fn create_node<S: ToText>(&mut self, node_id: S) -> NodeBuilder<'_> {
-        NodeBuilder {
-            graph: self,
-            node_id: node_id.to_text(),
-            rows: Vec::new(),
-        }
-    }
-    pub(in super::super) fn add_regular_edge<S1: ToText, S2: ToText>(
-        &mut self,
-        source: &S1,
-        target: &S2,
-    ) {
-        self.edges.push(Edge {
-            source: source.to_text(),
-            target: target.to_text(),
-            kind: EdgeKind::Normal,
-        })
-    }
-    pub(in super::super) fn add_unwind_edge<S1: ToText, S2: ToText>(
-        &mut self,
-        source: &S1,
-        target: &S2,
-    ) {
-        self.edges.push(Edge {
-            source: source.to_text(),
-            target: target.to_text(),
-            kind: EdgeKind::Unwind,
-        })
-    }
-    pub(in super::super) fn add_imaginary_edge<S1: ToText, S2: ToText>(
-        &mut self,
-        source: &S1,
-        target: &S2,
-    ) {
-        self.edges.push(Edge {
-            source: source.to_text(),
-            target: target.to_text(),
-            kind: EdgeKind::Imaginary,
-        })
-    }
-    pub(in super::super) fn add_exit_edge<S1: ToText>(&mut self, source: &S1, target: &str) {
-        self.exit_targets.insert(target.to_text());
-        self.edges.push(Edge {
-            source: source.to_text(),
-            target: target.to_text(),
-            kind: EdgeKind::Normal,
-        })
     }
 }
 
@@ -196,22 +73,22 @@ impl Row {
             Row::Single(value) => {
                 write!(
                     writer,
-                    "<td colspan=\"{}\">{}</td>",
+                    "<td colspan=\"{}\" align=\"left\">{}</td>",
                     column_names.len(),
                     value
                 )?;
             }
             Row::Seq(values) => {
                 for value in values {
-                    write!(writer, "<td>{}</td>", value)?;
+                    write!(writer, "<td align=\"left\">{}</td>", value)?;
                 }
             }
             Row::Map(values) => {
                 for column in column_names {
                     if let Some(value) = values.get(column) {
-                        write!(writer, "<td>{}</td>", value)?;
+                        write!(writer, "<td align=\"left\">{}</td>", value)?;
                     } else {
-                        write!(writer, "<td>n/a</td>")?;
+                        write!(writer, "<td align=\"left\">n/a</td>")?;
                     }
                 }
             }
@@ -225,11 +102,15 @@ impl Node {
     fn write(&self, column_names: &[String], writer: &mut dyn Write) -> std::io::Result<()> {
         writeln!(writer, "{} [", create_node_id(&self.node_id))?;
         writeln!(writer, "  shape = \"record\"")?;
-        writeln!(writer, "  label =<<table>")?;
         writeln!(
             writer,
-            "    <tr><td colspan=\"{}\">{}</td></tr>",
+            "  label =<<table border=\"0\" cellborder=\"0\" cellspacing=\"0\">"
+        )?;
+        writeln!(
+            writer,
+            "    <tr><td colspan=\"{}\" {}>{}</td></tr>",
             column_names.len(),
+            self.node_id_style,
             self.node_id
         )?;
         write!(writer, "    <tr>")?;
