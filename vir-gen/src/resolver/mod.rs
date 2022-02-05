@@ -30,6 +30,9 @@ struct Expander<'a> {
 }
 
 impl<'a> Expander<'a> {
+    fn register_error(&mut self, error: syn::Error) {
+        self.errors.push(error);
+    }
     fn expand_include(&mut self, items: &mut Vec<syn::Item>, include: Include) -> syn::Result<()> {
         let module = self.find_component(&include.path)?;
         for imported_type in include.imported_types {
@@ -240,7 +243,7 @@ impl<'a> Fold for Expander<'a> {
                                 }
                             }
                             Err(error) => {
-                                self.errors.push(error);
+                                self.register_error(error);
                             }
                         }
                     }
@@ -259,11 +262,11 @@ impl<'a> Fold for Expander<'a> {
                         match syn::parse2::<Include>(macro_item.mac.tokens) {
                             Ok(include) => {
                                 if let Err(error) = self.expand_include(&mut new_content, include) {
-                                    self.errors.push(error);
+                                    self.register_error(error);
                                 }
                             }
                             Err(error) => {
-                                self.errors.push(error);
+                                self.register_error(error);
                             }
                         }
                     }
@@ -273,11 +276,11 @@ impl<'a> Fold for Expander<'a> {
                                 if let Err(error) =
                                     self.expand_copy_module(&mut new_content, copy_from)
                                 {
-                                    self.errors.push(error);
+                                    self.register_error(error);
                                 }
                             }
                             Err(error) => {
-                                self.errors.push(error);
+                                self.register_error(error);
                             }
                         }
                     }

@@ -1,4 +1,4 @@
-// compile-flags: -Ponly_lifetimes_core=true
+// compile-flags: -Punsafe_core_proof=true
 
 use prusti_contracts::*;
 

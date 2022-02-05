@@ -131,18 +131,27 @@ impl Edge {
     fn write(&self, writer: &mut dyn Write) -> std::io::Result<()> {
         let source = create_node_id(&self.source);
         let target = create_node_id(&self.target);
+        let annotation = if let Some(annotation) = &self.annotation {
+            format!("label=\"{}\"", annotation)
+        } else {
+            "".to_string()
+        };
         match self.kind {
             EdgeKind::Normal => {
-                writeln!(writer, "\"{}\" -> \"{}\"", source, target)?;
+                writeln!(writer, "\"{}\" -> \"{}\" [{}]", source, target, annotation)?;
             }
             EdgeKind::Unwind => {
-                writeln!(writer, "\"{}\" -> \"{}\" [color=red]", source, target)?;
+                writeln!(
+                    writer,
+                    "\"{}\" -> \"{}\" [color=red {}]",
+                    source, target, annotation
+                )?;
             }
             EdgeKind::Imaginary => {
                 writeln!(
                     writer,
-                    "\"{}\" -> \"{}\" [style=\"dashed\"]",
-                    source, target
+                    "\"{}\" -> \"{}\" [style=\"dashed\" {}]",
+                    source, target, annotation
                 )?;
             }
         };

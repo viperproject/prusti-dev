@@ -1,6 +1,6 @@
 use super::Visitor;
 use vir_crate::{
-    common::graphviz::{Graph, NodeBuilder},
+    common::graphviz::{escape_html, Graph, NodeBuilder},
     middle::{self as vir_mid},
 };
 
@@ -9,7 +9,10 @@ impl<'p, 'v, 'tcx> Visitor<'p, 'v, 'tcx> {
         let mut graph = Graph::with_columns(&["statement"]);
         for (label, block) in &self.basic_blocks {
             let mut node_builder = self.create_node_builder(label, &mut graph);
+            self.render_state_at_entry(label, &mut node_builder);
             self.render_block(label, block, &mut node_builder);
+            self.render_state_at_crash(label, &mut node_builder);
+            self.render_state_at_exit(label, &mut node_builder);
             node_builder.build();
             self.render_successor(label, &block.successor, &mut graph);
         }
@@ -44,9 +47,9 @@ impl<'p, 'v, 'tcx> Visitor<'p, 'v, 'tcx> {
         for statement in &block.statements {
             let statement_string = match statement {
                 vir_mid::Statement::Comment(statement) => {
-                    format!("<font color=\"orange\">{}</font>", statement)
+                    format!("<font color=\"orange\">{}</font>", escape_html(statement))
                 }
-                _ => statement.to_string(),
+                _ => escape_html(statement.to_string()),
             };
             node_builder.add_row_sequence(vec![statement_string]);
         }
@@ -57,6 +60,27 @@ impl<'p, 'v, 'tcx> Visitor<'p, 'v, 'tcx> {
             }
         }
     }
+    fn render_state_at_entry(&self, label: &vir_mid::BasicBlockId, node_builder: &mut NodeBuilder) {
+        if let Some(state) = self.state_at_entry.get(label) {
+            node_builder.add_row_single(format!(
+                "<font color=\"brown\">{}</font>",
+                escape_html(state.debug_string())
+            ));
+        }
+    }
+    fn render_state_at_exit(&self, label: &vir_mid::BasicBlockId, node_builder: &mut NodeBuilder) {
+        if let Some(state) = self.state_at_exit.get(label) {
+            node_builder.add_row_single(format!(
+                "<font color=\"brown\">{}</font>",
+                escape_html(state.debug_string())
+            ));
+        }
+    }
+    fn render_state_at_crash(&self, label: &vir_mid::BasicBlockId, node_builder: &mut NodeBuilder) {
+        if self.is_crash_label(label) {
+            node_builder.add_row_single("<font color=\"red\">no state object</font>".to_string());
+        }
+    }
     fn render_successor(
         &self,
         label: &vir_mid::BasicBlockId,
@@ -64,15 +88,17 @@ impl<'p, 'v, 'tcx> Visitor<'p, 'v, 'tcx> {
         graph: &mut Graph,
     ) {
         match successor {
-            vir_mid::Successor::Return => {
-                graph.add_exit_edge(label.to_string(), "return".to_string())
-            }
+            vir_mid::Successor::Exit => graph.add_exit_edge(label.to_string(), "exit".to_string()),
             vir_mid::Successor::Goto(target) => {
                 graph.add_regular_edge(label.to_string(), target.to_string())
             }
             vir_mid::Successor::GotoSwitch(targets) => {
-                for (_, target) in targets {
-                    graph.add_regular_edge(label.to_string(), target.to_string());
+                for (condition, target) in targets {
+                    graph.add_regular_annotated_edge(
+                        label.to_string(),
+                        target.to_string(),
+                        condition.to_string(),
+                    );
                 }
             }
         }

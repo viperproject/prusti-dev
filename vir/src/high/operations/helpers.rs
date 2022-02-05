@@ -21,7 +21,7 @@ impl UnaryOperationHelpers for Expression {
 impl BinaryOperationHelpers for Expression {
     type BinaryOperationKind = BinaryOpKind;
     fn binary_operation(kind: Self::BinaryOperationKind, left: Self, right: Self) -> Self {
-        Self::BinOp(BinOp {
+        Self::BinaryOp(BinaryOp {
             op_kind: kind,
             left: Box::new(left),
             right: Box::new(right),

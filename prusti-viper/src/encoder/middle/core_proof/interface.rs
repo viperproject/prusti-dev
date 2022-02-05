@@ -17,7 +17,6 @@ pub(crate) trait MidCoreProofEncoderInterface<'tcx> {
 impl<'v, 'tcx: 'v> MidCoreProofEncoderInterface<'tcx> for super::super::super::Encoder<'v, 'tcx> {
     fn encode_lifetimes_core_proof(&mut self, proc_def_id: DefId) -> SpannedEncodingResult<()> {
         let procedure = self.encode_procedure_core_proof(proc_def_id)?;
-        eprintln!("procedure:\n{}", procedure);
         let super::lowerer::LoweringResult {
             procedure,
             domains,
@@ -33,7 +32,6 @@ impl<'v, 'tcx: 'v> MidCoreProofEncoderInterface<'tcx> for super::super::super::E
             functions,
             methods,
         };
-        eprintln!("lowered program:\n {}", program);
         self.mid_core_proof_encoder_state
             .encoded_programs
             .push(program);

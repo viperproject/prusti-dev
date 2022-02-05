@@ -60,6 +60,8 @@ pub(crate) enum CustomDerive {
     NewWithPos,
     PartialEq(CustomDeriveOptions),
     Hash(CustomDeriveOptions),
+    /// PartialOrd is automatically derived to call Ord.
+    Ord(CustomDeriveOptions),
     Other(syn::Path),
 }
 

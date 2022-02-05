@@ -6,20 +6,12 @@ use crate::common::display;
 use std::collections::BTreeMap;
 
 #[display(
-    fmt = "procedure {}({})\n    returns ({})\n{{\n{}}}",
+    fmt = "procedure {}\n{{\n{}}}",
     name,
-    "display::cjoin(parameters)",
-    "display::cjoin(returns)",
     "display::foreach2!(\"    label {}\n{}\", basic_blocks.keys(), basic_blocks.values())"
 )]
 pub struct ProcedureDecl {
     pub name: String,
-    /// We use `Local` instead of `VariableDecl` because we need to know
-    /// positions.
-    pub parameters: Vec<Local>,
-    /// We use `Local` instead of `VariableDecl` because we need to know
-    /// positions.
-    pub returns: Vec<Local>,
     pub entry: BasicBlockId,
     pub basic_blocks: BTreeMap<BasicBlockId, BasicBlock>,
 }
@@ -40,7 +32,7 @@ pub struct BasicBlock {
 }
 
 pub enum Successor {
-    Return,
+    Exit,
     Goto(BasicBlockId),
     #[display(fmt = "switch")]
     GotoSwitch(Vec<(Expression, BasicBlockId)>),

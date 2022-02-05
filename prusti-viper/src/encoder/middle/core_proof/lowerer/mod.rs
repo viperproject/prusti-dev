@@ -1,3 +1,5 @@
+use std::collections::BTreeMap;
+
 use self::{
     domains::DomainsLowererState, functions::FunctionsLowererState, methods::MethodsLowererState,
     predicates::PredicatesLowererState, variables::VariablesLowererState,
@@ -8,7 +10,8 @@ use super::{
     into_low::IntoLow,
     predicates_memory_block::PredicatesMemoryBlockState,
     predicates_owned::{PredicatesOwnedInterface, PredicatesOwnedState},
-    snapshots::SnapshotsState,
+    snapshots::{SnapshotsInterface, SnapshotsState},
+    types::TypesState,
 };
 use crate::encoder::{errors::SpannedEncodingResult, Encoder};
 
@@ -58,6 +61,7 @@ pub(super) struct Lowerer<'p, 'v: 'p, 'tcx: 'v> {
     pub(super) builtin_methods_state: BuiltinMethodsState,
     pub(super) compute_address_state: ComputeAddressState,
     pub(super) snapshots_state: SnapshotsState,
+    pub(super) types_state: TypesState,
 }
 
 impl<'p, 'v: 'p, 'tcx: 'v> Lowerer<'p, 'v, 'tcx> {
@@ -74,6 +78,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> Lowerer<'p, 'v, 'tcx> {
             builtin_methods_state: Default::default(),
             compute_address_state: Default::default(),
             snapshots_state: Default::default(),
+            types_state: Default::default(),
             predicates_owned_state: Default::default(),
         }
     }
@@ -81,22 +86,40 @@ impl<'p, 'v: 'p, 'tcx: 'v> Lowerer<'p, 'v, 'tcx> {
         mut self,
         mut procedure: vir_mid::ProcedureDecl,
     ) -> SpannedEncodingResult<LoweringResult> {
-        self.collect_existing_variables(&procedure)?;
-        let mut basic_blocks = Vec::new();
+        let mut basic_blocks_map = BTreeMap::new();
+        let predecessors = procedure.get_predecessors();
         let traversal_order = procedure.get_topological_sort();
         self.procedure_name = Some(procedure.name.clone());
-        for label in traversal_order {
-            let basic_block = procedure.basic_blocks.remove(&label).unwrap();
-            let mut statements = Vec::new();
+        let mut marker_initialisation = Vec::new();
+        for label in &traversal_order {
+            self.set_current_block_for_snapshots(label, &predecessors, &mut basic_blocks_map)?;
+            let basic_block = procedure.basic_blocks.remove(label).unwrap();
+            let marker = self.create_block_marker(label)?;
+            marker_initialisation.push(vir_low::Statement::assign_no_pos(
+                marker.clone(),
+                false.into(),
+            ));
+            let mut statements = vec![vir_low::Statement::assign_no_pos(marker, true.into())];
             for statement in basic_block.statements {
                 statements.extend(statement.into_low(&mut self)?);
             }
-            let block = vir_low::BasicBlock {
-                label: label.into_low(&mut self)?,
+            let successor = basic_block.successor.into_low(&mut self)?;
+            basic_blocks_map.insert(label.clone(), (statements, successor));
+            self.unset_current_block_for_snapshots(label.clone())?;
+        }
+        let (entry_block_statements, _) = basic_blocks_map.get_mut(&procedure.entry).unwrap();
+        std::mem::swap(entry_block_statements, &mut marker_initialisation);
+        entry_block_statements.extend(marker_initialisation);
+
+        let mut basic_blocks = Vec::new();
+        for label in traversal_order {
+            let (statements, successor) = basic_blocks_map.remove(&label).unwrap();
+            let label = label.into_low(&mut self)?;
+            basic_blocks.push(vir_low::BasicBlock {
+                label,
                 statements,
-                successor: basic_block.successor.into_low(&mut self)?,
-            };
-            basic_blocks.push(block);
+                successor,
+            });
         }
         let mut predicates = self.collect_owned_predicate_decls()?;
         let mut domains = self.domains_state.destruct();
@@ -123,5 +146,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> Lowerer<'p, 'v, 'tcx> {
                 vir_low::VariableDecl::new(format!("_{}", index), arg.get_type().clone())
             })
             .collect()
+    }
+
+    fn create_block_marker(
+        &mut self,
+        label: &vir_mid::BasicBlockId,
+    ) -> SpannedEncodingResult<vir_low::VariableDecl> {
+        self.create_variable(format!("{}$marker", label), vir_low::Type::Bool)
     }
 }

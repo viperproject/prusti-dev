@@ -175,7 +175,7 @@ impl Typed for Expression {
             Expression::LabelledOld(expression) => expression.get_type(),
             Expression::Constant(expression) => expression.get_type(),
             Expression::UnaryOp(expression) => expression.get_type(),
-            Expression::BinOp(expression) => expression.get_type(),
+            Expression::BinaryOp(expression) => expression.get_type(),
             Expression::ContainerOp(expression) => expression.get_type(),
             Expression::Seq(expression) => expression.get_type(),
             Expression::Conditional(expression) => expression.get_type(),
@@ -196,7 +196,7 @@ impl Typed for Expression {
             Expression::LabelledOld(expression) => expression.set_type(new_type),
             Expression::Constant(expression) => expression.set_type(new_type),
             Expression::UnaryOp(expression) => expression.set_type(new_type),
-            Expression::BinOp(expression) => expression.set_type(new_type),
+            Expression::BinaryOp(expression) => expression.set_type(new_type),
             Expression::ContainerOp(expression) => expression.set_type(new_type),
             Expression::Seq(expression) => expression.set_type(new_type),
             Expression::Conditional(expression) => expression.set_type(new_type),
@@ -288,7 +288,7 @@ impl Typed for UnaryOp {
     }
 }
 
-impl Typed for BinOp {
+impl Typed for BinaryOp {
     fn get_type(&self) -> &Type {
         match self.op_kind {
             BinaryOpKind::EqCmp
