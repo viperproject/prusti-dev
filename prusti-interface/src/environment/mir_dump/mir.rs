@@ -29,13 +29,13 @@ pub(super) fn populate_graph(env: &Environment<'_>, def_id: DefId) -> Option<Gra
 
         let mut opaque_lifetimes_table = graph.create_table("Opaque lifetimes", &["lifetime"]);
         for lifetime in lifetimes.get_opaque_lifetimes_with_inclusions() {
-            opaque_lifetimes_table.add_row(vec![lifetime]);
+            opaque_lifetimes_table.add_row(vec![lifetime.to_text()]);
         }
         opaque_lifetimes_table.build();
 
         let mut original_lifetimes_table = graph.create_table("Original lifetimes", &["lifetime"]);
         for lifetime in lifetimes.get_original_lifetimes() {
-            original_lifetimes_table.add_row(vec![lifetime]);
+            original_lifetimes_table.add_row(vec![lifetime.to_text()]);
         }
         original_lifetimes_table.build();
 
@@ -76,7 +76,7 @@ fn visit_basic_block(
     bb: mir::BasicBlock,
     lifetimes: &Lifetimes,
 ) {
-    let mut node_builder = graph.create_node(bb);
+    let mut node_builder = graph.create_node(bb.to_text());
     let mir::BasicBlockData {
         statements,
         terminator,
@@ -97,7 +97,7 @@ fn visit_basic_block(
         location.statement_index += 1;
     }
     if let Some(terminator) = terminator {
-        node_builder.add_value_row(terminator);
+        node_builder.add_row_single(terminator.to_text());
     }
     node_builder.build();
     if let Some(terminator) = terminator {
@@ -126,34 +126,34 @@ fn visit_statement(
         lifetimes.get_origin_contains_loan_at(RichLocation::Mid(location));
 
     let mut row_builder_start = node_builder.create_row();
-    row_builder_start.set("location", &location);
-    row_builder_start.set("statement", statement);
-    row_builder_start.set("subset_base", &subset_base_start);
-    row_builder_start.set("subset", &subset_start);
-    row_builder_start.set("origin_live_on_entry", &origin_live_on_entry_start);
+    row_builder_start.set("location", location.to_text());
+    row_builder_start.set("statement", statement.to_text());
+    row_builder_start.set("subset_base", subset_base_start.to_text());
+    row_builder_start.set("subset", subset_start.to_text());
+    row_builder_start.set("origin_live_on_entry", origin_live_on_entry_start.to_text());
     row_builder_start.set(
         "original lifetimes",
-        &super::graphviz::loans_to_text(&loan_live_at_start),
+        super::graphviz::loans_to_text(&loan_live_at_start),
     );
     row_builder_start.set(
         "derived lifetimes",
-        &super::graphviz::loan_containment_to_text(&origin_contains_loan_at_start),
+        super::graphviz::loan_containment_to_text(&origin_contains_loan_at_start),
     );
     row_builder_start.build();
 
     let mut row_builder_end = node_builder.create_row();
-    row_builder_end.set("location", "");
-    row_builder_end.set("statement", "");
-    row_builder_end.set("subset_base", &subset_base_mid);
-    row_builder_end.set("subset", &subset_mid);
-    row_builder_end.set("origin_live_on_entry", &origin_live_on_entry_mid);
+    row_builder_end.set("location", "".to_text());
+    row_builder_end.set("statement", "".to_text());
+    row_builder_end.set("subset_base", subset_base_mid.to_text());
+    row_builder_end.set("subset", subset_mid.to_text());
+    row_builder_end.set("origin_live_on_entry", origin_live_on_entry_mid.to_text());
     row_builder_end.set(
         "original lifetimes",
-        &super::graphviz::loans_to_text(&loan_live_at_mid),
+        super::graphviz::loans_to_text(&loan_live_at_mid),
     );
     row_builder_end.set(
         "derived lifetimes",
-        &super::graphviz::loan_containment_to_text(&origin_contains_loan_at_mid),
+        super::graphviz::loan_containment_to_text(&origin_contains_loan_at_mid),
     );
     row_builder_end.build();
 }
@@ -163,30 +163,30 @@ fn visit_terminator(graph: &mut Graph, bb: mir::BasicBlock, terminator: &mir::Te
     let bb = &bb;
     match &terminator.kind {
         TerminatorKind::Goto { target } => {
-            graph.add_regular_edge(bb, target);
+            graph.add_regular_edge(bb.to_text(), target.to_text());
         }
         TerminatorKind::SwitchInt { ref targets, .. } => {
             for target in targets.all_targets() {
-                graph.add_regular_edge(bb, target);
+                graph.add_regular_edge(bb.to_text(), target.to_text());
             }
         }
         TerminatorKind::Resume => {
-            graph.add_exit_edge(bb, "resume");
+            graph.add_exit_edge(bb.to_text(), "resume".to_text());
         }
         TerminatorKind::Abort => {
-            graph.add_exit_edge(bb, "abort");
+            graph.add_exit_edge(bb.to_text(), "abort".to_text());
         }
         TerminatorKind::Return => {
-            graph.add_exit_edge(bb, "return");
+            graph.add_exit_edge(bb.to_text(), "return".to_text());
         }
         TerminatorKind::Unreachable => {
-            graph.add_exit_edge(bb, "unreachable");
+            graph.add_exit_edge(bb.to_text(), "unreachable".to_text());
         }
         TerminatorKind::DropAndReplace { target, unwind, .. }
         | TerminatorKind::Drop { target, unwind, .. } => {
-            graph.add_regular_edge(bb, target);
+            graph.add_regular_edge(bb.to_text(), target.to_text());
             if let Some(target) = unwind {
-                graph.add_unwind_edge(bb, target);
+                graph.add_unwind_edge(bb.to_text(), target.to_text());
             }
         }
         TerminatorKind::Call {
@@ -195,44 +195,44 @@ fn visit_terminator(graph: &mut Graph, bb: mir::BasicBlock, terminator: &mir::Te
             ..
         } => {
             if let Some((_, target)) = destination {
-                graph.add_regular_edge(bb, target);
+                graph.add_regular_edge(bb.to_text(), target.to_text());
             }
             if let Some(target) = cleanup {
-                graph.add_unwind_edge(bb, target);
+                graph.add_unwind_edge(bb.to_text(), target.to_text());
             }
         }
         TerminatorKind::Assert {
             target, cleanup, ..
         } => {
-            graph.add_regular_edge(bb, target);
+            graph.add_regular_edge(bb.to_text(), target.to_text());
             if let Some(target) = cleanup {
-                graph.add_unwind_edge(bb, target);
+                graph.add_unwind_edge(bb.to_text(), target.to_text());
             }
         }
         TerminatorKind::Yield { .. } => {
-            graph.add_exit_edge(bb, "yield");
+            graph.add_exit_edge(bb.to_text(), "yield".to_text());
         }
         TerminatorKind::GeneratorDrop => {
-            graph.add_exit_edge(bb, "generator_drop");
+            graph.add_exit_edge(bb.to_text(), "generator_drop".to_text());
         }
         TerminatorKind::FalseEdge {
             real_target,
             imaginary_target,
         } => {
-            graph.add_regular_edge(bb, real_target);
-            graph.add_imaginary_edge(bb, imaginary_target);
+            graph.add_regular_edge(bb.to_text(), real_target.to_text());
+            graph.add_imaginary_edge(bb.to_text(), imaginary_target.to_text());
         }
         TerminatorKind::FalseUnwind {
             real_target,
             unwind,
         } => {
-            graph.add_regular_edge(bb, real_target);
+            graph.add_regular_edge(bb.to_text(), real_target.to_text());
             if let Some(imaginary_target) = unwind {
-                graph.add_imaginary_edge(bb, imaginary_target);
+                graph.add_imaginary_edge(bb.to_text(), imaginary_target.to_text());
             }
         }
         TerminatorKind::InlineAsm { .. } => {
-            graph.add_exit_edge(bb, "inline_asm");
+            graph.add_exit_edge(bb.to_text(), "inline_asm".to_text());
         }
     };
 }
