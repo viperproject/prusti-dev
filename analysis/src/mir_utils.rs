@@ -17,6 +17,45 @@ use rustc_middle::{
 use rustc_trait_selection::infer::InferCtxtExt;
 use std::mem;
 
+#[repr(transparent)]
+#[derive(Clone, Copy, Eq, PartialEq, derive_more::From, Hash)]
+/// A wrapper for `mir::Place` that implements `Ord`.
+pub struct Place<'tcx>(mir::Place<'tcx>);
+
+impl<'tcx> From<mir::Local> for Place<'tcx> {
+    fn from(local: mir::Local) -> Self {
+        Self(local.into())
+    }
+}
+
+impl<'tcx> PartialOrd for Place<'tcx> {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+impl<'tcx> Ord for Place<'tcx> {
+    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+        self.0
+            .local
+            .cmp(&other.0.local)
+            .then(self.0.projection.cmp(other.0.projection))
+    }
+}
+
+impl<'tcx> std::fmt::Debug for Place<'tcx> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        self.0.fmt(f)
+    }
+}
+
+impl<'tcx> std::ops::Deref for Place<'tcx> {
+    type Target = mir::Place<'tcx>;
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
 /// Convert a `location` to a string representing the statement or terminator at that `location`
 pub fn location_to_stmt_str(location: mir::Location, mir: &mir::Body) -> String {
     let bb_mir = &mir[location.block];
@@ -35,7 +74,7 @@ pub fn location_to_stmt_str(location: mir::Location, mir: &mir::Body) -> String 
 /// +   `is_prefix(x.f, x.f) == true`
 /// +   `is_prefix(x.f.g, x.f) == true`
 /// +   `is_prefix(x.f, x.f.g) == false`
-pub(crate) fn is_prefix(place: mir::Place, potential_prefix: mir::Place) -> bool {
+pub(crate) fn is_prefix(place: Place, potential_prefix: Place) -> bool {
     if place.local != potential_prefix.local
         || place.projection.len() < potential_prefix.projection.len()
     {
@@ -54,11 +93,11 @@ pub(crate) fn is_prefix(place: mir::Place, potential_prefix: mir::Place) -> bool
 /// `without_field` is not `None`, then omits that field from the final
 /// vector.
 pub(crate) fn expand_struct_place<'tcx>(
-    place: mir::Place<'tcx>,
+    place: Place<'tcx>,
     mir: &mir::Body<'tcx>,
     tcx: TyCtxt<'tcx>,
     without_field: Option<usize>,
-) -> Vec<mir::Place<'tcx>> {
+) -> Vec<Place<'tcx>> {
     let mut places = Vec::new();
     let typ = place.ty(mir, tcx);
     if typ.variant_index.is_some() {
@@ -76,8 +115,8 @@ pub(crate) fn expand_struct_place<'tcx>(
                     if Some(index) != without_field {
                         let field = mir::Field::from_usize(index);
                         let field_place =
-                            tcx.mk_place_field(place, field, field_def.ty(tcx, substs));
-                        places.push(field_place);
+                            tcx.mk_place_field(*place, field, field_def.ty(tcx, substs));
+                        places.push(field_place.into());
                     }
                 }
             }
@@ -85,8 +124,8 @@ pub(crate) fn expand_struct_place<'tcx>(
                 for (index, arg) in slice.iter().enumerate() {
                     if Some(index) != without_field {
                         let field = mir::Field::from_usize(index);
-                        let field_place = tcx.mk_place_field(place, field, arg.expect_ty());
-                        places.push(field_place);
+                        let field_place = tcx.mk_place_field(*place, field, arg.expect_ty());
+                        places.push(field_place.into());
                     }
                 }
             }
@@ -95,7 +134,7 @@ pub(crate) fn expand_struct_place<'tcx>(
                     assert_eq!(without_field, 0, "References have only a single “field”.");
                 }
                 None => {
-                    places.push(tcx.mk_place_deref(place));
+                    places.push(tcx.mk_place_deref(*place).into());
                 }
             },
             ref ty => {
@@ -112,30 +151,32 @@ pub(crate) fn expand_struct_place<'tcx>(
 pub(crate) fn expand_one_level<'tcx>(
     mir: &mir::Body<'tcx>,
     tcx: TyCtxt<'tcx>,
-    current_place: mir::Place<'tcx>,
-    guide_place: mir::Place<'tcx>,
-) -> (mir::Place<'tcx>, Vec<mir::Place<'tcx>>) {
+    current_place: Place<'tcx>,
+    guide_place: Place<'tcx>,
+) -> (Place<'tcx>, Vec<Place<'tcx>>) {
     let index = current_place.projection.len();
     match guide_place.projection[index] {
         mir::ProjectionElem::Field(projected_field, field_ty) => {
             let places =
                 expand_struct_place(current_place, mir, tcx, Some(projected_field.index()));
-            let new_current_place = tcx.mk_place_field(current_place, projected_field, field_ty);
-            (new_current_place, places)
+            let new_current_place = tcx.mk_place_field(*current_place, projected_field, field_ty);
+            (new_current_place.into(), places)
         }
         mir::ProjectionElem::Downcast(_symbol, variant) => {
             let kind = &current_place.ty(mir, tcx).ty.kind();
             if let ty::TyKind::Adt(adt, _) = kind {
                 (
-                    tcx.mk_place_downcast(current_place, adt, variant),
+                    tcx.mk_place_downcast(*current_place, adt, variant).into(),
                     Vec::new(),
                 )
             } else {
                 unreachable!();
             }
         }
-        mir::ProjectionElem::Deref => (tcx.mk_place_deref(current_place), Vec::new()),
-        mir::ProjectionElem::Index(idx) => (tcx.mk_place_index(current_place, idx), Vec::new()),
+        mir::ProjectionElem::Deref => (tcx.mk_place_deref(*current_place).into(), Vec::new()),
+        mir::ProjectionElem::Index(idx) => {
+            (tcx.mk_place_index(*current_place, idx).into(), Vec::new())
+        }
         elem => {
             unimplemented!("elem = {:?}", elem);
         }
@@ -153,9 +194,9 @@ pub(crate) fn expand_one_level<'tcx>(
 pub(crate) fn expand<'tcx>(
     mir: &mir::Body<'tcx>,
     tcx: TyCtxt<'tcx>,
-    mut minuend: mir::Place<'tcx>,
-    subtrahend: mir::Place<'tcx>,
-) -> Vec<mir::Place<'tcx>> {
+    mut minuend: Place<'tcx>,
+    subtrahend: Place<'tcx>,
+) -> Vec<Place<'tcx>> {
     assert!(
         is_prefix(subtrahend, minuend),
         "The minuend must be the prefix of the subtrahend."
@@ -186,15 +227,15 @@ pub(crate) fn expand<'tcx>(
 pub(crate) fn collapse<'tcx>(
     mir: &mir::Body<'tcx>,
     tcx: TyCtxt<'tcx>,
-    places: &mut FxHashSet<mir::Place<'tcx>>,
-    guide_place: mir::Place<'tcx>,
+    places: &mut FxHashSet<Place<'tcx>>,
+    guide_place: Place<'tcx>,
 ) {
     fn recurse<'tcx>(
         mir: &mir::Body<'tcx>,
         tcx: TyCtxt<'tcx>,
-        places: &mut FxHashSet<mir::Place<'tcx>>,
-        current_place: mir::Place<'tcx>,
-        guide_place: mir::Place<'tcx>,
+        places: &mut FxHashSet<Place<'tcx>>,
+        current_place: Place<'tcx>,
+        guide_place: Place<'tcx>,
     ) {
         if current_place != guide_place {
             let (new_current_place, mut expansion) =
@@ -216,8 +257,8 @@ pub(crate) fn collapse<'tcx>(
 pub fn remove_place_from_set<'tcx>(
     body: &mir::Body<'tcx>,
     tcx: TyCtxt<'tcx>,
-    to_remove: mir::Place<'tcx>,
-    set: &mut FxHashSet<mir::Place<'tcx>>,
+    to_remove: Place<'tcx>,
+    set: &mut FxHashSet<Place<'tcx>>,
 ) {
     let old_set = mem::take(set);
     for old_place in old_set {
@@ -258,17 +299,18 @@ pub fn is_copy<'tcx>(
     }
 }
 
-pub fn get_blocked_place<'tcx>(tcx: TyCtxt<'tcx>, borrowed: mir::Place<'tcx>) -> mir::Place<'tcx> {
+pub fn get_blocked_place<'tcx>(tcx: TyCtxt<'tcx>, borrowed: Place<'tcx>) -> Place<'tcx> {
     for (place_ref, place_elem) in borrowed.iter_projections() {
         match place_elem {
             mir::ProjectionElem::Deref
             | mir::ProjectionElem::Index(..)
             | mir::ProjectionElem::ConstantIndex { .. }
             | mir::ProjectionElem::Subslice { .. } => {
-                return mir::Place {
+                return (mir::Place {
                     local: place_ref.local,
                     projection: tcx.intern_place_elems(place_ref.projection),
-                };
+                })
+                .into();
             }
             mir::ProjectionElem::Field(..) | mir::ProjectionElem::Downcast(..) => {
                 // Continue

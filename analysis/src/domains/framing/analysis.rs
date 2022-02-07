@@ -101,12 +101,13 @@ impl<'mir, 'tcx: 'mir> Visitor<'tcx> for ComputeFramingState<'mir, 'tcx> {
         context: PlaceContext,
         _location: mir::Location,
     ) {
+        let place = (*place).into();
         match context {
             PlaceContext::NonMutatingUse(NonMutatingUseContext::UniqueBorrow) => todo!(),
             PlaceContext::MutatingUse(_)
             | PlaceContext::NonMutatingUse(NonMutatingUseContext::Move) => {
                 // No permission can be framed
-                let blocked_place = get_blocked_place(self.tcx, *place);
+                let blocked_place = get_blocked_place(self.tcx, place);
                 remove_place_from_set(
                     self.body,
                     self.tcx,
@@ -122,7 +123,7 @@ impl<'mir, 'tcx: 'mir> Visitor<'tcx> for ComputeFramingState<'mir, 'tcx> {
             }
             PlaceContext::NonMutatingUse(_) => {
                 // Read permission can be framed
-                let frozen_place = get_blocked_place(self.tcx, *place);
+                let frozen_place = get_blocked_place(self.tcx, place);
                 remove_place_from_set(
                     self.body,
                     self.tcx,
