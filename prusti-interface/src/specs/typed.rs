@@ -1,13 +1,13 @@
 use prusti_specs::specifications::common;
-use rustc_hir::BodyId;
+
 use rustc_hir::def_id::{DefId, LocalDefId};
-use rustc_middle::{mir, ty::{self, TyCtxt}};
-use rustc_span::Span;
+
+
 use std::collections::HashMap;
 
 pub use common::{SpecType, SpecificationId, SpecIdRef};
-use crate::data::ProcedureDefId;
-use crate::environment::Environment;
+
+
 
 #[derive(Debug, Clone)]
 pub enum SpecificationSet {

@@ -1,16 +1,16 @@
 use rustc_ast::ast;
-use rustc_hir::{intravisit, ItemKind};
+use rustc_hir::{intravisit};
 use rustc_middle::hir::map::Map;
 use rustc_middle::ty::TyCtxt;
 use rustc_span::{Span, MultiSpan};
-use rustc_span::symbol::Symbol;
+
 use rustc_hir::def_id::{DefId, LocalDefId};
 use std::collections::HashMap;
 use std::convert::TryInto;
 use crate::environment::Environment;
 use crate::PrustiError;
 use crate::utils::{
-    has_spec_only_attr, has_extern_spec_attr, read_prusti_attr, read_prusti_attrs, has_prusti_attr
+    has_extern_spec_attr, read_prusti_attr, read_prusti_attrs, has_prusti_attr
 };
 use log::debug;
 
@@ -19,7 +19,7 @@ pub mod typed;
 pub mod checker;
 
 use typed::SpecIdRef;
-use std::fmt;
+
 use crate::specs::external::ExternSpecResolver;
 use prusti_specs::specifications::common::SpecificationId;
 

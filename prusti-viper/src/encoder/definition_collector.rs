@@ -3,16 +3,16 @@ use super::{
     snapshot::interface::SnapshotEncoderInterface,
     Encoder,
 };
-use crate::encoder::{high::types::HighTypeEncoderInterface, mir::types::MirTypeEncoderInterface};
+use crate::encoder::high::types::HighTypeEncoderInterface;
 use prusti_common::vir_local;
 use rustc_hash::{FxHashMap, FxHashSet};
 use rustc_span::Span;
-use std::hash::Hash;
+
 use vir_crate::{
     common::identifier::WithIdentifier,
     polymorphic::{
         self as vir, compute_identifier, ExprWalker, FallibleExprWalker, FallibleStmtWalker,
-        FunctionIdentifier, PredicateAccessPredicate, StmtWalker,
+        StmtWalker,
     },
 };
 

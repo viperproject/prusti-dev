@@ -144,7 +144,6 @@ macro_rules! vir_expr {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use crate::vir::polymorphic_vir::*;
 
     #[test]

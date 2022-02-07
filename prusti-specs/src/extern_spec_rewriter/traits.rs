@@ -1,12 +1,11 @@
 //! Encoding of external specs for traits
 use crate::parse_quote_spanned;
-use crate::specifications::common::NameGenerator;
+use crate::specifications::common::generate_struct_name_for_trait;
 use proc_macro2::TokenStream;
 use quote::{quote_spanned, ToTokens};
 use std::collections::HashMap;
 use syn::{parse_quote, spanned::Spanned};
 use super::common::*;
-
 
 type AssocTypesToGenericsMap<'a> = HashMap<&'a syn::Ident, syn::TypeParam>;
 
@@ -33,8 +32,6 @@ type AssocTypesToGenericsMap<'a> = HashMap<&'a syn::Ident, syn::TypeParam>;
 /// and a corresponding impl block with methods of `SomeTrait`.
 ///
 pub fn rewrite_extern_spec(item_trait: &syn::ItemTrait) -> syn::Result<TokenStream> {
-    validate_macro_usage(item_trait)?;
-
     let generated_struct = generate_new_struct(item_trait)?;
 
     let trait_impl = generated_struct.generate_impl()?;
@@ -45,23 +42,11 @@ pub fn rewrite_extern_spec(item_trait: &syn::ItemTrait) -> syn::Result<TokenStre
     })
 }
 
-/// Returns an error when the macro was used in a wrong way on the trait
-fn validate_macro_usage(item_trait: &syn::ItemTrait) -> syn::Result<()> {
-    // Where clause not supported
-    if item_trait.generics.where_clause.as_ref().is_some() {
-        let span = item_trait.generics.where_clause.as_ref().unwrap().span();
-        return Err(syn::Error::new(span, "Where clauses for extern traits specs are not supported"));
-    }
-
-    Ok(())
-}
-
 /// Responsible for generating a struct
 fn generate_new_struct(item_trait: &syn::ItemTrait) -> syn::Result<GeneratedStruct> {
     let trait_ident = &item_trait.ident;
 
-    let name_generator = NameGenerator::new();
-    let struct_name = name_generator.generate_struct_name_for_trait(item_trait);
+    let struct_name = generate_struct_name_for_trait(item_trait);
     let struct_ident = syn::Ident::new(&struct_name, item_trait.span());
 
     let mut new_struct: syn::ItemStruct = parse_quote_spanned! {item_trait.span()=>
@@ -82,7 +67,7 @@ fn generate_new_struct(item_trait: &syn::ItemTrait) -> syn::Result<GeneratedStru
 
     for &decl in associated_type_decls.iter() {
         if decl.default.is_some() {
-            return Err(syn::Error::new(decl.span(), "Defaults for an associated types in external trait specs are invalid"));
+            return Err(syn::Error::new(decl.span(), "Defaults for associated types in external trait specs are invalid"));
         }
     }
 
@@ -140,7 +125,7 @@ fn parse_trait_type_params(item_trait: &syn::ItemTrait) -> syn::Result<Vec<Provi
             if parameter.is_none() {
                 return Err(syn::Error::new(
                     type_param.span(),
-                    "Generics in external trait specs must be annotated with exactly one of #[generic] or #[concrete]"
+                    "Type parameters in external trait specs must be annotated with exactly one of #[generic] or #[concrete]"
                 ));
             }
             result.push(parameter.unwrap());
@@ -235,7 +220,7 @@ impl<'a> GeneratedStruct<'a> {
             #[prusti::extern_spec]
             #(#trait_method_attrs)*
             #[allow(unused)]
-            #trait_method_sig  {
+            #trait_method_sig {
                 #method_path ( #trait_method_inputs );
                 unimplemented!();
             }
@@ -247,7 +232,6 @@ fn get_associated_types(item_trait: &syn::ItemTrait) -> Vec<&syn::TraitItemType>
     let mut result = Vec::new();
     for trait_item in item_trait.items.iter() {
         if let syn::TraitItem::Type(assoc_type) = trait_item {
-            // TODO: How to handle associated types with defaults?
             result.push(assoc_type);
         }
     }

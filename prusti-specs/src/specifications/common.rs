@@ -96,49 +96,43 @@ impl SpecificationIdGenerator {
     }
 }
 
-pub(crate) struct NameGenerator {}
+pub(crate) fn generate_struct_name(item: &syn::ItemImpl) -> String {
+    let uuid = Uuid::new_v4().to_simple();
+    let name_ty = generate_name_for_type(&*item.self_ty).unwrap_or_default();
+    format!("PrustiStruct{}_{}", name_ty, uuid)
+}
 
-impl NameGenerator {
-    pub(crate) fn new() -> Self { Self { } }
-    pub(crate) fn generate_struct_name(&self, item: &syn::ItemImpl) -> Result<String, String> {
-        let name_ty = self.generate_name_for_type(&*item.self_ty)?;
-        let uuid = Uuid::new_v4().to_simple();
-        Ok(format!("PrustiStruct{}_{}", name_ty, uuid))
-    }
+pub(crate) fn generate_struct_name_for_trait(item: &syn::ItemTrait) -> String {
+    let uuid = Uuid::new_v4().to_simple();
+    format!("PrustiTrait{}_{}", item.ident, uuid)
+}
 
-    pub(crate) fn generate_struct_name_for_trait(&self, item: &syn::ItemTrait) -> String {
-        let uuid = Uuid::new_v4().to_simple();
-        format!("PrustiTrait{}_{}", item.ident, uuid)
-    }
+pub(crate) fn generate_mod_name(ident: &syn::Ident) -> String {
+    let uuid = Uuid::new_v4().to_simple();
+    format!("{}_{}", ident, uuid)
+}
 
-    pub(crate) fn generate_mod_name(&self, ident: &syn::Ident) -> String {
-        let uuid = Uuid::new_v4().to_simple();
-        format!("{}_{}", ident, uuid)
-    }
-
-    fn generate_name_for_type(&self, ty: &syn::Type) -> Result<String, String> {
-        Ok(match ty {
-            syn::Type::Path(ty_path) => {
-                ty_path.path.segments.iter()
-                    .map(|seg| seg.ident.to_string())
-                    .collect::<Vec<String>>()
-                    .join("")
-            },
-            syn::Type::Slice(ty_slice) => {
-                let ty = &*ty_slice.elem;
-                format!("Slice{}", self.generate_name_for_type(ty)?.as_str())
-            },
-            _ => {
-                return Err(format!("could not generate name for type {:?}", ty))
-            }
-        })
+fn generate_name_for_type(ty: &syn::Type) -> Option<String> {
+    match ty {
+        syn::Type::Path(ty_path) => {
+            Some(String::from_iter(ty_path.path.segments.iter()
+                .map(|seg| seg.ident.to_string())))
+        },
+        syn::Type::Slice(ty_slice) => {
+            let ty = &*ty_slice.elem;
+            Some(format!("Slice{}", generate_name_for_type(ty)?.as_str()))
+        },
+        _ => {
+            None
+        }
     }
 }
+
 
 #[cfg(test)]
 mod tests {
     mod name_generator {
-        use crate::specifications::common::NameGenerator;
+        use super::super::generate_struct_name;
         use regex::Regex;
 
         const PATTERN: &str = r#"(.*)([0-9a-fA-F]{32})"#;
@@ -147,8 +141,7 @@ mod tests {
         fn generate_name_for_slice() {
             let item: syn::ItemImpl = syn::parse_quote!{impl [i32] {}};
 
-            let name_generator = NameGenerator {};
-            let name = name_generator.generate_struct_name(&item).unwrap();
+            let name = generate_struct_name(&item).unwrap();
 
             assert_uuid_prefix("PrustiStructSlicei32_", &name);
         }
@@ -156,8 +149,7 @@ mod tests {
         #[test]
         fn generate_name_for_path() {
             let item: syn::ItemImpl = syn::parse_quote!{impl std::option::Option<i32> {}};
-            let name_generator = NameGenerator {};
-            let name = name_generator.generate_struct_name(&item).unwrap();
+            let name = generate_struct_name(&item).unwrap();
             assert_uuid_prefix("PrustiStructstdoptionOption_", &name);
         }
 

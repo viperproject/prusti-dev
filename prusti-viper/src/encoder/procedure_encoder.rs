@@ -5,9 +5,9 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use crate::encoder::borrows::ProcedureContract;
-use crate::encoder::builtin_encoder::{BuiltinMethodKind, BuiltinFunctionKind};
+use crate::encoder::builtin_encoder::{BuiltinMethodKind};
 use crate::encoder::errors::{
-    SpannedEncodingError, ErrorCtxt, PanicCause, EncodingError, WithSpan,
+    SpannedEncodingError, ErrorCtxt, EncodingError, WithSpan,
     EncodingResult, SpannedEncodingResult
 };
 use crate::encoder::foldunfold;
@@ -22,7 +22,6 @@ use crate::encoder::Encoder;
 use crate::encoder::snapshot::interface::SnapshotEncoderInterface;
 use prusti_common::{
     config,
-    report::log,
     utils::to_string::ToString,
     vir::{ToGraphViz, fixes::fix_ghost_vars},
     vir_local, vir_expr, vir_stmt
@@ -46,30 +45,21 @@ use prusti_interface::{
     },
 };
 use prusti_interface::utils;
-// use prusti_common::report::log;
-// use prusti_interface::specifications::*;
 use rustc_middle::mir::Mutability;
 use rustc_middle::mir;
-use rustc_middle::mir::{TerminatorKind, AssertKind};
-use rustc_middle::ty::{self, layout, layout::IntegerExt, ParamEnv};
+use rustc_middle::mir::{TerminatorKind};
+use rustc_middle::ty::{self, layout::IntegerExt, ParamEnv};
 use rustc_target::abi::Integer;
 use rustc_hir::def_id::LocalDefId;
-use rustc_index::vec::Idx;
-// use rustc_data_structures::indexed_vec::Idx;
-// use std;
 use rustc_hash::{FxHashMap, FxHashSet};
 use rustc_attr::IntType::SignedInt;
-// use syntax::codemap::{MultiSpan, Span};
 use rustc_span::{MultiSpan, Span};
 use prusti_interface::specs::typed;
 use ::log::{trace, debug};
-use std::borrow::Borrow as StdBorrow;
 use prusti_interface::environment::borrowck::regions::PlaceRegionsError;
 use crate::encoder::errors::EncodingErrorKind;
-use crate::encoder::snapshot;
 use std::convert::TryInto;
 use vir_crate::polymorphic::Float;
-use vir_crate::common::expression::ExpressionIterator;
 use crate::utils::is_reference;
 use crate::encoder::mir::pure::PureFunctionEncoderInterface;
 use crate::encoder::mir::types::MirTypeEncoderInterface;

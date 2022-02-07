@@ -1,8 +1,6 @@
 use super::super::lower::IntoPolymorphic;
 use vir_crate::{
     high::{self as vir_high},
-    low as vir_low,
-    low::operations::ToLow,
     polymorphic as vir_poly,
 };
 

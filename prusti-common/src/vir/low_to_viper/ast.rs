@@ -1,17 +1,14 @@
 use super::{ToViper, ToViperDecl};
 use viper::{self, AstFactory};
-use vir::{
-    legacy::RETURN_LABEL,
-    low::ast::{
-        expression::{self, Expression},
-        function::FunctionDecl,
-        position::Position,
-        predicate::PredicateDecl,
-        statement::{self, Statement},
-        ty::{BitVector, Float, Type},
-        variable::VariableDecl,
-        PermAmount,
-    },
+use vir::low::ast::{
+    expression::{self, Expression},
+    function::FunctionDecl,
+    position::Position,
+    predicate::PredicateDecl,
+    statement::{self, Statement},
+    ty::{BitVector, Float, Type},
+    variable::VariableDecl,
+    PermAmount,
 };
 
 impl<'a, 'v> ToViper<'v, viper::Predicate<'v>> for &'a PredicateDecl {
@@ -50,8 +47,12 @@ impl<'v> ToViper<'v, viper::Stmt<'v>> for Statement {
     fn to_viper(&self, ast: &AstFactory<'v>) -> viper::Stmt<'v> {
         match self {
             Statement::Comment(statement) => statement.to_viper(ast),
+            Statement::Assume(statement) => statement.to_viper(ast),
+            Statement::Assert(statement) => statement.to_viper(ast),
             Statement::Inhale(statement) => statement.to_viper(ast),
             Statement::Exhale(statement) => statement.to_viper(ast),
+            Statement::Fold(statement) => statement.to_viper(ast),
+            Statement::Unfold(statement) => statement.to_viper(ast),
             Statement::MethodCall(statement) => statement.to_viper(ast),
         }
     }
@@ -63,17 +64,69 @@ impl<'v> ToViper<'v, viper::Stmt<'v>> for statement::Comment {
     }
 }
 
+impl<'v> ToViper<'v, viper::Stmt<'v>> for statement::Assume {
+    fn to_viper(&self, ast: &AstFactory<'v>) -> viper::Stmt<'v> {
+        assert!(
+            !self.position.is_default(),
+            "Statement with default position: {}",
+            self
+        );
+        ast.inhale(self.expression.to_viper(ast), self.position.to_viper(ast))
+    }
+}
+
+impl<'v> ToViper<'v, viper::Stmt<'v>> for statement::Assert {
+    fn to_viper(&self, ast: &AstFactory<'v>) -> viper::Stmt<'v> {
+        assert!(
+            !self.position.is_default(),
+            "Statement with default position: {}",
+            self
+        );
+        ast.assert(self.expression.to_viper(ast), self.position.to_viper(ast))
+    }
+}
+
 impl<'v> ToViper<'v, viper::Stmt<'v>> for statement::Inhale {
     fn to_viper(&self, ast: &AstFactory<'v>) -> viper::Stmt<'v> {
-        // FIXME: assert!(!pos.is_default(), "stmt with default pos: {}", self);
+        assert!(
+            !self.position.is_default(),
+            "Statement with default position: {}",
+            self
+        );
         ast.inhale(self.expression.to_viper(ast), self.position.to_viper(ast))
     }
 }
 
 impl<'v> ToViper<'v, viper::Stmt<'v>> for statement::Exhale {
     fn to_viper(&self, ast: &AstFactory<'v>) -> viper::Stmt<'v> {
-        // FIXME: assert!(!pos.is_default(), "stmt with default pos: {}", self);
+        assert!(
+            !self.position.is_default(),
+            "Statement with default position: {}",
+            self
+        );
         ast.exhale(self.expression.to_viper(ast), self.position.to_viper(ast))
+    }
+}
+
+impl<'v> ToViper<'v, viper::Stmt<'v>> for statement::Fold {
+    fn to_viper(&self, ast: &AstFactory<'v>) -> viper::Stmt<'v> {
+        assert!(
+            !self.position.is_default(),
+            "Statement with default position: {}",
+            self
+        );
+        ast.fold_with_pos(self.expression.to_viper(ast), self.position.to_viper(ast))
+    }
+}
+
+impl<'v> ToViper<'v, viper::Stmt<'v>> for statement::Unfold {
+    fn to_viper(&self, ast: &AstFactory<'v>) -> viper::Stmt<'v> {
+        assert!(
+            !self.position.is_default(),
+            "Statement with default position: {}",
+            self
+        );
+        ast.unfold_with_pos(self.expression.to_viper(ast), self.position.to_viper(ast))
     }
 }
 
@@ -98,10 +151,23 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for Expression {
     fn to_viper(&self, ast: &AstFactory<'v>) -> viper::Expr<'v> {
         let expression = match self {
             Expression::Local(expression) => expression.to_viper(ast),
+            // Expression::Field(expression) => expression.to_viper(ast),
+            Expression::LabelledOld(expression) => expression.to_viper(ast),
             Expression::Constant(expression) => expression.to_viper(ast),
+            // Expression::MagicWand(expression) => expression.to_viper(ast),
             Expression::PredicateAccessPredicate(expression) => expression.to_viper(ast),
+            // Expression::FieldAccessPredicate(expression) => expression.to_viper(ast),
+            // Expression::Unfolding(expression) => expression.to_viper(ast),
+            // Expression::UnaryOp(expression) => expression.to_viper(ast),
+            Expression::BinOp(expression) => expression.to_viper(ast),
+            // Expression::ContainerOp(expression) => expression.to_viper(ast),
+            // Expression::Seq(expression) => expression.to_viper(ast),
+            // Expression::Conditional(expression) => expression.to_viper(ast),
+            Expression::Quantifier(expression) => expression.to_viper(ast),
+            // Expression::LetExpr(expression) => expression.to_viper(ast),
             Expression::FuncApp(expression) => expression.to_viper(ast),
             Expression::DomainFuncApp(expression) => expression.to_viper(ast),
+            // Expression::InhaleExhale(expression) => expression.to_viper(ast),
             x => unimplemented!("{:?}", x),
         };
         if crate::config::simplify_encoding() {
@@ -122,6 +188,16 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for expression::Local {
                 self.variable.ty.to_viper(ast),
                 self.position.to_viper(ast),
             )
+        }
+    }
+}
+
+impl<'v> ToViper<'v, viper::Expr<'v>> for expression::LabelledOld {
+    fn to_viper(&self, ast: &AstFactory<'v>) -> viper::Expr<'v> {
+        if let Some(label) = &self.label {
+            ast.labelled_old_with_pos(self.base.to_viper(ast), label, self.position.to_viper(ast))
+        } else {
+            ast.old(self.base.to_viper(ast))
         }
     }
 }
@@ -165,6 +241,110 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for expression::PredicateAccessPredicate {
             self.permission.to_viper(ast),
             self.position.to_viper(ast),
         )
+    }
+}
+
+impl<'v> ToViper<'v, viper::Expr<'v>> for expression::BinOp {
+    fn to_viper(&self, ast: &AstFactory<'v>) -> viper::Expr<'v> {
+        match self.op_kind {
+            expression::BinaryOpKind::EqCmp => ast.eq_cmp_with_pos(
+                self.left.to_viper(ast),
+                self.right.to_viper(ast),
+                self.position.to_viper(ast),
+            ),
+            expression::BinaryOpKind::NeCmp => ast.ne_cmp_with_pos(
+                self.left.to_viper(ast),
+                self.right.to_viper(ast),
+                self.position.to_viper(ast),
+            ),
+            expression::BinaryOpKind::GtCmp => ast.gt_cmp_with_pos(
+                self.left.to_viper(ast),
+                self.right.to_viper(ast),
+                self.position.to_viper(ast),
+            ),
+            expression::BinaryOpKind::GeCmp => ast.ge_cmp_with_pos(
+                self.left.to_viper(ast),
+                self.right.to_viper(ast),
+                self.position.to_viper(ast),
+            ),
+            expression::BinaryOpKind::LtCmp => ast.lt_cmp_with_pos(
+                self.left.to_viper(ast),
+                self.right.to_viper(ast),
+                self.position.to_viper(ast),
+            ),
+            expression::BinaryOpKind::LeCmp => ast.le_cmp_with_pos(
+                self.left.to_viper(ast),
+                self.right.to_viper(ast),
+                self.position.to_viper(ast),
+            ),
+            expression::BinaryOpKind::Add => ast.add_with_pos(
+                self.left.to_viper(ast),
+                self.right.to_viper(ast),
+                self.position.to_viper(ast),
+            ),
+            expression::BinaryOpKind::Sub => ast.sub_with_pos(
+                self.left.to_viper(ast),
+                self.right.to_viper(ast),
+                self.position.to_viper(ast),
+            ),
+            expression::BinaryOpKind::Mul => ast.mul_with_pos(
+                self.left.to_viper(ast),
+                self.right.to_viper(ast),
+                self.position.to_viper(ast),
+            ),
+            expression::BinaryOpKind::Div => ast.div_with_pos(
+                self.left.to_viper(ast),
+                self.right.to_viper(ast),
+                self.position.to_viper(ast),
+            ),
+            expression::BinaryOpKind::Mod => ast.module_with_pos(
+                self.left.to_viper(ast),
+                self.right.to_viper(ast),
+                self.position.to_viper(ast),
+            ),
+            expression::BinaryOpKind::And => ast.and_with_pos(
+                self.left.to_viper(ast),
+                self.right.to_viper(ast),
+                self.position.to_viper(ast),
+            ),
+            expression::BinaryOpKind::Or => ast.or_with_pos(
+                self.left.to_viper(ast),
+                self.right.to_viper(ast),
+                self.position.to_viper(ast),
+            ),
+            expression::BinaryOpKind::Implies => ast.implies_with_pos(
+                self.left.to_viper(ast),
+                self.right.to_viper(ast),
+                self.position.to_viper(ast),
+            ),
+        }
+    }
+}
+
+impl<'v> ToViper<'v, viper::Expr<'v>> for expression::Quantifier {
+    fn to_viper(&self, ast: &AstFactory<'v>) -> viper::Expr<'v> {
+        let variables = self.variables.to_viper_decl(ast);
+        let triggers = self
+            .triggers
+            .iter()
+            .map(|trigger| (trigger, self.position).to_viper(ast))
+            .collect::<Vec<_>>();
+        let body = self.body.to_viper(ast);
+        let pos = self.position.to_viper(ast);
+        match self.kind {
+            expression::QuantifierKind::ForAll => {
+                ast.forall_with_pos(&variables[..], &triggers, body, pos)
+            }
+            expression::QuantifierKind::Exists => {
+                ast.exists_with_pos(&variables[..], &triggers, body, pos)
+            }
+        }
+    }
+}
+
+impl<'v, 'a> ToViper<'v, viper::Trigger<'v>> for (&'a expression::Trigger, Position) {
+    fn to_viper(&self, ast: &AstFactory<'v>) -> viper::Trigger<'v> {
+        ast.trigger_with_pos(&self.0.terms.to_viper(ast)[..], self.1.to_viper(ast))
     }
 }
 

@@ -7,7 +7,7 @@
 use rustc_span::MultiSpan;
 use log::trace;
 use prusti_interface::PrustiError;
-use crate::encoder::errors::EncodingError;
+
 use crate::encoder::errors::EncodingErrorKind;
 use backtrace::Backtrace;
 

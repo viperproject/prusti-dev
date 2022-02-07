@@ -1,11 +1,11 @@
-use rustc_hir::intravisit::{Visitor, NestedVisitorMap, ErasedMap, walk_expr, FnKind};
+use rustc_hir::intravisit::{Visitor, NestedVisitorMap, walk_expr};
 use rustc_hir as hir;
 use rustc_middle::hir::map::Map;
 use crate::environment::Environment;
-use log::{trace, debug};
+use log::{trace};
 use rustc_hir::def_id::DefId;
-use rustc_span::Span;
-use rustc_middle::ty::TypeckResults;
+
+
 use crate::utils::has_spec_only_attr;
 
 pub struct CollectClosureDefsVisitor<'env, 'tcx: 'env> {

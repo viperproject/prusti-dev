@@ -10,6 +10,10 @@ pub enum Statement {
     Comment(Comment),
     Inhale(Inhale),
     Exhale(Exhale),
+    FoldOwned(FoldOwned),
+    UnfoldOwned(UnfoldOwned),
+    JoinBlock(JoinBlock),
+    SplitBlock(SplitBlock),
     MovePlace(MovePlace),
     CopyPlace(CopyPlace),
     WritePlace(WritePlace),
@@ -32,6 +36,34 @@ pub struct Inhale {
 /// Exhale the permission denoted by the place.
 pub struct Exhale {
     pub predicate: Predicate,
+    pub position: Position,
+}
+
+#[display(fmt = "fold {}", place)]
+/// Fold `OwnedNonAliased(place)`.
+pub struct FoldOwned {
+    pub place: Expression,
+    pub position: Position,
+}
+
+#[display(fmt = "unfold {}", place)]
+/// Unfold `OwnedNonAliased(place)`.
+pub struct UnfoldOwned {
+    pub place: Expression,
+    pub position: Position,
+}
+
+#[display(fmt = "join {}", place)]
+/// Join `MemoryBlock(place)`.
+pub struct JoinBlock {
+    pub place: Expression,
+    pub position: Position,
+}
+
+#[display(fmt = "split {}", place)]
+/// Split `MemoryBlock(place)`.
+pub struct SplitBlock {
+    pub place: Expression,
     pub position: Position,
 }
 

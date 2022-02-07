@@ -1,19 +1,11 @@
-use super::super::lower::IntoPolymorphic;
 use crate::encoder::{
-    encoder::SubstMap,
-    errors::{EncodingError, EncodingResult, SpannedEncodingResult, WithSpan},
+    errors::{EncodingError, EncodingResult, SpannedEncodingResult},
     mir::pure::PureFunctionEncoderInterface,
-    snapshot::interface::SnapshotEncoderInterface,
-    stub_function_encoder::StubFunctionEncoder,
 };
-use log::{debug, trace};
-use prusti_interface::{data::ProcedureDefId, environment::Environment};
-use rustc_hash::{FxHashMap, FxHashSet};
-use rustc_middle::ty::TyCtxt;
-use std::cell::{Ref, RefCell};
+
 use vir_crate::{
     high::{self as vir_high, operations::ty::Typed},
-    polymorphic as vir_poly,
+    middle::{self as vir_mid, operations::ToMiddleExpression},
 };
 
 pub(crate) trait HighPureFunctionEncoderInterface<'tcx> {
@@ -40,6 +32,19 @@ pub(crate) trait HighPureFunctionEncoderInterface<'tcx> {
         container: vir_high::Expression,
         target_container_type: vir_high::Type,
     ) -> EncodingResult<vir_high::Expression>;
+    fn get_pure_function_decl_high(
+        &self,
+        function_identifier: &str,
+    ) -> SpannedEncodingResult<std::rc::Rc<vir_high::FunctionDecl>>;
+    fn get_pure_function_specs_high(
+        &self,
+        function_identifier: &str,
+    ) -> SpannedEncodingResult<(Vec<vir_high::Expression>, Vec<vir_high::Expression>)>;
+    /// Returns preconditions and postconditions of the specified pure function.
+    fn get_pure_function_specs_mid(
+        &self,
+        function_identifier: &str,
+    ) -> SpannedEncodingResult<(Vec<vir_mid::Expression>, Vec<vir_mid::Expression>)>;
 }
 
 impl<'v, 'tcx: 'v> HighPureFunctionEncoderInterface<'tcx>
@@ -127,6 +132,34 @@ impl<'v, 'tcx: 'v> HighPureFunctionEncoderInterface<'tcx>
             vec![element_type.clone()],
             vec![container],
             target_container_type,
+        ))
+    }
+
+    fn get_pure_function_decl_high(
+        &self,
+        function_identifier: &str,
+    ) -> SpannedEncodingResult<std::rc::Rc<vir_high::FunctionDecl>> {
+        self.get_pure_function_decl_mir(function_identifier)
+    }
+
+    fn get_pure_function_specs_high(
+        &self,
+        function_identifier: &str,
+    ) -> SpannedEncodingResult<(Vec<vir_high::Expression>, Vec<vir_high::Expression>)> {
+        let function_decl = self.get_pure_function_decl_high(function_identifier)?;
+        let pres = function_decl.pres.clone();
+        let posts = function_decl.posts.clone();
+        Ok((pres, posts))
+    }
+
+    fn get_pure_function_specs_mid(
+        &self,
+        function_identifier: &str,
+    ) -> SpannedEncodingResult<(Vec<vir_mid::Expression>, Vec<vir_mid::Expression>)> {
+        let (pres, posts) = self.get_pure_function_specs_high(function_identifier)?;
+        Ok((
+            pres.to_middle_expression(self)?,
+            posts.to_middle_expression(self)?,
         ))
     }
 }

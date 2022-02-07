@@ -9,7 +9,7 @@ use crate::encoder::{
 };
 use log::debug;
 use rustc_hir::def_id::DefId;
-use rustc_middle::{mir, span_bug, ty};
+use rustc_middle::{mir, ty};
 use rustc_span::Span;
 use vir_crate::{
     common::expression::{BinaryOperationHelpers, UnaryOperationHelpers},
@@ -507,7 +507,7 @@ impl<'v, 'tcx: 'v> PlacesEncoderInterface<'tcx> for super::super::super::Encoder
                         vec![encoded_operand],
                         destination_type,
                     )
-                    .set_default_pos(position.into());
+                    .set_default_position(position.into());
                     return Ok(call);
                 } else {
                     // Don't check the cast

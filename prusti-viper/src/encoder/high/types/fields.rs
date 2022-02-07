@@ -2,7 +2,7 @@
 
 use crate::encoder::errors::{EncodingError, EncodingResult};
 use log::trace;
-use prusti_common::vir::Field;
+
 use vir_crate::high as vir;
 
 pub(crate) fn create_value_field(ty: vir::Type) -> EncodingResult<vir::FieldDecl> {

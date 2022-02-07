@@ -6,7 +6,7 @@
 
 use crate::encoder::foldunfold::{perm::*, FoldUnfoldError};
 use std::fmt;
-use vir_crate::polymorphic::{self as vir, Expr, Fold, PermAmount, Stmt, Unfold};
+use vir_crate::polymorphic::{self as vir, Fold, Unfold};
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 #[allow(clippy::large_enum_variant)]

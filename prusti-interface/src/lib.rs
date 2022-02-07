@@ -6,14 +6,9 @@
 
 //! Prusti Interface is an interface between Prusti and Prusti-Viper.
 
-#![allow(unused_imports)]
 #![deny(unused_must_use)]
 #![deny(unsafe_op_in_unsafe_fn)]
 
-// #![deny(unused_imports)]
-// #![deny(unused_mut)]
-// #![deny(non_upper_case_globals)]
-// #![allow(missing_docs)]
 #![feature(rustc_private)]
 #![feature(box_syntax)]
 #![feature(box_patterns)]
@@ -37,7 +32,6 @@ extern crate rustc_trait_selection;
 extern crate polonius_engine;
 extern crate rustc_mir_dataflow;
 extern crate rustc_errors;
-#[macro_use]
 extern crate lazy_static;
 
 pub mod data;

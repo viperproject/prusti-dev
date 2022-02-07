@@ -5,7 +5,7 @@
 //! Modules are rewritten so that their name does not clash with the module
 //! they are specifying.
 
-use crate::specifications::common::NameGenerator;
+use crate::specifications::common::generate_mod_name;
 use proc_macro2::{Group, TokenStream, TokenTree};
 use quote::{quote, ToTokens};
 use syn::spanned::Spanned;
@@ -29,9 +29,8 @@ fn rewrite_mod(item_mod: &mut syn::ItemMod, path: &mut syn::Path) -> syn::Result
         ident: item_mod.ident.clone(),
         arguments: syn::PathArguments::None,
     });
-    let name_generator = NameGenerator::new();
     item_mod.ident = syn::Ident::new(
-        &name_generator.generate_mod_name(&item_mod.ident),
+        &generate_mod_name(&item_mod.ident),
         item_mod.span(),
     );
 

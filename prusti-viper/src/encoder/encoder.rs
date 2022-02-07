@@ -7,14 +7,11 @@
 use ::log::{info, debug, trace};
 use crate::encoder::borrows::{compute_procedure_contract, ProcedureContract, ProcedureContractMirDef};
 use crate::encoder::builtin_encoder::BuiltinEncoder;
-use crate::encoder::builtin_encoder::BuiltinFunctionKind;
 use crate::encoder::builtin_encoder::BuiltinMethodKind;
-use crate::encoder::builtin_encoder::BuiltinDomainKind;
-use crate::encoder::errors::{ErrorCtxt, ErrorManager, SpannedEncodingError, EncodingError, WithSpan};
+use crate::encoder::errors::{ErrorManager, SpannedEncodingError, EncodingError};
 use crate::encoder::foldunfold;
 use crate::encoder::places;
 use crate::encoder::procedure_encoder::ProcedureEncoder;
-use crate::encoder::stub_function_encoder::StubFunctionEncoder;
 use crate::encoder::SpecFunctionKind;
 use crate::encoder::spec_function_encoder::SpecFunctionEncoder;
 use prusti_common::{vir_expr, vir_local};
@@ -23,48 +20,37 @@ use prusti_common::report::log;
 use prusti_interface::data::ProcedureDefId;
 use prusti_interface::environment::Environment;
 use prusti_interface::specs::typed;
-use prusti_interface::specs::typed::SpecificationId;
-use prusti_interface::utils::{has_spec_only_attr, read_prusti_attrs};
+use prusti_interface::utils::{has_spec_only_attr};
 use prusti_interface::PrustiError;
-use prusti_specs::specifications::common::SpecIdRef;
-use vir_crate::polymorphic::{self as vir, ExprIterator};
+use vir_crate::polymorphic::{self as vir};
 use vir_crate::common::identifier::WithIdentifier;
-use rustc_hir as hir;
 use rustc_hir::def_id::{DefId, LocalDefId};
-// use rustc::middle::const_val::ConstVal;
 use rustc_middle::mir;
-// use rustc::mir::interpret::GlobalId;
 use rustc_middle::ty;
 use std::cell::{RefCell, RefMut, Ref};
-use rustc_hash::{FxHashMap, FxHashSet};
+use rustc_hash::{FxHashMap};
 use std::io::Write;
-use std::mem;
 use std::rc::Rc;
-// use viper;
 use crate::encoder::stub_procedure_encoder::StubProcedureEncoder;
 use std::ops::AddAssign;
-use std::convert::TryInto;
-use std::borrow::{Borrow, BorrowMut};
 use crate::encoder::specs_closures_collector::SpecsClosuresCollector;
-use rustc_span::MultiSpan;
 use crate::encoder::name_interner::NameInterner;
-use crate::encoder::utils::transpose;
 use crate::encoder::errors::EncodingResult;
 use crate::encoder::errors::SpannedEncodingResult;
-use crate::encoder::mirror_function_encoder;
 use crate::encoder::mirror_function_encoder::MirrorEncoder;
 use crate::encoder::snapshot::interface::{SnapshotEncoderInterface, SnapshotEncoderState};
 use crate::encoder::purifier;
 use crate::encoder::array_encoder::{ArrayTypesEncoder, EncodedArrayTypes, EncodedSliceTypes};
 use super::high::builtin_functions::HighBuiltinFunctionEncoderState;
 use super::middle::core_proof::{MidCoreProofEncoderState, MidCoreProofEncoderInterface};
+use super::mir::procedures::MirProcedureEncoderState;
+use super::mir::type_layouts::MirTypeLayoutsEncoderState;
 use super::mir::{
     pure::{
         PureFunctionEncoderState, PureFunctionEncoderInterface,
-        SpecificationEncoderInterface,
     },
     types::{
-        compute_discriminant_bounds, compute_discriminant_values,
+        compute_discriminant_bounds,
         MirTypeEncoderState, MirTypeEncoderInterface,
     },
 };
@@ -84,10 +70,12 @@ pub struct Encoder<'v, 'tcx: 'v> {
     pub(super) high_builtin_function_encoder_state: HighBuiltinFunctionEncoderState,
     procedures: RefCell<FxHashMap<ProcedureDefId, vir::CfgMethod>>,
     programs: Vec<vir::Program>,
+    pub(super) mir_procedure_encoder_state: MirProcedureEncoderState,
+    pub(super) mir_type_layouts_encoder_state: MirTypeLayoutsEncoderState,
     pub(super) mid_core_proof_encoder_state: MidCoreProofEncoderState,
     pub(super) mir_type_encoder_state: MirTypeEncoderState<'tcx>,
     pub(super) high_type_encoder_state: HighTypeEncoderState<'tcx>,
-    pub(super) pure_function_encoder_state: PureFunctionEncoderState<'tcx>,
+    pub(super) pure_function_encoder_state: PureFunctionEncoderState<'v, 'tcx>,
     spec_functions: RefCell<FxHashMap<ProcedureDefId, Vec<vir::FunctionIdentifier>>>,
     type_discriminant_funcs: RefCell<FxHashMap<String, vir::FunctionIdentifier>>,
     type_cast_functions: RefCell<FxHashMap<(ty::Ty<'tcx>, ty::Ty<'tcx>), vir::FunctionIdentifier>>,
@@ -149,6 +137,8 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             builtin_methods: RefCell::new(FxHashMap::default()),
             high_builtin_function_encoder_state: Default::default(),
             programs: Vec::new(),
+            mir_procedure_encoder_state: Default::default(),
+            mir_type_layouts_encoder_state: Default::default(),
             mid_core_proof_encoder_state: Default::default(),
             procedures: RefCell::new(FxHashMap::default()),
             mir_type_encoder_state: Default::default(),

@@ -1,13 +1,11 @@
 use super::interface::PureFunctionEncoderInterface;
 use crate::encoder::{
-    borrows::{compute_procedure_contract, ProcedureContract},
     builtin_encoder::BuiltinFunctionKind,
     encoder::SubstMap,
     errors::{
-        EncodingError, EncodingResult, ErrorCtxt, PanicCause, SpannedEncodingError,
-        SpannedEncodingResult, WithSpan,
+        EncodingError, EncodingResult, ErrorCtxt, SpannedEncodingError, SpannedEncodingResult,
+        WithSpan,
     },
-    foldunfold,
     high::{
         builtin_functions::HighBuiltinFunctionEncoderInterface,
         generics::HighGenericsEncoderInterface, types::HighTypeEncoderInterface,
@@ -17,22 +15,20 @@ use crate::encoder::{
         types::MirTypeEncoderInterface,
     },
     mir_encoder::{MirEncoder, PlaceEncoder, PlaceEncoding, PRECONDITION_LABEL, WAND_LHS_LABEL},
-    mir_interpreter::{
-        run_backward_interpretation, BackwardMirInterpreter, ExprBackwardInterpreterState,
-    },
-    snapshot::{self, interface::SnapshotEncoderInterface},
+    mir_interpreter::{BackwardMirInterpreter, ExprBackwardInterpreterState},
+    snapshot::interface::SnapshotEncoderInterface,
     Encoder,
 };
 use log::{debug, trace};
-use prusti_common::{config, vir::optimizations::functions::Simplifier, vir_local};
-use prusti_interface::{specs::typed, PrustiError};
+use prusti_common::vir_local;
+
 use rustc_hash::FxHashMap;
-use rustc_hir as hir;
+
 use rustc_hir::def_id::DefId;
 use rustc_middle::{mir, span_bug, ty};
-use rustc_span::Span;
+
 use std::{convert::TryInto, mem};
-use vir_crate::polymorphic::{self as vir, ExprIterator};
+use vir_crate::polymorphic::{self as vir};
 
 pub(crate) struct PureFunctionBackwardInterpreter<'p, 'v: 'p, 'tcx: 'v> {
     encoder: &'p Encoder<'v, 'tcx>,
@@ -1046,22 +1042,16 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                         let value_field = self.encoder
                             .encode_raw_ref_field("tuple_0".to_string(), field_types[0].expect_ty())
                             .with_span(span)?;
-                        let value_field_value = self.encoder
-                            .encode_value_field(field_types[0].expect_ty()).with_span(span)?;
                         let check_field = self.encoder
                             .encode_raw_ref_field("tuple_1".to_string(), field_types[1].expect_ty())
                             .with_span(span)?;
-                        let check_field_value = self.encoder
-                            .encode_value_field(field_types[1].expect_ty()).with_span(span)?;
 
                         let lhs_value = encoded_lhs
                             .clone()
-                            .field(value_field)
-                            .field(value_field_value);
+                            .field(value_field);
                         let lhs_check = encoded_lhs
                             .clone()
-                            .field(check_field)
-                            .field(check_field_value);
+                            .field(check_field);
 
                         // Substitute a place of a value with an expression
                         state.substitute_value(&lhs_value, encoded_value);

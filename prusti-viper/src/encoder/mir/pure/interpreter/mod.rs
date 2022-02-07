@@ -4,13 +4,11 @@ pub(super) mod state;
 
 use self::state::ExprBackwardInterpreterState;
 use crate::encoder::{
-    builtin_encoder::BuiltinFunctionKind,
     encoder::SubstMap,
     errors::{EncodingResult, ErrorCtxt, SpannedEncodingError, SpannedEncodingResult, WithSpan},
     high::{
         builtin_functions::{BuiltinFunctionHighKind, HighBuiltinFunctionEncoderInterface},
         pure_functions::HighPureFunctionEncoderInterface,
-        types::HighTypeEncoderInterface,
     },
     mir::{
         casts::CastsEncoderInterface,
@@ -27,9 +25,9 @@ use log::{debug, trace};
 use prusti_common::vir_high_local;
 use rustc_hash::FxHashMap;
 use rustc_hir::def_id::DefId;
-use rustc_middle::{mir, span_bug, ty};
+use rustc_middle::{mir, ty};
 use rustc_span::Span;
-use std::fmt::{self, Display};
+
 use vir_crate::{
     common::expression::{BinaryOperationHelpers, UnaryOperationHelpers},
     high::{self as vir_high},
@@ -625,7 +623,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
             .with_span(span)?;
         let encoded_rhs =
             vir_high::Expression::function_call(function_name, type_arguments, args, return_type)
-                .set_default_pos(pos.into());
+                .set_default_position(pos.into());
         let mut state = states[&target_block].clone();
         state.substitute_value(&lhs, encoded_rhs);
         Ok(state)

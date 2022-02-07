@@ -11,7 +11,6 @@ use rustc_middle::ty;
 use vir_crate::polymorphic as vir;
 
 use crate::encoder::{
-    Encoder,
     errors::{EncodingError, EncodingResult},
 };
 

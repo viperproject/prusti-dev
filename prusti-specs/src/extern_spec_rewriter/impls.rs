@@ -1,9 +1,9 @@
-use super::common::*;
-use crate::{span_overrider::SpanOverrider, specifications::common::NameGenerator};
+use crate::{span_overrider::SpanOverrider, specifications::common::generate_struct_name};
 use proc_macro2::TokenStream;
 use quote::quote_spanned;
-use std::collections::HashMap;
 use syn::spanned::Spanned;
+use super::common::*;
+use std::collections::HashMap;
 
 pub fn rewrite_extern_spec(item_impl: &syn::ItemImpl) -> syn::Result<TokenStream> {
     let rewritten = rewrite_extern_spec_internal(item_impl)?;
@@ -57,11 +57,7 @@ fn rewrite_extern_spec_internal(item_impl: &syn::ItemImpl) -> syn::Result<Rewrit
 }
 
 fn generate_new_struct(item_impl: &syn::ItemImpl) -> syn::Result<syn::ItemStruct> {
-    let name_generator = NameGenerator::new();
-    let struct_name = match name_generator.generate_struct_name(item_impl) {
-        Ok(name) => name,
-        Err(msg) => return Err(syn::Error::new(item_impl.span(), msg)),
-    };
+    let struct_name = generate_struct_name(item_impl);
     let struct_ident = syn::Ident::new(&struct_name, item_impl.span());
 
     let mut new_struct: syn::ItemStruct = parse_quote_spanned! {item_impl.span()=>
@@ -80,7 +76,7 @@ fn rewrite_plain_impl(impl_item: &mut syn::ItemImpl, new_ty: Box<syn::Type>) -> 
     if let syn::Type::Path(type_path) = item_ty.as_mut() {
         for seg in type_path.path.segments.iter_mut() {
             if let syn::PathArguments::AngleBracketed(genargs) = &mut seg.arguments {
-                genargs.colon2_token = Some(syn::token::Colon2::default());
+                genargs.colon2_token = Some(<syn::Token![::]>::default());
             }
         }
     }

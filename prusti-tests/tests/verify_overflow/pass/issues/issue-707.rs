@@ -11,18 +11,12 @@ pub struct B {
 }
 
 impl B {
-    #[pure] // <-- removing this attribute makes the below error go away
-    // #[trusted] // <-- adding this attribute doesn't help
+    #[pure]
     pub fn get(&self) -> A {
         self.inner
     }
 }
 
-// This method triggers the Prusti error:
-// "error: [Prusti internal error] consistency error in test: Consistency error:
-// expected the same type, but got Ref and Snap$m_A$_beg_$_end_ (@0.0)"
-// The error only shows up when returning an ADT, there is no error when
-// the return type is a primitive.
 pub fn test(b: &B) -> A {
     b.get()
 }
