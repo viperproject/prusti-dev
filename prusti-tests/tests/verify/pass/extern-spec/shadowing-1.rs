@@ -1,3 +1,7 @@
+// The function TestStruct::max shadows Max::max (also implemented on TestStruct)
+// In main, when calling the max function, TestStruct::max is executed
+// The external spec is defined on TestStruct::max, verification succeeds
+
 extern crate prusti_contracts;
 use prusti_contracts::*;
 
@@ -6,6 +10,16 @@ pub trait Max {
 }
 
 struct TestStruct {}
+
+impl TestStruct {
+    fn max(a: i32, b: i32) -> i32 {
+        if a < b {
+            b
+        } else {
+            a
+        }
+    }
+}
 
 impl Max for TestStruct {
     fn max(a: i32, b: i32) -> i32 {

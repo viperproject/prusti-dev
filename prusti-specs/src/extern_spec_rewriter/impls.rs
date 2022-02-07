@@ -1,4 +1,4 @@
-use crate::{span_overrider::SpanOverrider, specifications::common::generate_struct_name};
+use crate::{ExternSpecKind, span_overrider::SpanOverrider, specifications::common::generate_struct_name};
 use proc_macro2::TokenStream;
 use quote::quote_spanned;
 use syn::spanned::Spanned;
@@ -84,7 +84,10 @@ fn rewrite_plain_impl(impl_item: &mut syn::ItemImpl, new_ty: Box<syn::Type>) -> 
     for item in impl_item.items.iter_mut() {
         match item {
             syn::ImplItem::Method(method) => {
-                rewrite_method(method, item_ty, None);
+                rewrite_method(method,
+                               item_ty,
+                               None,
+                               ExternSpecKind::InherentImpl);
             }
             syn::ImplItem::Type(_) => {
                 // ignore
@@ -129,7 +132,10 @@ fn rewrite_trait_impl(
             let (_, trait_path, _) = &impl_item.trait_.as_ref().unwrap();
 
             let mut rewritten_method = method.clone();
-            rewrite_method(&mut rewritten_method, &item_ty, Some(trait_path));
+            rewrite_method(&mut rewritten_method,
+                           &item_ty,
+                           Some(trait_path),
+                           ExternSpecKind::TraitImpl);
 
             // Rewrite occurences of associated types in method signature
             let mut rewriter = AssociatedTypeRewriter::new(&assoc_type_decls);
@@ -146,6 +152,7 @@ fn rewrite_method(
     method: &mut syn::ImplItemMethod,
     original_ty: &syn::Type,
     as_ty: Option<&syn::Path>,
+    extern_spec_kind: ExternSpecKind,
 ) {
     let span = method.span();
 
@@ -156,9 +163,10 @@ fn rewrite_method(
     let args = rewrite_method_inputs(original_ty, &mut method.sig.inputs);
     let ident = &method.sig.ident;
 
+    let extern_spec_kind_string: String = extern_spec_kind.into();
     method
         .attrs
-        .push(parse_quote_spanned!(span=> #[prusti::extern_spec]));
+        .push(parse_quote_spanned!(span=> #[prusti::extern_spec = #extern_spec_kind_string]));
     method.attrs.push(parse_quote_spanned!(span=> #[trusted]));
     method
         .attrs
@@ -246,21 +254,21 @@ mod tests {
             let newtype_ident = &rewritten.generated_struct.ident;
             let expected: syn::ItemImpl = parse_quote! {
                 impl #newtype_ident <> {
-                    #[prusti::extern_spec]
+                    #[prusti::extern_spec = "inherent_impl"]
                     #[trusted]
                     #[allow(dead_code)]
                     fn foo(_self: &MyStruct) {
                         <MyStruct> :: foo(_self,);
                         unimplemented!()
                     }
-                    #[prusti::extern_spec]
+                    #[prusti::extern_spec = "inherent_impl"]
                     #[trusted]
                     #[allow(dead_code)]
                     fn bar(_self: &mut MyStruct) {
                         <MyStruct> :: bar(_self,);
                         unimplemented!()
                     }
-                    #[prusti::extern_spec]
+                    #[prusti::extern_spec = "inherent_impl"]
                     #[trusted]
                     #[allow(dead_code)]
                     fn baz(_self: MyStruct) {
@@ -286,7 +294,7 @@ mod tests {
             let newtype_ident = &rewritten.generated_struct.ident;
             let expected: syn::ItemImpl = parse_quote! {
                 impl<I, O> #newtype_ident<I, O> {
-                    #[prusti::extern_spec]
+                    #[prusti::extern_spec = "inherent_impl"]
                     #[trusted]
                     #[allow(dead_code)]
                     fn foo(_self: &MyStruct::<I,O, i32>, arg1: I, arg2: i32) -> O {
@@ -316,7 +324,7 @@ mod tests {
                 impl #newtype_ident <> {
                     #[requires(_self.foo > 42 && arg < 50)]
                     #[ensures(_self.foo > 50 && result >= 100)]
-                    #[prusti::extern_spec]
+                    #[prusti::extern_spec = "inherent_impl"]
                     #[trusted]
                     #[allow(dead_code)]
                     fn foo(_self: &mut MyStruct, arg: i32) -> i32 {
@@ -350,7 +358,7 @@ mod tests {
                 impl #newtype_ident <> {
                     #[requires(_self.foo > 42 && arg < 50)]
                     #[ensures(_self.foo > 50 && result >= 100)]
-                    #[prusti::extern_spec]
+                    #[prusti::extern_spec = "trait_impl"]
                     #[trusted]
                     #[allow(dead_code)]
                     fn foo(_self: &mut MyStruct, arg: i32) -> i32 {
@@ -377,7 +385,7 @@ mod tests {
             let newtype_ident = &rewritten.generated_struct.ident;
             let expected_impl: syn::ItemImpl = parse_quote! {
                 impl #newtype_ident <> {
-                    #[prusti::extern_spec]
+                    #[prusti::extern_spec = "trait_impl"]
                     #[trusted]
                     #[allow(dead_code)]
                     fn foo(_self: &mut MyStruct) -> i32 {

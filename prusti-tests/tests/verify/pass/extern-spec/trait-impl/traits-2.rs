@@ -18,7 +18,7 @@ impl Max for Point {
 }
 
 #[extern_spec]
-impl Point {
+impl Max for Point {
     #[pure]
     #[ensures(result >= self.0 && result >= self.1)]
     #[ensures(result == self.0 || result == self.1)]

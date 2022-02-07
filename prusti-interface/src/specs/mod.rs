@@ -9,9 +9,7 @@ use std::collections::HashMap;
 use std::convert::TryInto;
 use crate::environment::Environment;
 use crate::PrustiError;
-use crate::utils::{
-    has_extern_spec_attr, read_prusti_attr, read_prusti_attrs, has_prusti_attr
-};
+use crate::utils::{has_extern_spec_attr, read_prusti_attr, read_prusti_attrs, has_prusti_attr, read_extern_spec_attr};
 use log::debug;
 
 pub mod external;
@@ -111,7 +109,7 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
     }
 
     fn determine_extern_specs(&self, def_spec: &mut typed::DefSpecificationMap) {
-        self.extern_resolver.check_duplicates(self.env);
+        self.extern_resolver.check_errors(self.env);
         // TODO: do something with the traits
         for (real_id, (_, spec_id)) in self.extern_resolver.extern_fn_map.iter() {
             if let Some(local_id) = real_id.as_local() {
@@ -241,7 +239,9 @@ impl<'a, 'tcx> intravisit::Visitor<'tcx> for SpecCollector<'a, 'tcx> {
 
             // Collect external function specifications
             if has_extern_spec_attr(attrs) {
-                self.extern_resolver.add_extern_fn(fn_kind, fn_decl, body_id, span, id);
+                let attr = read_extern_spec_attr(attrs).unwrap_or_default();
+                let kind = prusti_specs::ExternSpecKind::from(attr);
+                self.extern_resolver.add_extern_fn(fn_kind, fn_decl, body_id, span, id, kind);
             }
 
             // Collect procedure specifications
