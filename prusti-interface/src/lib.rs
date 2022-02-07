@@ -12,6 +12,7 @@
 #![feature(rustc_private)]
 #![feature(box_syntax)]
 #![feature(box_patterns)]
+#![feature(control_flow_enum)]
 
 // #![feature(nll)]
 
@@ -32,6 +33,9 @@ extern crate rustc_trait_selection;
 extern crate polonius_engine;
 extern crate rustc_mir_dataflow;
 extern crate rustc_errors;
+extern crate rustc_infer;
+extern crate rustc_target;
+extern crate tracing;
 extern crate lazy_static;
 
 pub mod data;

@@ -7,6 +7,7 @@ use crate::encoder::{
 use vir_crate::{low as vir_low, middle as vir_mid};
 
 pub(in super::super) trait FoldUnfoldInterface {
+    #[allow(clippy::ptr_arg)] // Clippy false positive.
     fn encode_fully_fold_owned_non_aliased(
         &mut self,
         statements: &mut Vec<vir_low::Statement>,
@@ -16,6 +17,7 @@ pub(in super::super) trait FoldUnfoldInterface {
         snapshot: vir_low::Expression,
         position: vir_low::Position,
     ) -> SpannedEncodingResult<()>;
+    #[allow(clippy::ptr_arg)] // Clippy false positive.
     fn encode_fully_unfold_owned_non_aliased(
         &mut self,
         statements: &mut Vec<vir_low::Statement>,
@@ -25,6 +27,7 @@ pub(in super::super) trait FoldUnfoldInterface {
         snapshot: vir_low::Expression,
         position: vir_low::Position,
     ) -> SpannedEncodingResult<()>;
+    #[allow(clippy::ptr_arg)] // Clippy false positive.
     fn encode_fully_split_memory_block(
         &mut self,
         statements: &mut Vec<vir_low::Statement>,
@@ -32,6 +35,7 @@ pub(in super::super) trait FoldUnfoldInterface {
         address: vir_low::Expression,
         position: vir_low::Position,
     ) -> SpannedEncodingResult<()>;
+    #[allow(clippy::ptr_arg)] // Clippy false positive.
     fn encode_fully_join_memory_block(
         &mut self,
         statements: &mut Vec<vir_low::Statement>,
