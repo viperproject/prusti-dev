@@ -14,6 +14,8 @@ use crate::encoder::{
     Encoder,
 };
 use log::debug;
+use prusti_common::config;
+use rustc_hash::FxHashSet;
 use rustc_hir::def_id::DefId;
 use std::collections::BTreeMap;
 use vir_crate::{
@@ -25,10 +27,20 @@ use vir_crate::{
     },
 };
 
+mod debugging;
+
 pub(super) struct Visitor<'p, 'v, 'tcx> {
     encoder: &'p mut Encoder<'v, 'tcx>,
     _proc_def_id: DefId,
     state_at_entry: FoldUnfoldState,
+    procedure_name: Option<String>,
+    entry_label: Option<vir_mid::BasicBlockId>,
+    basic_blocks: BTreeMap<vir_mid::BasicBlockId, vir_mid::BasicBlock>,
+    successfully_processed_blocks: FxHashSet<vir_mid::BasicBlockId>,
+    current_label: Option<vir_mid::BasicBlockId>,
+    current_statements: Vec<vir_mid::Statement>,
+    /// Should we dump a Graphviz plot in case we crash during inference?
+    graphviz_on_crash: bool,
 }
 
 impl<'p, 'v, 'tcx> Visitor<'p, 'v, 'tcx> {
@@ -41,25 +53,35 @@ impl<'p, 'v, 'tcx> Visitor<'p, 'v, 'tcx> {
             encoder,
             _proc_def_id: proc_def_id,
             state_at_entry,
+            procedure_name: None,
+            entry_label: None,
+            basic_blocks: Default::default(),
+            successfully_processed_blocks: Default::default(),
+            current_label: None,
+            current_statements: Default::default(),
+            graphviz_on_crash: config::dump_debug_info(),
         }
     }
     pub(super) fn infer_procedure(
         &mut self,
         mut procedure: vir_high::ProcedureDecl,
     ) -> SpannedEncodingResult<vir_mid::ProcedureDecl> {
+        self.procedure_name = Some(procedure.name.clone());
+
         let traversal_order = procedure.get_topological_sort();
-        let mut basic_blocks = BTreeMap::new();
         for (label, block) in &procedure.basic_blocks {
-            basic_blocks.insert(
+            let successor = self.lower_successor(&block.successor)?;
+            self.basic_blocks.insert(
                 self.lower_label(label),
                 vir_mid::BasicBlock {
                     statements: Vec::new(),
-                    successor: self.lower_successor(&block.successor)?,
+                    successor,
                 },
             );
         }
         let entry = self.lower_label(&procedure.entry);
-        let entry_block = basic_blocks.get_mut(&entry).unwrap();
+        let entry_block = self.basic_blocks.get_mut(&entry).unwrap();
+        self.entry_label = Some(entry);
         for ret in procedure.returns {
             let position = ret.position;
             let mir_type = self.encoder.decode_type_high(&ret.variable.ty);
@@ -84,16 +106,17 @@ impl<'p, 'v, 'tcx> Visitor<'p, 'v, 'tcx> {
         }
         for old_label in traversal_order {
             let old_block = procedure.basic_blocks.remove(&old_label).unwrap();
-            let new_label = self.lower_label(&old_label);
-            let new_block = basic_blocks.get_mut(&new_label).unwrap();
-            self.lower_block(old_label, old_block, new_label, new_block)?;
+            self.current_label = Some(self.lower_label(&old_label));
+            self.lower_block(old_label, old_block)?;
+            self.successfully_processed_blocks
+                .insert(self.current_label.take().unwrap());
         }
         let new_procedure = vir_mid::ProcedureDecl {
-            name: procedure.name,
+            name: self.procedure_name.take().unwrap(),
             parameters: Vec::new(), // FIXME: Unused fields.
             returns: Vec::new(),    // FIXME: Unused fields.
-            entry,
-            basic_blocks,
+            entry: self.entry_label.take().unwrap(),
+            basic_blocks: std::mem::take(&mut self.basic_blocks),
         };
         Ok(new_procedure)
     }
@@ -128,20 +151,14 @@ impl<'p, 'v, 'tcx> Visitor<'p, 'v, 'tcx> {
         &mut self,
         _old_label: vir_high::BasicBlockId,
         old_block: vir_high::BasicBlock,
-        _new_label: vir_mid::BasicBlockId,
-        new_block: &mut vir_mid::BasicBlock,
     ) -> SpannedEncodingResult<()> {
         for statement in old_block.statements {
-            self.lower_statement(statement, new_block)?;
+            self.lower_statement(statement)?;
         }
         Ok(())
     }
 
-    fn lower_statement(
-        &mut self,
-        statement: vir_high::Statement,
-        new_block: &mut vir_mid::BasicBlock,
-    ) -> SpannedEncodingResult<()> {
+    fn lower_statement(&mut self, statement: vir_high::Statement) -> SpannedEncodingResult<()> {
         assert!(
             statement.is_comment() || !statement.position().is_default(),
             "Statement has default position: {}",
@@ -171,17 +188,27 @@ impl<'p, 'v, 'tcx> Visitor<'p, 'v, 'tcx> {
                     statement.position(),
                 ),
             };
-            new_block.statements.push(statement);
+            self.current_statements.push(statement);
         }
         self.state_at_entry
             .remove_permissions(&required_permissions)?;
         self.state_at_entry
             .insert_permissions(ensured_permissions)?;
         self.state_at_entry.debug_print();
+        self.current_statements
+            .push(statement.to_middle_statement(self.encoder)?);
+        let new_block = self
+            .basic_blocks
+            .get_mut(self.current_label.as_ref().unwrap())
+            .unwrap();
         new_block
             .statements
-            .push(statement.to_middle_statement(self.encoder)?);
+            .extend(std::mem::take(&mut self.current_statements));
         Ok(())
+    }
+
+    pub(super) fn cancel_crash_graphviz(mut self) {
+        self.graphviz_on_crash = false;
     }
 }
 

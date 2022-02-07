@@ -47,7 +47,7 @@ pub fn build_writer<S: ToString>(namespace: &str, name: S) -> io::Result<Box<dyn
         // fallback
         None => {
             let mut stdout = io::stdout();
-            write!(&mut stdout, "# {}: {}\n\n", namespace, name.to_string())?;
+            write!(stdout, "# {}: {}\n\n", namespace, name.to_string())?;
             box stdout
         }
     })
