@@ -323,10 +323,19 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 vir_high::Successor::Goto(self.encode_basic_block_label(*target))
             }
             TerminatorKind::SwitchInt { targets, .. } => {
-                let successors = targets
+                let mut successors = targets
                     .iter()
-                    .map(|(_, target)| (true.into(), self.encode_basic_block_label(target)))
-                    .collect();
+                    .map(|(_, target)| {
+                        (
+                            true.into(), // FIXME
+                            self.encode_basic_block_label(target),
+                        )
+                    })
+                    .collect::<Vec<_>>();
+                successors.push((
+                    true.into(),
+                    self.encode_basic_block_label(targets.otherwise()),
+                ));
                 vir_high::Successor::GotoSwitch(successors)
             }
             // TerminatorKind::Resume => {

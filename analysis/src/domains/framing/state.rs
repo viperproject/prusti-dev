@@ -4,26 +4,28 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use crate::{domains::DefinitelyAccessibleState, mir_utils::is_prefix};
+use crate::{
+    domains::DefinitelyAccessibleState,
+    mir_utils::{is_prefix, Place},
+};
 use rustc_data_structures::fx::FxHashSet;
-use rustc_middle::mir;
 use serde::{ser::SerializeMap, Serialize, Serializer};
 use std::fmt;
 
 #[derive(Clone, Default, Eq, PartialEq)]
 pub struct FramingState<'tcx> {
     /// Places of `definitely_accessible` that can be framed across the *next* statement.
-    pub(super) framed_accessible: FxHashSet<mir::Place<'tcx>>,
+    pub(super) framed_accessible: FxHashSet<Place<'tcx>>,
     /// Places of `definitely_owned` that can be framed across the *next* statement.
-    pub(super) framed_owned: FxHashSet<mir::Place<'tcx>>,
+    pub(super) framed_owned: FxHashSet<Place<'tcx>>,
 }
 
 impl<'tcx> FramingState<'tcx> {
-    pub fn get_framed_accessible(&self) -> &FxHashSet<mir::Place<'tcx>> {
+    pub fn get_framed_accessible(&self) -> &FxHashSet<Place<'tcx>> {
         &self.framed_accessible
     }
 
-    pub fn get_framed_owned(&self) -> &FxHashSet<mir::Place<'tcx>> {
+    pub fn get_framed_owned(&self) -> &FxHashSet<Place<'tcx>> {
         &self.framed_owned
     }
 

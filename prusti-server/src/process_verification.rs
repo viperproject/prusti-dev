@@ -10,67 +10,77 @@ use prusti_common::{config, report::log::report, vir::ToViper, Stopwatch};
 use std::{fs::create_dir_all, path::PathBuf};
 use viper::{Cache, VerificationBackend, VerificationContext};
 
-pub fn process_verification_request_cache<'v, 't: 'v>(
+pub fn process_verification_request<'v, 't: 'v>(
     verification_context: &'v VerificationContext<'t>,
     request: VerificationRequest,
     cache: impl Cache,
 ) -> viper::VerificationResult {
-    if !config::enable_cache() || config::print_hash() {
-        process_verification_request(verification_context, request)
-    } else {
-        let hash = request.get_hash();
-        info!("Verification request hash: {}", hash);
-        // Try to load from cache and return `result`
-        if let Some(result) = cache.get(hash) {
-            info!("Using verification result from the cache");
-            return result;
-        }
-        let result = process_verification_request(verification_context, request);
-        // Save `result` to cache
-        cache.insert(hash, result.clone());
-        result
-    }
-}
+    let ast_utils = verification_context.new_ast_utils();
 
-pub fn process_verification_request<'v, 't: 'v>(
-    verification_context: &'v VerificationContext<'t>,
-    request: VerificationRequest,
-) -> viper::VerificationResult {
-    // Print hash of the `VerificationRequest`
+    let hash = request.get_hash();
+    info!("Verification request hash: {}", hash);
+
+    let build_or_dump_viper_program = || {
+        let mut stopwatch = Stopwatch::start("prusti-server", "construction of JVM objects");
+        let ast_factory = verification_context.new_ast_factory();
+        let viper_program = request.program.to_viper(&ast_factory);
+
+        if config::dump_viper_program() {
+            stopwatch.start_next("dumping viper program");
+            dump_viper_program(&ast_utils, viper_program, request.program.get_name());
+        }
+
+        viper_program
+    };
+
+    // Print the hash and skip verification. Used for testing.
     if config::print_hash() {
         println!(
             "Received verification request for: {}",
             request.program.get_name()
         );
-        println!("Hash of the request is: {}", request.get_hash());
-        // Skip actual verification
-        if !config::dump_viper_program() {
-            return viper::VerificationResult::Success;
+        println!("Hash of the request is: {}", hash);
+        // Some tests need the dump to report a diff of the Viper programs.
+        if config::dump_viper_program() {
+            ast_utils.with_local_frame(16, || {
+                let _ = build_or_dump_viper_program();
+            });
         }
+        return viper::VerificationResult::Success;
     }
 
-    let ast_utils = verification_context.new_ast_utils();
+    // Early return in case of cache hit
+    if config::enable_cache() {
+        if let Some(result) = cache.get(hash) {
+            if config::dump_viper_program() {
+                ast_utils.with_local_frame(16, || {
+                    let _ = build_or_dump_viper_program();
+                });
+            }
+            return result;
+        }
+    };
+
     ast_utils.with_local_frame(16, || {
+        let viper_program = build_or_dump_viper_program();
+
         // Create a new verifier each time.
         // Workaround for https://github.com/viperproject/prusti-dev/issues/744
         let mut stopwatch = Stopwatch::start("prusti-server", "verifier startup");
         let verifier = new_viper_verifier(verification_context, request.backend_config);
-        stopwatch.start_next("construction of JVM objects");
-        let ast_factory = verification_context.new_ast_factory();
-        let viper_program = request.program.to_viper(&ast_factory);
-        if config::dump_viper_program() {
-            stopwatch.start_next("dumping viper program");
-            dump_program(&ast_utils, viper_program, request.program.get_name());
-            if config::print_hash() {
-                return viper::VerificationResult::Success;
-            }
-        }
+
         stopwatch.start_next("verification");
-        verifier.verify(viper_program)
+        let result = verifier.verify(viper_program);
+
+        if config::enable_cache() {
+            cache.insert(hash, result.clone());
+        }
+
+        result
     })
 }
 
-fn dump_program(ast_utils: &viper::AstUtils, program: viper::Program, program_name: &str) {
+fn dump_viper_program(ast_utils: &viper::AstUtils, program: viper::Program, program_name: &str) {
     let namespace = "viper_program";
     let filename = format!("{}.vpr", program_name);
     info!("Dumping Viper program to '{}/{}'", namespace, filename);

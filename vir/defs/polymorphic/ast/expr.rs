@@ -1968,7 +1968,7 @@ impl PartialEq for Local {
 
 impl Hash for Local {
     fn hash<H: Hasher>(&self, state: &mut H) {
-        (&self.variable).hash(state);
+        (self.variable).hash(state);
     }
 }
 
@@ -2092,7 +2092,7 @@ impl PartialEq for ConstExpr {
 
 impl Hash for ConstExpr {
     fn hash<H: Hasher>(&self, state: &mut H) {
-        (&self.value).hash(state);
+        (self.value).hash(state);
     }
 }
 
@@ -2320,7 +2320,7 @@ impl fmt::Display for Unfolding {
             if let Some(variant_index) = &self.variant {
                 format!("{}<variant {}>", &self.predicate, variant_index)
             } else {
-                (&self.predicate).to_string()
+                (self.predicate).to_string()
             },
             &(self.arguments)
                 .iter()
@@ -2408,12 +2408,12 @@ impl fmt::Display for ForAll {
         write!(
             f,
             "forall {} {} :: {}",
-            (&self.variables)
+            (self.variables)
                 .iter()
                 .map(|x| format!("{:?}", x))
                 .collect::<Vec<String>>()
                 .join(", "),
-            (&self.triggers)
+            (self.triggers)
                 .iter()
                 .map(|x| x.to_string())
                 .collect::<Vec<String>>()
@@ -2449,12 +2449,12 @@ impl fmt::Display for Exists {
         write!(
             f,
             "exists {} {} :: {}",
-            (&self.variables)
+            (self.variables)
                 .iter()
                 .map(|x| format!("{:?}", x))
                 .collect::<Vec<String>>()
                 .join(", "),
-            (&self.triggers)
+            (self.triggers)
                 .iter()
                 .map(|x| x.to_string())
                 .collect::<Vec<String>>()
@@ -2652,7 +2652,7 @@ impl PartialEq for SnapApp {
 
 impl Hash for SnapApp {
     fn hash<H: Hasher>(&self, state: &mut H) {
-        (&*self.base).hash(state);
+        (self.base).hash(state);
     }
 }
 

@@ -707,12 +707,6 @@ impl<'v> ToViper<'v, viper::Predicate<'v>> for EnumPredicate {
     }
 }
 
-impl<'v> ToViper<'v, viper::Method<'v>> for BodylessMethod {
-    fn to_viper(&self, ast: &AstFactory<'v>) -> viper::Method<'v> {
-        (&self).to_viper(ast)
-    }
-}
-
 impl<'a, 'v> ToViper<'v, viper::Method<'v>> for &'a BodylessMethod {
     fn to_viper(&self, ast: &AstFactory<'v>) -> viper::Method<'v> {
         ast.method(
@@ -723,12 +717,6 @@ impl<'a, 'v> ToViper<'v, viper::Method<'v>> for &'a BodylessMethod {
             &[],
             None,
         )
-    }
-}
-
-impl<'v> ToViper<'v, viper::Function<'v>> for Function {
-    fn to_viper(&self, ast: &AstFactory<'v>) -> viper::Function<'v> {
-        (&self).to_viper(ast)
     }
 }
 
@@ -840,12 +828,6 @@ impl<'v> ToViper<'v, Vec<viper::Stmt<'v>>> for Vec<Stmt> {
 impl<'v> ToViper<'v, Vec<viper::Predicate<'v>>> for Vec<Predicate> {
     fn to_viper(&self, ast: &AstFactory<'v>) -> Vec<viper::Predicate<'v>> {
         self.iter().map(|x| x.to_viper(ast)).collect()
-    }
-}
-
-impl<'v> ToViper<'v, viper::Method<'v>> for CfgMethod {
-    fn to_viper(&self, ast: &AstFactory<'v>) -> viper::Method<'v> {
-        (&self).to_viper(ast)
     }
 }
 

@@ -88,8 +88,7 @@ pub fn compute_definitely_initialized<'a, 'tcx: 'a>(
             pointwise_state
                 .lookup_before(location)
                 .unwrap()
-                .get_def_init_places()
-                .clone()
+                .get_def_init_mir_places()
                 .into(),
         );
         while location.statement_index < num_statements {
@@ -97,7 +96,7 @@ pub fn compute_definitely_initialized<'a, 'tcx: 'a>(
             let state = pointwise_state.lookup_after(location).unwrap();
             analysis_result
                 .after_statement
-                .insert(location, state.get_def_init_places().clone().into());
+                .insert(location, state.get_def_init_mir_places().into());
             location = location.successor_within_block();
         }
         // `location` identifies a terminator
@@ -111,7 +110,7 @@ pub fn compute_definitely_initialized<'a, 'tcx: 'a>(
         let state_after_block = opt_state_after_block.unwrap_or_else(|| analysis.new_bottom());
         analysis_result.after_statement.insert(
             location,
-            state_after_block.get_def_init_places().clone().into(),
+            state_after_block.get_def_init_mir_places().into(),
         );
     }
     stopwatch.finish();

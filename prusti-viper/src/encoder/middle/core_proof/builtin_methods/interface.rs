@@ -28,6 +28,7 @@ pub(in super::super) struct BuiltinMethodsState {
 }
 
 trait Private {
+    #[allow(clippy::ptr_arg)] // Clippy false positive.
     fn encode_fully_split_write_address(
         &mut self,
         statements: &mut Vec<vir_low::Statement>,
