@@ -11,17 +11,17 @@ use rustc_hir::{self as hir, Mutability};
 use rustc_hir::def_id::LocalDefId;
 use rustc_middle::{mir, ty::FnSig, ty::subst::SubstsRef};
 use rustc_index::vec::Idx;
-use rustc_middle::ty::{self, Ty, TyCtxt, TyKind, TypeckResults};
+use rustc_middle::ty::{self, Ty, TyCtxt, TyKind};
 // use rustc_data_structures::indexed_vec::Idx;
 use rustc_hash::{FxHashMap};
 use std::fmt;
 use crate::utils::type_visitor::{self, TypeVisitor};
 use prusti_interface::specs::typed;
-use log::{trace, debug};
+use log::{trace};
 use crate::encoder::errors::EncodingError;
 use crate::encoder::errors::EncodingResult;
-use crate::encoder::errors::SpannedEncodingResult;
-use crate::utils::is_reference;
+
+
 
 #[derive(Clone, Debug)]
 pub struct BorrowInfo<P>

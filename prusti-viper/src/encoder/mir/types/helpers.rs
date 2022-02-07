@@ -1,25 +1,12 @@
-use crate::encoder::{
-    builtin_encoder::BuiltinFunctionKind,
-    errors::{EncodingError, EncodingResult},
-    foldunfold,
-    utils::{range_extract, PlusOne},
-    Encoder,
-};
-use log::{debug, trace};
-use prusti_common::{config, vir_local};
-use prusti_interface::specs::typed;
-use rustc_attr::IntType::SignedInt;
-use rustc_hash::FxHashMap;
+use crate::encoder::utils::{range_extract, PlusOne};
+
 use rustc_middle::{ty, ty::layout::IntegerExt};
-use rustc_target::{abi, abi::Integer};
-use std::{
-    convert::TryInto,
-    hash::{Hash, Hasher},
-};
+use rustc_target::abi::Integer;
+
 use vir_crate::{
     common::expression::{and, equals, less_equals},
     high as vir_high,
-    polymorphic::{self as vir, ExprFolder},
+    polymorphic::{self as vir},
 };
 
 /// Compute the values that a discriminant can take.

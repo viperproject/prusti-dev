@@ -18,7 +18,7 @@ use crate::encoder::{
 use log::{debug, trace};
 use prusti_common::vir_high_local;
 use rustc_hir::def_id::DefId;
-use rustc_middle::{mir, span_bug, ty};
+use rustc_middle::mir;
 use rustc_span::Span;
 use vir_crate::{
     common::expression::ExpressionIterator,
@@ -348,7 +348,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureEncoder<'p, 'v, 'tcx> {
 
         let post = post
             .replace_place(&encoded_return.into(), &pure_fn_return_variable.into())
-            .set_default_pos(postcondition_pos.into());
+            .set_default_position(postcondition_pos.into());
 
         Ok(post)
     }

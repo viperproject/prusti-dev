@@ -6,18 +6,17 @@ use crate::encoder::mir_encoder::{MirEncoder, PlaceEncoder};
 use crate::encoder::mir::pure::SpecificationEncoderInterface;
 use prusti_interface::{
     environment::{
-        Procedure,
-        Environment
+        Procedure
     },
     data::ProcedureDefId,
     specs::typed,
 };
 use vir_crate::polymorphic as vir;
 use vir_crate::polymorphic::ExprIterator;
-use rustc_middle::{ty, mir};
+use rustc_middle::{mir};
 use rustc_span::Span;
-use log::{debug, trace};
-use rustc_hir as hir;
+
+
 
 use super::encoder::SubstMap;
 

@@ -4,7 +4,7 @@ use vir::{
     legacy::RETURN_LABEL,
     low::{
         ast::position::Position,
-        cfg::{method::Successor, Label, ProcedureDecl},
+        cfg::{procedure::Successor, Label, MethodDecl, ProcedureDecl},
     },
 };
 
@@ -63,5 +63,22 @@ impl<'v> ToViperDecl<'v, viper::Stmt<'v>> for Label {
 impl<'v> ToViper<'v, viper::Stmt<'v>> for Label {
     fn to_viper(&self, ast: &AstFactory<'v>) -> viper::Stmt<'v> {
         ast.label(&self.name, &[])
+    }
+}
+
+impl<'a, 'v> ToViper<'v, viper::Method<'v>> for &'a MethodDecl {
+    fn to_viper(&self, ast: &AstFactory<'v>) -> viper::Method<'v> {
+        let body = self
+            .body
+            .as_ref()
+            .map(|statements| ast.seqn(&statements.to_viper(ast), &[]));
+        ast.method(
+            &self.name,
+            &self.parameters.to_viper_decl(ast),
+            &self.targets.to_viper_decl(ast),
+            &self.pres.to_viper(ast),
+            &self.posts.to_viper(ast),
+            body,
+        )
     }
 }

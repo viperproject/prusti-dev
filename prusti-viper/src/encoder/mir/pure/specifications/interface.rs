@@ -121,18 +121,12 @@ impl<'v, 'tcx: 'v> SpecificationEncoderInterface<'tcx> for crate::encoder::Encod
             parent_def_id,
             tymap,
         )?;
-        // FIXME: return high positions from error manager?
-        let pos_poly = self.error_manager().register(
+        let position = self.error_manager().register(
             self.env().tcx().def_span(assertion.to_def_id()),
             error,
             parent_def_id,
         );
-        let pos_high = vir_crate::high::Position {
-            line: pos_poly.line,
-            column: pos_poly.column,
-            id: pos_poly.id,
-        };
-        Ok(encoded_assertion.set_default_pos(pos_high))
+        Ok(encoded_assertion.set_default_position(position.into()))
     }
 
     fn encode_prusti_operation(

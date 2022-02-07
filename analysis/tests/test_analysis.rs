@@ -22,7 +22,7 @@ fn run_tests(mode: &str, path: &str, custom_args: Vec<String>) {
 
     // Filter the tests to run
     if let Some(filter) = env::args().nth(1) {
-        config.filters.push(filter.clone());
+        config.filters.push(filter);
     }
 
     if let Some(lib_path) = option_env!("RUSTC_LIB_PATH") {

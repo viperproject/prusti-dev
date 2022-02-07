@@ -14,9 +14,9 @@ use rustc_hir::def_id::DefId;
 use rustc_middle::{mir, ty::{self, TyCtxt}};
 use rustc_hash::{FxHashMap, FxHashSet};
 use std::hash::Hash;
-use crate::encoder::errors::{SpannedEncodingError, EncodingError};
+
 use crate::encoder::errors::EncodingResult;
-use crate::encoder::errors::SpannedEncodingResult;
+
 
 pub struct InitInfo {
     //mir_acc_before_block: FxHashMap<mir::BasicBlock, FxHashSet<mir::Place<'tcx>>>,

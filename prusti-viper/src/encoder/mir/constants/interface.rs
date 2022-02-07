@@ -1,9 +1,6 @@
 use log::debug;
-use rustc_middle::{mir, span_bug, ty};
-use vir_crate::{
-    common::expression::BinaryOperationHelpers,
-    high::{self as vir_high, operations::ty::Typed},
-};
+use rustc_middle::{mir, ty};
+use vir_crate::high::{self as vir_high};
 
 use crate::encoder::{
     errors::{EncodingError, EncodingResult},

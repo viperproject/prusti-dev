@@ -4,16 +4,16 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use prusti_common::config;
+
 use crate::environment::Environment;
 use rustc_hir as hir;
 use rustc_hir::def_id::DefId;
 use rustc_hir::itemlikevisit::ItemLikeVisitor;
 use rustc_middle::ty::TyCtxt;
-use std::collections::HashSet;
-use std::iter::FromIterator;
-use log::{trace, debug};
-use rustc_ast::ast;
+
+
+use log::{trace};
+
 use crate::utils::{has_spec_only_attr, has_extern_spec_attr};
 
 pub struct CollectPrustiSpecVisitor<'a, 'tcx: 'a> {

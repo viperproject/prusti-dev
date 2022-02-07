@@ -4,7 +4,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use prusti_common::vir::{self, optimizations::optimize_program, ToViper, ToViperDecl};
+use prusti_common::vir::{optimizations::optimize_program};
 use prusti_common::{
     config, report::log, Stopwatch, vir::program::Program,
 };
@@ -16,14 +16,14 @@ use prusti_interface::data::VerificationTask;
 use prusti_interface::environment::Environment;
 use prusti_interface::PrustiError;
 // use prusti_interface::specifications::TypedSpecificationMap;
-use std::time::Instant;
-use viper::{self, PersistentCache, VerificationBackend, Viper};
-use std::path::PathBuf;
-use std::fs;
-use std::ffi::OsString;
+
+use viper::{self, PersistentCache, Viper};
+
+
+
 use prusti_interface::specs::typed;
 use ::log::{info, debug, error};
-use prusti_server::{VerificationRequest, ViperBackendConfig, PrustiClient, process_verification_request_cache, spawn_server_thread};
+use prusti_server::{VerificationRequest, PrustiClient, process_verification_request_cache, spawn_server_thread};
 use rustc_span::DUMMY_SP;
 use prusti_server::tokio::runtime::Builder;
 

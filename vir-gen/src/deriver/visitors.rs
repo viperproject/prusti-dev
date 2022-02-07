@@ -1,8 +1,8 @@
 use super::common::DeriveInfo;
 use crate::{
     deriver::common::{
-        extract_variant_type, find_variant_enum, find_variant_struct, get_option_type_arg,
-        get_vec_type_arg, type_to_indent,
+        extract_variant_type, find_variant_enum, find_variant_struct, get_option_box_type_arg,
+        get_option_type_arg, get_vec_type_arg, type_to_indent,
     },
     helpers::{append_ident, method_name_from_camel, prefixed_method_name_from_camel, unbox_type},
 };
@@ -120,31 +120,39 @@ impl Deriver {
     }
     fn create_walk_method(&mut self, ty: &syn::Ident, variant: Option<&syn::Variant>) {
         let method_name = self.create_method_name(ty);
+        let method_name_enum = append_ident(&method_name, "_enum");
         let parameter_name = method_name_from_camel(ty);
         let default_method_name = self.create_default_method_name(ty);
         let parameter_type = self.create_parameter_type(ty);
-        let result_type = self.create_result_type(&self.enum_ident, false);
-        let call: syn::Expr = parse_quote! {
-            #default_method_name(self, #parameter_name)
+        let result_type_enum = self.create_result_type(&self.enum_ident, false);
+        let call_enum: syn::Expr = parse_quote! {
+            self.#method_name(#parameter_name)
         };
-        let body: syn::Expr = if let Some(variant) = variant {
+        let body_enum: syn::Expr = if let Some(variant) = variant {
             let enum_ident = &self.enum_ident;
             let variant_ident = &variant.ident;
             if self.kind.is_fallible() {
                 parse_quote! {
-                    #call.map(#enum_ident::#variant_ident)
+                    #call_enum.map(#enum_ident::#variant_ident)
                 }
             } else {
                 parse_quote! {
-                    #enum_ident::#variant_ident(#call)
+                    #enum_ident::#variant_ident(#call_enum)
                 }
             }
         } else {
-            call
+            call_enum
         };
+        let method_enum = parse_quote! {
+            fn #method_name_enum(&mut self, #parameter_name: #parameter_type) -> #result_type_enum {
+                #body_enum
+            }
+        };
+        let result_type = self.create_result_type(ty, false);
+        self.trait_items.push(method_enum);
         let method = parse_quote! {
             fn #method_name(&mut self, #parameter_name: #parameter_type) -> #result_type {
-                #body
+                #default_method_name(self, #parameter_name)
             }
         };
         self.trait_items.push(method);
@@ -252,9 +260,12 @@ impl Deriver {
             let variant_ident = &variant.ident;
             let variant_name = method_name_from_camel(variant_ident);
             let arm = if extract_variant_type(variant)?.is_some() {
-                let method_call = self.create_method_call(&variant_name, variant_ident, false);
-                parse_quote! {
-                    #enum_ident::#variant_ident(#variant_name) => #method_call,
+                let method_name = self.create_method_name(variant_ident);
+                let method_name = append_ident(&method_name, "_enum");
+                if self.kind.is_fallible() {
+                    parse_quote! { #enum_ident::#variant_ident(#variant_name) => this.#method_name(#variant_name)?, }
+                } else {
+                    parse_quote! { #enum_ident::#variant_ident(#variant_name) => this.#method_name(#variant_name), }
                 }
             } else {
                 let method_name = self.create_method_name(variant_ident);
@@ -373,6 +384,26 @@ impl Deriver {
                     parse_quote! {
                         for element in #name {
                             #method_call;
+                        }
+                    }
+                }
+            } else if let Some(inner_type) = get_option_box_type_arg(&parameter_type) {
+                let element = syn::Ident::new("element", Span::call_site());
+                let method_call = self.create_method_call(&element, inner_type, false);
+                walked_types.push(inner_type.clone());
+                if self.kind.is_folder() {
+                    parse_quote! {
+                        let #name = if let Some(element) = #name {
+                            let element = *element;
+                            Some(Box::new(#method_call))
+                        } else {
+                            None
+                        };
+                    }
+                } else {
+                    parse_quote! {
+                        if let Some(element) = #name {
+                            #method_call
                         }
                     }
                 }

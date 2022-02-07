@@ -4,10 +4,6 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-mod downcast_detector;
-mod place_encoding;
-
-use crate::encoder::builtin_encoder::BuiltinFunctionKind;
 use crate::encoder::errors::{
     ErrorCtxt, PanicCause, SpannedEncodingError, EncodingError, WithSpan,
     SpannedEncodingResult, EncodingResult
@@ -21,18 +17,18 @@ use prusti_common::config;
 use rustc_target::abi;
 use rustc_hir::def_id::DefId;
 use rustc_middle::{mir, ty};
-use rustc_index::vec::{Idx, IndexVec};
+use rustc_index::vec::IndexVec;
 use rustc_span::{Span, DUMMY_SP};
 use log::{trace, debug};
-use rustc_hash::{FxHashMap};
-use std::convert::TryInto;
 use prusti_interface::environment::mir_utils::MirPlace;
 use crate::encoder::mir::types::MirTypeEncoderInterface;
-
-pub use place_encoding::{PlaceEncoding, ExprOrArrayBase};
-
 use super::encoder::SubstMap;
 use super::high::types::HighTypeEncoderInterface;
+
+mod downcast_detector;
+mod place_encoding;
+
+pub use place_encoding::{PlaceEncoding, ExprOrArrayBase};
 
 pub static PRECONDITION_LABEL: &str = "pre";
 pub static WAND_LHS_LABEL: &str = "lhs";

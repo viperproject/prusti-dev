@@ -1073,7 +1073,7 @@ impl<'a> AstFactory<'a> {
         variables: &[LocalVarDecl],
         triggers: &[Trigger],
         expr: Expr,
-        _pos: Position,
+        _pos: Position, // FIXME: Why???
     ) -> Expr<'a> {
         build_ast_node_with_pos!(
             self,

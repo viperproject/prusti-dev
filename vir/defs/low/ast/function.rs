@@ -2,7 +2,7 @@ use super::{expression::Expression, ty::Type, variable::VariableDecl};
 use crate::common::display;
 
 #[display(
-    fmt = "function {}({}): {}\n{}{}{{ {} }}\n",
+    fmt = "function {}({}): {}\n{}{}{}\n",
     name,
     "display::cjoin(parameters)",
     return_type,
