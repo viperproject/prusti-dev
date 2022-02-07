@@ -141,7 +141,7 @@ mod tests {
         fn generate_name_for_slice() {
             let item: syn::ItemImpl = syn::parse_quote!{impl [i32] {}};
 
-            let name = generate_struct_name(&item).unwrap();
+            let name = generate_struct_name(&item);
 
             assert_uuid_prefix("PrustiStructSlicei32_", &name);
         }
@@ -149,7 +149,7 @@ mod tests {
         #[test]
         fn generate_name_for_path() {
             let item: syn::ItemImpl = syn::parse_quote!{impl std::option::Option<i32> {}};
-            let name = generate_struct_name(&item).unwrap();
+            let name = generate_struct_name(&item);
             assert_uuid_prefix("PrustiStructstdoptionOption_", &name);
         }
 
