@@ -1,5 +1,5 @@
 //! Encoding of external specs for traits
-use crate::parse_quote_spanned;
+use crate::{ExternSpecKind, parse_quote_spanned};
 use crate::specifications::common::generate_struct_name_for_trait;
 use proc_macro2::TokenStream;
 use quote::{quote_spanned, ToTokens};
@@ -215,9 +215,10 @@ impl<'a> GeneratedStruct<'a> {
         };
 
         // Create method
+        let extern_spec_kind_string: String = ExternSpecKind::Trait.into();
         return parse_quote_spanned! {trait_method.span()=>
             #[trusted]
-            #[prusti::extern_spec]
+            #[prusti::extern_spec = #extern_spec_kind_string]
             #(#trait_method_attrs)*
             #[allow(unused)]
             #trait_method_sig {

@@ -23,6 +23,7 @@ use specifications::untyped;
 use parse_closure_macro::ClosureWithSpec;
 pub use spec_attribute_kind::SpecAttributeKind;
 use prusti_utils::force_matches;
+pub use extern_spec_rewriter::ExternSpecKind;
 
 macro_rules! handle_result {
     ($parse_result: expr) => {
