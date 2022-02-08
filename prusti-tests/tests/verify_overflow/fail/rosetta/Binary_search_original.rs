@@ -7,7 +7,7 @@ use prusti_contracts::*;
 use std::cmp::Ordering::{self, *};
 
 #[extern_spec]
-impl i32 {
+impl std::cmp::Ord for i32 {
     #[ensures(
         match result {
             Less => *self < *other,
