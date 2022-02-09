@@ -1,1 +1,0 @@
-initSidebarItems({"attr":[["after_expiry",""],["ensures",""],["extern_spec",""],["pure",""],["refine_trait_spec",""],["requires",""],["trusted",""]],"macro":[["body_invariant",""],["closure",""],["predicate",""]]});

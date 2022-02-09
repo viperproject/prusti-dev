@@ -1,1 +1,0 @@
-initSidebarItems({"enum":[["TypeDecl",""]],"struct":[["Indexed",""],["Pointer",""],["Product",""],["Sum",""],["TypeVar",""]]});

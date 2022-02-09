@@ -1,1 +1,0 @@
-initSidebarItems({"fn":[["channel","Creates a new one-shot channel for sending single values across asynchronous tasks."]],"mod":[["error","Oneshot error types."]],"struct":[["Receiver","Receives a value from the associated [`Sender`]."],["Sender","Sends a value to the associated [`Receiver`]."]]});

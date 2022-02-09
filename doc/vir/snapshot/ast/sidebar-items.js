@@ -1,1 +1,0 @@
-initSidebarItems({"mod":[["expression",""],["field",""],["position",""],["ty",""],["type_decl",""],["variable",""]]});

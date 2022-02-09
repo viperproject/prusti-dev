@@ -1,1 +1,0 @@
-initSidebarItems({"enum":[["HandshakeError","A handshake result."]],"mod":[["client","Client handshake machine."],["headers","HTTP Request and response header handling."],["server","Server handshake machine."]],"struct":[["MidHandshake","A WebSocket handshake."]],"trait":[["HandshakeRole","Handshake role."]]});

@@ -1,1 +1,0 @@
-initSidebarItems({"macro":[["quick_error","Main macro that does all the work"]],"struct":[["Context","Generic context type"]],"trait":[["ResultExt","Result extension trait adding a `context` method"]]});

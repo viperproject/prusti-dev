@@ -1,1 +1,0 @@
-initSidebarItems({"enum":[["Error",""],["JniError",""]],"fn":[["jni_error_code_to_result",""]],"struct":[["Exception",""]],"trait":[["ToException",""]],"type":[["Result",""]]});
