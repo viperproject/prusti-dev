@@ -128,7 +128,7 @@ lazy_static! {
         check_keys(&settings, &allowed_keys, "default environment variables");
 
         // 3. Override with an optional TOML file specified by the `PRUSTI_CONFIG` env variable
-        let file = env::var("PRUSTI_CONFIG").unwrap_or("./Prusti.toml".to_string());
+        let file = env::var("PRUSTI_CONFIG").unwrap_or_else(|_| "./Prusti.toml".to_string());
         // Since this file may explicitly be specified by the user, it would be
         // nice to tell them if we cannot open it.
         settings.merge(File::with_name(&file).required(false)).unwrap();
