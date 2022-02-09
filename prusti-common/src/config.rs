@@ -7,7 +7,7 @@
 pub mod commandline;
 
 use self::commandline::CommandLine;
-use config_crate::{Config, Environment, File, FileFormat};
+use config_crate::{Config, Environment, File};
 use serde::Deserialize;
 use std::{collections::HashSet, env, path::PathBuf, sync::RwLock};
 
