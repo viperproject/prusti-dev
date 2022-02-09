@@ -121,11 +121,11 @@ lazy_static! {
         allowed_keys.insert("log".to_string());
         allowed_keys.insert("log_style".to_string());
 
-        // 2. Override with the optional TOML file "Prusti.toml" (if there is any)
+        // 2. Override with default env variables (e.g. `DEFAULT_PRUSTI_CACHE_PATH`, ...)
         settings.merge(
-            File::new("Prusti.toml", FileFormat::Toml).required(false)
+            Environment::with_prefix("DEFAULT_PRUSTI").ignore_empty(true)
         ).unwrap();
-        check_keys(&settings, &allowed_keys, "Prusti.toml file");
+        check_keys(&settings, &allowed_keys, "default environment variables");
 
         // 3. Override with an optional TOML file specified by the `PRUSTI_CONFIG` env variable
         if let Ok(file) = env::var("PRUSTI_CONFIG") {
@@ -133,6 +133,12 @@ lazy_static! {
             // nice to tell them if we cannot open it.
             settings.merge(File::with_name(&file)).unwrap();
             check_keys(&settings, &allowed_keys, &format!("{} file", file));
+        } else {
+            // Defaults to "./Prusti.toml"
+            settings.merge(
+                File::new("Prusti.toml", FileFormat::Toml).required(false)
+            ).unwrap();
+            check_keys(&settings, &allowed_keys, "./Prusti.toml file");
         }
 
         // 4. Override with env variables (`PRUSTI_VIPER_BACKEND`, ...)

@@ -32,22 +32,16 @@ where
     let mut cargo_target =
         PathBuf::from(std::env::var("CARGO_TARGET_DIR").unwrap_or_else(|_| "target".to_string()));
     cargo_target.push("verify");
-    let prusti_log_dir = std::env::var("PRUSTI_LOG_DIR")
-        .map(PathBuf::from)
-        .unwrap_or_else(|_| cargo_target.join("log"));
-    let prusti_cache_file = std::env::var("PRUSTI_CACHE_PATH")
-        .map(PathBuf::from)
-        .unwrap_or_else(|_| cargo_target.join("cache.bin"));
     let exit_status = Command::new(cargo_path)
         .arg("check")
         .args(clean_args)
         .env("RUST_TOOLCHAIN", get_rust_toolchain_channel())
         .env("RUSTC_WRAPPER", prusti_rustc_path)
+        .env("DEFAULT_PRUSTI_QUIET", "true")
+        .env("DEFAULT_PRUSTI_FULL_COMPILATION", "true")
+        .env("DEFAULT_PRUSTI_LOG_DIR", cargo_target.join("log"))
+        .env("DEFAULT_PRUSTI_CACHE_PATH", cargo_target.join("cache.bin"))
         .env("CARGO_TARGET_DIR", cargo_target)
-        .env("PRUSTI_QUIET", "true")
-        .env("PRUSTI_FULL_COMPILATION", "true")
-        .env("PRUSTI_LOG_DIR", prusti_log_dir)
-        .env("PRUSTI_CACHE_PATH", prusti_cache_file)
         .status()
         .expect("could not run cargo");
 
