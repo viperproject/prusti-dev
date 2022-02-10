@@ -1,0 +1,1 @@
+initSidebarItems({"mod":[["initialization","This module provides the definitely initialized analysis for MIR."]]});

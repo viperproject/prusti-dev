@@ -1,0 +1,1 @@
+initSidebarItems({"enum":[["Resource","The Resource enum is platform dependent. Check different platform manuals for more details. Some platform links has been provided for earier reference (non-exhaustive)."]],"fn":[["getrlimit","Get the current processes resource limits"],["setrlimit","Set the current processes resource limits"]],"type":[["rlim_t",""]]});
