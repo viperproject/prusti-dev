@@ -173,6 +173,23 @@ pub(super) fn encode_quantifier<'tcx>(
                 parent_def_id,
                 tymap,
             )?;
+            let encoded_trigger = match encoded_trigger {
+                // slice/array accesses are encoded with bound checks which need to be stripped for triggers
+                vir_crate::polymorphic::Expr::Cond(vir_crate::polymorphic::Cond {
+                    then_expr:
+                        box vir_crate::polymorphic::Expr::Field(vir_crate::polymorphic::FieldExpr {
+                            base: box base @ vir_crate::polymorphic::Expr::DomainFuncApp(..),
+                            ..
+                        }),
+                    ..
+                }) => base,
+                // slice/array accesses nested in functions also need their outer bound checks removed
+                vir_crate::polymorphic::Expr::Cond(vir_crate::polymorphic::Cond {
+                    then_expr: box then_expr @ vir_crate::polymorphic::Expr::FuncApp(..),
+                    ..
+                }) => then_expr,
+                encoded_trigger => encoded_trigger,
+            };
             check_trigger(&encoded_trigger).with_span(trigger_span)?;
             encoded_triggers.push(encoded_trigger);
             set_spans.push(trigger_span);
