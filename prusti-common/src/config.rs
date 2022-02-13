@@ -13,6 +13,7 @@ use std::{collections::HashSet, env, path::PathBuf, sync::RwLock};
 
 #[derive(Debug, PartialEq, Eq)]
 pub struct Optimizations {
+    pub use_bitvectors: bool,
     pub inline_constant_functions: bool,
     pub delete_unused_predicates: bool,
     pub optimize_folding: bool,
@@ -27,6 +28,7 @@ pub struct Optimizations {
 impl Optimizations {
     fn all_disabled() -> Self {
         Optimizations {
+            use_bitvectors: false,
             inline_constant_functions: false,
             delete_unused_predicates: false,
             optimize_folding: false,
@@ -41,6 +43,7 @@ impl Optimizations {
 
     fn all_enabled() -> Self {
         Optimizations {
+            use_bitvectors: true,
             inline_constant_functions: true,
             delete_unused_predicates: true,
             optimize_folding: true,
@@ -430,6 +433,7 @@ pub fn optimizations() -> Optimizations {
         let trimmed = s.trim();
         match trimmed {
             "all" => opt = Optimizations::all_enabled(),
+            "use_bitvectors" => opt.use_bitvectors = true,
             "inline_constant_functions" => opt.inline_constant_functions = true,
             "delete_unused_predicates" => opt.delete_unused_predicates = true,
             "optimize_folding" => opt.optimize_folding = true,

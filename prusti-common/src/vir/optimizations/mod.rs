@@ -15,6 +15,7 @@ pub mod functions;
 pub mod methods;
 pub mod predicates;
 pub mod purification;
+pub mod bitvectors;
 
 fn log_method(
     source_file_name: &str,
@@ -52,6 +53,24 @@ pub fn optimize_program(p: Program, source_file_name: &str) -> Program {
     let optimizations = config::optimizations();
     debug!("Enabled optimisations: {:?}", optimizations);
 
+    if optimizations.use_bitvectors {
+        log_methods(
+            source_file_name,
+            &program.methods,
+            "use_bitvectors",
+            false
+        );
+        if bitvectors::uses_bit_operations(&program) {
+            bitvectors::replace_all_ints(&mut program);
+        }
+        log_methods(
+            source_file_name,
+            &program.methods,
+            "use_bitvectors",
+            true
+        );
+    }
+
     // can't borrow self because we need to move fields
     if optimizations.inline_constant_functions {
         log_methods(
@@ -80,9 +99,7 @@ pub fn optimize_program(p: Program, source_file_name: &str) -> Program {
         );
         program.methods = program.methods
             .into_iter()
-            .map(|cfg| {
-                folding::FoldingOptimizer::optimize(cfg)
-            })
+            .map(folding::FoldingOptimizer::optimize)
             .collect();
         program.functions = program.functions
             .into_iter()

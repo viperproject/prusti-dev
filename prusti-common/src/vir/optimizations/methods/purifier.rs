@@ -370,6 +370,11 @@ impl ast::StmtFolder for VarPurifier {
                 ast::Type::Bool => "builtin$havoc_bool",
                 ast::Type::Float(ast::Float::F32) => "builtin$havoc_f32",
                 ast::Type::Float(ast::Float::F64) => "builtin$havoc_f64",
+                ast::Type::BitVector(ast::BitVector::BV8) => "builtin$havoc_bv8",
+                ast::Type::BitVector(ast::BitVector::BV16) => "builtin$havoc_bv16",
+                ast::Type::BitVector(ast::BitVector::BV32) => "builtin$havoc_bv32",
+                ast::Type::BitVector(ast::BitVector::BV64) => "builtin$havoc_bv64",
+                ast::Type::BitVector(ast::BitVector::BV128) => "builtin$havoc_bv128",
                 ast::Type::TypedRef(_) => "builtin$havoc_ref",
                 ast::Type::TypeVar(_) => "builtin$havoc_ref",
                 ast::Type::Domain(_)

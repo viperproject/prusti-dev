@@ -18,6 +18,11 @@ pub enum BuiltinMethodKind {
     HavocInt,
     HavocF32,
     HavocF64,
+    HavocBV8,
+    HavocBV16,
+    HavocBV32,
+    HavocBV64,
+    HavocBV128,
     HavocRef,
 }
 
@@ -70,6 +75,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinEncoder<'p, 'v, 'tcx> {
         match method {
             BuiltinMethodKind::HavocBool => "builtin$havoc_bool".to_string(),
             BuiltinMethodKind::HavocInt => "builtin$havoc_int".to_string(),
+            BuiltinMethodKind::HavocBV8  => "builtin$havoc_bv8".to_string(),
+            BuiltinMethodKind::HavocBV16  => "builtin$havoc_bv16".to_string(),
+            BuiltinMethodKind::HavocBV32  => "builtin$havoc_bv32".to_string(),
+            BuiltinMethodKind::HavocBV64  => "builtin$havoc_bv64".to_string(),
+            BuiltinMethodKind::HavocBV128  => "builtin$havoc_bv128".to_string(),
             BuiltinMethodKind::HavocF32 => "builtin$havoc_f32".to_string(),
             BuiltinMethodKind::HavocF64 => "builtin$havoc_f64".to_string(),
             BuiltinMethodKind::HavocRef => "builtin$havoc_ref".to_string(),
@@ -80,6 +90,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinEncoder<'p, 'v, 'tcx> {
         let return_type = match method {
             BuiltinMethodKind::HavocBool => vir::Type::Bool,
             BuiltinMethodKind::HavocInt => vir::Type::Int,
+            BuiltinMethodKind::HavocBV8 => vir::Type::BitVector(vir::BitVector::BV8),
+            BuiltinMethodKind::HavocBV16 => vir::Type::BitVector(vir::BitVector::BV16),
+            BuiltinMethodKind::HavocBV32 => vir::Type::BitVector(vir::BitVector::BV32),
+            BuiltinMethodKind::HavocBV64 => vir::Type::BitVector(vir::BitVector::BV64),
+            BuiltinMethodKind::HavocBV128 => vir::Type::BitVector(vir::BitVector::BV128),
             BuiltinMethodKind::HavocF32 => vir::Type::Float(vir::Float::F32),
             BuiltinMethodKind::HavocF64 => vir::Type::Float(vir::Float::F64),
             BuiltinMethodKind::HavocRef => vir::Type::typed_ref(""),
