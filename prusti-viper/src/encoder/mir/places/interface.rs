@@ -8,6 +8,7 @@ use crate::encoder::{
     mir::{constants::ConstantsEncoderInterface, types::MirTypeEncoderInterface},
 };
 use log::debug;
+use prusti_common::config;
 use rustc_hir::def_id::DefId;
 use rustc_middle::{mir, ty};
 use rustc_span::Span;
@@ -409,6 +410,11 @@ impl<'v, 'tcx: 'v> PlacesEncoderInterface<'tcx> for super::super::super::Encoder
                 },
 
                 mir::BinOp::Shl | mir::BinOp::Shr => {
+                    if !config::encode_bitvectors() {
+                        return Err(EncodingError::unsupported(
+                            "overflow checks on a shift operation are unsupported",
+                        ));
+                    }
                     let size: u32 = match ty {
                         vir_high::Type::Int(vir_high::ty::Int::U8) => 8,
                         vir_high::Type::Int(vir_high::ty::Int::U16) => 16,

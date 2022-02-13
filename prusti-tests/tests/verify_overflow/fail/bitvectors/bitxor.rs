@@ -1,3 +1,5 @@
+// compile-flags: -Pencode_bitvectors=true
+
 use prusti_contracts::*;
 
 fn bitxor_1() {

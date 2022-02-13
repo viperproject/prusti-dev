@@ -545,6 +545,19 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
             mir::BinOp::BitAnd if is_bool => vir::Expr::and(left, right),
             mir::BinOp::BitOr if is_bool => vir::Expr::or(left, right),
             mir::BinOp::BitXor if is_bool => vir::Expr::xor(left, right),
+            mir::BinOp::BitAnd |
+            mir::BinOp::BitOr |
+            mir::BinOp::BitXor if !config::encode_bitvectors() => {
+                return Err(EncodingError::unsupported(
+                    "bitwise operations on non-boolean types are experimental and disabled by default; use `encode_bitvectors` to enable"
+                ))
+            }
+            unsupported_op if !config::encode_bitvectors() => {
+                return Err(EncodingError::unsupported(format!(
+                    "support for operation '{:?}' is experimental and disabled by default; use `encode_bitvectors` to enable",
+                    unsupported_op
+                )))
+            }
             mir::BinOp::BitAnd => vir::Expr::bin_op(vir::BinaryOpKind::BitAnd, left, right),
             mir::BinOp::BitOr => vir::Expr::bin_op(vir::BinaryOpKind::BitOr, left, right),
             mir::BinOp::BitXor => vir::Expr::bin_op(vir::BinaryOpKind::BitXor, left, right),
