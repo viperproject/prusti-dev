@@ -13,7 +13,6 @@ use std::{collections::HashSet, env, path::PathBuf, sync::RwLock};
 
 #[derive(Debug, PartialEq, Eq)]
 pub struct Optimizations {
-    pub use_bitvectors: bool,
     pub inline_constant_functions: bool,
     pub delete_unused_predicates: bool,
     pub optimize_folding: bool,
@@ -28,7 +27,6 @@ pub struct Optimizations {
 impl Optimizations {
     fn all_disabled() -> Self {
         Optimizations {
-            use_bitvectors: false,
             inline_constant_functions: false,
             delete_unused_predicates: false,
             optimize_folding: false,
@@ -43,7 +41,6 @@ impl Optimizations {
 
     fn all_enabled() -> Self {
         Optimizations {
-            use_bitvectors: true,
             inline_constant_functions: true,
             delete_unused_predicates: true,
             optimize_folding: true,
@@ -69,6 +66,7 @@ lazy_static! {
         settings.set_default("check_overflows", true).unwrap();
         settings.set_default("check_panics", true).unwrap();
         settings.set_default("encode_unsigned_num_constraint", false).unwrap();
+        settings.set_default("encode_bitvectors", false).unwrap();
         settings.set_default("simplify_encoding", true).unwrap();
         settings.set_default("log_dir", "log").unwrap();
         settings.set_default("cache_path", "").unwrap();
@@ -295,6 +293,11 @@ pub fn encode_unsigned_num_constraint() -> bool {
     read_setting("encode_unsigned_num_constraint")
 }
 
+/// Enable (highly hacky) support for bitvectors.
+pub fn encode_bitvectors() -> bool {
+    read_setting("encode_bitvectors")
+}
+
 /// Location of 'libprusti_contracts*.rlib'
 pub fn contracts_lib() -> String {
     read_setting("contracts_lib")
@@ -433,7 +436,6 @@ pub fn optimizations() -> Optimizations {
         let trimmed = s.trim();
         match trimmed {
             "all" => opt = Optimizations::all_enabled(),
-            "use_bitvectors" => opt.use_bitvectors = true,
             "inline_constant_functions" => opt.inline_constant_functions = true,
             "delete_unused_predicates" => opt.delete_unused_predicates = true,
             "optimize_folding" => opt.optimize_folding = true,

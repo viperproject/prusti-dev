@@ -62,17 +62,33 @@ pub enum BinOpBv {
     BitOr,
     BitXor,
     BvAdd,
+    BvSub,
     BvMul,
+    BvUDiv,
     BvShl,
     BvLShr,
     BvAShr,
 }
+
+#[derive(Clone, Copy)]
 pub enum BvSize {
     BV8,
     BV16,
     BV32,
     BV64,
     BV128,
+}
+
+impl BvSize {
+    fn to_i32(self) -> i32 {
+        match self {
+            BvSize::BV8 => 8,
+            BvSize::BV16 => 16,
+            BvSize::BV32 => 32,
+            BvSize::BV64 => 64,
+            BvSize::BV128 => 128,
+        }
+    }
 }
 
 impl<'a> AstFactory<'a> {
@@ -327,16 +343,25 @@ impl<'a> AstFactory<'a> {
         self.backend_func_app(from_int, &[self.int_lit(bits as i64)], self.no_position())
     }
 
-    pub fn bv_binop(&self, op_kind: BinOpBv, bv_size: BvSize, left: Expr, right: Expr) -> Expr<'a> {
+    pub fn bv_factory(&self, bv_size: BvSize) -> (ast::utility::BVFactory<'a>, JObject<'a>) {
         let factory_ = ast::utility::BVFactory::with(self.env); // FloatFactory
-        let factory = match bv_size {
-            BvSize::BV8 => ast::utility::BVFactory::new(&factory_, 8),
-            BvSize::BV16 => ast::utility::BVFactory::new(&factory_, 16),
-            BvSize::BV32 => ast::utility::BVFactory::new(&factory_, 32),
-            BvSize::BV64 => ast::utility::BVFactory::new(&factory_, 64),
-            BvSize::BV128 => ast::utility::BVFactory::new(&factory_, 128),
-        }
+        let factory = ast::utility::BVFactory::new(&factory_, bv_size.to_i32()).unwrap();
+        (factory_, factory)
+    }
+
+    pub fn backend_bv_to_int(&self, bv_size: BvSize, expr: Expr<'a>) -> Expr<'a> {
+        let (factory_, factory) = self.bv_factory(bv_size);
+        let to_int = ast::utility::BVFactory::call_to__int(
+            &factory_,
+            factory,
+            self.jni.new_string(format!("fromBV{}", bv_size.to_i32())),
+        )
         .unwrap();
+        self.backend_func_app(to_int, &[expr], self.no_position())
+    }
+
+    pub fn bv_binop(&self, op_kind: BinOpBv, bv_size: BvSize, left: Expr, right: Expr) -> Expr<'a> {
+        let (factory_, factory) = self.bv_factory(bv_size);
         let op = match op_kind {
             BinOpBv::BitAnd => {
                 ast::utility::BVFactory::call_and(&factory_, factory, self.jni.new_string("and"))
@@ -350,8 +375,14 @@ impl<'a> AstFactory<'a> {
             BinOpBv::BvAdd => {
                 ast::utility::BVFactory::call_add(&factory_, factory, self.jni.new_string("add"))
             }
+            BinOpBv::BvSub => {
+                ast::utility::BVFactory::call_sub(&factory_, factory, self.jni.new_string("sub"))
+            }
             BinOpBv::BvMul => {
                 ast::utility::BVFactory::call_mul(&factory_, factory, self.jni.new_string("mul"))
+            }
+            BinOpBv::BvUDiv => {
+                ast::utility::BVFactory::call_udiv(&factory_, factory, self.jni.new_string("udiv"))
             }
             BinOpBv::BvShl => {
                 ast::utility::BVFactory::call_shl(&factory_, factory, self.jni.new_string("shl"))
@@ -368,16 +399,7 @@ impl<'a> AstFactory<'a> {
     }
 
     pub fn bv_unnop(&self, op_kind: UnOpBv, bv_size: BvSize, arg: Expr) -> Expr<'a> {
-        let factory_ = ast::utility::BVFactory::with(self.env); // FloatFactory
-        let factory = match bv_size {
-            //
-            BvSize::BV8 => ast::utility::BVFactory::new(&factory_, 8),
-            BvSize::BV16 => ast::utility::BVFactory::new(&factory_, 16),
-            BvSize::BV32 => ast::utility::BVFactory::new(&factory_, 32),
-            BvSize::BV64 => ast::utility::BVFactory::new(&factory_, 64),
-            BvSize::BV128 => ast::utility::BVFactory::new(&factory_, 128),
-        }
-        .unwrap();
+        let (factory_, factory) = self.bv_factory(bv_size);
         let op = match op_kind {
             UnOpBv::Not => {
                 ast::utility::BVFactory::call_not(&factory_, factory, self.jni.new_string("not"))

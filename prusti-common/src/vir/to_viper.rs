@@ -413,59 +413,65 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for Expr {
                     };
                     ast.float_binop(float_op_kind, size, left.to_viper(ast), right.to_viper(ast))
                 }
-                Some(Type::BitVector(bitvector_ty)) => match op {
-                    BinaryOpKind::EqCmp => ast.eq_cmp_with_pos(
-                        left.to_viper(ast),
-                        right.to_viper(ast),
-                        pos.to_viper(ast),
-                    ),
-                    BinaryOpKind::NeCmp => ast.ne_cmp_with_pos(
-                        left.to_viper(ast),
-                        right.to_viper(ast),
-                        pos.to_viper(ast),
-                    ),
-                    BinaryOpKind::GtCmp => ast.gt_cmp_with_pos(
-                        left.to_viper(ast),
-                        right.to_viper(ast),
-                        pos.to_viper(ast),
-                    ),
-                    BinaryOpKind::GeCmp => ast.ge_cmp_with_pos(
-                        left.to_viper(ast),
-                        right.to_viper(ast),
-                        pos.to_viper(ast),
-                    ),
-                    BinaryOpKind::LtCmp => ast.lt_cmp_with_pos(
-                        left.to_viper(ast),
-                        right.to_viper(ast),
-                        pos.to_viper(ast),
-                    ),
-                    BinaryOpKind::LeCmp => ast.le_cmp_with_pos(
-                        left.to_viper(ast),
-                        right.to_viper(ast),
-                        pos.to_viper(ast),
-                    ),
-                    _ => {
-                        let size = match bitvector_ty {
-                            BitVector::BV8 => viper::BvSize::BV8,
-                            BitVector::BV16 => viper::BvSize::BV16,
-                            BitVector::BV32 => viper::BvSize::BV32,
-                            BitVector::BV64 => viper::BvSize::BV64,
-                            BitVector::BV128 => viper::BvSize::BV128,
-                        };
-                        let op_kind = match op {
-                            BinaryOpKind::Add => viper::BinOpBv::BvAdd,
-                            BinaryOpKind::Mul => viper::BinOpBv::BvMul,
-                            BinaryOpKind::BitAnd => viper::BinOpBv::BitAnd,
-                            BinaryOpKind::BitOr => viper::BinOpBv::BitOr,
-                            BinaryOpKind::BitXor => viper::BinOpBv::BitXor,
-                            BinaryOpKind::Shl => viper::BinOpBv::BvShl,
-                            BinaryOpKind::LShr => viper::BinOpBv::BvLShr,
-                            BinaryOpKind::AShr => viper::BinOpBv::BvAShr,
-                            _ => unreachable!("illegal binary operation for bitvectors: {}", op),
-                        };
-                        ast.bv_binop(op_kind, size, left.to_viper(ast), right.to_viper(ast))
+                Some(Type::BitVector(bitvector_ty)) => {
+                    let size = match bitvector_ty {
+                        BitVector::BV8 => viper::BvSize::BV8,
+                        BitVector::BV16 => viper::BvSize::BV16,
+                        BitVector::BV32 => viper::BvSize::BV32,
+                        BitVector::BV64 => viper::BvSize::BV64,
+                        BitVector::BV128 => viper::BvSize::BV128,
+                    };
+                    match op {
+                        BinaryOpKind::EqCmp => ast.eq_cmp_with_pos(
+                            left.to_viper(ast),
+                            right.to_viper(ast),
+                            pos.to_viper(ast),
+                        ),
+                        BinaryOpKind::NeCmp => ast.ne_cmp_with_pos(
+                            left.to_viper(ast),
+                            right.to_viper(ast),
+                            pos.to_viper(ast),
+                        ),
+                        BinaryOpKind::GtCmp => ast.gt_cmp_with_pos(
+                            ast.backend_bv_to_int(size, left.to_viper(ast)),
+                            ast.backend_bv_to_int(size, right.to_viper(ast)),
+                            pos.to_viper(ast),
+                        ),
+                        BinaryOpKind::GeCmp => ast.ge_cmp_with_pos(
+                            ast.backend_bv_to_int(size, left.to_viper(ast)),
+                            ast.backend_bv_to_int(size, right.to_viper(ast)),
+                            pos.to_viper(ast),
+                        ),
+                        BinaryOpKind::LtCmp => ast.lt_cmp_with_pos(
+                            ast.backend_bv_to_int(size, left.to_viper(ast)),
+                            ast.backend_bv_to_int(size, right.to_viper(ast)),
+                            pos.to_viper(ast),
+                        ),
+                        BinaryOpKind::LeCmp => ast.le_cmp_with_pos(
+                            ast.backend_bv_to_int(size, left.to_viper(ast)),
+                            ast.backend_bv_to_int(size, right.to_viper(ast)),
+                            pos.to_viper(ast),
+                        ),
+                        _ => {
+                            let op_kind = match op {
+                                BinaryOpKind::Add => viper::BinOpBv::BvAdd,
+                                BinaryOpKind::Sub => viper::BinOpBv::BvSub,
+                                BinaryOpKind::Mul => viper::BinOpBv::BvMul,
+                                BinaryOpKind::Div => viper::BinOpBv::BvUDiv,
+                                BinaryOpKind::BitAnd => viper::BinOpBv::BitAnd,
+                                BinaryOpKind::BitOr => viper::BinOpBv::BitOr,
+                                BinaryOpKind::BitXor => viper::BinOpBv::BitXor,
+                                BinaryOpKind::Shl => viper::BinOpBv::BvShl,
+                                BinaryOpKind::LShr => viper::BinOpBv::BvLShr,
+                                BinaryOpKind::AShr => viper::BinOpBv::BvAShr,
+                                _ => {
+                                    unreachable!("illegal binary operation for bitvectors: {}", op)
+                                }
+                            };
+                            ast.bv_binop(op_kind, size, left.to_viper(ast), right.to_viper(ast))
+                        }
                     }
-                },
+                }
                 typ => match op {
                     BinaryOpKind::EqCmp => ast.eq_cmp_with_pos(
                         left.to_viper(ast),

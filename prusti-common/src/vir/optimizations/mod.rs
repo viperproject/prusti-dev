@@ -61,12 +61,22 @@ pub fn optimize_program(p: Program, source_file_name: &str) -> Program {
     let optimizations = config::optimizations();
     debug!("Enabled optimisations: {:?}", optimizations);
 
-    if optimizations.use_bitvectors {
-        log_methods(source_file_name, &program.methods, "use_bitvectors", false);
+    if config::encode_bitvectors() {
+        log_methods(
+            source_file_name,
+            &program.methods,
+            "encode_bitvectors",
+            false,
+        );
         if bitvectors::uses_bit_operations(&program) {
             bitvectors::replace_all_ints(&mut program);
         }
-        log_methods(source_file_name, &program.methods, "use_bitvectors", true);
+        log_methods(
+            source_file_name,
+            &program.methods,
+            "encode_bitvectors",
+            true,
+        );
     }
 
     // can't borrow self because we need to move fields
