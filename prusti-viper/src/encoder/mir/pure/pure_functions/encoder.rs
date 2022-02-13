@@ -77,7 +77,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
             .unwrap_or_else(|| panic!("Procedure {:?} contains a loop", self.proc_def_id));
         let body_expr = state.into_expr().unwrap();
         debug!(
-            "Pure function {} has been encoded with expr: {}",
+            "Pure function body {} has been encoded with expr: {}",
             function_name, body_expr
         );
         let substs = &self

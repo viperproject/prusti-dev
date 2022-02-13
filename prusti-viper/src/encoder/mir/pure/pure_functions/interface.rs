@@ -184,7 +184,8 @@ impl<'v, 'tcx: 'v> PureFunctionEncoderInterface<'v, 'tcx>
                 self,
                 proc_def_id,
                 procedure.get_mir(),
-                false, // quantifier triggers might not evaluate to boolean
+                // quantifier triggers might not evaluate to boolean
+                !self.is_encoding_trigger.get(),
                 parent_def_id,
                 substs,
             );
