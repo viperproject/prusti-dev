@@ -6,28 +6,36 @@
 
 //! A module that contains various VIR optimizations.
 
-use crate::vir::polymorphic_vir::{CfgMethod, Program};
-use crate::vir::ToGraphViz;
-use crate::config;
+use crate::{
+    config,
+    vir::{
+        polymorphic_vir::{CfgMethod, Program},
+        ToGraphViz,
+    },
+};
 
+pub mod bitvectors;
 pub mod folding;
 pub mod functions;
 pub mod methods;
 pub mod predicates;
 pub mod purification;
-pub mod bitvectors;
 
 fn log_method(
     source_file_name: &str,
     cfg: &CfgMethod,
     optimization_name: &str,
-    after_optimization: bool
+    after_optimization: bool,
 ) {
     if config::dump_debug_info() {
         let namespace = format!(
             "graphviz_method_optimization_{}_{}",
             optimization_name,
-            if after_optimization { "after" } else { "before" }
+            if after_optimization {
+                "after"
+            } else {
+                "before"
+            }
         );
         crate::report::log::report_with_writer(
             &namespace,
@@ -41,7 +49,7 @@ fn log_methods(
     source_file_name: &str,
     cfgs: &[CfgMethod],
     optimization_name: &str,
-    after_optimization: bool
+    after_optimization: bool,
 ) {
     for cfg in cfgs {
         log_method(source_file_name, cfg, optimization_name, after_optimization);
@@ -54,21 +62,11 @@ pub fn optimize_program(p: Program, source_file_name: &str) -> Program {
     debug!("Enabled optimisations: {:?}", optimizations);
 
     if optimizations.use_bitvectors {
-        log_methods(
-            source_file_name,
-            &program.methods,
-            "use_bitvectors",
-            false
-        );
+        log_methods(source_file_name, &program.methods, "use_bitvectors", false);
         if bitvectors::uses_bit_operations(&program) {
             bitvectors::replace_all_ints(&mut program);
         }
-        log_methods(
-            source_file_name,
-            &program.methods,
-            "use_bitvectors",
-            true
-        );
+        log_methods(source_file_name, &program.methods, "use_bitvectors", true);
     }
 
     // can't borrow self because we need to move fields
@@ -77,7 +75,7 @@ pub fn optimize_program(p: Program, source_file_name: &str) -> Program {
             source_file_name,
             &program.methods,
             "inline_constant_functions",
-            false
+            false,
         );
         let (new_methods, new_functions) =
             functions::inline_constant_functions(program.methods, program.functions);
@@ -87,34 +85,28 @@ pub fn optimize_program(p: Program, source_file_name: &str) -> Program {
             source_file_name,
             &program.methods,
             "inline_constant_functions",
-            true
+            true,
         );
     }
     if optimizations.optimize_folding {
-        log_methods(
-            source_file_name,
-            &program.methods,
-            "folding",
-            false
-        );
-        program.methods = program.methods
+        log_methods(source_file_name, &program.methods, "folding", false);
+        program.methods = program
+            .methods
             .into_iter()
             .map(folding::FoldingOptimizer::optimize)
             .collect();
-        program.functions = program.functions
+        program.functions = program
+            .functions
             .into_iter()
             .map(folding::FoldingOptimizer::optimize)
             .collect();
-        log_methods(
-            source_file_name,
-            &program.methods,
-            "folding",
-            true
-        );
+        log_methods(source_file_name, &program.methods, "folding", true);
     }
-    program.methods = program.methods.into_iter().map(|method| {
-        methods::optimize_method_encoding(method, source_file_name, &optimizations)
-    }).collect();
+    program.methods = program
+        .methods
+        .into_iter()
+        .map(|method| methods::optimize_method_encoding(method, source_file_name, &optimizations))
+        .collect();
     if optimizations.delete_unused_predicates {
         program.viper_predicates = predicates::delete_unused_predicates(
             &program.methods,
@@ -124,7 +116,7 @@ pub fn optimize_program(p: Program, source_file_name: &str) -> Program {
     }
 
     if config::enable_purification_optimization() {
-        program.methods=purification::purify_methods(program.methods, &program.viper_predicates);
+        program.methods = purification::purify_methods(program.methods, &program.viper_predicates);
     }
 
     program

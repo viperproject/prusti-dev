@@ -15,22 +15,26 @@ use crate::vir::polymorphic_vir::{ast, cfg, Const};
 pub fn remove_trivial_assertions(mut method: cfg::CfgMethod) -> cfg::CfgMethod {
     method.retain_stmts(|stmt| {
         // Remove those statements marked with `false`
-        !matches!(stmt,
-            ast::Stmt::Assert( ast::Assert {
-                expr: ast::Expr::Const( ast::ConstExpr {
+        !matches!(
+            stmt,
+            ast::Stmt::Assert(ast::Assert {
+                expr: ast::Expr::Const(ast::ConstExpr {
                     value: Const::Bool(true),
-                    ..}),
-                ..}) |
-            ast::Stmt::Exhale( ast::Exhale {
-                expr: ast::Expr::Const( ast::ConstExpr {
+                    ..
+                }),
+                ..
+            }) | ast::Stmt::Exhale(ast::Exhale {
+                expr: ast::Expr::Const(ast::ConstExpr {
                     value: Const::Bool(true),
-                    ..}),
-                ..}) |
-            ast::Stmt::Inhale( ast::Inhale {
-                expr: ast::Expr::Const( ast::ConstExpr {
+                    ..
+                }),
+                ..
+            }) | ast::Stmt::Inhale(ast::Inhale {
+                expr: ast::Expr::Const(ast::ConstExpr {
                     value: Const::Bool(true),
-                    ..}),
-                })
+                    ..
+                }),
+            })
         )
     });
     method

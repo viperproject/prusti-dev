@@ -16,13 +16,12 @@
 //! when unfolding are used inside a quantifiers and other cases.
 //! See: <https://github.com/viperproject/silicon/issues/387>
 
-
-use crate::vir::polymorphic_vir::{ast, cfg};
-use std::cmp::Ordering;
-use std::collections::{HashMap, HashSet};
-use std::mem;
-use crate::vir::polymorphic_vir::FallibleExprFolder;
-
+use crate::vir::polymorphic_vir::{ast, cfg, FallibleExprFolder};
+use std::{
+    cmp::Ordering,
+    collections::{HashMap, HashSet},
+    mem,
+};
 
 pub trait FoldingOptimizer {
     #[must_use]
@@ -73,11 +72,10 @@ impl FoldingOptimizer for ast::Expr {
     }
 }
 
-struct StmtOptimizer {
-}
+struct StmtOptimizer {}
 
 impl ast::StmtFolder for StmtOptimizer {
-    fn fold_inhale(&mut self, ast::Inhale {expr}: ast::Inhale) -> ast::Stmt {
+    fn fold_inhale(&mut self, ast::Inhale { expr }: ast::Inhale) -> ast::Stmt {
         ast::Stmt::inhale(expr.optimize())
     }
 }
@@ -116,7 +114,7 @@ fn restore_unfoldings(unfolding_map: UnfoldingMap, mut expr: ast::Expr) -> ast::
             let base_k2 = k2.get_base().name;
             if base_k1 < base_k2 || k1.has_prefix(k2) {
                 Ordering::Less
-            } else if base_k1 > base_k2 || k2.has_prefix(k1){
+            } else if base_k1 > base_k2 || k2.has_prefix(k1) {
                 Ordering::Greater
             } else {
                 format!("{}", k1).cmp(&format!("{}", k2))
@@ -125,14 +123,7 @@ fn restore_unfoldings(unfolding_map: UnfoldingMap, mut expr: ast::Expr) -> ast::
     });
     for (arg, (name, perm_amount, variant)) in unfoldings {
         let position = expr.pos();
-        expr = ast::Expr::unfolding_with_pos(
-            name,
-            vec![arg],
-            expr,
-            perm_amount,
-            variant,
-            position,
-        );
+        expr = ast::Expr::unfolding_with_pos(name, vec![arg], expr, perm_amount, variant, position);
     }
     expr
 }
@@ -142,7 +133,7 @@ fn restore_unfoldings(unfolding_map: UnfoldingMap, mut expr: ast::Expr) -> ast::
 /// Returns a set of conflicting bases. The empty set means no conflicts.
 fn check_requirements_conflict(
     reqs1: &RequirementSet,
-    reqs2: &RequirementSet
+    reqs2: &RequirementSet,
 ) -> HashSet<ast::Expr> {
     let mut conflict_set = HashSet::new();
     for place1 in reqs1 {
@@ -167,8 +158,10 @@ fn check_requirements_conflict(
                     len2 -= 1;
                     if part1 != part2 {
                         match (part1, part2) {
-                            (ast::PlaceComponent::Variant(..),
-                             ast::PlaceComponent::Variant(..)) => {
+                            (
+                                ast::PlaceComponent::Variant(..),
+                                ast::PlaceComponent::Variant(..),
+                            ) => {
                                 if len1 != 0 || len2 != 0 {
                                     debug!("different variants: {} {}", place1, place2);
                                     // If variant is the last component of the place, then we are
@@ -176,10 +169,14 @@ fn check_requirements_conflict(
                                     conflict_set.insert(base1);
                                 }
                             }
-                            (ast::PlaceComponent::Field(ast::Field { name, .. }, _),
-                             ast::PlaceComponent::Variant(..)) |
-                            (ast::PlaceComponent::Variant(..),
-                             ast::PlaceComponent::Field(ast::Field { name, .. }, _)) => {
+                            (
+                                ast::PlaceComponent::Field(ast::Field { name, .. }, _),
+                                ast::PlaceComponent::Variant(..),
+                            )
+                            | (
+                                ast::PlaceComponent::Variant(..),
+                                ast::PlaceComponent::Field(ast::Field { name, .. }, _),
+                            ) => {
                                 if name == "discriminant" {
                                     debug!("guarded permission: {} {}", place1, place2);
                                     // If we are checking discriminant, this means that the
@@ -206,7 +203,7 @@ fn check_requirements_conflict(
 /// Split the unfoldings map into two: to restore and to keep.
 fn split_unfoldings(
     unfoldings: UnfoldingMap,
-    conflicts: &HashSet<ast::Expr>
+    conflicts: &HashSet<ast::Expr>,
 ) -> (UnfoldingMap, UnfoldingMap) {
     let mut to_restore = HashMap::new();
     let mut to_keep = HashMap::new();
@@ -250,10 +247,10 @@ fn find_common_unfoldings3<'a>(
     let mut common = HashMap::new();
     let mut new_first = HashMap::new();
     for (place, data) in first {
-        let second_agrees = second.contains_key(&place) ||
-            second_reqs.iter().all(|p| !p.has_prefix(&place));
-        let third_agrees = third.contains_key(&place) ||
-            third_reqs.iter().all(|p| !p.has_prefix(&place));
+        let second_agrees =
+            second.contains_key(&place) || second_reqs.iter().all(|p| !p.has_prefix(&place));
+        let third_agrees =
+            third.contains_key(&place) || third_reqs.iter().all(|p| !p.has_prefix(&place));
         if second_agrees && third_agrees {
             second.remove(&place);
             third.remove(&place);
@@ -281,35 +278,52 @@ fn merge_requirements_and_unfoldings2(
     second_unfoldings: UnfoldingMap,
     second_requirements: RequirementSet,
 ) -> (RequirementSet, UnfoldingMap, Box<ast::Expr>, Box<ast::Expr>) {
-
     trace!("[enter] merge_requirements_and_unfoldings");
     use crate::utils::to_string::ToString;
-    trace!("reqs: {}", first_requirements.iter().to_sorted_multiline_string());
-    trace!("unfoldings: {}", first_unfoldings.keys().to_sorted_multiline_string());
-    trace!("reqs: {}", second_requirements.iter().to_sorted_multiline_string());
-    trace!("unfoldings: {}", second_unfoldings.keys().to_sorted_multiline_string());
+    trace!(
+        "reqs: {}",
+        first_requirements.iter().to_sorted_multiline_string()
+    );
+    trace!(
+        "unfoldings: {}",
+        first_unfoldings.keys().to_sorted_multiline_string()
+    );
+    trace!(
+        "reqs: {}",
+        second_requirements.iter().to_sorted_multiline_string()
+    );
+    trace!(
+        "unfoldings: {}",
+        second_unfoldings.keys().to_sorted_multiline_string()
+    );
 
     let conflicts = check_requirements_conflict(&first_requirements, &second_requirements);
-    trace!("conflicts: {}", conflicts.iter().to_sorted_multiline_string());
+    trace!(
+        "conflicts: {}",
+        conflicts.iter().to_sorted_multiline_string()
+    );
 
     if conflicts.is_empty() {
         first_requirements.extend(second_requirements);
         first_unfoldings.extend(second_unfoldings);
         (first_requirements, first_unfoldings, first, second)
     } else {
+        let (common, first_unfoldings, second_unfoldings) =
+            find_common_unfoldings2(first_unfoldings, second_unfoldings);
 
-        let (common, first_unfoldings, second_unfoldings) = find_common_unfoldings2(
-            first_unfoldings, second_unfoldings);
-
-        let (first_to_restore, first_to_keep) = split_unfoldings(
-            first_unfoldings, &conflicts);
-        let (second_to_restore, second_to_keep) = split_unfoldings(
-            second_unfoldings, &conflicts);
+        let (first_to_restore, first_to_keep) = split_unfoldings(first_unfoldings, &conflicts);
+        let (second_to_restore, second_to_keep) = split_unfoldings(second_unfoldings, &conflicts);
 
         let mut new_requirements = first_requirements;
         new_requirements.extend(second_requirements);
-        update_requirements(&mut new_requirements, first_to_restore.keys().cloned().collect());
-        update_requirements(&mut new_requirements, second_to_restore.keys().cloned().collect());
+        update_requirements(
+            &mut new_requirements,
+            first_to_restore.keys().cloned().collect(),
+        );
+        update_requirements(
+            &mut new_requirements,
+            second_to_restore.keys().cloned().collect(),
+        );
 
         let first_restored = restore_unfoldings_boxed(first_to_restore, first);
         let second_restored = restore_unfoldings_boxed(second_to_restore, second);
@@ -318,7 +332,12 @@ fn merge_requirements_and_unfoldings2(
         new_unfoldings.extend(first_to_keep);
         new_unfoldings.extend(second_to_keep);
 
-        (new_requirements, new_unfoldings, first_restored, second_restored)
+        (
+            new_requirements,
+            new_unfoldings,
+            first_restored,
+            second_restored,
+        )
     }
 }
 
@@ -329,23 +348,43 @@ impl ast::FallibleExprFolder for ExprOptimizer {
         Ok(match expr {
             ast::Expr::LabelledOld(..) => {
                 if expr.is_place() {
-                    debug_assert!(self.requirements.iter().all(|p| !p.has_proper_prefix(&expr) && !expr.has_proper_prefix(p)));
+                    debug_assert!(self
+                        .requirements
+                        .iter()
+                        .all(|p| !p.has_proper_prefix(&expr) && !expr.has_proper_prefix(p)));
                     self.requirements.insert(expr.clone());
                 }
                 expr
-            },
-            ast::Expr::Unfolding( ast::Unfolding {predicate: name, arguments: mut args, base: box body, permission: perm, variant, ..}) => {
+            }
+            ast::Expr::Unfolding(ast::Unfolding {
+                predicate: name,
+                arguments: mut args,
+                base: box body,
+                permission: perm,
+                variant,
+                ..
+            }) => {
                 assert!(args.len() == 1);
                 let new_expr = self.fallible_fold(body)?;
-                self.unfoldings.insert(args.pop().unwrap(), (name, perm, variant));
+                self.unfoldings
+                    .insert(args.pop().unwrap(), (name, perm, variant));
                 new_expr
             }
-            ast::Expr::Downcast(ast::DowncastExpr { base, enum_place, field}) => {
-                ast::Expr::Downcast(ast::DowncastExpr { base: self.fallible_fold_boxed(base)?, enum_place, field})
-            }
+            ast::Expr::Downcast(ast::DowncastExpr {
+                base,
+                enum_place,
+                field,
+            }) => ast::Expr::Downcast(ast::DowncastExpr {
+                base: self.fallible_fold_boxed(base)?,
+                enum_place,
+                field,
+            }),
             _ => {
                 if expr.is_place() {
-                    debug_assert!(self.requirements.iter().all(|p| !p.has_proper_prefix(&expr) && !expr.has_proper_prefix(p)));
+                    debug_assert!(self
+                        .requirements
+                        .iter()
+                        .all(|p| !p.has_proper_prefix(&expr) && !expr.has_proper_prefix(p)));
                     self.requirements.insert(expr.clone());
                     expr
                 } else {
@@ -357,19 +396,36 @@ impl ast::FallibleExprFolder for ExprOptimizer {
     fn fallible_fold_unfolding(&mut self, _unfolding: ast::Unfolding) -> Result<ast::Expr, ()> {
         unreachable!();
     }
-    fn fallible_fold_labelled_old(&mut self, _labelled_old: ast::LabelledOld) -> Result<ast::Expr, ()> {
+    fn fallible_fold_labelled_old(
+        &mut self,
+        _labelled_old: ast::LabelledOld,
+    ) -> Result<ast::Expr, ()> {
         unreachable!();
     }
     fn fallible_fold_magic_wand(&mut self, _magic_wand: ast::MagicWand) -> Result<ast::Expr, ()> {
         Err(())
     }
-    fn fallible_fold_predicate_access_predicate(&mut self, _predicate_access_predicate: ast::PredicateAccessPredicate) -> Result<ast::Expr, ()> {
+    fn fallible_fold_predicate_access_predicate(
+        &mut self,
+        _predicate_access_predicate: ast::PredicateAccessPredicate,
+    ) -> Result<ast::Expr, ()> {
         Err(())
     }
-    fn fallible_fold_field_access_predicate(&mut self, _field_access_predicate: ast::FieldAccessPredicate) -> Result<ast::Expr, ()> {
+    fn fallible_fold_field_access_predicate(
+        &mut self,
+        _field_access_predicate: ast::FieldAccessPredicate,
+    ) -> Result<ast::Expr, ()> {
         Err(())
     }
-    fn fallible_fold_bin_op(&mut self, ast::BinOp {op_kind, left, right, position}: ast::BinOp) -> Result<ast::Expr, ()> {
+    fn fallible_fold_bin_op(
+        &mut self,
+        ast::BinOp {
+            op_kind,
+            left,
+            right,
+            position,
+        }: ast::BinOp,
+    ) -> Result<ast::Expr, ()> {
         let f = left.clone();
         let s = right.clone();
         let first_folded = self.fallible_fold_boxed(left)?;
@@ -383,19 +439,32 @@ impl ast::FallibleExprFolder for ExprOptimizer {
         trace!("fold_bin_op: {} {} {}", op_kind, f, s);
 
         let (new_reqs, new_unfoldings, new_first, new_second) = merge_requirements_and_unfoldings2(
-            first_folded, first_unfoldings, first_requirements,
-            second_folded, second_unfoldings, second_requirements);
+            first_folded,
+            first_unfoldings,
+            first_requirements,
+            second_folded,
+            second_unfoldings,
+            second_requirements,
+        );
 
         self.requirements = new_reqs;
         self.unfoldings = new_unfoldings;
-        Ok(ast::Expr::BinOp( ast::BinOp {
+        Ok(ast::Expr::BinOp(ast::BinOp {
             op_kind,
             left: new_first,
             right: new_second,
             position,
         }))
     }
-    fn fallible_fold_cond(&mut self, ast::Cond {guard, then_expr, else_expr, position}: ast::Cond) -> Result<ast::Expr, ()> {
+    fn fallible_fold_cond(
+        &mut self,
+        ast::Cond {
+            guard,
+            then_expr,
+            else_expr,
+            position,
+        }: ast::Cond,
+    ) -> Result<ast::Expr, ()> {
         let g = guard.clone();
         let f = then_expr.clone();
         let s = else_expr.clone();
@@ -415,8 +484,14 @@ impl ast::FallibleExprFolder for ExprOptimizer {
         trace!("\n\nfold_cond:\ng = {}\nt = {}\ne = {}", g, f, s);
 
         let mut conflicts = check_requirements_conflict(&guard_requirements, &then_requirements);
-        conflicts.extend(check_requirements_conflict(&guard_requirements, &else_requirements));
-        conflicts.extend(check_requirements_conflict(&then_requirements, &else_requirements));
+        conflicts.extend(check_requirements_conflict(
+            &guard_requirements,
+            &else_requirements,
+        ));
+        conflicts.extend(check_requirements_conflict(
+            &then_requirements,
+            &else_requirements,
+        ));
 
         if conflicts.is_empty() {
             self.requirements = guard_requirements;
@@ -427,33 +502,42 @@ impl ast::FallibleExprFolder for ExprOptimizer {
             self.unfoldings.extend(then_unfoldings);
             self.unfoldings.extend(else_unfoldings);
 
-            Ok(ast::Expr::Cond( ast::Cond {
+            Ok(ast::Expr::Cond(ast::Cond {
                 guard: guard_folded,
                 then_expr: then_folded,
                 else_expr: else_folded,
                 position,
             }))
         } else {
+            let (common, guard_unfoldings, then_unfoldings, else_unfoldings) =
+                find_common_unfoldings3(
+                    guard_unfoldings,
+                    &guard_requirements,
+                    then_unfoldings,
+                    &then_requirements,
+                    else_unfoldings,
+                    &else_requirements,
+                );
 
-            let (common, guard_unfoldings, then_unfoldings, else_unfoldings
-                 ) = find_common_unfoldings3(
-                guard_unfoldings, &guard_requirements,
-                then_unfoldings, &then_requirements,
-                else_unfoldings, &else_requirements);
-
-            let (guard_to_restore, guard_to_keep) = split_unfoldings(
-                guard_unfoldings, &conflicts);
-            let (then_to_restore, then_to_keep) = split_unfoldings(
-                then_unfoldings, &conflicts);
-            let (else_to_restore, else_to_keep) = split_unfoldings(
-                else_unfoldings, &conflicts);
+            let (guard_to_restore, guard_to_keep) = split_unfoldings(guard_unfoldings, &conflicts);
+            let (then_to_restore, then_to_keep) = split_unfoldings(then_unfoldings, &conflicts);
+            let (else_to_restore, else_to_keep) = split_unfoldings(else_unfoldings, &conflicts);
 
             self.requirements = guard_requirements;
             self.requirements.extend(then_requirements);
             self.requirements.extend(else_requirements);
-            update_requirements(&mut self.requirements, guard_to_restore.keys().cloned().collect());
-            update_requirements(&mut self.requirements, then_to_restore.keys().cloned().collect());
-            update_requirements(&mut self.requirements, else_to_restore.keys().cloned().collect());
+            update_requirements(
+                &mut self.requirements,
+                guard_to_restore.keys().cloned().collect(),
+            );
+            update_requirements(
+                &mut self.requirements,
+                then_to_restore.keys().cloned().collect(),
+            );
+            update_requirements(
+                &mut self.requirements,
+                else_to_restore.keys().cloned().collect(),
+            );
 
             let guard_restored = restore_unfoldings_boxed(guard_to_restore, guard_folded);
             let then_restored = restore_unfoldings_boxed(then_to_restore, then_folded);
@@ -464,7 +548,7 @@ impl ast::FallibleExprFolder for ExprOptimizer {
             self.unfoldings.extend(then_to_keep);
             self.unfoldings.extend(else_to_keep);
 
-            Ok(ast::Expr::Cond( ast::Cond {
+            Ok(ast::Expr::Cond(ast::Cond {
                 guard: guard_restored,
                 then_expr: then_restored,
                 else_expr: else_restored,

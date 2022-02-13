@@ -40,63 +40,69 @@ impl ExprSimplifier {
     fn apply_rules(&self, e: ast::Expr) -> ast::Expr {
         trace!("[enter] apply_rules={}", e);
         let result = match e {
-            ast::Expr::UnaryOp( ast::UnaryOp {
+            ast::Expr::UnaryOp(ast::UnaryOp {
                 op_kind: ast::UnaryOpKind::Not,
-                argument: box ast::Expr::Const( ast::ConstExpr {
-                    value: ast::Const::Bool(b),
-                    ..}),
+                argument:
+                    box ast::Expr::Const(ast::ConstExpr {
+                        value: ast::Const::Bool(b),
+                        ..
+                    }),
                 position: pos,
-            }) => {
-                ast::Expr::Const( ast::ConstExpr {
-                    value: ast::Const::Bool(!b),
-                    position: pos,
-                })
-            },
-            ast::Expr::UnaryOp( ast::UnaryOp {
+            }) => ast::Expr::Const(ast::ConstExpr {
+                value: ast::Const::Bool(!b),
+                position: pos,
+            }),
+            ast::Expr::UnaryOp(ast::UnaryOp {
                 op_kind: ast::UnaryOpKind::Not,
-                argument: box ast::Expr::BinOp( ast::BinOp {
-                    op_kind: ast::BinaryOpKind::EqCmp,
-                    box left,
-                    box right,
-                    ..}),
+                argument:
+                    box ast::Expr::BinOp(ast::BinOp {
+                        op_kind: ast::BinaryOpKind::EqCmp,
+                        box left,
+                        box right,
+                        ..
+                    }),
                 position: pos,
-            }) => {
-                ast::Expr::BinOp( ast::BinOp {
-                    op_kind: ast::BinaryOpKind::NeCmp,
-                    left: box left,
-                    right: box right,
-                    position: pos,
-                })
-            },
-            ast::Expr::BinOp( ast::BinOp {
-                op_kind: ast::BinaryOpKind::And,
-                left: box ast::Expr::Const( ast::ConstExpr {
-                    value: ast::Const::Bool(b1),
-                    ..}),
-                right: box ast::Expr::Const( ast::ConstExpr {
-                    value: ast::Const::Bool(b2),
-                    ..}),
+            }) => ast::Expr::BinOp(ast::BinOp {
+                op_kind: ast::BinaryOpKind::NeCmp,
+                left: box left,
+                right: box right,
                 position: pos,
-            }) => {
-                ast::Expr::Const( ast::ConstExpr {
-                    value: ast::Const::Bool(b1 && b2),
-                    position: pos,
-                })
-            },
-            ast::Expr::BinOp( ast::BinOp {
+            }),
+            ast::Expr::BinOp(ast::BinOp {
                 op_kind: ast::BinaryOpKind::And,
-                left: box ast::Expr::Const( ast::ConstExpr {
-                    value: ast::Const::Bool(b),
-                    ..}),
+                left:
+                    box ast::Expr::Const(ast::ConstExpr {
+                        value: ast::Const::Bool(b1),
+                        ..
+                    }),
+                right:
+                    box ast::Expr::Const(ast::ConstExpr {
+                        value: ast::Const::Bool(b2),
+                        ..
+                    }),
+                position: pos,
+            }) => ast::Expr::Const(ast::ConstExpr {
+                value: ast::Const::Bool(b1 && b2),
+                position: pos,
+            }),
+            ast::Expr::BinOp(ast::BinOp {
+                op_kind: ast::BinaryOpKind::And,
+                left:
+                    box ast::Expr::Const(ast::ConstExpr {
+                        value: ast::Const::Bool(b),
+                        ..
+                    }),
                 right: box conjunct,
                 ..
-            }) |
-            ast::Expr::BinOp( ast::BinOp {
+            })
+            | ast::Expr::BinOp(ast::BinOp {
                 op_kind: ast::BinaryOpKind::And,
                 left: box conjunct,
-                right: box ast::Expr::Const( ast::ConstExpr {
-                    value: ast::Const::Bool(b),
-                    ..}),
+                right:
+                    box ast::Expr::Const(ast::ConstExpr {
+                        value: ast::Const::Bool(b),
+                        ..
+                    }),
                 ..
             }) => {
                 if b {
@@ -104,21 +110,25 @@ impl ExprSimplifier {
                 } else {
                     false.into()
                 }
-            },
-            ast::Expr::BinOp( ast::BinOp {
+            }
+            ast::Expr::BinOp(ast::BinOp {
                 op_kind: ast::BinaryOpKind::Or,
-                left: box ast::Expr::Const( ast::ConstExpr {
-                    value: ast::Const::Bool(b),
-                    ..}),
+                left:
+                    box ast::Expr::Const(ast::ConstExpr {
+                        value: ast::Const::Bool(b),
+                        ..
+                    }),
                 right: box disjunct,
                 ..
-            }) |
-            ast::Expr::BinOp( ast::BinOp {
+            })
+            | ast::Expr::BinOp(ast::BinOp {
                 op_kind: ast::BinaryOpKind::Or,
                 left: box disjunct,
-                right: box ast::Expr::Const( ast::ConstExpr {
-                    value: ast::Const::Bool(b),
-                    ..}),
+                right:
+                    box ast::Expr::Const(ast::ConstExpr {
+                        value: ast::Const::Bool(b),
+                        ..
+                    }),
                 ..
             }) => {
                 if b {
@@ -126,30 +136,34 @@ impl ExprSimplifier {
                 } else {
                     disjunct
                 }
-            },
-            ast::Expr::BinOp( ast::BinOp {
+            }
+            ast::Expr::BinOp(ast::BinOp {
                 op_kind: ast::BinaryOpKind::Implies,
                 left: guard,
-                right: box ast::Expr::Const( ast::ConstExpr {
-                    value: ast::Const::Bool(b),
-                    ..}),
+                right:
+                    box ast::Expr::Const(ast::ConstExpr {
+                        value: ast::Const::Bool(b),
+                        ..
+                    }),
                 position: pos,
             }) => {
                 if b {
                     true.into()
                 } else {
-                    ast::Expr::UnaryOp( ast::UnaryOp {
+                    ast::Expr::UnaryOp(ast::UnaryOp {
                         op_kind: ast::UnaryOpKind::Not,
                         argument: guard,
                         position: pos,
                     })
                 }
-            },
-            ast::Expr::BinOp( ast::BinOp {
+            }
+            ast::Expr::BinOp(ast::BinOp {
                 op_kind: ast::BinaryOpKind::Implies,
-                left: box ast::Expr::Const( ast::ConstExpr {
-                    value: ast::Const::Bool(b),
-                    ..}),
+                left:
+                    box ast::Expr::Const(ast::ConstExpr {
+                        value: ast::Const::Bool(b),
+                        ..
+                    }),
                 right: box body,
                 ..
             }) => {
@@ -158,20 +172,18 @@ impl ExprSimplifier {
                 } else {
                     true.into()
                 }
-            },
-            ast::Expr::BinOp( ast::BinOp {
+            }
+            ast::Expr::BinOp(ast::BinOp {
                 op_kind: ast::BinaryOpKind::And,
                 left: box op1,
                 right: box op2,
-                position: pos
-            }) => {
-                ast::Expr::BinOp( ast::BinOp {
-                    op_kind: ast::BinaryOpKind::And,
-                    left: box self.apply_rules(op1),
-                    right: box self.apply_rules(op2),
-                    position: pos,
-                })
-            },
+                position: pos,
+            }) => ast::Expr::BinOp(ast::BinOp {
+                op_kind: ast::BinaryOpKind::And,
+                left: box self.apply_rules(op1),
+                right: box self.apply_rules(op2),
+                position: pos,
+            }),
             r => r,
         };
         trace!("[exit] apply_rules={}", result);
@@ -184,22 +196,30 @@ impl ExprFolder for ExprSimplifier {
         let folded_expr = ast::default_fold_expr(self, e);
         self.apply_rules(folded_expr)
     }
-    fn fold_cond(&mut self, ast::Cond {guard, then_expr, else_expr, position}: ast::Cond) -> ast::Expr {
+    fn fold_cond(
+        &mut self,
+        ast::Cond {
+            guard,
+            then_expr,
+            else_expr,
+            position,
+        }: ast::Cond,
+    ) -> ast::Expr {
         let simplified_guard = self.fold_boxed(guard);
         let simplified_then = self.fold_boxed(then_expr);
         let simplified_else = self.fold_boxed(else_expr);
         let result = if simplified_then.is_bool() || simplified_else.is_bool() {
-            ast::Expr::BinOp( ast::BinOp {
+            ast::Expr::BinOp(ast::BinOp {
                 op_kind: ast::BinaryOpKind::And,
-                left: box ast::Expr::BinOp( ast::BinOp {
+                left: box ast::Expr::BinOp(ast::BinOp {
                     op_kind: ast::BinaryOpKind::Implies,
                     left: simplified_guard.clone(),
                     right: simplified_then,
                     position,
                 }),
-                right: box ast::Expr::BinOp( ast::BinOp {
+                right: box ast::Expr::BinOp(ast::BinOp {
                     op_kind: ast::BinaryOpKind::Implies,
-                    left: box ast::Expr::UnaryOp( ast::UnaryOp {
+                    left: box ast::Expr::UnaryOp(ast::UnaryOp {
                         op_kind: ast::UnaryOpKind::Not,
                         argument: simplified_guard,
                         position,
@@ -210,7 +230,7 @@ impl ExprFolder for ExprSimplifier {
                 position,
             })
         } else {
-            ast::Expr::Cond( ast::Cond {
+            ast::Expr::Cond(ast::Cond {
                 guard: simplified_guard,
                 then_expr: simplified_then,
                 else_expr: simplified_else,

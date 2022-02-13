@@ -35,9 +35,7 @@ impl StmtWalker for Checker {
 }
 
 pub fn replace_all_ints(program: &mut vir_poly::Program) {
-    let mut replacer = Replacer {
-        captured_bv: None,
-    };
+    let mut replacer = Replacer { captured_bv: None };
     let mut sentinel_stmt = vir_poly::Stmt::comment("moved out stmt");
     for method in &mut program.methods {
         for block in &mut method.basic_blocks {
@@ -105,42 +103,32 @@ impl ExprFolder for Replacer {
                 "u8" | "i8" => {
                     let variant = vir_poly::BitVector::BV8;
                     self.captured_bv = Some(variant);
-                    expr.field = vir_poly::Field::new(
-                        "field_bv8",
-                        vir_poly::Type::BitVector(variant),
-                    )
+                    expr.field =
+                        vir_poly::Field::new("field_bv8", vir_poly::Type::BitVector(variant))
                 }
                 "u16" | "i16" => {
                     let variant = vir_poly::BitVector::BV16;
                     self.captured_bv = Some(variant);
-                    expr.field = vir_poly::Field::new(
-                        "field_bv16",
-                        vir_poly::Type::BitVector(variant),
-                    )
+                    expr.field =
+                        vir_poly::Field::new("field_bv16", vir_poly::Type::BitVector(variant))
                 }
                 "u32" | "i32" => {
                     let variant = vir_poly::BitVector::BV32;
                     self.captured_bv = Some(variant);
-                    expr.field = vir_poly::Field::new(
-                        "field_bv32",
-                        vir_poly::Type::BitVector(variant),
-                    )
+                    expr.field =
+                        vir_poly::Field::new("field_bv32", vir_poly::Type::BitVector(variant))
                 }
                 "u64" | "i64" => {
                     let variant = vir_poly::BitVector::BV64;
                     self.captured_bv = Some(variant);
-                    expr.field = vir_poly::Field::new(
-                        "field_bv64",
-                        vir_poly::Type::BitVector(variant),
-                    )
+                    expr.field =
+                        vir_poly::Field::new("field_bv64", vir_poly::Type::BitVector(variant))
                 }
                 "u128" | "i128" => {
                     let variant = vir_poly::BitVector::BV128;
                     self.captured_bv = Some(variant);
-                    expr.field = vir_poly::Field::new(
-                        "field_bv128",
-                        vir_poly::Type::BitVector(variant),
-                    )
+                    expr.field =
+                        vir_poly::Field::new("field_bv128", vir_poly::Type::BitVector(variant))
                 }
                 _ => {}
             };
@@ -157,7 +145,9 @@ impl ExprFolder for Replacer {
                         vir_poly::BitVector::BV16 => vir_poly::BitVectorConst::BV16(value as u16),
                         vir_poly::BitVector::BV32 => vir_poly::BitVectorConst::BV32(value as u32),
                         vir_poly::BitVector::BV64 => vir_poly::BitVectorConst::BV64(value as u64),
-                        vir_poly::BitVector::BV128 => vir_poly::BitVectorConst::BV128(value as u128),
+                        vir_poly::BitVector::BV128 => {
+                            vir_poly::BitVectorConst::BV128(value as u128)
+                        }
                     };
                     expr.value = vir_poly::Const::BitVector(const_value);
                 }
