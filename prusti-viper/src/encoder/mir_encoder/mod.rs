@@ -529,6 +529,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
         ty: ty::Ty<'tcx>,
     ) -> EncodingResult<vir::Expr> {
         let is_bool = ty.kind() == &ty::TyKind::Bool;
+        let is_signed = matches!(ty.kind(), ty::TyKind::Int(_));
         Ok(match op {
             mir::BinOp::Eq => vir::Expr::eq_cmp(left, right),
             mir::BinOp::Ne => vir::Expr::ne_cmp(left, right),
@@ -544,17 +545,18 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
             mir::BinOp::BitAnd if is_bool => vir::Expr::and(left, right),
             mir::BinOp::BitOr if is_bool => vir::Expr::or(left, right),
             mir::BinOp::BitXor if is_bool => vir::Expr::xor(left, right),
-            mir::BinOp::BitAnd |
-            mir::BinOp::BitOr |
-            mir::BinOp::BitXor => {
-                return Err(EncodingError::unsupported(
-                    "bitwise operations on non-boolean types are not supported"
-                ))
-            }
-            unsupported_op => {
+            mir::BinOp::BitAnd => vir::Expr::bin_op(vir::BinaryOpKind::BitAnd, left, right),
+            mir::BinOp::BitOr => vir::Expr::bin_op(vir::BinaryOpKind::BitOr, left, right),
+            mir::BinOp::BitXor => vir::Expr::bin_op(vir::BinaryOpKind::BitXor, left, right),
+            mir::BinOp::Shl => vir::Expr::bin_op(vir::BinaryOpKind::Shl, left, right),
+            // https://doc.rust-lang.org/reference/expressions/operator-expr.html#arithmetic-and-logical-binary-operators
+            // Arithmetic right shift on signed integer types, logical right shift on unsigned integer types.
+            mir::BinOp::Shr if is_signed => vir::Expr::bin_op(vir::BinaryOpKind::AShr, left, right),
+            mir::BinOp::Shr => vir::Expr::bin_op(vir::BinaryOpKind::LShr, left, right),
+            mir::BinOp::Offset => {
                 return Err(EncodingError::unsupported(format!(
                     "operation '{:?}' is not supported",
-                    unsupported_op
+                    op
                 )))
             }
         })
@@ -578,7 +580,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
         if !op.is_checkable() || !config::check_overflows() {
             Ok(false.into())
         } else {
-            let result = self.encode_bin_op_expr(op, left, right, ty)?;
+            let result = self.encode_bin_op_expr(op, left, right.clone(), ty)?;
 
             Ok(match op {
                 mir::BinOp::Add | mir::BinOp::Mul | mir::BinOp::Sub => match ty.kind() {
@@ -651,9 +653,38 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
                 },
 
                 mir::BinOp::Shl | mir::BinOp::Shr => {
-                    return Err(EncodingError::unsupported(
-                        "overflow checks on a shift operation are unsupported",
-                    ));
+                    let size: u32 = match ty.kind() {
+                        ty::TyKind::Uint(ty::UintTy::U8) => 8,
+                        ty::TyKind::Uint(ty::UintTy::U16) => 16,
+                        ty::TyKind::Uint(ty::UintTy::U32) => 32,
+                        ty::TyKind::Uint(ty::UintTy::U64) => 64,
+                        ty::TyKind::Uint(ty::UintTy::U128) => 128,
+                        ty::TyKind::Uint(ty::UintTy::Usize) => {
+                            return Err(EncodingError::unsupported(
+                                "unknown size of usize for the overflow check",
+                            ));
+                        }
+                        ty::TyKind::Int(ty::IntTy::I8) => 8,
+                        ty::TyKind::Int(ty::IntTy::I16) => 16,
+                        ty::TyKind::Int(ty::IntTy::I32) => 32,
+                        ty::TyKind::Int(ty::IntTy::I64) => 64,
+                        ty::TyKind::Int(ty::IntTy::I128) => 128,
+                        ty::TyKind::Int(ty::IntTy::Isize) => {
+                            return Err(EncodingError::unsupported(
+                                "unknown size of isize for the overflow check",
+                            ));
+                        },
+                        _ => {
+                            return Err(EncodingError::unsupported(format!(
+                                "overflow checks are unsupported for operation '{:?}' on type '{:?}'",
+                                op, ty,
+                            )));
+                        }
+                    };
+                    vir::Expr::or(
+                        vir::Expr::lt_cmp(right.clone(), 0.into()),
+                        vir::Expr::ge_cmp(right, size.into()),
+                    )
                 }
 
                 _ => unreachable!("{:?}", op),
