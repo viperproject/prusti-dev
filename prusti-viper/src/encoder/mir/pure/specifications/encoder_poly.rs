@@ -151,6 +151,7 @@ pub(super) fn encode_quantifier<'tcx>(
     }
 
     let mut encoded_trigger_sets = vec![];
+    encoder.is_encoding_trigger.set(true);
     for (trigger_set_idx, ty_trigger_set) in substs.type_at(0).tuple_fields().enumerate() {
         let mut encoded_triggers = vec![];
         let mut set_spans = vec![];
@@ -181,19 +182,32 @@ pub(super) fn encode_quantifier<'tcx>(
                             base: box base @ vir_crate::polymorphic::Expr::DomainFuncApp(..),
                             ..
                         }),
+                    else_expr:
+                        box ref _else_expr @ vir_crate::polymorphic::Expr::FuncApp(
+                            vir_crate::polymorphic::FuncApp {
+                                ref function_name, ..
+                            },
+                        ),
                     ..
-                }) => base,
+                }) if function_name.starts_with("builtin$unreach") => base,
                 // slice/array accesses nested in functions also need their outer bound checks removed
                 vir_crate::polymorphic::Expr::Cond(vir_crate::polymorphic::Cond {
                     then_expr: box then_expr @ vir_crate::polymorphic::Expr::FuncApp(..),
+                    else_expr:
+                        box ref _else_expr @ vir_crate::polymorphic::Expr::FuncApp(
+                            vir_crate::polymorphic::FuncApp {
+                                ref function_name, ..
+                            },
+                        ),
                     ..
-                }) => then_expr,
+                }) if function_name.starts_with("builtin$unreach") => then_expr,
                 encoded_trigger => encoded_trigger,
             };
             check_trigger(&encoded_trigger).with_span(trigger_span)?;
             encoded_triggers.push(encoded_trigger);
             set_spans.push(trigger_span);
         }
+        encoder.is_encoding_trigger.set(false);
         let encoded_trigger_set = vir_crate::polymorphic::Trigger::new(encoded_triggers);
         check_trigger_set(&encoded_qvars, &encoded_trigger_set)
             .with_span(MultiSpan::from_spans(set_spans))?;

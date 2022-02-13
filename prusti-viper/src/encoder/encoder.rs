@@ -27,7 +27,7 @@ use vir_crate::common::identifier::WithIdentifier;
 use rustc_hir::def_id::{DefId, LocalDefId};
 use rustc_middle::mir;
 use rustc_middle::ty;
-use std::cell::{RefCell, RefMut, Ref};
+use std::cell::{Cell, RefCell, RefMut, Ref};
 use rustc_hash::{FxHashMap};
 use std::io::Write;
 use std::rc::Rc;
@@ -90,6 +90,11 @@ pub struct Encoder<'v, 'tcx: 'v> {
     name_interner: RefCell<NameInterner>,
     /// Maps locals to the local of their discriminant.
     discriminants_info: RefCell<FxHashMap<(ProcedureDefId, String), Vec<String>>>,
+    /// Whether the current pure expression that's being encoded sits inside a trigger closure.
+    /// Viper limits the type of expressions that are allowed in quantifier triggers and
+    /// this requires special care when encoding array/slice accesses which may come with
+    /// bound checks included in the MIR.
+    pub(super) is_encoding_trigger: Cell<bool>,
 }
 
 pub type EncodingTask<'tcx> = (ProcedureDefId, Vec<(ty::Ty<'tcx>, ty::Ty<'tcx>)>);
@@ -157,6 +162,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             encoding_errors_counter: RefCell::new(0),
             name_interner: RefCell::new(NameInterner::new()),
             discriminants_info: RefCell::new(FxHashMap::default()),
+            is_encoding_trigger: Cell::new(false),
         }
     }
 
