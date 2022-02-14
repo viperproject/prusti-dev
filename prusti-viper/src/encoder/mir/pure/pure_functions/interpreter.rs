@@ -408,19 +408,21 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                 ..
             } => {
                 if let ty::TyKind::FnDef(def_id, substs) = ty.kind() {
+                    let def_id = *def_id;
+                    let full_func_proc_name: &str = &self.encoder.env().tcx().def_path_str(def_id);
+                    let func_proc_name = &self.encoder.env().get_item_name(def_id);
+
                     let tymap = self
                         .encoder
-                        .update_substitution_map(self.tymap.clone(), *def_id, substs)
+                        .update_substitution_map(self.tymap.clone(), def_id, substs)
                         .with_span(span)?;
                     let substs = tymap.apply_to_substs(self.encoder.env(), substs);
 
                     let def_id = self
                         .encoder
                         .env()
-                        .find_impl_of_trait_method_call(*def_id, substs)
-                        .unwrap_or(*def_id);
-                    let full_func_proc_name: &str = &self.encoder.env().tcx().def_path_str(def_id);
-                    let func_proc_name = &self.encoder.env().get_item_name(def_id);
+                        .find_impl_of_trait_method_call(def_id, substs)
+                        .unwrap_or(def_id);
 
                     let state = if destination.is_some() {
                         let (ref lhs_place, target_block) = destination.as_ref().unwrap();
