@@ -151,7 +151,6 @@ pub(super) fn encode_quantifier<'tcx>(
     }
 
     let mut encoded_trigger_sets = vec![];
-    encoder.is_encoding_trigger.set(true);
     for (trigger_set_idx, ty_trigger_set) in substs.type_at(0).tuple_fields().enumerate() {
         let mut encoded_triggers = vec![];
         let mut set_spans = vec![];
@@ -163,7 +162,9 @@ pub(super) fn encode_quantifier<'tcx>(
             let trigger_field = encoder
                 .encode_raw_ref_field(format!("tuple_{}", trigger_idx), ty_trigger)
                 .with_span(trigger_span)?;
-            let encoded_trigger = inline_closure(
+            // note: `is_encoding_trigger` must be set back to `false` before returning early in case of errors
+            encoder.is_encoding_trigger.set(true);
+            let encoded_trigger_result = inline_closure(
                 encoder,
                 trigger_def_id,
                 encoded_args[0]
@@ -173,8 +174,9 @@ pub(super) fn encode_quantifier<'tcx>(
                 encoded_qvars.clone(),
                 parent_def_id,
                 tymap,
-            )?;
-            let encoded_trigger = match encoded_trigger {
+            );
+            encoder.is_encoding_trigger.set(false);
+            let encoded_trigger = match encoded_trigger_result? {
                 // slice/array accesses are encoded with bound checks which need to be stripped for triggers
                 vir_crate::polymorphic::Expr::Cond(vir_crate::polymorphic::Cond {
                     then_expr:
@@ -207,7 +209,6 @@ pub(super) fn encode_quantifier<'tcx>(
             encoded_triggers.push(encoded_trigger);
             set_spans.push(trigger_span);
         }
-        encoder.is_encoding_trigger.set(false);
         let encoded_trigger_set = vir_crate::polymorphic::Trigger::new(encoded_triggers);
         check_trigger_set(&encoded_qvars, &encoded_trigger_set)
             .with_span(MultiSpan::from_spans(set_spans))?;
