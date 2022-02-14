@@ -2,12 +2,14 @@ use rustc_hir::{
     def_id::DefId,
     intravisit::{self, Visitor},
 };
-use rustc_middle::{hir::map::Map, ty::TyCtxt};
+use rustc_middle::{hir::map::Map};
 use rustc_span::{MultiSpan, Span};
 
 use crate::{environment::Environment, PrustiError};
 use std::collections::HashMap;
 use prusti_specs::ExternSpecKind;
+use rustc_middle::ty::subst::SubstsRef;
+use std::cmp::{Eq, PartialEq};
 
 pub enum ExternSpecResolverError {
     /// Occurs when the user declares an extern spec in an impl block but the
@@ -24,19 +26,55 @@ pub enum ExternSpecResolverError {
     ///     fn a();
     /// }
     /// ```
-    InvalidExternSpecForTraitImpl(DefId, Span)
+    InvalidExternSpecForTraitImpl(DefId, Span),
+}
+
+#[derive(Debug, Eq, PartialEq, Hash, Clone)]
+pub enum ExternSpecDeclaration {
+    /// An extern specification for *inherent* functions (i.e. free-standing functions),
+    /// or methods of impl blocks
+    Inherent(DefId),
+
+    /// An external specification for a trait method (first `DefId`), resolved to its implementation
+    /// method (second `DefId`)
+    TraitImpl(DefId, DefId),
+
+    /// An external specification for a trait method
+    Trait(DefId),
+}
+
+impl ExternSpecDeclaration {
+    /// Constructs [ExternSpecDeclaration] from a method call with the given substitutions
+    fn from_method_call<'tcx>(def_id: DefId, substs: SubstsRef<'tcx>, env: &Environment<'tcx>) -> Self {
+        let is_trait_method = env.tcx().trait_of_item(def_id).is_some();
+        let maybe_impl_def_id = env.find_impl_of_trait_method_call(def_id, substs);
+
+        if is_trait_method && maybe_impl_def_id.is_none() {
+            ExternSpecDeclaration::Trait(def_id)
+        } else if is_trait_method && maybe_impl_def_id.is_some() {
+            ExternSpecDeclaration::TraitImpl(def_id, maybe_impl_def_id.unwrap())
+        } else {
+            ExternSpecDeclaration::Inherent(def_id)
+        }
+    }
+
+    /// Returns the **target** [DefId] for which an external spec was declared
+    pub fn get_target_def_id(&self) -> DefId {
+        match self {
+            ExternSpecDeclaration::Inherent(did) => *did,
+            ExternSpecDeclaration::TraitImpl(_, did) => *did,
+            ExternSpecDeclaration::Trait(did) => *did,
+        }
+    }
 }
 
 /// This struct is used to build a mapping of external functions to their
 /// Prusti specifications (see `extern_fn_map`).
-pub struct ExternSpecResolver<'tcx> {
-    tcx: TyCtxt<'tcx>,
+pub struct ExternSpecResolver<'v, 'tcx: 'v> {
+    env: &'v Environment<'tcx>,
 
-    /// Maps real functions (keyed by their `DefId`) to Prusti-generated fake
-    /// functions with specifications. The mapping may also optionally contain
-    /// the `DefId` of the implementing type to account for trait
-    /// implementations.
-    pub extern_fn_map: HashMap<DefId, (Option<DefId>, DefId)>,
+    /// Maps real functions to Prusti-generated fake functions with specifications.
+    pub extern_fn_map: HashMap<ExternSpecDeclaration, DefId>,
 
     /// Duplicate specifications detected, keyed by the `DefId` of the function
     /// to be specified.
@@ -46,10 +84,10 @@ pub struct ExternSpecResolver<'tcx> {
     errors: Vec<ExternSpecResolverError>,
 }
 
-impl<'tcx> ExternSpecResolver<'tcx> {
-    pub fn new(tcx: TyCtxt<'tcx>) -> Self {
+impl<'v, 'tcx: 'v> ExternSpecResolver<'v, 'tcx> {
+    pub fn new(env: &'v Environment<'tcx>) -> Self {
         Self {
-            tcx,
+            env,
             extern_fn_map: HashMap::new(),
             spec_duplicates: HashMap::new(),
             errors: Vec::new(),
@@ -73,49 +111,57 @@ impl<'tcx> ExternSpecResolver<'tcx> {
         extern_spec_kind: ExternSpecKind,
     ) {
         let mut visitor = ExternSpecVisitor {
-            tcx: self.tcx,
+            env: self.env,
             spec_found: None,
-            kind: extern_spec_kind,
         };
         visitor.visit_fn(fn_kind, fn_decl, body_id, span, id);
-        let current_def_id = self.tcx.hir().local_def_id(id).to_def_id();
-        if let Some((def_id, impl_ty, span)) = visitor.spec_found {
-            match self.extern_fn_map.get(&def_id) {
-                Some((existing_impl_ty, _)) if existing_impl_ty == &impl_ty => {
-                    match self.spec_duplicates.get_mut(&def_id) {
-                        Some(dups) => {
-                            dups.push((current_def_id, span));
-                        }
-                        None => {
-                            self.spec_duplicates
-                                .insert(def_id, vec![(current_def_id, span)]);
-                        }
-                    }
-                }
-                _ => {
-                    self.check_validity(extern_spec_kind, def_id, span);
-                    // TODO: what if def_id was present, but impl_ty was different?
-                    self.extern_fn_map.insert(def_id, (impl_ty, current_def_id));
-                }
+        let current_def_id = self.env.tcx().hir().local_def_id(id).to_def_id();
+        if let Some((target_def_id, substs, span)) = visitor.spec_found {
+            let extern_spec_decl = ExternSpecDeclaration::from_method_call(target_def_id, substs, self.env);
+
+            if matches!(extern_spec_kind, ExternSpecKind::Trait) &&
+                !matches!(extern_spec_decl, ExternSpecDeclaration::Trait(_)) {
+                unreachable!("External specification declared on a trait did not resolve to a trait method");
+            } else if matches!(extern_spec_kind, ExternSpecKind::TraitImpl) &&
+                !matches!(extern_spec_decl, ExternSpecDeclaration::TraitImpl(_, _)) {
+                unreachable!("External specification declared on a trait implementation did not resolve to a concrete type");
+            }
+
+            if self.extern_fn_map.contains_key(&extern_spec_decl) {
+                self.register_duplicate_spec(target_def_id, current_def_id, span);
+            } else {
+                self.check_validity(extern_spec_kind, &extern_spec_decl, span);
+                self.extern_fn_map.insert(extern_spec_decl.clone(), current_def_id);
+            }
+        }
+    }
+
+    fn register_duplicate_spec(&mut self, decl_def_id: DefId, dup_spec_def_id: DefId, span: Span) {
+        match self.spec_duplicates.get_mut(&decl_def_id) {
+            Some(dups) => {
+                dups.push((dup_spec_def_id, span));
+            }
+            None => {
+                self.spec_duplicates
+                    .insert(decl_def_id, vec![(dup_spec_def_id, span)]);
             }
         }
     }
 
     /// Checks whether the encoded method call (call to `spec_for_def_id`) is valid.
     /// See [ExternSpecResolverError] for possible errors (including examples)
-    fn check_validity(&mut self, extern_spec_kind: ExternSpecKind, spec_for_def_id: DefId, span: Span) {
-        let is_trait_method = self.tcx.trait_of_item(spec_for_def_id).is_some();
-
-        if matches!(extern_spec_kind, ExternSpecKind::InherentImpl) && is_trait_method {
-            self.errors.push(
-                ExternSpecResolverError::InvalidExternSpecForTraitImpl(spec_for_def_id, span)
-            );
+    fn check_validity(&mut self, extern_spec_kind: ExternSpecKind, declared_spec: &ExternSpecDeclaration, span: Span) {
+        if matches!(extern_spec_kind, ExternSpecKind::InherentImpl) {
+            if let ExternSpecDeclaration::TraitImpl(def_id,_) = declared_spec {
+                self.errors.push(
+                    ExternSpecResolverError::InvalidExternSpecForTraitImpl(*def_id, span)
+                );
+            }
         }
         // Note: A check for matches!(extern_spec_kind, ExternSpecKind::TraitImpl) && !is_trait_method
         // is not needed because this does not typecheck (using UFCS call syntax in encoding).
 
         // Duplicate specs
-
     }
 
     /// Report errors encountered when resolving extern specs
@@ -156,35 +202,17 @@ impl<'tcx> ExternSpecResolver<'tcx> {
 ///
 /// TODO: is the HIR representation stable enought that this could be
 /// accomplished by a nested match rather than a full visitor?
-struct ExternSpecVisitor<'tcx> {
-    tcx: TyCtxt<'tcx>,
-    spec_found: Option<(DefId, Option<DefId>, Span)>,
-    kind: ExternSpecKind,
+struct ExternSpecVisitor<'v, 'tcx: 'v> {
+    env: &'v Environment<'tcx>,
+    spec_found: Option<(DefId, SubstsRef<'tcx>, Span)>,
 }
 
-/// Gets the `DefId` from the given path.
-fn get_impl_type(qself: &rustc_hir::QPath<'_>) -> Option<DefId> {
-    let ty = match qself {
-        rustc_hir::QPath::TypeRelative(ty, _) => ty,
-        rustc_hir::QPath::Resolved(Some(ty), _) => ty,
-        _ => return None,
-    };
-
-    if let rustc_hir::TyKind::Path(rustc_hir::QPath::Resolved(_, path)) = ty.kind {
-        if let rustc_hir::def::Res::Def(_, id) = path.res {
-            return Some(id);
-        }
-    }
-
-    None
-}
-
-impl<'tcx> Visitor<'tcx> for ExternSpecVisitor<'tcx> {
+impl<'v, 'tcx: 'v> Visitor<'tcx> for ExternSpecVisitor<'v, 'tcx> {
     type Map = Map<'tcx>;
     type NestedFilter = rustc_middle::hir::nested_filter::All;
 
     fn nested_visit_map(&mut self) -> Self::Map {
-        self.tcx.hir()
+        self.env.tcx().hir()
     }
 
     fn visit_expr(&mut self, ex: &'tcx rustc_hir::Expr<'tcx>) {
@@ -193,19 +221,13 @@ impl<'tcx> Visitor<'tcx> for ExternSpecVisitor<'tcx> {
         }
         if let rustc_hir::ExprKind::Call(callee_expr, _arguments) = ex.kind {
             if let rustc_hir::ExprKind::Path(ref qself) = callee_expr.kind {
-                let res = self
-                    .tcx
-                    .typeck(callee_expr.hir_id.owner)
-                    .qpath_res(qself, callee_expr.hir_id);
+                let tyck_res =  self
+                    .env.tcx()
+                    .typeck(callee_expr.hir_id.owner);
+                let substs = tyck_res.node_substs(callee_expr.hir_id);
+                let res = tyck_res.qpath_res(qself, callee_expr.hir_id);
                 if let rustc_hir::def::Res::Def(_, def_id) = res {
-                    // We do not fetch the impl type for a trait spec, because
-                    // the impl will be an auxiliary generated struct used for typechecking
-                    let impl_type = if matches!(self.kind, ExternSpecKind::Trait) {
-                        None
-                    } else {
-                        get_impl_type(qself)
-                    };
-                    self.spec_found = Some((def_id, impl_type, ex.span));
+                    self.spec_found = Some((def_id, substs, ex.span));
                     return;
                 }
             }

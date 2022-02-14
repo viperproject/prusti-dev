@@ -1,3 +1,4 @@
+// ignore-test: #[pure] external specs are currently not resolved correctly
 extern crate prusti_contracts;
 use prusti_contracts::*;
 
