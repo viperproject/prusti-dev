@@ -2254,24 +2254,29 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                         }
 
                         _ => {
-                            let is_pure_function = self.encoder.is_pure(def_id) &&
+                            // The called method might be a trait method.
+                            // We try to resolve it to the concrete implementation.
+                            let impl_def_id = self.encoder.env()
+                                .find_impl_of_trait_method_call(def_id, substs);
+
+                            // println!("[ProcedureEncoder::encode_terminator]\n\tdefid = {:?}\n\timpl_def_id = {:?}\n\tsubsts = {:?}", def_id, impl_def_id, substs);
+
+                            let called_def_id = impl_def_id.unwrap_or(def_id);
+                            // println!("\t resulting def id = {:?}", def_id);
+                            // println!("\tspan of resulting def = {:?}", self.encoder.env().tcx().span_of_impl(def_id));
+
+                            let is_pure_function = self.encoder.is_pure(called_def_id) &&
                                 // We are verifying this pure function and,
                                 // therefore, need to always encode it as a
                                 // method.
-                                self.proc_def_id != def_id;
+                                self.proc_def_id != called_def_id;
                             if is_pure_function {
-                                // The called method might be a trait method.
-                                // We try to resolve it to the concrete implementation.
-                                let impl_def_id = self.encoder.env()
-                                    .find_impl_of_trait_method_call(def_id, substs);
-                                let def_id = impl_def_id.unwrap_or(def_id);
-
+                                let def_id = called_def_id;
                                 let (function_name, _) = self.encoder
                                     .encode_pure_function_use(def_id, self.proc_def_id, &tymap)
                                     .with_default_span(term.source_info.span)?;
                                 debug!("Encoding pure function call '{}'", function_name);
                                 assert!(destination.is_some());
-
                                 let mut arg_exprs = vec![];
                                 for operand in args.iter() {
                                     let arg_expr = self.mir_encoder.encode_operand_expr(operand);

@@ -55,6 +55,7 @@ use super::mir::{
     },
 };
 use super::high::types::{HighTypeEncoderState, HighTypeEncoderInterface};
+pub use super::substs::{SubstMap, SubstMapExt};
 
 pub struct Encoder<'v, 'tcx: 'v> {
     env: &'v Environment<'tcx>,
@@ -98,7 +99,6 @@ pub struct Encoder<'v, 'tcx: 'v> {
 }
 
 pub type EncodingTask<'tcx> = (ProcedureDefId, Vec<(ty::Ty<'tcx>, ty::Ty<'tcx>)>);
-pub type SubstMap<'tcx> = FxHashMap<ty::Ty<'tcx>, ty::Ty<'tcx>>;
 
 // If the field name is an identifier, removing the leading prefix r#
 pub fn encode_field_name(field_name: &str) -> String {
