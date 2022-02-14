@@ -28,18 +28,14 @@ fn collect_info_from_methods_and_functions(
 }
 
 /// Computes a map of Predicate to the predicates used  in that predicate
-fn get_used_predicates_in_predicate_map(
-    predicates: &[Predicate],
-) -> HashMap<Type, HashSet<Type>> {
+fn get_used_predicates_in_predicate_map(predicates: &[Predicate]) -> HashMap<Type, HashSet<Type>> {
     let mut collector = UsedPredicateCollector::new();
     let mut map = HashMap::new();
 
     for pred in predicates {
         match pred {
             Predicate::Struct(StructPredicate {
-                typ,
-                body: Some(e),
-                ..
+                typ, body: Some(e), ..
             }) => {
                 ExprWalker::walk(&mut collector, e);
                 let mut res = HashSet::new();
@@ -48,7 +44,8 @@ fn get_used_predicates_in_predicate_map(
             }
             Predicate::Struct(StructPredicate { body: None, .. }) => { /* ignore */ }
             Predicate::Enum(p) => {
-                let discriminant_loc = Expr::from(p.this.clone()).field(p.discriminant_field.clone());
+                let discriminant_loc =
+                    Expr::from(p.this.clone()).field(p.discriminant_field.clone());
                 ExprWalker::walk(&mut collector, &discriminant_loc);
                 ExprWalker::walk(&mut collector, &p.discriminant_bounds);
 
@@ -167,12 +164,27 @@ impl UsedPredicateCollector {
 }
 
 impl ExprWalker for UsedPredicateCollector {
-    fn walk_predicate_access_predicate(&mut self, PredicateAccessPredicate {predicate_type, argument, ..}: &PredicateAccessPredicate) {
+    fn walk_predicate_access_predicate(
+        &mut self,
+        PredicateAccessPredicate {
+            predicate_type,
+            argument,
+            ..
+        }: &PredicateAccessPredicate,
+    ) {
         self.used_predicates.insert(predicate_type.clone());
         ExprWalker::walk(self, argument);
     }
 
-    fn walk_unfolding(&mut self, Unfolding {predicate, arguments, base, ..}: &Unfolding) {
+    fn walk_unfolding(
+        &mut self,
+        Unfolding {
+            predicate,
+            arguments,
+            base,
+            ..
+        }: &Unfolding,
+    ) {
         self.used_predicates.insert(predicate.clone());
         self.folded_predicates.insert(predicate.clone());
 
@@ -187,12 +199,12 @@ impl StmtWalker for UsedPredicateCollector {
     fn walk_expr(&mut self, expr: &Expr) {
         ExprWalker::walk(self, expr);
     }
-    fn walk_fold(&mut self, Fold {predicate, ..}: &Fold) {
+    fn walk_fold(&mut self, Fold { predicate, .. }: &Fold) {
         self.folded_predicates.insert(predicate.clone());
         self.used_predicates.insert(predicate.clone());
     }
 
-    fn walk_unfold(&mut self, Unfold {predicate, ..}: &Unfold) {
+    fn walk_unfold(&mut self, Unfold { predicate, .. }: &Unfold) {
         self.folded_predicates.insert(predicate.clone());
         self.used_predicates.insert(predicate.clone());
     }

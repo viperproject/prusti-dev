@@ -212,6 +212,7 @@ fn translate_type<'tcx>(encoder: &Encoder<'_, 'tcx>, typ: vir::Type, tymap: &Sub
         vir::Type::Int
         | vir::Type::Bool
         | vir::Type::Float(_)
+        | vir::Type::BitVector(_)
         | vir::Type::Snapshot(_)
         | vir::Type::Domain(_) => typ,
         vir::Type::TypedRef(_) | vir::Type::TypeVar(_) => {

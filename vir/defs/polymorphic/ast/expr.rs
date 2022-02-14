@@ -406,6 +406,15 @@ impl Expr {
         })
     }
 
+    pub fn bin_op(op_kind: BinaryOpKind, left: Expr, right: Expr) -> Self {
+        Expr::BinOp(BinOp {
+            op_kind,
+            left: Box::new(left),
+            right: Box::new(right),
+            position: Position::default(),
+        })
+    }
+
     pub fn gt_cmp(left: Expr, right: Expr) -> Self {
         Expr::BinOp(BinOp {
             op_kind: BinaryOpKind::GtCmp,
@@ -1177,6 +1186,11 @@ impl Expr {
                 Const::Int(..) | Const::BigInt(..) => &Type::Int,
                 Const::Float(FloatConst::F32(..)) => &Type::Float(Float::F32),
                 Const::Float(FloatConst::F64(..)) => &Type::Float(Float::F64),
+                Const::BitVector(BitVectorConst::BV8(..)) => &Type::BitVector(BitVector::BV8),
+                Const::BitVector(BitVectorConst::BV16(..)) => &Type::BitVector(BitVector::BV16),
+                Const::BitVector(BitVectorConst::BV32(..)) => &Type::BitVector(BitVector::BV32),
+                Const::BitVector(BitVectorConst::BV64(..)) => &Type::BitVector(BitVector::BV64),
+                Const::BitVector(BitVectorConst::BV128(..)) => &Type::BitVector(BitVector::BV128),
                 Const::FnPtr => &FN_PTR_TYPE,
             },
             Expr::BinOp(BinOp {
@@ -1198,7 +1212,15 @@ impl Expr {
                 | BinaryOpKind::Sub
                 | BinaryOpKind::Mul
                 | BinaryOpKind::Div
-                | BinaryOpKind::Mod => {
+                | BinaryOpKind::Mod
+                | BinaryOpKind::BitAnd
+                | BinaryOpKind::BitOr
+                | BinaryOpKind::BitXor
+                | BinaryOpKind::Shl
+                | BinaryOpKind::LShr
+                | BinaryOpKind::AShr
+                | BinaryOpKind::Min
+                | BinaryOpKind::Max => {
                     let typ1 = left.get_type();
                     let typ2 = right.get_type();
                     assert_eq!(typ1, typ2, "expr: {:?}", self);
@@ -1915,6 +1937,14 @@ pub enum BinaryOpKind {
     And,
     Or,
     Implies,
+    BitAnd,
+    BitOr,
+    BitXor,
+    Shl,
+    LShr,
+    AShr,
+    Min,
+    Max,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, PartialOrd, Ord)]
@@ -1937,11 +1967,27 @@ impl fmt::Display for FloatConst {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize, PartialOrd, Ord)]
+pub enum BitVectorConst {
+    BV8(u8),
+    BV16(u16),
+    BV32(u32),
+    BV64(u64),
+    BV128(u128),
+}
+
+impl fmt::Display for BitVectorConst {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}", &self)
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize, PartialOrd, Ord)]
 pub enum Const {
     Bool(bool),
     Int(i64),
     BigInt(String),
     Float(FloatConst),
+    BitVector(BitVectorConst),
     /// All function pointers share the same constant, because their function
     /// is determined by the type system.
     FnPtr,
@@ -2682,6 +2728,14 @@ impl fmt::Display for BinaryOpKind {
             BinaryOpKind::And => write!(f, "&&"),
             BinaryOpKind::Or => write!(f, "||"),
             BinaryOpKind::Implies => write!(f, "==>"),
+            BinaryOpKind::BitAnd => write!(f, "&"),
+            BinaryOpKind::BitOr => write!(f, "|"),
+            BinaryOpKind::BitXor => write!(f, "^"),
+            BinaryOpKind::Shl => write!(f, "<<"),
+            BinaryOpKind::LShr => write!(f, ">>>"),
+            BinaryOpKind::AShr => write!(f, ">>"),
+            BinaryOpKind::Min => write!(f, "min"),
+            BinaryOpKind::Max => write!(f, "max"),
         }
     }
 }
@@ -2693,6 +2747,7 @@ impl fmt::Display for Const {
             Const::Int(val) => write!(f, "{}", val),
             Const::BigInt(ref val) => write!(f, "{}", val),
             Const::Float(val) => write!(f, "{:?}", val),
+            Const::BitVector(val) => write!(f, "{:?}", val),
             Const::FnPtr => write!(f, "FnPtr"),
         }
     }
