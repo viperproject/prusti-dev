@@ -6,10 +6,8 @@
 
 //! Inliner of pure functions.
 
-use crate::vir::polymorphic_vir::ast;
-use crate::vir::polymorphic_vir::cfg;
-use std::collections::HashMap;
-use std::mem;
+use crate::vir::polymorphic_vir::{ast, cfg};
+use std::{collections::HashMap, mem};
 
 /// Convert functions whose body does not depend on arguments such as
 ///
@@ -35,7 +33,7 @@ use std::mem;
 /// The optimization is performed until a fix-point.
 pub fn inline_constant_functions(
     mut methods: Vec<cfg::CfgMethod>,
-    mut functions: Vec<ast::Function>
+    mut functions: Vec<ast::Function>,
 ) -> (Vec<cfg::CfgMethod>, Vec<ast::Function>) {
     trace!("[enter] purify_constant_functions");
     let mut non_pure_functions = Vec::new();
@@ -65,10 +63,10 @@ pub fn inline_constant_functions(
 /// precondition. Returns true if successful.
 fn try_purify(function: &mut ast::Function) -> Option<ast::Expr> {
     trace!("[enter] try_purify(name={})", function.name);
-    if function.has_constant_body() &&
-        function.pres.iter().all(|cond| cond.is_only_permissions()) &&
-        function.posts.is_empty() {
-
+    if function.has_constant_body()
+        && function.pres.iter().all(|cond| cond.is_only_permissions())
+        && function.posts.is_empty()
+    {
         function.pres.clear();
         return function.body.clone();
     }
@@ -85,9 +83,7 @@ fn inline_into(
     pure_function_map: &HashMap<String, ast::Expr>,
 ) -> ast::Function {
     function.body = function.body.map(|body| {
-        let mut inliner = ConstantFunctionInliner {
-            pure_function_map,
-        };
+        let mut inliner = ConstantFunctionInliner { pure_function_map };
         ast::ExprFolder::fold(&mut inliner, body)
     });
     function
@@ -100,11 +96,21 @@ impl<'a> ast::StmtFolder for ConstantFunctionInliner<'a> {
 }
 
 impl<'a> ast::ExprFolder for ConstantFunctionInliner<'a> {
-    fn fold_func_app(&mut self, ast::FuncApp {function_name, type_arguments, arguments, formal_arguments, return_type, position}: ast::FuncApp) -> ast::Expr {
+    fn fold_func_app(
+        &mut self,
+        ast::FuncApp {
+            function_name,
+            type_arguments,
+            arguments,
+            formal_arguments,
+            return_type,
+            position,
+        }: ast::FuncApp,
+    ) -> ast::Expr {
         if self.pure_function_map.contains_key(&function_name) {
             self.pure_function_map[&function_name].clone()
         } else {
-            ast::Expr::FuncApp( ast::FuncApp {
+            ast::Expr::FuncApp(ast::FuncApp {
                 function_name,
                 type_arguments,
                 arguments: arguments.into_iter().map(|e| self.fold(e)).collect(),
@@ -114,12 +120,22 @@ impl<'a> ast::ExprFolder for ConstantFunctionInliner<'a> {
             })
         }
     }
-    fn fold_unfolding(&mut self, ast::Unfolding {predicate, arguments, mut base, permission, variant, position}: ast::Unfolding) -> ast::Expr {
+    fn fold_unfolding(
+        &mut self,
+        ast::Unfolding {
+            predicate,
+            arguments,
+            mut base,
+            permission,
+            variant,
+            position,
+        }: ast::Unfolding,
+    ) -> ast::Expr {
         base = self.fold_boxed(base);
         if base.is_constant() {
             *base
         } else {
-            ast::Expr::Unfolding( ast::Unfolding {
+            ast::Expr::Unfolding(ast::Unfolding {
                 predicate,
                 arguments: arguments.into_iter().map(|e| self.fold(e)).collect(),
                 base,
@@ -133,7 +149,7 @@ impl<'a> ast::ExprFolder for ConstantFunctionInliner<'a> {
 
 fn inline_into_methods(
     methods: Vec<cfg::CfgMethod>,
-    pure_function_map: HashMap<String, ast::Expr>
+    pure_function_map: HashMap<String, ast::Expr>,
 ) -> Vec<cfg::CfgMethod> {
     let mut inliner = ConstantFunctionInliner {
         pure_function_map: &pure_function_map,

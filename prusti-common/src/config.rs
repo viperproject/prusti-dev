@@ -66,6 +66,7 @@ lazy_static! {
         settings.set_default("check_overflows", true).unwrap();
         settings.set_default("check_panics", true).unwrap();
         settings.set_default("encode_unsigned_num_constraint", false).unwrap();
+        settings.set_default("encode_bitvectors", false).unwrap();
         settings.set_default("simplify_encoding", true).unwrap();
         settings.set_default("log_dir", "log").unwrap();
         settings.set_default("cache_path", "").unwrap();
@@ -290,6 +291,11 @@ pub fn check_overflows() -> bool {
 /// Encode (and check) that unsigned integers are non-negative.
 pub fn encode_unsigned_num_constraint() -> bool {
     read_setting("encode_unsigned_num_constraint")
+}
+
+/// Enable (highly hacky) support for bitvectors.
+pub fn encode_bitvectors() -> bool {
+    read_setting("encode_bitvectors")
 }
 
 /// Location of 'libprusti_contracts*.rlib'

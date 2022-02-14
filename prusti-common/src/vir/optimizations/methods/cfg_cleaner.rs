@@ -1,17 +1,20 @@
 use std::collections::HashMap;
 
-use crate::vir::polymorphic_vir::{cfg};
+use crate::vir::polymorphic_vir::cfg;
 
 /// Merge consequitive basic blocks that are joined by only one edge.
 pub fn clean_cfg(mut method: cfg::CfgMethod) -> cfg::CfgMethod {
     let predecessors = method.predecessors();
     let traversal_order = method.get_topological_sort();
-    assert_eq!(traversal_order[0].block_index, 0, "The start block should be first.");
+    assert_eq!(
+        traversal_order[0].block_index, 0,
+        "The start block should be first."
+    );
     let mut new_basic_blocks = Vec::new();
     let mut basic_blocks: HashMap<_, _> = method.basic_blocks.into_iter().enumerate().collect();
     let mut new_indices = HashMap::new();
 
-    for cfg::CfgBlockIndex{ block_index, .. } in traversal_order {
+    for cfg::CfgBlockIndex { block_index, .. } in traversal_order {
         if let Some(mut basic_block) = basic_blocks.remove(&block_index) {
             let new_index = new_basic_blocks.len();
             assert!(new_indices.insert(block_index, new_index).is_none());
@@ -34,7 +37,7 @@ pub fn clean_cfg(mut method: cfg::CfgMethod) -> cfg::CfgMethod {
     }
     for basic_block in &mut new_basic_blocks {
         match &mut basic_block.successor {
-            cfg::Successor::Undefined | cfg::Successor::Return => {},
+            cfg::Successor::Undefined | cfg::Successor::Return => {}
             cfg::Successor::Goto(target) => {
                 target.block_index = new_indices[&target.index()];
             }
