@@ -1,5 +1,5 @@
+extern crate prusti_contracts;
 use prusti_contracts::*;
-
 
 trait Foo {
     #[pure]
@@ -12,7 +12,6 @@ struct Dummy { }
 #[refine_trait_spec]
 impl Foo for Dummy {
     #[pure]
-    #[ensures(result == 5)]
     fn foo(_a: i32) -> i32 {
         5
     }
