@@ -416,7 +416,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                         .encoder
                         .update_substitution_map(self.tymap.clone(), def_id, substs)
                         .with_span(span)?;
-                    let substs = tymap.apply_to_substs(self.encoder.env(), substs);
+                    let substs = tymap.apply_to_def_id(self.encoder.env(), def_id);
 
                     let def_id = self
                         .encoder
