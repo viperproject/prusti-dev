@@ -2258,12 +2258,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                             // We try to resolve it to the concrete implementation.
                             let impl_def_id = self.encoder.env()
                                 .find_impl_of_trait_method_call(def_id, substs);
-
-                            // println!("[ProcedureEncoder::encode_terminator]\n\tdefid = {:?}\n\timpl_def_id = {:?}\n\tsubsts = {:?}", def_id, impl_def_id, substs);
-
                             let called_def_id = impl_def_id.unwrap_or(def_id);
-                            // println!("\t resulting def id = {:?}", def_id);
-                            // println!("\tspan of resulting def = {:?}", self.encoder.env().tcx().span_of_impl(def_id));
 
                             let is_pure_function = self.encoder.is_pure(called_def_id) &&
                                 // We are verifying this pure function and,
