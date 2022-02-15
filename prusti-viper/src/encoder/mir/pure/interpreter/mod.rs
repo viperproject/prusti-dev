@@ -383,25 +383,26 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
 
         trace!("cfg_targets: {:?}", cfg_targets);
 
-        let final_expr = states[&refined_default_target].expr().map(|default_expr| {
-            cfg_targets
-                .iter()
-                .map(|(guard, target)|
-                    // If the default target is defined, all targets should be defined.
-                    (guard, states[target].expr().unwrap()))
-                .fold(default_expr.clone(), |else_expr, (guard, then_expr)| {
+        let mut final_expr = states[&refined_default_target].expr().cloned();
+        for (guard, target) in cfg_targets.into_iter() {
+            if let Some(then_expr) = states[&target].expr() {
+                final_expr = Some(if let Some(else_expr) = final_expr {
                     if then_expr == &else_expr {
                         // Optimization
                         else_expr
                     } else {
                         vir_high::Expression::conditional_no_pos(
-                            guard.clone(),
+                            guard,
                             then_expr.clone(),
                             else_expr,
                         )
                     }
-                })
-        });
+                } else {
+                    // Define `final_expr` for the first time
+                    then_expr.clone()
+                });
+            }
+        }
 
         Ok(ExprBackwardInterpreterState::new(final_expr))
     }
