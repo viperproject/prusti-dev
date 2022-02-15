@@ -1,6 +1,6 @@
 use prusti_contracts::*;
 
-#[ensures(assert_on_expiry(*result == 42))]
+#[assert_on_expiry(*result == 42, true)]
 fn must_answer(location: &mut i32) -> &mut i32 {
     location
 }

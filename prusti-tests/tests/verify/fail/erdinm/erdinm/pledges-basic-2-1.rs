@@ -14,7 +14,7 @@ impl Nonsense {
 
     //#[requires(self.valid())]
     #[ensures(*result == old(self.m3))]
-    #[ensures(assert_on_expiry(*result % 3 == 0, self.valid()))]  //~ ERROR might not hold
+    #[assert_on_expiry(*result % 3 == 0, self.valid())]  //~ ERROR might not hold
     fn m3_mut(&mut self) -> &mut u32 {
         &mut self.m3
     }
