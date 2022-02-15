@@ -25,7 +25,7 @@ use log::{debug, trace};
 use prusti_common::vir_high_local;
 use rustc_hash::FxHashMap;
 use rustc_hir::def_id::DefId;
-use rustc_middle::{mir, ty};
+use rustc_middle::{mir, ty, ty::subst::SubstsRef};
 use rustc_span::Span;
 
 use vir_crate::{
@@ -515,6 +515,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
                                 encoded_args,
                                 span,
                                 &tymap,
+                                substs,
                             )?
                         } else {
                             return Err(SpannedEncodingError::incorrect(
@@ -607,10 +608,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
         args: Vec<vir_high::Expression>,
         span: Span,
         tymap: &SubstMap<'tcx>,
+        substs: &SubstsRef<'tcx>,
     ) -> SpannedEncodingResult<ExprBackwardInterpreterState> {
         let (function_name, return_type) = self
             .encoder
-            .encode_pure_function_use_high(def_id, self.caller_def_id, tymap)
+            .encode_pure_function_use_high(def_id, self.caller_def_id, tymap, substs)
             .with_span(span)?;
         trace!("Encoding pure function call '{}'", function_name);
         let pos = self.encoder.error_manager().register(

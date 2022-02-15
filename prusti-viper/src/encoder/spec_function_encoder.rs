@@ -13,7 +13,7 @@ use prusti_interface::{
 };
 use vir_crate::polymorphic as vir;
 use vir_crate::polymorphic::ExprIterator;
-use rustc_middle::{mir};
+use rustc_middle::{mir, ty::subst::SubstsRef};
 use rustc_span::Span;
 
 
@@ -34,11 +34,14 @@ pub struct SpecFunctionEncoder<'p, 'v: 'p, 'tcx: 'v> {
     is_closure: bool,
     mir_encoder: MirEncoder<'p, 'v, 'tcx>,
     tymap: &'p SubstMap<'tcx>,
+    substs: &'p SubstsRef<'tcx>,
 }
 
 impl<'p, 'v: 'p, 'tcx: 'v> SpecFunctionEncoder<'p, 'v, 'tcx> {
     pub fn new(encoder: &'p Encoder<'v, 'tcx>,
-               procedure: &'p Procedure<'tcx>, tymap: &'p SubstMap<'tcx>,) -> Self {
+               procedure: &'p Procedure<'tcx>,
+               tymap: &'p SubstMap<'tcx>,
+               substs: &'p SubstsRef<'tcx>) -> Self {
         Self {
             encoder,
             procedure,
@@ -47,6 +50,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecFunctionEncoder<'p, 'v, 'tcx> {
             is_closure: encoder.env().tcx().is_closure(procedure.get_id()),
             mir_encoder: MirEncoder::new(encoder, procedure.get_mir(), procedure.get_id()),
             tymap,
+            substs,
         }
     }
 
@@ -97,6 +101,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecFunctionEncoder<'p, 'v, 'tcx> {
                 ErrorCtxt::GenericExpression,
                 self.proc_def_id,
                 self.tymap,
+                self.substs,
             )?);
         }
 
@@ -141,6 +146,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecFunctionEncoder<'p, 'v, 'tcx> {
                 ErrorCtxt::GenericExpression,
                 self.proc_def_id,
                 self.tymap,
+                self.substs,
             )?);
         }
 
