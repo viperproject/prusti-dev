@@ -55,7 +55,6 @@ use super::mir::{
     },
 };
 use super::high::types::{HighTypeEncoderState, HighTypeEncoderInterface};
-pub use super::substs::{SubstMap, SubstMapExt};
 
 pub struct Encoder<'v, 'tcx: 'v> {
     env: &'v Environment<'tcx>,
@@ -99,6 +98,7 @@ pub struct Encoder<'v, 'tcx: 'v> {
 }
 
 pub type EncodingTask<'tcx> = (ProcedureDefId, Vec<(ty::Ty<'tcx>, ty::Ty<'tcx>)>);
+pub type SubstMap<'tcx> = FxHashMap<ty::Ty<'tcx>, ty::Ty<'tcx>>;
 
 // If the field name is an identifier, removing the leading prefix r#
 pub fn encode_field_name(field_name: &str) -> String {
@@ -647,7 +647,8 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         if !self.spec_functions.borrow().contains_key(&def_id) {
             let procedure = self.env.get_procedure(def_id);
             let tymap = FxHashMap::default(); // TODO: This is probably wrong.
-            let spec_func_encoder = SpecFunctionEncoder::new(self, &procedure, &tymap);
+            let substs = ty::List::empty(); // TODO: This is probably wrong.
+            let spec_func_encoder = SpecFunctionEncoder::new(self, &procedure, &tymap, &substs);
             let result = spec_func_encoder.encode()?.into_iter().map(|function| {
                 self.insert_function(function)
             }).collect();
@@ -836,7 +837,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
 
                 // TODO: Make sure that this encoded function does not end up in
                 // the Viper file because that would be unsound.
-                if let Err(error) = self.encode_pure_function_def(proc_def_id, &FxHashMap::default()) {
+                if let Err(error) = self.encode_pure_function_def(proc_def_id, &FxHashMap::default(), &ty::List::empty()) {
                     self.register_encoding_error(error);
                     debug!("Error encoding function: {:?}", proc_def_id);
                     // Skip encoding the function as a method.

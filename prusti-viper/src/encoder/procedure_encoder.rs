@@ -48,7 +48,7 @@ use prusti_interface::utils;
 use rustc_middle::mir::Mutability;
 use rustc_middle::mir;
 use rustc_middle::mir::{TerminatorKind};
-use rustc_middle::ty::{self, layout::IntegerExt, ParamEnv};
+use rustc_middle::ty::{self, layout::IntegerExt, ParamEnv, subst::SubstsRef};
 use rustc_target::abi::Integer;
 use rustc_hir::def_id::LocalDefId;
 use rustc_hash::{FxHashMap, FxHashSet};
@@ -2268,7 +2268,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                             if is_pure_function {
                                 let def_id = called_def_id;
                                 let (function_name, _) = self.encoder
-                                    .encode_pure_function_use(def_id, self.proc_def_id, &tymap)
+                                    .encode_pure_function_use(def_id, self.proc_def_id, &tymap, substs)
                                     .with_default_span(term.source_info.span)?;
                                 debug!("Encoding pure function call '{}'", function_name);
                                 assert!(destination.is_some());
@@ -2286,6 +2286,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                                         destination,
                                         def_id,
                                         tymap,
+                                        substs,
                                     )?
                                 );
                             } else {
@@ -2991,7 +2992,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             pre_mandatory_type_spec,
             pre_invs_spec,
             pre_func_spec,
-        ) = self.encode_precondition_expr(&procedure_contract, &tymap, fake_expr_spans)?;
+        ) = self.encode_precondition_expr(&procedure_contract, &tymap, &substs,fake_expr_spans)?;
         let pos = self
             .encoder
             .error_manager()
@@ -3067,6 +3068,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             loan,
             false,
             &tymap,
+            &substs,
         )?;
         // We inhale the magic wand just before applying it because we need
         // a magic wand that depends on the current value of ghost variables.
@@ -3118,6 +3120,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         Ok(stmts)
     }
 
+    #[allow(clippy::too_many_arguments)]
     fn encode_pure_function_call(
         &mut self,
         location: mir::Location,
@@ -3125,9 +3128,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         args: &[mir::Operand<'tcx>],
         destination: &Option<(mir::Place<'tcx>, BasicBlockIndex)>,
         called_def_id: ProcedureDefId,
-        tymap: SubstMap<'tcx>
+        tymap: SubstMap<'tcx>,
+        substs: SubstsRef<'tcx>,
     ) -> SpannedEncodingResult<Vec<vir::Stmt>> {
-        let (function_name, return_type) = self.encoder.encode_pure_function_use(called_def_id, self.proc_def_id, &tymap)
+        let (function_name, return_type) = self.encoder.encode_pure_function_use(called_def_id, self.proc_def_id, &tymap, &substs)
             .with_span(call_site_span)?;
         debug!("Encoding pure function call '{}'", function_name);
         assert!(destination.is_some());
@@ -3395,6 +3399,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         &self,
         contract: &ProcedureContract<'tcx>,
         tymap: &SubstMap<'tcx>,
+        substs: &SubstsRef<'tcx>,
         override_spans: FxHashMap<Local, Span> // spans for fake locals
     ) -> SpannedEncodingResult<(
         vir::Expr,
@@ -3472,6 +3477,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 ErrorCtxt::GenericExpression,
                 self.proc_def_id,
                 tymap,
+                substs,
             )?;
             func_spec.push(value);
         }
@@ -3522,6 +3528,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
 
         // FIXME: ??? new tymap?
         let tymap = FxHashMap::default();
+        let substs = ty::List::empty();
         debug!("procedure_contract: {:?}", self.procedure_contract());
         //trace!("def_id of proc: {:?}", &self.proc_def_id);
         let impl_def_id = self.encoder.env().tcx().impl_of_method(self.proc_def_id);
@@ -3571,6 +3578,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                                 ErrorCtxt::GenericExpression,
                                 self.proc_def_id,
                                 &tymap,
+                                &substs,
                             ))
                             .collect::<Result<Vec<_>, _>>()?
                             .into_iter()
@@ -3587,6 +3595,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                                 ErrorCtxt::GenericExpression,
                                 self.proc_def_id,
                                 &tymap,
+                                &substs,
                             ))
                             .collect::<Result<Vec<_>, _>>()?
                             .into_iter()
@@ -3621,6 +3630,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                                 ErrorCtxt::GenericExpression,
                                 self.proc_def_id,
                                 &tymap,
+                                &substs,
                             ))
                             .collect::<Result<Vec<_>, _>>()?
                             .into_iter()
@@ -3637,6 +3647,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                                 ErrorCtxt::GenericExpression,
                                 self.proc_def_id,
                                 &tymap,
+                                &substs,
                             ))
                             .collect::<Result<Vec<_>, _>>()?
                             .into_iter()
@@ -3691,12 +3702,14 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         weakening_spec: Option<vir::Expr>,
     ) -> SpannedEncodingResult<()> {
         let tymap = FxHashMap::default();
+        let substs = ty::List::empty();
         self.cfg_method
             .add_stmt(start_cfg_block, vir::Stmt::comment("Preconditions:"));
         let (type_spec, mandatory_type_spec, invs_spec, func_spec) =
             self.encode_precondition_expr(
                 self.procedure_contract(),
                 &tymap,
+                &substs,
                 FxHashMap::default()
             )?;
         self.cfg_method.add_stmt(
@@ -3750,6 +3763,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         pre_label: &str,
         post_label: &str,
         tymap: &SubstMap<'tcx>,
+        substs: &SubstsRef<'tcx>,
     ) -> EncodingResult<Option<(vir::Expr, vir::Expr)>> {
         let span = if let Some(loc) = location {
             self.mir.source_info(loc).span
@@ -3825,6 +3839,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                         ErrorCtxt::GenericExpression,
                         self.proc_def_id,
                         tymap,
+                        substs,
                     )?
                 } else {
                     true.into()
@@ -3838,6 +3853,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     ErrorCtxt::GenericExpression,
                     self.proc_def_id,
                     tymap,
+                    substs,
                 )?;
                 assertion_lhs = self.wrap_arguments_into_old(
                     assertion_lhs,
@@ -3940,6 +3956,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         loan: Option<facts::Loan>,
         function_end: bool,
         tymap: &SubstMap<'tcx>,
+        substs: &SubstsRef<'tcx>,
     ) -> SpannedEncodingResult<(
         vir::Expr,                   // Returned permissions from types.
         Option<vir::Expr>,           // Permission of the return value.
@@ -4013,6 +4030,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             pre_label,
             post_label,
             tymap,
+            substs,
         ).with_span(span)? {
             if let Some((location, fake_exprs)) = magic_wand_store_info {
                 let replace_fake_exprs = |mut expr: vir::Expr| -> vir::Expr {
@@ -4057,6 +4075,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 ErrorCtxt::GenericExpression,
                 self.proc_def_id,
                 tymap,
+                substs,
             )?;
             func_spec_spans.push(self.encoder.env().tcx().def_span(typed_assertion.to_def_id()));
             assertion = self.wrap_arguments_into_old(
@@ -4165,6 +4184,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
     ) -> SpannedEncodingResult<Vec<vir::Stmt>> {
         debug!("encode_package_end_of_method '{:?}'", location);
         let tymap = FxHashMap::default();
+        let substs = ty::List::empty();
         let mut stmts = Vec::new();
         let span = self.mir.source_info(location).span;
 
@@ -4175,6 +4195,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             pre_label,
             post_label,
             &tymap,
+            &substs,
         ).with_span(span)? {
             let pos = self
                 .encoder
@@ -4295,6 +4316,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         strengthening_spec: Option<vir::Expr>,
     ) -> SpannedEncodingResult<()> {
         let tymap = FxHashMap::default();
+        let substs = ty::List::empty();
         // This clone is only due to borrow checker restrictions
         let contract = self.procedure_contract().clone();
 
@@ -4320,6 +4342,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             None,
             true,
             &tymap,
+            &substs,
         )?;
 
         let type_inv_pos = self.encoder.error_manager().register(
@@ -4885,6 +4908,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             spec_blocks
         );
         let tymap = FxHashMap::default();
+        let substs = ty::List::empty();
 
         // `body_invariant!(..)` is desugared to a closure with special attributes,
         // which we can detect and use to retrieve the specification.
@@ -4902,6 +4926,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                             bbi,
                             self.proc_def_id,
                             &tymap,
+                            &substs,
                         )?);
                         encoded_spec_spans.push(self.encoder.env().tcx().def_span(spec.invariant.to_def_id()));
                     }

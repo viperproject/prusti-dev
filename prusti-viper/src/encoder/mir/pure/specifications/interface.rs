@@ -67,6 +67,7 @@ pub(crate) trait SpecificationEncoderInterface<'tcx> {
         error: ErrorCtxt,
         parent_def_id: DefId,
         tymap: &SubstMap<'tcx>,
+        substs: &SubstsRef<'tcx>,
     ) -> SpannedEncodingResult<vir_crate::polymorphic::Expr>;
 
     fn encode_invariant(
@@ -75,6 +76,7 @@ pub(crate) trait SpecificationEncoderInterface<'tcx> {
         invariant_block: mir::BasicBlock, // in which the invariant is defined
         parent_def_id: DefId,
         tymap: &SubstMap<'tcx>,
+        substs: &SubstsRef<'tcx>,
     ) -> SpannedEncodingResult<vir_crate::polymorphic::Expr>;
 }
 
@@ -162,6 +164,7 @@ impl<'v, 'tcx: 'v> SpecificationEncoderInterface<'tcx> for crate::encoder::Encod
         error: ErrorCtxt,
         parent_def_id: DefId,
         tymap: &SubstMap<'tcx>,
+        substs: &SubstsRef<'tcx>,
     ) -> SpannedEncodingResult<vir_crate::polymorphic::Expr> {
         let mut encoded_assertion = inline_spec_item(
             self,
@@ -171,6 +174,7 @@ impl<'v, 'tcx: 'v> SpecificationEncoderInterface<'tcx> for crate::encoder::Encod
             targets_are_values,
             parent_def_id,
             tymap,
+            substs,
         )?;
 
         // map old labels
@@ -203,6 +207,7 @@ impl<'v, 'tcx: 'v> SpecificationEncoderInterface<'tcx> for crate::encoder::Encod
         invariant_block: mir::BasicBlock, // in which the invariant is defined
         parent_def_id: DefId,
         tymap: &SubstMap<'tcx>,
+        substs: &SubstsRef<'tcx>,
     ) -> SpannedEncodingResult<vir_crate::polymorphic::Expr> {
         // identify previous block: there should only be one
         let predecessors = &mir.predecessors()[invariant_block];
@@ -250,6 +255,7 @@ impl<'v, 'tcx: 'v> SpecificationEncoderInterface<'tcx> for crate::encoder::Encod
             vec![],
             parent_def_id,
             tymap,
+            substs,
         )?;
 
         // backward interpret the body to get rid of the upvars
@@ -260,6 +266,7 @@ impl<'v, 'tcx: 'v> SpecificationEncoderInterface<'tcx> for crate::encoder::Encod
             PureEncodingContext::Code,
             parent_def_id,
             tymap.clone(),
+            substs,
         );
         let invariant = run_backward_interpretation_point_to_point(
             mir,

@@ -313,14 +313,6 @@ impl<'tcx> Environment<'tcx> {
         if let Some(trait_id) = self.tcx().trait_of_item(proc_def_id) {
             debug!("Fetching implementations of method '{:?}' defined in trait '{}' with substs '{:?}'", proc_def_id, self.tcx().def_path_str(trait_id), substs);
 
-            // Note: In some cases, if tcx.resolve_instance fails to perform the
-            // method lookup, it attaches delayed span bugs to the compiler
-            // session. To avoid this, we have a copy of the corresponding files
-            // with lines reporting delayed span bugs commented out. There is a
-            // change request pending for the Rust compiler to change this
-            // behaviour [1], which is not yet implemented.
-            //
-            // [1]  https://github.com/rust-lang/compiler-team/issues/449
             let param_env = ty::ParamEnv::reveal_all();
             let key = ty::ParamEnvAnd { param_env, value: (proc_def_id, substs) };
             let resolved_instance = traits::resolve_instance(self.tcx(), key);
