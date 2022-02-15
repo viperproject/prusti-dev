@@ -18,20 +18,20 @@ impl Example {
 
     #[requires(self.valid())]
     #[ensures(*result == old(self.m3))]
-    #[ensures(assert_on_expiry(
+    #[assert_on_expiry(
         *result % 3 == 0,
         self.valid()
-    ))]
+    )]
     fn m3_mut(&mut self) -> &mut u32 {
         &mut self.m3
     }
 
     #[requires(self.valid())]
     #[ensures(*result == old(self.m3))]
-    #[ensures(assert_on_expiry(
+    #[assert_on_expiry(
         true,
-        self.valid()
-    ))] //~^^ ERROR pledge in the postcondition might not hold
+        self.valid()     //~ ERROR pledge in the postcondition might not hold
+    )]
     fn m3_mut_fail(&mut self) -> &mut u32 {
         &mut self.m3
     }
