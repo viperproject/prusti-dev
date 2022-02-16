@@ -28,5 +28,5 @@
   - [Trait contract refinement](verify/traits.md)
   - [Closures](verify/closure.md)
   - [Specification entailments](verify/spec_ent.md)
-  - [Type Models](verify/type-models.md)
+  - [Type models](verify/type-models.md)
 - [Specification Syntax](syntax.md)
