@@ -44,7 +44,8 @@ fn extract_prusti_attributes(
                 let tokens = match attr_kind {
                     SpecAttributeKind::Requires
                     | SpecAttributeKind::Ensures
-                    | SpecAttributeKind::AfterExpiry => {
+                    | SpecAttributeKind::AfterExpiry
+                    | SpecAttributeKind::AssertOnExpiry => {
                         // We need to drop the surrounding parenthesis to make the
                         // tokens identical to the ones passed by the native procedural
                         // macro call.
@@ -129,6 +130,7 @@ fn generate_spec_and_assertions(
             SpecAttributeKind::Requires => generate_for_requires(attr_tokens, item),
             SpecAttributeKind::Ensures => generate_for_ensures(attr_tokens, item),
             SpecAttributeKind::AfterExpiry => generate_for_after_expiry(attr_tokens, item),
+            SpecAttributeKind::AssertOnExpiry => generate_for_assert_on_expiry(attr_tokens, item),
             SpecAttributeKind::Pure => generate_for_pure(attr_tokens, item),
             SpecAttributeKind::Trusted => generate_for_trusted(attr_tokens, item),
             // Predicates are handled separately below; the entry in the SpecAttributeKind enum
@@ -192,6 +194,25 @@ fn generate_for_after_expiry(attr: TokenStream, item: &untyped::AnyFnItem) -> Ge
         vec![spec_item],
         vec![parse_quote_spanned! {item.span()=>
             #[prusti::pledge_spec_id_ref = #spec_id_str]
+        }],
+    ))
+}
+
+/// Generate spec items and attributes to typecheck and later retrieve "after_expiry" annotations.
+fn generate_for_assert_on_expiry(attr: TokenStream, item: &untyped::AnyFnItem) -> GeneratedResult {
+    let mut rewriter = rewriter::AstRewriter::new();
+    let spec_id_lhs = rewriter.generate_spec_id();
+    let spec_id_lhs_str = spec_id_lhs.to_string();
+    let spec_id_rhs = rewriter.generate_spec_id();
+    let spec_id_rhs_str = spec_id_rhs.to_string();
+    let (spec_item_lhs, spec_item_rhs) = rewriter.process_assert_pledge(spec_id_lhs, spec_id_rhs, attr, item)?;
+    Ok((
+        vec![spec_item_lhs, spec_item_rhs],
+        vec![parse_quote_spanned! {item.span()=>
+            #[prusti::assert_pledge_spec_id_ref_lhs = #spec_id_lhs_str]
+        },
+        parse_quote_spanned! {item.span()=>
+            #[prusti::assert_pledge_spec_id_ref_rhs = #spec_id_rhs_str]
         }],
     ))
 }

@@ -167,6 +167,16 @@ fn get_procedure_spec_ids(def_id: DefId, attrs: &[ast::Attribute]) -> Option<Pro
             |raw_spec_id| SpecIdRef::Pledge { lhs: None, rhs: parse_spec_id(raw_spec_id, def_id) }
         )
     );
+    match (
+        read_prusti_attr("assert_pledge_spec_id_ref_lhs", attrs),
+        read_prusti_attr("assert_pledge_spec_id_ref_rhs", attrs)
+    ) {
+        (Some(lhs_id), Some(rhs_id)) => {
+            spec_id_refs.push(SpecIdRef::Pledge { lhs: Some(parse_spec_id(lhs_id, def_id)), rhs: parse_spec_id(rhs_id, def_id) });
+        }
+        (None, None) => {},
+        _ => unreachable!(),
+    }
     spec_id_refs.extend(
         read_prusti_attr("pred_spec_id_ref", attrs).map(
             |raw_spec_id| SpecIdRef::Predicate(parse_spec_id(raw_spec_id, def_id))

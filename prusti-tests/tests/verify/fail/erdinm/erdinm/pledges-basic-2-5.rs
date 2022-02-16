@@ -14,20 +14,17 @@ impl Nonsense {
 
     #[requires(self.valid())]
     #[ensures(*result == old(self.m3))]
-    #[ensures(assert_on_expiry(
-        *result % 3 == 0,
-        self.valid()
-    ))]
+    #[assert_on_expiry(*result % 3 == 0, self.valid())] //~ ERROR might not hold
     fn m3_mut(&mut self) -> &mut u32 {
-        &mut self.m3
+        &mut self.m5 // mistake
     }
 }
 
 #[requires(arg.valid())]
 #[ensures(arg.valid())]
 fn test(arg: &mut Nonsense) {
-    let m3 = arg.m3_mut(); //~ ERROR obligation might not hold on borrow expiry
-    *m3 += 5; // mistake
+    let m3 = arg.m3_mut();
+    *m3 += 3;
 }
 
 fn main() {}
