@@ -1,4 +1,4 @@
-name: Documentation
+name: Benchmarks
 
 on:
   push:
@@ -7,7 +7,7 @@ on:
 
 env:
   RUST_BACKTRACE: 1
-  RUSTDOCFLAGS: "--generate-link-to-definition -Zunstable-options"
+  PRUSTI_ASSERT_TIMEOUT: 60000
 
 jobs:
   benchmark:
@@ -28,12 +28,14 @@ jobs:
           java-version: '15'
       - name: Set up the environment
         run: python x.py setup
-      - name: Generate documentation.
-        run: python x.py doc
+      - name: Build with cargo
+        run: python x.py build --release --all --verbose
+      - name: Run benchmark
+        run: python x.py run-benchmarks
       - name: Publish to GitHub pages
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./target/doc/
-          keep_files: false
-          destination_dir: doc
+          publish_dir: ./benchmark-output
+          keep_files: true
+          destination_dir: benchmark-output
