@@ -32,14 +32,10 @@ type TypeModelGenerationResult<R> = Result<R, TypeModelGenerationError>;
 
 fn rewrite_internal(item_struct: syn::ItemStruct) -> TypeModelGenerationResult<TypeModel> {
     let idents = GeneratedIdents::generate(&item_struct);
-    let model_struct = create_model_struct(&item_struct, &idents)?;
-    let to_model_trait = create_to_model_trait(&item_struct, &model_struct, &idents);
-    let model_impl = create_model_impl(&item_struct, &model_struct, &to_model_trait)?;
-
     Ok(TypeModel {
-        model_struct,
-        model_impl,
-        to_model_trait,
+        model_struct: create_model_struct(&item_struct, &idents)?,
+        model_impl: create_model_impl(&item_struct, &model_struct, &to_model_trait)?,
+        to_model_trait: create_to_model_trait(&item_struct, &model_struct, &idents),
     })
 }
 
