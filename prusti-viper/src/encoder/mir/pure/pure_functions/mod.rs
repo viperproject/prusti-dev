@@ -5,5 +5,7 @@ mod interface;
 mod interpreter;
 mod new_encoder;
 
-pub(crate) use interface::{PureFunctionEncoderInterface, PureFunctionEncoderState};
+pub(crate) use interface::{
+    PureEncodingContext, PureFunctionEncoderInterface, PureFunctionEncoderState,
+};
 pub(crate) use interpreter::PureFunctionBackwardInterpreter;
