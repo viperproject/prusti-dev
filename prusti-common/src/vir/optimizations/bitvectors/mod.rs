@@ -53,6 +53,7 @@ pub fn replace_all_ints(program: &mut vir_poly::Program) {
                 if let Some(body) = predicate.body.take() {
                     replacer.captured_bv = None;
                     let body = ExprFolder::fold(&mut replacer, body);
+                    let body = ExprFolder::fold(&mut Fixer, body);
                     predicate.body = Some(body);
                 }
             }
@@ -61,6 +62,7 @@ pub fn replace_all_ints(program: &mut vir_poly::Program) {
                     replacer.captured_bv = None;
                     if let Some(body) = variant.body.take() {
                         let body = ExprFolder::fold(&mut replacer, body);
+                        let body = ExprFolder::fold(&mut Fixer, body);
                         variant.body = Some(body);
                     }
                 }
@@ -153,7 +155,18 @@ impl ExprFolder for Replacer {
                 }
             }
             vir_poly::Const::BigInt(_value) => {
-                unimplemented!()
+                // if let Some(captured_bv) = &self.captured_bv {
+                //     let const_value = match captured_bv {
+                //         vir_poly::BitVector::BV8 => vir_poly::BitVectorConst::BV8(value.parse::<u8>().unwrap()),
+                //         vir_poly::BitVector::BV16 => vir_poly::BitVectorConst::BV16(value.parse::<u16>().unwrap()),
+                //         vir_poly::BitVector::BV32 => vir_poly::BitVectorConst::BV32(value.parse::<u32>().unwrap()),
+                //         vir_poly::BitVector::BV64 => vir_poly::BitVectorConst::BV64(value.parse::<u64>().unwrap()),
+                //         vir_poly::BitVector::BV128 => {
+                //             vir_poly::BitVectorConst::BV128(value.parse::<u128>().unwrap())
+                //         }
+                //     };
+                //     expr.value = vir_poly::Const::BitVector(const_value);
+                // }
             }
             _ => {}
         };
@@ -163,6 +176,108 @@ impl ExprFolder for Replacer {
 
 impl StmtFolder for Replacer {
     fn fold_expr(&mut self, expr: vir_poly::Expr) -> vir_poly::Expr {
-        ExprFolder::fold(self, expr)
+        let expr = ExprFolder::fold(self, expr);
+        ExprFolder::fold(&mut Fixer, expr)
     }
+}
+
+struct Fixer;
+
+impl ExprFolder for Fixer {
+    fn fold_bin_op(
+        &mut self,
+        vir_poly::BinOp {
+            op_kind,
+            mut left,
+            mut right,
+            position,
+        }: vir_poly::BinOp,
+    ) -> vir_poly::Expr {
+        left = self.fold_boxed(left);
+        right = self.fold_boxed(right);
+        if op_kind != vir_poly::BinaryOpKind::And {
+            let left_type = left.get_type();
+            let right_type = right.get_type();
+            if left_type != right_type {
+                match op_kind {
+                    vir_poly::BinaryOpKind::EqCmp
+                    | vir_poly::BinaryOpKind::NeCmp
+                    | vir_poly::BinaryOpKind::GtCmp
+                    | vir_poly::BinaryOpKind::GeCmp
+                    | vir_poly::BinaryOpKind::LtCmp
+                    | vir_poly::BinaryOpKind::LeCmp
+                    | vir_poly::BinaryOpKind::Add
+                    | vir_poly::BinaryOpKind::Sub
+                    | vir_poly::BinaryOpKind::Mul
+                    | vir_poly::BinaryOpKind::Div
+                    | vir_poly::BinaryOpKind::Mod => {
+                        (left, right) = ensure_int(left, right);
+                    }
+                    vir_poly::BinaryOpKind::And
+                    | vir_poly::BinaryOpKind::Or
+                    | vir_poly::BinaryOpKind::Implies => {
+                        unreachable!();
+                    }
+                    vir_poly::BinaryOpKind::BitAnd
+                    | vir_poly::BinaryOpKind::BitOr
+                    | vir_poly::BinaryOpKind::BitXor
+                    | vir_poly::BinaryOpKind::Shl
+                    | vir_poly::BinaryOpKind::LShr
+                    | vir_poly::BinaryOpKind::AShr
+                    | vir_poly::BinaryOpKind::Min
+                    | vir_poly::BinaryOpKind::Max => {
+                        (left, right) = ensure_bitvector(left, right);
+                    }
+                }
+            }
+        }
+        vir_poly::Expr::BinOp(vir_poly::BinOp {
+            op_kind,
+            left,
+            right,
+            position,
+        })
+    }
+}
+
+fn ensure_int(
+    mut left: Box<vir_poly::Expr>,
+    mut right: Box<vir_poly::Expr>,
+) -> (Box<vir_poly::Expr>, Box<vir_poly::Expr>) {
+    if let vir_poly::Type::BitVector(size) = left.get_type() {
+        left = Box::new(vir_poly::Expr::Cast(vir_poly::Cast {
+            kind: vir_poly::CastKind::BVIntoInt(*size),
+            position: left.pos(),
+            base: left,
+        }));
+    }
+    if let vir_poly::Type::BitVector(size) = right.get_type() {
+        right = Box::new(vir_poly::Expr::Cast(vir_poly::Cast {
+            kind: vir_poly::CastKind::BVIntoInt(*size),
+            position: right.pos(),
+            base: right,
+        }));
+    }
+    (left, right)
+}
+
+fn ensure_bitvector(
+    mut left: Box<vir_poly::Expr>,
+    mut right: Box<vir_poly::Expr>,
+) -> (Box<vir_poly::Expr>, Box<vir_poly::Expr>) {
+    if let vir_poly::Type::BitVector(size) = right.get_type() {
+        left = Box::new(vir_poly::Expr::Cast(vir_poly::Cast {
+            kind: vir_poly::CastKind::IntIntoBV(*size),
+            position: left.pos(),
+            base: left,
+        }));
+    }
+    if let vir_poly::Type::BitVector(size) = left.get_type() {
+        right = Box::new(vir_poly::Expr::Cast(vir_poly::Cast {
+            kind: vir_poly::CastKind::IntIntoBV(*size),
+            position: right.pos(),
+            base: right,
+        }));
+    }
+    (left, right)
 }

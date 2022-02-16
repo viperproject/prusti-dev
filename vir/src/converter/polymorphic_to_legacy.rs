@@ -339,6 +339,11 @@ impl From<polymorphic::Expr> for legacy::Expr {
             polymorphic::Expr::SnapApp(snap_app) => {
                 legacy::Expr::SnapApp(Box::new((*snap_app.base).into()), snap_app.position.into())
             }
+            polymorphic::Expr::Cast(cast) => legacy::Expr::Cast(
+                cast.kind.into(),
+                Box::new((*cast.base).into()),
+                cast.position.into(),
+            ),
         }
     }
 }
@@ -400,6 +405,15 @@ impl From<polymorphic::ContainerOpKind> for legacy::ContainerOpKind {
             polymorphic::ContainerOpKind::SeqIndex => legacy::ContainerOpKind::SeqIndex,
             polymorphic::ContainerOpKind::SeqConcat => legacy::ContainerOpKind::SeqConcat,
             polymorphic::ContainerOpKind::SeqLen => legacy::ContainerOpKind::SeqLen,
+        }
+    }
+}
+
+impl From<polymorphic::CastKind> for legacy::CastKind {
+    fn from(container_op_kind: polymorphic::CastKind) -> legacy::CastKind {
+        match container_op_kind {
+            polymorphic::CastKind::BVIntoInt(size) => legacy::CastKind::BVIntoInt(size.into()),
+            polymorphic::CastKind::IntIntoBV(size) => legacy::CastKind::IntIntoBV(size.into()),
         }
     }
 }

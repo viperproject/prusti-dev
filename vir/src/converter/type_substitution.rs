@@ -162,6 +162,7 @@ impl Generic for Expr {
             Expr::InhaleExhale(inhale_exhale) => Expr::InhaleExhale(inhale_exhale.substitute(map)),
             Expr::Downcast(down_cast) => Expr::Downcast(down_cast.substitute(map)),
             Expr::SnapApp(snap_app) => Expr::SnapApp(snap_app.substitute(map)),
+            Expr::Cast(cast) => Expr::Cast(cast.substitute(map)),
         }
     }
 }
@@ -407,6 +408,13 @@ impl Generic for SnapApp {
         let mut snap_app = self;
         *snap_app.base = snap_app.base.substitute(map);
         snap_app
+    }
+}
+
+impl Generic for Cast {
+    fn substitute(mut self, map: &FxHashMap<TypeVar, Type>) -> Self {
+        *self.base = self.base.substitute(map);
+        self
     }
 }
 

@@ -349,6 +349,17 @@ impl<'a> AstFactory<'a> {
         (factory_, factory)
     }
 
+    pub fn int_to_backend_bv(&self, bv_size: BvSize, expr: Expr<'a>) -> Expr<'a> {
+        let (factory_, factory) = self.bv_factory(bv_size);
+        let from_int = ast::utility::BVFactory::call_to__int(
+            &factory_,
+            factory,
+            self.jni.new_string(format!("toBV{}", bv_size.to_i32())),
+        )
+        .unwrap();
+        self.backend_func_app(from_int, &[expr], self.no_position())
+    }
+
     pub fn backend_bv_to_int(&self, bv_size: BvSize, expr: Expr<'a>) -> Expr<'a> {
         let (factory_, factory) = self.bv_factory(bv_size);
         let to_int = ast::utility::BVFactory::call_to__int(
