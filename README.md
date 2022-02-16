@@ -27,7 +27,7 @@ The easiest way to try out Prusti is by using the ["Prusti Assistant"](https://m
 Alternatively, if you wish to use Prusti from the command line there are three options:
 * Download the precompiled binaries for Ubuntu, Windows, or MacOS from a [GitHub release](https://github.com/viperproject/prusti-dev/releases).
 * Compile from the source code, by installing [rustup](https://rustup.rs/), running `./x.py setup` and then `./x.py build --release`.
-* Use the (outdated) [`viperproject/prusti`](https://hub.docker.com/r/viperproject/prusti) Docker image.
+* Build and use a Docker image from [`Dockerfile`](Dockerfile).
 
 All three options provide the `prusti-rustc` and `cargo-prusti` programs that can be used analogously to, respectively, `rustc` and `cargo check`.
 For more detailed instructions, refer to the [user guide](https://viperproject.github.io/prusti-dev/user-guide/) and to the [developer guide](https://viperproject.github.io/prusti-dev/dev-guide/).
