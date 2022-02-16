@@ -64,6 +64,8 @@ pub enum Expr {
     Downcast(DowncastExpr),
     /// Snapshot call to convert from a Ref to a snapshot value
     SnapApp(SnapApp),
+    /// Cast from one type into another.
+    Cast(Cast),
 }
 
 impl fmt::Display for Expr {
@@ -94,6 +96,7 @@ impl fmt::Display for Expr {
             Expr::ContainerOp(container_op) => container_op.fmt(f),
             Expr::Seq(seq) => seq.fmt(f),
             Expr::Downcast(downcast_expr) => downcast_expr.fmt(f),
+            Expr::Cast(expr) => expr.fmt(f),
         }
     }
 }
@@ -122,6 +125,7 @@ impl Expr {
             | Expr::InhaleExhale(InhaleExhale { position, .. })
             | Expr::SnapApp(SnapApp { position, .. })
             | Expr::ContainerOp(ContainerOp { position, .. })
+            | Expr::Cast(Cast { position, .. })
             | Expr::Seq(Seq { position, .. }) => *position,
             Expr::Downcast(DowncastExpr { base, .. }) => base.pos(),
         }
@@ -322,6 +326,11 @@ impl Expr {
                 base,
                 enum_place,
                 field,
+            }),
+            Expr::Cast(Cast { kind, base, .. }) => Expr::Cast(Cast {
+                kind,
+                base,
+                position,
             }),
         }
     }
@@ -1258,6 +1267,14 @@ impl Expr {
                 todo!("get_type container_op({:?}, {}, {})", op_kind, left, right)
             }
             Expr::Seq(Seq { typ, .. }) => typ,
+            Expr::Cast(Cast { kind, .. }) => match kind {
+                CastKind::BVIntoInt(_) => &Type::Int,
+                CastKind::IntIntoBV(BitVector::BV8) => &Type::BitVector(BitVector::BV8),
+                CastKind::IntIntoBV(BitVector::BV16) => &Type::BitVector(BitVector::BV16),
+                CastKind::IntIntoBV(BitVector::BV32) => &Type::BitVector(BitVector::BV32),
+                CastKind::IntIntoBV(BitVector::BV64) => &Type::BitVector(BitVector::BV64),
+                CastKind::IntIntoBV(BitVector::BV128) => &Type::BitVector(BitVector::BV128),
+            },
         }
     }
 
@@ -1685,7 +1702,8 @@ impl Expr {
                     | Expr::Downcast(..)
                     | Expr::ContainerOp(..)
                     | Expr::Seq(..)
-                    | Expr::SnapApp(..) => true.into(),
+                    | Expr::SnapApp(..)
+                    | Expr::Cast(..) => true.into(),
                 }
             }
         }
@@ -2675,6 +2693,37 @@ impl PartialEq for DowncastExpr {
 impl Hash for DowncastExpr {
     fn hash<H: Hasher>(&self, state: &mut H) {
         (&*self.base, &*self.enum_place, &self.field).hash(state);
+    }
+}
+
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialOrd, Ord, PartialEq, Eq, Hash)]
+pub enum CastKind {
+    BVIntoInt(BitVector),
+    IntIntoBV(BitVector),
+}
+
+#[derive(Debug, Clone, Eq, Serialize, Deserialize, PartialOrd, Ord)]
+pub struct Cast {
+    pub kind: CastKind,
+    pub base: Box<Expr>,
+    pub position: Position,
+}
+
+impl fmt::Display for Cast {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "cast<{:?}>({})", self.kind, self.base)
+    }
+}
+
+impl PartialEq for Cast {
+    fn eq(&self, other: &Self) -> bool {
+        self.kind == other.kind && self.base == other.base
+    }
+}
+
+impl Hash for Cast {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        (&self.kind, &*self.base).hash(state);
     }
 }
 

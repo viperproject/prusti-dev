@@ -135,7 +135,7 @@ pub enum Float {
     F64,
 }
 
-#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, Hash)]
 pub enum BitVector {
     BV8,
     BV16,

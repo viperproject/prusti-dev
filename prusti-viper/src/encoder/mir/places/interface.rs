@@ -426,16 +426,26 @@ impl<'v, 'tcx: 'v> PlacesEncoderInterface<'tcx> for super::super::super::Encoder
                                 "unknown size of usize for the overflow check",
                             ));
                         }
-                        vir_high::Type::Int(vir_high::ty::Int::I8) => 8,
-                        vir_high::Type::Int(vir_high::ty::Int::I16) => 16,
-                        vir_high::Type::Int(vir_high::ty::Int::I32) => 32,
-                        vir_high::Type::Int(vir_high::ty::Int::I64) => 64,
-                        vir_high::Type::Int(vir_high::ty::Int::I128) => 128,
-                        vir_high::Type::Int(vir_high::ty::Int::Isize) => {
+                        vir_high::Type::Int(vir_high::ty::Int::I8)
+                        | vir_high::Type::Int(vir_high::ty::Int::I16)
+                        | vir_high::Type::Int(vir_high::ty::Int::I32)
+                        | vir_high::Type::Int(vir_high::ty::Int::I64)
+                        | vir_high::Type::Int(vir_high::ty::Int::I128)
+                        | vir_high::Type::Int(vir_high::ty::Int::Isize) => {
                             return Err(EncodingError::unsupported(
-                                "unknown size of isize for the overflow check",
+                                "bit operations on signed numbers are not supported",
                             ));
                         }
+                        // vir_high::Type::Int(vir_high::ty::Int::I8) => 8,
+                        // vir_high::Type::Int(vir_high::ty::Int::I16) => 16,
+                        // vir_high::Type::Int(vir_high::ty::Int::I32) => 32,
+                        // vir_high::Type::Int(vir_high::ty::Int::I64) => 64,
+                        // vir_high::Type::Int(vir_high::ty::Int::I128) => 128,
+                        // vir_high::Type::Int(vir_high::ty::Int::Isize) => {
+                        //     return Err(EncodingError::unsupported(
+                        //         "unknown size of isize for the overflow check",
+                        //     ));
+                        // }
                         _ => {
                             return Err(EncodingError::unsupported(format!(
                                 "overflow checks are unsupported for operation '{:?}' on type '{:?}'",
