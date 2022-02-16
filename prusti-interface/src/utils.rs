@@ -311,7 +311,7 @@ pub fn read_extern_spec_attr(attrs: &[ast::Attribute]) -> Option<String> {
 }
 
 pub fn has_model_attr(attrs: &[ast::Attribute]) -> bool {
-    has_prusti_attr(attrs, "model_generator")
+    has_prusti_attr(attrs, "to_model_fn")
 }
 
 /// Read the value stored in a Prusti attribute (e.g. `prusti::<attr_name>="...")`.

@@ -18,6 +18,7 @@ use super::parse_quote_spanned;
 use proc_macro2::{Ident, TokenStream};
 use quote::ToTokens;
 use syn::{parse_quote, spanned::Spanned};
+use uuid::Uuid;
 
 /// See module level documentation
 pub fn rewrite(item_struct: syn::ItemStruct) -> syn::Result<TokenStream> {
@@ -32,10 +33,15 @@ type TypeModelGenerationResult<R> = Result<R, TypeModelGenerationError>;
 
 fn rewrite_internal(item_struct: syn::ItemStruct) -> TypeModelGenerationResult<TypeModel> {
     let idents = GeneratedIdents::generate(&item_struct);
+
+    let model_struct = create_model_struct(&item_struct, &idents)?;
+    let to_model_trait = create_to_model_trait(&item_struct, &model_struct, &idents);
+    let model_impl = create_model_impl(&item_struct, &model_struct, &to_model_trait)?;
+
     Ok(TypeModel {
-        model_struct: create_model_struct(&item_struct, &idents)?,
-        model_impl: create_model_impl(&item_struct, &model_struct, &to_model_trait)?,
-        to_model_trait: create_to_model_trait(&item_struct, &model_struct, &idents),
+        model_struct,
+        to_model_trait,
+        model_impl,
     })
 }
 
@@ -71,7 +77,7 @@ fn create_to_model_trait(
         trait #to_model_trait_ident {
             #[trusted]
             #[pure]
-            #[prusti::model_generator]
+            #[prusti::to_model_fn]
             fn model(&self) -> #ident { unimplemented!() }
         }
     }
@@ -109,7 +115,7 @@ fn create_model_impl(
         impl #to_model_trait_ident for #impl_path {
             #[trusted]
             #[pure]
-            #[prusti::model_generator]
+            #[prusti::to_model_fn]
             fn model(&self) -> #model_struct_ident {
                 unimplemented!("Models can only be used in specifications")
             }
@@ -133,13 +139,15 @@ impl GeneratedIdents {
             }
         }
 
+        let uuid = Uuid::new_v4().to_simple();
+
         GeneratedIdents {
             model_struct_ident: Ident::new(
-                format!("Prusti{}Model", name).as_str(),
+                format!("Prusti{}Model_{}", name, uuid).as_str(),
                 item_struct.ident.span(),
             ),
             to_model_trait_ident: Ident::new(
-                format!("Prusti{}ToModel", name).as_str(),
+                format!("Prusti{}ToModel_{}", name, uuid).as_str(),
                 item_struct.ident.span(),
             ),
         }
@@ -161,7 +169,7 @@ impl std::convert::From<TypeModelGenerationError> for syn::Error {
     fn from(err: TypeModelGenerationError) -> Self {
         match err {
             TypeModelGenerationError::MissingStructFields(span) => {
-                syn::Error::new(span, "Missing fields in model")
+                syn::Error::new(span, "Type model must have at least one field")
             }
             TypeModelGenerationError::ConstParamDisallowed(span) => {
                 syn::Error::new(span, "Const generics are disallowed for models")
@@ -243,9 +251,10 @@ mod tests {
 
         let model = expect_ok(rewrite_internal(input));
 
+        let model_ident = check_model_ident(&model, "PrustiFooModel");
         let expected: syn::ItemStruct = syn::parse_quote!(
             #[derive(Copy, Clone)]
-            struct PrustiFooModel {
+            struct #model_ident {
                 fld1: usize,
                 fld2: i32,
             }
@@ -261,9 +270,11 @@ mod tests {
 
         let model = expect_ok(rewrite_internal(input));
 
+        let model_ident = check_model_ident(&model, "PrustiFooModel");
+
         let expected: syn::ItemStruct = parse_quote!(
             #[derive(Copy, Clone)]
-            struct PrustiFooModel(i32, u32, usize);
+            struct #model_ident(i32, u32, usize);
         );
         assert_eq_tokenizable(expected, model.model_struct);
     }
@@ -275,12 +286,13 @@ mod tests {
         );
         let model = expect_ok(rewrite_internal(input));
 
-        let model_ident = &model.model_struct.ident;
+        let model_ident = check_model_ident(&model, "PrustiFooModel");
+        let trait_ident = check_trait_ident(&model, "PrustiFooToModel");
         let expected: syn::ItemImpl = parse_quote!(
-            impl PrustiFooToModel for Foo <> {
+            impl #trait_ident for Foo <> {
                 #[trusted]
                 #[pure]
-                #[prusti::model_generator]
+                #[prusti::to_model_fn]
                 fn model(&self) -> #model_ident {
                     unimplemented!("Models can only be used in specifications")
                 }
@@ -296,16 +308,20 @@ mod tests {
             struct Foo<'a, 'b>(i32, u32, usize);
         );
         let model = expect_ok(rewrite_internal(input));
+
+        let model_ident = check_model_ident(&model, "PrustiFooModel");
+        let trait_ident = check_trait_ident(&model, "PrustiFooToModel");
+
         let expected_struct: syn::ItemStruct = parse_quote!(
             #[derive(Copy, Clone)]
-            struct PrustiFooModel(i32, u32, usize);
+            struct #model_ident(i32, u32, usize);
         );
         let expected_impl: syn::ItemImpl = parse_quote!(
-            impl PrustiFooToModel for Foo<'_, '_> {
+            impl #trait_ident for Foo<'_, '_> {
                 #[trusted]
                 #[pure]
-                #[prusti::model_generator]
-                fn model(&self) -> PrustiFooModel {
+                #[prusti::to_model_fn]
+                fn model(&self) -> #model_ident {
                     unimplemented!("Models can only be used in specifications")
                 }
             }
@@ -321,16 +337,21 @@ mod tests {
             struct Foo<i32, T>(i32, u32, usize);
         );
         let model = expect_ok(rewrite_internal(input));
+
+        let model_ident = check_model_ident(&model, "PrustiFooi32TModel");
+        let trait_ident = check_trait_ident(&model, "PrustiFooi32TToModel");
+
         let expected_struct: syn::ItemStruct = parse_quote!(
             #[derive(Copy, Clone)]
-            struct PrustiFooi32TModel(i32, u32, usize);
+            struct #model_ident (i32, u32, usize);
         );
+
         let expected_impl: syn::ItemImpl = parse_quote!(
-            impl PrustiFooi32TToModel for Foo<i32, T> {
+            impl #trait_ident for Foo<i32, T> {
                 #[trusted]
                 #[pure]
-                #[prusti::model_generator]
-                fn model(&self) -> PrustiFooi32TModel {
+                #[prusti::to_model_fn]
+                fn model(&self) -> #model_ident {
                     unimplemented!("Models can only be used in specifications")
                 }
             }
@@ -347,14 +368,17 @@ mod tests {
         );
 
         let model = expect_ok(rewrite_internal(input));
-        let actual = model.to_model_trait;
 
+        let model_ident = check_model_ident(&model, "PrustiFooModel");
+        let trait_ident = check_trait_ident(&model, "PrustiFooToModel");
+
+        let actual = model.to_model_trait;
         let expected: syn::ItemTrait = parse_quote!(
-            trait PrustiFooToModel {
+            trait #trait_ident {
                 #[trusted]
                 #[pure]
-                #[prusti::model_generator]
-                fn model(&self) -> PrustiFooModel {
+                #[prusti::to_model_fn]
+                fn model(&self) -> #model_ident {
                     unimplemented!()
                 }
             }
@@ -384,5 +408,17 @@ mod tests {
             actual.into_token_stream().to_string(),
             expected.into_token_stream().to_string()
         );
+    }
+
+    fn check_model_ident(model: &TypeModel, expected_prefix: &str) -> Ident {
+        let ident = &model.model_struct.ident;
+        assert!(ident.to_string().starts_with(expected_prefix));
+        ident.clone()
+    }
+
+    fn check_trait_ident(model: &TypeModel, expected_prefix: &str) -> Ident {
+        let ident = &model.to_model_trait.ident;
+        assert!(ident.to_string().starts_with(expected_prefix));
+        ident.clone()
     }
 }
