@@ -62,39 +62,7 @@ pub fn extern_spec(attr: TokenStream, tokens: TokenStream) -> TokenStream {
 pub fn predicate(tokens: TokenStream) -> TokenStream {
     prusti_specs::predicate(tokens.into()).into()
 }
-/// Macro for creating models for a type.
-///
-/// Types can be annotated with the `#[model]` macro:
-/// ```ignore
-/// use std::slice::Iter;
-/// #[model]
-/// struct Iter<'a, i32> {
-///     position: usize,
-///     len: usize,
-/// }
-/// ```
-/// This creates a model for the `Iter` type defined in the standard library to be used
-/// as an abstraction in specifications. The model needs to be copyable, i.e. all fields need
-/// to be `Copy`.
-///
-/// The model can then be used in specifications:
-/// ```ignore
-/// #[ensures( result.model().position == 0 )]
-/// #[ensures( result.model().len == slice.len() )]
-/// #[trusted]
-/// fn create_iter(slice: &[i32]) -> std::slice::Iter<'_, i32> {
-///     slice.iter()
-/// }
-/// ```
-/// ## Caution
-/// The model is only to be used in specifications (pre- and postconditions of functions or methods)
-/// and never in code which will be executed. Using `.model()` will cause a panic during runtime.
-///
-/// ## Remarks
-/// * Specifications involving models can only be used in trusted functions or methods, i.e. on
-///   explicitly `#[trusted]` methods or on `#[extern_spec]`s.
-/// * Models can not be generic, i.e. creating a model for `Vec<T>` is not possible. It is however
-///   possible to model concrete generic types, i.e. `Vec<i32>` and `Vec<u32>`
+
 #[proc_macro_attribute]
 pub fn model(_attr: TokenStream, tokens: TokenStream) -> TokenStream {
     prusti_specs::type_model(_attr.into(), tokens.into()).into()
