@@ -9,7 +9,7 @@ use syn::spanned::Spanned;
 use quote::{quote_spanned, format_ident};
 use crate::specifications::preparser::{
     parse_prusti,
-    parse_prusti_pledge,
+    parse_prusti_pledge, parse_prusti_assert_pledge,
 };
 
 pub(crate) struct AstRewriter {
@@ -163,6 +163,30 @@ impl AstRewriter {
             parse_prusti_pledge(tokens)?,
             item,
         )
+    }
+
+    /// Parse a pledge with lhs into a Rust expression
+    pub fn process_assert_pledge(
+        &mut self,
+        spec_id_lhs: SpecificationId,
+        spec_id_rhs: SpecificationId,
+        tokens: TokenStream,
+        item: &untyped::AnyFnItem,
+    ) -> syn::Result<(syn::Item, syn::Item)> {
+        let (lhs, rhs) = parse_prusti_assert_pledge(tokens)?;
+        let lhs_item = self.generate_spec_item_fn(
+            SpecItemType::Pledge,
+            spec_id_lhs,
+            lhs,
+            item,
+        )?;
+        let rhs_item = self.generate_spec_item_fn(
+            SpecItemType::Pledge,
+            spec_id_rhs,
+            rhs,
+            item,
+        )?;
+        Ok((lhs_item, rhs_item))
     }
 
     /// Parse a loop invariant into a Rust expression

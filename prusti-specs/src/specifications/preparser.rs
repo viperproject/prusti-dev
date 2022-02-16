@@ -22,17 +22,32 @@ pub fn parse_prusti(tokens: TokenStream) -> syn::Result<TokenStream> {
     Ok(parsed)
 }
 pub fn parse_prusti_pledge(tokens: TokenStream) -> syn::Result<TokenStream> {
-    // TODO: pledges with LHS that is not "result" are not supported;
-    // for this reason we assert here that the LHS (if there is any) is "result"
+    // TODO: pledges with reference that is not "result" are not supported;
+    // for this reason we assert here that the reference (if there is any) is "result"
     // then return the RHS only
-    let (lhs, rhs) = PrustiTokenStream::new(tokens).parse_pledge()?;
-    if let Some(lhs) = lhs {
-        if lhs.to_string() != "result" {
-            return error(lhs.span(), "LHS of after_expiry must be \"result\"");
+    let (reference, rhs) = PrustiTokenStream::new(tokens).parse_pledge()?;
+    if let Some(reference) = reference {
+        if reference.to_string() != "result" {
+            return error(reference.span(), "reference of after_expiry must be \"result\"");
         }
     }
     syn::parse2::<syn::Expr>(rhs.clone())?;
     Ok(rhs)
+}
+
+pub fn parse_prusti_assert_pledge(tokens: TokenStream) -> syn::Result<(TokenStream, TokenStream)> {
+    // TODO: pledges with reference that is not "result" are not supported;
+    // for this reason we assert here that the reference (if there is any) is "result"
+    // then return the RHS only
+    let (reference, lhs, rhs) = PrustiTokenStream::new(tokens).parse_assert_pledge()?;
+    if let Some(reference) = reference {
+        if reference.to_string() != "result" {
+            return error(reference.span(), "reference of assert_on_expiry must be \"result\"");
+        }
+    }
+    syn::parse2::<syn::Expr>(lhs.clone())?;
+    syn::parse2::<syn::Expr>(rhs.clone())?;
+    Ok((lhs, rhs))
 }
 
 /*
@@ -173,6 +188,29 @@ impl PrustiTokenStream {
             Ok((Some(pledge_ops[0].expr_bp(0)?), pledge_ops[1].expr_bp(0)?))
         } else {
             error(Span::call_site(), "too many arrows in after_expiry")
+        }
+    }
+
+    /// Processes a Prusti token stream for an assert pledge, in the form `a =>
+    /// b, c` or `b, c`.
+    fn parse_assert_pledge(self) -> syn::Result<(
+        Option<TokenStream>,
+        TokenStream,
+        TokenStream
+    )> {
+        let mut pledge_ops = self.split(PrustiBinaryOp::Rust(RustOp::Arrow), false);
+        let (reference, body) = if pledge_ops.len() == 1 {
+            (None, pledge_ops.pop().unwrap())
+        } else if pledge_ops.len() == 2 {
+            (Some(pledge_ops[0].expr_bp(0)?), pledge_ops.pop().unwrap())
+        } else {
+            return error(Span::call_site(), "too many arrows in assert_on_expiry");
+        };
+        let mut body_parts = body.split(PrustiBinaryOp::Rust(RustOp::Comma), false);
+        if body_parts.len() == 2 {
+            Ok((reference, body_parts[0].expr_bp(0)?, body_parts[1].expr_bp(0)?))
+        } else {
+            error(Span::call_site(), "missing assertion")
         }
     }
 

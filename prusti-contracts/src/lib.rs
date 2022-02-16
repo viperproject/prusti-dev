@@ -11,6 +11,9 @@ mod private {
     /// A macro for writing a pledge on a function.
     pub use prusti_contracts_impl::after_expiry;
 
+    /// A macro for writing a two-state pledge on a function.
+    pub use prusti_contracts_impl::assert_on_expiry;
+
     /// A macro for marking a function as pure.
     pub use prusti_contracts_impl::pure;
 
@@ -56,6 +59,9 @@ mod private {
 
     /// A macro for writing a pledge on a function.
     pub use prusti_contracts_internal::after_expiry;
+
+    /// A macro for writing a two-state pledge on a function.
+    pub use prusti_contracts_internal::assert_on_expiry;
 
     /// A macro for marking a function as pure.
     pub use prusti_contracts_internal::pure;
