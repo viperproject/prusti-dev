@@ -4,22 +4,20 @@ use syn::spanned::Spanned;
 
 /// Rewrites every occurence of "self" to "_self" in a token stream
 pub fn rewrite_self(tokens: TokenStream) -> TokenStream {
-    TokenStream::from_iter(tokens
-        .into_iter()
-        .map(|token| match token {
-            TokenTree::Group(group) => {
-                let new_group =
-                    proc_macro2::Group::new(group.delimiter(), rewrite_self(group.stream()));
-                new_group.to_token_stream()
+    TokenStream::from_iter(tokens.into_iter().map(|token| match token {
+        TokenTree::Group(group) => {
+            let new_group =
+                proc_macro2::Group::new(group.delimiter(), rewrite_self(group.stream()));
+            new_group.to_token_stream()
+        }
+        TokenTree::Ident(mut ident) => {
+            if ident == "self" {
+                ident = proc_macro2::Ident::new("_self", ident.span());
             }
-            TokenTree::Ident(mut ident) => {
-                if ident == "self" {
-                    ident = proc_macro2::Ident::new("_self", ident.span());
-                }
-                ident.into_token_stream()
-            }
-            _ => token.into_token_stream(),
-        }))
+            ident.into_token_stream()
+        }
+        _ => token.into_token_stream(),
+    }))
 }
 
 /// Add `PhantomData` markers for each type parameter to silence errors
@@ -38,7 +36,10 @@ pub fn rewrite_self(tokens: TokenStream) -> TokenStream {
 /// }
 /// ```
 pub fn add_phantom_data_for_generic_params(item_struct: &mut syn::ItemStruct) {
-    let fields = item_struct.generics.params.iter()
+    let fields = item_struct
+        .generics
+        .params
+        .iter()
         .flat_map(|param| match param {
             syn::GenericParam::Type(tp) => {
                 let ident = tp.ident.clone();
@@ -65,7 +66,9 @@ pub fn rewrite_generics(gens: &syn::Generics) -> syn::AngleBracketedGenericArgum
         .map(|gp| {
             let ts = match gp {
                 syn::GenericParam::Type(syn::TypeParam { ident, .. })
-                | syn::GenericParam::Const(syn::ConstParam { ident, .. }) => ident.into_token_stream(),
+                | syn::GenericParam::Const(syn::ConstParam { ident, .. }) => {
+                    ident.into_token_stream()
+                }
                 syn::GenericParam::Lifetime(ld) => ld.lifetime.into_token_stream(),
             };
             syn::parse2::<syn::GenericArgument>(ts).unwrap()

@@ -3,7 +3,7 @@ use syn::parse::{Parse, ParseStream};
 pub(crate) struct ClosureWithSpec {
     pub pres: Vec<syn::Expr>,
     pub posts: Vec<syn::Expr>,
-    pub cl: syn::ExprClosure
+    pub cl: syn::ExprClosure,
 }
 
 impl Parse for ClosureWithSpec {
@@ -21,7 +21,7 @@ impl Parse for ClosureWithSpec {
                 match id.to_string().as_ref() {
                     "requires" => pres.push(syn::parse2(attr.tokens.clone())),
                     "ensures" => posts.push(syn::parse2(attr.tokens.clone())),
-                    _ => return false
+                    _ => return false,
                 }
                 true
             } else {

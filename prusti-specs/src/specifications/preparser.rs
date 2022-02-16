@@ -1,17 +1,15 @@
 /// The preparser processes Prusti syntax into Rust syntax.
-
-use proc_macro2::{Span, TokenStream, TokenTree, Delimiter};
+use proc_macro2::{Delimiter, Span, TokenStream, TokenTree};
+use proc_macro2::{Punct, Spacing::*};
+use quote::{quote, quote_spanned, ToTokens};
 use std::collections::VecDeque;
-use quote::{ToTokens, quote, quote_spanned};
-use proc_macro2::Punct;
-use proc_macro2::Spacing::*;
 use syn::spanned::Spanned;
 
 /// The representation of an argument to a quantifier (for example `a: i32`)
 #[derive(Debug, Clone)]
 pub struct Arg {
     pub name: syn::Ident,
-    pub typ: syn::Type
+    pub typ: syn::Type,
 }
 
 pub fn parse_prusti(tokens: TokenStream) -> syn::Result<TokenStream> {
@@ -28,7 +26,10 @@ pub fn parse_prusti_pledge(tokens: TokenStream) -> syn::Result<TokenStream> {
     let (reference, rhs) = PrustiTokenStream::new(tokens).parse_pledge()?;
     if let Some(reference) = reference {
         if reference.to_string() != "result" {
-            return error(reference.span(), "reference of after_expiry must be \"result\"");
+            return error(
+                reference.span(),
+                "reference of after_expiry must be \"result\"",
+            );
         }
     }
     syn::parse2::<syn::Expr>(rhs.clone())?;
@@ -42,7 +43,10 @@ pub fn parse_prusti_assert_pledge(tokens: TokenStream) -> syn::Result<(TokenStre
     let (reference, lhs, rhs) = PrustiTokenStream::new(tokens).parse_assert_pledge()?;
     if let Some(reference) = reference {
         if reference.to_string() != "result" {
-            return error(reference.span(), "reference of assert_on_expiry must be \"result\"");
+            return error(
+                reference.span(),
+                "reference of assert_on_expiry must be \"result\"",
+            );
         }
     }
     syn::parse2::<syn::Expr>(lhs.clone())?;
@@ -163,24 +167,23 @@ impl PrustiTokenStream {
     /// Processes a Prusti token stream back into Rust syntax.
     /// Prusti-specific syntax is not allowed and will raise an error.
     fn parse_rust_only(self) -> syn::Result<TokenStream> {
-        Ok(TokenStream::from_iter(self.tokens
-            .into_iter()
-            .map(|token| match token {
-                PrustiToken::Group(_, _, box stream) => stream.parse_rust_only(),
-                PrustiToken::Token(tree) => Ok(tree.to_token_stream()),
-                PrustiToken::BinOp(span, PrustiBinaryOp::Rust(op)) => Ok(op.to_tokens(span)),
-                _ => error(token.span(), "unexpected Prusti syntax"),
-            })
-            .collect::<Result<Vec<_>, _>>()?
-            .into_iter()))
+        Ok(TokenStream::from_iter(
+            self.tokens
+                .into_iter()
+                .map(|token| match token {
+                    PrustiToken::Group(_, _, box stream) => stream.parse_rust_only(),
+                    PrustiToken::Token(tree) => Ok(tree.to_token_stream()),
+                    PrustiToken::BinOp(span, PrustiBinaryOp::Rust(op)) => Ok(op.to_tokens(span)),
+                    _ => error(token.span(), "unexpected Prusti syntax"),
+                })
+                .collect::<Result<Vec<_>, _>>()?
+                .into_iter(),
+        ))
     }
 
     /// Processes a Prusti token stream for a pledge, in the form `a => b` or
     /// just `b`.
-    fn parse_pledge(self) -> syn::Result<(
-        Option<TokenStream>,
-        TokenStream
-    )> {
+    fn parse_pledge(self) -> syn::Result<(Option<TokenStream>, TokenStream)> {
         let mut pledge_ops = self.split(PrustiBinaryOp::Rust(RustOp::Arrow), false);
         if pledge_ops.len() == 1 {
             Ok((None, pledge_ops[0].expr_bp(0)?))
@@ -193,11 +196,7 @@ impl PrustiTokenStream {
 
     /// Processes a Prusti token stream for an assert pledge, in the form `a =>
     /// b, c` or `b, c`.
-    fn parse_assert_pledge(self) -> syn::Result<(
-        Option<TokenStream>,
-        TokenStream,
-        TokenStream
-    )> {
+    fn parse_assert_pledge(self) -> syn::Result<(Option<TokenStream>, TokenStream, TokenStream)> {
         let mut pledge_ops = self.split(PrustiBinaryOp::Rust(RustOp::Arrow), false);
         let (reference, body) = if pledge_ops.len() == 1 {
             (None, pledge_ops.pop().unwrap())
@@ -208,7 +207,11 @@ impl PrustiTokenStream {
         };
         let mut body_parts = body.split(PrustiBinaryOp::Rust(RustOp::Comma), false);
         if body_parts.len() == 2 {
-            Ok((reference, body_parts[0].expr_bp(0)?, body_parts[1].expr_bp(0)?))
+            Ok((
+                reference,
+                body_parts[0].expr_bp(0)?,
+                body_parts[1].expr_bp(0)?,
+            ))
         } else {
             error(Span::call_site(), "missing assertion")
         }
@@ -221,22 +224,25 @@ impl PrustiTokenStream {
     fn expr_bp(&mut self, min_bp: u8) -> syn::Result<TokenStream> {
         let mut lhs = match self.tokens.pop_front() {
             Some(PrustiToken::Group(span, delimiter, box stream)) => {
-                let mut group = proc_macro2::Group::new(
-                    delimiter,
-                    stream.parse()?,
-                );
+                let mut group = proc_macro2::Group::new(delimiter, stream.parse()?);
                 group.set_span(span);
                 TokenTree::Group(group).to_token_stream()
             }
             Some(PrustiToken::Outer(span)) => {
-                let _stream = self.pop_group(Delimiter::Parenthesis)
-                    .ok_or_else(|| syn::parse::Error::new(span, "expected parenthesized expression after outer"))?;
+                let _stream = self.pop_group(Delimiter::Parenthesis).ok_or_else(|| {
+                    syn::parse::Error::new(span, "expected parenthesized expression after outer")
+                })?;
                 todo!()
             }
             Some(PrustiToken::Quantifier(span, kind)) => {
-                let mut stream = self.pop_group(Delimiter::Parenthesis)
-                    .ok_or_else(|| syn::parse::Error::new(span, "expected parenthesized expression after quantifier"))?;
-                let args = stream.pop_closure_args()
+                let mut stream = self.pop_group(Delimiter::Parenthesis).ok_or_else(|| {
+                    syn::parse::Error::new(
+                        span,
+                        "expected parenthesized expression after quantifier",
+                    )
+                })?;
+                let args = stream
+                    .pop_closure_args()
                     .ok_or_else(|| syn::parse::Error::new(span, "expected quantifier body"))?;
 
                 {
@@ -249,7 +255,12 @@ impl PrustiTokenStream {
                     for pat in parsed_cl.inputs {
                         match pat {
                             syn::Pat::Type(_) => {}
-                            _ => return error(pat.span(), "quantifier arguments must have explicit types"),
+                            _ => {
+                                return error(
+                                    pat.span(),
+                                    "quantifier arguments must have explicit types",
+                                )
+                            }
                         }
                     }
                 };
@@ -263,16 +274,14 @@ impl PrustiTokenStream {
                 kind.translate(span, triggers, args, body)
             }
 
-            Some(PrustiToken::SpecEnt(span, _))
-            | Some(PrustiToken::CallDesc(span, _)) =>
-                return error(span, "unexpected operator"),
+            Some(PrustiToken::SpecEnt(span, _)) | Some(PrustiToken::CallDesc(span, _)) => {
+                return error(span, "unexpected operator")
+            }
 
             // some Rust binary operators can appear on their own, e.g. `(..)`
-            Some(PrustiToken::BinOp(span, PrustiBinaryOp::Rust(op))) =>
-                op.to_tokens(span),
+            Some(PrustiToken::BinOp(span, PrustiBinaryOp::Rust(op))) => op.to_tokens(span),
 
-            Some(PrustiToken::BinOp(span, _)) =>
-                return error(span, "unexpected binary operator"),
+            Some(PrustiToken::BinOp(span, _)) => return error(span, "unexpected binary operator"),
             Some(PrustiToken::Token(token)) => token.to_token_stream(),
             None => return Ok(TokenStream::new()),
         };
@@ -283,10 +292,7 @@ impl PrustiTokenStream {
                 // precedence operators (e.g. plus) are connected into atoms
                 // as far as our parser is concerned.
                 Some(PrustiToken::Group(span, delimiter, box stream)) => {
-                    let mut group = proc_macro2::Group::new(
-                        *delimiter,
-                        stream.clone().parse()?,
-                    );
+                    let mut group = proc_macro2::Group::new(*delimiter, stream.clone().parse()?);
                     group.set_span(*span);
                     lhs.extend(TokenTree::Group(group).to_token_stream());
                     self.tokens.pop_front();
@@ -302,16 +308,17 @@ impl PrustiTokenStream {
                     let span = *span;
                     let once = *once;
                     self.tokens.pop_front();
-                    let args = self.pop_closure_args()
-                        .ok_or_else(|| syn::parse::Error::new(span, "expected closure arguments"))?;
-                    let contract = self.pop_group(Delimiter::Bracket)
-                        .ok_or_else(|| syn::parse::Error::new(span, "expected closure specification in brackets"))?;
+                    let args = self.pop_closure_args().ok_or_else(|| {
+                        syn::parse::Error::new(span, "expected closure arguments")
+                    })?;
+                    let contract = self.pop_group(Delimiter::Bracket).ok_or_else(|| {
+                        syn::parse::Error::new(span, "expected closure specification in brackets")
+                    })?;
                     lhs = translate_spec_ent(
                         span,
                         once,
                         lhs,
-                        args
-                            .split(PrustiBinaryOp::Rust(RustOp::Comma), true)
+                        args.split(PrustiBinaryOp::Rust(RustOp::Comma), true)
                             .into_iter()
                             .map(|stream| stream.parse())
                             .collect::<Result<Vec<_>, _>>()?,
@@ -329,10 +336,10 @@ impl PrustiTokenStream {
                 Some(PrustiToken::CallDesc(..)) => todo!("call desc"),
 
                 Some(PrustiToken::BinOp(span, op)) => (*span, *op),
-                Some(PrustiToken::Outer(span)) =>
-                    return error(*span, "unexpected outer"),
-                Some(PrustiToken::Quantifier(span, _)) =>
-                    return error(*span, "unexpected quantifier"),
+                Some(PrustiToken::Outer(span)) => return error(*span, "unexpected outer"),
+                Some(PrustiToken::Quantifier(span, _)) => {
+                    return error(*span, "unexpected quantifier")
+                }
 
                 None => break,
             };
@@ -353,8 +360,7 @@ impl PrustiTokenStream {
 
     fn pop_group(&mut self, delimiter: Delimiter) -> Option<Self> {
         match self.tokens.pop_front() {
-            Some(PrustiToken::Group(_, del, box stream)) if del == delimiter
-                => Some(stream),
+            Some(PrustiToken::Group(_, del, box stream)) if del == delimiter => Some(stream),
             _ => None,
         }
     }
@@ -363,7 +369,10 @@ impl PrustiTokenStream {
         let mut tokens = VecDeque::new();
 
         // special case: empty closure might be parsed as a logical or
-        if matches!(self.tokens.front(), Some(PrustiToken::BinOp(_, PrustiBinaryOp::Or))) {
+        if matches!(
+            self.tokens.front(),
+            Some(PrustiToken::BinOp(_, PrustiBinaryOp::Or))
+        ) {
             return Some(Self { tokens });
         }
 
@@ -389,14 +398,8 @@ impl PrustiTokenStream {
         if self.tokens.len() != 2 {
             panic!();
         }
-        match [
-            &self.tokens[0],
-            &self.tokens[1],
-        ] {
-            [
-                PrustiToken::Token(TokenTree::Ident(ident)),
-                PrustiToken::Group(_span, Delimiter::Parenthesis, box group),
-            ] => {
+        match [&self.tokens[0], &self.tokens[1]] {
+            [PrustiToken::Token(TokenTree::Ident(ident)), PrustiToken::Group(_span, Delimiter::Parenthesis, box group)] => {
                 if ident == "requires" {
                     Some(ClosureSpec::Requires(group.clone()))
                 } else if ident == "ensures" {
@@ -405,23 +408,22 @@ impl PrustiTokenStream {
                     None
                 }
             }
-            _ => None
+            _ => None,
         }
     }
 
-    fn split(
-        self,
-        split_on: PrustiBinaryOp,
-        allow_trailing: bool,
-    ) -> Vec<Self> {
+    fn split(self, split_on: PrustiBinaryOp, allow_trailing: bool) -> Vec<Self> {
         if self.tokens.is_empty() {
             return vec![];
         }
-        let mut res = self.tokens
+        let mut res = self
+            .tokens
             .into_iter()
             .collect::<Vec<_>>()
             .split(|token| matches!(token, PrustiToken::BinOp(_, t) if *t == split_on))
-            .map(|group| Self { tokens: group.iter().cloned().collect() })
+            .map(|group| Self {
+                tokens: group.iter().cloned().collect(),
+            })
             .collect::<Vec<_>>();
         if allow_trailing && res.len() > 1 && res[res.len() - 1].tokens.is_empty() {
             res.pop();
@@ -440,22 +442,27 @@ impl PrustiTokenStream {
             &self.tokens[len - 2],
             &self.tokens[len - 1],
         ] {
-            [
-                PrustiToken::BinOp(_, PrustiBinaryOp::Rust(RustOp::Comma)),
-                PrustiToken::Token(TokenTree::Ident(ident)),
-                PrustiToken::BinOp(_, PrustiBinaryOp::Rust(RustOp::Assign)),
-                PrustiToken::Group(triggers_span, Delimiter::Bracket, box triggers),
-            ] if ident == "triggers" => {
-                let triggers = triggers.clone()
+            [PrustiToken::BinOp(_, PrustiBinaryOp::Rust(RustOp::Comma)), PrustiToken::Token(TokenTree::Ident(ident)), PrustiToken::BinOp(_, PrustiBinaryOp::Rust(RustOp::Assign)), PrustiToken::Group(triggers_span, Delimiter::Bracket, box triggers)]
+                if ident == "triggers" =>
+            {
+                let triggers = triggers
+                    .clone()
                     .split(PrustiBinaryOp::Rust(RustOp::Comma), true)
                     .into_iter()
-                    .map(|mut stream| stream
-                        .pop_group(Delimiter::Parenthesis)
-                        .ok_or_else(|| syn::parse::Error::new(*triggers_span, "trigger sets must be tuples of expressions"))?
-                        .split(PrustiBinaryOp::Rust(RustOp::Comma), true)
-                        .into_iter()
-                        .map(|stream| stream.parse())
-                        .collect::<Result<Vec<_>, _>>())
+                    .map(|mut stream| {
+                        stream
+                            .pop_group(Delimiter::Parenthesis)
+                            .ok_or_else(|| {
+                                syn::parse::Error::new(
+                                    *triggers_span,
+                                    "trigger sets must be tuples of expressions",
+                                )
+                            })?
+                            .split(PrustiBinaryOp::Rust(RustOp::Comma), true)
+                            .into_iter()
+                            .map(|stream| stream.parse())
+                            .collect::<Result<Vec<_>, _>>()
+                    })
                     .collect::<Result<Vec<_>, _>>();
                 self.tokens.truncate(len - 4);
                 triggers
@@ -512,27 +519,37 @@ fn translate_spec_ent(
     let generic_res = TokenTree::Ident(proc_macro2::Ident::new("GR", span));
 
     let extract_args = (0..arg_count)
-        .map(|i| TokenTree::Ident(proc_macro2::Ident::new(&format!("__extract_arg{}", i), span)))
+        .map(|i| {
+            TokenTree::Ident(proc_macro2::Ident::new(
+                &format!("__extract_arg{}", i),
+                span,
+            ))
+        })
         .collect::<Vec<_>>();
-    let extract_args_decl = extract_args.iter()
+    let extract_args_decl = extract_args
+        .iter()
         .zip(generics_args.iter())
-        .map(|(ident, arg_type)| quote_spanned! { span =>
-            #[prusti::spec_only]
-            fn #ident<
-                #(#generics_args),* ,
-                #generic_res,
-                F: FnOnce( #(#generics_args),* ) -> #generic_res
-            >(_f: &F) -> #arg_type { unreachable!() }
+        .map(|(ident, arg_type)| {
+            quote_spanned! { span =>
+                #[prusti::spec_only]
+                fn #ident<
+                    #(#generics_args),* ,
+                    #generic_res,
+                    F: FnOnce( #(#generics_args),* ) -> #generic_res
+                >(_f: &F) -> #arg_type { unreachable!() }
+            }
         })
         .collect::<Vec<_>>();
 
-    let preconds = contract.iter()
+    let preconds = contract
+        .iter()
         .filter_map(|spec| match spec {
             ClosureSpec::Requires(stream) => Some(stream.clone()),
             _ => None,
         })
         .collect::<Vec<_>>();
-    let postconds = contract.into_iter()
+    let postconds = contract
+        .into_iter()
         .filter_map(|spec| match spec {
             ClosureSpec::Ensures(stream) => Some(stream),
             _ => None,
@@ -576,11 +593,13 @@ impl Quantifier {
         body: TokenStream,
     ) -> TokenStream {
         // TODO: refer to forall and exists with prusti_contracts:: prefix
-        let trigger_sets = triggers.into_iter()
+        let trigger_sets = triggers
+            .into_iter()
             .map(|set| {
-                let triggers = TokenStream::from_iter(set.into_iter()
-                    .map(|trigger| quote_spanned! { trigger.span() =>
-                        #[prusti::spec_only] | #args | ( #trigger ), }));
+                let triggers = TokenStream::from_iter(set.into_iter().map(|trigger| {
+                    quote_spanned! { trigger.span() =>
+                    #[prusti::spec_only] | #args | ( #trigger ), }
+                }));
                 quote_spanned! { span => ( #triggers ) }
             })
             //.map(|set| quote_spanned! { span =>
@@ -609,25 +628,14 @@ impl Quantifier {
 //
 // If [all_spacing] is enabled, we care about the spacing of all three
 // [Punct] characters, since we are parsing a Rust operator.
-fn operator2(
-    op: &str,
-    p1: &Punct,
-    p2: &Punct,
-    all_spacing: bool,
-) -> bool {
+fn operator2(op: &str, p1: &Punct, p2: &Punct, all_spacing: bool) -> bool {
     let chars = op.chars().collect::<Vec<_>>();
     [p1.as_char(), p2.as_char()] == chars[0..2]
         && (!all_spacing || p1.spacing() == Joint)
         && p2.spacing() == Alone
 }
 
-fn operator3(
-    op: &str,
-    p1: &Punct,
-    p2: &Punct,
-    p3: &Punct,
-    all_spacing: bool,
-) -> bool {
+fn operator3(op: &str, p1: &Punct, p2: &Punct, p3: &Punct, all_spacing: bool) -> bool {
     let chars = op.chars().collect::<Vec<_>>();
     [p1.as_char(), p2.as_char(), p3.as_char()] == chars[0..3]
         && (!all_spacing || (p1.spacing() == Joint && p2.spacing() == Joint))
@@ -652,69 +660,68 @@ impl PrustiToken {
             if p.as_char() == '|' && p.spacing() == proc_macro2::Spacing::Alone)
     }
 
-    fn parse_op2(
-        p1: &Punct,
-        p2: &Punct,
-    ) -> Option<Self> {
+    fn parse_op2(p1: &Punct, p2: &Punct) -> Option<Self> {
         let span = p1.span().join(p2.span()).unwrap();
-        Some(Self::BinOp(span, if operator2("&&", p1, p2, true) {
-            PrustiBinaryOp::And
-        } else if operator2("||", p1, p2, true) {
-            PrustiBinaryOp::Or
-        } else if operator2("->", p1, p2, true) {
-            PrustiBinaryOp::Implies
-        } else if operator2("..", p1, p2, true) {
-            PrustiBinaryOp::Rust(RustOp::Range)
-        } else if operator2("+=", p1, p2, true) {
-            PrustiBinaryOp::Rust(RustOp::AddAssign)
-        } else if operator2("-=", p1, p2, true) {
-            PrustiBinaryOp::Rust(RustOp::SubtractAssign)
-        } else if operator2("*=", p1, p2, true) {
-            PrustiBinaryOp::Rust(RustOp::MultiplyAssign)
-        } else if operator2("/=", p1, p2, true) {
-            PrustiBinaryOp::Rust(RustOp::DivideAssign)
-        } else if operator2("%=", p1, p2, true) {
-            PrustiBinaryOp::Rust(RustOp::ModuloAssign)
-        } else if operator2("&=", p1, p2, true) {
-            PrustiBinaryOp::Rust(RustOp::BitAndAssign)
-        //} else if operator2("|=", p1, p2, true) {
-        //    PrustiBinaryOp::Rust(RustOp::BitOrAssign)
-        } else if operator2("^=", p1, p2, true) {
-            PrustiBinaryOp::Rust(RustOp::BitXorAssign)
-        } else if operator2("=>", p1, p2, true) {
-            PrustiBinaryOp::Rust(RustOp::Arrow)
-        } else if operator2("|=", p1, p2, true) {
-            return Some(Self::SpecEnt(span, false));
-        } else if operator2("~>", p1, p2, false) {
-            return Some(Self::CallDesc(span, false));
-        } else {
-            return None;
-        }))
+        Some(Self::BinOp(
+            span,
+            if operator2("&&", p1, p2, true) {
+                PrustiBinaryOp::And
+            } else if operator2("||", p1, p2, true) {
+                PrustiBinaryOp::Or
+            } else if operator2("->", p1, p2, true) {
+                PrustiBinaryOp::Implies
+            } else if operator2("..", p1, p2, true) {
+                PrustiBinaryOp::Rust(RustOp::Range)
+            } else if operator2("+=", p1, p2, true) {
+                PrustiBinaryOp::Rust(RustOp::AddAssign)
+            } else if operator2("-=", p1, p2, true) {
+                PrustiBinaryOp::Rust(RustOp::SubtractAssign)
+            } else if operator2("*=", p1, p2, true) {
+                PrustiBinaryOp::Rust(RustOp::MultiplyAssign)
+            } else if operator2("/=", p1, p2, true) {
+                PrustiBinaryOp::Rust(RustOp::DivideAssign)
+            } else if operator2("%=", p1, p2, true) {
+                PrustiBinaryOp::Rust(RustOp::ModuloAssign)
+            } else if operator2("&=", p1, p2, true) {
+                PrustiBinaryOp::Rust(RustOp::BitAndAssign)
+            //} else if operator2("|=", p1, p2, true) {
+            //    PrustiBinaryOp::Rust(RustOp::BitOrAssign)
+            } else if operator2("^=", p1, p2, true) {
+                PrustiBinaryOp::Rust(RustOp::BitXorAssign)
+            } else if operator2("=>", p1, p2, true) {
+                PrustiBinaryOp::Rust(RustOp::Arrow)
+            } else if operator2("|=", p1, p2, true) {
+                return Some(Self::SpecEnt(span, false));
+            } else if operator2("~>", p1, p2, false) {
+                return Some(Self::CallDesc(span, false));
+            } else {
+                return None;
+            },
+        ))
     }
 
-    fn parse_op3(
-        p1: &Punct,
-        p2: &Punct,
-        p3: &Punct,
-    ) -> Option<Self> {
+    fn parse_op3(p1: &Punct, p2: &Punct, p3: &Punct) -> Option<Self> {
         let span = p1.span().join(p2.span()).unwrap().join(p3.span()).unwrap();
-        Some(Self::BinOp(span, if operator3("==>", p1, p2, p3, false) {
-            PrustiBinaryOp::Implies
-        } else if operator3("===", p1, p2, p3, false) {
-            PrustiBinaryOp::SnapEq
-        } else if operator3("..=", p1, p2, p3, true) {
-            PrustiBinaryOp::Rust(RustOp::RangeInclusive)
-        } else if operator3("<<=", p1, p2, p3, true) {
-            PrustiBinaryOp::Rust(RustOp::LeftShiftAssign)
-        } else if operator3(">>=", p1, p2, p3, true) {
-            PrustiBinaryOp::Rust(RustOp::RightShiftAssign)
-        } else if operator3("|=!", p1, p2, p3, false) {
-            return Some(Self::SpecEnt(span, true));
-        } else if operator3("~>!", p1, p2, p3, false) {
-            return Some(Self::CallDesc(span, true));
-        } else {
-            return None;
-        }))
+        Some(Self::BinOp(
+            span,
+            if operator3("==>", p1, p2, p3, false) {
+                PrustiBinaryOp::Implies
+            } else if operator3("===", p1, p2, p3, false) {
+                PrustiBinaryOp::SnapEq
+            } else if operator3("..=", p1, p2, p3, true) {
+                PrustiBinaryOp::Rust(RustOp::RangeInclusive)
+            } else if operator3("<<=", p1, p2, p3, true) {
+                PrustiBinaryOp::Rust(RustOp::LeftShiftAssign)
+            } else if operator3(">>=", p1, p2, p3, true) {
+                PrustiBinaryOp::Rust(RustOp::RightShiftAssign)
+            } else if operator3("|=!", p1, p2, p3, false) {
+                return Some(Self::SpecEnt(span, true));
+            } else if operator3("~>!", p1, p2, p3, false) {
+                return Some(Self::CallDesc(span, true));
+            } else {
+                return None;
+            },
+        ))
     }
 }
 
@@ -739,12 +746,7 @@ impl PrustiBinaryOp {
         }
     }
 
-    fn translate(
-        &self,
-        span: Span,
-        lhs: TokenStream,
-        rhs: TokenStream,
-    ) -> TokenStream {
+    fn translate(&self, span: Span, lhs: TokenStream, rhs: TokenStream) -> TokenStream {
         match self {
             Self::Rust(op) => op.translate(span, lhs, rhs),
             // implication is desugared into this form to avoid evaluation
@@ -784,20 +786,12 @@ enum RustOp {
 }
 
 impl RustOp {
-    fn translate(
-        &self,
-        span: Span,
-        lhs: TokenStream,
-        rhs: TokenStream,
-    ) -> TokenStream {
+    fn translate(&self, span: Span, lhs: TokenStream, rhs: TokenStream) -> TokenStream {
         let op = self.to_tokens(span);
         quote! { #lhs #op #rhs }
     }
 
-    fn to_tokens(
-        self,
-        span: Span,
-    ) -> TokenStream {
+    fn to_tokens(self, span: Span) -> TokenStream {
         match self {
             Self::RangeInclusive => quote_spanned! { span => ..= },
             Self::LeftShiftAssign => quote_spanned! { span => <<= },
@@ -830,11 +824,15 @@ fn test_preparser() {
         "(! (a) || ((! (b) || (c))))",
     );
     assert_eq!(
-        parse_prusti(quote! { (a ==> b && c) ==> d || e }).unwrap().to_string(),
+        parse_prusti(quote! { (a ==> b && c) ==> d || e })
+            .unwrap()
+            .to_string(),
         "(! (((! (a) || (b && c)))) || (d || e))",
     );
     assert_eq!(
-        parse_prusti(quote! { forall(|x: i32| a ==> b) }).unwrap().to_string(),
+        parse_prusti(quote! { forall(|x: i32| a ==> b) })
+            .unwrap()
+            .to_string(),
         "forall (() , # [prusti :: spec_only] | x : i32 | -> bool { (((! (a) || (b))) : bool) })",
     );
     assert_eq!(

@@ -1,11 +1,10 @@
 //! Encoding of external specs for traits
-use crate::parse_quote_spanned;
-use crate::specifications::common::generate_struct_name_for_trait;
+use super::common::*;
+use crate::{parse_quote_spanned, specifications::common::generate_struct_name_for_trait};
 use proc_macro2::TokenStream;
 use quote::{quote_spanned, ToTokens};
 use std::collections::HashMap;
 use syn::{parse_quote, spanned::Spanned};
-use super::common::*;
 
 type AssocTypesToGenericsMap<'a> = HashMap<&'a syn::Ident, syn::TypeParam>;
 
@@ -57,7 +56,10 @@ fn generate_new_struct(item_trait: &syn::ItemTrait) -> syn::Result<GeneratedStru
     // Generic type parameters are added as generics to the struct
     for parsed_generic in parsed_generics.iter() {
         if let ProvidedTypeParam::GenericType(type_param) = parsed_generic {
-            new_struct.generics.params.push(syn::GenericParam::Type(type_param.clone()));
+            new_struct
+                .generics
+                .params
+                .push(syn::GenericParam::Type(type_param.clone()));
         }
     }
 
@@ -67,7 +69,10 @@ fn generate_new_struct(item_trait: &syn::ItemTrait) -> syn::Result<GeneratedStru
 
     for &decl in associated_type_decls.iter() {
         if decl.default.is_some() {
-            return Err(syn::Error::new(decl.span(), "Defaults for associated types in external trait specs are invalid"));
+            return Err(syn::Error::new(
+                decl.span(),
+                "Defaults for associated types in external trait specs are invalid",
+            ));
         }
     }
 
@@ -97,7 +102,10 @@ fn generate_new_struct(item_trait: &syn::ItemTrait) -> syn::Result<GeneratedStru
     // Add a where clause which restricts this self type parameter to the trait
     if item_trait.generics.where_clause.as_ref().is_some() {
         let span = item_trait.generics.where_clause.as_ref().unwrap().span();
-        return Err(syn::Error::new(span, "Where clauses for extern traits specs are not supported"));
+        return Err(syn::Error::new(
+            span,
+            "Where clauses for extern traits specs are not supported",
+        ));
     }
     let trait_assoc_type_idents = assoc_types_to_generics_map.keys();
     let trait_assoc_type_generics = assoc_types_to_generics_map.values();
@@ -140,7 +148,7 @@ struct GeneratedStruct<'a> {
     assoc_types_to_generics_map: AssocTypesToGenericsMap<'a>,
     self_type_param_ident: syn::Ident,
     generated_struct: syn::ItemStruct,
-    parsed_generics: Vec<ProvidedTypeParam>
+    parsed_generics: Vec<ProvidedTypeParam>,
 }
 
 impl<'a> GeneratedStruct<'a> {
@@ -175,7 +183,7 @@ impl<'a> GeneratedStruct<'a> {
                     if trait_method.default.is_some() {
                         return Err(syn::Error::new(
                             trait_method.default.as_ref().unwrap().span(),
-                            "Default methods in external trait specs are invalid"
+                            "Default methods in external trait specs are invalid",
                         ));
                     }
 
@@ -308,7 +316,7 @@ impl ProvidedTypeParam {
         match path.segments[0].ident.to_string().as_str() {
             "generic" => Some(ProvidedTypeParam::GenericType(clone_without_attrs())),
             "concrete" => Some(ProvidedTypeParam::ConcreteType(clone_without_attrs())),
-            _ => None
+            _ => None,
         }
     }
 }
@@ -316,7 +324,8 @@ impl ProvidedTypeParam {
 impl ToTokens for ProvidedTypeParam {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         match &self {
-            ProvidedTypeParam::ConcreteType(ty_param) |  ProvidedTypeParam::GenericType(ty_param) => ty_param.to_tokens(tokens),
+            ProvidedTypeParam::ConcreteType(ty_param)
+            | ProvidedTypeParam::GenericType(ty_param) => ty_param.to_tokens(tokens),
         }
     }
 }

@@ -10,7 +10,6 @@ use proc_macro2::{Group, TokenStream, TokenTree};
 use quote::{quote, ToTokens};
 use syn::spanned::Spanned;
 
-
 pub fn rewrite_extern_spec(item_mod: &mut syn::ItemMod) -> syn::Result<TokenStream> {
     let mut path = syn::Path {
         leading_colon: None,
@@ -29,10 +28,7 @@ fn rewrite_mod(item_mod: &mut syn::ItemMod, path: &mut syn::Path) -> syn::Result
         ident: item_mod.ident.clone(),
         arguments: syn::PathArguments::None,
     });
-    item_mod.ident = syn::Ident::new(
-        &generate_mod_name(&item_mod.ident),
-        item_mod.span(),
-    );
+    item_mod.ident = syn::Ident::new(&generate_mod_name(&item_mod.ident), item_mod.span());
 
     for item in item_mod.content.as_mut().unwrap().1.iter_mut() {
         match item {
