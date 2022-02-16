@@ -12,7 +12,7 @@ use crate::encoder::{
             encoder_high::{encode_quantifier_high, inline_spec_item_high},
             encoder_poly::{encode_quantifier, inline_closure, inline_spec_item},
         },
-        PureFunctionBackwardInterpreter,
+        PureEncodingContext, PureFunctionBackwardInterpreter,
     },
     mir_encoder::{MirEncoder, PlaceEncoder, PRECONDITION_LABEL},
     mir_interpreter::{run_backward_interpretation_point_to_point, ExprBackwardInterpreterState},
@@ -257,7 +257,7 @@ impl<'v, 'tcx: 'v> SpecificationEncoderInterface<'tcx> for crate::encoder::Encod
             self,
             mir,
             parent_def_id,
-            false,
+            PureEncodingContext::Code,
             parent_def_id,
             tymap.clone(),
         );

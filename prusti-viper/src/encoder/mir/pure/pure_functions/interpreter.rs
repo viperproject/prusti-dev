@@ -11,7 +11,8 @@ use crate::encoder::{
         generics::HighGenericsEncoderInterface, types::HighTypeEncoderInterface,
     },
     mir::{
-        generics::MirGenericsEncoderInterface, pure::specifications::SpecificationEncoderInterface,
+        generics::MirGenericsEncoderInterface,
+        pure::{specifications::SpecificationEncoderInterface, PureEncodingContext},
         types::MirTypeEncoderInterface,
     },
     mir_encoder::{MirEncoder, PlaceEncoder, PlaceEncoding, PRECONDITION_LABEL, WAND_LHS_LABEL},
@@ -36,11 +37,8 @@ pub(crate) struct PureFunctionBackwardInterpreter<'p, 'v: 'p, 'tcx: 'v> {
     mir: &'p mir::Body<'tcx>,
     /// MirEncoder of the pure function being encoded.
     mir_encoder: MirEncoder<'p, 'v, 'tcx>,
-    /// True if a panic should be encoded to a `false` boolean value.
-    /// This flag is used to distinguish whether an assert terminators generated e.g. for an
-    /// integer overflow should be translated into `false` and when to an "unreachable" function
-    /// call with a `false` precondition.
-    encode_panic_to_false: bool,
+    /// How panics are handled depending on the encoding context.
+    pure_encoding_context: PureEncodingContext,
     /// DefId of the caller. Used for error reporting.
     caller_def_id: DefId,
     tymap: SubstMap<'tcx>,
@@ -54,7 +52,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionBackwardInterpreter<'p, 'v, 'tcx> {
         encoder: &'p Encoder<'v, 'tcx>,
         mir: &'p mir::Body<'tcx>,
         def_id: DefId,
-        encode_panic_to_false: bool,
+        pure_encoding_context: PureEncodingContext,
         caller_def_id: DefId,
         tymap: SubstMap<'tcx>,
     ) -> Self {
@@ -62,7 +60,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionBackwardInterpreter<'p, 'v, 'tcx> {
             encoder,
             mir,
             mir_encoder: MirEncoder::new(encoder, mir, def_id),
-            encode_panic_to_false,
+            pure_encoding_context,
             caller_def_id,
             tymap,
         }
@@ -731,18 +729,53 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                     self.caller_def_id,
                 );
 
-                let failure_encoding = if self.encode_panic_to_false {
-                    // We are encoding an assertion, so all failures should be equivalent to false.
-                    debug_assert!(matches!(self.mir.return_ty().kind(), ty::TyKind::Bool));
-                    false.into()
-                } else {
-                    // We are encoding a pure function, so all failures should be unreachable.
-                    unreachable_expr(pos).with_span(term.source_info.span)?
-                };
+                match self.pure_encoding_context {
+                    PureEncodingContext::Trigger => {
+                        // We are encoding a trigger, so all panic branches must be stripped.
+                        ExprBackwardInterpreterState::new(None)
+                    }
+                    PureEncodingContext::Assertion => {
+                        // We are encoding an assertion, so all failures should be equivalent to false.
+                        debug_assert!(matches!(self.mir.return_ty().kind(), ty::TyKind::Bool));
+                        ExprBackwardInterpreterState::new(states[target].expr().map(
+                            |target_expr| {
+                                vir::Expr::ite(
+                                    viper_guard.clone(),
+                                    target_expr.clone(),
+                                    false.into(),
+                                )
+                            },
+                        ))
+                    }
+                    PureEncodingContext::Code => {
+                        // We are encoding a pure function, so all failures should be unreachable.
+                        let failure_encoding =
+                            unreachable_expr(pos).with_span(term.source_info.span)?;
+                        ExprBackwardInterpreterState::new(states[target].expr().map(
+                            |target_expr| {
+                                vir::Expr::ite(
+                                    viper_guard.clone(),
+                                    target_expr.clone(),
+                                    failure_encoding,
+                                )
+                            },
+                        ))
+                    }
+                }
 
-                ExprBackwardInterpreterState::new(states[target].expr().map(|target_expr| {
-                    vir::Expr::ite(viper_guard.clone(), target_expr.clone(), failure_encoding)
-                }))
+                //     let failure_encoding = if self.encode_panic_to_false == PureEncodingContext::Assertion {
+                //         // TODO PB
+                //         // We are encoding an assertion, so all failures should be equivalent to false.
+                //         debug_assert!(matches!(self.mir.return_ty().kind(), ty::TyKind::Bool));
+                //         false.into()
+                //     } else {
+                //         // We are encoding a pure function, so all failures should be unreachable.
+                //         unreachable_expr(pos).with_span(term.source_info.span)?
+                //     };
+
+                //     ExprBackwardInterpreterState::new(states[target].expr().map(|target_expr| {
+                //         vir::Expr::ite(viper_guard.clone(), target_expr.clone(), failure_encoding)
+                //     }))
             }
 
             TerminatorKind::Yield { .. }

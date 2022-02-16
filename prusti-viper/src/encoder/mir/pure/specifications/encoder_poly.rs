@@ -176,7 +176,7 @@ pub(super) fn encode_quantifier<'tcx>(
                 tymap,
             );
             encoder.is_encoding_trigger.set(false);
-            let encoded_trigger = match encoded_trigger_result? {
+            let encoded_trigger = encoded_trigger_result?;/* {
                 // slice/array accesses are encoded with bound checks which need to be stripped for triggers
                 vir_crate::polymorphic::Expr::Cond(vir_crate::polymorphic::Cond {
                     then_expr:
@@ -204,7 +204,7 @@ pub(super) fn encode_quantifier<'tcx>(
                     ..
                 }) if function_name.starts_with("builtin$unreach") => then_expr,
                 encoded_trigger => encoded_trigger,
-            };
+            };*/
             check_trigger(&encoded_trigger).with_span(trigger_span)?;
             encoded_triggers.push(encoded_trigger);
             set_spans.push(trigger_span);
