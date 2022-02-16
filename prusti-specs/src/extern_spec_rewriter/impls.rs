@@ -1,8 +1,8 @@
+use super::common::*;
 use crate::{span_overrider::SpanOverrider, specifications::common::generate_struct_name};
 use proc_macro2::TokenStream;
 use quote::{quote, quote_spanned};
 use syn::spanned::Spanned;
-use super::common::*;
 
 pub fn rewrite_extern_spec(item_impl: &mut syn::ItemImpl) -> syn::Result<TokenStream> {
     let new_struct = generate_new_struct(item_impl)?;

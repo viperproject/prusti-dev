@@ -1,8 +1,10 @@
 use proc_macro2::TokenStream;
 use quote::ToTokens;
 
-pub use super::common::{SpecType, SpecificationId};
-pub use super::preparser::Arg;
+pub use super::{
+    common::{SpecType, SpecificationId},
+    preparser::Arg,
+};
 
 /// An abstraction over all kinds of function items.
 pub enum AnyFnItem {
@@ -21,7 +23,7 @@ impl syn::parse::Parse for AnyFnItem {
                 // We have an item Fn.
                 input.advance_to(&fork);
                 Ok(AnyFnItem::Fn(res))
-            },
+            }
             Err(_) => {
                 // It is not a valid ItemFn.
                 let item_method = input.parse()?;

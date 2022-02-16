@@ -4,8 +4,10 @@
 //! specifications.
 
 use serde::{Deserialize, Serialize};
-use std::convert::TryFrom;
-use std::fmt::{Display, Debug};
+use std::{
+    convert::TryFrom,
+    fmt::{Debug, Display},
+};
 use uuid::Uuid;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -99,8 +101,14 @@ impl SpecificationIdGenerator {
 pub(crate) fn generate_struct_name(item: &syn::ItemImpl) -> String {
     let uuid = Uuid::new_v4().to_simple();
     match &*item.self_ty {
-        syn::Type::Path (ty_path) => {
-            let path_str = String::from_iter(ty_path.path.segments.iter().map(|seg| seg.ident.to_string()));
+        syn::Type::Path(ty_path) => {
+            let path_str = String::from_iter(
+                ty_path
+                    .path
+                    .segments
+                    .iter()
+                    .map(|seg| seg.ident.to_string()),
+            );
             format!("PrustiStruct{}_{}", path_str, uuid)
         }
         // not a path, just use a UUID
