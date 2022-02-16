@@ -176,35 +176,15 @@ pub(super) fn encode_quantifier<'tcx>(
                 tymap,
             );
             encoder.is_encoding_trigger.set(false);
-            let encoded_trigger = encoded_trigger_result?;/* {
-                // slice/array accesses are encoded with bound checks which need to be stripped for triggers
-                vir_crate::polymorphic::Expr::Cond(vir_crate::polymorphic::Cond {
-                    then_expr:
-                        box vir_crate::polymorphic::Expr::Field(vir_crate::polymorphic::FieldExpr {
-                            base: box base @ vir_crate::polymorphic::Expr::DomainFuncApp(..),
-                            ..
-                        }),
-                    else_expr:
-                        box ref _else_expr @ vir_crate::polymorphic::Expr::FuncApp(
-                            vir_crate::polymorphic::FuncApp {
-                                ref function_name, ..
-                            },
-                        ),
+            let encoded_trigger = match encoded_trigger_result? {
+                // slice accesses are encoded like `read$Snap(arg).val_X`, but for triggers we
+                // need to strip the field because these are never accessed in snap expressions.
+                vir_crate::polymorphic::Expr::Field(vir_crate::polymorphic::FieldExpr {
+                    base: box base @ vir_crate::polymorphic::Expr::DomainFuncApp(..),
                     ..
-                }) if function_name.starts_with("builtin$unreach") => base,
-                // slice/array accesses nested in functions also need their outer bound checks removed
-                vir_crate::polymorphic::Expr::Cond(vir_crate::polymorphic::Cond {
-                    then_expr: box then_expr @ vir_crate::polymorphic::Expr::FuncApp(..),
-                    else_expr:
-                        box ref _else_expr @ vir_crate::polymorphic::Expr::FuncApp(
-                            vir_crate::polymorphic::FuncApp {
-                                ref function_name, ..
-                            },
-                        ),
-                    ..
-                }) if function_name.starts_with("builtin$unreach") => then_expr,
+                }) => base,
                 encoded_trigger => encoded_trigger,
-            };*/
+            };
             check_trigger(&encoded_trigger).with_span(trigger_span)?;
             encoded_triggers.push(encoded_trigger);
             set_spans.push(trigger_span);
