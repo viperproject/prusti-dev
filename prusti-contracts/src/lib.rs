@@ -88,7 +88,7 @@ mod private {
     /// of just Rust expressions.
     pub use prusti_contracts_internal::predicate;
 
-    /// Macro for creating type [models](prusti_contracts_internal::model).
+    /// Macro for creating type models.
     pub use prusti_contracts_internal::model;
 }
 
