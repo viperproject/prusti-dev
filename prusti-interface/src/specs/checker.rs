@@ -1,7 +1,7 @@
-use log::{debug};
+use log::debug;
 use rustc_hir::{
     self as hir,
-    def_id::{DefId},
+    def_id::DefId,
     intravisit::{self, Visitor},
 };
 use rustc_middle::{hir::map::Map, ty::TyCtxt};
@@ -167,15 +167,16 @@ impl<'v, 'tcx> ModelUsageVisitor<'v, 'tcx> {
     }
 }
 
-impl<'v, 'tcx> intravisit::Visitor<'tcx> for ModelUsageVisitor<'v, 'tcx> {
+impl<'v, 'tcx> Visitor<'tcx> for ModelUsageVisitor<'v, 'tcx> {
     type Map = Map<'tcx>;
+    type NestedFilter = rustc_middle::hir::nested_filter::All;
 
-    fn nested_visit_map(&mut self) -> intravisit::NestedVisitorMap<Self::Map> {
-        intravisit::NestedVisitorMap::All(self.tcx.hir())
+    fn nested_visit_map(&mut self) -> Self::Map {
+        self.tcx.hir()
     }
 
     fn visit_expr(&mut self, expr: &'tcx hir::Expr<'tcx>) {
-        if let hir::ExprKind::MethodCall(_, call_span, _, _) = expr.kind {
+        if let hir::ExprKind::MethodCall(_, _, call_span) = expr.kind {
             let maybe_method_decl_hir_id: Option<hir::HirId> = self.get_called_method(expr);
 
             if let Some(method_decl_hir_id) = maybe_method_decl_hir_id {
