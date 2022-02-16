@@ -732,7 +732,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                 match self.pure_encoding_context {
                     PureEncodingContext::Trigger => {
                         // We are encoding a trigger, so all panic branches must be stripped.
-                        ExprBackwardInterpreterState::new(None)
+                        states[target].clone()
                     }
                     PureEncodingContext::Assertion => {
                         // We are encoding an assertion, so all failures should be equivalent to false.
@@ -762,20 +762,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                         ))
                     }
                 }
-
-                //     let failure_encoding = if self.encode_panic_to_false == PureEncodingContext::Assertion {
-                //         // TODO PB
-                //         // We are encoding an assertion, so all failures should be equivalent to false.
-                //         debug_assert!(matches!(self.mir.return_ty().kind(), ty::TyKind::Bool));
-                //         false.into()
-                //     } else {
-                //         // We are encoding a pure function, so all failures should be unreachable.
-                //         unreachable_expr(pos).with_span(term.source_info.span)?
-                //     };
-
-                //     ExprBackwardInterpreterState::new(states[target].expr().map(|target_expr| {
-                //         vir::Expr::ite(viper_guard.clone(), target_expr.clone(), failure_encoding)
-                //     }))
             }
 
             TerminatorKind::Yield { .. }
