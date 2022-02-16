@@ -1,1 +1,0 @@
-initSidebarItems({"enum":[["ModelEntry",""]],"struct":[["Model",""],["SiliconCounterexample",""]]});

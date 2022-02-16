@@ -1,1 +1,0 @@
-initSidebarItems({"constant":[["RETURN_LABEL",""]],"enum":[["Successor",""]],"fn":[["collect_assigned_vars",""]],"struct":[["CfgBlock",""],["CfgBlockIndex",""],["CfgMethod",""]],"trait":[["CheckNoOpAction",""],["SuccessorFolder",""]]});

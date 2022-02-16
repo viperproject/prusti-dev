@@ -1,1 +1,0 @@
-initSidebarItems({"struct":[["ExternSpecResolver","This struct is used to build a mapping of external functions to their Prusti specifications (see `extern_fn_map`)."]]});

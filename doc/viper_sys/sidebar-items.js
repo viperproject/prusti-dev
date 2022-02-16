@@ -1,1 +1,0 @@
-initSidebarItems({"fn":[["get_system_out",""]],"mod":[["wrappers","Automatically generated code"]]});

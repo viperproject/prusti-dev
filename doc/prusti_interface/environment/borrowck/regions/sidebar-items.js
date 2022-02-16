@@ -1,1 +1,0 @@
-initSidebarItems({"enum":[["PlaceRegionsError",""]],"fn":[["load_place_regions",""]],"struct":[["PlaceRegions",""]]});

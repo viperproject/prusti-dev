@@ -1,1 +1,0 @@
-initSidebarItems({"mod":[["immutable",""],["mutable",""]],"struct":[["Iterable",""],["Seq",""]]});
