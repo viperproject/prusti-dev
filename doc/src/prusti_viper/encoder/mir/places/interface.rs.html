@@ -570,6 +570,16 @@
 <span id="565">565</span>
 <span id="566">566</span>
 <span id="567">567</span>
+<span id="568">568</span>
+<span id="569">569</span>
+<span id="570">570</span>
+<span id="571">571</span>
+<span id="572">572</span>
+<span id="573">573</span>
+<span id="574">574</span>
+<span id="575">575</span>
+<span id="576">576</span>
+<span id="577">577</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::encoder</span>::{
     <a class="ident" href="../../../../../src/prusti_viper/encoder/encoder.rs.html#96">encoder::SubstMap</a>,
     <span class="ident">errors</span>::{
@@ -998,16 +1008,26 @@
                                 <span class="string">&quot;unknown size of usize for the overflow check&quot;</span>,
                             ));
                         }
-                        <span class="ident">vir_high::Type::Int</span>(<span class="ident">vir_high::ty::Int::I8</span>) =&gt; <span class="number">8</span>,
-                        <span class="ident">vir_high::Type::Int</span>(<span class="ident">vir_high::ty::Int::I16</span>) =&gt; <span class="number">16</span>,
-                        <span class="ident">vir_high::Type::Int</span>(<span class="ident">vir_high::ty::Int::I32</span>) =&gt; <span class="number">32</span>,
-                        <span class="ident">vir_high::Type::Int</span>(<span class="ident">vir_high::ty::Int::I64</span>) =&gt; <span class="number">64</span>,
-                        <span class="ident">vir_high::Type::Int</span>(<span class="ident">vir_high::ty::Int::I128</span>) =&gt; <span class="number">128</span>,
-                        <span class="ident">vir_high::Type::Int</span>(<span class="ident">vir_high::ty::Int::Isize</span>) =&gt; {
+                        <span class="ident">vir_high::Type::Int</span>(<span class="ident">vir_high::ty::Int::I8</span>)
+                        <span class="op">|</span> <span class="ident">vir_high::Type::Int</span>(<span class="ident">vir_high::ty::Int::I16</span>)
+                        <span class="op">|</span> <span class="ident">vir_high::Type::Int</span>(<span class="ident">vir_high::ty::Int::I32</span>)
+                        <span class="op">|</span> <span class="ident">vir_high::Type::Int</span>(<span class="ident">vir_high::ty::Int::I64</span>)
+                        <span class="op">|</span> <span class="ident">vir_high::Type::Int</span>(<span class="ident">vir_high::ty::Int::I128</span>)
+                        <span class="op">|</span> <span class="ident">vir_high::Type::Int</span>(<span class="ident">vir_high::ty::Int::Isize</span>) =&gt; {
                             <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">EncodingError::unsupported</span>(
-                                <span class="string">&quot;unknown size of isize for the overflow check&quot;</span>,
+                                <span class="string">&quot;bit operations on signed numbers are not supported&quot;</span>,
                             ));
                         }
+                        <span class="comment">// vir_high::Type::Int(vir_high::ty::Int::I8) =&gt; 8,</span>
+                        <span class="comment">// vir_high::Type::Int(vir_high::ty::Int::I16) =&gt; 16,</span>
+                        <span class="comment">// vir_high::Type::Int(vir_high::ty::Int::I32) =&gt; 32,</span>
+                        <span class="comment">// vir_high::Type::Int(vir_high::ty::Int::I64) =&gt; 64,</span>
+                        <span class="comment">// vir_high::Type::Int(vir_high::ty::Int::I128) =&gt; 128,</span>
+                        <span class="comment">// vir_high::Type::Int(vir_high::ty::Int::Isize) =&gt; {</span>
+                        <span class="comment">//     return Err(EncodingError::unsupported(</span>
+                        <span class="comment">//         &quot;unknown size of isize for the overflow check&quot;,</span>
+                        <span class="comment">//     ));</span>
+                        <span class="comment">// }</span>
                         <span class="kw">_</span> =&gt; {
                             <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">EncodingError::unsupported</span>(<span class="macro">format!</span>(
                                 <span class="string">&quot;overflow checks are unsupported for operation &#39;{:?}&#39; on type &#39;{:?}&#39;&quot;</span>,
@@ -1040,10 +1060,10 @@
         <span class="ident">tymap</span>: <span class="kw-2">&amp;</span><span class="ident">SubstMap</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
         <span class="ident">span</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/span_encoding/struct.Span.html">Span</a>,
     ) -&gt; <span class="ident">SpannedEncodingResult</span><span class="op">&lt;</span><a class="ident" href="../../../../../vir/gen/high/ast/expression/enum.Expression.html">vir_high::Expression</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">src_ty</span> <span class="op">=</span> <a class="self" href="../../../../../src/prusti_viper/encoder/mir/places/interface.rs.html#463">self</a>.<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/places/interface.rs.html#44-48">get_operand_type</a>(<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/places/interface.rs.html#464">mir</a>, <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/places/interface.rs.html#466">operand</a>)<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">destination_type</span> <span class="op">=</span> <a class="self" href="../../../../../src/prusti_viper/encoder/mir/places/interface.rs.html#463">self</a>.<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/types/interface.rs.html#42">encode_type_high</a>(<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/places/interface.rs.html#467">dst_ty</a>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">src_ty</span> <span class="op">=</span> <a class="self" href="../../../../../src/prusti_viper/encoder/mir/places/interface.rs.html#473">self</a>.<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/places/interface.rs.html#44-48">get_operand_type</a>(<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/places/interface.rs.html#474">mir</a>, <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/places/interface.rs.html#476">operand</a>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">destination_type</span> <span class="op">=</span> <a class="self" href="../../../../../src/prusti_viper/encoder/mir/places/interface.rs.html#473">self</a>.<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/types/interface.rs.html#42">encode_type_high</a>(<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/places/interface.rs.html#477">dst_ty</a>)<span class="question-mark">?</span>;
 
-        <span class="kw">let</span> <span class="ident">encoded_val</span> <span class="op">=</span> <span class="kw">match</span> (<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/places/interface.rs.html#471">src_ty</a>.<span class="ident">kind</span>(), <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/places/interface.rs.html#467">dst_ty</a>.<span class="ident">kind</span>()) {
+        <span class="kw">let</span> <span class="ident">encoded_val</span> <span class="op">=</span> <span class="kw">match</span> (<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/places/interface.rs.html#481">src_ty</a>.<span class="ident">kind</span>(), <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/places/interface.rs.html#477">dst_ty</a>.<span class="ident">kind</span>()) {
             <span class="comment">// Numeric casts that cannot fail</span>
             (<span class="ident">ty::TyKind::Char</span>, <span class="ident">ty::TyKind::Char</span>)
             <span class="op">|</span> (<span class="ident">ty::TyKind::Char</span>, <span class="ident">ty::TyKind::Uint</span>(<span class="ident">ty::UintTy::U8</span>))
@@ -1084,9 +1104,9 @@
             <span class="op">|</span> (<span class="ident">ty::TyKind::Uint</span>(<span class="ident">ty::UintTy::U64</span>), <span class="ident">ty::TyKind::Uint</span>(<span class="ident">ty::UintTy::U128</span>))
             <span class="op">|</span> (<span class="ident">ty::TyKind::Uint</span>(<span class="ident">ty::UintTy::U128</span>), <span class="ident">ty::TyKind::Uint</span>(<span class="ident">ty::UintTy::U128</span>))
             <span class="op">|</span> (<span class="ident">ty::TyKind::Uint</span>(<span class="ident">ty::UintTy::Usize</span>), <span class="ident">ty::TyKind::Uint</span>(<span class="ident">ty::UintTy::Usize</span>)) =&gt; {
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">value</span> <span class="op">=</span> <a class="self" href="../../../../../src/prusti_viper/encoder/mir/places/interface.rs.html#463">self</a>.<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/places/interface.rs.html#74-78">encode_operand_high</a>(<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/places/interface.rs.html#464">mir</a>, <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/places/interface.rs.html#466">operand</a>).<a class="ident" href="../../../../../src/prusti_viper/encoder/errors/with_span.rs.html#14">with_span</a>(<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/places/interface.rs.html#469">span</a>)<span class="question-mark">?</span>;
-                <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/places/interface.rs.html#515">value</a>.<a class="ident" href="../../../../../vir/gen/high/operations_internal/ty/trait.Typed.html">set_type</a>(<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/places/interface.rs.html#472">destination_type</a>);
-                <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/places/interface.rs.html#515">value</a>
+                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">value</span> <span class="op">=</span> <a class="self" href="../../../../../src/prusti_viper/encoder/mir/places/interface.rs.html#473">self</a>.<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/places/interface.rs.html#74-78">encode_operand_high</a>(<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/places/interface.rs.html#474">mir</a>, <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/places/interface.rs.html#476">operand</a>).<a class="ident" href="../../../../../src/prusti_viper/encoder/errors/with_span.rs.html#14">with_span</a>(<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/places/interface.rs.html#479">span</a>)<span class="question-mark">?</span>;
+                <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/places/interface.rs.html#525">value</a>.<a class="ident" href="../../../../../vir/gen/high/operations_internal/ty/trait.Typed.html">set_type</a>(<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/places/interface.rs.html#482">destination_type</a>);
+                <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/places/interface.rs.html#525">value</a>
             }
 
             <span class="comment">// Numeric casts where the source value might not fit into the target type</span>
@@ -1098,28 +1118,28 @@
             <span class="op">|</span> (<span class="ident">ty::TyKind::Uint</span>(<span class="kw">_</span>), <span class="ident">ty::TyKind::Char</span>)
             <span class="op">|</span> (<span class="ident">ty::TyKind::Uint</span>(<span class="kw">_</span>), <span class="ident">ty::TyKind::Int</span>(<span class="kw">_</span>))
             <span class="op">|</span> (<span class="ident">ty::TyKind::Uint</span>(<span class="kw">_</span>), <span class="ident">ty::TyKind::Uint</span>(<span class="kw">_</span>)) =&gt; {
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">encoded_operand</span> <span class="op">=</span> <a class="self" href="../../../../../src/prusti_viper/encoder/mir/places/interface.rs.html#463">self</a>.<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/places/interface.rs.html#74-78">encode_operand_high</a>(<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/places/interface.rs.html#464">mir</a>, <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/places/interface.rs.html#466">operand</a>).<a class="ident" href="../../../../../src/prusti_viper/encoder/errors/with_span.rs.html#14">with_span</a>(<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/places/interface.rs.html#469">span</a>)<span class="question-mark">?</span>;
+                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">encoded_operand</span> <span class="op">=</span> <a class="self" href="../../../../../src/prusti_viper/encoder/mir/places/interface.rs.html#473">self</a>.<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/places/interface.rs.html#74-78">encode_operand_high</a>(<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/places/interface.rs.html#474">mir</a>, <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/places/interface.rs.html#476">operand</a>).<a class="ident" href="../../../../../src/prusti_viper/encoder/errors/with_span.rs.html#14">with_span</a>(<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/places/interface.rs.html#479">span</a>)<span class="question-mark">?</span>;
                 <span class="kw">if</span> <span class="ident">prusti_common::config::check_overflows</span>() {
                     <span class="comment">// Check the cast</span>
                     <span class="comment">// FIXME: Should use a high function.</span>
-                    <span class="kw">let</span> <span class="ident">function_name</span> <span class="op">=</span> <a class="self" href="../../../../../src/prusti_viper/encoder/mir/places/interface.rs.html#463">self</a>
-                        .<a class="ident" href="../../../../../src/prusti_viper/encoder/encoder.rs.html#514-515">encode_cast_function_use</a>(<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/places/interface.rs.html#471">src_ty</a>, <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/places/interface.rs.html#467">dst_ty</a>, <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/places/interface.rs.html#468">tymap</a>)
-                        .<a class="ident" href="../../../../../src/prusti_viper/encoder/errors/with_span.rs.html#14">with_span</a>(<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/places/interface.rs.html#469">span</a>)<span class="question-mark">?</span>;
-                    <span class="kw">let</span> <span class="ident">position</span> <span class="op">=</span> <a class="self" href="../../../../../src/prusti_viper/encoder/mir/places/interface.rs.html#463">self</a>
+                    <span class="kw">let</span> <span class="ident">function_name</span> <span class="op">=</span> <a class="self" href="../../../../../src/prusti_viper/encoder/mir/places/interface.rs.html#473">self</a>
+                        .<a class="ident" href="../../../../../src/prusti_viper/encoder/encoder.rs.html#514-515">encode_cast_function_use</a>(<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/places/interface.rs.html#481">src_ty</a>, <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/places/interface.rs.html#477">dst_ty</a>, <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/places/interface.rs.html#478">tymap</a>)
+                        .<a class="ident" href="../../../../../src/prusti_viper/encoder/errors/with_span.rs.html#14">with_span</a>(<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/places/interface.rs.html#479">span</a>)<span class="question-mark">?</span>;
+                    <span class="kw">let</span> <span class="ident">position</span> <span class="op">=</span> <a class="self" href="../../../../../src/prusti_viper/encoder/mir/places/interface.rs.html#473">self</a>
                         .<a class="ident" href="../../../../../src/prusti_viper/encoder/encoder.rs.html#209">error_manager</a>()
-                        .<a class="ident" href="../../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#140">register</a>(<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/places/interface.rs.html#469">span</a>, <a class="ident" href="../../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#115">ErrorCtxt::TypeCast</a>, <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/places/interface.rs.html#465">def_id</a>);
+                        .<a class="ident" href="../../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#140">register</a>(<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/places/interface.rs.html#479">span</a>, <a class="ident" href="../../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#115">ErrorCtxt::TypeCast</a>, <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/places/interface.rs.html#475">def_id</a>);
                     <span class="kw">let</span> <span class="ident">call</span> <span class="op">=</span> <span class="ident">vir_high::Expression::function_call</span>(
-                        <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/places/interface.rs.html#533">function_name</a>,
+                        <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/places/interface.rs.html#543">function_name</a>,
                         <span class="macro">vec!</span>[], <span class="comment">// FIXME: This is probably wrong.</span>
-                        <span class="macro">vec!</span>[<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/places/interface.rs.html#529">encoded_operand</a>],
-                        <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/places/interface.rs.html#472">destination_type</a>,
+                        <span class="macro">vec!</span>[<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/places/interface.rs.html#539">encoded_operand</a>],
+                        <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/places/interface.rs.html#482">destination_type</a>,
                     )
-                    .<span class="ident">set_default_position</span>(<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/places/interface.rs.html#536">position</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>());
-                    <span class="kw">return</span> <span class="prelude-val">Ok</span>(<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/places/interface.rs.html#539">call</a>);
+                    .<span class="ident">set_default_position</span>(<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/places/interface.rs.html#546">position</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>());
+                    <span class="kw">return</span> <span class="prelude-val">Ok</span>(<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/places/interface.rs.html#549">call</a>);
                 } <span class="kw">else</span> {
                     <span class="comment">// Don&#39;t check the cast</span>
-                    <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/places/interface.rs.html#529">encoded_operand</a>.<a class="ident" href="../../../../../vir/gen/high/operations_internal/ty/trait.Typed.html">set_type</a>(<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/places/interface.rs.html#472">destination_type</a>);
-                    <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/places/interface.rs.html#529">encoded_operand</a>
+                    <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/places/interface.rs.html#539">encoded_operand</a>.<a class="ident" href="../../../../../vir/gen/high/operations_internal/ty/trait.Typed.html">set_type</a>(<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/places/interface.rs.html#482">destination_type</a>);
+                    <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/places/interface.rs.html#539">encoded_operand</a>
                 }
             }
 
@@ -1127,14 +1147,14 @@
                 <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">SpannedEncodingError::unsupported</span>(
                     <span class="macro">format!</span>(
                         <span class="string">&quot;unsupported cast from type &#39;{:?}&#39; to type &#39;{:?}&#39;&quot;</span>,
-                        <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/places/interface.rs.html#471">src_ty</a>, <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/places/interface.rs.html#467">dst_ty</a>
+                        <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/places/interface.rs.html#481">src_ty</a>, <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/places/interface.rs.html#477">dst_ty</a>
                     ),
-                    <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/places/interface.rs.html#469">span</a>,
+                    <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/places/interface.rs.html#479">span</a>,
                 ));
             }
         };
 
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/places/interface.rs.html#474">encoded_val</a>)
+        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/places/interface.rs.html#484">encoded_val</a>)
     }
 }
 </code></pre></div>
