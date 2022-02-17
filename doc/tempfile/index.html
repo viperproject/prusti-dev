@@ -11,23 +11,23 @@
 <li>Use the <a href="fn.tempfile.html"><code>tempfile()</code></a> function for temporary files</li>
 <li>Use the <a href="fn.tempdir.html"><code>tempdir()</code></a> function for temporary directories.</li>
 </ul>
-<h2 id="design" class="section-header"><a href="#design">Design</a></h2>
+<h2 id="design"><a href="#design">Design</a></h2>
 <p>This crate provides several approaches to creating temporary files and directories.
 <a href="fn.tempfile.html"><code>tempfile()</code></a> relies on the OS to remove the temporary file once the last handle is closed.
 <a href="struct.TempDir.html"><code>TempDir</code></a> and <a href="struct.NamedTempFile.html"><code>NamedTempFile</code></a> both rely on Rust destructors for cleanup.</p>
 <p>When choosing between the temporary file variants, prefer <code>tempfile</code>
 unless you either need to know the file’s path or to be able to persist it.</p>
-<h3 id="resource-leaking" class="section-header"><a href="#resource-leaking">Resource Leaking</a></h3>
+<h3 id="resource-leaking"><a href="#resource-leaking">Resource Leaking</a></h3>
 <p><code>tempfile</code> will (almost) never fail to cleanup temporary resources, but <code>TempDir</code> and <code>NamedTempFile</code> will if
 their destructors don’t run. This is because <code>tempfile</code> relies on the OS to cleanup the
 underlying file, while <code>TempDir</code> and <code>NamedTempFile</code> rely on their destructors to do so.</p>
-<h3 id="security" class="section-header"><a href="#security">Security</a></h3>
+<h3 id="security"><a href="#security">Security</a></h3>
 <p>In the presence of pathological temporary file cleaner, relying on file paths is unsafe because
 a temporary file cleaner could delete the temporary file which an attacker could then replace.</p>
 <p><code>tempfile</code> doesn’t rely on file paths so this isn’t an issue. However, <code>NamedTempFile</code> does
 rely on file paths for <em>some</em> operations. See the security documentation on
 the <code>NamedTempFile</code> type for more information.</p>
-<h3 id="early-drop-pitfall" class="section-header"><a href="#early-drop-pitfall">Early drop pitfall</a></h3>
+<h3 id="early-drop-pitfall"><a href="#early-drop-pitfall">Early drop pitfall</a></h3>
 <p>Because <code>TempDir</code> and <code>NamedTempFile</code> rely on their destructors for cleanup, this can lead
 to an unexpected early removal of the directory/file, usually when working with APIs which are
 generic over <code>AsRef&lt;Path&gt;</code>. Consider the following example:</p>
@@ -46,7 +46,7 @@ destructor of <code>temp_dir</code> being run after the <code>Command</code> has
 an internal representation, with the original value being dropped and the directory thus
 being deleted, before the command can be executed.</p>
 <p>The <code>touch</code> command would fail with an <code>No such file or directory</code> error.</p>
-<h3 id="examples" class="section-header"><a href="#examples">Examples</a></h3>
+<h3 id="examples"><a href="#examples">Examples</a></h3>
 <p>Create a temporary file and write some data into it:</p>
 
 <div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use</span> <span class="ident">tempfile::tempfile</span>;
@@ -114,5 +114,5 @@ it goes out of scope.</p>
 </div></div><div class="item-row"><div class="item-left module-item"><a class="fn" href="fn.tempdir_in.html" title="tempfile::tempdir_in fn">tempdir_in</a></div><div class="item-right docblock-short"><p>Create a new temporary directory.</p>
 </div></div><div class="item-row"><div class="item-left module-item"><a class="fn" href="fn.tempfile.html" title="tempfile::tempfile fn">tempfile</a></div><div class="item-right docblock-short"><p>Create a new temporary file.</p>
 </div></div><div class="item-row"><div class="item-left module-item"><a class="fn" href="fn.tempfile_in.html" title="tempfile::tempfile_in fn">tempfile_in</a></div><div class="item-right docblock-short"><p>Create a new temporary file in the specified directory.</p>
-</div></div></div></section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../" data-current-crate="tempfile" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.60.0-nightly (498eeb72f 2022-01-31)" ></div>
+</div></div></div></section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../" data-current-crate="tempfile" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.60.0-nightly (c5c610aad 2022-02-14)" ></div>
 </body></html>

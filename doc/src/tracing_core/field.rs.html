@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tracing-core-0.1.21/src/field.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>field.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tracing-core-0.1.22/src/field.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>field.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../tracing_core/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/tokio-rs/tracing/master/assets/logo-type.png" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
@@ -1011,7 +1011,126 @@
 <span id="1004">1004</span>
 <span id="1005">1005</span>
 <span id="1006">1006</span>
-</pre><pre class="rust"><code><span class="doccomment">//! Span and `Event` key-value data.</span>
+<span id="1007">1007</span>
+<span id="1008">1008</span>
+<span id="1009">1009</span>
+<span id="1010">1010</span>
+<span id="1011">1011</span>
+<span id="1012">1012</span>
+<span id="1013">1013</span>
+<span id="1014">1014</span>
+<span id="1015">1015</span>
+<span id="1016">1016</span>
+<span id="1017">1017</span>
+<span id="1018">1018</span>
+<span id="1019">1019</span>
+<span id="1020">1020</span>
+<span id="1021">1021</span>
+<span id="1022">1022</span>
+<span id="1023">1023</span>
+<span id="1024">1024</span>
+<span id="1025">1025</span>
+<span id="1026">1026</span>
+<span id="1027">1027</span>
+<span id="1028">1028</span>
+<span id="1029">1029</span>
+<span id="1030">1030</span>
+<span id="1031">1031</span>
+<span id="1032">1032</span>
+<span id="1033">1033</span>
+<span id="1034">1034</span>
+<span id="1035">1035</span>
+<span id="1036">1036</span>
+<span id="1037">1037</span>
+<span id="1038">1038</span>
+<span id="1039">1039</span>
+<span id="1040">1040</span>
+<span id="1041">1041</span>
+<span id="1042">1042</span>
+<span id="1043">1043</span>
+<span id="1044">1044</span>
+<span id="1045">1045</span>
+<span id="1046">1046</span>
+<span id="1047">1047</span>
+<span id="1048">1048</span>
+<span id="1049">1049</span>
+<span id="1050">1050</span>
+<span id="1051">1051</span>
+<span id="1052">1052</span>
+<span id="1053">1053</span>
+<span id="1054">1054</span>
+<span id="1055">1055</span>
+<span id="1056">1056</span>
+<span id="1057">1057</span>
+<span id="1058">1058</span>
+<span id="1059">1059</span>
+<span id="1060">1060</span>
+<span id="1061">1061</span>
+<span id="1062">1062</span>
+<span id="1063">1063</span>
+<span id="1064">1064</span>
+<span id="1065">1065</span>
+<span id="1066">1066</span>
+<span id="1067">1067</span>
+<span id="1068">1068</span>
+<span id="1069">1069</span>
+<span id="1070">1070</span>
+<span id="1071">1071</span>
+<span id="1072">1072</span>
+<span id="1073">1073</span>
+<span id="1074">1074</span>
+<span id="1075">1075</span>
+<span id="1076">1076</span>
+<span id="1077">1077</span>
+<span id="1078">1078</span>
+<span id="1079">1079</span>
+<span id="1080">1080</span>
+<span id="1081">1081</span>
+<span id="1082">1082</span>
+<span id="1083">1083</span>
+<span id="1084">1084</span>
+<span id="1085">1085</span>
+<span id="1086">1086</span>
+<span id="1087">1087</span>
+<span id="1088">1088</span>
+<span id="1089">1089</span>
+<span id="1090">1090</span>
+<span id="1091">1091</span>
+<span id="1092">1092</span>
+<span id="1093">1093</span>
+<span id="1094">1094</span>
+<span id="1095">1095</span>
+<span id="1096">1096</span>
+<span id="1097">1097</span>
+<span id="1098">1098</span>
+<span id="1099">1099</span>
+<span id="1100">1100</span>
+<span id="1101">1101</span>
+<span id="1102">1102</span>
+<span id="1103">1103</span>
+<span id="1104">1104</span>
+<span id="1105">1105</span>
+<span id="1106">1106</span>
+<span id="1107">1107</span>
+<span id="1108">1108</span>
+<span id="1109">1109</span>
+<span id="1110">1110</span>
+<span id="1111">1111</span>
+<span id="1112">1112</span>
+<span id="1113">1113</span>
+<span id="1114">1114</span>
+<span id="1115">1115</span>
+<span id="1116">1116</span>
+<span id="1117">1117</span>
+<span id="1118">1118</span>
+<span id="1119">1119</span>
+<span id="1120">1120</span>
+<span id="1121">1121</span>
+<span id="1122">1122</span>
+<span id="1123">1123</span>
+<span id="1124">1124</span>
+<span id="1125">1125</span>
+</pre><pre class="rust"><code><span class="doccomment">//! `Span` and `Event` key-value data.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! Spans and events may be annotated with key-value data, referred to as known</span>
 <span class="doccomment">//! as _fields_. These fields consist of a mapping from a key (corresponding to</span>
@@ -1037,8 +1156,81 @@
 <span class="doccomment">//! recorded as typed data by calling the [`Value::record`] method on these</span>
 <span class="doccomment">//! trait objects with a _visitor_ implementing the [`Visit`] trait. This trait</span>
 <span class="doccomment">//! represents the behavior used to record values of various types. For example,</span>
-<span class="doccomment">//! we might record integers by incrementing counters for their field names,</span>
-<span class="doccomment">//! rather than printing them.</span>
+<span class="doccomment">//! an implementation of `Visit` might record integers by incrementing counters</span>
+<span class="doccomment">//! for their field names rather than printing them.</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! # Using `valuable`</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! `tracing`&#39;s [`Value`] trait is intentionally minimalist: it supports only a small</span>
+<span class="doccomment">//! number of Rust primitives as typed values, and only permits recording</span>
+<span class="doccomment">//! user-defined types with their [`fmt::Debug`] or [`fmt::Display`]</span>
+<span class="doccomment">//! implementations. However, there are some cases where it may be useful to record</span>
+<span class="doccomment">//! nested values (such as arrays, `Vec`s, or `HashMap`s containing values), or</span>
+<span class="doccomment">//! user-defined `struct` and `enum` types without having to format them as</span>
+<span class="doccomment">//! unstructured text.</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! To address `Value`&#39;s limitations, `tracing` offers experimental support for</span>
+<span class="doccomment">//! the [`valuable`] crate, which provides object-safe inspection of structured</span>
+<span class="doccomment">//! values. User-defined types can implement the [`valuable::Valuable`] trait,</span>
+<span class="doccomment">//! and be recorded as a `tracing` field by calling their [`as_value`] method.</span>
+<span class="doccomment">//! If the [`Subscriber`] also supports the `valuable` crate, it can</span>
+<span class="doccomment">//! then visit those types fields as structured values using `valuable`.</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! &lt;pre class=&quot;ignore&quot; style=&quot;white-space:normal;font:inherit;&quot;&gt;</span>
+<span class="doccomment">//!     &lt;strong&gt;Note&lt;/strong&gt;: &lt;code&gt;valuable&lt;/code&gt; support is an</span>
+<span class="doccomment">//!     &lt;a href = &quot;../index.html#unstable-features&quot;&gt;unstable feature&lt;/a&gt;. See</span>
+<span class="doccomment">//!     the documentation on unstable features for details on how to enable it.</span>
+<span class="doccomment">//! &lt;/pre&gt;</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! For example:</span>
+<span class="doccomment">//! ```ignore</span>
+<span class="doccomment">//! // Derive `Valuable` for our types:</span>
+<span class="doccomment">//! use valuable::Valuable;</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! #[derive(Clone, Debug, Valuable)]</span>
+<span class="doccomment">//! struct User {</span>
+<span class="doccomment">//!     name: String,</span>
+<span class="doccomment">//!     age: u32,</span>
+<span class="doccomment">//!     address: Address,</span>
+<span class="doccomment">//! }</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! #[derive(Clone, Debug, Valuable)]</span>
+<span class="doccomment">//! struct Address {</span>
+<span class="doccomment">//!     country: String,</span>
+<span class="doccomment">//!     city: String,</span>
+<span class="doccomment">//!     street: String,</span>
+<span class="doccomment">//! }</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! let user = User {</span>
+<span class="doccomment">//!     name: &quot;Arwen Undomiel&quot;.to_string(),</span>
+<span class="doccomment">//!     age: 3000,</span>
+<span class="doccomment">//!     address: Address {</span>
+<span class="doccomment">//!         country: &quot;Middle Earth&quot;.to_string(),</span>
+<span class="doccomment">//!         city: &quot;Rivendell&quot;.to_string(),</span>
+<span class="doccomment">//!         street: &quot;leafy lane&quot;.to_string(),</span>
+<span class="doccomment">//!     },</span>
+<span class="doccomment">//! };</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! // Recording `user` as a `valuable::Value` will allow the `tracing` subscriber</span>
+<span class="doccomment">//! // to traverse its fields as a nested, typed structure:</span>
+<span class="doccomment">//! tracing::info!(current_user = user.as_value());</span>
+<span class="doccomment">//! ```</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! Alternatively, the [`valuable()`] function may be used to convert a type</span>
+<span class="doccomment">//! implementing [`Valuable`] into a `tracing` field value.</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! When the `valuable` feature is enabled, the [`Visit`] trait will include an</span>
+<span class="doccomment">//! optional [`record_value`] method. `Visit` implementations that wish to</span>
+<span class="doccomment">//! record `valuable` values can implement this method with custom behavior.</span>
+<span class="doccomment">//! If a visitor does not implement `record_value`, the [`valuable::Value`] will</span>
+<span class="doccomment">//! be forwarded to the visitor&#39;s [`record_debug`] method.</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! [`valuable`]: https://crates.io/crates/valuable</span>
+<span class="doccomment">//! [`as_value`]: valuable::Valuable::as_value</span>
+<span class="doccomment">//! [`Subscriber`]: crate::Subscriber</span>
+<span class="doccomment">//! [`record_value`]: Visit::record_value</span>
+<span class="doccomment">//! [`record_debug`]: Visit::record_debug</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! [`Value`]: trait.Value.html</span>
 <span class="doccomment">//! [span]: ../span/</span>
@@ -1051,7 +1243,7 @@
 <span class="doccomment">//! [`event`]:  ../subscriber/trait.Subscriber.html#method.event</span>
 <span class="doccomment">//! [`Value::record`]: trait.Value.html#method.record</span>
 <span class="doccomment">//! [`Visit`]: trait.Visit.html</span>
-<span class="kw">use</span> <a class="ident" href="../../src/tracing_core/lib.rs.html#255"><span class="kw">crate</span>::callsite</a>;
+<span class="kw">use</span> <a class="ident" href="../../src/tracing_core/lib.rs.html#280"><span class="kw">crate</span>::callsite</a>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::stdlib</span>::{
     <a class="ident" href="https://doc.rust-lang.org/nightly/core/borrow/trait.Borrow.html">borrow::Borrow</a>,
     <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">fmt</a>,
@@ -1060,7 +1252,7 @@
     <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/range/struct.Range.html">ops::Range</a>,
 };
 
-<span class="kw">use</span> <a class="ident" href="../../src/tracing_core/field.rs.html#841"><span class="self">self</span>::private::ValidLen</a>;
+<span class="kw">use</span> <a class="ident" href="../../src/tracing_core/field.rs.html#960"><span class="self">self</span>::private::ValidLen</a>;
 
 <span class="doccomment">/// An opaque key allowing _O_(1) access to a field in a `Span`&#39;s key-value</span>
 <span class="doccomment">/// data.</span>
@@ -1073,7 +1265,7 @@
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Field</span> {
     <span class="ident">i</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-    <span class="ident">fields</span>: <a class="ident" href="../../src/tracing_core/field.rs.html#76-81">FieldSet</a>,
+    <span class="ident">fields</span>: <a class="ident" href="../../src/tracing_core/field.rs.html#149-154">FieldSet</a>,
 }
 
 <span class="doccomment">/// An empty field.</span>
@@ -1095,15 +1287,15 @@
 
 <span class="doccomment">/// A set of fields and values for a span.</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ValueSet</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="ident">values</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="../../src/tracing_core/field.rs.html#61-64">Field</a>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> (<span class="kw">dyn</span> <a class="ident" href="../../src/tracing_core/field.rs.html#236-239">Value</a> <span class="op">+</span> <span class="lifetime">&#39;a</span>)<span class="op">&gt;</span>)],
-    <span class="ident">fields</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="../../src/tracing_core/field.rs.html#76-81">FieldSet</a>,
+    <span class="ident">values</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="../../src/tracing_core/field.rs.html#134-137">Field</a>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> (<span class="kw">dyn</span> <a class="ident" href="../../src/tracing_core/field.rs.html#318-321">Value</a> <span class="op">+</span> <span class="lifetime">&#39;a</span>)<span class="op">&gt;</span>)],
+    <span class="ident">fields</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="../../src/tracing_core/field.rs.html#149-154">FieldSet</a>,
 }
 
 <span class="doccomment">/// An iterator over a set of fields.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Iter</span> {
     <span class="ident">idxs</span>: <span class="ident">Range</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span>,
-    <span class="ident">fields</span>: <a class="ident" href="../../src/tracing_core/field.rs.html#76-81">FieldSet</a>,
+    <span class="ident">fields</span>: <a class="ident" href="../../src/tracing_core/field.rs.html#149-154">FieldSet</a>,
 }
 
 <span class="doccomment">/// Visits typed values.</span>
@@ -1197,29 +1389,38 @@
 <span class="doccomment">/// [`Event`]: ../event/struct.Event.html</span>
 <span class="doccomment">/// [`ValueSet`]: struct.ValueSet.html</span>
 <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">Visit</span> {
+    <span class="doccomment">/// Visits an arbitrary type implementing the [`valuable`] crate&#39;s `Valuable` trait.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// [`valuable`]: https://docs.rs/valuable</span>
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">tracing_unstable</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;valuable&quot;</span>))]</span>
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">tracing_unstable</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;valuable&quot;</span>))))]</span>
+    <span class="kw">fn</span> <span class="ident">record_value</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">field</span>: <span class="kw-2">&amp;</span><span class="ident">Field</span>, <span class="ident">value</span>: <span class="ident">valuable::Value</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) {
+        <span class="self">self</span>.<span class="ident">record_debug</span>(<span class="ident">field</span>, <span class="kw-2">&amp;</span><span class="ident">value</span>)
+    }
+
     <span class="doccomment">/// Visit a double-precision floating point value.</span>
-    <span class="kw">fn</span> <span class="ident">record_f64</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">field</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing_core/field.rs.html#61-64">Field</a>, <span class="ident">value</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.f64.html">f64</a>) {
-        <a class="self" href="../../src/tracing_core/field.rs.html#188">self</a>.<a class="ident" href="../../src/tracing_core/field.rs.html#226">record_debug</a>(<a class="ident" href="../../src/tracing_core/field.rs.html#188">field</a>, <span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing_core/field.rs.html#188">value</a>)
+    <span class="kw">fn</span> <span class="ident">record_f64</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">field</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing_core/field.rs.html#134-137">Field</a>, <span class="ident">value</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.f64.html">f64</a>) {
+        <a class="self" href="../../src/tracing_core/field.rs.html#270">self</a>.<a class="ident" href="../../src/tracing_core/field.rs.html#308">record_debug</a>(<a class="ident" href="../../src/tracing_core/field.rs.html#270">field</a>, <span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing_core/field.rs.html#270">value</a>)
     }
 
     <span class="doccomment">/// Visit a signed 64-bit integer value.</span>
-    <span class="kw">fn</span> <span class="ident">record_i64</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">field</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing_core/field.rs.html#61-64">Field</a>, <span class="ident">value</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>) {
-        <a class="self" href="../../src/tracing_core/field.rs.html#193">self</a>.<a class="ident" href="../../src/tracing_core/field.rs.html#226">record_debug</a>(<a class="ident" href="../../src/tracing_core/field.rs.html#193">field</a>, <span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing_core/field.rs.html#193">value</a>)
+    <span class="kw">fn</span> <span class="ident">record_i64</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">field</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing_core/field.rs.html#134-137">Field</a>, <span class="ident">value</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>) {
+        <a class="self" href="../../src/tracing_core/field.rs.html#275">self</a>.<a class="ident" href="../../src/tracing_core/field.rs.html#308">record_debug</a>(<a class="ident" href="../../src/tracing_core/field.rs.html#275">field</a>, <span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing_core/field.rs.html#275">value</a>)
     }
 
     <span class="doccomment">/// Visit an unsigned 64-bit integer value.</span>
-    <span class="kw">fn</span> <span class="ident">record_u64</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">field</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing_core/field.rs.html#61-64">Field</a>, <span class="ident">value</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) {
-        <a class="self" href="../../src/tracing_core/field.rs.html#198">self</a>.<a class="ident" href="../../src/tracing_core/field.rs.html#226">record_debug</a>(<a class="ident" href="../../src/tracing_core/field.rs.html#198">field</a>, <span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing_core/field.rs.html#198">value</a>)
+    <span class="kw">fn</span> <span class="ident">record_u64</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">field</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing_core/field.rs.html#134-137">Field</a>, <span class="ident">value</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) {
+        <a class="self" href="../../src/tracing_core/field.rs.html#280">self</a>.<a class="ident" href="../../src/tracing_core/field.rs.html#308">record_debug</a>(<a class="ident" href="../../src/tracing_core/field.rs.html#280">field</a>, <span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing_core/field.rs.html#280">value</a>)
     }
 
     <span class="doccomment">/// Visit a boolean value.</span>
-    <span class="kw">fn</span> <span class="ident">record_bool</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">field</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing_core/field.rs.html#61-64">Field</a>, <span class="ident">value</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) {
-        <a class="self" href="../../src/tracing_core/field.rs.html#203">self</a>.<a class="ident" href="../../src/tracing_core/field.rs.html#226">record_debug</a>(<a class="ident" href="../../src/tracing_core/field.rs.html#203">field</a>, <span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing_core/field.rs.html#203">value</a>)
+    <span class="kw">fn</span> <span class="ident">record_bool</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">field</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing_core/field.rs.html#134-137">Field</a>, <span class="ident">value</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) {
+        <a class="self" href="../../src/tracing_core/field.rs.html#285">self</a>.<a class="ident" href="../../src/tracing_core/field.rs.html#308">record_debug</a>(<a class="ident" href="../../src/tracing_core/field.rs.html#285">field</a>, <span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing_core/field.rs.html#285">value</a>)
     }
 
     <span class="doccomment">/// Visit a string value.</span>
-    <span class="kw">fn</span> <span class="ident">record_str</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">field</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing_core/field.rs.html#61-64">Field</a>, <span class="ident">value</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) {
-        <a class="self" href="../../src/tracing_core/field.rs.html#208">self</a>.<a class="ident" href="../../src/tracing_core/field.rs.html#226">record_debug</a>(<a class="ident" href="../../src/tracing_core/field.rs.html#208">field</a>, <span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing_core/field.rs.html#208">value</a>)
+    <span class="kw">fn</span> <span class="ident">record_str</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">field</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing_core/field.rs.html#134-137">Field</a>, <span class="ident">value</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) {
+        <a class="self" href="../../src/tracing_core/field.rs.html#290">self</a>.<a class="ident" href="../../src/tracing_core/field.rs.html#308">record_debug</a>(<a class="ident" href="../../src/tracing_core/field.rs.html#290">field</a>, <span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing_core/field.rs.html#290">value</a>)
     }
 
     <span class="doccomment">/// Records a type implementing `Error`.</span>
@@ -1231,12 +1432,12 @@
     <span class="doccomment">/// &lt;/pre&gt;</span>
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)]</span>
     <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)))]</span>
-    <span class="kw">fn</span> <span class="ident">record_error</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">field</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing_core/field.rs.html#61-64">Field</a>, <span class="ident">value</span>: <span class="kw-2">&amp;</span>(<span class="kw">dyn</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/error/trait.Error.html">std::error::Error</a> <span class="op">+</span> <span class="lifetime">&#39;static</span>)) {
-        <a class="self" href="../../src/tracing_core/field.rs.html#221">self</a>.<a class="ident" href="../../src/tracing_core/field.rs.html#226">record_debug</a>(<a class="ident" href="../../src/tracing_core/field.rs.html#221">field</a>, <span class="kw-2">&amp;</span><span class="macro">format_args!</span>(<span class="string">&quot;{}&quot;</span>, <a class="ident" href="../../src/tracing_core/field.rs.html#221">value</a>))
+    <span class="kw">fn</span> <span class="ident">record_error</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">field</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing_core/field.rs.html#134-137">Field</a>, <span class="ident">value</span>: <span class="kw-2">&amp;</span>(<span class="kw">dyn</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/error/trait.Error.html">std::error::Error</a> <span class="op">+</span> <span class="lifetime">&#39;static</span>)) {
+        <a class="self" href="../../src/tracing_core/field.rs.html#303">self</a>.<a class="ident" href="../../src/tracing_core/field.rs.html#308">record_debug</a>(<a class="ident" href="../../src/tracing_core/field.rs.html#303">field</a>, <span class="kw-2">&amp;</span><span class="macro">format_args!</span>(<span class="string">&quot;{}&quot;</span>, <a class="ident" href="../../src/tracing_core/field.rs.html#303">value</a>))
     }
 
     <span class="doccomment">/// Visit a value implementing `fmt::Debug`.</span>
-    <span class="kw">fn</span> <span class="ident">record_debug</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">field</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing_core/field.rs.html#61-64">Field</a>, <span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="kw">dyn</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a>);
+    <span class="kw">fn</span> <span class="ident">record_debug</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">field</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing_core/field.rs.html#134-137">Field</a>, <span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="kw">dyn</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a>);
 }
 
 <span class="doccomment">/// A field value of an erased type.</span>
@@ -1246,9 +1447,9 @@
 <span class="doccomment">/// their data should be recorded.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// [visitor]: trait.Visit.html</span>
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">Value</span>: <a class="ident" href="../../src/tracing_core/lib.rs.html#278"><span class="kw">crate</span>::sealed::Sealed</a> {
+<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">Value</span>: <a class="ident" href="../../src/tracing_core/lib.rs.html#303"><span class="kw">crate</span>::sealed::Sealed</a> {
     <span class="doccomment">/// Visits this value with the given `Visitor`.</span>
-    <span class="kw">fn</span> <span class="ident">record</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">key</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing_core/field.rs.html#61-64">Field</a>, <span class="ident">visitor</span>: <span class="kw-2">&amp;mut</span> <span class="kw">dyn</span> <a class="ident" href="../../src/tracing_core/field.rs.html#186-227">Visit</a>);
+    <span class="kw">fn</span> <span class="ident">record</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">key</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing_core/field.rs.html#134-137">Field</a>, <span class="ident">visitor</span>: <span class="kw-2">&amp;mut</span> <span class="kw">dyn</span> <a class="ident" href="../../src/tracing_core/field.rs.html#259-309">Visit</a>);
 }
 
 <span class="doccomment">/// A `Value` which serializes using `fmt::Display`.</span>
@@ -1268,7 +1469,7 @@
 <span class="kw">where</span>
     <span class="ident">T</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a>,
 {
-    <a class="ident" href="../../src/tracing_core/field.rs.html#246">DisplayValue</a>(<a class="ident" href="../../src/tracing_core/field.rs.html#254">t</a>)
+    <a class="ident" href="../../src/tracing_core/field.rs.html#328">DisplayValue</a>(<a class="ident" href="../../src/tracing_core/field.rs.html#336">t</a>)
 }
 
 <span class="doccomment">/// Wraps a type implementing `fmt::Debug` as a `Value` that can be</span>
@@ -1277,29 +1478,42 @@
 <span class="kw">where</span>
     <span class="ident">T</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a>,
 {
-    <a class="ident" href="../../src/tracing_core/field.rs.html#250">DebugValue</a>(<a class="ident" href="../../src/tracing_core/field.rs.html#263">t</a>)
+    <a class="ident" href="../../src/tracing_core/field.rs.html#332">DebugValue</a>(<a class="ident" href="../../src/tracing_core/field.rs.html#345">t</a>)
+}
+
+<span class="doccomment">/// Wraps a type implementing [`Valuable`] as a `Value` that</span>
+<span class="doccomment">/// can be recorded using its `Valuable` implementation.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// [`Valuable`]: https://docs.rs/valuable/latest/valuable/trait.Valuable.html</span>
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">tracing_unstable</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;valuable&quot;</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">tracing_unstable</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;valuable&quot;</span>))))]</span>
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">valuable</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">t</span>: <span class="kw-2">&amp;</span><span class="ident">T</span>) -&gt; <span class="ident">valuable::Value</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>
+<span class="kw">where</span>
+    <span class="ident">T</span>: <span class="ident">valuable::Valuable</span>,
+{
+    <span class="ident">t</span>.<span class="ident">as_value</span>()
 }
 
 <span class="comment">// ===== impl Visit =====</span>
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span><span class="op">&gt;</span> <a class="ident" href="../../src/tracing_core/field.rs.html#186-227">Visit</a> <span class="kw">for</span> <span class="ident">fmt::DebugStruct</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">record_debug</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">field</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing_core/field.rs.html#61-64">Field</a>, <span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="kw">dyn</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a>) {
-        <a class="self" href="../../src/tracing_core/field.rs.html#273">self</a>.<span class="ident">field</span>(<a class="ident" href="../../src/tracing_core/field.rs.html#273">field</a>.<a class="ident" href="../../src/tracing_core/field.rs.html#572">name</a>(), <a class="ident" href="../../src/tracing_core/field.rs.html#273">value</a>);
+<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span><span class="op">&gt;</span> <a class="ident" href="../../src/tracing_core/field.rs.html#259-309">Visit</a> <span class="kw">for</span> <span class="ident">fmt::DebugStruct</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">record_debug</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">field</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing_core/field.rs.html#134-137">Field</a>, <span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="kw">dyn</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a>) {
+        <a class="self" href="../../src/tracing_core/field.rs.html#368">self</a>.<span class="ident">field</span>(<a class="ident" href="../../src/tracing_core/field.rs.html#368">field</a>.<a class="ident" href="../../src/tracing_core/field.rs.html#691">name</a>(), <a class="ident" href="../../src/tracing_core/field.rs.html#368">value</a>);
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span><span class="op">&gt;</span> <a class="ident" href="../../src/tracing_core/field.rs.html#186-227">Visit</a> <span class="kw">for</span> <span class="ident">fmt::DebugMap</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">record_debug</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">field</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing_core/field.rs.html#61-64">Field</a>, <span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="kw">dyn</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a>) {
-        <a class="self" href="../../src/tracing_core/field.rs.html#279">self</a>.<span class="ident">entry</span>(<span class="kw-2">&amp;</span><span class="macro">format_args!</span>(<span class="string">&quot;{}&quot;</span>, <a class="ident" href="../../src/tracing_core/field.rs.html#279">field</a>), <a class="ident" href="../../src/tracing_core/field.rs.html#279">value</a>);
+<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span><span class="op">&gt;</span> <a class="ident" href="../../src/tracing_core/field.rs.html#259-309">Visit</a> <span class="kw">for</span> <span class="ident">fmt::DebugMap</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">record_debug</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">field</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing_core/field.rs.html#134-137">Field</a>, <span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="kw">dyn</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a>) {
+        <a class="self" href="../../src/tracing_core/field.rs.html#374">self</a>.<span class="ident">entry</span>(<span class="kw-2">&amp;</span><span class="macro">format_args!</span>(<span class="string">&quot;{}&quot;</span>, <a class="ident" href="../../src/tracing_core/field.rs.html#374">field</a>), <a class="ident" href="../../src/tracing_core/field.rs.html#374">value</a>);
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span> <a class="ident" href="../../src/tracing_core/field.rs.html#186-227">Visit</a> <span class="kw">for</span> <span class="ident">F</span>
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span> <a class="ident" href="../../src/tracing_core/field.rs.html#259-309">Visit</a> <span class="kw">for</span> <span class="ident">F</span>
 <span class="kw">where</span>
-    <span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing_core/field.rs.html#61-64">Field</a>, <span class="kw-2">&amp;</span><span class="kw">dyn</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a>),
+    <span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing_core/field.rs.html#134-137">Field</a>, <span class="kw-2">&amp;</span><span class="kw">dyn</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a>),
 {
-    <span class="kw">fn</span> <span class="ident">record_debug</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">field</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing_core/field.rs.html#61-64">Field</a>, <span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="kw">dyn</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a>) {
-        (<a class="self" href="../../src/tracing_core/field.rs.html#288">self</a>)(<a class="ident" href="../../src/tracing_core/field.rs.html#288">field</a>, <a class="ident" href="../../src/tracing_core/field.rs.html#288">value</a>)
+    <span class="kw">fn</span> <span class="ident">record_debug</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">field</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing_core/field.rs.html#134-137">Field</a>, <span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="kw">dyn</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a>) {
+        (<a class="self" href="../../src/tracing_core/field.rs.html#383">self</a>)(<a class="ident" href="../../src/tracing_core/field.rs.html#383">field</a>, <a class="ident" href="../../src/tracing_core/field.rs.html#383">value</a>)
     }
 }
 
@@ -1407,80 +1621,80 @@
 <span class="comment">// ===== impl Value =====</span>
 
 <span class="macro">impl_values!</span> {
-    <a class="ident" href="../../src/tracing_core/field.rs.html#198">record_u64</a>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>),
-    <a class="ident" href="../../src/tracing_core/field.rs.html#198">record_u64</a>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>),
-    <a class="ident" href="../../src/tracing_core/field.rs.html#193">record_i64</a>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>),
-    <a class="ident" href="../../src/tracing_core/field.rs.html#193">record_i64</a>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.isize.html">isize</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i16.html">i16</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i8.html">i8</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>),
-    <a class="ident" href="../../src/tracing_core/field.rs.html#203">record_bool</a>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>),
-    <a class="ident" href="../../src/tracing_core/field.rs.html#188">record_f64</a>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.f64.html">f64</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.f32.html">f32</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.f64.html">f64</a>)
+    <a class="ident" href="../../src/tracing_core/field.rs.html#280">record_u64</a>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>),
+    <a class="ident" href="../../src/tracing_core/field.rs.html#280">record_u64</a>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>),
+    <a class="ident" href="../../src/tracing_core/field.rs.html#275">record_i64</a>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>),
+    <a class="ident" href="../../src/tracing_core/field.rs.html#275">record_i64</a>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.isize.html">isize</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i16.html">i16</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i8.html">i8</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>),
+    <a class="ident" href="../../src/tracing_core/field.rs.html#285">record_bool</a>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>),
+    <a class="ident" href="../../src/tracing_core/field.rs.html#270">record_f64</a>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.f64.html">f64</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.f32.html">f32</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.f64.html">f64</a>)
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="../../src/tracing_core/lib.rs.html#278"><span class="kw">crate</span>::sealed::Sealed</a><span class="op">&gt;</span> <a class="ident" href="../../src/tracing_core/lib.rs.html#278"><span class="kw">crate</span>::sealed::Sealed</a> <span class="kw">for</span> <span class="ident">Wrapping</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {}
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="../../src/tracing_core/field.rs.html#236-239"><span class="kw">crate</span>::field::Value</a><span class="op">&gt;</span> <a class="ident" href="../../src/tracing_core/field.rs.html#236-239"><span class="kw">crate</span>::field::Value</a> <span class="kw">for</span> <span class="ident">Wrapping</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">record</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">key</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing_core/field.rs.html#61-64"><span class="kw">crate</span>::field::Field</a>, <span class="ident">visitor</span>: <span class="kw-2">&amp;mut</span> <span class="kw">dyn</span> <a class="ident" href="../../src/tracing_core/field.rs.html#186-227"><span class="kw">crate</span>::field::Visit</a>) {
-        <a class="self" href="../../src/tracing_core/field.rs.html#407">self</a>.<span class="number">0</span>.<a class="ident" href="../../src/tracing_core/field.rs.html#238">record</a>(<a class="ident" href="../../src/tracing_core/field.rs.html#407">key</a>, <a class="ident" href="../../src/tracing_core/field.rs.html#407">visitor</a>)
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="../../src/tracing_core/lib.rs.html#303"><span class="kw">crate</span>::sealed::Sealed</a><span class="op">&gt;</span> <a class="ident" href="../../src/tracing_core/lib.rs.html#303"><span class="kw">crate</span>::sealed::Sealed</a> <span class="kw">for</span> <span class="ident">Wrapping</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {}
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="../../src/tracing_core/field.rs.html#318-321"><span class="kw">crate</span>::field::Value</a><span class="op">&gt;</span> <a class="ident" href="../../src/tracing_core/field.rs.html#318-321"><span class="kw">crate</span>::field::Value</a> <span class="kw">for</span> <span class="ident">Wrapping</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">record</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">key</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing_core/field.rs.html#134-137"><span class="kw">crate</span>::field::Field</a>, <span class="ident">visitor</span>: <span class="kw-2">&amp;mut</span> <span class="kw">dyn</span> <a class="ident" href="../../src/tracing_core/field.rs.html#259-309"><span class="kw">crate</span>::field::Visit</a>) {
+        <a class="self" href="../../src/tracing_core/field.rs.html#502">self</a>.<span class="number">0</span>.<a class="ident" href="../../src/tracing_core/field.rs.html#320">record</a>(<a class="ident" href="../../src/tracing_core/field.rs.html#502">key</a>, <a class="ident" href="../../src/tracing_core/field.rs.html#502">visitor</a>)
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../src/tracing_core/lib.rs.html#278"><span class="kw">crate</span>::sealed::Sealed</a> <span class="kw">for</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> {}
+<span class="kw">impl</span> <a class="ident" href="../../src/tracing_core/lib.rs.html#303"><span class="kw">crate</span>::sealed::Sealed</a> <span class="kw">for</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> {}
 
-<span class="kw">impl</span> <a class="ident" href="../../src/tracing_core/field.rs.html#236-239">Value</a> <span class="kw">for</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> {
-    <span class="kw">fn</span> <span class="ident">record</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">key</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing_core/field.rs.html#61-64">Field</a>, <span class="ident">visitor</span>: <span class="kw-2">&amp;mut</span> <span class="kw">dyn</span> <a class="ident" href="../../src/tracing_core/field.rs.html#186-227">Visit</a>) {
-        <a class="ident" href="../../src/tracing_core/field.rs.html#415">visitor</a>.<a class="ident" href="../../src/tracing_core/field.rs.html#208">record_str</a>(<a class="ident" href="../../src/tracing_core/field.rs.html#415">key</a>, <a class="self" href="../../src/tracing_core/field.rs.html#415">self</a>)
+<span class="kw">impl</span> <a class="ident" href="../../src/tracing_core/field.rs.html#318-321">Value</a> <span class="kw">for</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> {
+    <span class="kw">fn</span> <span class="ident">record</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">key</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing_core/field.rs.html#134-137">Field</a>, <span class="ident">visitor</span>: <span class="kw-2">&amp;mut</span> <span class="kw">dyn</span> <a class="ident" href="../../src/tracing_core/field.rs.html#259-309">Visit</a>) {
+        <a class="ident" href="../../src/tracing_core/field.rs.html#510">visitor</a>.<a class="ident" href="../../src/tracing_core/field.rs.html#290">record_str</a>(<a class="ident" href="../../src/tracing_core/field.rs.html#510">key</a>, <a class="self" href="../../src/tracing_core/field.rs.html#510">self</a>)
     }
 }
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)]</span>
-<span class="kw">impl</span> <a class="ident" href="../../src/tracing_core/lib.rs.html#278"><span class="kw">crate</span>::sealed::Sealed</a> <span class="kw">for</span> <span class="kw">dyn</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/error/trait.Error.html">std::error::Error</a> <span class="op">+</span> <span class="lifetime">&#39;static</span> {}
+<span class="kw">impl</span> <a class="ident" href="../../src/tracing_core/lib.rs.html#303"><span class="kw">crate</span>::sealed::Sealed</a> <span class="kw">for</span> <span class="kw">dyn</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/error/trait.Error.html">std::error::Error</a> <span class="op">+</span> <span class="lifetime">&#39;static</span> {}
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)]</span>
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)))]</span>
-<span class="kw">impl</span> <a class="ident" href="../../src/tracing_core/field.rs.html#236-239">Value</a> <span class="kw">for</span> <span class="kw">dyn</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/error/trait.Error.html">std::error::Error</a> <span class="op">+</span> <span class="lifetime">&#39;static</span> {
-    <span class="kw">fn</span> <span class="ident">record</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">key</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing_core/field.rs.html#61-64">Field</a>, <span class="ident">visitor</span>: <span class="kw-2">&amp;mut</span> <span class="kw">dyn</span> <a class="ident" href="../../src/tracing_core/field.rs.html#186-227">Visit</a>) {
-        <a class="ident" href="../../src/tracing_core/field.rs.html#426">visitor</a>.<a class="ident" href="../../src/tracing_core/field.rs.html#221">record_error</a>(<a class="ident" href="../../src/tracing_core/field.rs.html#426">key</a>, <a class="self" href="../../src/tracing_core/field.rs.html#426">self</a>)
+<span class="kw">impl</span> <a class="ident" href="../../src/tracing_core/field.rs.html#318-321">Value</a> <span class="kw">for</span> <span class="kw">dyn</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/error/trait.Error.html">std::error::Error</a> <span class="op">+</span> <span class="lifetime">&#39;static</span> {
+    <span class="kw">fn</span> <span class="ident">record</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">key</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing_core/field.rs.html#134-137">Field</a>, <span class="ident">visitor</span>: <span class="kw-2">&amp;mut</span> <span class="kw">dyn</span> <a class="ident" href="../../src/tracing_core/field.rs.html#259-309">Visit</a>) {
+        <a class="ident" href="../../src/tracing_core/field.rs.html#521">visitor</a>.<a class="ident" href="../../src/tracing_core/field.rs.html#303">record_error</a>(<a class="ident" href="../../src/tracing_core/field.rs.html#521">key</a>, <a class="self" href="../../src/tracing_core/field.rs.html#521">self</a>)
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span>: <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a><span class="op">&gt;</span> <a class="ident" href="../../src/tracing_core/lib.rs.html#278"><span class="kw">crate</span>::sealed::Sealed</a> <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">T</span> <span class="kw">where</span> <span class="ident">T</span>: <a class="ident" href="../../src/tracing_core/field.rs.html#236-239">Value</a> <span class="op">+</span> <a class="ident" href="../../src/tracing_core/lib.rs.html#278"><span class="kw">crate</span>::sealed::Sealed</a> <span class="op">+</span> <span class="lifetime">&#39;a</span> {}
+<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span>: <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a><span class="op">&gt;</span> <a class="ident" href="../../src/tracing_core/lib.rs.html#303"><span class="kw">crate</span>::sealed::Sealed</a> <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">T</span> <span class="kw">where</span> <span class="ident">T</span>: <a class="ident" href="../../src/tracing_core/field.rs.html#318-321">Value</a> <span class="op">+</span> <a class="ident" href="../../src/tracing_core/lib.rs.html#303"><span class="kw">crate</span>::sealed::Sealed</a> <span class="op">+</span> <span class="lifetime">&#39;a</span> {}
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span>: <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a><span class="op">&gt;</span> <a class="ident" href="../../src/tracing_core/field.rs.html#236-239">Value</a> <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">T</span>
+<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span>: <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a><span class="op">&gt;</span> <a class="ident" href="../../src/tracing_core/field.rs.html#318-321">Value</a> <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">T</span>
 <span class="kw">where</span>
-    <span class="ident">T</span>: <a class="ident" href="../../src/tracing_core/field.rs.html#236-239">Value</a> <span class="op">+</span> <span class="lifetime">&#39;a</span>,
+    <span class="ident">T</span>: <a class="ident" href="../../src/tracing_core/field.rs.html#318-321">Value</a> <span class="op">+</span> <span class="lifetime">&#39;a</span>,
 {
-    <span class="kw">fn</span> <span class="ident">record</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">key</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing_core/field.rs.html#61-64">Field</a>, <span class="ident">visitor</span>: <span class="kw-2">&amp;mut</span> <span class="kw">dyn</span> <a class="ident" href="../../src/tracing_core/field.rs.html#186-227">Visit</a>) {
-        (<span class="kw-2">*</span><a class="self" href="../../src/tracing_core/field.rs.html#437">self</a>).<a class="ident" href="../../src/tracing_core/field.rs.html#238">record</a>(<a class="ident" href="../../src/tracing_core/field.rs.html#437">key</a>, <a class="ident" href="../../src/tracing_core/field.rs.html#437">visitor</a>)
+    <span class="kw">fn</span> <span class="ident">record</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">key</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing_core/field.rs.html#134-137">Field</a>, <span class="ident">visitor</span>: <span class="kw-2">&amp;mut</span> <span class="kw">dyn</span> <a class="ident" href="../../src/tracing_core/field.rs.html#259-309">Visit</a>) {
+        (<span class="kw-2">*</span><a class="self" href="../../src/tracing_core/field.rs.html#532">self</a>).<a class="ident" href="../../src/tracing_core/field.rs.html#320">record</a>(<a class="ident" href="../../src/tracing_core/field.rs.html#532">key</a>, <a class="ident" href="../../src/tracing_core/field.rs.html#532">visitor</a>)
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span>: <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a><span class="op">&gt;</span> <a class="ident" href="../../src/tracing_core/lib.rs.html#278"><span class="kw">crate</span>::sealed::Sealed</a> <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">T</span> <span class="kw">where</span> <span class="ident">T</span>: <a class="ident" href="../../src/tracing_core/field.rs.html#236-239">Value</a> <span class="op">+</span> <a class="ident" href="../../src/tracing_core/lib.rs.html#278"><span class="kw">crate</span>::sealed::Sealed</a> <span class="op">+</span> <span class="lifetime">&#39;a</span> {}
+<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span>: <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a><span class="op">&gt;</span> <a class="ident" href="../../src/tracing_core/lib.rs.html#303"><span class="kw">crate</span>::sealed::Sealed</a> <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">T</span> <span class="kw">where</span> <span class="ident">T</span>: <a class="ident" href="../../src/tracing_core/field.rs.html#318-321">Value</a> <span class="op">+</span> <a class="ident" href="../../src/tracing_core/lib.rs.html#303"><span class="kw">crate</span>::sealed::Sealed</a> <span class="op">+</span> <span class="lifetime">&#39;a</span> {}
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span>: <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a><span class="op">&gt;</span> <a class="ident" href="../../src/tracing_core/field.rs.html#236-239">Value</a> <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">T</span>
+<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span>: <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a><span class="op">&gt;</span> <a class="ident" href="../../src/tracing_core/field.rs.html#318-321">Value</a> <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">T</span>
 <span class="kw">where</span>
-    <span class="ident">T</span>: <a class="ident" href="../../src/tracing_core/field.rs.html#236-239">Value</a> <span class="op">+</span> <span class="lifetime">&#39;a</span>,
+    <span class="ident">T</span>: <a class="ident" href="../../src/tracing_core/field.rs.html#318-321">Value</a> <span class="op">+</span> <span class="lifetime">&#39;a</span>,
 {
-    <span class="kw">fn</span> <span class="ident">record</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">key</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing_core/field.rs.html#61-64">Field</a>, <span class="ident">visitor</span>: <span class="kw-2">&amp;mut</span> <span class="kw">dyn</span> <a class="ident" href="../../src/tracing_core/field.rs.html#186-227">Visit</a>) {
+    <span class="kw">fn</span> <span class="ident">record</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">key</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing_core/field.rs.html#134-137">Field</a>, <span class="ident">visitor</span>: <span class="kw-2">&amp;mut</span> <span class="kw">dyn</span> <a class="ident" href="../../src/tracing_core/field.rs.html#259-309">Visit</a>) {
         <span class="comment">// Don&#39;t use `(*self).record(key, visitor)`, otherwise would</span>
         <span class="comment">// cause stack overflow due to `unconditional_recursion`.</span>
-        <span class="ident">T::record</span>(<a class="self" href="../../src/tracing_core/field.rs.html#448">self</a>, <a class="ident" href="../../src/tracing_core/field.rs.html#448">key</a>, <a class="ident" href="../../src/tracing_core/field.rs.html#448">visitor</a>)
+        <span class="ident">T::record</span>(<a class="self" href="../../src/tracing_core/field.rs.html#543">self</a>, <a class="ident" href="../../src/tracing_core/field.rs.html#543">key</a>, <a class="ident" href="../../src/tracing_core/field.rs.html#543">visitor</a>)
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <a class="ident" href="../../src/tracing_core/lib.rs.html#278"><span class="kw">crate</span>::sealed::Sealed</a> <span class="kw">for</span> <span class="ident">fmt::Arguments</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {}
+<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <a class="ident" href="../../src/tracing_core/lib.rs.html#303"><span class="kw">crate</span>::sealed::Sealed</a> <span class="kw">for</span> <span class="ident">fmt::Arguments</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {}
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <a class="ident" href="../../src/tracing_core/field.rs.html#236-239">Value</a> <span class="kw">for</span> <span class="ident">fmt::Arguments</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">record</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">key</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing_core/field.rs.html#61-64">Field</a>, <span class="ident">visitor</span>: <span class="kw-2">&amp;mut</span> <span class="kw">dyn</span> <a class="ident" href="../../src/tracing_core/field.rs.html#186-227">Visit</a>) {
-        <a class="ident" href="../../src/tracing_core/field.rs.html#458">visitor</a>.<a class="ident" href="../../src/tracing_core/field.rs.html#226">record_debug</a>(<a class="ident" href="../../src/tracing_core/field.rs.html#458">key</a>, <a class="self" href="../../src/tracing_core/field.rs.html#458">self</a>)
+<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <a class="ident" href="../../src/tracing_core/field.rs.html#318-321">Value</a> <span class="kw">for</span> <span class="ident">fmt::Arguments</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">record</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">key</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing_core/field.rs.html#134-137">Field</a>, <span class="ident">visitor</span>: <span class="kw-2">&amp;mut</span> <span class="kw">dyn</span> <a class="ident" href="../../src/tracing_core/field.rs.html#259-309">Visit</a>) {
+        <a class="ident" href="../../src/tracing_core/field.rs.html#553">visitor</a>.<a class="ident" href="../../src/tracing_core/field.rs.html#308">record_debug</a>(<a class="ident" href="../../src/tracing_core/field.rs.html#553">key</a>, <a class="self" href="../../src/tracing_core/field.rs.html#553">self</a>)
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <span class="kw">dyn</span> <a class="ident" href="../../src/tracing_core/field.rs.html#236-239">Value</a> {
+<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <span class="kw">dyn</span> <a class="ident" href="../../src/tracing_core/field.rs.html#318-321">Value</a> {
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
         <span class="comment">// We are only going to be recording the field value, so we don&#39;t</span>
         <span class="comment">// actually care about the field name here.</span>
         <span class="kw">struct</span> <span class="ident">NullCallsite</span>;
-        <span class="kw">static</span> <span class="ident">NULL_CALLSITE</span>: <a class="ident" href="../../src/tracing_core/field.rs.html#467">NullCallsite</a> <span class="op">=</span> <a class="ident" href="../../src/tracing_core/field.rs.html#467">NullCallsite</a>;
-        <span class="kw">impl</span> <a class="ident" href="../../src/tracing_core/callsite.rs.html#77-87"><span class="kw">crate</span>::callsite::Callsite</a> <span class="kw">for</span> <a class="ident" href="../../src/tracing_core/field.rs.html#467">NullCallsite</a> {
-            <span class="kw">fn</span> <span class="ident">set_interest</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: <a class="ident" href="../../src/tracing_core/subscriber.rs.html#489"><span class="kw">crate</span>::subscriber::Interest</a>) {
+        <span class="kw">static</span> <span class="ident">NULL_CALLSITE</span>: <a class="ident" href="../../src/tracing_core/field.rs.html#562">NullCallsite</a> <span class="op">=</span> <a class="ident" href="../../src/tracing_core/field.rs.html#562">NullCallsite</a>;
+        <span class="kw">impl</span> <a class="ident" href="../../src/tracing_core/callsite.rs.html#77-87"><span class="kw">crate</span>::callsite::Callsite</a> <span class="kw">for</span> <a class="ident" href="../../src/tracing_core/field.rs.html#562">NullCallsite</a> {
+            <span class="kw">fn</span> <span class="ident">set_interest</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: <a class="ident" href="../../src/tracing_core/subscriber.rs.html#488"><span class="kw">crate</span>::subscriber::Interest</a>) {
                 <span class="macro">unreachable!</span>(<span class="string">&quot;you somehow managed to register the null callsite?&quot;</span>)
             }
 
@@ -1489,88 +1703,112 @@
             }
         }
 
-        <span class="kw">static</span> <span class="ident">FIELD</span>: <a class="ident" href="../../src/tracing_core/field.rs.html#61-64">Field</a> <span class="op">=</span> <a class="ident" href="../../src/tracing_core/field.rs.html#61-64">Field</a> {
+        <span class="kw">static</span> <span class="ident">FIELD</span>: <a class="ident" href="../../src/tracing_core/field.rs.html#134-137">Field</a> <span class="op">=</span> <a class="ident" href="../../src/tracing_core/field.rs.html#134-137">Field</a> {
             <span class="ident">i</span>: <span class="number">0</span>,
-            <span class="ident">fields</span>: <span class="ident">FieldSet::new</span>(<span class="kw-2">&amp;</span>[], <span class="macro">crate::identify_callsite!</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing_core/field.rs.html#468">NULL_CALLSITE</a>)),
+            <span class="ident">fields</span>: <span class="ident">FieldSet::new</span>(<span class="kw-2">&amp;</span>[], <span class="macro">crate::identify_callsite!</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing_core/field.rs.html#563">NULL_CALLSITE</a>)),
         };
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">res</span> <span class="op">=</span> <span class="prelude-val">Ok</span>(());
-        <a class="self" href="../../src/tracing_core/field.rs.html#464">self</a>.<a class="ident" href="../../src/tracing_core/field.rs.html#238">record</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing_core/field.rs.html#479-482">FIELD</a>, <span class="kw-2">&amp;mut</span> <span class="op">|</span><span class="kw">_</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing_core/field.rs.html#61-64">Field</a>, <span class="ident">val</span>: <span class="kw-2">&amp;</span><span class="kw">dyn</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a><span class="op">|</span> {
-            <a class="ident" href="../../src/tracing_core/field.rs.html#484">res</a> <span class="op">=</span> <span class="macro">write!</span>(<a class="ident" href="../../src/tracing_core/field.rs.html#464">f</a>, <span class="string">&quot;{:?}&quot;</span>, <a class="ident" href="../../src/tracing_core/field.rs.html#485">val</a>);
+        <a class="self" href="../../src/tracing_core/field.rs.html#559">self</a>.<a class="ident" href="../../src/tracing_core/field.rs.html#320">record</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing_core/field.rs.html#574-577">FIELD</a>, <span class="kw-2">&amp;mut</span> <span class="op">|</span><span class="kw">_</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing_core/field.rs.html#134-137">Field</a>, <span class="ident">val</span>: <span class="kw-2">&amp;</span><span class="kw">dyn</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a><span class="op">|</span> {
+            <a class="ident" href="../../src/tracing_core/field.rs.html#579">res</a> <span class="op">=</span> <span class="macro">write!</span>(<a class="ident" href="../../src/tracing_core/field.rs.html#559">f</a>, <span class="string">&quot;{:?}&quot;</span>, <a class="ident" href="../../src/tracing_core/field.rs.html#580">val</a>);
         });
-        <a class="ident" href="../../src/tracing_core/field.rs.html#484">res</a>
+        <a class="ident" href="../../src/tracing_core/field.rs.html#579">res</a>
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for</span> <span class="kw">dyn</span> <a class="ident" href="../../src/tracing_core/field.rs.html#236-239">Value</a> {
+<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for</span> <span class="kw">dyn</span> <a class="ident" href="../../src/tracing_core/field.rs.html#318-321">Value</a> {
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug::fmt</a>(<a class="self" href="../../src/tracing_core/field.rs.html#493">self</a>, <a class="ident" href="../../src/tracing_core/field.rs.html#493">f</a>)
+        <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug::fmt</a>(<a class="self" href="../../src/tracing_core/field.rs.html#588">self</a>, <a class="ident" href="../../src/tracing_core/field.rs.html#588">f</a>)
     }
 }
 
 <span class="comment">// ===== impl DisplayValue =====</span>
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a><span class="op">&gt;</span> <a class="ident" href="../../src/tracing_core/lib.rs.html#278"><span class="kw">crate</span>::sealed::Sealed</a> <span class="kw">for</span> <span class="ident">DisplayValue</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {}
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a><span class="op">&gt;</span> <a class="ident" href="../../src/tracing_core/lib.rs.html#303"><span class="kw">crate</span>::sealed::Sealed</a> <span class="kw">for</span> <span class="ident">DisplayValue</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {}
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <a class="ident" href="../../src/tracing_core/field.rs.html#236-239">Value</a> <span class="kw">for</span> <span class="ident">DisplayValue</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <a class="ident" href="../../src/tracing_core/field.rs.html#318-321">Value</a> <span class="kw">for</span> <span class="ident">DisplayValue</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>
 <span class="kw">where</span>
     <span class="ident">T</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a>,
 {
-    <span class="kw">fn</span> <span class="ident">record</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">key</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing_core/field.rs.html#61-64">Field</a>, <span class="ident">visitor</span>: <span class="kw-2">&amp;mut</span> <span class="kw">dyn</span> <a class="ident" href="../../src/tracing_core/field.rs.html#186-227">Visit</a>) {
-        <a class="ident" href="../../src/tracing_core/field.rs.html#506">visitor</a>.<a class="ident" href="../../src/tracing_core/field.rs.html#226">record_debug</a>(<a class="ident" href="../../src/tracing_core/field.rs.html#506">key</a>, <span class="kw-2">&amp;</span><span class="macro">format_args!</span>(<span class="string">&quot;{}&quot;</span>, <a class="self" href="../../src/tracing_core/field.rs.html#506">self</a>.<span class="number">0</span>))
+    <span class="kw">fn</span> <span class="ident">record</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">key</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing_core/field.rs.html#134-137">Field</a>, <span class="ident">visitor</span>: <span class="kw-2">&amp;mut</span> <span class="kw">dyn</span> <a class="ident" href="../../src/tracing_core/field.rs.html#259-309">Visit</a>) {
+        <a class="ident" href="../../src/tracing_core/field.rs.html#601">visitor</a>.<a class="ident" href="../../src/tracing_core/field.rs.html#308">record_debug</a>(<a class="ident" href="../../src/tracing_core/field.rs.html#601">key</a>, <span class="kw-2">&amp;</span><span class="macro">format_args!</span>(<span class="string">&quot;{}&quot;</span>, <a class="self" href="../../src/tracing_core/field.rs.html#601">self</a>.<span class="number">0</span>))
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <span class="ident">DisplayValue</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <span class="macro">write!</span>(<a class="ident" href="../../src/tracing_core/field.rs.html#512">f</a>, <span class="string">&quot;{}&quot;</span>, <a class="self" href="../../src/tracing_core/field.rs.html#512">self</a>.<span class="number">0</span>)
+        <span class="macro">write!</span>(<a class="ident" href="../../src/tracing_core/field.rs.html#607">f</a>, <span class="string">&quot;{}&quot;</span>, <a class="self" href="../../src/tracing_core/field.rs.html#607">self</a>.<span class="number">0</span>)
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for</span> <span class="ident">DisplayValue</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display::fmt</a>(<span class="kw-2">&amp;</span><a class="self" href="../../src/tracing_core/field.rs.html#518">self</a>.<span class="number">0</span>, <a class="ident" href="../../src/tracing_core/field.rs.html#518">f</a>)
+        <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display::fmt</a>(<span class="kw-2">&amp;</span><a class="self" href="../../src/tracing_core/field.rs.html#613">self</a>.<span class="number">0</span>, <a class="ident" href="../../src/tracing_core/field.rs.html#613">f</a>)
     }
 }
 
 <span class="comment">// ===== impl DebugValue =====</span>
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a><span class="op">&gt;</span> <a class="ident" href="../../src/tracing_core/lib.rs.html#278"><span class="kw">crate</span>::sealed::Sealed</a> <span class="kw">for</span> <span class="ident">DebugValue</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {}
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a><span class="op">&gt;</span> <a class="ident" href="../../src/tracing_core/lib.rs.html#303"><span class="kw">crate</span>::sealed::Sealed</a> <span class="kw">for</span> <span class="ident">DebugValue</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {}
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <a class="ident" href="../../src/tracing_core/field.rs.html#236-239">Value</a> <span class="kw">for</span> <span class="ident">DebugValue</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <a class="ident" href="../../src/tracing_core/field.rs.html#318-321">Value</a> <span class="kw">for</span> <span class="ident">DebugValue</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>
 <span class="kw">where</span>
     <span class="ident">T</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a>,
 {
-    <span class="kw">fn</span> <span class="ident">record</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">key</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing_core/field.rs.html#61-64">Field</a>, <span class="ident">visitor</span>: <span class="kw-2">&amp;mut</span> <span class="kw">dyn</span> <a class="ident" href="../../src/tracing_core/field.rs.html#186-227">Visit</a>) {
-        <a class="ident" href="../../src/tracing_core/field.rs.html#531">visitor</a>.<a class="ident" href="../../src/tracing_core/field.rs.html#226">record_debug</a>(<a class="ident" href="../../src/tracing_core/field.rs.html#531">key</a>, <span class="kw-2">&amp;</span><a class="self" href="../../src/tracing_core/field.rs.html#531">self</a>.<span class="number">0</span>)
+    <span class="kw">fn</span> <span class="ident">record</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">key</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing_core/field.rs.html#134-137">Field</a>, <span class="ident">visitor</span>: <span class="kw-2">&amp;mut</span> <span class="kw">dyn</span> <a class="ident" href="../../src/tracing_core/field.rs.html#259-309">Visit</a>) {
+        <a class="ident" href="../../src/tracing_core/field.rs.html#626">visitor</a>.<a class="ident" href="../../src/tracing_core/field.rs.html#308">record_debug</a>(<a class="ident" href="../../src/tracing_core/field.rs.html#626">key</a>, <span class="kw-2">&amp;</span><a class="self" href="../../src/tracing_core/field.rs.html#626">self</a>.<span class="number">0</span>)
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <span class="ident">DebugValue</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <span class="macro">write!</span>(<a class="ident" href="../../src/tracing_core/field.rs.html#537">f</a>, <span class="string">&quot;{:?}&quot;</span>, <a class="self" href="../../src/tracing_core/field.rs.html#537">self</a>.<span class="number">0</span>)
+        <span class="macro">write!</span>(<a class="ident" href="../../src/tracing_core/field.rs.html#632">f</a>, <span class="string">&quot;{:?}&quot;</span>, <a class="self" href="../../src/tracing_core/field.rs.html#632">self</a>.<span class="number">0</span>)
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../src/tracing_core/lib.rs.html#278"><span class="kw">crate</span>::sealed::Sealed</a> <span class="kw">for</span> <a class="ident" href="../../src/tracing_core/field.rs.html#73">Empty</a> {}
-<span class="kw">impl</span> <a class="ident" href="../../src/tracing_core/field.rs.html#236-239">Value</a> <span class="kw">for</span> <a class="ident" href="../../src/tracing_core/field.rs.html#73">Empty</a> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">record</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing_core/field.rs.html#61-64">Field</a>, <span class="kw">_</span>: <span class="kw-2">&amp;mut</span> <span class="kw">dyn</span> <a class="ident" href="../../src/tracing_core/field.rs.html#186-227">Visit</a>) {}
+<span class="comment">// ===== impl ValuableValue =====</span>
+
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">tracing_unstable</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;valuable&quot;</span>))]</span>
+<span class="kw">impl</span> <span class="ident"><span class="kw">crate</span>::sealed::Sealed</span> <span class="kw">for</span> <span class="ident">valuable::Value</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {}
+
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">tracing_unstable</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;valuable&quot;</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">tracing_unstable</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;valuable&quot;</span>))))]</span>
+<span class="kw">impl</span> <span class="ident">Value</span> <span class="kw">for</span> <span class="ident">valuable::Value</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">record</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">key</span>: <span class="kw-2">&amp;</span><span class="ident">Field</span>, <span class="ident">visitor</span>: <span class="kw-2">&amp;mut</span> <span class="kw">dyn</span> <span class="ident">Visit</span>) {
+        <span class="ident">visitor</span>.<span class="ident">record_value</span>(<span class="ident">key</span>, <span class="kw-2">*</span><span class="self">self</span>)
+    }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="../../src/tracing_core/field.rs.html#236-239">Value</a><span class="op">&gt;</span> <a class="ident" href="../../src/tracing_core/lib.rs.html#278"><span class="kw">crate</span>::sealed::Sealed</a> <span class="kw">for</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {}
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">tracing_unstable</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;valuable&quot;</span>))]</span>
+<span class="kw">impl</span> <span class="ident"><span class="kw">crate</span>::sealed::Sealed</span> <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;_</span> <span class="kw">dyn</span> <span class="ident">valuable::Valuable</span> {}
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="../../src/tracing_core/field.rs.html#236-239">Value</a><span class="op">&gt;</span> <a class="ident" href="../../src/tracing_core/field.rs.html#236-239">Value</a> <span class="kw">for</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">record</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">key</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing_core/field.rs.html#61-64">Field</a>, <span class="ident">visitor</span>: <span class="kw-2">&amp;mut</span> <span class="kw">dyn</span> <a class="ident" href="../../src/tracing_core/field.rs.html#186-227">Visit</a>) {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">v</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><a class="self" href="../../src/tracing_core/field.rs.html#551">self</a> {
-            <a class="ident" href="../../src/tracing_core/field.rs.html#552">v</a>.<a class="ident" href="../../src/tracing_core/field.rs.html#238">record</a>(<a class="ident" href="../../src/tracing_core/field.rs.html#551">key</a>, <a class="ident" href="../../src/tracing_core/field.rs.html#551">visitor</a>)
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">tracing_unstable</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;valuable&quot;</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">tracing_unstable</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;valuable&quot;</span>))))]</span>
+<span class="kw">impl</span> <span class="ident">Value</span> <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;_</span> <span class="kw">dyn</span> <span class="ident">valuable::Valuable</span> {
+    <span class="kw">fn</span> <span class="ident">record</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">key</span>: <span class="kw-2">&amp;</span><span class="ident">Field</span>, <span class="ident">visitor</span>: <span class="kw-2">&amp;mut</span> <span class="kw">dyn</span> <span class="ident">Visit</span>) {
+        <span class="ident">visitor</span>.<span class="ident">record_value</span>(<span class="ident">key</span>, <span class="self">self</span>.<span class="ident">as_value</span>())
+    }
+}
+
+<span class="kw">impl</span> <a class="ident" href="../../src/tracing_core/lib.rs.html#303"><span class="kw">crate</span>::sealed::Sealed</a> <span class="kw">for</span> <a class="ident" href="../../src/tracing_core/field.rs.html#146">Empty</a> {}
+<span class="kw">impl</span> <a class="ident" href="../../src/tracing_core/field.rs.html#318-321">Value</a> <span class="kw">for</span> <a class="ident" href="../../src/tracing_core/field.rs.html#146">Empty</a> {
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">fn</span> <span class="ident">record</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing_core/field.rs.html#134-137">Field</a>, <span class="kw">_</span>: <span class="kw-2">&amp;mut</span> <span class="kw">dyn</span> <a class="ident" href="../../src/tracing_core/field.rs.html#259-309">Visit</a>) {}
+}
+
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="../../src/tracing_core/field.rs.html#318-321">Value</a><span class="op">&gt;</span> <a class="ident" href="../../src/tracing_core/lib.rs.html#303"><span class="kw">crate</span>::sealed::Sealed</a> <span class="kw">for</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {}
+
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="../../src/tracing_core/field.rs.html#318-321">Value</a><span class="op">&gt;</span> <a class="ident" href="../../src/tracing_core/field.rs.html#318-321">Value</a> <span class="kw">for</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">record</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">key</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing_core/field.rs.html#134-137">Field</a>, <span class="ident">visitor</span>: <span class="kw-2">&amp;mut</span> <span class="kw">dyn</span> <a class="ident" href="../../src/tracing_core/field.rs.html#259-309">Visit</a>) {
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">v</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><a class="self" href="../../src/tracing_core/field.rs.html#670">self</a> {
+            <a class="ident" href="../../src/tracing_core/field.rs.html#671">v</a>.<a class="ident" href="../../src/tracing_core/field.rs.html#320">record</a>(<a class="ident" href="../../src/tracing_core/field.rs.html#670">key</a>, <a class="ident" href="../../src/tracing_core/field.rs.html#670">visitor</a>)
         }
     }
 }
 
 <span class="comment">// ===== impl Field =====</span>
 
-<span class="kw">impl</span> <a class="ident" href="../../src/tracing_core/field.rs.html#61-64">Field</a> {
+<span class="kw">impl</span> <a class="ident" href="../../src/tracing_core/field.rs.html#134-137">Field</a> {
     <span class="doccomment">/// Returns an [`Identifier`] that uniquely identifies the [`Callsite`]</span>
     <span class="doccomment">/// which defines this field.</span>
     <span class="doccomment">///</span>
@@ -1578,52 +1816,52 @@
     <span class="doccomment">/// [`Callsite`]: ../callsite/trait.Callsite.html</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">callsite</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="../../src/tracing_core/callsite.rs.html#95-106">callsite::Identifier</a> {
-        <a class="self" href="../../src/tracing_core/field.rs.html#567">self</a>.<span class="ident">fields</span>.<a class="ident" href="../../src/tracing_core/field.rs.html#632">callsite</a>()
+        <a class="self" href="../../src/tracing_core/field.rs.html#686">self</a>.<span class="ident">fields</span>.<a class="ident" href="../../src/tracing_core/field.rs.html#751">callsite</a>()
     }
 
     <span class="doccomment">/// Returns a string representing the name of the field.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">name</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> {
-        <a class="self" href="../../src/tracing_core/field.rs.html#572">self</a>.<span class="ident">fields</span>.<span class="ident">names</span>[<a class="self" href="../../src/tracing_core/field.rs.html#572">self</a>.<span class="ident">i</span>]
+        <a class="self" href="../../src/tracing_core/field.rs.html#691">self</a>.<span class="ident">fields</span>.<span class="ident">names</span>[<a class="self" href="../../src/tracing_core/field.rs.html#691">self</a>.<span class="ident">i</span>]
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for</span> <a class="ident" href="../../src/tracing_core/field.rs.html#61-64">Field</a> {
+<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for</span> <a class="ident" href="../../src/tracing_core/field.rs.html#134-137">Field</a> {
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="ident" href="../../src/tracing_core/field.rs.html#578">f</a>.<span class="ident">pad</span>(<a class="self" href="../../src/tracing_core/field.rs.html#578">self</a>.<a class="ident" href="../../src/tracing_core/field.rs.html#572">name</a>())
+        <a class="ident" href="../../src/tracing_core/field.rs.html#697">f</a>.<span class="ident">pad</span>(<a class="self" href="../../src/tracing_core/field.rs.html#697">self</a>.<a class="ident" href="../../src/tracing_core/field.rs.html#691">name</a>())
     }
 }
 
-<span class="kw">impl</span> <span class="ident">AsRef</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../src/tracing_core/field.rs.html#61-64">Field</a> {
+<span class="kw">impl</span> <span class="ident">AsRef</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../src/tracing_core/field.rs.html#134-137">Field</a> {
     <span class="kw">fn</span> <span class="ident">as_ref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> {
-        <a class="self" href="../../src/tracing_core/field.rs.html#584">self</a>.<a class="ident" href="../../src/tracing_core/field.rs.html#572">name</a>()
+        <a class="self" href="../../src/tracing_core/field.rs.html#703">self</a>.<a class="ident" href="../../src/tracing_core/field.rs.html#691">name</a>()
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/cmp/trait.PartialEq.html">PartialEq</a> <span class="kw">for</span> <a class="ident" href="../../src/tracing_core/field.rs.html#61-64">Field</a> {
+<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/cmp/trait.PartialEq.html">PartialEq</a> <span class="kw">for</span> <a class="ident" href="../../src/tracing_core/field.rs.html#134-137">Field</a> {
     <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../src/tracing_core/field.rs.html#590">self</a>.<a class="ident" href="../../src/tracing_core/field.rs.html#567">callsite</a>() <span class="op">==</span> <a class="ident" href="../../src/tracing_core/field.rs.html#590">other</a>.<a class="ident" href="../../src/tracing_core/field.rs.html#567">callsite</a>() <span class="op">&amp;&amp;</span> <a class="self" href="../../src/tracing_core/field.rs.html#590">self</a>.<span class="ident">i</span> <span class="op">==</span> <a class="ident" href="../../src/tracing_core/field.rs.html#590">other</a>.<span class="ident">i</span>
+        <a class="self" href="../../src/tracing_core/field.rs.html#709">self</a>.<a class="ident" href="../../src/tracing_core/field.rs.html#686">callsite</a>() <span class="op">==</span> <a class="ident" href="../../src/tracing_core/field.rs.html#709">other</a>.<a class="ident" href="../../src/tracing_core/field.rs.html#686">callsite</a>() <span class="op">&amp;&amp;</span> <a class="self" href="../../src/tracing_core/field.rs.html#709">self</a>.<span class="ident">i</span> <span class="op">==</span> <a class="ident" href="../../src/tracing_core/field.rs.html#709">other</a>.<span class="ident">i</span>
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/cmp/trait.Eq.html">Eq</a> <span class="kw">for</span> <a class="ident" href="../../src/tracing_core/field.rs.html#61-64">Field</a> {}
+<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/cmp/trait.Eq.html">Eq</a> <span class="kw">for</span> <a class="ident" href="../../src/tracing_core/field.rs.html#134-137">Field</a> {}
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/hash/trait.Hash.html">Hash</a> <span class="kw">for</span> <a class="ident" href="../../src/tracing_core/field.rs.html#61-64">Field</a> {
+<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/hash/trait.Hash.html">Hash</a> <span class="kw">for</span> <a class="ident" href="../../src/tracing_core/field.rs.html#134-137">Field</a> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;mut</span> <span class="ident">H</span>)
     <span class="kw">where</span>
         <span class="ident">H</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/hash/trait.Hasher.html">Hasher</a>,
     {
-        <a class="self" href="../../src/tracing_core/field.rs.html#598">self</a>.<a class="ident" href="../../src/tracing_core/field.rs.html#567">callsite</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/hash/trait.Hash.html">hash</a>(<a class="ident" href="../../src/tracing_core/field.rs.html#598">state</a>);
-        <a class="self" href="../../src/tracing_core/field.rs.html#598">self</a>.<span class="ident">i</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/hash/trait.Hash.html">hash</a>(<a class="ident" href="../../src/tracing_core/field.rs.html#598">state</a>);
+        <a class="self" href="../../src/tracing_core/field.rs.html#717">self</a>.<a class="ident" href="../../src/tracing_core/field.rs.html#686">callsite</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/hash/trait.Hash.html">hash</a>(<a class="ident" href="../../src/tracing_core/field.rs.html#717">state</a>);
+        <a class="self" href="../../src/tracing_core/field.rs.html#717">self</a>.<span class="ident">i</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/hash/trait.Hash.html">hash</a>(<a class="ident" href="../../src/tracing_core/field.rs.html#717">state</a>);
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> <span class="kw">for</span> <a class="ident" href="../../src/tracing_core/field.rs.html#61-64">Field</a> {
+<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> <span class="kw">for</span> <a class="ident" href="../../src/tracing_core/field.rs.html#134-137">Field</a> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self</span> {
-        <a class="ident" href="../../src/tracing_core/field.rs.html#61-64">Field</a> {
-            <span class="ident">i</span>: <a class="self" href="../../src/tracing_core/field.rs.html#608">self</a>.<span class="ident">i</span>,
-            <span class="ident">fields</span>: <a class="ident" href="../../src/tracing_core/field.rs.html#76-81">FieldSet</a> {
-                <span class="ident">names</span>: <a class="self" href="../../src/tracing_core/field.rs.html#608">self</a>.<span class="ident">fields</span>.<span class="ident">names</span>,
-                <span class="ident">callsite</span>: <a class="self" href="../../src/tracing_core/field.rs.html#608">self</a>.<span class="ident">fields</span>.<a class="ident" href="../../src/tracing_core/field.rs.html#632">callsite</a>(),
+        <a class="ident" href="../../src/tracing_core/field.rs.html#134-137">Field</a> {
+            <span class="ident">i</span>: <a class="self" href="../../src/tracing_core/field.rs.html#727">self</a>.<span class="ident">i</span>,
+            <span class="ident">fields</span>: <a class="ident" href="../../src/tracing_core/field.rs.html#149-154">FieldSet</a> {
+                <span class="ident">names</span>: <a class="self" href="../../src/tracing_core/field.rs.html#727">self</a>.<span class="ident">fields</span>.<span class="ident">names</span>,
+                <span class="ident">callsite</span>: <a class="self" href="../../src/tracing_core/field.rs.html#727">self</a>.<span class="ident">fields</span>.<a class="ident" href="../../src/tracing_core/field.rs.html#751">callsite</a>(),
             },
         }
     }
@@ -1631,10 +1869,10 @@
 
 <span class="comment">// ===== impl FieldSet =====</span>
 
-<span class="kw">impl</span> <a class="ident" href="../../src/tracing_core/field.rs.html#76-81">FieldSet</a> {
+<span class="kw">impl</span> <a class="ident" href="../../src/tracing_core/field.rs.html#149-154">FieldSet</a> {
     <span class="doccomment">/// Constructs a new `FieldSet` with the given array of field names and callsite.</span>
     <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">names</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> [<span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>], <span class="ident">callsite</span>: <a class="ident" href="../../src/tracing_core/callsite.rs.html#95-106">callsite::Identifier</a>) -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span> { <a class="ident" href="../../src/tracing_core/field.rs.html#623">names</a>, <a class="ident" href="../../src/tracing_core/field.rs.html#623">callsite</a> }
+        <span class="self">Self</span> { <a class="ident" href="../../src/tracing_core/field.rs.html#742">names</a>, <a class="ident" href="../../src/tracing_core/field.rs.html#742">callsite</a> }
     }
 
     <span class="doccomment">/// Returns an [`Identifier`] that uniquely identifies the [`Callsite`]</span>
@@ -1643,22 +1881,22 @@
     <span class="doccomment">/// [`Identifier`]: ../callsite/struct.Identifier.html</span>
     <span class="doccomment">/// [`Callsite`]: ../callsite/trait.Callsite.html</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">callsite</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="../../src/tracing_core/callsite.rs.html#95-106">callsite::Identifier</a> {
-        <a class="ident" href="../../src/tracing_core/callsite.rs.html#95-106">callsite::Identifier</a>(<a class="self" href="../../src/tracing_core/field.rs.html#632">self</a>.<span class="ident">callsite</span>.<span class="number">0</span>)
+        <a class="ident" href="../../src/tracing_core/callsite.rs.html#95-106">callsite::Identifier</a>(<a class="self" href="../../src/tracing_core/field.rs.html#751">self</a>.<span class="ident">callsite</span>.<span class="number">0</span>)
     }
 
     <span class="doccomment">/// Returns the [`Field`] named `name`, or `None` if no such field exists.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// [`Field`]: ../struct.Field.html</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">field</span><span class="op">&lt;</span><span class="ident">Q</span>: <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">Q</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../src/tracing_core/field.rs.html#61-64">Field</a><span class="op">&gt;</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">field</span><span class="op">&lt;</span><span class="ident">Q</span>: <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">Q</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../src/tracing_core/field.rs.html#134-137">Field</a><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">Q</span>: <span class="ident">Borrow</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a><span class="op">&gt;</span>,
     {
-        <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing_core/field.rs.html#639">name</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/borrow/trait.Borrow.html">borrow</a>();
-        <a class="self" href="../../src/tracing_core/field.rs.html#639">self</a>.<span class="ident">names</span>.<span class="ident">iter</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">position</a>(<span class="op">|</span><span class="ident">f</span><span class="op">|</span> <a class="ident" href="../../src/tracing_core/field.rs.html#644">f</a> <span class="op">==</span> <a class="ident" href="../../src/tracing_core/field.rs.html#643">name</a>).<span class="ident">map</span>(<span class="op">|</span><span class="ident">i</span><span class="op">|</span> <a class="ident" href="../../src/tracing_core/field.rs.html#61-64">Field</a> {
-            <a class="ident" href="../../src/tracing_core/field.rs.html#644">i</a>,
-            <span class="ident">fields</span>: <a class="ident" href="../../src/tracing_core/field.rs.html#76-81">FieldSet</a> {
-                <span class="ident">names</span>: <a class="self" href="../../src/tracing_core/field.rs.html#639">self</a>.<span class="ident">names</span>,
-                <span class="ident">callsite</span>: <a class="self" href="../../src/tracing_core/field.rs.html#639">self</a>.<a class="ident" href="../../src/tracing_core/field.rs.html#632">callsite</a>(),
+        <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing_core/field.rs.html#758">name</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/borrow/trait.Borrow.html">borrow</a>();
+        <a class="self" href="../../src/tracing_core/field.rs.html#758">self</a>.<span class="ident">names</span>.<span class="ident">iter</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">position</a>(<span class="op">|</span><span class="ident">f</span><span class="op">|</span> <a class="ident" href="../../src/tracing_core/field.rs.html#763">f</a> <span class="op">==</span> <a class="ident" href="../../src/tracing_core/field.rs.html#762">name</a>).<span class="ident">map</span>(<span class="op">|</span><span class="ident">i</span><span class="op">|</span> <a class="ident" href="../../src/tracing_core/field.rs.html#134-137">Field</a> {
+            <a class="ident" href="../../src/tracing_core/field.rs.html#763">i</a>,
+            <span class="ident">fields</span>: <a class="ident" href="../../src/tracing_core/field.rs.html#149-154">FieldSet</a> {
+                <span class="ident">names</span>: <a class="self" href="../../src/tracing_core/field.rs.html#758">self</a>.<span class="ident">names</span>,
+                <span class="ident">callsite</span>: <a class="self" href="../../src/tracing_core/field.rs.html#758">self</a>.<a class="ident" href="../../src/tracing_core/field.rs.html#751">callsite</a>(),
             },
         })
     }
@@ -1674,18 +1912,18 @@
     <span class="doccomment">/// named &quot;foo&quot;, the &lt;code&gt;Field&lt;/code&gt; corresponding to &quot;foo&quot; for each</span>
     <span class="doccomment">/// of those callsites are not equivalent.</span>
     <span class="doccomment">/// &lt;/pre&gt;&lt;/div&gt;</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">field</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing_core/field.rs.html#61-64">Field</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="ident" href="../../src/tracing_core/field.rs.html#664">field</a>.<a class="ident" href="../../src/tracing_core/field.rs.html#567">callsite</a>() <span class="op">==</span> <a class="self" href="../../src/tracing_core/field.rs.html#664">self</a>.<a class="ident" href="../../src/tracing_core/field.rs.html#632">callsite</a>() <span class="op">&amp;&amp;</span> <a class="ident" href="../../src/tracing_core/field.rs.html#664">field</a>.<span class="ident">i</span> <span class="op">&lt;</span><span class="op">=</span> <a class="self" href="../../src/tracing_core/field.rs.html#664">self</a>.<a class="ident" href="../../src/tracing_core/field.rs.html#697">len</a>()
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">field</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing_core/field.rs.html#134-137">Field</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a class="ident" href="../../src/tracing_core/field.rs.html#783">field</a>.<a class="ident" href="../../src/tracing_core/field.rs.html#686">callsite</a>() <span class="op">==</span> <a class="self" href="../../src/tracing_core/field.rs.html#783">self</a>.<a class="ident" href="../../src/tracing_core/field.rs.html#751">callsite</a>() <span class="op">&amp;&amp;</span> <a class="ident" href="../../src/tracing_core/field.rs.html#783">field</a>.<span class="ident">i</span> <span class="op">&lt;</span><span class="op">=</span> <a class="self" href="../../src/tracing_core/field.rs.html#783">self</a>.<a class="ident" href="../../src/tracing_core/field.rs.html#816">len</a>()
     }
 
     <span class="doccomment">/// Returns an iterator over the `Field`s in this `FieldSet`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">iter</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="../../src/tracing_core/field.rs.html#91-94">Iter</a> {
-        <span class="kw">let</span> <span class="ident">idxs</span> <span class="op">=</span> <span class="number">0</span>..<a class="self" href="../../src/tracing_core/field.rs.html#669">self</a>.<a class="ident" href="../../src/tracing_core/field.rs.html#697">len</a>();
-        <a class="ident" href="../../src/tracing_core/field.rs.html#91-94">Iter</a> {
-            <a class="ident" href="../../src/tracing_core/field.rs.html#670">idxs</a>,
-            <span class="ident">fields</span>: <a class="ident" href="../../src/tracing_core/field.rs.html#76-81">FieldSet</a> {
-                <span class="ident">names</span>: <a class="self" href="../../src/tracing_core/field.rs.html#669">self</a>.<span class="ident">names</span>,
-                <span class="ident">callsite</span>: <a class="self" href="../../src/tracing_core/field.rs.html#669">self</a>.<a class="ident" href="../../src/tracing_core/field.rs.html#632">callsite</a>(),
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">iter</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="../../src/tracing_core/field.rs.html#164-167">Iter</a> {
+        <span class="kw">let</span> <span class="ident">idxs</span> <span class="op">=</span> <span class="number">0</span>..<a class="self" href="../../src/tracing_core/field.rs.html#788">self</a>.<a class="ident" href="../../src/tracing_core/field.rs.html#816">len</a>();
+        <a class="ident" href="../../src/tracing_core/field.rs.html#164-167">Iter</a> {
+            <a class="ident" href="../../src/tracing_core/field.rs.html#789">idxs</a>,
+            <span class="ident">fields</span>: <a class="ident" href="../../src/tracing_core/field.rs.html#149-154">FieldSet</a> {
+                <span class="ident">names</span>: <a class="self" href="../../src/tracing_core/field.rs.html#788">self</a>.<span class="ident">names</span>,
+                <span class="ident">callsite</span>: <a class="self" href="../../src/tracing_core/field.rs.html#788">self</a>.<a class="ident" href="../../src/tracing_core/field.rs.html#751">callsite</a>(),
             },
         }
     }
@@ -1699,62 +1937,62 @@
     <span class="kw">where</span>
         <span class="ident">V</span>: <span class="ident">ValidLen</span><span class="op">&lt;</span><span class="lifetime">&#39;v</span><span class="op">&gt;</span>,
     {
-        <a class="ident" href="../../src/tracing_core/field.rs.html#84-87">ValueSet</a> {
-            <span class="ident">fields</span>: <a class="self" href="../../src/tracing_core/field.rs.html#685">self</a>,
-            <span class="ident">values</span>: <a class="ident" href="../../src/tracing_core/field.rs.html#685">values</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/borrow/trait.Borrow.html">borrow</a>(),
+        <a class="ident" href="../../src/tracing_core/field.rs.html#157-160">ValueSet</a> {
+            <span class="ident">fields</span>: <a class="self" href="../../src/tracing_core/field.rs.html#804">self</a>,
+            <span class="ident">values</span>: <a class="ident" href="../../src/tracing_core/field.rs.html#804">values</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/borrow/trait.Borrow.html">borrow</a>(),
         }
     }
 
     <span class="doccomment">/// Returns the number of fields in this `FieldSet`.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">len</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="../../src/tracing_core/field.rs.html#697">self</a>.<span class="ident">names</span>.<span class="ident">len</span>()
+        <a class="self" href="../../src/tracing_core/field.rs.html#816">self</a>.<span class="ident">names</span>.<span class="ident">len</span>()
     }
 
     <span class="doccomment">/// Returns whether or not this `FieldSet` has fields.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_empty</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../src/tracing_core/field.rs.html#703">self</a>.<span class="ident">names</span>.<span class="ident">is_empty</span>()
+        <a class="self" href="../../src/tracing_core/field.rs.html#822">self</a>.<span class="ident">names</span>.<span class="ident">is_empty</span>()
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">IntoIterator</a> <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="../../src/tracing_core/field.rs.html#76-81">FieldSet</a> {
-    <span class="kw">type</span> <span class="ident">IntoIter</span> <span class="op">=</span> <a class="ident" href="../../src/tracing_core/field.rs.html#91-94">Iter</a>;
-    <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <a class="ident" href="../../src/tracing_core/field.rs.html#61-64">Field</a>;
+<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">IntoIterator</a> <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="../../src/tracing_core/field.rs.html#149-154">FieldSet</a> {
+    <span class="kw">type</span> <span class="ident">IntoIter</span> <span class="op">=</span> <a class="ident" href="../../src/tracing_core/field.rs.html#164-167">Iter</a>;
+    <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <a class="ident" href="../../src/tracing_core/field.rs.html#134-137">Field</a>;
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">into_iter</span>(<span class="self">self</span>) -&gt; <span class="ident"><span class="self">Self</span>::IntoIter</span> {
-        <a class="self" href="../../src/tracing_core/field.rs.html#712">self</a>.<a class="ident" href="../../src/tracing_core/field.rs.html#669">iter</a>()
+        <a class="self" href="../../src/tracing_core/field.rs.html#831">self</a>.<a class="ident" href="../../src/tracing_core/field.rs.html#788">iter</a>()
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <a class="ident" href="../../src/tracing_core/field.rs.html#76-81">FieldSet</a> {
+<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <a class="ident" href="../../src/tracing_core/field.rs.html#149-154">FieldSet</a> {
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="ident" href="../../src/tracing_core/field.rs.html#718">f</a>.<span class="ident">debug_struct</span>(<span class="string">&quot;FieldSet&quot;</span>)
-            .<span class="ident">field</span>(<span class="string">&quot;names&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../src/tracing_core/field.rs.html#718">self</a>.<span class="ident">names</span>)
-            .<span class="ident">field</span>(<span class="string">&quot;callsite&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../src/tracing_core/field.rs.html#718">self</a>.<span class="ident">callsite</span>)
+        <a class="ident" href="../../src/tracing_core/field.rs.html#837">f</a>.<span class="ident">debug_struct</span>(<span class="string">&quot;FieldSet&quot;</span>)
+            .<span class="ident">field</span>(<span class="string">&quot;names&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../src/tracing_core/field.rs.html#837">self</a>.<span class="ident">names</span>)
+            .<span class="ident">field</span>(<span class="string">&quot;callsite&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../src/tracing_core/field.rs.html#837">self</a>.<span class="ident">callsite</span>)
             .<span class="ident">finish</span>()
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for</span> <a class="ident" href="../../src/tracing_core/field.rs.html#76-81">FieldSet</a> {
+<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for</span> <a class="ident" href="../../src/tracing_core/field.rs.html#149-154">FieldSet</a> {
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="ident" href="../../src/tracing_core/field.rs.html#727">f</a>.<span class="ident">debug_set</span>()
-            .<span class="ident">entries</span>(<a class="self" href="../../src/tracing_core/field.rs.html#727">self</a>.<span class="ident">names</span>.<span class="ident">iter</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<a class="ident" href="../../src/tracing_core/field.rs.html#254-256">display</a>))
+        <a class="ident" href="../../src/tracing_core/field.rs.html#846">f</a>.<span class="ident">debug_set</span>()
+            .<span class="ident">entries</span>(<a class="self" href="../../src/tracing_core/field.rs.html#846">self</a>.<span class="ident">names</span>.<span class="ident">iter</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<a class="ident" href="../../src/tracing_core/field.rs.html#336-338">display</a>))
             .<span class="ident">finish</span>()
     }
 }
 
 <span class="comment">// ===== impl Iter =====</span>
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for</span> <a class="ident" href="../../src/tracing_core/field.rs.html#91-94">Iter</a> {
-    <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <a class="ident" href="../../src/tracing_core/field.rs.html#61-64">Field</a>;
-    <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../src/tracing_core/field.rs.html#61-64">Field</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">i</span> <span class="op">=</span> <a class="self" href="../../src/tracing_core/field.rs.html#738">self</a>.<span class="ident">idxs</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>()<span class="question-mark">?</span>;
-        <span class="prelude-val">Some</span>(<a class="ident" href="../../src/tracing_core/field.rs.html#61-64">Field</a> {
-            <a class="ident" href="../../src/tracing_core/field.rs.html#739">i</a>,
-            <span class="ident">fields</span>: <a class="ident" href="../../src/tracing_core/field.rs.html#76-81">FieldSet</a> {
-                <span class="ident">names</span>: <a class="self" href="../../src/tracing_core/field.rs.html#738">self</a>.<span class="ident">fields</span>.<span class="ident">names</span>,
-                <span class="ident">callsite</span>: <a class="self" href="../../src/tracing_core/field.rs.html#738">self</a>.<span class="ident">fields</span>.<a class="ident" href="../../src/tracing_core/field.rs.html#632">callsite</a>(),
+<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for</span> <a class="ident" href="../../src/tracing_core/field.rs.html#164-167">Iter</a> {
+    <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <a class="ident" href="../../src/tracing_core/field.rs.html#134-137">Field</a>;
+    <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../src/tracing_core/field.rs.html#134-137">Field</a><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="ident">i</span> <span class="op">=</span> <a class="self" href="../../src/tracing_core/field.rs.html#857">self</a>.<span class="ident">idxs</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>()<span class="question-mark">?</span>;
+        <span class="prelude-val">Some</span>(<a class="ident" href="../../src/tracing_core/field.rs.html#134-137">Field</a> {
+            <a class="ident" href="../../src/tracing_core/field.rs.html#858">i</a>,
+            <span class="ident">fields</span>: <a class="ident" href="../../src/tracing_core/field.rs.html#149-154">FieldSet</a> {
+                <span class="ident">names</span>: <a class="self" href="../../src/tracing_core/field.rs.html#857">self</a>.<span class="ident">fields</span>.<span class="ident">names</span>,
+                <span class="ident">callsite</span>: <a class="self" href="../../src/tracing_core/field.rs.html#857">self</a>.<span class="ident">fields</span>.<a class="ident" href="../../src/tracing_core/field.rs.html#751">callsite</a>(),
             },
         })
     }
@@ -1770,70 +2008,70 @@
     <span class="doccomment">/// [`Callsite`]: ../callsite/trait.Callsite.html</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">callsite</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="../../src/tracing_core/callsite.rs.html#95-106">callsite::Identifier</a> {
-        <a class="self" href="../../src/tracing_core/field.rs.html#759">self</a>.<span class="ident">fields</span>.<a class="ident" href="../../src/tracing_core/field.rs.html#632">callsite</a>()
+        <a class="self" href="../../src/tracing_core/field.rs.html#878">self</a>.<span class="ident">fields</span>.<a class="ident" href="../../src/tracing_core/field.rs.html#751">callsite</a>()
     }
 
     <span class="doccomment">/// Visits all the fields in this `ValueSet` with the provided [visitor].</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// [visitor]: ../trait.Visit.html</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">record</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">visitor</span>: <span class="kw-2">&amp;mut</span> <span class="kw">dyn</span> <a class="ident" href="../../src/tracing_core/field.rs.html#186-227">Visit</a>) {
-        <span class="kw">let</span> <span class="ident">my_callsite</span> <span class="op">=</span> <a class="self" href="../../src/tracing_core/field.rs.html#766">self</a>.<a class="ident" href="../../src/tracing_core/field.rs.html#759">callsite</a>();
-        <span class="kw">for</span> (<span class="ident">field</span>, <span class="ident">value</span>) <span class="kw">in</span> <a class="self" href="../../src/tracing_core/field.rs.html#766">self</a>.<span class="ident">values</span> {
-            <span class="kw">if</span> <a class="ident" href="../../src/tracing_core/field.rs.html#768">field</a>.<a class="ident" href="../../src/tracing_core/field.rs.html#567">callsite</a>() <span class="op">!</span><span class="op">=</span> <a class="ident" href="../../src/tracing_core/field.rs.html#767">my_callsite</a> {
+    <span class="doccomment">/// [visitor]: Visit</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">record</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">visitor</span>: <span class="kw-2">&amp;mut</span> <span class="kw">dyn</span> <a class="ident" href="../../src/tracing_core/field.rs.html#259-309">Visit</a>) {
+        <span class="kw">let</span> <span class="ident">my_callsite</span> <span class="op">=</span> <a class="self" href="../../src/tracing_core/field.rs.html#885">self</a>.<a class="ident" href="../../src/tracing_core/field.rs.html#878">callsite</a>();
+        <span class="kw">for</span> (<span class="ident">field</span>, <span class="ident">value</span>) <span class="kw">in</span> <a class="self" href="../../src/tracing_core/field.rs.html#885">self</a>.<span class="ident">values</span> {
+            <span class="kw">if</span> <a class="ident" href="../../src/tracing_core/field.rs.html#887">field</a>.<a class="ident" href="../../src/tracing_core/field.rs.html#686">callsite</a>() <span class="op">!</span><span class="op">=</span> <a class="ident" href="../../src/tracing_core/field.rs.html#886">my_callsite</a> {
                 <span class="kw">continue</span>;
             }
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">value</span>) <span class="op">=</span> <a class="ident" href="../../src/tracing_core/field.rs.html#768">value</a> {
-                <a class="ident" href="../../src/tracing_core/field.rs.html#772">value</a>.<a class="ident" href="../../src/tracing_core/field.rs.html#238">record</a>(<a class="ident" href="../../src/tracing_core/field.rs.html#768">field</a>, <a class="ident" href="../../src/tracing_core/field.rs.html#766">visitor</a>);
+            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">value</span>) <span class="op">=</span> <a class="ident" href="../../src/tracing_core/field.rs.html#887">value</a> {
+                <a class="ident" href="../../src/tracing_core/field.rs.html#891">value</a>.<a class="ident" href="../../src/tracing_core/field.rs.html#320">record</a>(<a class="ident" href="../../src/tracing_core/field.rs.html#887">field</a>, <a class="ident" href="../../src/tracing_core/field.rs.html#885">visitor</a>);
             }
         }
     }
 
     <span class="doccomment">/// Returns `true` if this `ValueSet` contains a value for the given `Field`.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">field</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing_core/field.rs.html#61-64">Field</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="ident" href="../../src/tracing_core/field.rs.html#779">field</a>.<a class="ident" href="../../src/tracing_core/field.rs.html#567">callsite</a>() <span class="op">==</span> <a class="self" href="../../src/tracing_core/field.rs.html#779">self</a>.<a class="ident" href="../../src/tracing_core/field.rs.html#759">callsite</a>()
-            <span class="op">&amp;&amp;</span> <a class="self" href="../../src/tracing_core/field.rs.html#779">self</a>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">field</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing_core/field.rs.html#134-137">Field</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a class="ident" href="../../src/tracing_core/field.rs.html#898">field</a>.<a class="ident" href="../../src/tracing_core/field.rs.html#686">callsite</a>() <span class="op">==</span> <a class="self" href="../../src/tracing_core/field.rs.html#898">self</a>.<a class="ident" href="../../src/tracing_core/field.rs.html#878">callsite</a>()
+            <span class="op">&amp;&amp;</span> <a class="self" href="../../src/tracing_core/field.rs.html#898">self</a>
                 .<span class="ident">values</span>
                 .<span class="ident">iter</span>()
-                .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">any</a>(<span class="op">|</span>(<span class="ident">key</span>, <span class="ident">val</span>)<span class="op">|</span> <span class="kw-2">*</span><a class="ident" href="../../src/tracing_core/field.rs.html#784">key</a> <span class="op">==</span> <a class="ident" href="../../src/tracing_core/field.rs.html#779">field</a> <span class="op">&amp;&amp;</span> <a class="ident" href="../../src/tracing_core/field.rs.html#784">val</a>.<span class="ident">is_some</span>())
+                .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">any</a>(<span class="op">|</span>(<span class="ident">key</span>, <span class="ident">val</span>)<span class="op">|</span> <span class="kw-2">*</span><a class="ident" href="../../src/tracing_core/field.rs.html#903">key</a> <span class="op">==</span> <a class="ident" href="../../src/tracing_core/field.rs.html#898">field</a> <span class="op">&amp;&amp;</span> <a class="ident" href="../../src/tracing_core/field.rs.html#903">val</a>.<span class="ident">is_some</span>())
     }
 
     <span class="doccomment">/// Returns true if this `ValueSet` contains _no_ values.</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">is_empty</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">let</span> <span class="ident">my_callsite</span> <span class="op">=</span> <a class="self" href="../../src/tracing_core/field.rs.html#788">self</a>.<a class="ident" href="../../src/tracing_core/field.rs.html#759">callsite</a>();
-        <a class="self" href="../../src/tracing_core/field.rs.html#788">self</a>.<span class="ident">values</span>
+        <span class="kw">let</span> <span class="ident">my_callsite</span> <span class="op">=</span> <a class="self" href="../../src/tracing_core/field.rs.html#907">self</a>.<a class="ident" href="../../src/tracing_core/field.rs.html#878">callsite</a>();
+        <a class="self" href="../../src/tracing_core/field.rs.html#907">self</a>.<span class="ident">values</span>
             .<span class="ident">iter</span>()
-            .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">all</a>(<span class="op">|</span>(<span class="ident">key</span>, <span class="ident">val</span>)<span class="op">|</span> <a class="ident" href="../../src/tracing_core/field.rs.html#792">val</a>.<span class="ident">is_none</span>() <span class="op">|</span><span class="op">|</span> <a class="ident" href="../../src/tracing_core/field.rs.html#792">key</a>.<a class="ident" href="../../src/tracing_core/field.rs.html#567">callsite</a>() <span class="op">!</span><span class="op">=</span> <a class="ident" href="../../src/tracing_core/field.rs.html#789">my_callsite</a>)
+            .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">all</a>(<span class="op">|</span>(<span class="ident">key</span>, <span class="ident">val</span>)<span class="op">|</span> <a class="ident" href="../../src/tracing_core/field.rs.html#911">val</a>.<span class="ident">is_none</span>() <span class="op">|</span><span class="op">|</span> <a class="ident" href="../../src/tracing_core/field.rs.html#911">key</a>.<a class="ident" href="../../src/tracing_core/field.rs.html#686">callsite</a>() <span class="op">!</span><span class="op">=</span> <a class="ident" href="../../src/tracing_core/field.rs.html#908">my_callsite</a>)
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">field_set</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing_core/field.rs.html#76-81">FieldSet</a> {
-        <a class="self" href="../../src/tracing_core/field.rs.html#795">self</a>.<span class="ident">fields</span>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">field_set</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing_core/field.rs.html#149-154">FieldSet</a> {
+        <a class="self" href="../../src/tracing_core/field.rs.html#914">self</a>.<span class="ident">fields</span>
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <span class="ident">ValueSet</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="self" href="../../src/tracing_core/field.rs.html#801">self</a>.<span class="ident">values</span>
+        <a class="self" href="../../src/tracing_core/field.rs.html#920">self</a>.<span class="ident">values</span>
             .<span class="ident">iter</span>()
-            .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">fold</a>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/tracing_core/field.rs.html#801">f</a>.<span class="ident">debug_struct</span>(<span class="string">&quot;ValueSet&quot;</span>), <span class="op">|</span><span class="ident">dbg</span>, (<span class="ident">key</span>, <span class="ident">v</span>)<span class="op">|</span> {
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">val</span>) <span class="op">=</span> <a class="ident" href="../../src/tracing_core/field.rs.html#804">v</a> {
-                    <a class="ident" href="../../src/tracing_core/field.rs.html#805">val</a>.<a class="ident" href="../../src/tracing_core/field.rs.html#238">record</a>(<a class="ident" href="../../src/tracing_core/field.rs.html#804">key</a>, <a class="ident" href="../../src/tracing_core/field.rs.html#804">dbg</a>);
+            .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">fold</a>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/tracing_core/field.rs.html#920">f</a>.<span class="ident">debug_struct</span>(<span class="string">&quot;ValueSet&quot;</span>), <span class="op">|</span><span class="ident">dbg</span>, (<span class="ident">key</span>, <span class="ident">v</span>)<span class="op">|</span> {
+                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">val</span>) <span class="op">=</span> <a class="ident" href="../../src/tracing_core/field.rs.html#923">v</a> {
+                    <a class="ident" href="../../src/tracing_core/field.rs.html#924">val</a>.<a class="ident" href="../../src/tracing_core/field.rs.html#320">record</a>(<a class="ident" href="../../src/tracing_core/field.rs.html#923">key</a>, <a class="ident" href="../../src/tracing_core/field.rs.html#923">dbg</a>);
                 }
-                <a class="ident" href="../../src/tracing_core/field.rs.html#804">dbg</a>
+                <a class="ident" href="../../src/tracing_core/field.rs.html#923">dbg</a>
             })
-            .<span class="ident">field</span>(<span class="string">&quot;callsite&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../src/tracing_core/field.rs.html#801">self</a>.<a class="ident" href="../../src/tracing_core/field.rs.html#759">callsite</a>())
+            .<span class="ident">field</span>(<span class="string">&quot;callsite&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../src/tracing_core/field.rs.html#920">self</a>.<a class="ident" href="../../src/tracing_core/field.rs.html#878">callsite</a>())
             .<span class="ident">finish</span>()
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for</span> <span class="ident">ValueSet</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="self" href="../../src/tracing_core/field.rs.html#816">self</a>.<span class="ident">values</span>
+        <a class="self" href="../../src/tracing_core/field.rs.html#935">self</a>.<span class="ident">values</span>
             .<span class="ident">iter</span>()
-            .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">fold</a>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/tracing_core/field.rs.html#816">f</a>.<span class="ident">debug_map</span>(), <span class="op">|</span><span class="ident">dbg</span>, (<span class="ident">key</span>, <span class="ident">v</span>)<span class="op">|</span> {
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">val</span>) <span class="op">=</span> <a class="ident" href="../../src/tracing_core/field.rs.html#819">v</a> {
-                    <a class="ident" href="../../src/tracing_core/field.rs.html#820">val</a>.<a class="ident" href="../../src/tracing_core/field.rs.html#238">record</a>(<a class="ident" href="../../src/tracing_core/field.rs.html#819">key</a>, <a class="ident" href="../../src/tracing_core/field.rs.html#819">dbg</a>);
+            .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">fold</a>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/tracing_core/field.rs.html#935">f</a>.<span class="ident">debug_map</span>(), <span class="op">|</span><span class="ident">dbg</span>, (<span class="ident">key</span>, <span class="ident">v</span>)<span class="op">|</span> {
+                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">val</span>) <span class="op">=</span> <a class="ident" href="../../src/tracing_core/field.rs.html#938">v</a> {
+                    <a class="ident" href="../../src/tracing_core/field.rs.html#939">val</a>.<a class="ident" href="../../src/tracing_core/field.rs.html#320">record</a>(<a class="ident" href="../../src/tracing_core/field.rs.html#938">key</a>, <a class="ident" href="../../src/tracing_core/field.rs.html#938">dbg</a>);
                 }
-                <a class="ident" href="../../src/tracing_core/field.rs.html#819">dbg</a>
+                <a class="ident" href="../../src/tracing_core/field.rs.html#938">dbg</a>
             })
             .<span class="ident">finish</span>()
     }
@@ -1851,7 +2089,7 @@
     <span class="doccomment">/// elements, to ensure the array is small enough to always be allocated on the</span>
     <span class="doccomment">/// stack. This trait is only implemented by arrays of an appropriate length,</span>
     <span class="doccomment">/// ensuring that the correct size arrays are used at compile-time.</span>
-    <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">ValidLen</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>: <span class="ident">Borrow</span><span class="op">&lt;</span>[(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="../../src/tracing_core/field.rs.html#61-64">Field</a>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> (<span class="kw">dyn</span> <a class="ident" href="../../src/tracing_core/field.rs.html#236-239">Value</a> <span class="op">+</span> <span class="lifetime">&#39;a</span>)<span class="op">&gt;</span>)]<span class="op">&gt;</span> {}
+    <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">ValidLen</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>: <span class="ident">Borrow</span><span class="op">&lt;</span>[(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="../../src/tracing_core/field.rs.html#134-137">Field</a>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> (<span class="kw">dyn</span> <a class="ident" href="../../src/tracing_core/field.rs.html#318-321">Value</a> <span class="op">+</span> <span class="lifetime">&#39;a</span>)<span class="op">&gt;</span>)]<span class="op">&gt;</span> {}
 }
 
 <span class="macro">macro_rules!</span> <span class="ident">impl_valid_len</span> {
@@ -2018,5 +2256,5 @@
     }
 }
 </code></pre></div>
-</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="tracing_core" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.60.0-nightly (498eeb72f 2022-01-31)" ></div>
+</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="tracing_core" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.60.0-nightly (c5c610aad 2022-02-14)" ></div>
 </body></html>

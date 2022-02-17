@@ -4,16 +4,16 @@
     </nav>
     <nav class="sidebar"><a class="sidebar-logo" href="../jni/index.html"><div class="logo-container"><img class="rust-logo" src="../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"><a href="#">Crate jni</a></h2><div class="sidebar-elems"><div class="block"><ul><li class="version">Version 0.19.0</li><li><a id="all-types" href="all.html">All Items</a></li></div></ul><div class="block items"><ul><li><a href="#modules">Modules</a></li><li><a href="#structs">Structs</a></li><li><a href="#enums">Enums</a></li><li><a href="#constants">Constants</a></li></ul></div><div id="sidebar-vars" data-name="jni" data-ty="mod" data-relpath=""></div><script defer src="sidebar-items.js"></script></div></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../jni/index.html"><img class="rust-logo" src="../rust-logo.svg" alt="logo"></a><nav class="sub"><div class="theme-picker hidden"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="22" height="22" alt="Pick another theme!" src="../brush.svg"></button><div id="theme-choices" role="menu"></div></div><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../wheel.svg"></a></div></form></nav></div><section id="main-content" class="content"><div class="main-heading">
-    <h1 class="fqn"><span class="in-band">Crate <a class="mod" href="#">jni</a><button id="copy-path" onclick="copy_path(this)" title="Copy item path to clipboard"><img src="../clipboard.svg" width="19" height="18" alt="Copy item path"></button></span></h1><span class="out-of-band"><a class="srclink" href="../src/jni/lib.rs.html#1-228">source</a> · <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">[<span class="inner">&#x2212;</span>]</a></span></div><details class="rustdoc-toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><h2 id="safe-jni-bindings-in-rust" class="section-header"><a href="#safe-jni-bindings-in-rust">Safe JNI Bindings in Rust</a></h2>
+    <h1 class="fqn"><span class="in-band">Crate <a class="mod" href="#">jni</a><button id="copy-path" onclick="copy_path(this)" title="Copy item path to clipboard"><img src="../clipboard.svg" width="19" height="18" alt="Copy item path"></button></span></h1><span class="out-of-band"><a class="srclink" href="../src/jni/lib.rs.html#1-228">source</a> · <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">[<span class="inner">&#x2212;</span>]</a></span></div><details class="rustdoc-toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><h2 id="safe-jni-bindings-in-rust"><a href="#safe-jni-bindings-in-rust">Safe JNI Bindings in Rust</a></h2>
 <p>This crate provides a (mostly) safe way to implement methods in Java using
 the JNI. Because who wants to <em>actually</em> write Java?</p>
-<h3 id="getting-started" class="section-header"><a href="#getting-started">Getting Started</a></h3>
+<h3 id="getting-started"><a href="#getting-started">Getting Started</a></h3>
 <p>Naturally, any ffi-related project is going to require some code in both
 languages that we’re trying to make communicate. Java requires all native
 methods to adhere to the Java Native Interface (JNI), so we first have to
 define our function signature from Java, and then we can write Rust that
 will adhere to it.</p>
-<h4 id="the-java-side" class="section-header"><a href="#the-java-side">The Java side</a></h4>
+<h4 id="the-java-side"><a href="#the-java-side">The Java side</a></h4>
 <p>First, you need a Java class definition. <code>HelloWorld.java</code>:</p>
 <div class="example-wrap"><pre class="language-java"><code>class HelloWorld {
     // This declares that the static `hello` method will be provided
@@ -63,7 +63,7 @@ JNIEXPORT jstring JNICALL Java_HelloWorld_hello
 #endif</code></pre></div>
 <p>It’s a C header, but luckily for us, the types will mostly match up. Let’s
 make our crate that’s going to compile to our native library.</p>
-<h4 id="the-rust-side" class="section-header"><a href="#the-rust-side">The Rust side</a></h4>
+<h4 id="the-rust-side"><a href="#the-rust-side">The Rust side</a></h4>
 <p>Create your crate with <code>cargo new mylib</code>. This will create a directory
 <code>mylib</code> that has everything needed to build an basic crate with <code>cargo</code>. We
 need to make a couple of changes to <code>Cargo.toml</code> before we do anything else.</p>
@@ -116,32 +116,32 @@ your crate’s <code>src/lib.rs</code>:</p>
 }</code></pre></div>
 <p>Note that the type signature for our function is almost identical to the one
 from the generated header, aside from our lifetime-carrying arguments.</p>
-<h4 id="final-steps" class="section-header"><a href="#final-steps">Final steps</a></h4>
+<h4 id="final-steps"><a href="#final-steps">Final steps</a></h4>
 <p>That’s it! Build your crate and try to run your Java class again.</p>
 <p>… Same error as before you say? Well that’s because JVM is looking for
 <code>mylib</code> in all the wrong places. This will differ by platform thanks to
 different linker/loader semantics, but on Linux, you can simply <code>export LD_LIBRARY_PATH=/path/to/mylib/target/debug</code>. Now, you should get the
 expected output <code>Hello, josh!</code> from your Java class.</p>
-<h3 id="launching-jvm-from-rust" class="section-header"><a href="#launching-jvm-from-rust">Launching JVM from Rust</a></h3>
+<h3 id="launching-jvm-from-rust"><a href="#launching-jvm-from-rust">Launching JVM from Rust</a></h3>
 <p>It is possible to launch a JVM from a native process using the <a href="https://docs.oracle.com/en/java/javase/11/docs/specs/jni/invocation.html">Invocation API</a>, provided
 by <a href="struct.JavaVM.html"><code>JavaVM</code></a>.</p>
-<h3 id="see-also" class="section-header"><a href="#see-also">See Also</a></h3><h4 id="examples" class="section-header"><a href="#examples">Examples</a></h4>
+<h3 id="see-also"><a href="#see-also">See Also</a></h3><h4 id="examples"><a href="#examples">Examples</a></h4>
 <ul>
 <li><a href="https://github.com/jni-rs/jni-rs/tree/master/example">Example project</a></li>
 <li>Our <a href="https://github.com/jni-rs/jni-rs/tree/master/tests">integration tests</a> and <a href="https://github.com/jni-rs/jni-rs/tree/master/benches">benchmarks</a></li>
 </ul>
-<h4 id="jni-documentation" class="section-header"><a href="#jni-documentation">JNI Documentation</a></h4>
+<h4 id="jni-documentation"><a href="#jni-documentation">JNI Documentation</a></h4>
 <ul>
 <li><a href="https://docs.oracle.com/en/java/javase/11/docs/specs/jni/index.html">Java Native Interface Specification</a></li>
 <li><a href="https://developer.android.com/training/articles/perf-jni">JNI tips</a> — general tips on JNI development and some Android-specific</li>
 </ul>
-<h4 id="open-source-users" class="section-header"><a href="#open-source-users">Open-Source Users</a></h4>
+<h4 id="open-source-users"><a href="#open-source-users">Open-Source Users</a></h4>
 <ul>
 <li>The Servo browser engine Android <a href="https://github.com/servo/servo/tree/master/ports/libsimpleservo">port</a></li>
 <li>The Exonum framework <a href="https://github.com/exonum/exonum-java-binding/tree/master/exonum-java-binding/core/rust">Java Binding</a></li>
 <li>MaidSafe <a href="https://github.com/maidsafe/safe_client_libs/tree/master/safe_app_jni">Java Binding</a></li>
 </ul>
-<h4 id="other-projects-simplifying-java-and-rust-communication" class="section-header"><a href="#other-projects-simplifying-java-and-rust-communication">Other Projects Simplifying Java and Rust Communication</a></h4>
+<h4 id="other-projects-simplifying-java-and-rust-communication"><a href="#other-projects-simplifying-java-and-rust-communication">Other Projects Simplifying Java and Rust Communication</a></h4>
 <ul>
 <li>Consider <a href="https://github.com/jnr/jnr-ffi/">JNR</a> if you just need to use a native library with C interface</li>
 <li>Watch OpenJDK <a href="https://jdk.java.net/panama/">Project Panama</a> which aims to enable using native libraries
@@ -181,5 +181,5 @@ method.</p>
 </div></div></div><h2 id="constants" class="small-section-header"><a href="#constants">Constants</a></h2>
 <div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="constant" href="constant.DEFAULT_LOCAL_FRAME_CAPACITY.html" title="jni::DEFAULT_LOCAL_FRAME_CAPACITY constant">DEFAULT_LOCAL_FRAME_CAPACITY</a></div><div class="item-right docblock-short"><p>The capacity of local frames, allocated for attached threads by default. Same as the default
 value Hotspot uses when calling native Java methods.</p>
-</div></div></div></section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../" data-current-crate="jni" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.60.0-nightly (498eeb72f 2022-01-31)" ></div>
+</div></div></div></section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../" data-current-crate="jni" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.60.0-nightly (c5c610aad 2022-02-14)" ></div>
 </body></html>

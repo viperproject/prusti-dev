@@ -10,7 +10,7 @@ frame head that specifies the length of the frame. The
 <code>length_delimited</code> module provides utilities for handling the length
 based framing. This allows the consumer to work with entire frames
 without having to worry about buffering or other framing logic.</p>
-<h2 id="getting-started" class="section-header"><a href="#getting-started">Getting started</a></h2>
+<h2 id="getting-started"><a href="#getting-started">Getting started</a></h2>
 <p>If implementing a protocol from scratch, using length delimited framing
 is an easy way to get started. <a href="struct.LengthDelimitedCodec.html#method.new"><code>LengthDelimitedCodec::new()</code></a> will
 return a length delimited codec using default configuration values.
@@ -52,13 +52,13 @@ payload length:</p>
 <p>The encoded frame will look like this:</p>
 <div class="example-wrap"><pre class="language-text"><code>+---- len: u32 ----+---- data ----+
 | \x00\x00\x00\x0b |  hello world |
-+------------------+--------------+</code></pre></div><h2 id="decoding" class="section-header"><a href="#decoding">Decoding</a></h2>
++------------------+--------------+</code></pre></div><h2 id="decoding"><a href="#decoding">Decoding</a></h2>
 <p><a href="struct.FramedRead.html"><code>FramedRead</code></a> adapts an <a href="../../trait.AsyncRead.html"><code>AsyncRead</code></a> into a <code>Stream</code> of <a href="https://docs.rs/bytes/0.4/bytes/struct.BytesMut.html"><code>BytesMut</code></a>,
 such that each yielded <a href="https://docs.rs/bytes/0.4/bytes/struct.BytesMut.html"><code>BytesMut</code></a> value contains the contents of an
 entire frame. There are many configuration parameters enabling
 <a href="struct.FramedRead.html"><code>FramedRead</code></a> to handle a wide range of protocols. Here are some
 examples that will cover the various options at a high level.</p>
-<h3 id="example-1" class="section-header"><a href="#example-1">Example 1</a></h3>
+<h3 id="example-1"><a href="#example-1">Example 1</a></h3>
 <p>The following will parse a <code>u16</code> length field at offset 0, including the
 frame head in the yielded <code>BytesMut</code>.</p>
 
@@ -78,7 +78,7 @@ of the payload, <code>hello world</code>. By default, <a href="struct.FramedRead
 the length field represents the number of bytes that <strong>follows</strong> the
 length field. Thus, the entire frame has a length of 13: 2 bytes for the
 frame head + 11 bytes for the payload.</p>
-<h3 id="example-2" class="section-header"><a href="#example-2">Example 2</a></h3>
+<h3 id="example-2"><a href="#example-2">Example 2</a></h3>
 <p>The following will parse a <code>u16</code> length field at offset 0, omitting the
 frame head in the yielded <code>BytesMut</code>.</p>
 
@@ -95,7 +95,7 @@ frame head in the yielded <code>BytesMut</code>.</p>
 +----------+---------------+     +---------------+</code></pre></div>
 <p>This is similar to the first example, the only difference is that the
 frame head is <strong>not</strong> included in the yielded <code>BytesMut</code> value.</p>
-<h3 id="example-3" class="section-header"><a href="#example-3">Example 3</a></h3>
+<h3 id="example-3"><a href="#example-3">Example 3</a></h3>
 <p>The following will parse a <code>u16</code> length field at offset 0, including the
 frame head in the yielded <code>BytesMut</code>. In this case, the length field
 <strong>includes</strong> the frame head length.</p>
@@ -116,7 +116,7 @@ only, as shown in the previous examples. However, in some protocols the
 length field represents the length of the whole frame, including the
 head. In such cases, we specify a negative <code>length_adjustment</code> to adjust
 the value provided in the frame head to represent the payload length.</p>
-<h3 id="example-4" class="section-header"><a href="#example-4">Example 4</a></h3>
+<h3 id="example-4"><a href="#example-4">Example 4</a></h3>
 <p>The following will parse a 3 byte length field at offset 0 in a 5 byte
 frame head, including the frame head in the yielded <code>BytesMut</code>.</p>
 
@@ -143,7 +143,7 @@ usually desirable to include the frame head as part of the yielded
 process the frame head as needed.</p>
 <p>The positive <code>length_adjustment</code> value lets <code>FramedRead</code> factor in the
 additional head into the frame length calculation.</p>
-<h3 id="example-5" class="section-header"><a href="#example-5">Example 5</a></h3>
+<h3 id="example-5"><a href="#example-5">Example 5</a></h3>
 <p>The following will parse a <code>u16</code> length field at offset 1 of a 4 byte
 frame head. The first byte and the length field will be omitted from the
 yielded <code>BytesMut</code>, but the trailing 2 bytes of the frame head will be
@@ -173,7 +173,7 @@ second half of the head is needed.</p>
 to read the length field.  <code>length_adjustment</code> is the number of bytes to
 skip starting at the end of the length field. In this case, it is the
 second half of the head.</p>
-<h3 id="example-6" class="section-header"><a href="#example-6">Example 6</a></h3>
+<h3 id="example-6"><a href="#example-6">Example 6</a></h3>
 <p>The following will parse a <code>u16</code> length field at offset 1 of a 4 byte
 frame head. The first byte and the length field will be omitted from the
 yielded <code>BytesMut</code>, but the trailing 2 bytes of the frame head will be
@@ -202,7 +202,7 @@ The length of <code>hdr1</code> and <code>len</code> must be counted in <code>le
 Note that the length of <code>hdr2</code> does <strong>not</strong> need to be explicitly set
 anywhere because it already is factored into the total frame length that
 is read from the byte stream.</p>
-<h2 id="encoding" class="section-header"><a href="#encoding">Encoding</a></h2>
+<h2 id="encoding"><a href="#encoding">Encoding</a></h2>
 <p><a href="struct.FramedWrite.html"><code>FramedWrite</code></a> adapts an <a href="../../trait.AsyncWrite.html"><code>AsyncWrite</code></a> into a <code>Sink</code> of <a href="https://docs.rs/bytes/0.4/bytes/struct.BytesMut.html"><code>BytesMut</code></a>,
 such that each submitted <a href="https://docs.rs/bytes/0.4/bytes/struct.BytesMut.html"><code>BytesMut</code></a> is prefaced by a length field.
 There are fewer configuration options than <a href="struct.FramedRead.html"><code>FramedRead</code></a>. Given
@@ -221,5 +221,5 @@ configuration:</p>
 <div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.Builder.html" title="tokio_util::codec::length_delimited::Builder struct">Builder</a></div><div class="item-right docblock-short"><p>Configure length delimited <code>LengthDelimitedCodec</code>s.</p>
 </div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.LengthDelimitedCodec.html" title="tokio_util::codec::length_delimited::LengthDelimitedCodec struct">LengthDelimitedCodec</a></div><div class="item-right docblock-short"><p>A codec for frames delimited by a frame head specifying their lengths.</p>
 </div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.LengthDelimitedCodecError.html" title="tokio_util::codec::length_delimited::LengthDelimitedCodecError struct">LengthDelimitedCodecError</a></div><div class="item-right docblock-short"><p>An error when the number of bytes read is more than max frame length.</p>
-</div></div></div></section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="tokio_util" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.60.0-nightly (498eeb72f 2022-01-31)" ></div>
+</div></div></div></section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="tokio_util" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.60.0-nightly (c5c610aad 2022-02-14)" ></div>
 </body></html>

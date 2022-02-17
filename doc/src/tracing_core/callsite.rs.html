@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tracing-core-0.1.21/src/callsite.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>callsite.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tracing-core-0.1.22/src/callsite.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>callsite.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../tracing_core/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/tokio-rs/tracing/master/assets/logo-type.png" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
@@ -188,12 +188,12 @@
     <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/vec/struct.Vec.html">vec::Vec</a>,
 };
 <span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">dispatcher</span>::{<a class="self" href="../../src/tracing_core/lib.rs.html#256">self</a>, <a class="ident" href="../../src/tracing_core/dispatcher.rs.html#156-158">Dispatch</a>},
-    <span class="ident">metadata</span>::{<a class="ident" href="../../src/tracing_core/metadata.rs.html#240">LevelFilter</a>, <a class="ident" href="../../src/tracing_core/metadata.rs.html#60-89">Metadata</a>},
-    <a class="ident" href="../../src/tracing_core/subscriber.rs.html#489">subscriber::Interest</a>,
+    <span class="ident">dispatcher</span>::{<a class="self" href="../../src/tracing_core/lib.rs.html#281">self</a>, <a class="ident" href="../../src/tracing_core/dispatcher.rs.html#156-158">Dispatch</a>},
+    <span class="ident">metadata</span>::{<a class="ident" href="../../src/tracing_core/metadata.rs.html#243">LevelFilter</a>, <a class="ident" href="../../src/tracing_core/metadata.rs.html#60-89">Metadata</a>},
+    <a class="ident" href="../../src/tracing_core/subscriber.rs.html#488">subscriber::Interest</a>,
 };
 
-<span class="macro">lazy_static!</span> {
+<span class="macro">crate::lazy_static!</span> {
     <span class="kw">static</span> <span class="kw-2">ref</span> <span class="ident">REGISTRY</span>: <span class="ident">Mutex</span><span class="op">&lt;</span><a class="ident" href="../../src/tracing_core/callsite.rs.html#22-25">Registry</a><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Mutex::new</span>(<a class="ident" href="../../src/tracing_core/callsite.rs.html#22-25">Registry</a> {
         <span class="ident">callsites</span>: <span class="ident">Vec::new</span>(),
         <span class="ident">dispatchers</span>: <span class="ident">Vec::new</span>(),
@@ -259,7 +259,7 @@
     <span class="doccomment">/// Sets the [`Interest`] for this callsite.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// [`Interest`]: ../subscriber/struct.Interest.html</span>
-    <span class="kw">fn</span> <span class="ident">set_interest</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">interest</span>: <a class="ident" href="../../src/tracing_core/subscriber.rs.html#489">Interest</a>);
+    <span class="kw">fn</span> <span class="ident">set_interest</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">interest</span>: <a class="ident" href="../../src/tracing_core/subscriber.rs.html#488">Interest</a>);
 
     <span class="doccomment">/// Returns the [metadata] associated with the callsite.</span>
     <span class="doccomment">///</span>
@@ -354,5 +354,5 @@
     }
 }
 </code></pre></div>
-</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="tracing_core" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.60.0-nightly (498eeb72f 2022-01-31)" ></div>
+</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="tracing_core" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.60.0-nightly (c5c610aad 2022-02-14)" ></div>
 </body></html>

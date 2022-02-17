@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/futures-util-0.3.19/src/stream/futures_unordered/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script src="../../../../crates.js"></script><script defer src="../../../../main.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/futures-util-0.3.21/src/stream/futures_unordered/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script src="../../../../crates.js"></script><script defer src="../../../../main.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../futures_util/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
@@ -660,23 +660,6 @@
 <span id="655">655</span>
 <span id="656">656</span>
 <span id="657">657</span>
-<span id="658">658</span>
-<span id="659">659</span>
-<span id="660">660</span>
-<span id="661">661</span>
-<span id="662">662</span>
-<span id="663">663</span>
-<span id="664">664</span>
-<span id="665">665</span>
-<span id="666">666</span>
-<span id="667">667</span>
-<span id="668">668</span>
-<span id="669">669</span>
-<span id="670">670</span>
-<span id="671">671</span>
-<span id="672">672</span>
-<span id="673">673</span>
-<span id="674">674</span>
 </pre><pre class="rust"><code><span class="doccomment">//! An unbounded set of futures.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! This module is only available when the `std` or `alloc` feature of this</span>
@@ -685,7 +668,6 @@
 <span class="kw">use</span> <a class="ident" href="../../../../futures_util/task/struct.AtomicWaker.html"><span class="kw">crate</span>::task::AtomicWaker</a>;
 <span class="kw">use</span> <span class="ident">alloc::sync</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/sync/struct.Arc.html">Arc</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/sync/struct.Weak.html">Weak</a>};
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/cell/struct.UnsafeCell.html">core::cell::UnsafeCell</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/cmp/index.html">core::cmp</a>;
 <span class="kw">use</span> <span class="ident">core::fmt</span>::{<a class="self" href="https://doc.rust-lang.org/nightly/core/fmt/index.html">self</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">Debug</a>};
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.FromIterator.html">core::iter::FromIterator</a>;
 <span class="kw">use</span> <span class="ident">core::marker::PhantomData</span>;
@@ -704,38 +686,11 @@
 <span class="kw">mod</span> <a class="ident" href="../../../../src/futures_util/stream/futures_unordered/iter.rs.html#1-168">iter</a>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="self">self</span>::iter</span>::{<a class="ident" href="../../../../src/futures_util/stream/futures_unordered/iter.rs.html#34-37">IntoIter</a>, <a class="ident" href="../../../../src/futures_util/stream/futures_unordered/iter.rs.html#30">Iter</a>, <a class="ident" href="../../../../src/futures_util/stream/futures_unordered/iter.rs.html#17">IterMut</a>, <a class="ident" href="../../../../src/futures_util/stream/futures_unordered/iter.rs.html#9-13">IterPinMut</a>, <a class="ident" href="../../../../src/futures_util/stream/futures_unordered/iter.rs.html#21-26">IterPinRef</a>};
 
-<span class="kw">mod</span> <a class="ident" href="../../../../src/futures_util/stream/futures_unordered/task.rs.html#1-118">task</a>;
-<span class="kw">use</span> <a class="ident" href="../../../../src/futures_util/stream/futures_unordered/task.rs.html#10-34"><span class="self">self</span>::task::Task</a>;
+<span class="kw">mod</span> <a class="ident" href="../../../../src/futures_util/stream/futures_unordered/task.rs.html#1-125">task</a>;
+<span class="kw">use</span> <a class="ident" href="../../../../src/futures_util/stream/futures_unordered/task.rs.html#10-39"><span class="self">self</span>::task::Task</a>;
 
 <span class="kw">mod</span> <a class="ident" href="../../../../src/futures_util/stream/futures_unordered/ready_to_run_queue.rs.html#1-122">ready_to_run_queue</a>;
 <span class="kw">use</span> <span class="ident"><span class="self">self</span>::ready_to_run_queue</span>::{<a class="ident" href="../../../../src/futures_util/stream/futures_unordered/ready_to_run_queue.rs.html#11-15">Dequeue</a>, <a class="ident" href="../../../../src/futures_util/stream/futures_unordered/ready_to_run_queue.rs.html#17-25">ReadyToRunQueue</a>};
-
-<span class="doccomment">/// Constant used for a `FuturesUnordered` to determine how many times it is</span>
-<span class="doccomment">/// allowed to poll underlying futures without yielding.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// A single call to `poll_next` may potentially do a lot of work before</span>
-<span class="doccomment">/// yielding. This happens in particular if the underlying futures are awoken</span>
-<span class="doccomment">/// frequently but continue to return `Pending`. This is problematic if other</span>
-<span class="doccomment">/// tasks are waiting on the executor, since they do not get to run. This value</span>
-<span class="doccomment">/// caps the number of calls to `poll` on underlying futures a single call to</span>
-<span class="doccomment">/// `poll_next` is allowed to make.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// The value itself is chosen somewhat arbitrarily. It needs to be high enough</span>
-<span class="doccomment">/// that amortize wakeup and scheduling costs, but low enough that we do not</span>
-<span class="doccomment">/// starve other tasks for long.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// See also https://github.com/rust-lang/futures-rs/issues/2047.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Note that using the length of the `FuturesUnordered` instead of this value</span>
-<span class="doccomment">/// may cause problems if the number of futures is large.</span>
-<span class="doccomment">/// See also https://github.com/rust-lang/futures-rs/pull/2527.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Additionally, polling the same future twice per iteration may cause another</span>
-<span class="doccomment">/// problem. So, when using this value, it is necessary to limit the max value</span>
-<span class="doccomment">/// based on the length of the `FuturesUnordered`.</span>
-<span class="doccomment">/// (e.g., `cmp::min(self.len(), YIELD_EVERY)`)</span>
-<span class="doccomment">/// See also https://github.com/rust-lang/futures-rs/pull/2333.</span>
-<span class="kw">const</span> <span class="ident">YIELD_EVERY</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> <span class="op">=</span> <span class="number">32</span>;
 
 <span class="doccomment">/// A set of futures which may complete in any order.</span>
 <span class="doccomment">///</span>
@@ -770,14 +725,14 @@
 
 <span class="kw">impl</span> <a class="ident" href="../../../../futures_util/task/trait.Spawn.html">Spawn</a> <span class="kw">for</span> <span class="ident">FuturesUnordered</span><span class="op">&lt;</span><span class="ident">FutureObj</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, ()<span class="op">&gt;</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">spawn_obj</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">future_obj</span>: <span class="ident">FutureObj</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span>, ()<span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../../../futures_util/task/struct.SpawnError.html">SpawnError</a><span class="op">&gt;</span> {
-        <a class="self" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#93">self</a>.<a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#189">push</a>(<a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#93">future_obj</a>);
+        <a class="self" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#65">self</a>.<a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#162">push</a>(<a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#65">future_obj</a>);
         <span class="prelude-val">Ok</span>(())
     }
 }
 
 <span class="kw">impl</span> <a class="ident" href="../../../../futures_util/task/trait.LocalSpawn.html">LocalSpawn</a> <span class="kw">for</span> <span class="ident">FuturesUnordered</span><span class="op">&lt;</span><span class="ident">LocalFutureObj</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, ()<span class="op">&gt;</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">spawn_local_obj</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">future_obj</span>: <span class="ident">LocalFutureObj</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span>, ()<span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../../../futures_util/task/struct.SpawnError.html">SpawnError</a><span class="op">&gt;</span> {
-        <a class="self" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#100">self</a>.<a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#189">push</a>(<a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#100">future_obj</a>);
+        <a class="self" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#72">self</a>.<a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#162">push</a>(<a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#72">future_obj</a>);
         <span class="prelude-val">Ok</span>(())
     }
 }
@@ -820,7 +775,7 @@
     <span class="doccomment">/// In this state, [`FuturesUnordered::poll_next`](Stream::poll_next) will</span>
     <span class="doccomment">/// return [`Poll::Ready(None)`](Poll::Ready).</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="self">Self</span> {
-        <span class="kw">let</span> <span class="ident">stub</span> <span class="op">=</span> <span class="ident">Arc::new</span>(<a class="ident" href="../../../../src/futures_util/stream/futures_unordered/task.rs.html#10-34">Task</a> {
+        <span class="kw">let</span> <span class="ident">stub</span> <span class="op">=</span> <span class="ident">Arc::new</span>(<a class="ident" href="../../../../src/futures_util/stream/futures_unordered/task.rs.html#10-39">Task</a> {
             <span class="ident">future</span>: <span class="ident">UnsafeCell::new</span>(<span class="prelude-val">None</span>),
             <span class="ident">next_all</span>: <span class="ident">AtomicPtr::new</span>(<span class="ident">ptr::null_mut</span>()),
             <span class="ident">prev_all</span>: <span class="ident">UnsafeCell::new</span>(<span class="ident">ptr::null</span>()),
@@ -828,18 +783,19 @@
             <span class="ident">next_ready_to_run</span>: <span class="ident">AtomicPtr::new</span>(<span class="ident">ptr::null_mut</span>()),
             <span class="ident">queued</span>: <span class="ident">AtomicBool::new</span>(<span class="bool-val">true</span>),
             <span class="ident">ready_to_run_queue</span>: <span class="ident">Weak::new</span>(),
+            <span class="ident">woken</span>: <span class="ident">AtomicBool::new</span>(<span class="bool-val">false</span>),
         });
-        <span class="kw">let</span> <span class="ident">stub_ptr</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">*</span><a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#144">stub</a> <span class="kw">as</span> <span class="kw-2">*const</span> <span class="ident">Task</span><span class="op">&lt;</span><span class="ident">Fut</span><span class="op">&gt;</span>;
+        <span class="kw">let</span> <span class="ident">stub_ptr</span> <span class="op">=</span> <span class="ident">Arc::as_ptr</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#116">stub</a>);
         <span class="kw">let</span> <span class="ident">ready_to_run_queue</span> <span class="op">=</span> <span class="ident">Arc::new</span>(<a class="ident" href="../../../../src/futures_util/stream/futures_unordered/ready_to_run_queue.rs.html#17-25">ReadyToRunQueue</a> {
             <span class="ident">waker</span>: <span class="ident">AtomicWaker::new</span>(),
-            <span class="ident">head</span>: <span class="ident">AtomicPtr::new</span>(<a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#153">stub_ptr</a> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>),
-            <span class="ident">tail</span>: <span class="ident">UnsafeCell::new</span>(<a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#153">stub_ptr</a>),
-            <a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#144">stub</a>,
+            <span class="ident">head</span>: <span class="ident">AtomicPtr::new</span>(<a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#126">stub_ptr</a> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>),
+            <span class="ident">tail</span>: <span class="ident">UnsafeCell::new</span>(<a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#126">stub_ptr</a>),
+            <a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#116">stub</a>,
         });
 
         <span class="self">Self</span> {
             <span class="ident">head_all</span>: <span class="ident">AtomicPtr::new</span>(<span class="ident">ptr::null_mut</span>()),
-            <a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#154">ready_to_run_queue</a>,
+            <a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#127">ready_to_run_queue</a>,
             <span class="ident">is_terminated</span>: <span class="ident">AtomicBool::new</span>(<span class="bool-val">false</span>),
         }
     }
@@ -848,15 +804,15 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// This represents the total number of in-flight futures.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">len</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <span class="kw">let</span> (<span class="kw">_</span>, <span class="ident">len</span>) <span class="op">=</span> <a class="self" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#171">self</a>.<a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#253">atomic_load_head_and_len_all</a>();
-        <a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#172">len</a>
+        <span class="kw">let</span> (<span class="kw">_</span>, <span class="ident">len</span>) <span class="op">=</span> <a class="self" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#144">self</a>.<a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#227">atomic_load_head_and_len_all</a>();
+        <a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#145">len</a>
     }
 
     <span class="doccomment">/// Returns `true` if the set contains no futures.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_empty</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
         <span class="comment">// Relaxed ordering can be used here since we don&#39;t need to read from</span>
         <span class="comment">// the head pointer, only check whether it is null.</span>
-        <a class="self" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#177">self</a>.<span class="ident">head_all</span>.<span class="ident">load</span>(<span class="ident">Relaxed</span>).<span class="ident">is_null</span>()
+        <a class="self" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#150">self</a>.<span class="ident">head_all</span>.<span class="ident">load</span>(<span class="ident">Relaxed</span>).<span class="ident">is_null</span>()
     }
 
     <span class="doccomment">/// Push a future into the set.</span>
@@ -866,30 +822,31 @@
     <span class="doccomment">/// ensure that [`FuturesUnordered::poll_next`](Stream::poll_next) is called</span>
     <span class="doccomment">/// in order to receive wake-up notifications for the given future.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">push</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">future</span>: <span class="ident">Fut</span>) {
-        <span class="kw">let</span> <span class="ident">task</span> <span class="op">=</span> <span class="ident">Arc::new</span>(<a class="ident" href="../../../../src/futures_util/stream/futures_unordered/task.rs.html#10-34">Task</a> {
-            <span class="ident">future</span>: <span class="ident">UnsafeCell::new</span>(<span class="prelude-val">Some</span>(<a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#189">future</a>)),
-            <span class="ident">next_all</span>: <span class="ident">AtomicPtr::new</span>(<a class="self" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#189">self</a>.<a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#402">pending_next_all</a>()),
+        <span class="kw">let</span> <span class="ident">task</span> <span class="op">=</span> <span class="ident">Arc::new</span>(<a class="ident" href="../../../../src/futures_util/stream/futures_unordered/task.rs.html#10-39">Task</a> {
+            <span class="ident">future</span>: <span class="ident">UnsafeCell::new</span>(<span class="prelude-val">Some</span>(<a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#162">future</a>)),
+            <span class="ident">next_all</span>: <span class="ident">AtomicPtr::new</span>(<a class="self" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#162">self</a>.<a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#376">pending_next_all</a>()),
             <span class="ident">prev_all</span>: <span class="ident">UnsafeCell::new</span>(<span class="ident">ptr::null_mut</span>()),
             <span class="ident">len_all</span>: <span class="ident">UnsafeCell::new</span>(<span class="number">0</span>),
             <span class="ident">next_ready_to_run</span>: <span class="ident">AtomicPtr::new</span>(<span class="ident">ptr::null_mut</span>()),
             <span class="ident">queued</span>: <span class="ident">AtomicBool::new</span>(<span class="bool-val">true</span>),
-            <span class="ident">ready_to_run_queue</span>: <span class="ident">Arc::downgrade</span>(<span class="kw-2">&amp;</span><a class="self" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#189">self</a>.<span class="ident">ready_to_run_queue</span>),
+            <span class="ident">ready_to_run_queue</span>: <span class="ident">Arc::downgrade</span>(<span class="kw-2">&amp;</span><a class="self" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#162">self</a>.<span class="ident">ready_to_run_queue</span>),
+            <span class="ident">woken</span>: <span class="ident">AtomicBool::new</span>(<span class="bool-val">false</span>),
         });
 
         <span class="comment">// Reset the `is_terminated` flag if we&#39;ve previously marked ourselves</span>
         <span class="comment">// as terminated.</span>
-        <a class="self" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#189">self</a>.<span class="ident">is_terminated</span>.<span class="ident">store</span>(<span class="bool-val">false</span>, <span class="ident">Relaxed</span>);
+        <a class="self" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#162">self</a>.<span class="ident">is_terminated</span>.<span class="ident">store</span>(<span class="bool-val">false</span>, <span class="ident">Relaxed</span>);
 
         <span class="comment">// Right now our task has a strong reference count of 1. We transfer</span>
         <span class="comment">// ownership of this reference count to our internal linked list</span>
         <span class="comment">// and we&#39;ll reclaim ownership through the `unlink` method below.</span>
-        <span class="kw">let</span> <span class="ident">ptr</span> <span class="op">=</span> <a class="self" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#189">self</a>.<a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#308">link</a>(<a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#190">task</a>);
+        <span class="kw">let</span> <span class="ident">ptr</span> <span class="op">=</span> <a class="self" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#162">self</a>.<a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#282">link</a>(<a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#163">task</a>);
 
         <span class="comment">// We&#39;ll need to get the future &quot;into the system&quot; to start tracking it,</span>
         <span class="comment">// e.g. getting its wake-up notifications going to us tracking which</span>
         <span class="comment">// futures are ready. To do that we unconditionally enqueue it for</span>
         <span class="comment">// polling here.</span>
-        <a class="self" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#189">self</a>.<span class="ident">ready_to_run_queue</span>.<a class="ident" href="../../../../src/futures_util/stream/futures_unordered/ready_to_run_queue.rs.html#31">enqueue</a>(<a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#207">ptr</a>);
+        <a class="self" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#162">self</a>.<span class="ident">ready_to_run_queue</span>.<a class="ident" href="../../../../src/futures_util/stream/futures_unordered/ready_to_run_queue.rs.html#31">enqueue</a>(<a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#181">ptr</a>);
     }
 
     <span class="doccomment">/// Returns an iterator that allows inspecting each future in the set.</span>
@@ -897,15 +854,15 @@
     <span class="kw">where</span>
         <span class="ident">Fut</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
     {
-        <a class="ident" href="../../../../src/futures_util/stream/futures_unordered/iter.rs.html#30">Iter</a>(<span class="ident">Pin::new</span>(<a class="self" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#217">self</a>).<a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#225">iter_pin_ref</a>())
+        <a class="ident" href="../../../../src/futures_util/stream/futures_unordered/iter.rs.html#30">Iter</a>(<span class="ident">Pin::new</span>(<a class="self" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#191">self</a>).<a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#199">iter_pin_ref</a>())
     }
 
     <span class="doccomment">/// Returns an iterator that allows inspecting each future in the set.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">iter_pin_ref</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="self">Self</span><span class="op">&gt;</span>) -&gt; <span class="ident">IterPinRef</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">Fut</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> (<span class="ident">task</span>, <span class="ident">len</span>) <span class="op">=</span> <a class="self" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#225">self</a>.<a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#253">atomic_load_head_and_len_all</a>();
-        <span class="kw">let</span> <span class="ident">pending_next_all</span> <span class="op">=</span> <a class="self" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#225">self</a>.<a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#402">pending_next_all</a>();
+        <span class="kw">let</span> (<span class="ident">task</span>, <span class="ident">len</span>) <span class="op">=</span> <a class="self" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#199">self</a>.<a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#227">atomic_load_head_and_len_all</a>();
+        <span class="kw">let</span> <span class="ident">pending_next_all</span> <span class="op">=</span> <a class="self" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#199">self</a>.<a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#376">pending_next_all</a>();
 
-        <a class="ident" href="../../../../src/futures_util/stream/futures_unordered/iter.rs.html#21-26">IterPinRef</a> { <a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#226">task</a>, <a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#226">len</a>, <a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#227">pending_next_all</a>, <span class="ident">_marker</span>: <span class="ident">PhantomData</span> }
+        <a class="ident" href="../../../../src/futures_util/stream/futures_unordered/iter.rs.html#21-26">IterPinRef</a> { <a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#200">task</a>, <a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#200">len</a>, <a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#201">pending_next_all</a>, <span class="ident">_marker</span>: <span class="ident">PhantomData</span> }
     }
 
     <span class="doccomment">/// Returns an iterator that allows modifying each future in the set.</span>
@@ -913,34 +870,34 @@
     <span class="kw">where</span>
         <span class="ident">Fut</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
     {
-        <a class="ident" href="../../../../src/futures_util/stream/futures_unordered/iter.rs.html#17">IterMut</a>(<span class="ident">Pin::new</span>(<a class="self" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#233">self</a>).<a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#241">iter_pin_mut</a>())
+        <a class="ident" href="../../../../src/futures_util/stream/futures_unordered/iter.rs.html#17">IterMut</a>(<span class="ident">Pin::new</span>(<a class="self" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#207">self</a>).<a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#215">iter_pin_mut</a>())
     }
 
     <span class="doccomment">/// Returns an iterator that allows modifying each future in the set.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">iter_pin_mut</span>(<span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>) -&gt; <span class="ident">IterPinMut</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">Fut</span><span class="op">&gt;</span> {
         <span class="comment">// `head_all` can be accessed directly and we don&#39;t need to spin on</span>
         <span class="comment">// `Task::next_all` since we have exclusive access to the set.</span>
-        <span class="kw">let</span> <span class="ident">task</span> <span class="op">=</span> <span class="kw-2">*</span><a class="self" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#241">self</a>.<span class="ident">head_all</span>.<span class="ident">get_mut</span>();
-        <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="kw">if</span> <a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#244">task</a>.<span class="ident">is_null</span>() { <span class="number">0</span> } <span class="kw">else</span> { <span class="kw">unsafe</span> { <span class="kw-2">*</span>(<span class="kw-2">*</span><a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#244">task</a>).<span class="ident">len_all</span>.<span class="ident">get</span>() } };
+        <span class="kw">let</span> <span class="ident">task</span> <span class="op">=</span> <span class="kw-2">*</span><a class="self" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#215">self</a>.<span class="ident">head_all</span>.<span class="ident">get_mut</span>();
+        <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="kw">if</span> <a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#218">task</a>.<span class="ident">is_null</span>() { <span class="number">0</span> } <span class="kw">else</span> { <span class="kw">unsafe</span> { <span class="kw-2">*</span>(<span class="kw-2">*</span><a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#218">task</a>).<span class="ident">len_all</span>.<span class="ident">get</span>() } };
 
-        <a class="ident" href="../../../../src/futures_util/stream/futures_unordered/iter.rs.html#9-13">IterPinMut</a> { <a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#244">task</a>, <a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#245">len</a>, <span class="ident">_marker</span>: <span class="ident">PhantomData</span> }
+        <a class="ident" href="../../../../src/futures_util/stream/futures_unordered/iter.rs.html#9-13">IterPinMut</a> { <a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#218">task</a>, <a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#219">len</a>, <span class="ident">_marker</span>: <span class="ident">PhantomData</span> }
     }
 
     <span class="doccomment">/// Returns the current head node and number of futures in the list of all</span>
     <span class="doccomment">/// futures within a context where access is shared with other threads</span>
     <span class="doccomment">/// (mostly for use with the `len` and `iter_pin_ref` methods).</span>
     <span class="kw">fn</span> <span class="ident">atomic_load_head_and_len_all</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<span class="kw-2">*const</span> <span class="ident">Task</span><span class="op">&lt;</span><span class="ident">Fut</span><span class="op">&gt;</span>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
-        <span class="kw">let</span> <span class="ident">task</span> <span class="op">=</span> <a class="self" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#253">self</a>.<span class="ident">head_all</span>.<span class="ident">load</span>(<span class="ident">Acquire</span>);
-        <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="kw">if</span> <a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#254">task</a>.<span class="ident">is_null</span>() {
+        <span class="kw">let</span> <span class="ident">task</span> <span class="op">=</span> <a class="self" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#227">self</a>.<span class="ident">head_all</span>.<span class="ident">load</span>(<span class="ident">Acquire</span>);
+        <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="kw">if</span> <a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#228">task</a>.<span class="ident">is_null</span>() {
             <span class="number">0</span>
         } <span class="kw">else</span> {
             <span class="kw">unsafe</span> {
-                (<span class="kw-2">*</span><a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#254">task</a>).<a class="ident" href="../../../../src/futures_util/stream/futures_unordered/task.rs.html#88-92">spin_next_all</a>(<a class="self" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#253">self</a>.<a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#402">pending_next_all</a>(), <span class="ident">Acquire</span>);
-                <span class="kw-2">*</span>(<span class="kw-2">*</span><a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#254">task</a>).<span class="ident">len_all</span>.<span class="ident">get</span>()
+                (<span class="kw-2">*</span><a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#228">task</a>).<a class="ident" href="../../../../src/futures_util/stream/futures_unordered/task.rs.html#95-99">spin_next_all</a>(<a class="self" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#227">self</a>.<a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#376">pending_next_all</a>(), <span class="ident">Acquire</span>);
+                <span class="kw-2">*</span>(<span class="kw-2">*</span><a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#228">task</a>).<span class="ident">len_all</span>.<span class="ident">get</span>()
             }
         };
 
-        (<a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#254">task</a>, <a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#255">len</a>)
+        (<a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#228">task</a>, <a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#229">len</a>)
     }
 
     <span class="doccomment">/// Releases the task. It destroys the future inside and either drops</span>
@@ -948,14 +905,14 @@
     <span class="doccomment">/// The task this method is called on must have been unlinked before.</span>
     <span class="kw">fn</span> <span class="ident">release_task</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">task</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Task</span><span class="op">&lt;</span><span class="ident">Fut</span><span class="op">&gt;</span><span class="op">&gt;</span>) {
         <span class="comment">// `release_task` must only be called on unlinked tasks</span>
-        <span class="macro">debug_assert_eq!</span>(<a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#270">task</a>.<span class="ident">next_all</span>.<span class="ident">load</span>(<span class="ident">Relaxed</span>), <a class="self" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#270">self</a>.<a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#402">pending_next_all</a>());
+        <span class="macro">debug_assert_eq!</span>(<a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#244">task</a>.<span class="ident">next_all</span>.<span class="ident">load</span>(<span class="ident">Relaxed</span>), <a class="self" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#244">self</a>.<a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#376">pending_next_all</a>());
         <span class="kw">unsafe</span> {
-            <span class="macro">debug_assert!</span>((<span class="kw-2">*</span><a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#270">task</a>.<span class="ident">prev_all</span>.<span class="ident">get</span>()).<span class="ident">is_null</span>());
+            <span class="macro">debug_assert!</span>((<span class="kw-2">*</span><a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#244">task</a>.<span class="ident">prev_all</span>.<span class="ident">get</span>()).<span class="ident">is_null</span>());
         }
 
         <span class="comment">// The future is done, try to reset the queued flag. This will prevent</span>
         <span class="comment">// `wake` from doing any work in the future</span>
-        <span class="kw">let</span> <span class="ident">prev</span> <span class="op">=</span> <a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#270">task</a>.<span class="ident">queued</span>.<span class="ident">swap</span>(<span class="bool-val">true</span>, <span class="ident">SeqCst</span>);
+        <span class="kw">let</span> <span class="ident">prev</span> <span class="op">=</span> <a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#244">task</a>.<span class="ident">queued</span>.<span class="ident">swap</span>(<span class="bool-val">true</span>, <span class="ident">SeqCst</span>);
 
         <span class="comment">// Drop the future, even if it hasn&#39;t finished yet. This is safe</span>
         <span class="comment">// because we&#39;re dropping the future on the thread that owns</span>
@@ -964,7 +921,7 @@
         <span class="kw">unsafe</span> {
             <span class="comment">// Set to `None` rather than `take()`ing to prevent moving the</span>
             <span class="comment">// future.</span>
-            <span class="kw-2">*</span><a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#270">task</a>.<span class="ident">future</span>.<span class="ident">get</span>() <span class="op">=</span> <span class="prelude-val">None</span>;
+            <span class="kw-2">*</span><a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#244">task</a>.<span class="ident">future</span>.<span class="ident">get</span>() <span class="op">=</span> <span class="prelude-val">None</span>;
         }
 
         <span class="comment">// If the queued flag was previously set, then it means that this task</span>
@@ -978,8 +935,8 @@
         <span class="comment">// enqueue the task, so our task will never see the ready to run queue</span>
         <span class="comment">// again. The task itself will be deallocated once all reference counts</span>
         <span class="comment">// have been dropped elsewhere by the various wakers that contain it.</span>
-        <span class="kw">if</span> <a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#279">prev</a> {
-            <span class="ident">mem::forget</span>(<a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#270">task</a>);
+        <span class="kw">if</span> <a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#253">prev</a> {
+            <span class="ident">mem::forget</span>(<a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#244">task</a>);
         }
     }
 
@@ -987,37 +944,37 @@
     <span class="kw">fn</span> <span class="ident">link</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">task</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Task</span><span class="op">&lt;</span><span class="ident">Fut</span><span class="op">&gt;</span><span class="op">&gt;</span>) -&gt; <span class="kw-2">*const</span> <span class="ident">Task</span><span class="op">&lt;</span><span class="ident">Fut</span><span class="op">&gt;</span> {
         <span class="comment">// `next_all` should already be reset to the pending state before this</span>
         <span class="comment">// function is called.</span>
-        <span class="macro">debug_assert_eq!</span>(<a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#308">task</a>.<span class="ident">next_all</span>.<span class="ident">load</span>(<span class="ident">Relaxed</span>), <a class="self" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#308">self</a>.<a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#402">pending_next_all</a>());
-        <span class="kw">let</span> <span class="ident">ptr</span> <span class="op">=</span> <span class="ident">Arc::into_raw</span>(<a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#308">task</a>);
+        <span class="macro">debug_assert_eq!</span>(<a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#282">task</a>.<span class="ident">next_all</span>.<span class="ident">load</span>(<span class="ident">Relaxed</span>), <a class="self" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#282">self</a>.<a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#376">pending_next_all</a>());
+        <span class="kw">let</span> <span class="ident">ptr</span> <span class="op">=</span> <span class="ident">Arc::into_raw</span>(<a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#282">task</a>);
 
         <span class="comment">// Atomically swap out the old head node to get the node that should be</span>
         <span class="comment">// assigned to `next_all`.</span>
-        <span class="kw">let</span> <span class="ident">next</span> <span class="op">=</span> <a class="self" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#308">self</a>.<span class="ident">head_all</span>.<span class="ident">swap</span>(<a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#312">ptr</a> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>, <span class="ident">AcqRel</span>);
+        <span class="kw">let</span> <span class="ident">next</span> <span class="op">=</span> <a class="self" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#282">self</a>.<span class="ident">head_all</span>.<span class="ident">swap</span>(<a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#286">ptr</a> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>, <span class="ident">AcqRel</span>);
 
         <span class="kw">unsafe</span> {
             <span class="comment">// Store the new list length in the new node.</span>
-            <span class="kw">let</span> <span class="ident">new_len</span> <span class="op">=</span> <span class="kw">if</span> <a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#316">next</a>.<span class="ident">is_null</span>() {
+            <span class="kw">let</span> <span class="ident">new_len</span> <span class="op">=</span> <span class="kw">if</span> <a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#290">next</a>.<span class="ident">is_null</span>() {
                 <span class="number">1</span>
             } <span class="kw">else</span> {
                 <span class="comment">// Make sure `next_all` has been written to signal that it is</span>
                 <span class="comment">// safe to read `len_all`.</span>
-                (<span class="kw-2">*</span><a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#316">next</a>).<a class="ident" href="../../../../src/futures_util/stream/futures_unordered/task.rs.html#88-92">spin_next_all</a>(<a class="self" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#308">self</a>.<a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#402">pending_next_all</a>(), <span class="ident">Acquire</span>);
-                <span class="kw-2">*</span>(<span class="kw-2">*</span><a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#316">next</a>).<span class="ident">len_all</span>.<span class="ident">get</span>() <span class="op">+</span> <span class="number">1</span>
+                (<span class="kw-2">*</span><a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#290">next</a>).<a class="ident" href="../../../../src/futures_util/stream/futures_unordered/task.rs.html#95-99">spin_next_all</a>(<a class="self" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#282">self</a>.<a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#376">pending_next_all</a>(), <span class="ident">Acquire</span>);
+                <span class="kw-2">*</span>(<span class="kw-2">*</span><a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#290">next</a>).<span class="ident">len_all</span>.<span class="ident">get</span>() <span class="op">+</span> <span class="number">1</span>
             };
-            <span class="kw-2">*</span>(<span class="kw-2">*</span><a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#312">ptr</a>).<span class="ident">len_all</span>.<span class="ident">get</span>() <span class="op">=</span> <a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#320">new_len</a>;
+            <span class="kw-2">*</span>(<span class="kw-2">*</span><a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#286">ptr</a>).<span class="ident">len_all</span>.<span class="ident">get</span>() <span class="op">=</span> <a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#294">new_len</a>;
 
             <span class="comment">// Write the old head as the next node pointer, signaling to other</span>
             <span class="comment">// threads that `len_all` and `next_all` are ready to read.</span>
-            (<span class="kw-2">*</span><a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#312">ptr</a>).<span class="ident">next_all</span>.<span class="ident">store</span>(<a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#316">next</a>, <span class="ident">Release</span>);
+            (<span class="kw-2">*</span><a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#286">ptr</a>).<span class="ident">next_all</span>.<span class="ident">store</span>(<a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#290">next</a>, <span class="ident">Release</span>);
 
             <span class="comment">// `prev_all` updates don&#39;t need to be synchronized, as the field is</span>
             <span class="comment">// only ever used after exclusive access has been acquired.</span>
-            <span class="kw">if</span> <span class="op">!</span><a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#316">next</a>.<span class="ident">is_null</span>() {
-                <span class="kw-2">*</span>(<span class="kw-2">*</span><a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#316">next</a>).<span class="ident">prev_all</span>.<span class="ident">get</span>() <span class="op">=</span> <a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#312">ptr</a>;
+            <span class="kw">if</span> <span class="op">!</span><a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#290">next</a>.<span class="ident">is_null</span>() {
+                <span class="kw-2">*</span>(<span class="kw-2">*</span><a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#290">next</a>).<span class="ident">prev_all</span>.<span class="ident">get</span>() <span class="op">=</span> <a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#286">ptr</a>;
             }
         }
 
-        <a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#312">ptr</a>
+        <a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#286">ptr</a>
     }
 
     <span class="doccomment">/// Remove the task from the linked list tracking all tasks currently</span>
@@ -1027,33 +984,33 @@
     <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">unlink</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">task</span>: <span class="kw-2">*const</span> <span class="ident">Task</span><span class="op">&lt;</span><span class="ident">Fut</span><span class="op">&gt;</span>) -&gt; <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Task</span><span class="op">&lt;</span><span class="ident">Fut</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="comment">// Compute the new list length now in case we&#39;re removing the head node</span>
         <span class="comment">// and won&#39;t be able to retrieve the correct length later.</span>
-        <span class="kw">let</span> <span class="ident">head</span> <span class="op">=</span> <span class="kw-2">*</span><a class="self" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#348">self</a>.<span class="ident">head_all</span>.<span class="ident">get_mut</span>();
-        <span class="macro">debug_assert!</span>(<span class="op">!</span><a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#351">head</a>.<span class="ident">is_null</span>());
-        <span class="kw">let</span> <span class="ident">new_len</span> <span class="op">=</span> <span class="kw-2">*</span>(<span class="kw-2">*</span><a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#351">head</a>).<span class="ident">len_all</span>.<span class="ident">get</span>() <span class="op">-</span> <span class="number">1</span>;
+        <span class="kw">let</span> <span class="ident">head</span> <span class="op">=</span> <span class="kw-2">*</span><a class="self" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#322">self</a>.<span class="ident">head_all</span>.<span class="ident">get_mut</span>();
+        <span class="macro">debug_assert!</span>(<span class="op">!</span><a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#325">head</a>.<span class="ident">is_null</span>());
+        <span class="kw">let</span> <span class="ident">new_len</span> <span class="op">=</span> <span class="kw-2">*</span>(<span class="kw-2">*</span><a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#325">head</a>).<span class="ident">len_all</span>.<span class="ident">get</span>() <span class="op">-</span> <span class="number">1</span>;
 
-        <span class="kw">let</span> <span class="ident">task</span> <span class="op">=</span> <span class="ident">Arc::from_raw</span>(<a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#348">task</a>);
-        <span class="kw">let</span> <span class="ident">next</span> <span class="op">=</span> <a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#355">task</a>.<span class="ident">next_all</span>.<span class="ident">load</span>(<span class="ident">Relaxed</span>);
-        <span class="kw">let</span> <span class="ident">prev</span> <span class="op">=</span> <span class="kw-2">*</span><a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#355">task</a>.<span class="ident">prev_all</span>.<span class="ident">get</span>();
-        <a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#355">task</a>.<span class="ident">next_all</span>.<span class="ident">store</span>(<a class="self" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#348">self</a>.<a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#402">pending_next_all</a>(), <span class="ident">Relaxed</span>);
-        <span class="kw-2">*</span><a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#355">task</a>.<span class="ident">prev_all</span>.<span class="ident">get</span>() <span class="op">=</span> <span class="ident">ptr::null_mut</span>();
+        <span class="kw">let</span> <span class="ident">task</span> <span class="op">=</span> <span class="ident">Arc::from_raw</span>(<a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#322">task</a>);
+        <span class="kw">let</span> <span class="ident">next</span> <span class="op">=</span> <a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#329">task</a>.<span class="ident">next_all</span>.<span class="ident">load</span>(<span class="ident">Relaxed</span>);
+        <span class="kw">let</span> <span class="ident">prev</span> <span class="op">=</span> <span class="kw-2">*</span><a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#329">task</a>.<span class="ident">prev_all</span>.<span class="ident">get</span>();
+        <a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#329">task</a>.<span class="ident">next_all</span>.<span class="ident">store</span>(<a class="self" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#322">self</a>.<a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#376">pending_next_all</a>(), <span class="ident">Relaxed</span>);
+        <span class="kw-2">*</span><a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#329">task</a>.<span class="ident">prev_all</span>.<span class="ident">get</span>() <span class="op">=</span> <span class="ident">ptr::null_mut</span>();
 
-        <span class="kw">if</span> <span class="op">!</span><a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#356">next</a>.<span class="ident">is_null</span>() {
-            <span class="kw-2">*</span>(<span class="kw-2">*</span><a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#356">next</a>).<span class="ident">prev_all</span>.<span class="ident">get</span>() <span class="op">=</span> <a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#357">prev</a>;
+        <span class="kw">if</span> <span class="op">!</span><a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#330">next</a>.<span class="ident">is_null</span>() {
+            <span class="kw-2">*</span>(<span class="kw-2">*</span><a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#330">next</a>).<span class="ident">prev_all</span>.<span class="ident">get</span>() <span class="op">=</span> <a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#331">prev</a>;
         }
 
-        <span class="kw">if</span> <span class="op">!</span><a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#357">prev</a>.<span class="ident">is_null</span>() {
-            (<span class="kw-2">*</span><a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#357">prev</a>).<span class="ident">next_all</span>.<span class="ident">store</span>(<a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#356">next</a>, <span class="ident">Relaxed</span>);
+        <span class="kw">if</span> <span class="op">!</span><a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#331">prev</a>.<span class="ident">is_null</span>() {
+            (<span class="kw-2">*</span><a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#331">prev</a>).<span class="ident">next_all</span>.<span class="ident">store</span>(<a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#330">next</a>, <span class="ident">Relaxed</span>);
         } <span class="kw">else</span> {
-            <span class="kw-2">*</span><a class="self" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#348">self</a>.<span class="ident">head_all</span>.<span class="ident">get_mut</span>() <span class="op">=</span> <a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#356">next</a>;
+            <span class="kw-2">*</span><a class="self" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#322">self</a>.<span class="ident">head_all</span>.<span class="ident">get_mut</span>() <span class="op">=</span> <a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#330">next</a>;
         }
 
         <span class="comment">// Store the new list length in the head node.</span>
-        <span class="kw">let</span> <span class="ident">head</span> <span class="op">=</span> <span class="kw-2">*</span><a class="self" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#348">self</a>.<span class="ident">head_all</span>.<span class="ident">get_mut</span>();
-        <span class="kw">if</span> <span class="op">!</span><a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#372">head</a>.<span class="ident">is_null</span>() {
-            <span class="kw-2">*</span>(<span class="kw-2">*</span><a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#372">head</a>).<span class="ident">len_all</span>.<span class="ident">get</span>() <span class="op">=</span> <a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#353">new_len</a>;
+        <span class="kw">let</span> <span class="ident">head</span> <span class="op">=</span> <span class="kw-2">*</span><a class="self" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#322">self</a>.<span class="ident">head_all</span>.<span class="ident">get_mut</span>();
+        <span class="kw">if</span> <span class="op">!</span><a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#346">head</a>.<span class="ident">is_null</span>() {
+            <span class="kw-2">*</span>(<span class="kw-2">*</span><a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#346">head</a>).<span class="ident">len_all</span>.<span class="ident">get</span>() <span class="op">=</span> <a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#327">new_len</a>;
         }
 
-        <a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#355">task</a>
+        <a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#329">task</a>
     }
 
     <span class="doccomment">/// Returns the reserved value for `Task::next_all` to indicate a pending</span>
@@ -1082,7 +1039,7 @@
         <span class="comment">// The `ReadyToRunQueue` stub is never inserted into the `head_all`</span>
         <span class="comment">// list, and its pointer value will remain valid for the lifetime of</span>
         <span class="comment">// this `FuturesUnordered`, so we can make use of its value here.</span>
-        <span class="kw-2">&amp;</span><span class="kw-2">*</span><a class="self" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#402">self</a>.<span class="ident">ready_to_run_queue</span>.<span class="ident">stub</span> <span class="kw">as</span> <span class="kw-2">*const</span> <span class="kw">_</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>
+        <span class="ident">Arc::as_ptr</span>(<span class="kw-2">&amp;</span><a class="self" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#376">self</a>.<span class="ident">ready_to_run_queue</span>.<span class="ident">stub</span>) <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>
     }
 }
 
@@ -1090,25 +1047,25 @@
     <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="ident">Fut::Output</span>;
 
     <span class="kw">fn</span> <span class="ident">poll_next</span>(<span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="comment">// See YIELD_EVERY docs　for more.</span>
-        <span class="kw">let</span> <span class="ident">yield_every</span> <span class="op">=</span> <span class="ident">cmp::min</span>(<a class="self" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#413">self</a>.<a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#171">len</a>(), <a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#59">YIELD_EVERY</a>);
+        <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <a class="self" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#387">self</a>.<a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#144">len</a>();
 
         <span class="comment">// Keep track of how many child futures we have polled,</span>
         <span class="comment">// in case we want to forcibly yield.</span>
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">polled</span> <span class="op">=</span> <span class="number">0</span>;
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">yielded</span> <span class="op">=</span> <span class="number">0</span>;
 
         <span class="comment">// Ensure `parent` is correctly set.</span>
-        <a class="self" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#413">self</a>.<span class="ident">ready_to_run_queue</span>.<span class="ident">waker</span>.<span class="ident">register</span>(<a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#413">cx</a>.<span class="ident">waker</span>());
+        <a class="self" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#387">self</a>.<span class="ident">ready_to_run_queue</span>.<span class="ident">waker</span>.<span class="ident">register</span>(<a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#387">cx</a>.<span class="ident">waker</span>());
 
         <span class="kw">loop</span> {
             <span class="comment">// Safety: &amp;mut self guarantees the mutual exclusion `dequeue`</span>
             <span class="comment">// expects</span>
-            <span class="kw">let</span> <span class="ident">task</span> <span class="op">=</span> <span class="kw">match</span> <span class="kw">unsafe</span> { <a class="self" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#413">self</a>.<span class="ident">ready_to_run_queue</span>.<a class="ident" href="../../../../src/futures_util/stream/futures_unordered/ready_to_run_queue.rs.html#49">dequeue</a>() } {
+            <span class="kw">let</span> <span class="ident">task</span> <span class="op">=</span> <span class="kw">match</span> <span class="kw">unsafe</span> { <a class="self" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#387">self</a>.<span class="ident">ready_to_run_queue</span>.<a class="ident" href="../../../../src/futures_util/stream/futures_unordered/ready_to_run_queue.rs.html#49">dequeue</a>() } {
                 <a class="ident" href="../../../../src/futures_util/stream/futures_unordered/ready_to_run_queue.rs.html#13">Dequeue::Empty</a> =&gt; {
-                    <span class="kw">if</span> <a class="self" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#413">self</a>.<a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#177">is_empty</a>() {
+                    <span class="kw">if</span> <a class="self" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#387">self</a>.<a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#150">is_empty</a>() {
                         <span class="comment">// We can only consider ourselves terminated once we</span>
                         <span class="comment">// have yielded a `None`</span>
-                        <span class="kw-2">*</span><a class="self" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#413">self</a>.<span class="ident">is_terminated</span>.<span class="ident">get_mut</span>() <span class="op">=</span> <span class="bool-val">true</span>;
+                        <span class="kw-2">*</span><a class="self" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#387">self</a>.<span class="ident">is_terminated</span>.<span class="ident">get_mut</span>() <span class="op">=</span> <span class="bool-val">true</span>;
                         <span class="kw">return</span> <span class="ident">Poll::Ready</span>(<span class="prelude-val">None</span>);
                     } <span class="kw">else</span> {
                         <span class="kw">return</span> <span class="ident">Poll::Pending</span>;
@@ -1118,20 +1075,20 @@
                     <span class="comment">// At this point, it may be worth yielding the thread &amp;</span>
                     <span class="comment">// spinning a few times... but for now, just yield using the</span>
                     <span class="comment">// task system.</span>
-                    <a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#413">cx</a>.<span class="ident">waker</span>().<span class="ident">wake_by_ref</span>();
+                    <a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#387">cx</a>.<span class="ident">waker</span>().<span class="ident">wake_by_ref</span>();
                     <span class="kw">return</span> <span class="ident">Poll::Pending</span>;
                 }
-                <a class="ident" href="../../../../src/futures_util/stream/futures_unordered/ready_to_run_queue.rs.html#12">Dequeue::Data</a>(<span class="ident">task</span>) =&gt; <a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#445">task</a>,
+                <a class="ident" href="../../../../src/futures_util/stream/futures_unordered/ready_to_run_queue.rs.html#12">Dequeue::Data</a>(<span class="ident">task</span>) =&gt; <a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#419">task</a>,
             };
 
-            <span class="macro">debug_assert!</span>(<a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#427">task</a> <span class="op">!</span><span class="op">=</span> <a class="self" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#413">self</a>.<span class="ident">ready_to_run_queue</span>.<a class="ident" href="../../../../src/futures_util/stream/futures_unordered/ready_to_run_queue.rs.html#85">stub</a>());
+            <span class="macro">debug_assert!</span>(<a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#401">task</a> <span class="op">!</span><span class="op">=</span> <a class="self" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#387">self</a>.<span class="ident">ready_to_run_queue</span>.<a class="ident" href="../../../../src/futures_util/stream/futures_unordered/ready_to_run_queue.rs.html#85">stub</a>());
 
             <span class="comment">// Safety:</span>
             <span class="comment">// - `task` is a valid pointer.</span>
             <span class="comment">// - We are the only thread that accesses the `UnsafeCell` that</span>
             <span class="comment">//   contains the future</span>
-            <span class="kw">let</span> <span class="ident">future</span> <span class="op">=</span> <span class="kw">match</span> <span class="kw">unsafe</span> { <span class="kw-2">&amp;mut</span> <span class="kw-2">*</span>(<span class="kw-2">*</span><a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#427">task</a>).<span class="ident">future</span>.<span class="ident">get</span>() } {
-                <span class="prelude-val">Some</span>(<span class="ident">future</span>) =&gt; <a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#455">future</a>,
+            <span class="kw">let</span> <span class="ident">future</span> <span class="op">=</span> <span class="kw">match</span> <span class="kw">unsafe</span> { <span class="kw-2">&amp;mut</span> <span class="kw-2">*</span>(<span class="kw-2">*</span><a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#401">task</a>).<span class="ident">future</span>.<span class="ident">get</span>() } {
+                <span class="prelude-val">Some</span>(<span class="ident">future</span>) =&gt; <a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#429">future</a>,
 
                 <span class="comment">// If the future has already gone away then we&#39;re just</span>
                 <span class="comment">// cleaning out this task. See the comment in</span>
@@ -1144,26 +1101,26 @@
                     <span class="comment">// queue.</span>
 
                     <span class="comment">// Safety: `task` is a valid pointer</span>
-                    <span class="kw">let</span> <span class="ident">task</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">Arc::from_raw</span>(<a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#427">task</a>) };
+                    <span class="kw">let</span> <span class="ident">task</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">Arc::from_raw</span>(<a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#401">task</a>) };
 
                     <span class="comment">// Double check that the call to `release_task` really</span>
                     <span class="comment">// happened. Calling it required the task to be unlinked.</span>
-                    <span class="macro">debug_assert_eq!</span>(<a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#468">task</a>.<span class="ident">next_all</span>.<span class="ident">load</span>(<span class="ident">Relaxed</span>), <a class="self" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#413">self</a>.<a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#402">pending_next_all</a>());
+                    <span class="macro">debug_assert_eq!</span>(<a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#442">task</a>.<span class="ident">next_all</span>.<span class="ident">load</span>(<span class="ident">Relaxed</span>), <a class="self" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#387">self</a>.<a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#376">pending_next_all</a>());
                     <span class="kw">unsafe</span> {
-                        <span class="macro">debug_assert!</span>((<span class="kw-2">*</span><a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#468">task</a>.<span class="ident">prev_all</span>.<span class="ident">get</span>()).<span class="ident">is_null</span>());
+                        <span class="macro">debug_assert!</span>((<span class="kw-2">*</span><a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#442">task</a>.<span class="ident">prev_all</span>.<span class="ident">get</span>()).<span class="ident">is_null</span>());
                     }
                     <span class="kw">continue</span>;
                 }
             };
 
             <span class="comment">// Safety: `task` is a valid pointer</span>
-            <span class="kw">let</span> <span class="ident">task</span> <span class="op">=</span> <span class="kw">unsafe</span> { <a class="self" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#413">self</a>.<a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#348">unlink</a>(<a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#427">task</a>) };
+            <span class="kw">let</span> <span class="ident">task</span> <span class="op">=</span> <span class="kw">unsafe</span> { <a class="self" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#387">self</a>.<a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#322">unlink</a>(<a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#401">task</a>) };
 
             <span class="comment">// Unset queued flag: This must be done before polling to ensure</span>
             <span class="comment">// that the future&#39;s task gets rescheduled if it sends a wake-up</span>
             <span class="comment">// notification **during** the call to `poll`.</span>
-            <span class="kw">let</span> <span class="ident">prev</span> <span class="op">=</span> <a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#481">task</a>.<span class="ident">queued</span>.<span class="ident">swap</span>(<span class="bool-val">false</span>, <span class="ident">SeqCst</span>);
-            <span class="macro">assert!</span>(<a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#486">prev</a>);
+            <span class="kw">let</span> <span class="ident">prev</span> <span class="op">=</span> <a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#455">task</a>.<span class="ident">queued</span>.<span class="ident">swap</span>(<span class="bool-val">false</span>, <span class="ident">SeqCst</span>);
+            <span class="macro">assert!</span>(<a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#460">prev</a>);
 
             <span class="comment">// We&#39;re going to need to be very careful if the `poll`</span>
             <span class="comment">// method below panics. We need to (a) not leak memory and</span>
@@ -1186,13 +1143,13 @@
 
             <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Fut</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for</span> <span class="ident">Bomb</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">Fut</span><span class="op">&gt;</span> {
                 <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-                    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">task</span>) <span class="op">=</span> <a class="self" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#509">self</a>.<span class="ident">task</span>.<span class="ident">take</span>() {
-                        <a class="self" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#509">self</a>.<span class="ident">queue</span>.<a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#270">release_task</a>(<a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#510">task</a>);
+                    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">task</span>) <span class="op">=</span> <a class="self" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#483">self</a>.<span class="ident">task</span>.<span class="ident">take</span>() {
+                        <a class="self" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#483">self</a>.<span class="ident">queue</span>.<a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#244">release_task</a>(<a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#484">task</a>);
                     }
                 }
             }
 
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">bomb</span> <span class="op">=</span> <a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#503-506">Bomb</a> { <span class="ident">task</span>: <span class="prelude-val">Some</span>(<a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#481">task</a>), <span class="ident">queue</span>: <span class="kw-2">&amp;mut</span> <span class="kw-2">*</span><a class="self" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#413">self</a> };
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">bomb</span> <span class="op">=</span> <a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#477-480">Bomb</a> { <span class="ident">task</span>: <span class="prelude-val">Some</span>(<a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#455">task</a>), <span class="ident">queue</span>: <span class="kw-2">&amp;mut</span> <span class="kw-2">*</span><a class="self" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#387">self</a> };
 
             <span class="comment">// Poll the underlying future with the appropriate waker</span>
             <span class="comment">// implementation. This is where a large bit of the unsafety</span>
@@ -1206,63 +1163,72 @@
             <span class="comment">// the internal allocation, appropriately accessing fields and</span>
             <span class="comment">// deallocating the task if need be.</span>
             <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> {
-                <span class="kw">let</span> <span class="ident">waker</span> <span class="op">=</span> <span class="ident">Task::waker_ref</span>(<a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#516">bomb</a>.<span class="ident">task</span>.<span class="ident">as_ref</span>().<span class="ident">unwrap</span>());
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">cx</span> <span class="op">=</span> <span class="ident">Context::from_waker</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#530">waker</a>);
+                <span class="kw">let</span> <span class="ident">task</span> <span class="op">=</span> <a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#490">bomb</a>.<span class="ident">task</span>.<span class="ident">as_ref</span>().<span class="ident">unwrap</span>();
+                <span class="comment">// We are only interested in whether the future is awoken before it</span>
+                <span class="comment">// finishes polling, so reset the flag here.</span>
+                <a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#504">task</a>.<span class="ident">woken</span>.<span class="ident">store</span>(<span class="bool-val">false</span>, <span class="ident">Relaxed</span>);
+                <span class="kw">let</span> <span class="ident">waker</span> <span class="op">=</span> <span class="ident">Task::waker_ref</span>(<a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#504">task</a>);
+                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">cx</span> <span class="op">=</span> <span class="ident">Context::from_waker</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#508">waker</a>);
 
                 <span class="comment">// Safety: We won&#39;t move the future ever again</span>
-                <span class="kw">let</span> <span class="ident">future</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">Pin::new_unchecked</span>(<a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#454">future</a>) };
+                <span class="kw">let</span> <span class="ident">future</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">Pin::new_unchecked</span>(<a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#428">future</a>) };
 
-                <a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#534">future</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">poll</a>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#531">cx</a>)
+                <a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#512">future</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">poll</a>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#509">cx</a>)
             };
-            <a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#419">polled</a> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+            <a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#392">polled</a> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
 
-            <span class="kw">match</span> <a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#529">res</a> {
+            <span class="kw">match</span> <a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#503">res</a> {
                 <span class="ident">Poll::Pending</span> =&gt; {
-                    <span class="kw">let</span> <span class="ident">task</span> <span class="op">=</span> <a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#516">bomb</a>.<span class="ident">task</span>.<span class="ident">take</span>().<span class="ident">unwrap</span>();
-                    <a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#516">bomb</a>.<span class="ident">queue</span>.<a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#308">link</a>(<a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#542">task</a>);
+                    <span class="kw">let</span> <span class="ident">task</span> <span class="op">=</span> <a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#490">bomb</a>.<span class="ident">task</span>.<span class="ident">take</span>().<span class="ident">unwrap</span>();
+                    <span class="comment">// If the future was awoken during polling, we assume</span>
+                    <span class="comment">// the future wanted to explicitly yield.</span>
+                    <a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#393">yielded</a> <span class="op">+</span><span class="op">=</span> <a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#520">task</a>.<span class="ident">woken</span>.<span class="ident">load</span>(<span class="ident">Relaxed</span>) <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
+                    <a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#490">bomb</a>.<span class="ident">queue</span>.<a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#282">link</a>(<a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#520">task</a>);
 
-                    <span class="kw">if</span> <a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#419">polled</a> <span class="op">==</span> <a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#415">yield_every</a> {
-                        <span class="comment">// We have polled a large number of futures in a row without yielding.</span>
-                        <span class="comment">// To ensure we do not starve other tasks waiting on the executor,</span>
-                        <span class="comment">// we yield here, but immediately wake ourselves up to continue.</span>
-                        <a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#413">cx</a>.<span class="ident">waker</span>().<span class="ident">wake_by_ref</span>();
+                    <span class="comment">// If a future yields, we respect it and yield here.</span>
+                    <span class="comment">// If all futures have been polled, we also yield here to</span>
+                    <span class="comment">// avoid starving other tasks waiting on the executor.</span>
+                    <span class="comment">// (polling the same future twice per iteration may cause</span>
+                    <span class="comment">// the problem: https://github.com/rust-lang/futures-rs/pull/2333)</span>
+                    <span class="kw">if</span> <a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#393">yielded</a> <span class="op">&gt;</span><span class="op">=</span> <span class="number">2</span> <span class="op">|</span><span class="op">|</span> <a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#392">polled</a> <span class="op">==</span> <a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#388">len</a> {
+                        <a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#387">cx</a>.<span class="ident">waker</span>().<span class="ident">wake_by_ref</span>();
                         <span class="kw">return</span> <span class="ident">Poll::Pending</span>;
                     }
                     <span class="kw">continue</span>;
                 }
-                <span class="ident">Poll::Ready</span>(<span class="ident">output</span>) =&gt; <span class="kw">return</span> <span class="ident">Poll::Ready</span>(<span class="prelude-val">Some</span>(<a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#554">output</a>)),
+                <span class="ident">Poll::Ready</span>(<span class="ident">output</span>) =&gt; <span class="kw">return</span> <span class="ident">Poll::Ready</span>(<span class="prelude-val">Some</span>(<a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#537">output</a>)),
             }
         }
     }
 
     <span class="kw">fn</span> <span class="ident">size_hint</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span>) {
-        <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <a class="self" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#559">self</a>.<a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#171">len</a>();
-        (<a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#560">len</a>, <span class="prelude-val">Some</span>(<a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#560">len</a>))
+        <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <a class="self" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#542">self</a>.<a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#144">len</a>();
+        (<a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#543">len</a>, <span class="prelude-val">Some</span>(<a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#543">len</a>))
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Fut</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">Debug</a> <span class="kw">for</span> <span class="ident">FuturesUnordered</span><span class="op">&lt;</span><span class="ident">Fut</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <span class="macro">write!</span>(<a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#566">f</a>, <span class="string">&quot;FuturesUnordered {{ ... }}&quot;</span>)
+        <span class="macro">write!</span>(<a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#549">f</a>, <span class="string">&quot;FuturesUnordered {{ ... }}&quot;</span>)
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Fut</span><span class="op">&gt;</span> <span class="ident">FuturesUnordered</span><span class="op">&lt;</span><span class="ident">Fut</span><span class="op">&gt;</span> {
     <span class="doccomment">/// Clears the set, removing all futures.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">clear</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <a class="self" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#573">self</a>.<a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#582">clear_head_all</a>();
+        <a class="self" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#556">self</a>.<a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#565">clear_head_all</a>();
 
         <span class="comment">// we just cleared all the tasks, and we have &amp;mut self, so this is safe.</span>
-        <span class="kw">unsafe</span> { <a class="self" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#573">self</a>.<span class="ident">ready_to_run_queue</span>.<a class="ident" href="../../../../src/futures_util/stream/futures_unordered/ready_to_run_queue.rs.html#99">clear</a>() };
+        <span class="kw">unsafe</span> { <a class="self" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#556">self</a>.<span class="ident">ready_to_run_queue</span>.<a class="ident" href="../../../../src/futures_util/stream/futures_unordered/ready_to_run_queue.rs.html#99">clear</a>() };
 
-        <a class="self" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#573">self</a>.<span class="ident">is_terminated</span>.<span class="ident">store</span>(<span class="bool-val">false</span>, <span class="ident">Relaxed</span>);
+        <a class="self" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#556">self</a>.<span class="ident">is_terminated</span>.<span class="ident">store</span>(<span class="bool-val">false</span>, <span class="ident">Relaxed</span>);
     }
 
     <span class="kw">fn</span> <span class="ident">clear_head_all</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <span class="kw">while</span> <span class="op">!</span><a class="self" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#582">self</a>.<span class="ident">head_all</span>.<span class="ident">get_mut</span>().<span class="ident">is_null</span>() {
-            <span class="kw">let</span> <span class="ident">head</span> <span class="op">=</span> <span class="kw-2">*</span><a class="self" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#582">self</a>.<span class="ident">head_all</span>.<span class="ident">get_mut</span>();
-            <span class="kw">let</span> <span class="ident">task</span> <span class="op">=</span> <span class="kw">unsafe</span> { <a class="self" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#582">self</a>.<a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#348">unlink</a>(<a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#584">head</a>) };
-            <a class="self" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#582">self</a>.<a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#270">release_task</a>(<a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#585">task</a>);
+        <span class="kw">while</span> <span class="op">!</span><a class="self" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#565">self</a>.<span class="ident">head_all</span>.<span class="ident">get_mut</span>().<span class="ident">is_null</span>() {
+            <span class="kw">let</span> <span class="ident">head</span> <span class="op">=</span> <span class="kw-2">*</span><a class="self" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#565">self</a>.<span class="ident">head_all</span>.<span class="ident">get_mut</span>();
+            <span class="kw">let</span> <span class="ident">task</span> <span class="op">=</span> <span class="kw">unsafe</span> { <a class="self" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#565">self</a>.<a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#322">unlink</a>(<a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#567">head</a>) };
+            <a class="self" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#565">self</a>.<a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#244">release_task</a>(<a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#568">task</a>);
         }
     }
 }
@@ -1273,7 +1239,7 @@
         <span class="comment">// associated with it. At the same time though there may be tons of</span>
         <span class="comment">// wakers flying around which contain `Task&lt;Fut&gt;` references</span>
         <span class="comment">// inside them. We&#39;ll let those naturally get deallocated.</span>
-        <a class="self" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#592">self</a>.<a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#582">clear_head_all</a>();
+        <a class="self" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#575">self</a>.<a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#565">clear_head_all</a>();
 
         <span class="comment">// Note that at this point we could still have a bunch of tasks in the</span>
         <span class="comment">// ready to run queue. None of those tasks, however, have futures</span>
@@ -1295,7 +1261,7 @@
     <span class="kw">type</span> <span class="ident">IntoIter</span> <span class="op">=</span> <span class="ident">Iter</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Fut</span><span class="op">&gt;</span>;
 
     <span class="kw">fn</span> <span class="ident">into_iter</span>(<span class="self">self</span>) -&gt; <span class="ident"><span class="self">Self</span>::IntoIter</span> {
-        <a class="self" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#618">self</a>.<a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#217-219">iter</a>()
+        <a class="self" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#601">self</a>.<a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#191-193">iter</a>()
     }
 }
 
@@ -1304,7 +1270,7 @@
     <span class="kw">type</span> <span class="ident">IntoIter</span> <span class="op">=</span> <span class="ident">IterMut</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Fut</span><span class="op">&gt;</span>;
 
     <span class="kw">fn</span> <span class="ident">into_iter</span>(<span class="self">self</span>) -&gt; <span class="ident"><span class="self">Self</span>::IntoIter</span> {
-        <a class="self" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#627">self</a>.<a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#233-235">iter_mut</a>()
+        <a class="self" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#610">self</a>.<a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#207-209">iter_mut</a>()
     }
 }
 
@@ -1315,10 +1281,10 @@
     <span class="kw">fn</span> <span class="ident">into_iter</span>(<span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="ident"><span class="self">Self</span>::IntoIter</span> {
         <span class="comment">// `head_all` can be accessed directly and we don&#39;t need to spin on</span>
         <span class="comment">// `Task::next_all` since we have exclusive access to the set.</span>
-        <span class="kw">let</span> <span class="ident">task</span> <span class="op">=</span> <span class="kw-2">*</span><a class="self" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#636">self</a>.<span class="ident">head_all</span>.<span class="ident">get_mut</span>();
-        <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="kw">if</span> <a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#639">task</a>.<span class="ident">is_null</span>() { <span class="number">0</span> } <span class="kw">else</span> { <span class="kw">unsafe</span> { <span class="kw-2">*</span>(<span class="kw-2">*</span><a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#639">task</a>).<span class="ident">len_all</span>.<span class="ident">get</span>() } };
+        <span class="kw">let</span> <span class="ident">task</span> <span class="op">=</span> <span class="kw-2">*</span><a class="self" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#619">self</a>.<span class="ident">head_all</span>.<span class="ident">get_mut</span>();
+        <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="kw">if</span> <a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#622">task</a>.<span class="ident">is_null</span>() { <span class="number">0</span> } <span class="kw">else</span> { <span class="kw">unsafe</span> { <span class="kw-2">*</span>(<span class="kw-2">*</span><a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#622">task</a>).<span class="ident">len_all</span>.<span class="ident">get</span>() } };
 
-        <a class="ident" href="../../../../src/futures_util/stream/futures_unordered/iter.rs.html#34-37">IntoIter</a> { <a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#640">len</a>, <span class="ident">inner</span>: <a class="self" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#636">self</a> }
+        <a class="ident" href="../../../../src/futures_util/stream/futures_unordered/iter.rs.html#34-37">IntoIter</a> { <a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#623">len</a>, <span class="ident">inner</span>: <a class="self" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#619">self</a> }
     }
 }
 
@@ -1328,16 +1294,16 @@
         <span class="ident">I</span>: <span class="ident">IntoIterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">Fut</span><span class="op">&gt;</span>,
     {
         <span class="kw">let</span> <span class="ident">acc</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::new</span>();
-        <a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#647">iter</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">fold</a>(<a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#651">acc</a>, <span class="op">|</span><span class="ident">acc</span>, <span class="ident">item</span><span class="op">|</span> {
-            <a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#652">acc</a>.<a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#189">push</a>(<a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#652">item</a>);
-            <a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#652">acc</a>
+        <a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#630">iter</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">fold</a>(<a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#634">acc</a>, <span class="op">|</span><span class="ident">acc</span>, <span class="ident">item</span><span class="op">|</span> {
+            <a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#635">acc</a>.<a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#162">push</a>(<a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#635">item</a>);
+            <a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#635">acc</a>
         })
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Fut</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a><span class="op">&gt;</span> <a class="ident" href="../../../../futures_util/stream/trait.FusedStream.html">FusedStream</a> <span class="kw">for</span> <span class="ident">FuturesUnordered</span><span class="op">&lt;</span><span class="ident">Fut</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">is_terminated</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#660">self</a>.<span class="ident">is_terminated</span>.<span class="ident">load</span>(<span class="ident">Relaxed</span>)
+        <a class="self" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#643">self</a>.<span class="ident">is_terminated</span>.<span class="ident">load</span>(<span class="ident">Relaxed</span>)
     }
 }
 
@@ -1346,11 +1312,11 @@
     <span class="kw">where</span>
         <span class="ident">I</span>: <span class="ident">IntoIterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">Fut</span><span class="op">&gt;</span>,
     {
-        <span class="kw">for</span> <span class="ident">item</span> <span class="kw">in</span> <a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#666">iter</a> {
-            <a class="self" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#666">self</a>.<a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#189">push</a>(<a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#670">item</a>);
+        <span class="kw">for</span> <span class="ident">item</span> <span class="kw">in</span> <a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#649">iter</a> {
+            <a class="self" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#649">self</a>.<a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#162">push</a>(<a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#653">item</a>);
         }
     }
 }
 </code></pre></div>
-</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="futures_util" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.60.0-nightly (498eeb72f 2022-01-31)" ></div>
+</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="futures_util" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.60.0-nightly (c5c610aad 2022-02-14)" ></div>
 </body></html>
