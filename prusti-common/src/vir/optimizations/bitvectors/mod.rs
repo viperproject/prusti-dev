@@ -70,28 +70,25 @@ pub fn replace_all_ints(program: &mut vir_poly::Program) {
             vir_poly::Predicate::Bodyless(..) => {}
         }
     }
-    program.fields.extend(vec![
-        vir_poly::Field::new(
-            "field_bv8",
-            vir_poly::Type::BitVector(vir_poly::BitVector::BV8),
-        ),
-        vir_poly::Field::new(
-            "field_bv16",
-            vir_poly::Type::BitVector(vir_poly::BitVector::BV16),
-        ),
-        vir_poly::Field::new(
-            "field_bv32",
-            vir_poly::Type::BitVector(vir_poly::BitVector::BV32),
-        ),
-        vir_poly::Field::new(
-            "field_bv64",
-            vir_poly::Type::BitVector(vir_poly::BitVector::BV64),
-        ),
-        vir_poly::Field::new(
-            "field_bv128",
-            vir_poly::Type::BitVector(vir_poly::BitVector::BV128),
-        ),
-    ]);
+    let types = [
+        vir_poly::BitVectorSize::BV8,
+        vir_poly::BitVectorSize::BV16,
+        vir_poly::BitVectorSize::BV32,
+        vir_poly::BitVectorSize::BV64,
+        vir_poly::BitVectorSize::BV128,
+    ];
+    for typ in types {
+        let signed = vir_poly::BitVector::Signed(typ);
+        let unsigned = vir_poly::BitVector::Unsigned(typ);
+        program.fields.push(vir_poly::Field::new(
+            format!("field_{}", signed),
+            vir_poly::Type::BitVector(signed),
+        ));
+        program.fields.push(vir_poly::Field::new(
+            format!("field_{}", unsigned),
+            vir_poly::Type::BitVector(unsigned),
+        ));
+    }
 }
 
 struct Replacer {
@@ -101,39 +98,28 @@ struct Replacer {
 impl ExprFolder for Replacer {
     fn fold_field(&mut self, mut expr: vir_poly::FieldExpr) -> vir_poly::Expr {
         if let vir_poly::Type::TypedRef(vir_poly::TypedRef { label, .. }) = expr.base.get_type() {
-            match label.as_ref() {
-                "u8" | "i8" => {
-                    let variant = vir_poly::BitVector::BV8;
-                    self.captured_bv = Some(variant);
-                    expr.field =
-                        vir_poly::Field::new("field_bv8", vir_poly::Type::BitVector(variant))
-                }
-                "u16" | "i16" => {
-                    let variant = vir_poly::BitVector::BV16;
-                    self.captured_bv = Some(variant);
-                    expr.field =
-                        vir_poly::Field::new("field_bv16", vir_poly::Type::BitVector(variant))
-                }
-                "u32" | "i32" => {
-                    let variant = vir_poly::BitVector::BV32;
-                    self.captured_bv = Some(variant);
-                    expr.field =
-                        vir_poly::Field::new("field_bv32", vir_poly::Type::BitVector(variant))
-                }
-                "u64" | "i64" => {
-                    let variant = vir_poly::BitVector::BV64;
-                    self.captured_bv = Some(variant);
-                    expr.field =
-                        vir_poly::Field::new("field_bv64", vir_poly::Type::BitVector(variant))
-                }
-                "u128" | "i128" => {
-                    let variant = vir_poly::BitVector::BV128;
-                    self.captured_bv = Some(variant);
-                    expr.field =
-                        vir_poly::Field::new("field_bv128", vir_poly::Type::BitVector(variant))
-                }
-                _ => {}
+            let variant = match label.as_ref() {
+                "u8" => Some(vir_poly::BitVector::Unsigned(vir_poly::BitVectorSize::BV8)),
+                "u16" => Some(vir_poly::BitVector::Unsigned(vir_poly::BitVectorSize::BV16)),
+                "u32" => Some(vir_poly::BitVector::Unsigned(vir_poly::BitVectorSize::BV32)),
+                "u64" => Some(vir_poly::BitVector::Unsigned(vir_poly::BitVectorSize::BV64)),
+                "u128" => Some(vir_poly::BitVector::Unsigned(
+                    vir_poly::BitVectorSize::BV128,
+                )),
+                "i8" => Some(vir_poly::BitVector::Signed(vir_poly::BitVectorSize::BV8)),
+                "i16" => Some(vir_poly::BitVector::Signed(vir_poly::BitVectorSize::BV16)),
+                "i32" => Some(vir_poly::BitVector::Signed(vir_poly::BitVectorSize::BV32)),
+                "i64" => Some(vir_poly::BitVector::Signed(vir_poly::BitVectorSize::BV64)),
+                "i128" => Some(vir_poly::BitVector::Signed(vir_poly::BitVectorSize::BV128)),
+                _ => None,
             };
+            if let Some(variant) = variant {
+                self.captured_bv = Some(variant);
+                expr.field = vir_poly::Field::new(
+                    format!("field_{}", variant),
+                    vir_poly::Type::BitVector(variant),
+                )
+            }
         }
         vir_poly::Expr::Field(expr)
     }
@@ -142,14 +128,9 @@ impl ExprFolder for Replacer {
             vir_poly::Const::Int(value) => {
                 let value = *value;
                 if let Some(captured_bv) = &self.captured_bv {
-                    let const_value = match captured_bv {
-                        vir_poly::BitVector::BV8 => vir_poly::BitVectorConst::BV8(value as u8),
-                        vir_poly::BitVector::BV16 => vir_poly::BitVectorConst::BV16(value as u16),
-                        vir_poly::BitVector::BV32 => vir_poly::BitVectorConst::BV32(value as u32),
-                        vir_poly::BitVector::BV64 => vir_poly::BitVectorConst::BV64(value as u64),
-                        vir_poly::BitVector::BV128 => {
-                            vir_poly::BitVectorConst::BV128(value as u128)
-                        }
+                    let const_value = vir_poly::BitVectorConst {
+                        value: value.to_string(),
+                        typ: *captured_bv,
                     };
                     expr.value = vir_poly::Const::BitVector(const_value);
                 }

@@ -60,25 +60,13 @@ pub struct Constant {
     pub position: Position,
 }
 
+/// Note: we do not have explicit constant values for bit vectors and floating
+/// points because they are stored as `Int`/`BigInt` and translated into Viper
+/// based on the `Constant.ty` field.
 pub enum ConstantValue {
     Bool(bool),
     Int(i64),
     BigInt(String),
-    Float(FloatConst),
-    BitVector(BitVectorConst),
-}
-
-pub enum FloatConst {
-    F32(u32),
-    F64(u64),
-}
-
-pub enum BitVectorConst {
-    BV8(u8),
-    BV16(u16),
-    BV32(u32),
-    BV64(u64),
-    BV128(u128),
 }
 
 #[display(fmt = "({} --* {})", left, right)]

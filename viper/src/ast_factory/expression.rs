@@ -295,6 +295,18 @@ impl<'a> AstFactory<'a> {
         self.backend_func_app(from_int, &[self.int_lit(bits as i64)], self.no_position())
     }
 
+    pub fn backend_bv8_lit_str(&self, bits: &dyn ToString) -> Expr<'a> {
+        let bv_factory_ = ast::utility::BVFactory::with(self.env);
+        let bv_factory = ast::utility::BVFactory::new(&bv_factory_, 8).unwrap();
+        let from_int = ast::utility::BVFactory::call_from__int(
+            &bv_factory_,
+            bv_factory,
+            self.jni.new_string("toBV8"),
+        )
+        .unwrap();
+        self.backend_func_app(from_int, &[self.int_lit_from_ref(bits)], self.no_position())
+    }
+
     pub fn backend_bv16_lit(&self, bits: u16) -> Expr<'a> {
         let bv_factory_ = ast::utility::BVFactory::with(self.env);
         let bv_factory = ast::utility::BVFactory::new(&bv_factory_, 16).unwrap();
@@ -305,6 +317,18 @@ impl<'a> AstFactory<'a> {
         )
         .unwrap();
         self.backend_func_app(from_int, &[self.int_lit(bits as i64)], self.no_position())
+    }
+
+    pub fn backend_bv16_lit_str(&self, bits: &dyn ToString) -> Expr<'a> {
+        let bv_factory_ = ast::utility::BVFactory::with(self.env);
+        let bv_factory = ast::utility::BVFactory::new(&bv_factory_, 16).unwrap();
+        let from_int = ast::utility::BVFactory::call_from__int(
+            &bv_factory_,
+            bv_factory,
+            self.jni.new_string("toBV16"),
+        )
+        .unwrap();
+        self.backend_func_app(from_int, &[self.int_lit_from_ref(bits)], self.no_position())
     }
 
     pub fn backend_bv32_lit(&self, bits: u32) -> Expr<'a> {
@@ -319,6 +343,18 @@ impl<'a> AstFactory<'a> {
         self.backend_func_app(from_int, &[self.int_lit(bits as i64)], self.no_position())
     }
 
+    pub fn backend_bv32_lit_str(&self, bits: &dyn ToString) -> Expr<'a> {
+        let bv_factory_ = ast::utility::BVFactory::with(self.env);
+        let bv_factory = ast::utility::BVFactory::new(&bv_factory_, 32).unwrap();
+        let from_int = ast::utility::BVFactory::call_from__int(
+            &bv_factory_,
+            bv_factory,
+            self.jni.new_string("toBV32"),
+        )
+        .unwrap();
+        self.backend_func_app(from_int, &[self.int_lit_from_ref(bits)], self.no_position())
+    }
+
     pub fn backend_bv64_lit(&self, bits: u64) -> Expr<'a> {
         let bv_factory_ = ast::utility::BVFactory::with(self.env);
         let bv_factory = ast::utility::BVFactory::new(&bv_factory_, 64).unwrap();
@@ -331,6 +367,18 @@ impl<'a> AstFactory<'a> {
         self.backend_func_app(from_int, &[self.int_lit(bits as i64)], self.no_position())
     }
 
+    pub fn backend_bv64_lit_str(&self, bits: &dyn ToString) -> Expr<'a> {
+        let bv_factory_ = ast::utility::BVFactory::with(self.env);
+        let bv_factory = ast::utility::BVFactory::new(&bv_factory_, 64).unwrap();
+        let from_int = ast::utility::BVFactory::call_from__int(
+            &bv_factory_,
+            bv_factory,
+            self.jni.new_string("toBV64"),
+        )
+        .unwrap();
+        self.backend_func_app(from_int, &[self.int_lit_from_ref(bits)], self.no_position())
+    }
+
     pub fn backend_bv128_lit(&self, bits: u128) -> Expr<'a> {
         let bv_factory_ = ast::utility::BVFactory::with(self.env);
         let bv_factory = ast::utility::BVFactory::new(&bv_factory_, 128).unwrap();
@@ -341,6 +389,18 @@ impl<'a> AstFactory<'a> {
         )
         .unwrap();
         self.backend_func_app(from_int, &[self.int_lit(bits as i64)], self.no_position())
+    }
+
+    pub fn backend_bv128_lit_str(&self, bits: &dyn ToString) -> Expr<'a> {
+        let bv_factory_ = ast::utility::BVFactory::with(self.env);
+        let bv_factory = ast::utility::BVFactory::new(&bv_factory_, 128).unwrap();
+        let from_int = ast::utility::BVFactory::call_from__int(
+            &bv_factory_,
+            bv_factory,
+            self.jni.new_string("toBV128"),
+        )
+        .unwrap();
+        self.backend_func_app(from_int, &[self.int_lit_from_ref(bits)], self.no_position())
     }
 
     pub fn bv_factory(&self, bv_size: BvSize) -> (ast::utility::BVFactory<'a>, JObject<'a>) {

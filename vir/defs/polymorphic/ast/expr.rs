@@ -1195,11 +1195,46 @@ impl Expr {
                 Const::Int(..) | Const::BigInt(..) => &Type::Int,
                 Const::Float(FloatConst::F32(..)) => &Type::Float(Float::F32),
                 Const::Float(FloatConst::F64(..)) => &Type::Float(Float::F64),
-                Const::BitVector(BitVectorConst::BV8(..)) => &Type::BitVector(BitVector::BV8),
-                Const::BitVector(BitVectorConst::BV16(..)) => &Type::BitVector(BitVector::BV16),
-                Const::BitVector(BitVectorConst::BV32(..)) => &Type::BitVector(BitVector::BV32),
-                Const::BitVector(BitVectorConst::BV64(..)) => &Type::BitVector(BitVector::BV64),
-                Const::BitVector(BitVectorConst::BV128(..)) => &Type::BitVector(BitVector::BV128),
+                Const::BitVector(BitVectorConst {
+                    typ: BitVector::Signed(BitVectorSize::BV8),
+                    ..
+                }) => &Type::BitVector(BitVector::Signed(BitVectorSize::BV8)),
+                Const::BitVector(BitVectorConst {
+                    typ: BitVector::Signed(BitVectorSize::BV16),
+                    ..
+                }) => &Type::BitVector(BitVector::Signed(BitVectorSize::BV16)),
+                Const::BitVector(BitVectorConst {
+                    typ: BitVector::Signed(BitVectorSize::BV32),
+                    ..
+                }) => &Type::BitVector(BitVector::Signed(BitVectorSize::BV32)),
+                Const::BitVector(BitVectorConst {
+                    typ: BitVector::Signed(BitVectorSize::BV64),
+                    ..
+                }) => &Type::BitVector(BitVector::Signed(BitVectorSize::BV64)),
+                Const::BitVector(BitVectorConst {
+                    typ: BitVector::Signed(BitVectorSize::BV128),
+                    ..
+                }) => &Type::BitVector(BitVector::Signed(BitVectorSize::BV128)),
+                Const::BitVector(BitVectorConst {
+                    typ: BitVector::Unsigned(BitVectorSize::BV8),
+                    ..
+                }) => &Type::BitVector(BitVector::Unsigned(BitVectorSize::BV8)),
+                Const::BitVector(BitVectorConst {
+                    typ: BitVector::Unsigned(BitVectorSize::BV16),
+                    ..
+                }) => &Type::BitVector(BitVector::Unsigned(BitVectorSize::BV16)),
+                Const::BitVector(BitVectorConst {
+                    typ: BitVector::Unsigned(BitVectorSize::BV32),
+                    ..
+                }) => &Type::BitVector(BitVector::Unsigned(BitVectorSize::BV32)),
+                Const::BitVector(BitVectorConst {
+                    typ: BitVector::Unsigned(BitVectorSize::BV64),
+                    ..
+                }) => &Type::BitVector(BitVector::Unsigned(BitVectorSize::BV64)),
+                Const::BitVector(BitVectorConst {
+                    typ: BitVector::Unsigned(BitVectorSize::BV128),
+                    ..
+                }) => &Type::BitVector(BitVector::Unsigned(BitVectorSize::BV128)),
                 Const::FnPtr => &FN_PTR_TYPE,
             },
             Expr::BinOp(BinOp {
@@ -1269,11 +1304,36 @@ impl Expr {
             Expr::Seq(Seq { typ, .. }) => typ,
             Expr::Cast(Cast { kind, .. }) => match kind {
                 CastKind::BVIntoInt(_) => &Type::Int,
-                CastKind::IntIntoBV(BitVector::BV8) => &Type::BitVector(BitVector::BV8),
-                CastKind::IntIntoBV(BitVector::BV16) => &Type::BitVector(BitVector::BV16),
-                CastKind::IntIntoBV(BitVector::BV32) => &Type::BitVector(BitVector::BV32),
-                CastKind::IntIntoBV(BitVector::BV64) => &Type::BitVector(BitVector::BV64),
-                CastKind::IntIntoBV(BitVector::BV128) => &Type::BitVector(BitVector::BV128),
+                CastKind::IntIntoBV(BitVector::Signed(BitVectorSize::BV8)) => {
+                    &Type::BitVector(BitVector::Signed(BitVectorSize::BV8))
+                }
+                CastKind::IntIntoBV(BitVector::Signed(BitVectorSize::BV16)) => {
+                    &Type::BitVector(BitVector::Signed(BitVectorSize::BV16))
+                }
+                CastKind::IntIntoBV(BitVector::Signed(BitVectorSize::BV32)) => {
+                    &Type::BitVector(BitVector::Signed(BitVectorSize::BV32))
+                }
+                CastKind::IntIntoBV(BitVector::Signed(BitVectorSize::BV64)) => {
+                    &Type::BitVector(BitVector::Signed(BitVectorSize::BV64))
+                }
+                CastKind::IntIntoBV(BitVector::Signed(BitVectorSize::BV128)) => {
+                    &Type::BitVector(BitVector::Signed(BitVectorSize::BV128))
+                }
+                CastKind::IntIntoBV(BitVector::Unsigned(BitVectorSize::BV8)) => {
+                    &Type::BitVector(BitVector::Unsigned(BitVectorSize::BV8))
+                }
+                CastKind::IntIntoBV(BitVector::Unsigned(BitVectorSize::BV16)) => {
+                    &Type::BitVector(BitVector::Unsigned(BitVectorSize::BV16))
+                }
+                CastKind::IntIntoBV(BitVector::Unsigned(BitVectorSize::BV32)) => {
+                    &Type::BitVector(BitVector::Unsigned(BitVectorSize::BV32))
+                }
+                CastKind::IntIntoBV(BitVector::Unsigned(BitVectorSize::BV64)) => {
+                    &Type::BitVector(BitVector::Unsigned(BitVectorSize::BV64))
+                }
+                CastKind::IntIntoBV(BitVector::Unsigned(BitVectorSize::BV128)) => {
+                    &Type::BitVector(BitVector::Unsigned(BitVectorSize::BV128))
+                }
             },
         }
     }
@@ -1985,17 +2045,14 @@ impl fmt::Display for FloatConst {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize, PartialOrd, Ord)]
-pub enum BitVectorConst {
-    BV8(u8),
-    BV16(u16),
-    BV32(u32),
-    BV64(u64),
-    BV128(u128),
+pub struct BitVectorConst {
+    pub value: String,
+    pub typ: BitVector,
 }
 
 impl fmt::Display for BitVectorConst {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", &self)
+        write!(f, "{}({})", self.typ, self.value)
     }
 }
 
