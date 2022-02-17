@@ -19,6 +19,11 @@ pub enum Float {
 }
 
 pub enum BitVector {
+    Signed(BitVectorSize),
+    Unsigned(BitVectorSize),
+}
+
+pub enum BitVectorSize {
     BV8,
     BV16,
     BV32,

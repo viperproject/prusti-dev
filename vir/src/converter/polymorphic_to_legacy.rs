@@ -55,14 +55,23 @@ impl From<polymorphic::Float> for legacy::Float {
     }
 }
 
+impl From<polymorphic::BitVectorSize> for legacy::BitVectorSize {
+    fn from(value: polymorphic::BitVectorSize) -> legacy::BitVectorSize {
+        match value {
+            polymorphic::BitVectorSize::BV8 => legacy::BitVectorSize::BV8,
+            polymorphic::BitVectorSize::BV16 => legacy::BitVectorSize::BV16,
+            polymorphic::BitVectorSize::BV32 => legacy::BitVectorSize::BV32,
+            polymorphic::BitVectorSize::BV64 => legacy::BitVectorSize::BV64,
+            polymorphic::BitVectorSize::BV128 => legacy::BitVectorSize::BV128,
+        }
+    }
+}
+
 impl From<polymorphic::BitVector> for legacy::BitVector {
-    fn from(float: polymorphic::BitVector) -> legacy::BitVector {
-        match float {
-            polymorphic::BitVector::BV8 => legacy::BitVector::BV8,
-            polymorphic::BitVector::BV16 => legacy::BitVector::BV16,
-            polymorphic::BitVector::BV32 => legacy::BitVector::BV32,
-            polymorphic::BitVector::BV64 => legacy::BitVector::BV64,
-            polymorphic::BitVector::BV128 => legacy::BitVector::BV128,
+    fn from(value: polymorphic::BitVector) -> legacy::BitVector {
+        match value {
+            polymorphic::BitVector::Signed(value) => legacy::BitVector::Signed(value.into()),
+            polymorphic::BitVector::Unsigned(value) => legacy::BitVector::Unsigned(value.into()),
         }
     }
 }
@@ -429,12 +438,9 @@ impl From<polymorphic::FloatConst> for legacy::FloatConst {
 
 impl From<polymorphic::BitVectorConst> for legacy::BitVectorConst {
     fn from(old: polymorphic::BitVectorConst) -> legacy::BitVectorConst {
-        match old {
-            polymorphic::BitVectorConst::BV8(value) => legacy::BitVectorConst::BV8(value),
-            polymorphic::BitVectorConst::BV16(value) => legacy::BitVectorConst::BV16(value),
-            polymorphic::BitVectorConst::BV32(value) => legacy::BitVectorConst::BV32(value),
-            polymorphic::BitVectorConst::BV64(value) => legacy::BitVectorConst::BV64(value),
-            polymorphic::BitVectorConst::BV128(value) => legacy::BitVectorConst::BV128(value),
+        legacy::BitVectorConst {
+            value: old.value,
+            typ: old.typ.into(),
         }
     }
 }

@@ -479,20 +479,15 @@ impl ast::StmtFolder for VarPurifier {
                 .unwrap_or_else(|| panic!("key: {}", target))
                 .clone();
             method_name = match replacement.typ {
-                ast::Type::Int => "builtin$havoc_int",
-                ast::Type::Bool => "builtin$havoc_bool",
-                ast::Type::Float(ast::Float::F32) => "builtin$havoc_f32",
-                ast::Type::Float(ast::Float::F64) => "builtin$havoc_f64",
-                ast::Type::BitVector(ast::BitVector::BV8) => "builtin$havoc_bv8",
-                ast::Type::BitVector(ast::BitVector::BV16) => "builtin$havoc_bv16",
-                ast::Type::BitVector(ast::BitVector::BV32) => "builtin$havoc_bv32",
-                ast::Type::BitVector(ast::BitVector::BV64) => "builtin$havoc_bv64",
-                ast::Type::BitVector(ast::BitVector::BV128) => "builtin$havoc_bv128",
-                ast::Type::TypedRef(_) => "builtin$havoc_ref",
-                ast::Type::TypeVar(_) => "builtin$havoc_ref",
+                ast::Type::Int => "builtin$havoc_int".to_string(),
+                ast::Type::Bool => "builtin$havoc_bool".to_string(),
+                ast::Type::Float(ast::Float::F32) => "builtin$havoc_f32".to_string(),
+                ast::Type::Float(ast::Float::F64) => "builtin$havoc_f64".to_string(),
+                ast::Type::BitVector(value) => format!("builtin$havoc_{}", value),
+                ast::Type::TypedRef(_) => "builtin$havoc_ref".to_string(),
+                ast::Type::TypeVar(_) => "builtin$havoc_ref".to_string(),
                 ast::Type::Domain(_) | ast::Type::Snapshot(_) | ast::Type::Seq(_) => unreachable!(),
-            }
-            .to_string();
+            };
             targets = vec![replacement];
         }
         ast::Stmt::MethodCall(ast::MethodCall {
