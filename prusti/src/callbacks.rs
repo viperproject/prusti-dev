@@ -70,9 +70,8 @@ impl rustc_driver::Callbacks for PrustiCompilerCalls {
         compiler.session().abort_if_errors();
         queries.global_ctxt().unwrap().peek_mut().enter(|tcx| {
             let env = Environment::new(tcx);
-            let mut spec_checker = specs::checker::SpecChecker::new();
-            spec_checker.check(tcx);
-            spec_checker.report_errors(&env);
+            let spec_checker = specs::checker::SpecChecker::new();
+            spec_checker.check(&env);
             compiler.session().abort_if_errors();
 
             let mut spec_collector = specs::SpecCollector::new(&env);
