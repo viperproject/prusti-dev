@@ -315,7 +315,7 @@ impl Type {
             Type::Domain(_) => TypeId::Domain,
             Type::Snapshot(_) => TypeId::Snapshot,
             Type::Seq(_) => TypeId::Seq,
-            Type::TypeVar(t) => unreachable!(t),
+            Type::TypeVar(t) => unreachable!("{}", t),
         }
     }
 
@@ -381,7 +381,7 @@ impl Type {
                 }
             }
             Type::TypeVar(TypeVar { label }) => format!("__TYPARAM__$_{}$__", label),
-            x => unreachable!(x),
+            x => unreachable!("{}", x),
         }
     }
 
