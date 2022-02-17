@@ -1,4 +1,6 @@
-//~ ERROR consistency error in issue_709_6::B::new: Consistency error: expected the same type, but got Snap$struct$m_A and Ref
+//~ ERROR Prusti encountered an unexpected internal error
+//~| NOTE We would appreciate a bug report
+//~| NOTE consistency error in issue_709_6::B::new: Consistency error: expected the same type, but got Snap$struct$m_A and Ref
 extern crate prusti_contracts;
 use prusti_contracts::*;
 
