@@ -184,11 +184,12 @@ fn main() {
 
     let exit_code = rustc_driver::catch_with_exit_code(move || {
         user::message(format!(
-            "{}\n{}\n{}\n\n",
+            "{}\n{}\n{}\n",
             r"  __          __        __  ___             ",
             r" |__)  _\/_  |__) |  | /__`  |   ____\/_  | ",
             r" |      /\   |  \ \__/ .__/  |       /\   | ",
         ));
+        user::message(format!("Prusti version: {}", get_prusti_version_info()));
         info!("Prusti version: {}", get_prusti_version_info());
 
         rustc_args.push("-Zpolonius".to_owned());
