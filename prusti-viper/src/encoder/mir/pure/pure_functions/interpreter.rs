@@ -663,31 +663,47 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                             }
                         }
                     } else {
-                        // FIXME: Refactor the common code with the procedure encoder.
-
                         // Encoding of a non-terminating function call
-                        let error_ctxt = match full_func_proc_name {
-                            "std::rt::begin_panic"
-                            | "core::panicking::panic"
-                            | "core::panicking::panic_fmt" => {
-                                // This is called when a Rust assertion fails
-                                // args[0]: message
-                                // args[1]: position of failing assertions
-
-                                let panic_cause = self.mir_encoder.encode_panic_cause(span);
-                                ErrorCtxt::PanicInPureFunction(panic_cause)
+                        // FIXME: Refactor the common code with the procedure encoder.
+                        match self.pure_encoding_context {
+                            PureEncodingContext::Trigger => {
+                                // We are encoding a trigger, so all panic branches must be stripped.
+                                ExprBackwardInterpreterState::new(None)
                             }
+                            PureEncodingContext::Assertion => {
+                                // We are encoding an assertion, so all failures should be equivalent to false.
+                                debug_assert!(matches!(
+                                    self.mir.return_ty().kind(),
+                                    ty::TyKind::Bool
+                                ));
+                                ExprBackwardInterpreterState::new(Some(false.into()))
+                            }
+                            PureEncodingContext::Code => {
+                                // We are encoding a pure function, so all failures should be unreachable.
+                                let error_ctxt = match full_func_proc_name {
+                                    "std::rt::begin_panic"
+                                    | "core::panicking::panic"
+                                    | "core::panicking::panic_fmt" => {
+                                        // This is called when a Rust assertion fails
+                                        // args[0]: message
+                                        // args[1]: position of failing assertions
 
-                            _ => ErrorCtxt::DivergingCallInPureFunction,
-                        };
-                        let pos = self.encoder.error_manager().register(
-                            term.source_info.span,
-                            error_ctxt,
-                            self.caller_def_id,
-                        );
-                        ExprBackwardInterpreterState::new_defined(
-                            unreachable_expr(pos).with_span(term.source_info.span)?,
-                        )
+                                        let panic_cause = self.mir_encoder.encode_panic_cause(span);
+                                        ErrorCtxt::PanicInPureFunction(panic_cause)
+                                    }
+
+                                    _ => ErrorCtxt::DivergingCallInPureFunction,
+                                };
+                                let pos = self.encoder.error_manager().register(
+                                    term.source_info.span,
+                                    error_ctxt,
+                                    self.caller_def_id,
+                                );
+                                ExprBackwardInterpreterState::new_defined(
+                                    unreachable_expr(pos).with_span(term.source_info.span)?,
+                                )
+                            }
+                        }
                     };
 
                     state
