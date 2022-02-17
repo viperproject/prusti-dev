@@ -10,6 +10,7 @@ pub(crate) mod places;
 pub(crate) mod predicates;
 pub(crate) mod procedures;
 pub(crate) mod pure;
+pub(crate) mod sequences;
 pub(crate) mod spans;
 pub(crate) mod specifications;
 pub(crate) mod type_layouts;

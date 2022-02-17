@@ -10,6 +10,7 @@ use crate::encoder::{
         generics::HighGenericsEncoderInterface, types::HighTypeEncoderInterface,
     },
     mir::{
+        sequences::MirSequencesEncoderInterface,
         pure::{specifications::SpecificationEncoderInterface, PureEncodingContext},
         specifications::SpecificationsInterface,
         types::MirTypeEncoderInterface,
@@ -19,6 +20,7 @@ use crate::encoder::{
     snapshot::interface::SnapshotEncoderInterface,
     Encoder,
 };
+
 use log::{debug, trace};
 use prusti_common::vir_local;
 use rustc_hash::FxHashMap;

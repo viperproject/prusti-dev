@@ -31,7 +31,6 @@ mod mir;
 mod high;
 mod middle;
 mod purifier;
-mod array_encoder;
 pub mod counterexample;
 pub mod counterexample_translation;
 mod definition_collector;

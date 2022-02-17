@@ -40,12 +40,14 @@ use crate::encoder::errors::SpannedEncodingResult;
 use crate::encoder::mirror_function_encoder::MirrorEncoder;
 use crate::encoder::snapshot::interface::{SnapshotEncoderInterface, SnapshotEncoderState};
 use crate::encoder::purifier;
-use crate::encoder::array_encoder::{SequenceTypesEncoder, EncodedSequenceTypes};
 use super::high::builtin_functions::HighBuiltinFunctionEncoderState;
 use super::middle::core_proof::{MidCoreProofEncoderState, MidCoreProofEncoderInterface};
-use super::mir::procedures::MirProcedureEncoderState;
-use super::mir::type_layouts::MirTypeLayoutsEncoderState;
 use super::mir::{
+    sequences::{
+        MirSequencesEncoderState, MirSequencesEncoderInterface,
+    },
+    procedures::MirProcedureEncoderState,
+    type_layouts::MirTypeLayoutsEncoderState,
     pure::{
         PureFunctionEncoderState, PureFunctionEncoderInterface,
     },
@@ -72,6 +74,7 @@ pub struct Encoder<'v, 'tcx: 'v> {
     pub(super) high_builtin_function_encoder_state: HighBuiltinFunctionEncoderState,
     procedures: RefCell<FxHashMap<ProcedureDefId, vir::CfgMethod>>,
     programs: Vec<vir::Program>,
+    pub(super) mir_sequences_encoder_state: MirSequencesEncoderState<'tcx>,
     pub(super) mir_procedure_encoder_state: MirProcedureEncoderState,
     pub(super) mir_type_layouts_encoder_state: MirTypeLayoutsEncoderState,
     pub(super) mid_core_proof_encoder_state: MidCoreProofEncoderState,
@@ -84,7 +87,6 @@ pub struct Encoder<'v, 'tcx: 'v> {
     type_cast_functions: RefCell<FxHashMap<(ty::Ty<'tcx>, ty::Ty<'tcx>), vir::FunctionIdentifier>>,
     pub(super) snapshot_encoder_state: SnapshotEncoderState,
     pub(super) mirror_encoder: RefCell<MirrorEncoder>,
-    array_types_encoder: RefCell<SequenceTypesEncoder<'tcx>>,
     encoding_queue: RefCell<Vec<EncodingTask<'tcx>>>,
     vir_program_before_foldunfold_writer: Option<RefCell<Box<dyn Write>>>,
     vir_program_before_viper_writer: Option<RefCell<Box<dyn Write>>>,
@@ -142,6 +144,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             builtin_methods: RefCell::new(FxHashMap::default()),
             high_builtin_function_encoder_state: Default::default(),
             programs: Vec::new(),
+            mir_sequences_encoder_state: Default::default(),
             mir_procedure_encoder_state: Default::default(),
             mir_type_layouts_encoder_state: Default::default(),
             mid_core_proof_encoder_state: Default::default(),
@@ -157,7 +160,6 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             vir_program_before_viper_writer,
             snapshot_encoder_state: Default::default(),
             mirror_encoder: RefCell::new(MirrorEncoder::new()),
-            array_types_encoder: RefCell::new(SequenceTypesEncoder::new()),
             encoding_errors_counter: RefCell::new(0),
             name_interner: RefCell::new(NameInterner::new()),
             discriminants_info: RefCell::new(FxHashMap::default()),
@@ -875,15 +877,6 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             full_name.as_ref().to_string()
         };
         result
-    }
-
-    pub fn encode_sequence_types(
-        &self,
-        sequence_ty: ty::Ty<'tcx>,
-    ) -> EncodingResult<EncodedSequenceTypes<'tcx>> {
-        self.array_types_encoder
-            .borrow_mut()
-            .encode_sequence_types(self, sequence_ty)
     }
 
     pub fn encode_struct_field_value(

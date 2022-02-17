@@ -61,10 +61,13 @@ use std::convert::TryInto;
 use prusti_interface::specs::typed::{Pledge, SpecificationItem};
 use vir_crate::polymorphic::Float;
 use crate::utils::is_reference;
-use crate::encoder::mir::pure::PureFunctionEncoderInterface;
-use crate::encoder::mir::types::MirTypeEncoderInterface;
-use crate::encoder::mir::pure::SpecificationEncoderInterface;
-use crate::encoder::mir::specifications::{SpecificationsInterface};
+use crate::encoder::mir::{
+    sequences::MirSequencesEncoderInterface,
+    pure::PureFunctionEncoderInterface,
+    types::MirTypeEncoderInterface,
+    pure::SpecificationEncoderInterface,
+    specifications::SpecificationsInterface,
+};
 use super::high::generics::HighGenericsEncoderInterface;
 
 pub struct ProcedureEncoder<'p, 'v: 'p, 'tcx: 'v> {
