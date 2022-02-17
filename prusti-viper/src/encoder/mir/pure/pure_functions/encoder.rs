@@ -10,7 +10,7 @@ use crate::encoder::{
     encoder::SubstMap,
     errors::{ErrorCtxt, SpannedEncodingError, SpannedEncodingResult, WithSpan},
     high::{generics::HighGenericsEncoderInterface, types::HighTypeEncoderInterface},
-    mir::pure::SpecificationEncoderInterface,
+    mir::pure::{PureEncodingContext, SpecificationEncoderInterface},
     mir_encoder::PlaceEncoder,
     mir_interpreter::run_backward_interpretation,
     snapshot::interface::SnapshotEncoderInterface,
@@ -45,7 +45,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
         encoder: &'p Encoder<'v, 'tcx>,
         proc_def_id: DefId,
         mir: &'p mir::Body<'tcx>,
-        is_encoding_assertion: bool,
+        pure_encoding_context: PureEncodingContext,
         parent_def_id: DefId,
         tymap: &'p SubstMap<'tcx>,
     ) -> Self {
@@ -54,7 +54,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
             encoder,
             mir,
             proc_def_id,
-            is_encoding_assertion,
+            pure_encoding_context,
             parent_def_id,
             tymap.clone(),
         );
@@ -77,7 +77,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
             .unwrap_or_else(|| panic!("Procedure {:?} contains a loop", self.proc_def_id));
         let body_expr = state.into_expr().unwrap();
         debug!(
-            "Pure function {} has been encoded with expr: {}",
+            "Pure function body {} has been encoded with expr: {}",
             function_name, body_expr
         );
         let substs = &self
