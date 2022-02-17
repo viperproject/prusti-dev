@@ -16,7 +16,9 @@ impl B {
 }
 
 pub fn test(b: &mut B) {
-    //~^ ERROR cannot generate fold-unfold Viper statements
+    //~^ ERROR Prusti encountered an unexpected internal error
+    //~| NOTE We would appreciate a bug report
+    //~| NOTE cannot generate fold-unfold Viper statements
     b.get_mut(1)[0] = A(1);
 }
 

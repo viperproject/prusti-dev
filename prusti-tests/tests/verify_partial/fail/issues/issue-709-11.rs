@@ -15,7 +15,9 @@ impl B {
     /// Obtain a shared reference to an ADT within a slice
     #[requires(index < self.inner.len())]
     pub fn get(&self, index: usize) -> &A {
-        //~^ ERROR cannot generate fold-unfold Viper statements
+        //~^ ERROR Prusti encountered an unexpected internal error
+        //~| NOTE We would appreciate a bug report
+        //~| NOTE cannot generate fold-unfold Viper statements
         &self.inner[index]
     }
 
@@ -23,7 +25,9 @@ impl B {
     #[pure]
     #[requires(index < self.inner.len())]
     pub const fn get_pure(&self, index: usize) -> &A {
-        //~^ ERROR cannot generate fold-unfold Viper statements
+        //~^ ERROR Prusti encountered an unexpected internal error
+        //~| NOTE We would appreciate a bug report
+        //~| NOTE cannot generate fold-unfold Viper statements
         &self.inner[index]
     }
 }
