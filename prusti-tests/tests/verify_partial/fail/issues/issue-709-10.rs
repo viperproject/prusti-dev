@@ -13,7 +13,9 @@ impl B {
     /// Mutably reference an ADT within a slice
     #[requires(index < self.inner.len())]
     pub fn get_mut(&mut self, index: usize) -> &mut A {
-        //~^ ERROR cannot generate fold-unfold Viper statements
+        //~^ ERROR Prusti encountered an unexpected internal error
+        //~| NOTE We would appreciate a bug report
+        //~| NOTE cannot generate fold-unfold Viper statements
         &mut self.inner[index]
     }
 }
