@@ -114,10 +114,11 @@ fn create_model_impl(
     // Create impl for provided trait
     let to_model_trait_ident = &to_model_trait.ident;
     Ok(parse_quote_spanned! {item_struct.span()=>
+        #[prusti::type_models_to_model_impl]
         impl #to_model_trait_ident for #impl_path {
             #[trusted]
             #[pure]
-            #[prusti::to_model_fn]
+            #[prusti::type_models_to_model_fn]
             fn model(&self) -> #model_struct_ident {
                 unimplemented!("Models can only be used in specifications")
             }
@@ -293,10 +294,11 @@ mod tests {
         let model_ident = check_model_ident(&model, "PrustiFooModel");
         let trait_ident = check_trait_ident(&model, "PrustiFooToModel");
         let expected: syn::ItemImpl = parse_quote!(
+            #[prusti::type_models_to_model_impl]
             impl #trait_ident for Foo <> {
                 #[trusted]
                 #[pure]
-                #[prusti::to_model_fn]
+                #[prusti::type_models_to_model_fn]
                 fn model(&self) -> #model_ident {
                     unimplemented!("Models can only be used in specifications")
                 }
@@ -322,10 +324,11 @@ mod tests {
             struct #model_ident(i32, u32, usize);
         );
         let expected_impl: syn::ItemImpl = parse_quote!(
+            #[prusti::type_models_to_model_impl]
             impl #trait_ident for Foo<'_, '_> {
                 #[trusted]
                 #[pure]
-                #[prusti::to_model_fn]
+                #[prusti::type_models_to_model_fn]
                 fn model(&self) -> #model_ident {
                     unimplemented!("Models can only be used in specifications")
                 }
@@ -353,10 +356,11 @@ mod tests {
         );
 
         let expected_impl: syn::ItemImpl = parse_quote!(
+            #[prusti::type_models_to_model_impl]
             impl #trait_ident for Foo<i32, T> {
                 #[trusted]
                 #[pure]
-                #[prusti::to_model_fn]
+                #[prusti::type_models_to_model_fn]
                 fn model(&self) -> #model_ident {
                     unimplemented!("Models can only be used in specifications")
                 }

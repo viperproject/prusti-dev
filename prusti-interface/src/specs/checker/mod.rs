@@ -5,7 +5,7 @@ mod type_model_checks;
 mod predicate_checks;
 
 use common::*;
-use type_model_checks::IllegalModelUsagesChecker;
+use type_model_checks::{IllegalModelUsagesChecker, ModelDefinedOnTypeWithoutFields};
 use predicate_checks::IllegalPredicateUsagesChecker;
 use crate::environment::Environment;
 
@@ -26,7 +26,8 @@ impl<'tcx> SpecChecker<'tcx> {
         Self {
             checks: vec![
                 Box::new(IllegalPredicateUsagesChecker {}),
-                Box::new(IllegalModelUsagesChecker {})
+                Box::new(IllegalModelUsagesChecker {}),
+                Box::new(ModelDefinedOnTypeWithoutFields {})
             ]
         }
     }
