@@ -414,13 +414,7 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for Expr {
                     ast.float_binop(float_op_kind, size, left.to_viper(ast), right.to_viper(ast))
                 }
                 Some(Type::BitVector(bitvector_ty)) => {
-                    let size = match bitvector_ty {
-                        BitVector::BV8 => viper::BvSize::BV8,
-                        BitVector::BV16 => viper::BvSize::BV16,
-                        BitVector::BV32 => viper::BvSize::BV32,
-                        BitVector::BV64 => viper::BvSize::BV64,
-                        BitVector::BV128 => viper::BvSize::BV128,
-                    };
+                    let size = lower_bitvector_size(*bitvector_ty);
                     match op {
                         BinaryOpKind::EqCmp => ast.eq_cmp_with_pos(
                             left.to_viper(ast),
@@ -645,6 +639,16 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for Expr {
                     pos.to_viper(ast),
                 )
             }*/
+            Expr::Cast(kind, base, _position) => match kind {
+                CastKind::BVIntoInt(size) => {
+                    let size = lower_bitvector_size(*size);
+                    ast.backend_bv_to_int(size, base.to_viper(ast))
+                }
+                CastKind::IntIntoBV(size) => {
+                    let size = lower_bitvector_size(*size);
+                    ast.int_to_backend_bv(size, base.to_viper(ast))
+                }
+            },
         };
         if config::simplify_encoding() {
             ast.simplified_expression(expr)
@@ -1043,4 +1047,14 @@ fn block_to_viper<'a>(
         &block.successor,
     ));
     ast.seqn(&stmts, &[])
+}
+
+fn lower_bitvector_size(size: BitVector) -> viper::BvSize {
+    match size {
+        BitVector::BV8 => viper::BvSize::BV8,
+        BitVector::BV16 => viper::BvSize::BV16,
+        BitVector::BV32 => viper::BvSize::BV32,
+        BitVector::BV64 => viper::BvSize::BV64,
+        BitVector::BV128 => viper::BvSize::BV128,
+    }
 }

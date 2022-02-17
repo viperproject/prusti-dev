@@ -71,6 +71,7 @@ pub enum Expr {
     Downcast(Box<Expr>, Box<Expr>, Field),
     /// Snapshot call to convert from a Ref to a snapshot value
     SnapApp(Box<Expr>, Position),
+    Cast(CastKind, Box<Expr>, Position),
 }
 
 /// A component that can be used to represent a place as a vector.
@@ -119,6 +120,12 @@ pub enum ContainerOpKind {
     SeqConcat,
     SeqLen,
     // more to follow if required
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub enum CastKind {
+    BVIntoInt(BitVector),
+    IntIntoBV(BitVector),
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
@@ -295,6 +302,7 @@ impl fmt::Display for Expr {
             }
 
             Expr::SnapApp(ref expr, _) => write!(f, "snap({})", expr),
+            Expr::Cast(ref kind, ref base, _) => write!(f, "cast<{:?}>({})", kind, base),
         }
     }
 }
@@ -375,6 +383,7 @@ impl Expr {
             | Expr::InhaleExhale(_, _, p)
             | Expr::ContainerOp(_, _, _, p)
             | Expr::Seq(_, _, p)
+            | Expr::Cast(_, _, p)
             | Expr::SnapApp(_, p) => *p,
             // TODO Expr::DomainFuncApp(_, _, _, _, _, p) => p,
             Expr::Downcast(box ref base, ..) => base.pos(),
@@ -1210,6 +1219,14 @@ impl Expr {
                 return None;
             }
             Expr::Seq(ref ty, ..) => ty,
+            Expr::Cast(kind, _, _) => match kind {
+                CastKind::BVIntoInt(_) => &Type::Int,
+                CastKind::IntIntoBV(BitVector::BV8) => &Type::BitVector(BitVector::BV8),
+                CastKind::IntIntoBV(BitVector::BV16) => &Type::BitVector(BitVector::BV16),
+                CastKind::IntIntoBV(BitVector::BV32) => &Type::BitVector(BitVector::BV32),
+                CastKind::IntIntoBV(BitVector::BV64) => &Type::BitVector(BitVector::BV64),
+                CastKind::IntIntoBV(BitVector::BV128) => &Type::BitVector(BitVector::BV128),
+            },
         };
         Some(result)
     }
@@ -1630,7 +1647,8 @@ impl Expr {
                     | Expr::Downcast(..)
                     | Expr::ContainerOp(..)
                     | Expr::Seq(..)
-                    | Expr::SnapApp(..) => true.into(),
+                    | Expr::SnapApp(..)
+                    | Expr::Cast(..) => true.into(),
                 }
             }
         }

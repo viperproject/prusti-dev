@@ -412,6 +412,10 @@ impl RequiredPermissionsGetter for vir::Expr {
             vir::Expr::SnapApp(..) => {
                 unreachable!("Snapshots should be patched before fold/unfold. {:?}", self);
             }
+
+            vir::Expr::Cast(vir::Cast { ref base, .. }) => {
+                base.get_required_permissions(predicates)
+            }
         };
         trace!(
             "[exit] get_required_permissions(expr={}): {:#?}",

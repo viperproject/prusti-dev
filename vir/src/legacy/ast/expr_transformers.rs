@@ -262,6 +262,10 @@ pub trait ExprFolder: Sized {
     fn fold_seq(&mut self, t: Type, elems: Vec<Expr>, p: Position) -> Expr {
         Expr::Seq(t, elems.into_iter().map(|e| self.fold(e)).collect(), p)
     }
+
+    fn fold_cast(&mut self, kind: CastKind, base: Box<Expr>, p: Position) -> Expr {
+        Expr::Cast(kind, base, p)
+    }
 }
 
 pub fn default_fold_expr<T: ExprFolder>(this: &mut T, e: Expr) -> Expr {
@@ -294,6 +298,7 @@ pub fn default_fold_expr<T: ExprFolder>(this: &mut T, e: Expr) -> Expr {
         Expr::SnapApp(e, p) => this.fold_snap_app(e, p),
         Expr::ContainerOp(x, y, z, p) => this.fold_container_op(x, y, z, p),
         Expr::Seq(x, y, p) => this.fold_seq(x, y, p),
+        Expr::Cast(kind, base, p) => this.fold_cast(kind, base, p),
     }
 }
 
@@ -484,6 +489,10 @@ pub trait ExprWalker: Sized {
         }
         self.walk_type(typ);
     }
+
+    fn walk_cast(&mut self, _kind: &CastKind, base: &Expr, _pos: &Position) {
+        self.walk(base);
+    }
 }
 
 pub fn default_walk_expr<T: ExprWalker>(this: &mut T, e: &Expr) {
@@ -516,6 +525,7 @@ pub fn default_walk_expr<T: ExprWalker>(this: &mut T, e: &Expr) {
         Expr::SnapApp(ref e, ref p) => this.walk_snap_app(e, p),
         Expr::ContainerOp(ref kind, ref l, ref r, ref p) => this.walk_container_op(kind, l, r, p),
         Expr::Seq(ref ty, ref elems, ref p) => this.walk_seq(ty, elems, p),
+        Expr::Cast(ref kind, ref base, ref p) => this.walk_cast(kind, base, p),
     }
 }
 
@@ -814,6 +824,15 @@ pub trait FallibleExprFolder: Sized {
             p,
         ))
     }
+
+    fn fallible_fold_cast(
+        &mut self,
+        kind: CastKind,
+        base: Box<Expr>,
+        p: Position,
+    ) -> Result<Expr, Self::Error> {
+        Ok(Expr::Cast(kind, self.fallible_fold_boxed(base)?, p))
+    }
 }
 
 pub fn default_fallible_fold_expr<U, T: FallibleExprFolder<Error = U>>(
@@ -849,5 +868,6 @@ pub fn default_fallible_fold_expr<U, T: FallibleExprFolder<Error = U>>(
         Expr::SnapApp(e, p) => this.fallible_fold_snap_app(e, p),
         Expr::ContainerOp(x, y, z, p) => this.fallible_fold_container_op(x, y, z, p),
         Expr::Seq(x, y, p) => this.fallible_fold_seq(x, y, p),
+        Expr::Cast(kind, base, p) => this.fallible_fold_cast(kind, base, p),
     }
 }
