@@ -104,8 +104,14 @@ impl PrustiError {
     pub fn internal<S: ToString>(message: S, span: MultiSpan) -> Self {
         check_message(message.to_string());
         PrustiError::new(
-            format!("[Prusti internal error] {}", message.to_string()),
+            "[Prusti internal error] Prusti encountered an unexpected internal error".to_string(),
             span
+        ).add_note(
+            "We would appreciate a bug report: https://github.com/viperproject/prusti-dev/issues/new",
+            None
+        ).add_note(
+            format!("Details: {}", message.to_string()),
+            None
         )
     }
 
