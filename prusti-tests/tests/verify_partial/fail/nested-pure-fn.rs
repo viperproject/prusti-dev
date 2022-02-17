@@ -2,7 +2,7 @@ extern crate prusti_contracts;
 use prusti_contracts::*;
 
 struct Struct {
-  field: u32
+    field: u32,
 }
 
 #[pure]
@@ -23,4 +23,4 @@ fn pred(m: &Struct) -> bool {
     //~| NOTE: There is no procedure contract for loan
 }
 
-fn main(){}
+fn main() {}
