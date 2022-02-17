@@ -58,6 +58,7 @@ fn create_model_struct(
     let model_struct_ident = &idents.model_struct_ident;
     let mut model_struct: syn::ItemStruct = parse_quote_spanned! {item_struct.span()=>
         #[derive(Copy, Clone)]
+        #[allow(non_camel_case_types)]
         struct #model_struct_ident {}
     };
     model_struct.fields = item_struct.fields.clone();
@@ -74,6 +75,7 @@ fn create_to_model_trait(
 
     let to_model_trait_ident = &idents.to_model_trait_ident;
     parse_quote_spanned! {item_struct.span()=>
+        #[allow(non_camel_case_types)]
         trait #to_model_trait_ident {
             #[trusted]
             #[pure]
@@ -254,6 +256,7 @@ mod tests {
         let model_ident = check_model_ident(&model, "PrustiFooModel");
         let expected: syn::ItemStruct = syn::parse_quote!(
             #[derive(Copy, Clone)]
+            #[allow(non_camel_case_types)]
             struct #model_ident {
                 fld1: usize,
                 fld2: i32,
@@ -274,6 +277,7 @@ mod tests {
 
         let expected: syn::ItemStruct = parse_quote!(
             #[derive(Copy, Clone)]
+            #[allow(non_camel_case_types)]
             struct #model_ident(i32, u32, usize);
         );
         assert_eq_tokenizable(expected, model.model_struct);
@@ -314,6 +318,7 @@ mod tests {
 
         let expected_struct: syn::ItemStruct = parse_quote!(
             #[derive(Copy, Clone)]
+            #[allow(non_camel_case_types)]
             struct #model_ident(i32, u32, usize);
         );
         let expected_impl: syn::ItemImpl = parse_quote!(
@@ -343,6 +348,7 @@ mod tests {
 
         let expected_struct: syn::ItemStruct = parse_quote!(
             #[derive(Copy, Clone)]
+            #[allow(non_camel_case_types)]
             struct #model_ident (i32, u32, usize);
         );
 
@@ -374,6 +380,7 @@ mod tests {
 
         let actual = model.to_model_trait;
         let expected: syn::ItemTrait = parse_quote!(
+            #[allow(non_camel_case_types)]
             trait #trait_ident {
                 #[trusted]
                 #[pure]
