@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["WildMatch","Wildcard matcher used to match strings."]]});

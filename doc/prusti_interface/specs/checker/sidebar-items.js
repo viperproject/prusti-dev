@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["SpecChecker","Checker visitor for the specifications. Currently checks that `predicate!` functions are never used from non-specification code, but more checks may follow."]]});

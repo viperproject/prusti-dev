@@ -1,0 +1,1 @@
+initSidebarItems({"mod":[["data","This module defines data structures exchanged between a verifier and its environment."],["environment","This module defines the interface provided to a verifier."],["specs",""],["utils","Various helper functions for working with `mir::Place`."]],"struct":[["PrustiError","The Prusti message that will be reported to the user."]]});

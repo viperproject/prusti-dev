@@ -1,0 +1,1 @@
+initSidebarItems({"fn":[["get","Retrieve the current process personality."],["set","Set the current process personality."]],"struct":[["Persona","Flags used and returned by `get()` and `set()`."]]});

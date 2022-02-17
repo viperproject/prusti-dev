@@ -1,0 +1,1 @@
+initSidebarItems({"constant":[["MAX_HEADERS","Limit for the number of header lines."]]});

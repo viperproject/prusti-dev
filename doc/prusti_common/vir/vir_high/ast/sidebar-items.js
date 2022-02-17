@@ -1,0 +1,1 @@
+initSidebarItems({"enum":[["Expression",""],["Statement",""],["TypeDecl",""]],"mod":[["expression",""],["field",""],["function",""],["position",""],["predicate",""],["statement",""],["ty",""],["type_decl",""],["variable",""]],"struct":[["FunctionDecl",""]]});
