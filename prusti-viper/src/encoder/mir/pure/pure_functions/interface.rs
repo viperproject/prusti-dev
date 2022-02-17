@@ -22,6 +22,26 @@ type FunctionConstructor<'v, 'tcx> = Box<
     ) -> SpannedEncodingResult<vir_high::FunctionDecl>,
 >;
 
+/// Depending on the context of the pure encoding,
+/// panics will be encoded slightly differently.
+#[derive(PartialEq, Eq)]
+pub(crate) enum PureEncodingContext {
+    /// Panics will be encoded as calls to unreachable functions
+    /// (which have a `requires false` pre-condition).
+    Code,
+    /// Indicates that a panic should be encoded to a `false` boolean value.
+    /// This flag is used to distinguish whether an assert terminators generated e.g. for an
+    /// integer overflow should be translated into `false` and when to an "unreachable" function
+    /// call with a `false` precondition.
+    Assertion,
+    /// Whether the current pure expression that's being encoded sits inside a trigger closure.
+    /// Viper limits the type of expressions that are allowed in quantifier triggers and
+    /// this requires special care when encoding array/slice accesses which may come with
+    /// bound checks included in the MIR. For this purpose, paths that might panic will
+    /// be stripped away during the trigger encoding.
+    Trigger,
+}
+
 #[derive(Default)]
 pub(crate) struct PureFunctionEncoderState<'v, 'tcx: 'v> {
     bodies_high: RefCell<FxHashMap<Key, vir_high::Expression>>,
@@ -184,7 +204,12 @@ impl<'v, 'tcx: 'v> PureFunctionEncoderInterface<'v, 'tcx>
                 self,
                 proc_def_id,
                 procedure.get_mir(),
-                true,
+                if self.is_encoding_trigger.get() {
+                    // quantifier triggers might not evaluate to boolean
+                    PureEncodingContext::Trigger
+                } else {
+                    PureEncodingContext::Assertion
+                },
                 parent_def_id,
                 substs,
             );
@@ -241,7 +266,7 @@ impl<'v, 'tcx: 'v> PureFunctionEncoderInterface<'v, 'tcx>
                 self,
                 proc_def_id,
                 procedure.get_mir(),
-                false,
+                PureEncodingContext::Code,
                 proc_def_id,
                 substs,
             );
@@ -366,7 +391,7 @@ impl<'v, 'tcx: 'v> PureFunctionEncoderInterface<'v, 'tcx>
                 self,
                 proc_def_id,
                 procedure.get_mir(),
-                false,
+                PureEncodingContext::Code,
                 parent_def_id,
                 substs,
             );

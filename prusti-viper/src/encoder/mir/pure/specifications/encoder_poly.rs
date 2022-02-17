@@ -162,7 +162,9 @@ pub(super) fn encode_quantifier<'tcx>(
             let trigger_field = encoder
                 .encode_raw_ref_field(format!("tuple_{}", trigger_idx), ty_trigger)
                 .with_span(trigger_span)?;
-            let encoded_trigger = inline_closure(
+            // note: `is_encoding_trigger` must be set back to `false` before returning early in case of errors
+            encoder.is_encoding_trigger.set(true);
+            let encoded_trigger_result = inline_closure(
                 encoder,
                 trigger_def_id,
                 encoded_args[0]
@@ -172,7 +174,17 @@ pub(super) fn encode_quantifier<'tcx>(
                 encoded_qvars.clone(),
                 parent_def_id,
                 tymap,
-            )?;
+            );
+            encoder.is_encoding_trigger.set(false);
+            let encoded_trigger = match encoded_trigger_result? {
+                // slice accesses are encoded like `read$Snap(arg).val_X`, but for triggers we
+                // need to strip the field because these are never accessed in snap expressions.
+                vir_crate::polymorphic::Expr::Field(vir_crate::polymorphic::FieldExpr {
+                    base: box base @ vir_crate::polymorphic::Expr::DomainFuncApp(..),
+                    ..
+                }) => base,
+                encoded_trigger => encoded_trigger,
+            };
             check_trigger(&encoded_trigger).with_span(trigger_span)?;
             encoded_triggers.push(encoded_trigger);
             set_spans.push(trigger_span);
