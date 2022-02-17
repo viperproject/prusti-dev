@@ -25,7 +25,7 @@ pub fn generate_jni_type(signature: &str) -> String {
         'F' => "jfloat".to_string(),
         'D' => "jdouble".to_string(),
         'V' => "()".to_string(),
-        x => unreachable!(x),
+        x => unreachable!("{}", x),
     }
 }
 
@@ -41,7 +41,7 @@ pub fn generate_return_jni_type(signature: &str) -> String {
         'F' => "jfloat".to_string(),
         'D' => "jdouble".to_string(),
         'V' => "()".to_string(),
-        x => unreachable!(x),
+        x => unreachable!("{}", x),
     }
 }
 
@@ -63,7 +63,7 @@ pub fn generate_jvalue_wrapper(par: &str, signature: &str) -> String {
         'Z' => format!("JValue::Bool({} as jboolean)", par),
         'F' => format!("JValue::Float({})", par),
         'D' => format!("JValue::Double({})", par),
-        x => unreachable!(x),
+        x => unreachable!("{}", x),
     }
 }
 
