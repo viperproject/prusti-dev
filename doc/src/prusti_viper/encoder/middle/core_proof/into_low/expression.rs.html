@@ -114,6 +114,26 @@
 <span id="109">109</span>
 <span id="110">110</span>
 <span id="111">111</span>
+<span id="112">112</span>
+<span id="113">113</span>
+<span id="114">114</span>
+<span id="115">115</span>
+<span id="116">116</span>
+<span id="117">117</span>
+<span id="118">118</span>
+<span id="119">119</span>
+<span id="120">120</span>
+<span id="121">121</span>
+<span id="122">122</span>
+<span id="123">123</span>
+<span id="124">124</span>
+<span id="125">125</span>
+<span id="126">126</span>
+<span id="127">127</span>
+<span id="128">128</span>
+<span id="129">129</span>
+<span id="130">130</span>
+<span id="131">131</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::encoder</span>::{
     <span class="ident">errors</span>::{<a class="ident" href="../../../../../../src/prusti_viper/encoder/errors/spanned_encoding_error.rs.html#16-19">SpannedEncodingError</a>, <a class="ident" href="../../../../../../src/prusti_viper/encoder/errors/spanned_encoding_error.rs.html#21">SpannedEncodingResult</a>},
     <span class="ident">middle::core_proof</span>::{<a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lowerer/functions/interface.rs.html#23-32">lowerer::FunctionsLowererInterface</a>, <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/mod.rs.html#11-17">snapshots::IntoSnapshot</a>},
@@ -166,27 +186,40 @@
         <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/into_low/expression.rs.html#49">ty</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/mod.rs.html#13-16">create_snapshot</a>(<a class="self" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/into_low/expression.rs.html#49">self</a>)
     }
 
+    <span class="kw">fn</span> <span class="ident">to_low_constant</span>(
+        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
+        <span class="ident">value</span>: <a class="ident" href="../../../../../../vir/gen/middle/ast/expression/struct.Constant.html">vir_mid::Constant</a>,
+    ) -&gt; <span class="ident">SpannedEncodingResult</span><span class="op">&lt;</span><a class="ident" href="../../../../../../vir/gen/low/ast/expression/struct.Constant.html">vir_low::expression::Constant</a><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="ident">low_type</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/into_low/expression.rs.html#55">value</a>.<span class="ident">ty</span> {
+            <span class="ident">vir_mid::Type::MBool</span> =&gt; <span class="ident">vir_low::Type::Bool</span>,
+            <span class="ident">vir_mid::Type::MInt</span> =&gt; <span class="ident">vir_low::Type::Int</span>,
+            <span class="ident">vir_mid::Type::MFloat32</span> =&gt; <span class="macro">unimplemented!</span>(),
+            <span class="ident">vir_mid::Type::MFloat64</span> =&gt; <span class="macro">unimplemented!</span>(),
+            <span class="ident">vir_mid::Type::Bool</span> =&gt; <span class="ident">vir_low::Type::Bool</span>,
+            <span class="ident">vir_mid::Type::Int</span>(<span class="kw">_</span>) =&gt; <span class="ident">vir_low::Type::Int</span>,
+            <span class="kw">_</span> =&gt; <span class="macro">unimplemented!</span>(<span class="string">&quot;constant: {:?}&quot;</span>, <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/into_low/expression.rs.html#55">value</a>),
+        };
+        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../../../../vir/gen/low/ast/expression/struct.Constant.html">vir_low::expression::Constant</a> {
+            <span class="ident">value</span>: <a class="self" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/into_low/expression.rs.html#54">self</a>.<a class="ident" href="../../../../../../vir/gen/low/derived_operations/trait.ToLowLowerer.html">to_low_constant_value</a>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/into_low/expression.rs.html#55">value</a>.<span class="ident">value</span>)<span class="question-mark">?</span>,
+            <span class="ident">ty</span>: <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/into_low/expression.rs.html#57">low_type</a>,
+            <span class="ident">position</span>: <a class="self" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/into_low/expression.rs.html#54">self</a>.<a class="ident" href="../../../../../../vir/gen/low/derived_operations/trait.ToLowLowerer.html">to_low_position</a>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/into_low/expression.rs.html#55">value</a>.<span class="ident">position</span>)<span class="question-mark">?</span>,
+        })
+    }
+
     <span class="kw">fn</span> <span class="ident">to_low_labelled_old</span>(
         <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
         <span class="ident">expression</span>: <a class="ident" href="../../../../../../vir/gen/middle/ast/expression/struct.LabelledOld.html">vir_mid::expression::LabelledOld</a>,
     ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../../../../../vir/gen/low/ast/expression/struct.LabelledOld.html">vir_low::expression::LabelledOld</a>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
         <span class="prelude-val">Ok</span>(<a class="ident" href="../../../../../../vir/gen/low/ast/expression/struct.LabelledOld.html">vir_low::expression::LabelledOld</a> {
-            <span class="ident">label</span>: <span class="prelude-val">Some</span>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/into_low/expression.rs.html#55">expression</a>.<span class="ident">label</span>),
-            <span class="ident">base</span>: <span class="ident">Box::new</span>(<a class="self" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/into_low/expression.rs.html#54">self</a>.<a class="ident" href="../../../../../../vir/gen/low/derived_operations/trait.ToLowLowerer.html">to_low_expression</a>(<span class="kw-2">*</span><a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/into_low/expression.rs.html#55">expression</a>.<span class="ident">base</span>)<span class="question-mark">?</span>),
-            <span class="ident">position</span>: <a class="self" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/into_low/expression.rs.html#54">self</a>.<a class="ident" href="../../../../../../vir/gen/low/derived_operations/trait.ToLowLowerer.html">to_low_position</a>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/into_low/expression.rs.html#55">expression</a>.<span class="ident">position</span>)<span class="question-mark">?</span>,
+            <span class="ident">label</span>: <span class="prelude-val">Some</span>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/into_low/expression.rs.html#75">expression</a>.<span class="ident">label</span>),
+            <span class="ident">base</span>: <span class="ident">Box::new</span>(<a class="self" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/into_low/expression.rs.html#74">self</a>.<a class="ident" href="../../../../../../vir/gen/low/derived_operations/trait.ToLowLowerer.html">to_low_expression</a>(<span class="kw-2">*</span><a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/into_low/expression.rs.html#75">expression</a>.<span class="ident">base</span>)<span class="question-mark">?</span>),
+            <span class="ident">position</span>: <a class="self" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/into_low/expression.rs.html#74">self</a>.<a class="ident" href="../../../../../../vir/gen/low/derived_operations/trait.ToLowLowerer.html">to_low_position</a>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/into_low/expression.rs.html#75">expression</a>.<span class="ident">position</span>)<span class="question-mark">?</span>,
         })
     }
 
     <span class="kw">fn</span> <span class="ident">to_low_constant_value_fn_ptr</span>(
         <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
     ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../../../../../vir/gen/low/ast/expression/enum.ConstantValue.html">vir_low::expression::ConstantValue</a>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
-        <span class="macro">todo!</span>()
-    }
-
-    <span class="kw">fn</span> <span class="ident">to_low_float_const</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">_expression</span>: <a class="ident" href="../../../../../../vir/gen/polymorphic/ast/expr/enum.FloatConst.html">vir_mid::expression::FloatConst</a>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../../../../../vir/gen/low/ast/expression/enum.FloatConst.html">vir_low::expression::FloatConst</a>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
         <span class="macro">todo!</span>()
     }
 
@@ -222,6 +255,13 @@
         <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
         <span class="ident">_expression</span>: <a class="ident" href="../../../../../../vir/gen/middle/ast/expression/struct.Constructor.html">vir_mid::expression::Constructor</a>,
     ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../../../../../vir/gen/low/ast/expression/enum.Expression.html">vir_low::Expression</a>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
+        <span class="macro">todo!</span>()
+    }
+
+    <span class="kw">fn</span> <span class="ident">to_low_constant_value_float</span>(
+        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
+        <span class="ident">_variant</span>: <a class="ident" href="../../../../../../vir/gen/polymorphic/ast/expr/enum.FloatConst.html">vir_mid::expression::FloatConst</a>,
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../../../../../vir/gen/low/ast/expression/enum.ConstantValue.html">vir_low::expression::ConstantValue</a>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
         <span class="macro">todo!</span>()
     }
 }
