@@ -3,6 +3,7 @@
 
 pub(crate) mod casts;
 pub(crate) mod constants;
+pub(crate) mod contracts;
 pub(crate) mod errors;
 pub(crate) mod generics;
 pub(crate) mod panics;

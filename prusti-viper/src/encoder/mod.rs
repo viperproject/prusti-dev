@@ -6,7 +6,6 @@
 
 pub use self::encoder::Encoder;
 
-mod borrows;
 mod builtin_encoder;
 #[allow(clippy::module_inception)]
 mod encoder;

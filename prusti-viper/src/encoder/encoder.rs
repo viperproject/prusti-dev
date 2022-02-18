@@ -5,12 +5,10 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use ::log::{info, debug, trace};
-use crate::encoder::borrows::{compute_procedure_contract, ProcedureContract, ProcedureContractMirDef};
 use crate::encoder::builtin_encoder::BuiltinEncoder;
 use crate::encoder::builtin_encoder::BuiltinMethodKind;
 use crate::encoder::errors::{ErrorManager, SpannedEncodingError, EncodingError};
 use crate::encoder::foldunfold;
-use crate::encoder::places;
 use crate::encoder::procedure_encoder::ProcedureEncoder;
 use crate::encoder::SpecFunctionKind;
 use crate::encoder::spec_function_encoder::SpecFunctionEncoder;
@@ -26,7 +24,6 @@ use vir_crate::common::identifier::WithIdentifier;
 use rustc_hir::def_id::DefId;
 use rustc_middle::mir;
 use rustc_middle::ty;
-use rustc_middle::ty::subst::SubstsRef;
 use std::cell::{Cell, RefCell, RefMut, Ref};
 use rustc_hash::FxHashMap;
 use std::io::Write;
@@ -46,6 +43,7 @@ use super::mir::{
     sequences::{
         MirSequencesEncoderState, MirSequencesEncoderInterface,
     },
+    contracts::ContractsEncoderState,
     procedures::MirProcedureEncoderState,
     type_layouts::MirTypeLayoutsEncoderState,
     pure::{
@@ -64,10 +62,6 @@ use super::high::types::{HighTypeEncoderState, HighTypeEncoderInterface};
 pub struct Encoder<'v, 'tcx: 'v> {
     env: &'v Environment<'tcx>,
     error_manager: RefCell<ErrorManager<'tcx>>,
-    procedure_contracts: RefCell<FxHashMap<
-        ProcedureDefId,
-        EncodingResult<ProcedureContractMirDef<'tcx>>
-    >>,
     /// A map containing all functions: identifier → function definition.
     functions: RefCell<FxHashMap<vir::FunctionIdentifier, Rc<vir::Function>>>,
     builtin_methods: RefCell<FxHashMap<BuiltinMethodKind, vir::BodylessMethod>>,
@@ -75,6 +69,7 @@ pub struct Encoder<'v, 'tcx: 'v> {
     procedures: RefCell<FxHashMap<ProcedureDefId, vir::CfgMethod>>,
     programs: Vec<vir::Program>,
     pub(super) mir_sequences_encoder_state: MirSequencesEncoderState<'tcx>,
+    pub(super) contracts_encoder_state: ContractsEncoderState<'tcx>,
     pub(super) mir_procedure_encoder_state: MirProcedureEncoderState,
     pub(super) mir_type_layouts_encoder_state: MirTypeLayoutsEncoderState,
     pub(super) mid_core_proof_encoder_state: MidCoreProofEncoderState,
@@ -139,7 +134,6 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         Encoder {
             env,
             error_manager: RefCell::new(ErrorManager::new(env.codemap())),
-            procedure_contracts: RefCell::new(FxHashMap::default()),
             functions: RefCell::new(FxHashMap::default()),
             builtin_methods: RefCell::new(FxHashMap::default()),
             high_builtin_function_encoder_state: Default::default(),
@@ -149,6 +143,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             mir_type_layouts_encoder_state: Default::default(),
             mid_core_proof_encoder_state: Default::default(),
             procedures: RefCell::new(FxHashMap::default()),
+            contracts_encoder_state: Default::default(),
             mir_type_encoder_state: Default::default(),
             high_type_encoder_state: Default::default(),
             pure_function_encoder_state: Default::default(),
@@ -271,16 +266,6 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         self.procedures.borrow_mut().drain().map(|(_, value)| value).collect()
     }
 
-    fn get_procedure_contract(
-        &self,
-        proc_def_id: ProcedureDefId,
-        substs: SubstsRef<'tcx>,
-    ) -> EncodingResult<ProcedureContractMirDef<'tcx>> {
-        let spec = self.get_procedure_specs(proc_def_id, substs)
-            .unwrap_or_else(typed::ProcedureSpecification::empty);
-        compute_procedure_contract(proc_def_id, self.env(), spec, substs)
-    }
-
     /// Extract scalar value, invoking const evaluation if necessary.
     pub fn const_eval_intlike(
         &self,
@@ -307,71 +292,6 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
                 format!("unsupported constant value: {:?}", value)
             ))
         }
-    }
-
-    pub fn get_mir_procedure_contract_for_def(
-        &self,
-        proc_def_id: ProcedureDefId,
-        substs: SubstsRef<'tcx>,
-    ) -> EncodingResult<ProcedureContractMirDef<'tcx>> {
-        self.procedure_contracts
-            .borrow_mut()
-            .entry(proc_def_id)
-            .or_insert_with(|| self.get_procedure_contract(proc_def_id, substs))
-            .clone()
-    }
-
-    pub fn get_mir_procedure_contract_for_call(
-        &self,
-        caller_def_id: ProcedureDefId,
-        called_def_id: ProcedureDefId,
-        call_substs: SubstsRef<'tcx>,
-    ) -> EncodingResult<ProcedureContractMirDef<'tcx>> {
-        let (called_def_id, call_substs) = self.env()
-            .resolve_method_call(caller_def_id, called_def_id, call_substs);
-        let spec = self.get_procedure_specs(called_def_id, call_substs)
-            .unwrap_or_else(typed::ProcedureSpecification::empty);
-        let contract = compute_procedure_contract(
-            called_def_id,
-            self.env(),
-            spec,
-            call_substs,
-        )?;
-        Ok(contract)
-    }
-
-    pub fn get_procedure_contract_for_def(
-        &self,
-        proc_def_id: ProcedureDefId,
-        substs: SubstsRef<'tcx>,
-    ) -> EncodingResult<ProcedureContract<'tcx>> {
-        self.procedure_contracts
-            .borrow_mut()
-            .entry(proc_def_id)
-            .or_insert_with(|| self.get_procedure_contract(proc_def_id, substs)).as_ref()
-            .map(|contract| contract.to_def_site_contract())
-            .map_err(|err| err.clone())
-    }
-
-    pub fn get_procedure_contract_for_call(
-        &self,
-        caller_def_id: ProcedureDefId,
-        called_def_id: ProcedureDefId,
-        args: &[places::Local],
-        target: places::Local,
-        call_substs: SubstsRef<'tcx>,
-    ) -> EncodingResult<ProcedureContract<'tcx>> {
-        let (called_def_id, call_substs) = self.env()
-            .resolve_method_call(caller_def_id, called_def_id, call_substs);
-        let spec = self.get_procedure_specs_for_call(called_def_id, caller_def_id, call_substs)
-            .unwrap_or_else(typed::ProcedureSpecification::empty);
-        let contract = compute_procedure_contract(
-            called_def_id,
-            self.env(),
-            spec,
-            call_substs,
-        )?;
-        Ok(contract.to_call_site_contract(args, target))
     }
 
     /// Encodes a value in a field if the base expression is a reference or
@@ -775,7 +695,6 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             .borrow_mut()
             .push((proc_def_id, Vec::new()));
     }
-
 
     pub fn process_encoding_queue(&mut self) {
         self.initialize();

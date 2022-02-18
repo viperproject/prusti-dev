@@ -4,7 +4,6 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use crate::encoder::borrows::ProcedureContract;
 use crate::encoder::builtin_encoder::{BuiltinMethodKind};
 use crate::encoder::errors::{
     SpannedEncodingError, ErrorCtxt, EncodingError, WithSpan,
@@ -63,6 +62,10 @@ use vir_crate::polymorphic::Float;
 use crate::utils::is_reference;
 use crate::encoder::mir::{
     sequences::MirSequencesEncoderInterface,
+    contracts::{
+        ContractsEncoderInterface,
+        ProcedureContract,
+    },
     pure::PureFunctionEncoderInterface,
     types::MirTypeEncoderInterface,
     pure::SpecificationEncoderInterface,
