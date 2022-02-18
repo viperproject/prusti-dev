@@ -50,6 +50,26 @@ impl<'p, 'v: 'p, 'tcx: 'v> ToLowLowerer for super::super::lowerer::Lowerer<'p, '
         ty.create_snapshot(self)
     }
 
+    fn to_low_constant(
+        &mut self,
+        value: vir_mid::Constant,
+    ) -> SpannedEncodingResult<vir_low::expression::Constant> {
+        let low_type = match value.ty {
+            vir_mid::Type::MBool => vir_low::Type::Bool,
+            vir_mid::Type::MInt => vir_low::Type::Int,
+            vir_mid::Type::MFloat32 => unimplemented!(),
+            vir_mid::Type::MFloat64 => unimplemented!(),
+            vir_mid::Type::Bool => vir_low::Type::Bool,
+            vir_mid::Type::Int(_) => vir_low::Type::Int,
+            _ => unimplemented!("constant: {:?}", value),
+        };
+        Ok(vir_low::expression::Constant {
+            value: self.to_low_constant_value(value.value)?,
+            ty: low_type,
+            position: self.to_low_position(value.position)?,
+        })
+    }
+
     fn to_low_labelled_old(
         &mut self,
         expression: vir_mid::expression::LabelledOld,
@@ -64,13 +84,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ToLowLowerer for super::super::lowerer::Lowerer<'p, '
     fn to_low_constant_value_fn_ptr(
         &mut self,
     ) -> Result<vir_low::expression::ConstantValue, Self::Error> {
-        todo!()
-    }
-
-    fn to_low_float_const(
-        &mut self,
-        _expression: vir_mid::expression::FloatConst,
-    ) -> Result<vir_low::expression::FloatConst, Self::Error> {
         todo!()
     }
 
@@ -106,6 +119,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> ToLowLowerer for super::super::lowerer::Lowerer<'p, '
         &mut self,
         _expression: vir_mid::expression::Constructor,
     ) -> Result<vir_low::Expression, Self::Error> {
+        todo!()
+    }
+
+    fn to_low_constant_value_float(
+        &mut self,
+        _variant: vir_mid::expression::FloatConst,
+    ) -> Result<vir_low::expression::ConstantValue, Self::Error> {
         todo!()
     }
 }

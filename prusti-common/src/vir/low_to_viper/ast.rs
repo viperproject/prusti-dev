@@ -6,7 +6,7 @@ use vir::low::ast::{
     position::Position,
     predicate::PredicateDecl,
     statement::{self, Statement},
-    ty::{BitVector, Float, Type},
+    ty::{BitVector, BitVectorSize, Float, Type},
     variable::VariableDecl,
     PermAmount,
 };
@@ -204,32 +204,32 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for expression::LabelledOld {
 
 impl<'v> ToViper<'v, viper::Expr<'v>> for expression::Constant {
     fn to_viper(&self, ast: &AstFactory<'v>) -> viper::Expr<'v> {
-        match &self.value {
-            expression::ConstantValue::Bool(true) => {
-                ast.true_lit_with_pos(self.position.to_viper(ast))
-            }
-            expression::ConstantValue::Bool(false) => {
-                ast.false_lit_with_pos(self.position.to_viper(ast))
-            }
-            expression::ConstantValue::Int(value) => {
-                ast.int_lit_with_pos(*value, self.position.to_viper(ast))
-            }
-            expression::ConstantValue::BigInt(value) => {
-                ast.int_lit_from_ref_with_pos(value, self.position.to_viper(ast))
-            }
-            expression::ConstantValue::Float(expression::FloatConst::F32(value)) => {
-                ast.backend_f32_lit(*value)
-            }
-            expression::ConstantValue::Float(expression::FloatConst::F64(value)) => {
-                ast.backend_f64_lit(*value)
-            }
-            expression::ConstantValue::BitVector(bv_constant) => match bv_constant {
-                expression::BitVectorConst::BV8(value) => ast.backend_bv8_lit(*value),
-                expression::BitVectorConst::BV16(value) => ast.backend_bv16_lit(*value),
-                expression::BitVectorConst::BV32(value) => ast.backend_bv32_lit(*value),
-                expression::BitVectorConst::BV64(value) => ast.backend_bv64_lit(*value),
-                expression::BitVectorConst::BV128(value) => ast.backend_bv128_lit(*value),
+        match &self.ty {
+            Type::Int => match &self.value {
+                expression::ConstantValue::Bool(_) => {
+                    unreachable!()
+                }
+                expression::ConstantValue::Int(value) => {
+                    ast.int_lit_with_pos(*value, self.position.to_viper(ast))
+                }
+                expression::ConstantValue::BigInt(value) => {
+                    ast.int_lit_from_ref_with_pos(value, self.position.to_viper(ast))
+                }
             },
+            Type::Bool => match &self.value {
+                expression::ConstantValue::Bool(true) => {
+                    ast.true_lit_with_pos(self.position.to_viper(ast))
+                }
+                expression::ConstantValue::Bool(false) => {
+                    ast.false_lit_with_pos(self.position.to_viper(ast))
+                }
+                _ => unreachable!(),
+            },
+            Type::Float(_) => unimplemented!(),
+            Type::BitVector(_) => unimplemented!(),
+            Type::Seq(_) => unimplemented!(),
+            Type::Ref => unimplemented!(),
+            Type::Domain(domain) => unimplemented!("domain: {:?} constant: {:?}", domain, self),
         }
     }
 }
@@ -399,11 +399,17 @@ impl<'v> ToViper<'v, viper::Type<'v>> for Type {
             Type::Float(Float::F32) => ast.backend_f32_type(),
             Type::Float(Float::F64) => ast.backend_f64_type(),
             Type::BitVector(bv_size) => match bv_size {
-                BitVector::BV8 => ast.backend_bv8_type(),
-                BitVector::BV16 => ast.backend_bv16_type(),
-                BitVector::BV32 => ast.backend_bv32_type(),
-                BitVector::BV64 => ast.backend_bv64_type(),
-                BitVector::BV128 => ast.backend_bv128_type(),
+                BitVector::Signed(BitVectorSize::BV8) | BitVector::Unsigned(BitVectorSize::BV8) => {
+                    ast.backend_bv8_type()
+                }
+                BitVector::Signed(BitVectorSize::BV16)
+                | BitVector::Unsigned(BitVectorSize::BV16) => ast.backend_bv16_type(),
+                BitVector::Signed(BitVectorSize::BV32)
+                | BitVector::Unsigned(BitVectorSize::BV32) => ast.backend_bv32_type(),
+                BitVector::Signed(BitVectorSize::BV64)
+                | BitVector::Unsigned(BitVectorSize::BV64) => ast.backend_bv64_type(),
+                BitVector::Signed(BitVectorSize::BV128)
+                | BitVector::Unsigned(BitVectorSize::BV128) => ast.backend_bv128_type(),
             },
         }
     }
