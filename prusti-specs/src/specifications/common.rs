@@ -127,38 +127,3 @@ fn generate_name_for_type(ty: &syn::Type) -> Option<String> {
         }
     }
 }
-
-
-#[cfg(test)]
-mod tests {
-    mod name_generator {
-        use super::super::generate_struct_name;
-        use regex::Regex;
-
-        const PATTERN: &str = r#"(.*)([0-9a-fA-F]{32})"#;
-
-        #[test]
-        fn generate_name_for_slice() {
-            let item: syn::ItemImpl = syn::parse_quote!{impl [i32] {}};
-
-            let name = generate_struct_name(&item);
-
-            assert_uuid_prefix("PrustiStructSlicei32_", &name);
-        }
-
-        #[test]
-        fn generate_name_for_path() {
-            let item: syn::ItemImpl = syn::parse_quote!{impl std::option::Option<i32> {}};
-            let name = generate_struct_name(&item);
-            assert_uuid_prefix("PrustiStructstdoptionOption_", &name);
-        }
-
-        fn assert_uuid_prefix(prefix: &str, actual: &str) {
-            let re = Regex::new(PATTERN).unwrap();
-            let captures = re.captures(actual)
-                .expect(format!("Regex '{}' did not match '{}'", PATTERN, actual).as_str());
-            assert_eq!(3, captures.len());
-            assert_eq!(prefix, captures.get(1).unwrap().as_str());
-        }
-    }
-}

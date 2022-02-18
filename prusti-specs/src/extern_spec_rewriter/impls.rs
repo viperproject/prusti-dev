@@ -83,15 +83,13 @@ fn rewrite_plain_impl(impl_item: &mut syn::ItemImpl, new_ty: Box<syn::Type>) -> 
 
     for item in impl_item.items.iter_mut() {
         match item {
-            syn::ImplItem::Method(method) => {
-                rewrite_method(method,
-                               item_ty,
-                               None,
-                               ExternSpecKind::InherentImpl);
-            }
-            syn::ImplItem::Type(_) => {
-                // ignore
-            }
+            syn::ImplItem::Method(method) => rewrite_method(
+                method,
+                item_ty,
+                None,
+                ExternSpecKind::InherentImpl,
+            ),
+            syn::ImplItem::Type(_) => (), // ignore
             _ => {
                 return Err(syn::Error::new(
                     item.span(),
@@ -132,10 +130,12 @@ fn rewrite_trait_impl(
             let (_, trait_path, _) = &impl_item.trait_.as_ref().unwrap();
 
             let mut rewritten_method = method.clone();
-            rewrite_method(&mut rewritten_method,
-                           &item_ty,
-                           Some(trait_path),
-                           ExternSpecKind::TraitImpl);
+            rewrite_method(
+                &mut rewritten_method,
+                &item_ty,
+                Some(trait_path),
+                ExternSpecKind::TraitImpl,
+            );
 
             // Rewrite occurences of associated types in method signature
             let mut rewriter = AssociatedTypeRewriter::new(&assoc_type_decls);

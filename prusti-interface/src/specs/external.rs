@@ -31,39 +31,45 @@ pub enum ExternSpecResolverError {
 
 #[derive(Debug, Eq, PartialEq, Hash, Clone)]
 pub enum ExternSpecDeclaration {
-    /// An extern specification for *inherent* functions (i.e. free-standing functions),
-    /// or methods of impl blocks
+    /// An external specification for inherent methods of impl blocks.
     Inherent(DefId),
 
     /// An external specification for a trait method (first `DefId`), resolved to its implementation
-    /// method (second `DefId`)
+    /// method (second `DefId`).
     TraitImpl(DefId, DefId),
 
-    /// An external specification for a trait method
+    /// An external specification for a trait method.
     Trait(DefId),
+
+    /// An external specification for a free-standing method.
+    Method(DefId),
 }
 
 impl ExternSpecDeclaration {
-    /// Constructs [ExternSpecDeclaration] from a method call with the given substitutions
+    /// Constructs [ExternSpecDeclaration] from a method call with the given substitutions.
     fn from_method_call<'tcx>(def_id: DefId, substs: SubstsRef<'tcx>, env: &Environment<'tcx>) -> Self {
+        let is_impl_method = env.tcx().impl_of_method(def_id).is_some();
         let is_trait_method = env.tcx().trait_of_item(def_id).is_some();
         let maybe_impl_def_id = env.find_impl_of_trait_method_call(def_id, substs);
 
         if is_trait_method && maybe_impl_def_id.is_none() {
-            ExternSpecDeclaration::Trait(def_id)
+            Self::Trait(def_id)
         } else if is_trait_method && maybe_impl_def_id.is_some() {
-            ExternSpecDeclaration::TraitImpl(def_id, maybe_impl_def_id.unwrap())
+            Self::TraitImpl(def_id, maybe_impl_def_id.unwrap())
+        } else if is_impl_method {
+            Self::Inherent(def_id)
         } else {
-            ExternSpecDeclaration::Inherent(def_id)
+            Self::Method(def_id)
         }
     }
 
-    /// Returns the **target** [DefId] for which an external spec was declared
+    /// Returns the **target** [DefId] for which an external spec was declared.
     pub fn get_target_def_id(&self) -> DefId {
         match self {
-            ExternSpecDeclaration::Inherent(did) => *did,
-            ExternSpecDeclaration::TraitImpl(_, did) => *did,
-            ExternSpecDeclaration::Trait(did) => *did,
+            Self::Inherent(did)
+            | Self::TraitImpl(_, did)
+            | Self::Trait(did)
+            | Self::Method(did) => *did,
         }
     }
 }
@@ -80,7 +86,7 @@ pub struct ExternSpecResolver<'v, 'tcx: 'v> {
     /// to be specified.
     spec_duplicates: HashMap<DefId, Vec<(DefId, Span)>>,
 
-    /// Encountered errors while resolving external specs
+    /// Encountered errors while resolving external specs.
     errors: Vec<ExternSpecResolverError>,
 }
 
@@ -90,7 +96,7 @@ impl<'v, 'tcx: 'v> ExternSpecResolver<'v, 'tcx> {
             env,
             extern_fn_map: HashMap::new(),
             spec_duplicates: HashMap::new(),
-            errors: Vec::new(),
+            errors: vec![],
         }
     }
 
@@ -137,15 +143,11 @@ impl<'v, 'tcx: 'v> ExternSpecResolver<'v, 'tcx> {
     }
 
     fn register_duplicate_spec(&mut self, decl_def_id: DefId, dup_spec_def_id: DefId, span: Span) {
-        match self.spec_duplicates.get_mut(&decl_def_id) {
-            Some(dups) => {
-                dups.push((dup_spec_def_id, span));
-            }
-            None => {
-                self.spec_duplicates
-                    .insert(decl_def_id, vec![(dup_spec_def_id, span)]);
-            }
-        }
+        self
+            .spec_duplicates
+            .entry(decl_def_id)
+            .or_default()
+            .push((dup_spec_def_id, span));
     }
 
     /// Checks whether the encoded method call (call to `spec_for_def_id`) is valid.
@@ -160,8 +162,6 @@ impl<'v, 'tcx: 'v> ExternSpecResolver<'v, 'tcx> {
         }
         // Note: A check for matches!(extern_spec_kind, ExternSpecKind::TraitImpl) && !is_trait_method
         // is not needed because this does not typecheck (using UFCS call syntax in encoding).
-
-        // Duplicate specs
     }
 
     /// Report errors encountered when resolving extern specs
@@ -221,7 +221,7 @@ impl<'v, 'tcx: 'v> Visitor<'tcx> for ExternSpecVisitor<'v, 'tcx> {
         }
         if let rustc_hir::ExprKind::Call(callee_expr, _arguments) = ex.kind {
             if let rustc_hir::ExprKind::Path(ref qself) = callee_expr.kind {
-                let tyck_res =  self
+                let tyck_res = self
                     .env.tcx()
                     .typeck(callee_expr.hir_id.owner);
                 let substs = tyck_res.node_substs(callee_expr.hir_id);
