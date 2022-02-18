@@ -91,11 +91,17 @@ impl<'v> ToViper<'v, viper::Type<'v>> for Type {
             Type::Float(Float::F32) => ast.backend_f32_type(),
             Type::Float(Float::F64) => ast.backend_f64_type(),
             Type::BitVector(bv_size) => match bv_size {
-                BitVector::BV8 => ast.backend_bv8_type(),
-                BitVector::BV16 => ast.backend_bv16_type(),
-                BitVector::BV32 => ast.backend_bv32_type(),
-                BitVector::BV64 => ast.backend_bv64_type(),
-                BitVector::BV128 => ast.backend_bv128_type(),
+                BitVector::Signed(BitVectorSize::BV8) | BitVector::Unsigned(BitVectorSize::BV8) => {
+                    ast.backend_bv8_type()
+                }
+                BitVector::Signed(BitVectorSize::BV16)
+                | BitVector::Unsigned(BitVectorSize::BV16) => ast.backend_bv16_type(),
+                BitVector::Signed(BitVectorSize::BV32)
+                | BitVector::Unsigned(BitVectorSize::BV32) => ast.backend_bv32_type(),
+                BitVector::Signed(BitVectorSize::BV64)
+                | BitVector::Unsigned(BitVectorSize::BV64) => ast.backend_bv64_type(),
+                BitVector::Signed(BitVectorSize::BV128)
+                | BitVector::Unsigned(BitVectorSize::BV128) => ast.backend_bv128_type(),
             },
         }
     }
@@ -371,13 +377,7 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for Expr {
                     ast.float_unop(op_kind, size, expr.to_viper(ast))
                 }
                 Type::BitVector(bitvector_ty) => {
-                    let bv_size = match bitvector_ty {
-                        BitVector::BV8 => viper::BvSize::BV8,
-                        BitVector::BV16 => viper::BvSize::BV16,
-                        BitVector::BV32 => viper::BvSize::BV32,
-                        BitVector::BV64 => viper::BvSize::BV64,
-                        BitVector::BV128 => viper::BvSize::BV128,
-                    };
+                    let bv_size = lower_bitvector_signed_size(*bitvector_ty);
                     let op_kind = match op {
                         UnaryOpKind::Not => viper::UnOpBv::Not,
                         UnaryOpKind::Minus => viper::UnOpBv::Neg,
@@ -414,7 +414,17 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for Expr {
                     ast.float_binop(float_op_kind, size, left.to_viper(ast), right.to_viper(ast))
                 }
                 Some(Type::BitVector(bitvector_ty)) => {
-                    let size = lower_bitvector_size(*bitvector_ty);
+                    let viper_size = lower_bitvector_signed_size(*bitvector_ty);
+                    let (viper_left, viper_right) = match bitvector_ty {
+                        BitVector::Signed(size) => (
+                            unsigned_bv_to_signed_int(ast, *size, left, *pos),
+                            unsigned_bv_to_signed_int(ast, *size, right, *pos),
+                        ),
+                        BitVector::Unsigned(_) => (
+                            ast.backend_bv_to_int(viper_size, left.to_viper(ast)),
+                            ast.backend_bv_to_int(viper_size, right.to_viper(ast)),
+                        ),
+                    };
                     match op {
                         BinaryOpKind::EqCmp => ast.eq_cmp_with_pos(
                             left.to_viper(ast),
@@ -426,26 +436,18 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for Expr {
                             right.to_viper(ast),
                             pos.to_viper(ast),
                         ),
-                        BinaryOpKind::GtCmp => ast.gt_cmp_with_pos(
-                            ast.backend_bv_to_int(size, left.to_viper(ast)),
-                            ast.backend_bv_to_int(size, right.to_viper(ast)),
-                            pos.to_viper(ast),
-                        ),
-                        BinaryOpKind::GeCmp => ast.ge_cmp_with_pos(
-                            ast.backend_bv_to_int(size, left.to_viper(ast)),
-                            ast.backend_bv_to_int(size, right.to_viper(ast)),
-                            pos.to_viper(ast),
-                        ),
-                        BinaryOpKind::LtCmp => ast.lt_cmp_with_pos(
-                            ast.backend_bv_to_int(size, left.to_viper(ast)),
-                            ast.backend_bv_to_int(size, right.to_viper(ast)),
-                            pos.to_viper(ast),
-                        ),
-                        BinaryOpKind::LeCmp => ast.le_cmp_with_pos(
-                            ast.backend_bv_to_int(size, left.to_viper(ast)),
-                            ast.backend_bv_to_int(size, right.to_viper(ast)),
-                            pos.to_viper(ast),
-                        ),
+                        BinaryOpKind::GtCmp => {
+                            ast.gt_cmp_with_pos(viper_left, viper_right, pos.to_viper(ast))
+                        }
+                        BinaryOpKind::GeCmp => {
+                            ast.ge_cmp_with_pos(viper_left, viper_right, pos.to_viper(ast))
+                        }
+                        BinaryOpKind::LtCmp => {
+                            ast.lt_cmp_with_pos(viper_left, viper_right, pos.to_viper(ast))
+                        }
+                        BinaryOpKind::LeCmp => {
+                            ast.le_cmp_with_pos(viper_left, viper_right, pos.to_viper(ast))
+                        }
                         _ => {
                             let op_kind = match op {
                                 BinaryOpKind::Add => viper::BinOpBv::BvAdd,
@@ -462,7 +464,12 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for Expr {
                                     unreachable!("illegal binary operation for bitvectors: {}", op)
                                 }
                             };
-                            ast.bv_binop(op_kind, size, left.to_viper(ast), right.to_viper(ast))
+                            ast.bv_binop(
+                                op_kind,
+                                viper_size,
+                                left.to_viper(ast),
+                                right.to_viper(ast),
+                            )
                         }
                     }
                 }
@@ -639,13 +646,18 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for Expr {
                     pos.to_viper(ast),
                 )
             }*/
-            Expr::Cast(kind, base, _position) => match kind {
-                CastKind::BVIntoInt(size) => {
-                    let size = lower_bitvector_size(*size);
-                    ast.backend_bv_to_int(size, base.to_viper(ast))
-                }
+            Expr::Cast(kind, base, position) => match kind {
+                CastKind::BVIntoInt(signed_size) => match signed_size {
+                    BitVector::Signed(size) => {
+                        unsigned_bv_to_signed_int(ast, *size, base, *position)
+                    }
+                    BitVector::Unsigned(size) => {
+                        let size = lower_bitvector_size(*size);
+                        ast.backend_bv_to_int(size, base.to_viper(ast))
+                    }
+                },
                 CastKind::IntIntoBV(size) => {
-                    let size = lower_bitvector_size(*size);
+                    let size = lower_bitvector_signed_size(*size);
                     ast.int_to_backend_bv(size, base.to_viper(ast))
                 }
             },
@@ -673,12 +685,26 @@ impl<'v, 'a, 'b> ToViper<'v, viper::Expr<'v>> for (&'a Const, &'b Position) {
             Const::BigInt(ref x) => ast.int_lit_from_ref_with_pos(x, self.1.to_viper(ast)),
             Const::Float(FloatConst::F32(val)) => ast.backend_f32_lit(*val),
             Const::Float(FloatConst::F64(val)) => ast.backend_f64_lit(*val),
-            Const::BitVector(bv_const) => match bv_const {
-                BitVectorConst::BV8(val) => ast.backend_bv8_lit(*val),
-                BitVectorConst::BV16(val) => ast.backend_bv16_lit(*val),
-                BitVectorConst::BV32(val) => ast.backend_bv32_lit(*val),
-                BitVectorConst::BV64(val) => ast.backend_bv64_lit(*val),
-                BitVectorConst::BV128(val) => ast.backend_bv128_lit(*val),
+            Const::BitVector(bv_const) => match bv_const.typ {
+                BitVector::Signed(BitVectorSize::BV8) | BitVector::Unsigned(BitVectorSize::BV8) => {
+                    ast.backend_bv8_lit_str(&bv_const.value)
+                }
+                BitVector::Signed(BitVectorSize::BV16)
+                | BitVector::Unsigned(BitVectorSize::BV16) => {
+                    ast.backend_bv16_lit_str(&bv_const.value)
+                }
+                BitVector::Signed(BitVectorSize::BV32)
+                | BitVector::Unsigned(BitVectorSize::BV32) => {
+                    ast.backend_bv32_lit_str(&bv_const.value)
+                }
+                BitVector::Signed(BitVectorSize::BV64)
+                | BitVector::Unsigned(BitVectorSize::BV64) => {
+                    ast.backend_bv64_lit_str(&bv_const.value)
+                }
+                BitVector::Signed(BitVectorSize::BV128)
+                | BitVector::Unsigned(BitVectorSize::BV128) => {
+                    ast.backend_bv128_lit_str(&bv_const.value)
+                }
             },
             Const::FnPtr => ast.null_lit_with_pos(self.1.to_viper(ast)),
         }
@@ -1049,12 +1075,61 @@ fn block_to_viper<'a>(
     ast.seqn(&stmts, &[])
 }
 
-fn lower_bitvector_size(size: BitVector) -> viper::BvSize {
+fn lower_bitvector_size(size: BitVectorSize) -> viper::BvSize {
     match size {
-        BitVector::BV8 => viper::BvSize::BV8,
-        BitVector::BV16 => viper::BvSize::BV16,
-        BitVector::BV32 => viper::BvSize::BV32,
-        BitVector::BV64 => viper::BvSize::BV64,
-        BitVector::BV128 => viper::BvSize::BV128,
+        BitVectorSize::BV8 => viper::BvSize::BV8,
+        BitVectorSize::BV16 => viper::BvSize::BV16,
+        BitVectorSize::BV32 => viper::BvSize::BV32,
+        BitVectorSize::BV64 => viper::BvSize::BV64,
+        BitVectorSize::BV128 => viper::BvSize::BV128,
     }
+}
+
+fn lower_bitvector_signed_size(size: BitVector) -> viper::BvSize {
+    match size {
+        BitVector::Signed(size) | BitVector::Unsigned(size) => lower_bitvector_size(size),
+    }
+}
+
+fn signed_max_for_size(size: BitVectorSize) -> u128 {
+    match size {
+        BitVectorSize::BV8 => i8::MAX as u128,
+        BitVectorSize::BV16 => i16::MAX as u128,
+        BitVectorSize::BV32 => i32::MAX as u128,
+        BitVectorSize::BV64 => i64::MAX as u128,
+        BitVectorSize::BV128 => i128::MAX as u128,
+    }
+}
+
+fn unsigned_max_for_size(size: BitVectorSize) -> u128 {
+    match size {
+        BitVectorSize::BV8 => u8::MAX as u128,
+        BitVectorSize::BV16 => u16::MAX as u128,
+        BitVectorSize::BV32 => u32::MAX as u128,
+        BitVectorSize::BV64 => u64::MAX as u128,
+        BitVectorSize::BV128 => u128::MAX as u128,
+    }
+}
+
+fn unsigned_bv_to_signed_int<'v>(
+    ast: &AstFactory<'v>,
+    size: BitVectorSize,
+    value: &Expr,
+    pos: Position,
+) -> viper::Expr<'v> {
+    let viper_size = lower_bitvector_size(size);
+    let signed_max_int: Expr = signed_max_for_size(size).into();
+    let unsigned_max_int: Expr = unsigned_max_for_size(size).into();
+    let value = ast.backend_bv_to_int(viper_size, value.to_viper(ast));
+    let one: Expr = 1u32.into();
+    ast.cond_exp_with_pos(
+        ast.lt_cmp_with_pos(signed_max_int.to_viper(ast), value, pos.to_viper(ast)),
+        ast.sub_with_pos(
+            ast.sub_with_pos(value, unsigned_max_int.to_viper(ast), pos.to_viper(ast)),
+            one.to_viper(ast),
+            pos.to_viper(ast),
+        ),
+        value,
+        pos.to_viper(ast),
+    )
 }

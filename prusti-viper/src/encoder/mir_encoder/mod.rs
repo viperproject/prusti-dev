@@ -558,11 +558,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
                     unsupported_op
                 )))
             }
-            _ if is_signed => {
-                return Err(EncodingError::unsupported(
-                    "bit operations on signed numbers are not supported",
-                ));
-            }
             mir::BinOp::BitAnd => vir::Expr::bin_op(vir::BinaryOpKind::BitAnd, left, right),
             mir::BinOp::BitOr => vir::Expr::bin_op(vir::BinaryOpKind::BitOr, left, right),
             mir::BinOp::BitXor => vir::Expr::bin_op(vir::BinaryOpKind::BitXor, left, right),

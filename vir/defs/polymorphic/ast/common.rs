@@ -121,12 +121,39 @@ pub enum Float {
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, Hash, PartialOrd, Ord)]
-pub enum BitVector {
+pub enum BitVectorSize {
     BV8,
     BV16,
     BV32,
     BV64,
     BV128,
+}
+
+impl fmt::Display for BitVectorSize {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            BitVectorSize::BV8 => write!(f, "BV8"),
+            BitVectorSize::BV16 => write!(f, "BV16"),
+            BitVectorSize::BV32 => write!(f, "BV32"),
+            BitVectorSize::BV64 => write!(f, "BV64"),
+            BitVectorSize::BV128 => write!(f, "BV128"),
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, Hash, PartialOrd, Ord)]
+pub enum BitVector {
+    Signed(BitVectorSize),
+    Unsigned(BitVectorSize),
+}
+
+impl fmt::Display for BitVector {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            Self::Signed(value) => write!(f, "S{}", value),
+            Self::Unsigned(value) => write!(f, "U{}", value),
+        }
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash, PartialOrd, Ord)]
@@ -151,11 +178,7 @@ impl fmt::Display for Type {
             Type::Bool => write!(f, "Bool"),
             Type::Float(Float::F32) => write!(f, "F32"),
             Type::Float(Float::F64) => write!(f, "F64"),
-            Type::BitVector(BitVector::BV8) => write!(f, "BV8"),
-            Type::BitVector(BitVector::BV16) => write!(f, "BV16"),
-            Type::BitVector(BitVector::BV32) => write!(f, "BV32"),
-            Type::BitVector(BitVector::BV64) => write!(f, "BV64"),
-            Type::BitVector(BitVector::BV128) => write!(f, "BV128"),
+            Type::BitVector(value) => write!(f, "{}", value),
             Type::Seq(seq) => seq.fmt(f),
             Type::TypedRef(_) => write!(f, "Ref({})", self.encode_as_string()),
             Type::Domain(_) => write!(f, "Domain({})", self.encode_as_string()),
@@ -201,11 +224,7 @@ impl Type {
             Type::Int => "int".to_string(),
             Type::Float(Float::F32) => "f32".to_string(),
             Type::Float(Float::F64) => "f64".to_string(),
-            Type::BitVector(BitVector::BV8) => "bv8".to_string(),
-            Type::BitVector(BitVector::BV16) => "bv16".to_string(),
-            Type::BitVector(BitVector::BV32) => "bv32".to_string(),
-            Type::BitVector(BitVector::BV64) => "bv64".to_string(),
-            Type::BitVector(BitVector::BV128) => "bv128".to_string(),
+            Type::BitVector(value) => value.to_string(),
             Type::Domain(_) | Type::Snapshot(_) | Type::TypedRef(_) | Type::TypeVar(_) => {
                 self.encode_as_string()
             }
