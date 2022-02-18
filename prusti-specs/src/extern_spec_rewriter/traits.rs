@@ -37,8 +37,8 @@ pub fn rewrite_extern_spec(item_trait: &syn::ItemTrait) -> syn::Result<TokenStre
     let trait_impl = generated_struct.generate_impl()?;
     let new_struct = generated_struct.generated_struct;
     Ok(quote_spanned! {item_trait.span()=>
-            #new_struct
-            #trait_impl
+        #new_struct
+        #trait_impl
     })
 }
 
@@ -118,20 +118,18 @@ fn generate_new_struct(item_trait: &syn::ItemTrait) -> syn::Result<GeneratedStru
 }
 
 fn parse_trait_type_params(item_trait: &syn::ItemTrait) -> syn::Result<Vec<ProvidedTypeParam>> {
-    let mut result = Vec::new();
+    let mut result = vec![];
     for generic_param in item_trait.generics.params.iter() {
         if let syn::GenericParam::Type(type_param) = generic_param {
-            let parameter = ProvidedTypeParam::try_parse(type_param);
-            if parameter.is_none() {
-                return Err(syn::Error::new(
-                    type_param.span(),
-                    "Type parameters in external trait specs must be annotated with exactly one of #[generic] or #[concrete]"
-                ));
-            }
-            result.push(parameter.unwrap());
+            result.push(
+                ProvidedTypeParam::try_parse(type_param)
+                    .ok_or_else(|| syn::Error::new(
+                        type_param.span(),
+                        "Type parameters in external trait specs must be annotated with exactly one of #[generic] or #[concrete]"
+                    ))?,
+            );
         }
     }
-
     Ok(result)
 }
 
@@ -230,7 +228,7 @@ impl<'a> GeneratedStruct<'a> {
 }
 
 fn get_associated_types(item_trait: &syn::ItemTrait) -> Vec<&syn::TraitItemType> {
-    let mut result = Vec::new();
+    let mut result = vec![];
     for trait_item in item_trait.items.iter() {
         if let syn::TraitItem::Type(assoc_type) = trait_item {
             result.push(assoc_type);
