@@ -47,14 +47,39 @@ impl Iterator for std::slice::Iter<'a, i32>{
 }
 ```
 
+> **Caution**
+>
+> As of yet, iterators are not fully supported in Prusti.
+> The example above is a draft and is meant as a possible real-world usage of `#[model]` in the near future.
+
 ## Remarks
 * A model needs to be copyable, i.e. all fields need to be `Copy`.
+* When the modelled type has no fields, a warning will be emmitted. Using `.model()` on such types can
+  lead to unsound verification results. See below for an example.
 * The model is only to be used in specifications (pre- and postconditions of functions or methods)
   and never in code which will be executed. Using `.model()` in non-spec code will cause a Prusti error.
 * Models can currently not be generic, i.e. creating a model for `Vec<T>` is not possible. It is however
   possible to model concrete generic types, i.e. `Vec<i32>` and `Vec<u32>`.
 
-> **Caution**
->
-> As of yet, iterators are not fully supported in Prusti.
-> The example above is a draft and is meant as a possible real-world usage of `#[model]` in the near future.
+### Modelled types should have fields
+Using models on types without fields can have unexpected verification behavior as shown in the code snippet below:
+```rust
+struct A; // no fields
+#[model] 
+struct A { val: i32 }
+#[trusted]
+#[ensures( result.model().val == with_model_val )]
+fn create_a(with_model_val: i32) -> A { A {} }
+
+fn main() {
+  let a1 = create_a(42);
+  let a2 = create_a(43);
+  // Can prove: a1.model().val == x for any x
+  // Can prove: a2.model().val == x for any x
+}
+```
+The reason for this is due to the encoding of `A` in Viper. When encoding the `main` function, Prusti creates two
+snapshots for `a1` and `a2`. Since `A` has no fields, any two snapshots of `A` will be considered equal 
+and thereafter, their models too. 
+When inhaling the two postconditions for the call to `create_a` in `main`, Viper thus basically assumes 
+that the field `val` for the *same* model is `42` and `43`, a contradiction.
