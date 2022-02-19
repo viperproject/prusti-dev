@@ -122,6 +122,16 @@
 <span id="117">117</span>
 <span id="118">118</span>
 <span id="119">119</span>
+<span id="120">120</span>
+<span id="121">121</span>
+<span id="122">122</span>
+<span id="123">123</span>
+<span id="124">124</span>
+<span id="125">125</span>
+<span id="126">126</span>
+<span id="127">127</span>
+<span id="128">128</span>
+<span id="129">129</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Data structures for storing information about specifications.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! Please see the `parser.rs` file for more information about</span>
@@ -222,24 +232,34 @@
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">generate_struct_name</span>(<span class="ident">item</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../syn/item/struct.ItemImpl.html">syn::ItemImpl</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> {
     <span class="kw">let</span> <span class="ident">uuid</span> <span class="op">=</span> <span class="ident">Uuid::new_v4</span>().<span class="ident">to_simple</span>();
-    <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="kw-2">*</span><a class="ident" href="../../../src/prusti_specs/specifications/common.rs.html#99">item</a>.<span class="ident">self_ty</span> {
-        <span class="ident">syn::Type::Path</span> (<span class="ident">ty_path</span>) =&gt; {
-            <span class="kw">let</span> <span class="ident">path_str</span> <span class="op">=</span> <span class="ident">String::from_iter</span>(<a class="ident" href="../../../src/prusti_specs/specifications/common.rs.html#102">ty_path</a>.<span class="ident">path</span>.<span class="ident">segments</span>.<span class="ident">iter</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="op">|</span><span class="ident">seg</span><span class="op">|</span> <a class="ident" href="../../../src/prusti_specs/specifications/common.rs.html#103">seg</a>.<span class="ident">ident</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>()));
-            <span class="macro">format!</span>(<span class="string">&quot;PrustiStruct{}_{}&quot;</span>, <a class="ident" href="../../../src/prusti_specs/specifications/common.rs.html#103">path_str</a>, <a class="ident" href="../../../src/prusti_specs/specifications/common.rs.html#100">uuid</a>)
-        }
-        <span class="comment">// not a path, just use a UUID</span>
-        <span class="kw">_</span> =&gt; <span class="macro">format!</span>(<span class="string">&quot;PrustiStruct_{}&quot;</span>, <a class="ident" href="../../../src/prusti_specs/specifications/common.rs.html#100">uuid</a>),
-    }
+    <span class="kw">let</span> <span class="ident">name_ty</span> <span class="op">=</span> <a class="ident" href="../../../src/prusti_specs/specifications/common.rs.html#115">generate_name_for_type</a>(<span class="kw-2">&amp;</span><span class="kw-2">*</span><a class="ident" href="../../../src/prusti_specs/specifications/common.rs.html#99">item</a>.<span class="ident">self_ty</span>).<span class="ident">unwrap_or_default</span>();
+    <span class="macro">format!</span>(<span class="string">&quot;PrustiStruct{}_{}&quot;</span>, <a class="ident" href="../../../src/prusti_specs/specifications/common.rs.html#101">name_ty</a>, <a class="ident" href="../../../src/prusti_specs/specifications/common.rs.html#100">uuid</a>)
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">generate_struct_name_for_trait</span>(<span class="ident">item</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../syn/item/struct.ItemTrait.html">syn::ItemTrait</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> {
     <span class="kw">let</span> <span class="ident">uuid</span> <span class="op">=</span> <span class="ident">Uuid::new_v4</span>().<span class="ident">to_simple</span>();
-    <span class="macro">format!</span>(<span class="string">&quot;PrustiTrait{}_{}&quot;</span>, <a class="ident" href="../../../src/prusti_specs/specifications/common.rs.html#111">item</a>.<span class="ident">ident</span>, <a class="ident" href="../../../src/prusti_specs/specifications/common.rs.html#112">uuid</a>)
+    <span class="macro">format!</span>(<span class="string">&quot;PrustiTrait{}_{}&quot;</span>, <a class="ident" href="../../../src/prusti_specs/specifications/common.rs.html#105">item</a>.<span class="ident">ident</span>, <a class="ident" href="../../../src/prusti_specs/specifications/common.rs.html#106">uuid</a>)
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">generate_mod_name</span>(<span class="ident">ident</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../proc_macro2/struct.Ident.html">syn::Ident</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> {
     <span class="kw">let</span> <span class="ident">uuid</span> <span class="op">=</span> <span class="ident">Uuid::new_v4</span>().<span class="ident">to_simple</span>();
-    <span class="macro">format!</span>(<span class="string">&quot;{}_{}&quot;</span>, <a class="ident" href="../../../src/prusti_specs/specifications/common.rs.html#116">ident</a>, <a class="ident" href="../../../src/prusti_specs/specifications/common.rs.html#117">uuid</a>)
+    <span class="macro">format!</span>(<span class="string">&quot;{}_{}&quot;</span>, <a class="ident" href="../../../src/prusti_specs/specifications/common.rs.html#110">ident</a>, <a class="ident" href="../../../src/prusti_specs/specifications/common.rs.html#111">uuid</a>)
+}
+
+<span class="kw">fn</span> <span class="ident">generate_name_for_type</span>(<span class="ident">ty</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../syn/ty/enum.Type.html">syn::Type</a>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a><span class="op">&gt;</span> {
+    <span class="kw">match</span> <a class="ident" href="../../../src/prusti_specs/specifications/common.rs.html#115">ty</a> {
+        <span class="ident">syn::Type::Path</span>(<span class="ident">ty_path</span>) =&gt; {
+            <span class="prelude-val">Some</span>(<span class="ident">String::from_iter</span>(<a class="ident" href="../../../src/prusti_specs/specifications/common.rs.html#117">ty_path</a>.<span class="ident">path</span>.<span class="ident">segments</span>.<span class="ident">iter</span>()
+                .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="op">|</span><span class="ident">seg</span><span class="op">|</span> <a class="ident" href="../../../src/prusti_specs/specifications/common.rs.html#119">seg</a>.<span class="ident">ident</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>())))
+        },
+        <span class="ident">syn::Type::Slice</span>(<span class="ident">ty_slice</span>) =&gt; {
+            <span class="kw">let</span> <span class="ident">ty</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">*</span><a class="ident" href="../../../src/prusti_specs/specifications/common.rs.html#121">ty_slice</a>.<span class="ident">elem</span>;
+            <span class="prelude-val">Some</span>(<span class="macro">format!</span>(<span class="string">&quot;Slice{}&quot;</span>, <a class="ident" href="../../../src/prusti_specs/specifications/common.rs.html#115">generate_name_for_type</a>(<a class="ident" href="../../../src/prusti_specs/specifications/common.rs.html#122">ty</a>)<span class="question-mark">?</span>.<span class="ident">as_str</span>()))
+        },
+        <span class="kw">_</span> =&gt; {
+            <span class="prelude-val">None</span>
+        }
+    }
 }
 </code></pre></div>
 </section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="prusti_specs" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.60.0-nightly (c5c610aad 2022-02-14)" ></div>
