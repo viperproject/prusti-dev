@@ -22,7 +22,7 @@ use prusti_common::{config, vir::optimizations::functions::Simplifier, vir_local
 use rustc_hash::FxHashMap;
 use rustc_hir as hir;
 use rustc_hir::def_id::{DefId, LocalDefId};
-use rustc_middle::{mir, ty};
+use rustc_middle::{mir, ty, ty::subst::SubstsRef};
 use rustc_span::Span;
 
 use vir_crate::{
@@ -38,6 +38,7 @@ pub(super) struct PureFunctionEncoder<'p, 'v: 'p, 'tcx: 'v> {
     interpreter: PureFunctionBackwardInterpreter<'p, 'v, 'tcx>,
     parent_def_id: DefId,
     tymap: &'p SubstMap<'tcx>,
+    substs: &'p SubstsRef<'tcx>,
 }
 
 impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
@@ -48,6 +49,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
         pure_encoding_context: PureEncodingContext,
         parent_def_id: DefId,
         tymap: &'p SubstMap<'tcx>,
+        substs: &'p SubstsRef<'tcx>,
     ) -> Self {
         trace!("PureFunctionEncoder constructor: {:?}", proc_def_id);
         let interpreter = PureFunctionBackwardInterpreter::new(
@@ -57,6 +59,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
             pure_encoding_context,
             parent_def_id,
             tymap.clone(),
+            substs,
         );
         PureFunctionEncoder {
             encoder,
@@ -65,6 +68,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
             interpreter,
             parent_def_id,
             tymap,
+            substs,
         }
     }
 
@@ -175,6 +179,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
             ErrorCtxt::GenericExpression,
             self.parent_def_id,
             self.tymap,
+            self.substs,
         )?;
 
         self.encode_function_given_body(Some(predicate_body_encoded))
@@ -340,6 +345,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
                 ErrorCtxt::GenericExpression,
                 self.parent_def_id,
                 self.tymap,
+                self.substs,
             )?);
         }
 
@@ -376,6 +382,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
                 ErrorCtxt::GenericExpression,
                 self.parent_def_id,
                 self.tymap,
+                self.substs,
             )?;
             debug_assert!(!encoded_postcond.pos().is_default());
             func_spec.push(encoded_postcond);
