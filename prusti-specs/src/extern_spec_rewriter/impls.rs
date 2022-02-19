@@ -108,13 +108,18 @@ fn rewrite_trait_impl(
     new_ty: Box<syn::Type>,
 ) -> syn::Result<syn::ItemImpl> {
     let item_ty = impl_item.self_ty.clone();
+    let item_ty_path = if let syn::Type::Path(ref type_path) = *item_ty {
+        type_path.clone()
+    } else {
+        unreachable!("expected type path in extern spec trait impl");
+    };
 
     // Collect declared associated types
-    let mut assoc_type_decls = HashMap::<&syn::Ident, syn::TypePath>::new();
+    let mut assoc_type_decls = HashMap::<&syn::Ident, &syn::TypePath>::new();
     for item in impl_item.items.iter() {
         if let syn::ImplItem::Type(ty) = item {
             if let syn::Type::Path(path) = &ty.ty {
-                assoc_type_decls.insert(&ty.ident, path.clone());
+                assoc_type_decls.insert(&ty.ident, path);
             }
         }
     }
@@ -138,7 +143,10 @@ fn rewrite_trait_impl(
             );
 
             // Rewrite occurences of associated types in method signature
-            let mut rewriter = AssociatedTypeRewriter::new(&assoc_type_decls);
+            let mut rewriter = AssociatedTypeRewriter::new(
+                &item_ty_path,
+                &assoc_type_decls,
+            );
             rewriter.rewrite_method_sig(&mut rewritten_method.sig);
 
             new_impl.items.push(syn::ImplItem::Method(rewritten_method));
