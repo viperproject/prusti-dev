@@ -8,14 +8,14 @@ use prusti_contracts::*;
 use std::vec::Vec;
 
 #[extern_spec]
-impl<T> Vec<T> {
+impl<T> Clone for Vec<T> {
     #[ensures(true)]
     fn clone(&self) -> std::vec::Vec::<T>
         where T: std::clone::Clone;
 }
 
 #[extern_spec]
-impl<T> Option<T> {
+impl<T> Clone for Option<T> {
     #[ensures(true)]
     fn clone(&self) -> Option::<T>
         where T: std::clone::Clone;

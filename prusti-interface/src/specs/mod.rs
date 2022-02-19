@@ -9,9 +9,7 @@ use std::collections::HashMap;
 use std::convert::TryInto;
 use crate::environment::Environment;
 use crate::PrustiError;
-use crate::utils::{
-    has_extern_spec_attr, read_prusti_attr, read_prusti_attrs, has_prusti_attr
-};
+use crate::utils::{has_extern_spec_attr, read_prusti_attr, read_prusti_attrs, has_prusti_attr};
 use log::debug;
 
 pub mod external;
@@ -37,7 +35,7 @@ struct ProcedureSpecRefs {
 pub struct SpecCollector<'a, 'tcx: 'a> {
     tcx: TyCtxt<'tcx>,
     env: &'a Environment<'tcx>,
-    extern_resolver: ExternSpecResolver<'tcx>,
+    extern_resolver: ExternSpecResolver<'a, 'tcx>,
 
     /// Map from specification IDs to their typed expressions.
     spec_functions: HashMap<SpecificationId, LocalDefId>,
@@ -53,7 +51,7 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
         Self {
             tcx,
             env,
-            extern_resolver: ExternSpecResolver::new(tcx),
+            extern_resolver: ExternSpecResolver::new(env),
             spec_functions: HashMap::new(),
             procedure_specs: HashMap::new(),
             loop_specs: vec![],
@@ -111,20 +109,22 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
     }
 
     fn determine_extern_specs(&self, def_spec: &mut typed::DefSpecificationMap) {
-        self.extern_resolver.check_duplicates(self.env);
-        // TODO: do something with the traits
-        for (real_id, (_, spec_id)) in self.extern_resolver.extern_fn_map.iter() {
-            if let Some(local_id) = real_id.as_local() {
+        self.extern_resolver.check_errors(self.env);
+        for (extern_spec_decl, spec_id) in self.extern_resolver.extern_fn_map.iter() {
+            let target_def_id = extern_spec_decl.get_target_def_id();
+
+            if let Some(local_id) = target_def_id.as_local() {
                 if def_spec.specs.contains_key(&local_id) {
                     PrustiError::incorrect(
                         format!("external specification provided for {}, which already has a specification",
-                            self.env.get_item_name(*real_id)),
+                                self.env.get_item_name(target_def_id)),
                         MultiSpan::from_span(self.env.get_def_span(*spec_id)),
                     ).emit(self.env);
                 }
             }
-            if let Some(_spec) = def_spec.specs.get(&spec_id.expect_local()) {
-                def_spec.extern_specs.insert(*real_id, spec_id.expect_local());
+
+            if def_spec.specs.get(&spec_id.expect_local()).is_some() {
+                def_spec.extern_specs.insert(target_def_id, spec_id.expect_local());
             }
         }
     }
@@ -251,7 +251,9 @@ impl<'a, 'tcx> intravisit::Visitor<'tcx> for SpecCollector<'a, 'tcx> {
 
             // Collect external function specifications
             if has_extern_spec_attr(attrs) {
-                self.extern_resolver.add_extern_fn(fn_kind, fn_decl, body_id, span, id);
+                let attr = read_prusti_attr("extern_spec", attrs).unwrap_or_default();
+                let kind = prusti_specs::ExternSpecKind::try_from(attr).unwrap();
+                self.extern_resolver.add_extern_fn(fn_kind, fn_decl, body_id, span, id, kind);
             }
 
             // Collect procedure specifications

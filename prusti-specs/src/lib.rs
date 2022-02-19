@@ -23,6 +23,7 @@ use specifications::untyped;
 use parse_closure_macro::ClosureWithSpec;
 pub use spec_attribute_kind::SpecAttributeKind;
 use prusti_utils::force_matches;
+pub use extern_spec_rewriter::ExternSpecKind;
 
 macro_rules! handle_result {
     ($parse_result: expr) => {
@@ -418,8 +419,8 @@ pub fn refine_trait_spec(_attr: TokenStream, tokens: TokenStream) -> TokenStream
 pub fn extern_spec(_attr: TokenStream, tokens:TokenStream) -> TokenStream {
     let item: syn::Item = handle_result!(syn::parse2(tokens));
     match item {
-        syn::Item::Impl(mut item_impl) => {
-            handle_result!(extern_spec_rewriter::impls::rewrite_extern_spec(&mut item_impl))
+        syn::Item::Impl(item_impl) => {
+            handle_result!(extern_spec_rewriter::impls::rewrite_extern_spec(&item_impl))
         }
         syn::Item::Trait(item_trait) => {
             handle_result!(extern_spec_rewriter::traits::rewrite_extern_spec(&item_trait))
@@ -446,7 +447,11 @@ impl syn::parse::Parse for PredicateFn {
         let _brace_token = syn::braced!(brace_content in input);
         let body = brace_content.parse()?;
 
-        Ok(PredicateFn { visibility, fn_sig, body })
+        Ok(PredicateFn {
+            visibility,
+            fn_sig,
+            body,
+        })
     }
 }
 

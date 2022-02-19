@@ -115,7 +115,7 @@ pub struct LoopSpecification {
 }
 
 /// A map of specifications keyed by crate-local DefIds.
-#[derive(Default)]
+#[derive(Default, Debug)]
 pub struct DefSpecificationMap {
     pub specs: HashMap<LocalDefId, SpecificationSet>,
     pub extern_specs: HashMap<DefId, LocalDefId>,
