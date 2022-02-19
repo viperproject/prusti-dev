@@ -18,7 +18,7 @@ use crate::encoder::{
 use prusti_common::config;
 use rustc_hash::FxHashSet;
 use rustc_hir::def_id::DefId;
-use rustc_middle::ty;
+use rustc_middle::{ty, ty::subst::SubstsRef};
 use rustc_span::{MultiSpan, Span};
 use vir_crate::polymorphic::ExprIterator;
 
@@ -32,6 +32,7 @@ pub(super) fn inline_closure<'tcx>(
     args: Vec<vir_crate::polymorphic::LocalVar>,
     parent_def_id: DefId,
     tymap: &SubstMap<'tcx>,
+    substs: &SubstsRef<'tcx>,
 ) -> SpannedEncodingResult<vir_crate::polymorphic::Expr> {
     let mir = encoder.env().local_mir(def_id.expect_local());
     assert_eq!(mir.arg_count, args.len() + 1);
@@ -53,11 +54,12 @@ pub(super) fn inline_closure<'tcx>(
         ));
     }
     Ok(encoder
-        .encode_pure_expression(def_id, parent_def_id, tymap)?
+        .encode_pure_expression(def_id, parent_def_id, tymap, substs)?
         .replace_multiple_places(&body_replacements))
 }
 
 #[allow(clippy::unnecessary_unwrap)]
+#[allow(clippy::too_many_arguments)]
 pub(super) fn inline_spec_item<'tcx>(
     encoder: &Encoder<'_, 'tcx>,
     def_id: DefId,
@@ -66,6 +68,7 @@ pub(super) fn inline_spec_item<'tcx>(
     targets_are_values: bool,
     parent_def_id: DefId,
     tymap: &SubstMap<'tcx>,
+    substs: &SubstsRef<'tcx>,
 ) -> SpannedEncodingResult<vir_crate::polymorphic::Expr> {
     let mir = encoder.env().local_mir(def_id.expect_local());
     assert_eq!(
@@ -98,7 +101,7 @@ pub(super) fn inline_spec_item<'tcx>(
         ));
     }
     Ok(encoder
-        .encode_pure_expression(def_id, parent_def_id, tymap)?
+        .encode_pure_expression(def_id, parent_def_id, tymap, substs)?
         .replace_multiple_places(&body_replacements))
 }
 
@@ -174,6 +177,7 @@ pub(super) fn encode_quantifier<'tcx>(
                 encoded_qvars.clone(),
                 parent_def_id,
                 tymap,
+                &substs,
             );
             encoder.is_encoding_trigger.set(false);
             let encoded_trigger = match encoded_trigger_result? {
@@ -202,6 +206,7 @@ pub(super) fn encode_quantifier<'tcx>(
         encoded_qvars.clone(),
         parent_def_id,
         tymap,
+        &substs,
     )?;
 
     // replace qvars with a nicer name based on quantifier depth to ensure that

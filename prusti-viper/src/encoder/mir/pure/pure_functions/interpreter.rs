@@ -26,7 +26,7 @@ use prusti_common::vir_local;
 use rustc_hash::FxHashMap;
 
 use rustc_hir::def_id::DefId;
-use rustc_middle::{mir, span_bug, ty};
+use rustc_middle::{mir, span_bug, ty, ty::subst::SubstsRef};
 
 use std::{convert::TryInto, mem};
 use vir_crate::polymorphic::{self as vir};
@@ -42,6 +42,7 @@ pub(crate) struct PureFunctionBackwardInterpreter<'p, 'v: 'p, 'tcx: 'v> {
     /// DefId of the caller. Used for error reporting.
     caller_def_id: DefId,
     tymap: SubstMap<'tcx>,
+    substs: SubstsRef<'tcx>,
 }
 
 /// This encoding works backward, so there is the risk of generating expressions whose length
@@ -55,6 +56,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionBackwardInterpreter<'p, 'v, 'tcx> {
         pure_encoding_context: PureEncodingContext,
         caller_def_id: DefId,
         tymap: SubstMap<'tcx>,
+        substs: SubstsRef<'tcx>,
     ) -> Self {
         PureFunctionBackwardInterpreter {
             encoder,
@@ -63,6 +65,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionBackwardInterpreter<'p, 'v, 'tcx> {
             pure_encoding_context,
             caller_def_id,
             tymap,
+            substs,
         }
     }
 
@@ -408,14 +411,17 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                 ..
             } => {
                 if let ty::TyKind::FnDef(def_id, substs) = ty.kind() {
+                    trace!("apply_terminator for function call {:?}", def_id);
                     let def_id = *def_id;
-                    let full_func_proc_name: &str = &self.encoder.env().tcx().def_path_str(def_id);
+                    let tcx = self.encoder.env().tcx();
+                    let full_func_proc_name: &str = &tcx.def_path_str(def_id);
                     let func_proc_name = &self.encoder.env().get_item_name(def_id);
 
                     let tymap = self
                         .encoder
                         .update_substitution_map(self.tymap.clone(), def_id, substs)
                         .with_span(span)?;
+                    trace!("Updated tymap = {:?}", tymap);
 
                     let state = if destination.is_some() {
                         let (ref lhs_place, target_block) = destination.as_ref().unwrap();
@@ -518,7 +524,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                                         span,
                                     ))
                                 };
-                                let idx_ident = self.encoder.env().tcx().def_path_str(idx_ty_did);
+                                let idx_ident = tcx.def_path_str(idx_ty_did);
                                 let encoded_idx = &encoded_args[1];
 
                                 // TODO: what do we actually do here? this seems a littly hacky.
@@ -526,11 +532,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                                 // manually re-do them here when we probably just encoded the type and the
                                 // construction of the fields..
                                 // Also, duplication with procedure_encoder.rs
-                                let usize_ty = self
-                                    .encoder
-                                    .env()
-                                    .tcx()
-                                    .mk_ty(ty::TyKind::Uint(ty::UintTy::Usize));
+                                let usize_ty = tcx.mk_ty(ty::TyKind::Uint(ty::UintTy::Usize));
                                 let start = match &*idx_ident {
                                     "std::ops::Range" | "core::ops::Range" |
                                     "std::ops::RangeFrom" | "core::ops::RangeFrom" =>
@@ -609,6 +611,21 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
 
                             // simple function call
                             _ => {
+                                let own_substs = ty::List::identity_for_item(tcx, def_id);
+                                trace!("Function call has substs = {:?}, declared substs = {:?}, existing/outer substs: {:?}", substs, own_substs, self.substs);
+                                let substs = if self.substs.is_empty() {
+                                    substs
+                                } else {
+                                    substs.rebase_onto(tcx, def_id, self.substs)
+                                };
+                                trace!("Merged substs for function call lookup = {:?}", substs);
+
+                                let def_id = self
+                                    .encoder
+                                    .env()
+                                    .find_impl_of_trait_method_call(def_id, substs)
+                                    .unwrap_or(def_id);
+
                                 let is_pure_function = self.encoder.is_pure(def_id);
                                 let (function_name, return_type) = if is_pure_function {
                                     self.encoder
@@ -616,6 +633,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                                             def_id,
                                             self.caller_def_id,
                                             &tymap,
+                                            &substs,
                                         )
                                         .with_span(term.source_info.span)?
                                 } else {

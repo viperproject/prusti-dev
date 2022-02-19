@@ -192,8 +192,12 @@ impl<'a> GeneratedStruct<'a> {
         let mut trait_method_sig = trait_method.sig.clone();
 
         // Rewrite occurrences of associated types in signature to defined generics
-        AssociatedTypeRewriter::new(&self.assoc_types_to_generics_map)
-                                .rewrite_method_sig(&mut trait_method_sig);
+        let self_ty_ident = &self.self_type_param_ident;
+        AssociatedTypeRewriter::new(
+            parse_quote! { #self_ty_ident },
+            &self.assoc_types_to_generics_map,
+        )
+            .rewrite_method_sig(&mut trait_method_sig);
         let trait_method_ident = &trait_method_sig.ident;
 
         // Rewrite "self" to "_self" in method attributes and method inputs

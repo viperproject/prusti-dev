@@ -112,43 +112,60 @@ pub fn rewrite_method_inputs<T: ToTokens>(
     args
 }
 
-/// Given a map from associated types to anything tokenizable, this struct
-/// rewrites associated type paths to these tokens.
+/// Given a replacement for the `Self` type and a map from associated types to
+/// anything tokenizable, this type rewrites associated type paths to these tokens.
 ///
 /// # Example
-/// Given a mapping from associated types to generic type params
+/// Given a `Self` replacement
+/// `T_Self`
+/// and a mapping from associated types to generic type params
 /// `[AssocType1 -> T_AssocType1, AssocType2 -> T_AssocType2]`,
 /// visiting a function
 /// ```
-/// fn foo(arg: Self::AssocType1) -> Self::AssocType2 { }
+/// fn foo(arg1: Self, arg2: Self::AssocType1) -> Self::AssocType2 { }
 /// ```
 /// results in
 /// ```
-/// fn foo(arg: T_AssocType1) -> T_AssocType2 { }
+/// fn foo(arg1: T_Self, arg2: T_AssocType1) -> T_AssocType2 { }
 /// ```
 ///
 pub struct AssociatedTypeRewriter<'a, R: ToTokens> {
-    repl: &'a HashMap<&'a syn::Ident, R>,
+    repl_self: R,
+    repl_assoc: &'a HashMap<&'a syn::Ident, R>,
 }
 
 impl<'a, R: ToTokens> AssociatedTypeRewriter<'a, R> {
-    pub fn new(repl: &'a HashMap<&'a syn::Ident, R>) -> Self {
-        AssociatedTypeRewriter { repl }
+    pub fn new(
+        repl_self: R,
+        repl_assoc: &'a HashMap<&'a syn::Ident, R>,
+    ) -> Self {
+        AssociatedTypeRewriter {
+            repl_self,
+            repl_assoc,
+        }
     }
 
     pub fn rewrite_method_sig(&mut self, signature: &mut syn::Signature) {
-        syn::visit_mut::visit_signature_mut(self,signature);
+        syn::visit_mut::visit_signature_mut(self, signature);
     }
 }
 
 impl<'a, R: ToTokens> syn::visit_mut::VisitMut for AssociatedTypeRewriter<'a, R> {
     fn visit_type_path_mut(&mut self, ty_path: &mut syn::TypePath) {
-        let path = &ty_path.path;
-        if path.segments.len() == 2
-            && path.segments[0].ident == "Self"
-            && self.repl.contains_key(&path.segments[1].ident)
+        // replace `Self` type
+        if ty_path.path.segments.len() == 1
+            && ty_path.path.segments[0].ident == "Self"
         {
-            let replacement = self.repl.get(&path.segments[1].ident).unwrap();
+            let replacement = &self.repl_self;
+            ty_path.path = syn::parse_quote!(#replacement);
+        }
+
+        // replace associated types
+        if ty_path.path.segments.len() == 2
+            && ty_path.path.segments[0].ident == "Self"
+            && self.repl_assoc.contains_key(&ty_path.path.segments[1].ident)
+        {
+            let replacement = self.repl_assoc.get(&ty_path.path.segments[1].ident).unwrap();
             ty_path.path = syn::parse_quote!(#replacement);
         }
 
