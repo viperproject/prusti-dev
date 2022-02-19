@@ -92,7 +92,7 @@ fn rewrite_fn(item_fn: &mut syn::ItemFn, path: &mut syn::Path) {
 
     item_fn
         .attrs
-        .push(parse_quote_spanned!(item_fn_span=> #[prusti::extern_spec]));
+        .push(parse_quote_spanned!(item_fn_span=> #[prusti::extern_spec = "method"]));
     item_fn
         .attrs
         .push(parse_quote_spanned!(item_fn_span=> #[trusted]));

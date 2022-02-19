@@ -4,15 +4,15 @@
 
 use prusti_contracts::*;
 
-use std::cmp::Ordering::{self, *};
+use std::cmp::Ordering;
 
 #[extern_spec]
-impl i32 {
+impl std::cmp::Ord for i32 {
     #[ensures(
         match result {
-            Less => *self < *other,
-            Greater => *self > *other,
-            Equal => *self == *other,
+            Ordering::Less => *self < *other,
+            Ordering::Greater => *self > *other,
+            Ordering::Equal => *self == *other,
         }
     )]
     pub fn cmp(&self, other: &i32) -> Ordering;
@@ -40,9 +40,9 @@ fn binary_search_iterative1_no_spec(arr: &[i32], elem: i32) -> Option<usize>
         size /= 2;
         let mid = base + size;
         base = match arr[mid].cmp(&elem) {
-            Less    => mid,
-            Greater => base,
-            Equal   => return Some(mid)
+            Ordering::Less    => mid,
+            Ordering::Greater => base,
+            Ordering::Equal   => return Some(mid)
         };
     }
  
@@ -71,9 +71,9 @@ fn binary_search_iterative1_with_spec(arr: &[i32], elem: i32) -> Option<usize>
         size /= 2;
         let mid = base + size;
         base = match arr[mid].cmp(&elem) {
-            Less    => mid,
-            Greater => base,
-            Equal   => return Some(mid)
+            Ordering::Less    => mid,
+            Ordering::Greater => base,
+            Ordering::Equal   => return Some(mid)
         };
     }
  
@@ -102,9 +102,9 @@ fn binary_search_iterative1_fixed(arr: &[i32], elem: i32) -> Option<usize>
         let half = size / 2;
         let mid = base + half;
         base = match arr[mid].cmp(&elem) {
-            Less    => mid,
-            Greater => base,
-            Equal   => return Some(mid)
+            Ordering::Less    => mid,
+            Ordering::Greater => base,
+            Ordering::Equal   => return Some(mid)
         };
         size -= half;
     }
@@ -119,13 +119,13 @@ pub fn binary_search(data: &[i32], target: i32) -> Option<usize> {
  
     while low < high {
         let _result = match target.cmp(&data[mid]) {
-            Less => {
+            Ordering::Less => {
                 high = mid;
             },
-            Greater => {
+            Ordering::Greater => {
                 low = mid;
             },
-            Equal => return Some(mid)
+            Ordering::Equal => return Some(mid)
         };
         mid = (high + low) / 2; //~ ERROR: assertion might fail with "attempt to add with overflow"
     }

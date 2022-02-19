@@ -12,7 +12,7 @@ impl Trait for Test {
 }
 
 #[extern_spec]
-impl Test {
+impl Trait for Test {
     #[ensures(result == 5)]
     fn foo(&mut self) -> i32;
 }
