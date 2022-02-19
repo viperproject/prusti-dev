@@ -2992,7 +2992,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             pre_mandatory_type_spec,
             pre_invs_spec,
             pre_func_spec,
-        ) = self.encode_precondition_expr(&procedure_contract, &tymap, &substs,fake_expr_spans)?;
+        ) = self.encode_precondition_expr(&procedure_contract, &tymap, &substs, fake_expr_spans)?;
         let pos = self
             .encoder
             .error_manager()
