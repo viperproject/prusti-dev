@@ -8,8 +8,8 @@ fn main() {}
 
 
 #[ensures(forall(|k1: usize, k2: usize|(0 <= k1 && k1 < k2 && k2 < 10)
-    ==> (get(a, k1) <= get(a, k2)),
-    triggers=[(get(a, k1),get(a, k2),)]))]
+    ==> (a[k1] <= a[k2]),
+    triggers=[(a[k1],a[k2],)]))]
 fn selection_sort(a: &mut [i32; 10]) {
     let mut min;
     let mut i = 0;
@@ -19,12 +19,12 @@ fn selection_sort(a: &mut [i32; 10]) {
 
         // sorted below i
         body_invariant!(forall(|k1: usize, k2: usize| (0 <= k1 && k1 < k2 && k2 < i)
-                                ==> get(a, k1) <= get(a, k2),
-                                triggers=[(get(a, k1),get(a, k2))]));
+                                ==> a[k1] <= a[k2],
+                                triggers=[(a[k1],a[k2])]));
         // all below i are smaller than all above i
         body_invariant!(forall(|k1: usize, k2: usize| (0 <= k1 && k1 < i && i <= k2 && k2 < 10)
-                                ==> get(a, k1) <= get(a, k2),
-                                triggers=[(get(a, k1),get(a, k2))]));
+                                ==> a[k1] <= a[k2],
+                                triggers=[(a[k1],a[k2])]));
 
         min = i;
         let mut j = i+1;
@@ -33,52 +33,47 @@ fn selection_sort(a: &mut [i32; 10]) {
             // these three are the same as the outer loop
             body_invariant!(0 <= i && i < 10);
             body_invariant!(forall(|k1: usize, k2: usize| (0 <= k1 && k1 < k2 && k2 < i)
-                                    ==> get(a, k1) <= get(a, k2),
-                                    triggers=[(get(a, k1),get(a, k2))]));
+                                    ==> a[k1] <= a[k2],
+                                    triggers=[(a[k1],a[k2])]));
             body_invariant!(forall(|k1: usize, k2: usize| (0 <= k1 && k1 < i && i <= k2 && k2 < 10)
-                                    ==> get(a, k1) <= get(a, k2),
-                                    triggers=[(get(a, k1),get(a, k2))]));
+                                    ==> a[k1] <= a[k2],
+                                    triggers=[(a[k1],a[k2])]));
 
             // these are new
             body_invariant!(i < j && j < 10);
             body_invariant!(i <= min && min < 10);
             // all previously sorted are smaller than the current min
             body_invariant!(forall(|k: usize| (0 <= k && k < i)
-                                    ==> get(a, k) <= get(a, min),
-                                    triggers=[(get(a, k))]));
+                                    ==> a[k] <= a[min],
+                                    triggers=[(a[k])]));
 
             // all not-yet-sorted that we checked yet are bigger than the current min
             body_invariant!(forall(|k: usize| (i <= k && k < j && k < 10)
-                                    ==> get(a, min) <= get(a, k),
-                                    triggers=[(get(a, k))]));
+                                    ==> a[min] <= a[k],
+                                    triggers=[(a[k])]));
 
-            if get(a, j) < get(a, min) {
+            if a[j] < a[min] {
                 min = j;
             }
 
             j += 1;
         }
 
-        let a_i = get(a, i);
-        let a_min = get(a, min);
+        let a_i = a[i];
+        let a_min = a[min];
+        // FIXME: replace all calls to `set` with array assignments when possible
         set(a, i,  a_min);
         set(a, min, a_i);
+        // a[i] = a_min;
+        // a[min] = a_i;
 
         i += 1;
     }
 }
 
-// FIXME: replace all instances of get/set with array indices when #812 is fixed https://github.com/viperproject/prusti-dev/issues/812
-
-#[pure]
 #[requires(0 <= i && i < 10)]
-const fn get(a: &[i32; 10], i: usize) -> i32 {
-    a[i]
-}
-
-#[requires(0 <= i && i < 10)]
-#[ensures(forall(|j: usize| (0 <= j && j < 10 && j != old(i)) ==> (get(a, j) == old(get(a, j))), triggers=[(get(a, j),)]))]
-#[ensures(get(a, old(i)) == old(v))]
+#[ensures(forall(|j: usize| (0 <= j && j < 10 && j != old(i)) ==> (a[j] == old(a[j])), triggers=[(a[j],)]))]
+#[ensures(a[old(i)] == old(v))]
 fn set(a: &mut [i32; 10], i: usize, v: i32) {
     a[i] = v;
 }
