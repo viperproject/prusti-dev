@@ -28,6 +28,7 @@ pub(super) enum EdgeKind {
 pub(super) struct Edge {
     pub(super) source: String,
     pub(super) target: String,
+    pub(super) annotation: Option<String>,
     pub(super) kind: EdgeKind,
 }
 
@@ -94,6 +95,20 @@ impl Graph {
         self.edges.push(Edge {
             source,
             target,
+            annotation: None,
+            kind: EdgeKind::Normal,
+        })
+    }
+    pub fn add_regular_annotated_edge(
+        &mut self,
+        source: String,
+        target: String,
+        annotation: String,
+    ) {
+        self.edges.push(Edge {
+            source,
+            target,
+            annotation: Some(annotation),
             kind: EdgeKind::Normal,
         })
     }
@@ -101,6 +116,7 @@ impl Graph {
         self.edges.push(Edge {
             source,
             target,
+            annotation: None,
             kind: EdgeKind::Unwind,
         })
     }
@@ -108,6 +124,7 @@ impl Graph {
         self.edges.push(Edge {
             source,
             target,
+            annotation: None,
             kind: EdgeKind::Imaginary,
         })
     }
@@ -116,6 +133,7 @@ impl Graph {
         self.edges.push(Edge {
             source,
             target,
+            annotation: None,
             kind: EdgeKind::Normal,
         })
     }

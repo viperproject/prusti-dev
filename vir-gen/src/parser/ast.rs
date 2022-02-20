@@ -11,6 +11,7 @@ mod kw {
     syn::custom_keyword!(new_with_pos);
     syn::custom_keyword!(Hash);
     syn::custom_keyword!(PartialEq);
+    syn::custom_keyword!(Ord);
     syn::custom_keyword!(ignore);
 }
 
@@ -146,6 +147,11 @@ impl Parse for CustomDerive {
             let content;
             parenthesized!(content in input);
             Self::PartialEq(CustomDeriveOptions::parse(&content)?)
+        } else if lookahead.peek(kw::Ord) && input.peek2(syn::token::Paren) {
+            input.parse::<kw::Ord>()?;
+            let content;
+            parenthesized!(content in input);
+            Self::Ord(CustomDeriveOptions::parse(&content)?)
         } else if lookahead.peek(kw::Hash) && input.peek2(syn::token::Paren) {
             input.parse::<kw::Hash>()?;
             let content;
@@ -163,7 +169,7 @@ impl Parse for CustomDeriveList {
         let content;
         parenthesized!(content in input);
         let list = Self {
-            derives: syn::punctuated::Punctuated::parse_separated_nonempty(&content)?,
+            derives: syn::punctuated::Punctuated::parse_terminated(&content)?,
         };
         Ok(list)
     }

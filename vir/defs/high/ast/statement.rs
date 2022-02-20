@@ -1,19 +1,22 @@
 pub(crate) use super::{
-    super::{operations_internal::ty::Typed, Expression, Position},
-    predicate::Predicate,
+    expression::Expression, position::Position, predicate::Predicate, rvalue::Rvalue,
 };
 
 #[derive_helpers]
 #[derive_visitors]
 #[derive(derive_more::From, derive_more::IsVariant)]
+#[allow(clippy::large_enum_variant)]
 pub enum Statement {
     Comment(Comment),
     Inhale(Inhale),
     Exhale(Exhale),
+    Assert(Assert),
     MovePlace(MovePlace),
     CopyPlace(CopyPlace),
     WritePlace(WritePlace),
     WriteAddress(WriteAddress),
+    Assign(Assign),
+    LeakAll(LeakAll),
 }
 
 #[display(fmt = "// {}", comment)]
@@ -32,6 +35,13 @@ pub struct Inhale {
 /// Exhale the permission denoted by the place.
 pub struct Exhale {
     pub predicate: Predicate,
+    pub position: Position,
+}
+
+#[display(fmt = "assert {}", expression)]
+/// Assert the boolean expression.
+pub struct Assert {
+    pub expression: Expression,
     pub position: Position,
 }
 
@@ -112,3 +122,16 @@ pub struct WriteAddress {
     pub value: Expression,
     pub position: Position,
 }
+
+#[display(fmt = "assign {} := {}", target, value)]
+pub struct Assign {
+    pub target: Expression,
+    pub value: Rvalue,
+    pub position: Position,
+}
+
+#[display(fmt = "leak-all")]
+#[derive(Default)]
+/// Tells fold-unfold to leak all predicates. This marks the end of the
+/// unwinding path.
+pub struct LeakAll {}

@@ -14,7 +14,6 @@ impl<'a, 'v> ToViper<'v, viper::Method<'v>> for &'a ProcedureDecl {
         let mut declarations: Vec<viper::Declaration> = vec![];
         for local in &self.locals {
             declarations.push(local.to_viper_decl(ast).into());
-            eprintln!("local: {}", local);
         }
         for block in &self.basic_blocks {
             declarations.push(block.label.to_viper_decl(ast).into());

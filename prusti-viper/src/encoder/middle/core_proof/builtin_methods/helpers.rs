@@ -18,6 +18,7 @@ type R = SpannedEncodingResult<()>;
 
 type PW = (vir_low::Expression, vir_low::Expression);
 impl<'a> TypeDeclWalker for ToAddressWriter<'a> {
+    const IS_ZST_PRIMITIVE: bool = true;
     type Parameters = (vir_low::Expression, vir_low::Expression);
     fn walk_primitive(&mut self, ty: &Type, (address, value): &PW, _lowerer: &mut Lowerer) -> R {
         self.statements.push(stmtp! { self.position =>

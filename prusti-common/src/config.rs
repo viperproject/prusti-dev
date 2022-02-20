@@ -96,7 +96,8 @@ lazy_static! {
         settings.set_default("enable_purification_optimization", false).unwrap();
         settings.set_default("enable_manual_axiomatization", false).unwrap();
         settings.set_default::<Option<i64>>("verification_deadline", None).unwrap();
-        settings.set_default("only_lifetimes_core", false).unwrap();
+        settings.set_default("unsafe_core_proof", false).unwrap();
+        settings.set_default("only_memory_safety", false).unwrap();
 
         settings.set_default("print_desugared_specs", false).unwrap();
         settings.set_default("print_typeckd_specs", false).unwrap();
@@ -475,11 +476,18 @@ pub fn verification_deadline() -> Option<u64> {
     })
 }
 
-/// Do only the core proof of the lifetimes.
+/// Use the new core proof suitable for unsafe code.
 ///
 /// **Note:** this is currently very incomplete.
-pub fn only_lifetimes_core() -> bool {
-    read_setting("only_lifetimes_core")
+pub fn unsafe_core_proof() -> bool {
+    read_setting("unsafe_core_proof")
+}
+
+/// Verify only the core proof.
+///
+/// Note: This should be used together with `unsafe_core_proof=True`.
+pub fn only_memory_safety() -> bool {
+    read_setting("only_memory_safety")
 }
 
 /// Replace the given basic blocks with ``assume false``.

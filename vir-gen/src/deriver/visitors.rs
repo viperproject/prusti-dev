@@ -1,4 +1,4 @@
-use super::common::DeriveInfo;
+use super::common::{get_option_vec_type_arg, DeriveInfo};
 use crate::{
     deriver::common::{
         extract_variant_type, find_variant_enum, find_variant_struct, get_option_box_type_arg,
@@ -407,6 +407,31 @@ impl Deriver {
                         }
                     }
                 }
+            } else if let Some(inner_type) = get_option_vec_type_arg(&parameter_type) {
+                let element = syn::Ident::new("element", Span::call_site());
+                let method_call = self.create_method_call(&element, inner_type, false);
+                walked_types.push(inner_type.clone());
+                if self.kind.is_folder() {
+                    parse_quote! {
+                        let #name = if let Some(elements) = #name {
+                            let mut new_elements = Vec::new();
+                            for element in elements {
+                                new_elements.push(#method_call);
+                            }
+                            Some(new_elements)
+                        } else {
+                            None
+                        };
+                    }
+                } else {
+                    parse_quote! {
+                        if let Some(elements) = #name {
+                            for element in elements {
+                                #method_call;
+                            }
+                        }
+                    }
+                }
             } else if let Some(inner_type) = get_option_type_arg(&parameter_type) {
                 let element = syn::Ident::new("element", Span::call_site());
                 let method_call = self.create_method_call(&element, inner_type, false);
@@ -476,6 +501,7 @@ impl Deriver {
             }
         };
         let default_function = parse_quote! {
+            #[allow(unused_variables)]
             #[allow(clippy::manual_map)]
             pub fn #default_method_name<T: #trait_ident>(this: &mut T, #parameter_name: #parameter_type) -> #result_type {
                 let #variant_type {

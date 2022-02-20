@@ -1,5 +1,6 @@
 use crate::encoder::{
     errors::SpannedEncodingResult,
+    high::types::HighTypeEncoderInterface,
     middle::core_proof::{
         addresses::AddressesInterface, builtin_methods::BuiltinMethodsInterface, lowerer::Lowerer,
         places::PlacesInterface, predicates_owned::PredicatesOwnedInterface,
@@ -61,8 +62,10 @@ impl<'a> TypeDeclWalker for OwnedUnFolder<'a> {
 
 type PM = vir_low::Expression;
 impl<'a> TypeDeclWalker for MemoryBlockSplitJoiner<'a> {
+    const IS_ZST_PRIMITIVE: bool = true;
     type Parameters = vir_low::Expression;
     fn before_composite(&mut self, ty: &Type, address: &PM, lowerer: &mut Lowerer) -> R {
+        assert!(!lowerer.encoder.is_zst_mid(ty)?);
         if !self.is_joining {
             lowerer.encode_memory_block_split_method(ty)?;
             self.statements.push(stmtp! {
@@ -72,6 +75,7 @@ impl<'a> TypeDeclWalker for MemoryBlockSplitJoiner<'a> {
         Ok(())
     }
     fn after_composite(&mut self, ty: &Type, address: PM, lowerer: &mut Lowerer) -> R {
+        assert!(!lowerer.encoder.is_zst_mid(ty)?);
         if self.is_joining {
             lowerer.encode_memory_block_join_method(ty)?;
             self.statements.push(stmtp! {

@@ -1,38 +1,36 @@
-use super::{
-    ensurer::{ensure_required_permissions, ExpandedPermissionKind},
-    state::FoldUnfoldState,
-};
+use super::{ensurer::ensure_required_permissions, state::FoldUnfoldState};
 use crate::encoder::{
-    errors::{ErrorCtxt, SpannedEncodingResult},
-    high::{
-        procedures::inference::{
-            action::Action, permission::PermissionKind, semantics::collect_permission_changes,
-        },
-        type_layouts::HighTypeLayoutsEncoderInterface,
+    errors::SpannedEncodingResult,
+    high::procedures::inference::{
+        action::{Action, ActionState},
+        permission::PermissionKind,
+        semantics::collect_permission_changes,
     },
-    mir::{errors::ErrorInterface, types::MirTypeEncoderInterface},
     Encoder,
 };
 use log::debug;
 use prusti_common::config;
 use rustc_hash::FxHashSet;
 use rustc_hir::def_id::DefId;
-use std::collections::BTreeMap;
+use std::collections::{btree_map::Entry, BTreeMap};
 use vir_crate::{
     common::position::Positioned,
-    high::{self as vir_high, operations::ty::Typed},
+    high::{self as vir_high},
     middle::{
         self as vir_mid,
         operations::{ToMiddleExpression, ToMiddleStatement},
     },
 };
 
+mod context;
 mod debugging;
 
 pub(super) struct Visitor<'p, 'v, 'tcx> {
     encoder: &'p mut Encoder<'v, 'tcx>,
     _proc_def_id: DefId,
-    state_at_entry: FoldUnfoldState,
+    state_at_entry: BTreeMap<vir_mid::BasicBlockId, FoldUnfoldState>,
+    /// Used only for debugging purposes.
+    state_at_exit: BTreeMap<vir_mid::BasicBlockId, FoldUnfoldState>,
     procedure_name: Option<String>,
     entry_label: Option<vir_mid::BasicBlockId>,
     basic_blocks: BTreeMap<vir_mid::BasicBlockId, vir_mid::BasicBlock>,
@@ -44,15 +42,12 @@ pub(super) struct Visitor<'p, 'v, 'tcx> {
 }
 
 impl<'p, 'v, 'tcx> Visitor<'p, 'v, 'tcx> {
-    pub(super) fn new(
-        encoder: &'p mut Encoder<'v, 'tcx>,
-        proc_def_id: DefId,
-        state_at_entry: FoldUnfoldState,
-    ) -> Self {
+    pub(super) fn new(encoder: &'p mut Encoder<'v, 'tcx>, proc_def_id: DefId) -> Self {
         Self {
             encoder,
             _proc_def_id: proc_def_id,
-            state_at_entry,
+            state_at_entry: Default::default(),
+            state_at_exit: Default::default(),
             procedure_name: None,
             entry_label: None,
             basic_blocks: Default::default(),
@@ -62,9 +57,11 @@ impl<'p, 'v, 'tcx> Visitor<'p, 'v, 'tcx> {
             graphviz_on_crash: config::dump_debug_info(),
         }
     }
+
     pub(super) fn infer_procedure(
         &mut self,
         mut procedure: vir_high::ProcedureDecl,
+        entry_state: FoldUnfoldState,
     ) -> SpannedEncodingResult<vir_mid::ProcedureDecl> {
         self.procedure_name = Some(procedure.name.clone());
 
@@ -80,30 +77,8 @@ impl<'p, 'v, 'tcx> Visitor<'p, 'v, 'tcx> {
             );
         }
         let entry = self.lower_label(&procedure.entry);
-        let entry_block = self.basic_blocks.get_mut(&entry).unwrap();
+        self.state_at_entry.insert(entry.clone(), entry_state);
         self.entry_label = Some(entry);
-        for ret in procedure.returns {
-            let position = ret.position;
-            let mir_type = self.encoder.decode_type_high(&ret.variable.ty);
-            let size = self.encoder.encode_type_size_expression_mid(mir_type)?;
-            let place: vir_high::Expression = ret.into();
-            let statement =
-                vir_mid::Statement::inhale_no_pos(vir_mid::Predicate::memory_block_stack_no_pos(
-                    place.to_middle_expression(self.encoder)?,
-                    size,
-                ))
-                .set_default_position(
-                    self.encoder
-                        .change_error_context(position, ErrorCtxt::UnexpectedStorageLive),
-                );
-            entry_block.statements.push(statement);
-        }
-        for _parameter in procedure.parameters {
-            unimplemented!();
-            // entry_block.statements.push(
-            //     vir_mid::Statement::inhale_no_pos(vir_mid::Predicate::owned_non_aliased(...))
-            // );
-        }
         for old_label in traversal_order {
             let old_block = procedure.basic_blocks.remove(&old_label).unwrap();
             self.current_label = Some(self.lower_label(&old_label));
@@ -113,8 +88,6 @@ impl<'p, 'v, 'tcx> Visitor<'p, 'v, 'tcx> {
         }
         let new_procedure = vir_mid::ProcedureDecl {
             name: self.procedure_name.take().unwrap(),
-            parameters: Vec::new(), // FIXME: Unused fields.
-            returns: Vec::new(),    // FIXME: Unused fields.
             entry: self.entry_label.take().unwrap(),
             basic_blocks: std::mem::take(&mut self.basic_blocks),
         };
@@ -126,7 +99,7 @@ impl<'p, 'v, 'tcx> Visitor<'p, 'v, 'tcx> {
         successor: &vir_high::Successor,
     ) -> SpannedEncodingResult<vir_mid::Successor> {
         let result = match successor {
-            vir_high::Successor::Return => vir_mid::Successor::Return,
+            vir_high::Successor::Exit => vir_mid::Successor::Exit,
             vir_high::Successor::Goto(target) => vir_mid::Successor::Goto(self.lower_label(target)),
             vir_high::Successor::GotoSwitch(targets) => {
                 let mut new_targets = Vec::new();
@@ -152,51 +125,101 @@ impl<'p, 'v, 'tcx> Visitor<'p, 'v, 'tcx> {
         _old_label: vir_high::BasicBlockId,
         old_block: vir_high::BasicBlock,
     ) -> SpannedEncodingResult<()> {
+        let mut state = if config::dump_debug_info() {
+            self.state_at_entry
+                .get(self.current_label.as_ref().unwrap())
+                .unwrap()
+                .clone()
+        } else {
+            self.state_at_entry
+                .remove(self.current_label.as_ref().unwrap())
+                .unwrap()
+        };
         for statement in old_block.statements {
-            self.lower_statement(statement)?;
+            self.lower_statement(statement, &mut state)?;
+        }
+        let successor_blocks = self.current_successors()?;
+        assert!(
+            !successor_blocks.is_empty() || state.is_empty(),
+            "some predicates are leaked"
+        );
+        if config::dump_debug_info() {
+            self.state_at_exit
+                .insert(self.current_label.clone().unwrap(), state.clone());
+        }
+        for successor in successor_blocks {
+            self.update_state_at_entry(successor, state.clone())?;
         }
         Ok(())
     }
 
-    fn lower_statement(&mut self, statement: vir_high::Statement) -> SpannedEncodingResult<()> {
+    fn lower_statement(
+        &mut self,
+        statement: vir_high::Statement,
+        state: &mut FoldUnfoldState,
+    ) -> SpannedEncodingResult<()> {
         assert!(
-            statement.is_comment() || !statement.position().is_default(),
+            statement.is_comment() || statement.is_leak_all() || !statement.position().is_default(),
             "Statement has default position: {}",
             statement
         );
-        let (required_permissions, ensured_permissions) = collect_permission_changes(&statement)?;
-        debug!("lower_statement {}: {:?}", statement, required_permissions);
-        let actions = ensure_required_permissions(self, required_permissions.clone())?;
+        let (consumed_permissions, produced_permissions) = collect_permission_changes(&statement)?;
+        debug!("lower_statement {}: {:?}", statement, consumed_permissions);
+        let actions = ensure_required_permissions(self, state, consumed_permissions.clone())?;
         for action in actions {
             let statement = match action {
-                Action::Unfold(PermissionKind::Owned, place) => vir_mid::Statement::unfold_owned(
+                Action::Unfold(ActionState {
+                    kind: PermissionKind::Owned,
+                    place,
+                    condition,
+                }) => vir_mid::Statement::unfold_owned(
                     place.to_middle_expression(self.encoder)?,
+                    condition,
                     statement.position(),
                 ),
-                Action::Fold(PermissionKind::Owned, place) => vir_mid::Statement::fold_owned(
+                Action::Fold(ActionState {
+                    kind: PermissionKind::Owned,
+                    place,
+                    condition,
+                }) => vir_mid::Statement::fold_owned(
                     place.to_middle_expression(self.encoder)?,
+                    condition,
                     statement.position(),
                 ),
-                Action::Unfold(PermissionKind::MemoryBlock, place) => {
-                    vir_mid::Statement::split_block(
-                        place.to_middle_expression(self.encoder)?,
-                        statement.position(),
-                    )
-                }
-                Action::Fold(PermissionKind::MemoryBlock, place) => vir_mid::Statement::join_block(
+                Action::Unfold(ActionState {
+                    kind: PermissionKind::MemoryBlock,
+                    place,
+                    condition,
+                }) => vir_mid::Statement::split_block(
                     place.to_middle_expression(self.encoder)?,
+                    condition,
+                    statement.position(),
+                ),
+                Action::Fold(ActionState {
+                    kind: PermissionKind::MemoryBlock,
+                    place,
+                    condition,
+                }) => vir_mid::Statement::join_block(
+                    place.to_middle_expression(self.encoder)?,
+                    condition,
                     statement.position(),
                 ),
             };
             self.current_statements.push(statement);
         }
-        self.state_at_entry
-            .remove_permissions(&required_permissions)?;
-        self.state_at_entry
-            .insert_permissions(ensured_permissions)?;
-        self.state_at_entry.debug_print();
-        self.current_statements
-            .push(statement.to_middle_statement(self.encoder)?);
+        state.remove_permissions(&consumed_permissions)?;
+        state.insert_permissions(produced_permissions)?;
+        if let vir_high::Statement::LeakAll(vir_high::LeakAll {}) = &statement {
+            // FIXME: Instead of leaking, we should:
+            // 1. Unfold all Owned into MemoryBlock.
+            // 2. Deallocate all MemoryBlock.
+            // 3. Perform a leak check (this actually should be done always at
+            //    the end of the exit block).
+            state.clear()?;
+        } else {
+            self.current_statements
+                .push(statement.to_middle_statement(self.encoder)?);
+        }
         let new_block = self
             .basic_blocks
             .get_mut(self.current_label.as_ref().unwrap())
@@ -207,52 +230,38 @@ impl<'p, 'v, 'tcx> Visitor<'p, 'v, 'tcx> {
         Ok(())
     }
 
+    pub(crate) fn update_state_at_entry(
+        &mut self,
+        to_label: vir_mid::BasicBlockId,
+        mut state: FoldUnfoldState,
+    ) -> SpannedEncodingResult<()> {
+        let from_label = self.current_label.as_ref().unwrap();
+        match self.state_at_entry.entry(to_label) {
+            Entry::Vacant(entry) => {
+                state.reset_incoming_labels_with(from_label.clone())?;
+                entry.insert(state);
+            }
+            Entry::Occupied(mut entry) => {
+                entry.get_mut().merge(from_label.clone(), state)?;
+            }
+        }
+        Ok(())
+    }
+
+    fn current_successors(&self) -> SpannedEncodingResult<Vec<vir_mid::BasicBlockId>> {
+        let current_block = self
+            .basic_blocks
+            .get(self.current_label.as_ref().unwrap())
+            .unwrap();
+        Ok(current_block
+            .successor
+            .get_following()
+            .into_iter()
+            .cloned()
+            .collect())
+    }
+
     pub(super) fn cancel_crash_graphviz(mut self) {
         self.graphviz_on_crash = false;
-    }
-}
-
-impl<'p, 'v, 'tcx> super::ensurer::Context for Visitor<'p, 'v, 'tcx> {
-    fn state(&self) -> &FoldUnfoldState {
-        &self.state_at_entry
-    }
-
-    fn state_mut(&mut self) -> &mut FoldUnfoldState {
-        &mut self.state_at_entry
-    }
-
-    fn expand_place(
-        &mut self,
-        place: &vir_high::Expression,
-    ) -> SpannedEncodingResult<Vec<(ExpandedPermissionKind, vir_high::Expression)>> {
-        let ty = place.get_type();
-        let type_decl = self.encoder.encode_type_def(ty)?;
-        let expansion = match type_decl {
-            vir_high::TypeDecl::Bool
-            | vir_high::TypeDecl::Int(_)
-            | vir_high::TypeDecl::Float(_) => {
-                // Primitive type. Convert.
-                vec![(ExpandedPermissionKind::MemoryBlock, place.clone())]
-            }
-            vir_high::TypeDecl::TypeVar(_) => unimplemented!("ty: {}", ty),
-            vir_high::TypeDecl::Tuple(_) => unimplemented!("ty: {}", ty),
-            vir_high::TypeDecl::Struct(struct_decl) => struct_decl
-                .fields
-                .into_iter()
-                .map(|field| {
-                    (
-                        ExpandedPermissionKind::Same,
-                        vir_high::Expression::field_no_pos(place.clone(), field),
-                    )
-                })
-                .collect(),
-            vir_high::TypeDecl::Enum(_) => unimplemented!("ty: {}", ty),
-            vir_high::TypeDecl::Array(_) => unimplemented!("ty: {}", ty),
-            vir_high::TypeDecl::Reference(_) => unimplemented!("ty: {}", ty),
-            vir_high::TypeDecl::Never => unimplemented!("ty: {}", ty),
-            vir_high::TypeDecl::Closure(_) => unimplemented!("ty: {}", ty),
-            vir_high::TypeDecl::Unsupported(_) => unimplemented!("ty: {}", ty),
-        };
-        Ok(expansion)
     }
 }

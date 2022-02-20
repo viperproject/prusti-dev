@@ -12,6 +12,6 @@ impl IntoSnapshot for vir_mid::Type {
         lowerer: &mut Lowerer<'p, 'v, 'tcx>,
     ) -> SpannedEncodingResult<Self::Target> {
         // This ensures that the domain is included into the program.
-        lowerer.encode_snapshot_domain(self)
+        lowerer.encode_snapshot_domain_type(self)
     }
 }

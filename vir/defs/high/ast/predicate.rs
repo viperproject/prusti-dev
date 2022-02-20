@@ -11,6 +11,7 @@ pub enum Predicate {
     MemoryBlockStackDrop(MemoryBlockStackDrop),
     MemoryBlockHeap(MemoryBlockHeap),
     MemoryBlockHeapDrop(MemoryBlockHeapDrop),
+    OwnedNonAliased(OwnedNonAliased),
 }
 
 /// A memory block on the stack allocated with `StorageLive`.
@@ -56,5 +57,12 @@ pub struct MemoryBlockHeap {
 pub struct MemoryBlockHeapDrop {
     pub address: Expression,
     pub size: Expression,
+    pub position: Position,
+}
+
+/// A non-aliased owned predicate of a specific type.
+#[display(fmt = "OwnedNonAliased({})", place)]
+pub struct OwnedNonAliased {
+    pub place: Expression,
     pub position: Position,
 }

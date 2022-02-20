@@ -1,4 +1,4 @@
-use super::{expression::Expression, position::Position};
+use super::{expression::Expression, position::Position, variable::VariableDecl};
 use crate::common::display;
 
 #[derive_helpers]
@@ -13,6 +13,8 @@ pub enum Statement {
     Fold(Fold),
     Unfold(Unfold),
     MethodCall(MethodCall),
+    Assign(Assign),
+    Conditional(Conditional),
 }
 
 #[display(fmt = "// {}", comment)]
@@ -68,5 +70,25 @@ pub struct MethodCall {
     pub method_name: String,
     pub arguments: Vec<Expression>,
     pub targets: Vec<Expression>,
+    pub position: Position,
+}
+
+#[display(fmt = "{} := {}", target, value)]
+pub struct Assign {
+    pub target: VariableDecl,
+    pub value: Expression,
+    pub position: Position,
+}
+
+#[display(
+    fmt = "if {} {{\n{}}} else {{\n{}}}\n",
+    guard,
+    "display::foreach!(\"    {};\n\", then_branch)",
+    "display::foreach!(\"    {};\n\", else_branch)"
+)]
+pub struct Conditional {
+    pub guard: Expression,
+    pub then_branch: Vec<Statement>,
+    pub else_branch: Vec<Statement>,
     pub position: Position,
 }

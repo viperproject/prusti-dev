@@ -1,9 +1,9 @@
-use syn::{parse_quote, spanned::Spanned};
-
 use crate::{
     ast::{CustomDerive, CustomDeriveList, CustomDeriveOptions},
     helpers::unbox_type,
 };
+use quote::quote;
+use syn::{parse_quote, spanned::Spanned};
 
 pub(super) fn derive(items: &mut Vec<syn::Item>) -> Result<(), syn::Error> {
     let mut derived_items = Vec::new();
@@ -43,6 +43,14 @@ pub(super) fn derive(items: &mut Vec<syn::Item>) -> Result<(), syn::Error> {
                                             options,
                                         ))
                                     }
+                                    CustomDerive::Ord(options) => {
+                                        derived_items.push(derive_ord(
+                                            &struct_item.ident,
+                                            struct_item.fields.iter(),
+                                            options,
+                                        ));
+                                        derived_items.push(derive_partial_ord(&struct_item.ident));
+                                    }
                                     CustomDerive::Other(path) => {
                                         derive_paths.push(path);
                                     }
@@ -77,6 +85,10 @@ pub(super) fn derive(items: &mut Vec<syn::Item>) -> Result<(), syn::Error> {
                                     }
                                     CustomDerive::PartialEq(_options) => {
                                         derive_paths.push(syn::parse_quote! {PartialEq});
+                                    }
+                                    CustomDerive::Ord(_options) => {
+                                        derive_paths.push(syn::parse_quote! {PartialOrd});
+                                        derive_paths.push(syn::parse_quote! {Ord});
                                     }
                                     CustomDerive::Other(path) => {
                                         derive_paths.push(path);
@@ -168,6 +180,7 @@ fn derive_hash<'a>(
     }
     parse_quote! {
         impl core::hash::Hash for #struct_ident {
+            #[allow(unused_variables)]
             fn hash<H: core::hash::Hasher>(&self, state: &mut H) {
                 #(#statements)*
             }
@@ -189,10 +202,63 @@ fn derive_partial_eq<'a>(
             });
         }
     }
+    let body = if conjuncts.is_empty() {
+        quote! {
+            true
+        }
+    } else {
+        quote! {
+            #(#conjuncts)&&*
+        }
+    };
     parse_quote! {
         impl PartialEq for #struct_ident {
+            #[allow(unused_variables)]
             fn eq(&self, other: &Self) -> bool {
-                #(#conjuncts)&&*
+                #body
+            }
+        }
+    }
+}
+
+fn derive_ord<'a>(
+    struct_ident: &syn::Ident,
+    fields_iter: impl Iterator<Item = &'a syn::Field>,
+    options: CustomDeriveOptions,
+) -> syn::Item {
+    let mut fields_iter = fields_iter.filter(|field| {
+        !options
+            .ignored_fields
+            .contains(field.ident.as_ref().unwrap())
+    });
+    let comparison = if let Some(first) = fields_iter.next() {
+        let name = first.ident.as_ref().unwrap();
+        let mut comparison: syn::Expr = syn::parse_quote!( self.#name.cmp(&other.#name) );
+        for field in fields_iter {
+            let name = field.ident.as_ref().unwrap();
+            comparison = syn::parse_quote! {
+                #comparison.then(self.#name.cmp(&other.#name))
+            };
+        }
+        comparison
+    } else {
+        parse_quote! { std::cmp::Ordering::Equal }
+    };
+    parse_quote! {
+        impl Ord for #struct_ident {
+            #[allow(unused_variables)]
+            fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+                #comparison
+            }
+        }
+    }
+}
+
+fn derive_partial_ord(struct_ident: &syn::Ident) -> syn::Item {
+    parse_quote! {
+        impl PartialOrd for #struct_ident {
+            fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+                Some(self.cmp(other))
             }
         }
     }
