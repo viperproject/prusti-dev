@@ -45,7 +45,7 @@ impl IntoPolymorphic<vir_poly::Expr> for vir_high::Expression {
             vir_high::Expression::UnaryOp(expression) => {
                 vir_poly::Expr::UnaryOp(expression.lower(encoder))
             }
-            vir_high::Expression::BinOp(expression) => {
+            vir_high::Expression::BinaryOp(expression) => {
                 vir_poly::Expr::BinOp(expression.lower(encoder))
             }
             vir_high::Expression::ContainerOp(expression) => {
@@ -182,7 +182,7 @@ impl IntoPolymorphic<vir_poly::UnaryOpKind> for vir_high::expression::UnaryOpKin
     }
 }
 
-impl IntoPolymorphic<vir_poly::BinOp> for vir_high::expression::BinOp {
+impl IntoPolymorphic<vir_poly::BinOp> for vir_high::expression::BinaryOp {
     fn lower(&self, encoder: &impl HighTypeEncoderInterfacePrivate) -> vir_poly::BinOp {
         vir_poly::BinOp {
             op_kind: self.op_kind.lower(encoder),

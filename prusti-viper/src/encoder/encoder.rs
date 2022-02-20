@@ -822,7 +822,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             info!("Encoding: {} ({})", proc_name, proc_def_path);
             assert!(substs.is_empty());
 
-            if config::only_lifetimes_core() {
+            if config::unsafe_core_proof() {
                 if let Err(error) = self.encode_lifetimes_core_proof(proc_def_id) {
                     self.register_encoding_error(error);
                     debug!("Error encoding function: {:?}", proc_def_id);

@@ -30,6 +30,9 @@ impl Predicate {
                     predicate.size.get_type().clone(),
                 ]
             }
+            Self::OwnedNonAliased(predicate) => {
+                vec![predicate.place.get_type().clone()]
+            }
         }
     }
 }

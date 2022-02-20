@@ -156,6 +156,15 @@ pub(super) fn get_option_box_type_arg(ty: &syn::Type) -> Option<&syn::Ident> {
     }
 }
 
+pub(super) fn get_option_vec_type_arg(ty: &syn::Type) -> Option<&syn::Ident> {
+    let (ident, containers) = extract_container(ty).unwrap();
+    if containers.len() == 2 && containers[0] == "Vec" && containers[1] == "Option" {
+        Some(ident)
+    } else {
+        None
+    }
+}
+
 pub(super) fn get_vec_type_arg(ty: &syn::Type) -> Option<&syn::Ident> {
     let (ident, containers) = extract_container(ty).unwrap();
     if containers.len() == 1 && containers[0] == "Vec" {

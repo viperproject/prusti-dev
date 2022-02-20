@@ -9,7 +9,7 @@ pub mod program;
 
 pub use self::{
     ast::{
-        expression::{self, Expression, PermAmount, Trigger},
+        expression::{self, BinaryOpKind, Expression, PermAmount, Trigger, UnaryOpKind},
         field::FieldDecl,
         function::FunctionDecl,
         position::Position,

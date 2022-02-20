@@ -1,7 +1,12 @@
 use crate::encoder::errors::{SpannedEncodingError, SpannedEncodingResult};
 use vir_crate::{
-    high as vir_high, middle as vir_mid,
-    middle::operations::{ToMiddleExpression, ToMiddlePredicate, ToMiddleStatementLowerer},
+    high as vir_high,
+    middle::{
+        self as vir_mid,
+        operations::{
+            ToMiddleExpression, ToMiddlePredicate, ToMiddleRvalue, ToMiddleStatementLowerer,
+        },
+    },
 };
 
 impl<'v, 'tcx> ToMiddleStatementLowerer for crate::encoder::Encoder<'v, 'tcx> {
@@ -27,5 +32,19 @@ impl<'v, 'tcx> ToMiddleStatementLowerer for crate::encoder::Encoder<'v, 'tcx> {
         predicate: vir_high::Predicate,
     ) -> SpannedEncodingResult<vir_mid::Predicate> {
         predicate.to_middle_predicate(self)
+    }
+
+    fn to_middle_statement_rvalue(
+        &self,
+        rvalue: vir_high::Rvalue,
+    ) -> SpannedEncodingResult<vir_mid::Rvalue> {
+        rvalue.to_middle_rvalue(self)
+    }
+
+    fn to_middle_statement_statement_leak_all(
+        &self,
+        _statement: vir_high::LeakAll,
+    ) -> SpannedEncodingResult<vir_mid::Statement> {
+        unreachable!("leak-all statement cannot be lowered")
     }
 }

@@ -8,6 +8,7 @@ use crate::encoder::{
         predicates_memory_block::PredicatesMemoryBlockInterface,
         snapshots::{IntoSnapshot, SnapshotsInterface},
         type_layouts::TypeLayoutsInterface,
+        types::TypesInterface,
     },
 };
 use rustc_hash::FxHashSet;
@@ -123,10 +124,30 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
             };
             field_predicates.push(acc);
         }
+        if field_predicates.is_empty() {
+            // TODO: Extract this into a separate method and deduplicate with
+            // primitive type encoding.
+
+            // FIXME: We should add an extra memory block not only for ZSTs, but
+            // also for types to represent padding bytes and similar stuff.
+            let compute_address = ty!(Address);
+            let to_bytes = ty! { Bytes };
+            let compute_address = expr! { ComputeAddress::compute_address(place, root_address) };
+            let size_of = self.encode_type_size_expression(ty)?;
+            let bytes = self
+                .encode_memory_block_bytes_expression(compute_address.clone(), size_of.clone())?;
+            field_predicates.push(expr! {
+                (acc(MemoryBlock([compute_address], [size_of])))
+            });
+            field_predicates.push(expr! {
+                (([bytes]) == (Snap<ty>::to_bytes(snapshot)))
+            });
+        }
         let predicate_decl = predicate! {
             OwnedNonAliased<ty>(place: Place, root_address: Address, snapshot: {snapshot_type})
             {(
-                ([validity]) && ([field_predicates.into_iter().conjoin()])
+                ([validity]) &&
+                ([field_predicates.into_iter().conjoin()])
             )}
         };
         Ok(predicate_decl)
@@ -155,7 +176,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PredicatesOwnedInterface for Lowerer<'p, 'v, 'tcx> {
             .unfolded_owned_non_aliased_predicates
             .contains(ty)
         {
-            self.encode_validity_axioms(ty)?;
+            self.ensure_type_definition(ty)?;
             self.predicates_owned_state
                 .unfolded_owned_non_aliased_predicates
                 .insert(ty.clone());

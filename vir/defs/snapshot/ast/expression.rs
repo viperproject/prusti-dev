@@ -22,7 +22,7 @@ pub enum Expression {
     LabelledOld(LabelledOld),
     Constant(Constant),
     UnaryOp(UnaryOp),
-    BinOp(BinOp),
+    BinaryOp(BinaryOp),
     /// Container Operation on a Viper container (e.g. Seq index)
     ContainerOp(ContainerOp),
     /// Viper Seq
@@ -130,7 +130,7 @@ pub enum BinaryOpKind {
 }
 
 #[display(fmt = "{}{}{}", left, op_kind, right)]
-pub struct BinOp {
+pub struct BinaryOp {
     pub op_kind: BinaryOpKind,
     pub left: Box<Expression>,
     pub right: Box<Expression>,

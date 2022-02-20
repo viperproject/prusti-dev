@@ -6,7 +6,8 @@
     Deserialize,
     PartialEq(ignore=[position]),
     Eq,
-    Hash(ignore=[position])
+    Hash(ignore=[position]),
+    Ord(ignore=[position]),
 )]
 #![derive_for_all_structs(new, new_with_pos)]
 
@@ -15,6 +16,7 @@ pub mod field;
 pub mod function;
 pub mod position;
 pub mod predicate;
+pub mod rvalue;
 pub mod statement;
 pub mod ty;
 pub mod type_decl;

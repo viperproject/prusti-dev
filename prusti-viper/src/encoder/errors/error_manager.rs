@@ -80,8 +80,10 @@ pub enum ErrorCtxt {
     MovePlace,
     /// An error related to a copy assignment.
     CopyPlace,
-    /// An error related to a Writing a constant.
+    /// An error related to a writing a constant.
     WritePlace,
+    /// An error related to an assignment.
+    Assign,
     /// A pure function definition
     #[allow(dead_code)]
     PureFunctionDefinition,

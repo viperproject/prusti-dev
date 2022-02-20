@@ -10,6 +10,7 @@
 #![feature(bool_to_option)]
 #![feature(try_blocks)]
 #![feature(never_type)]
+#![feature(btree_drain_filter)]
 
 #![deny(unused_must_use)]
 #![deny(unreachable_patterns)]
