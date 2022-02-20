@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["BasicBlockBuilder",""],["ProcedureBuilder",""]]});
+initSidebarItems({"enum":[["SuccessorBuilder",""],["SuccessorExitKind",""]],"struct":[["BasicBlockBuilder",""],["ProcedureBuilder",""]]});

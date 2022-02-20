@@ -202,12 +202,78 @@
 <span id="197">197</span>
 <span id="198">198</span>
 <span id="199">199</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">syn</span>::{<span class="ident">parse_quote</span>, <a class="ident" href="../../../syn/spanned/trait.Spanned.html">spanned::Spanned</a>};
-
-<span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">ast</span>::{<a class="ident" href="../../../src/vir_gen/ast/mod.rs.html#58-64">CustomDerive</a>, <a class="ident" href="../../../src/vir_gen/ast/mod.rs.html#67-69">CustomDeriveList</a>, <a class="ident" href="../../../src/vir_gen/ast/mod.rs.html#52-55">CustomDeriveOptions</a>},
+<span id="200">200</span>
+<span id="201">201</span>
+<span id="202">202</span>
+<span id="203">203</span>
+<span id="204">204</span>
+<span id="205">205</span>
+<span id="206">206</span>
+<span id="207">207</span>
+<span id="208">208</span>
+<span id="209">209</span>
+<span id="210">210</span>
+<span id="211">211</span>
+<span id="212">212</span>
+<span id="213">213</span>
+<span id="214">214</span>
+<span id="215">215</span>
+<span id="216">216</span>
+<span id="217">217</span>
+<span id="218">218</span>
+<span id="219">219</span>
+<span id="220">220</span>
+<span id="221">221</span>
+<span id="222">222</span>
+<span id="223">223</span>
+<span id="224">224</span>
+<span id="225">225</span>
+<span id="226">226</span>
+<span id="227">227</span>
+<span id="228">228</span>
+<span id="229">229</span>
+<span id="230">230</span>
+<span id="231">231</span>
+<span id="232">232</span>
+<span id="233">233</span>
+<span id="234">234</span>
+<span id="235">235</span>
+<span id="236">236</span>
+<span id="237">237</span>
+<span id="238">238</span>
+<span id="239">239</span>
+<span id="240">240</span>
+<span id="241">241</span>
+<span id="242">242</span>
+<span id="243">243</span>
+<span id="244">244</span>
+<span id="245">245</span>
+<span id="246">246</span>
+<span id="247">247</span>
+<span id="248">248</span>
+<span id="249">249</span>
+<span id="250">250</span>
+<span id="251">251</span>
+<span id="252">252</span>
+<span id="253">253</span>
+<span id="254">254</span>
+<span id="255">255</span>
+<span id="256">256</span>
+<span id="257">257</span>
+<span id="258">258</span>
+<span id="259">259</span>
+<span id="260">260</span>
+<span id="261">261</span>
+<span id="262">262</span>
+<span id="263">263</span>
+<span id="264">264</span>
+<span id="265">265</span>
+</pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">crate</span>::{
+    <span class="ident">ast</span>::{<a class="ident" href="../../../src/vir_gen/ast/mod.rs.html#58-66">CustomDerive</a>, <a class="ident" href="../../../src/vir_gen/ast/mod.rs.html#69-71">CustomDeriveList</a>, <a class="ident" href="../../../src/vir_gen/ast/mod.rs.html#52-55">CustomDeriveOptions</a>},
     <a class="ident" href="../../../src/vir_gen/helpers.rs.html#49">helpers::unbox_type</a>,
 };
+<span class="kw">use</span> <span class="ident">quote::quote</span>;
+<span class="kw">use</span> <span class="ident">syn</span>::{<span class="ident">parse_quote</span>, <a class="ident" href="../../../syn/spanned/trait.Spanned.html">spanned::Spanned</a>};
 
 <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">derive</span>(<span class="ident">items</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../../syn/item/enum.Item.html">syn::Item</a><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../../syn/error/struct.Error.html">syn::Error</a><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">derived_items</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
@@ -218,37 +284,45 @@
                 <span class="kw">for</span> <span class="ident">attribute</span> <span class="kw">in</span> <a class="ident" href="../../../src/vir_gen/deriver/singles.rs.html#12">struct_item</a>.<span class="ident">attrs</span>.<span class="ident">drain</span>(..) {
                     <span class="kw">if</span> <a class="ident" href="../../../src/vir_gen/deriver/singles.rs.html#14">attribute</a>.<span class="ident">style</span> <span class="op">==</span> <span class="ident">syn::AttrStyle::Outer</span> <span class="op">&amp;&amp;</span> <a class="ident" href="../../../src/vir_gen/deriver/singles.rs.html#14">attribute</a>.<span class="ident">path</span>.<span class="ident">is_ident</span>(<span class="string">&quot;derive&quot;</span>)
                     {
-                        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">list</span>) <span class="op">=</span> <span class="ident">syn::parse2</span>::<span class="op">&lt;</span><a class="ident" href="../../../src/vir_gen/ast/mod.rs.html#67-69">CustomDeriveList</a><span class="op">&gt;</span>(<a class="ident" href="../../../src/vir_gen/deriver/singles.rs.html#14">attribute</a>.<span class="ident">tokens</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())
+                        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">list</span>) <span class="op">=</span> <span class="ident">syn::parse2</span>::<span class="op">&lt;</span><a class="ident" href="../../../src/vir_gen/ast/mod.rs.html#69-71">CustomDeriveList</a><span class="op">&gt;</span>(<a class="ident" href="../../../src/vir_gen/deriver/singles.rs.html#14">attribute</a>.<span class="ident">tokens</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())
                         {
                             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">derive_paths</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
                             <span class="kw">for</span> <span class="ident">derive</span> <span class="kw">in</span> <a class="ident" href="../../../src/vir_gen/deriver/singles.rs.html#17">list</a>.<span class="ident">derives</span> {
                                 <span class="kw">match</span> <a class="ident" href="../../../src/vir_gen/deriver/singles.rs.html#20">derive</a> {
-                                    <a class="ident" href="../../../src/vir_gen/ast/mod.rs.html#59">CustomDerive::New</a> =&gt; <a class="ident" href="../../../src/vir_gen/deriver/singles.rs.html#9">derived_items</a>.<span class="ident">push</span>(<a class="ident" href="../../../src/vir_gen/deriver/singles.rs.html#105-110">derive_new</a>(
+                                    <a class="ident" href="../../../src/vir_gen/ast/mod.rs.html#59">CustomDerive::New</a> =&gt; <a class="ident" href="../../../src/vir_gen/deriver/singles.rs.html#9">derived_items</a>.<span class="ident">push</span>(<a class="ident" href="../../../src/vir_gen/deriver/singles.rs.html#117-122">derive_new</a>(
                                         <span class="string">&quot;new&quot;</span>,
                                         <span class="kw-2">&amp;</span><a class="ident" href="../../../src/vir_gen/deriver/singles.rs.html#12">struct_item</a>.<span class="ident">ident</span>,
                                         <a class="ident" href="../../../src/vir_gen/deriver/singles.rs.html#12">struct_item</a>.<span class="ident">fields</span>.<span class="ident">iter</span>(),
                                         <span class="prelude-val">Some</span>(<span class="string">&quot;position&quot;</span>),
                                     )),
-                                    <a class="ident" href="../../../src/vir_gen/ast/mod.rs.html#60">CustomDerive::NewWithPos</a> =&gt; <a class="ident" href="../../../src/vir_gen/deriver/singles.rs.html#9">derived_items</a>.<span class="ident">push</span>(<a class="ident" href="../../../src/vir_gen/deriver/singles.rs.html#105-110">derive_new</a>(
+                                    <a class="ident" href="../../../src/vir_gen/ast/mod.rs.html#60">CustomDerive::NewWithPos</a> =&gt; <a class="ident" href="../../../src/vir_gen/deriver/singles.rs.html#9">derived_items</a>.<span class="ident">push</span>(<a class="ident" href="../../../src/vir_gen/deriver/singles.rs.html#117-122">derive_new</a>(
                                         <span class="string">&quot;new_with_pos&quot;</span>,
                                         <span class="kw-2">&amp;</span><a class="ident" href="../../../src/vir_gen/deriver/singles.rs.html#12">struct_item</a>.<span class="ident">ident</span>,
                                         <a class="ident" href="../../../src/vir_gen/deriver/singles.rs.html#12">struct_item</a>.<span class="ident">fields</span>.<span class="ident">iter</span>(),
                                         <span class="prelude-val">None</span>,
                                     )),
-                                    <a class="ident" href="../../../src/vir_gen/ast/mod.rs.html#62">CustomDerive::Hash</a>(<span class="ident">options</span>) =&gt; <a class="ident" href="../../../src/vir_gen/deriver/singles.rs.html#9">derived_items</a>.<span class="ident">push</span>(<a class="ident" href="../../../src/vir_gen/deriver/singles.rs.html#155-159">derive_hash</a>(
+                                    <a class="ident" href="../../../src/vir_gen/ast/mod.rs.html#62">CustomDerive::Hash</a>(<span class="ident">options</span>) =&gt; <a class="ident" href="../../../src/vir_gen/deriver/singles.rs.html#9">derived_items</a>.<span class="ident">push</span>(<a class="ident" href="../../../src/vir_gen/deriver/singles.rs.html#167-171">derive_hash</a>(
                                         <span class="kw-2">&amp;</span><a class="ident" href="../../../src/vir_gen/deriver/singles.rs.html#12">struct_item</a>.<span class="ident">ident</span>,
                                         <a class="ident" href="../../../src/vir_gen/deriver/singles.rs.html#12">struct_item</a>.<span class="ident">fields</span>.<span class="ident">iter</span>(),
                                         <a class="ident" href="../../../src/vir_gen/deriver/singles.rs.html#34">options</a>,
                                     )),
                                     <a class="ident" href="../../../src/vir_gen/ast/mod.rs.html#61">CustomDerive::PartialEq</a>(<span class="ident">options</span>) =&gt; {
-                                        <a class="ident" href="../../../src/vir_gen/deriver/singles.rs.html#9">derived_items</a>.<span class="ident">push</span>(<a class="ident" href="../../../src/vir_gen/deriver/singles.rs.html#178-182">derive_partial_eq</a>(
+                                        <a class="ident" href="../../../src/vir_gen/deriver/singles.rs.html#9">derived_items</a>.<span class="ident">push</span>(<a class="ident" href="../../../src/vir_gen/deriver/singles.rs.html#191-195">derive_partial_eq</a>(
                                             <span class="kw-2">&amp;</span><a class="ident" href="../../../src/vir_gen/deriver/singles.rs.html#12">struct_item</a>.<span class="ident">ident</span>,
                                             <a class="ident" href="../../../src/vir_gen/deriver/singles.rs.html#12">struct_item</a>.<span class="ident">fields</span>.<span class="ident">iter</span>(),
                                             <a class="ident" href="../../../src/vir_gen/deriver/singles.rs.html#39">options</a>,
                                         ))
                                     }
-                                    <a class="ident" href="../../../src/vir_gen/ast/mod.rs.html#63">CustomDerive::Other</a>(<span class="ident">path</span>) =&gt; {
-                                        <a class="ident" href="../../../src/vir_gen/deriver/singles.rs.html#19">derive_paths</a>.<span class="ident">push</span>(<a class="ident" href="../../../src/vir_gen/deriver/singles.rs.html#46">path</a>);
+                                    <a class="ident" href="../../../src/vir_gen/ast/mod.rs.html#64">CustomDerive::Ord</a>(<span class="ident">options</span>) =&gt; {
+                                        <a class="ident" href="../../../src/vir_gen/deriver/singles.rs.html#9">derived_items</a>.<span class="ident">push</span>(<a class="ident" href="../../../src/vir_gen/deriver/singles.rs.html#224-228">derive_ord</a>(
+                                            <span class="kw-2">&amp;</span><a class="ident" href="../../../src/vir_gen/deriver/singles.rs.html#12">struct_item</a>.<span class="ident">ident</span>,
+                                            <a class="ident" href="../../../src/vir_gen/deriver/singles.rs.html#12">struct_item</a>.<span class="ident">fields</span>.<span class="ident">iter</span>(),
+                                            <a class="ident" href="../../../src/vir_gen/deriver/singles.rs.html#46">options</a>,
+                                        ));
+                                        <a class="ident" href="../../../src/vir_gen/deriver/singles.rs.html#9">derived_items</a>.<span class="ident">push</span>(<a class="ident" href="../../../src/vir_gen/deriver/singles.rs.html#257">derive_partial_ord</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/vir_gen/deriver/singles.rs.html#12">struct_item</a>.<span class="ident">ident</span>));
+                                    }
+                                    <a class="ident" href="../../../src/vir_gen/ast/mod.rs.html#65">CustomDerive::Other</a>(<span class="ident">path</span>) =&gt; {
+                                        <a class="ident" href="../../../src/vir_gen/deriver/singles.rs.html#19">derive_paths</a>.<span class="ident">push</span>(<a class="ident" href="../../../src/vir_gen/deriver/singles.rs.html#54">path</a>);
                                     }
                                 }
                             }
@@ -266,38 +340,42 @@
             }
             <span class="ident">syn::Item::Enum</span>(<span class="ident">enum_item</span>) =&gt; {
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">new_attributes</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
-                <span class="kw">for</span> <span class="ident">attribute</span> <span class="kw">in</span> <a class="ident" href="../../../src/vir_gen/deriver/singles.rs.html#63">enum_item</a>.<span class="ident">attrs</span>.<span class="ident">drain</span>(..) {
-                    <span class="kw">if</span> <a class="ident" href="../../../src/vir_gen/deriver/singles.rs.html#65">attribute</a>.<span class="ident">style</span> <span class="op">==</span> <span class="ident">syn::AttrStyle::Outer</span> <span class="op">&amp;&amp;</span> <a class="ident" href="../../../src/vir_gen/deriver/singles.rs.html#65">attribute</a>.<span class="ident">path</span>.<span class="ident">is_ident</span>(<span class="string">&quot;derive&quot;</span>)
+                <span class="kw">for</span> <span class="ident">attribute</span> <span class="kw">in</span> <a class="ident" href="../../../src/vir_gen/deriver/singles.rs.html#71">enum_item</a>.<span class="ident">attrs</span>.<span class="ident">drain</span>(..) {
+                    <span class="kw">if</span> <a class="ident" href="../../../src/vir_gen/deriver/singles.rs.html#73">attribute</a>.<span class="ident">style</span> <span class="op">==</span> <span class="ident">syn::AttrStyle::Outer</span> <span class="op">&amp;&amp;</span> <a class="ident" href="../../../src/vir_gen/deriver/singles.rs.html#73">attribute</a>.<span class="ident">path</span>.<span class="ident">is_ident</span>(<span class="string">&quot;derive&quot;</span>)
                     {
-                        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">list</span>) <span class="op">=</span> <span class="ident">syn::parse2</span>::<span class="op">&lt;</span><a class="ident" href="../../../src/vir_gen/ast/mod.rs.html#67-69">CustomDeriveList</a><span class="op">&gt;</span>(<a class="ident" href="../../../src/vir_gen/deriver/singles.rs.html#65">attribute</a>.<span class="ident">tokens</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())
+                        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">list</span>) <span class="op">=</span> <span class="ident">syn::parse2</span>::<span class="op">&lt;</span><a class="ident" href="../../../src/vir_gen/ast/mod.rs.html#69-71">CustomDeriveList</a><span class="op">&gt;</span>(<a class="ident" href="../../../src/vir_gen/deriver/singles.rs.html#73">attribute</a>.<span class="ident">tokens</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())
                         {
                             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">derive_paths</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
-                            <span class="kw">for</span> <span class="ident">derive</span> <span class="kw">in</span> <a class="ident" href="../../../src/vir_gen/deriver/singles.rs.html#68">list</a>.<span class="ident">derives</span> {
-                                <span class="kw">match</span> <a class="ident" href="../../../src/vir_gen/deriver/singles.rs.html#71">derive</a> {
+                            <span class="kw">for</span> <span class="ident">derive</span> <span class="kw">in</span> <a class="ident" href="../../../src/vir_gen/deriver/singles.rs.html#76">list</a>.<span class="ident">derives</span> {
+                                <span class="kw">match</span> <a class="ident" href="../../../src/vir_gen/deriver/singles.rs.html#79">derive</a> {
                                     <a class="ident" href="../../../src/vir_gen/ast/mod.rs.html#59">CustomDerive::New</a> =&gt; <span class="macro">unimplemented!</span>(),
                                     <a class="ident" href="../../../src/vir_gen/ast/mod.rs.html#60">CustomDerive::NewWithPos</a> =&gt; <span class="macro">unimplemented!</span>(),
                                     <a class="ident" href="../../../src/vir_gen/ast/mod.rs.html#62">CustomDerive::Hash</a>(<span class="ident">_options</span>) =&gt; {
-                                        <a class="ident" href="../../../src/vir_gen/deriver/singles.rs.html#70">derive_paths</a>.<span class="ident">push</span>(<span class="macro">syn::parse_quote!</span> {<span class="ident">Hash</span>});
+                                        <a class="ident" href="../../../src/vir_gen/deriver/singles.rs.html#78">derive_paths</a>.<span class="ident">push</span>(<span class="macro">syn::parse_quote!</span> {<span class="ident">Hash</span>});
                                     }
                                     <a class="ident" href="../../../src/vir_gen/ast/mod.rs.html#61">CustomDerive::PartialEq</a>(<span class="ident">_options</span>) =&gt; {
-                                        <a class="ident" href="../../../src/vir_gen/deriver/singles.rs.html#70">derive_paths</a>.<span class="ident">push</span>(<span class="macro">syn::parse_quote!</span> {<span class="ident">PartialEq</span>});
+                                        <a class="ident" href="../../../src/vir_gen/deriver/singles.rs.html#78">derive_paths</a>.<span class="ident">push</span>(<span class="macro">syn::parse_quote!</span> {<span class="ident">PartialEq</span>});
                                     }
-                                    <a class="ident" href="../../../src/vir_gen/ast/mod.rs.html#63">CustomDerive::Other</a>(<span class="ident">path</span>) =&gt; {
-                                        <a class="ident" href="../../../src/vir_gen/deriver/singles.rs.html#70">derive_paths</a>.<span class="ident">push</span>(<a class="ident" href="../../../src/vir_gen/deriver/singles.rs.html#81">path</a>);
+                                    <a class="ident" href="../../../src/vir_gen/ast/mod.rs.html#64">CustomDerive::Ord</a>(<span class="ident">_options</span>) =&gt; {
+                                        <a class="ident" href="../../../src/vir_gen/deriver/singles.rs.html#78">derive_paths</a>.<span class="ident">push</span>(<span class="macro">syn::parse_quote!</span> {<span class="ident">PartialOrd</span>});
+                                        <a class="ident" href="../../../src/vir_gen/deriver/singles.rs.html#78">derive_paths</a>.<span class="ident">push</span>(<span class="macro">syn::parse_quote!</span> {<span class="ident">Ord</span>});
+                                    }
+                                    <a class="ident" href="../../../src/vir_gen/ast/mod.rs.html#65">CustomDerive::Other</a>(<span class="ident">path</span>) =&gt; {
+                                        <a class="ident" href="../../../src/vir_gen/deriver/singles.rs.html#78">derive_paths</a>.<span class="ident">push</span>(<a class="ident" href="../../../src/vir_gen/deriver/singles.rs.html#93">path</a>);
                                     }
                                 }
                             }
-                            <span class="kw">if</span> <span class="op">!</span><a class="ident" href="../../../src/vir_gen/deriver/singles.rs.html#70">derive_paths</a>.<span class="ident">is_empty</span>() {
-                                <a class="ident" href="../../../src/vir_gen/deriver/singles.rs.html#64">new_attributes</a>.<span class="ident">push</span>(<span class="macro">syn::parse_quote!</span> {
+                            <span class="kw">if</span> <span class="op">!</span><a class="ident" href="../../../src/vir_gen/deriver/singles.rs.html#78">derive_paths</a>.<span class="ident">is_empty</span>() {
+                                <a class="ident" href="../../../src/vir_gen/deriver/singles.rs.html#72">new_attributes</a>.<span class="ident">push</span>(<span class="macro">syn::parse_quote!</span> {
                                     <span class="attribute">#[<span class="ident">derive</span>(#(#<span class="ident">derive_paths</span>),<span class="kw-2">*</span>)]</span>
                                 });
                             }
                             <span class="kw">continue</span>;
                         }
                     }
-                    <a class="ident" href="../../../src/vir_gen/deriver/singles.rs.html#64">new_attributes</a>.<span class="ident">push</span>(<a class="ident" href="../../../src/vir_gen/deriver/singles.rs.html#65">attribute</a>);
+                    <a class="ident" href="../../../src/vir_gen/deriver/singles.rs.html#72">new_attributes</a>.<span class="ident">push</span>(<a class="ident" href="../../../src/vir_gen/deriver/singles.rs.html#73">attribute</a>);
                 }
-                <a class="ident" href="../../../src/vir_gen/deriver/singles.rs.html#63">enum_item</a>.<span class="ident">attrs</span> <span class="op">=</span> <a class="ident" href="../../../src/vir_gen/deriver/singles.rs.html#64">new_attributes</a>;
+                <a class="ident" href="../../../src/vir_gen/deriver/singles.rs.html#71">enum_item</a>.<span class="ident">attrs</span> <span class="op">=</span> <a class="ident" href="../../../src/vir_gen/deriver/singles.rs.html#72">new_attributes</a>;
             }
             <span class="kw">_</span> =&gt; {}
         }
@@ -312,34 +390,34 @@
     <span class="ident">fields_iter</span>: <span class="kw">impl</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">syn::Field</span><span class="op">&gt;</span>,
     <span class="ident">ignore_field</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a><span class="op">&gt;</span>,
 ) -&gt; <a class="ident" href="../../../syn/item/enum.Item.html">syn::Item</a> {
-    <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="ident">syn::Ident::new</span>(<a class="ident" href="../../../src/vir_gen/deriver/singles.rs.html#106">name</a>, <a class="ident" href="../../../src/vir_gen/deriver/singles.rs.html#107">struct_ident</a>.<span class="ident">span</span>());
+    <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="ident">syn::Ident::new</span>(<a class="ident" href="../../../src/vir_gen/deriver/singles.rs.html#118">name</a>, <a class="ident" href="../../../src/vir_gen/deriver/singles.rs.html#119">struct_ident</a>.<span class="ident">span</span>());
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">parameters</span> <span class="op">=</span> <span class="ident">Vec</span>::<span class="op">&lt;</span><a class="ident" href="../../../syn/item/enum.FnArg.html">syn::FnArg</a><span class="op">&gt;</span><span class="ident">::new</span>();
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">fields</span> <span class="op">=</span> <span class="ident">Vec</span>::<span class="op">&lt;</span><a class="ident" href="../../../syn/expr/struct.FieldValue.html">syn::FieldValue</a><span class="op">&gt;</span><span class="ident">::new</span>();
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">generics</span> <span class="op">=</span> <span class="ident">Vec</span>::<span class="op">&lt;</span><a class="ident" href="../../../syn/generics/enum.GenericParam.html">syn::GenericParam</a><span class="op">&gt;</span><span class="ident">::new</span>();
-    <span class="kw">for</span> (<span class="ident">i</span>, <span class="ident">field</span>) <span class="kw">in</span> <a class="ident" href="../../../src/vir_gen/deriver/singles.rs.html#108">fields_iter</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">enumerate</a>() {
-        <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <a class="ident" href="../../../src/vir_gen/deriver/singles.rs.html#115">field</a>.<span class="ident">ident</span>.<span class="ident">as_ref</span>().<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">parameter_type</span> <span class="op">=</span> <a class="ident" href="../../../src/vir_gen/helpers.rs.html#49">unbox_type</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/vir_gen/deriver/singles.rs.html#115">field</a>.<span class="ident">ty</span>);
-        <span class="kw">let</span> <span class="ident">generic_type</span> <span class="op">=</span> <span class="ident">syn::Ident::new</span>(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;G{}&quot;</span>, <a class="ident" href="../../../src/vir_gen/deriver/singles.rs.html#115">i</a>), <a class="ident" href="../../../src/vir_gen/deriver/singles.rs.html#117">parameter_type</a>.<a class="ident" href="../../../syn/spanned/trait.Spanned.html">span</a>());
-        <span class="kw">if</span> <a class="ident" href="../../../src/vir_gen/deriver/singles.rs.html#109">ignore_field</a>
-            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">ignored_name</span><span class="op">|</span> <a class="ident" href="../../../src/vir_gen/deriver/singles.rs.html#116">name</a> <span class="op">==</span> <a class="ident" href="../../../src/vir_gen/deriver/singles.rs.html#120">ignored_name</a>)
+    <span class="kw">for</span> (<span class="ident">i</span>, <span class="ident">field</span>) <span class="kw">in</span> <a class="ident" href="../../../src/vir_gen/deriver/singles.rs.html#120">fields_iter</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">enumerate</a>() {
+        <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <a class="ident" href="../../../src/vir_gen/deriver/singles.rs.html#127">field</a>.<span class="ident">ident</span>.<span class="ident">as_ref</span>().<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="ident">parameter_type</span> <span class="op">=</span> <a class="ident" href="../../../src/vir_gen/helpers.rs.html#49">unbox_type</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/vir_gen/deriver/singles.rs.html#127">field</a>.<span class="ident">ty</span>);
+        <span class="kw">let</span> <span class="ident">generic_type</span> <span class="op">=</span> <span class="ident">syn::Ident::new</span>(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;G{}&quot;</span>, <a class="ident" href="../../../src/vir_gen/deriver/singles.rs.html#127">i</a>), <a class="ident" href="../../../src/vir_gen/deriver/singles.rs.html#129">parameter_type</a>.<a class="ident" href="../../../syn/spanned/trait.Spanned.html">span</a>());
+        <span class="kw">if</span> <a class="ident" href="../../../src/vir_gen/deriver/singles.rs.html#121">ignore_field</a>
+            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">ignored_name</span><span class="op">|</span> <a class="ident" href="../../../src/vir_gen/deriver/singles.rs.html#128">name</a> <span class="op">==</span> <a class="ident" href="../../../src/vir_gen/deriver/singles.rs.html#132">ignored_name</a>)
             .<span class="ident">unwrap_or</span>(<span class="bool-val">false</span>)
         {
-            <a class="ident" href="../../../src/vir_gen/deriver/singles.rs.html#113">fields</a>.<span class="ident">push</span>(<span class="macro">parse_quote!</span>(
+            <a class="ident" href="../../../src/vir_gen/deriver/singles.rs.html#125">fields</a>.<span class="ident">push</span>(<span class="macro">parse_quote!</span>(
                 #<span class="ident">name</span>: #<span class="ident">parameter_type::default</span>()
             ));
         } <span class="kw">else</span> {
-            <a class="ident" href="../../../src/vir_gen/deriver/singles.rs.html#114">generics</a>.<span class="ident">push</span>(<span class="macro">parse_quote!</span> {
+            <a class="ident" href="../../../src/vir_gen/deriver/singles.rs.html#126">generics</a>.<span class="ident">push</span>(<span class="macro">parse_quote!</span> {
                 #<span class="ident">generic_type</span>: <span class="ident">Into</span><span class="op">&lt;</span>#<span class="ident">parameter_type</span><span class="op">&gt;</span>
             });
-            <a class="ident" href="../../../src/vir_gen/deriver/singles.rs.html#112">parameters</a>.<span class="ident">push</span>(<span class="macro">parse_quote!</span>(
+            <a class="ident" href="../../../src/vir_gen/deriver/singles.rs.html#124">parameters</a>.<span class="ident">push</span>(<span class="macro">parse_quote!</span>(
                 #<span class="ident">name</span>: #<span class="ident">generic_type</span>
             ));
-            <span class="kw">if</span> <a class="ident" href="../../../src/vir_gen/deriver/singles.rs.html#117">parameter_type</a> <span class="op">==</span> <a class="ident" href="../../../src/vir_gen/deriver/singles.rs.html#115">field</a>.<span class="ident">ty</span> {
-                <a class="ident" href="../../../src/vir_gen/deriver/singles.rs.html#113">fields</a>.<span class="ident">push</span>(<span class="macro">parse_quote!</span>(
+            <span class="kw">if</span> <a class="ident" href="../../../src/vir_gen/deriver/singles.rs.html#129">parameter_type</a> <span class="op">==</span> <a class="ident" href="../../../src/vir_gen/deriver/singles.rs.html#127">field</a>.<span class="ident">ty</span> {
+                <a class="ident" href="../../../src/vir_gen/deriver/singles.rs.html#125">fields</a>.<span class="ident">push</span>(<span class="macro">parse_quote!</span>(
                     #<span class="ident">name</span>: #<span class="ident">name</span>.<span class="ident">into</span>()
                 ));
             } <span class="kw">else</span> {
-                <a class="ident" href="../../../src/vir_gen/deriver/singles.rs.html#113">fields</a>.<span class="ident">push</span>(<span class="macro">parse_quote!</span>(
+                <a class="ident" href="../../../src/vir_gen/deriver/singles.rs.html#125">fields</a>.<span class="ident">push</span>(<span class="macro">parse_quote!</span>(
                     #<span class="ident">name</span>: <span class="ident">Box::new</span>(#<span class="ident">name</span>.<span class="ident">into</span>())
                 ));
             }
@@ -362,16 +440,17 @@
     <span class="ident">options</span>: <a class="ident" href="../../../src/vir_gen/ast/mod.rs.html#52-55">CustomDeriveOptions</a>,
 ) -&gt; <a class="ident" href="../../../syn/item/enum.Item.html">syn::Item</a> {
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">statements</span> <span class="op">=</span> <span class="ident">Vec</span>::<span class="op">&lt;</span><a class="ident" href="../../../syn/stmt/enum.Stmt.html">syn::Stmt</a><span class="op">&gt;</span><span class="ident">::new</span>();
-    <span class="kw">for</span> <span class="ident">field</span> <span class="kw">in</span> <a class="ident" href="../../../src/vir_gen/deriver/singles.rs.html#157">fields_iter</a> {
-        <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <a class="ident" href="../../../src/vir_gen/deriver/singles.rs.html#161">field</a>.<span class="ident">ident</span>.<span class="ident">as_ref</span>().<span class="ident">unwrap</span>();
-        <span class="kw">if</span> <span class="op">!</span><a class="ident" href="../../../src/vir_gen/deriver/singles.rs.html#158">options</a>.<span class="ident">ignored_fields</span>.<span class="ident">contains</span>(<a class="ident" href="../../../src/vir_gen/deriver/singles.rs.html#162">name</a>) {
-            <a class="ident" href="../../../src/vir_gen/deriver/singles.rs.html#160">statements</a>.<span class="ident">push</span>(<span class="macro">parse_quote!</span> {
+    <span class="kw">for</span> <span class="ident">field</span> <span class="kw">in</span> <a class="ident" href="../../../src/vir_gen/deriver/singles.rs.html#169">fields_iter</a> {
+        <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <a class="ident" href="../../../src/vir_gen/deriver/singles.rs.html#173">field</a>.<span class="ident">ident</span>.<span class="ident">as_ref</span>().<span class="ident">unwrap</span>();
+        <span class="kw">if</span> <span class="op">!</span><a class="ident" href="../../../src/vir_gen/deriver/singles.rs.html#170">options</a>.<span class="ident">ignored_fields</span>.<span class="ident">contains</span>(<a class="ident" href="../../../src/vir_gen/deriver/singles.rs.html#174">name</a>) {
+            <a class="ident" href="../../../src/vir_gen/deriver/singles.rs.html#172">statements</a>.<span class="ident">push</span>(<span class="macro">parse_quote!</span> {
                 <span class="self">self</span>.#<span class="ident">name</span>.<span class="ident">hash</span>(<span class="ident">state</span>);
             });
         }
     }
     <span class="macro">parse_quote!</span> {
         <span class="kw">impl</span> <span class="ident">core::hash::Hash</span> <span class="kw">for</span> #<span class="ident">struct_ident</span> {
+            <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">unused_variables</span>)]</span>
             <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span>: <span class="ident">core::hash::Hasher</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;mut</span> <span class="ident">H</span>) {
                 #(#<span class="ident">statements</span>)<span class="op">*</span>
             }
@@ -385,18 +464,71 @@
     <span class="ident">options</span>: <a class="ident" href="../../../src/vir_gen/ast/mod.rs.html#52-55">CustomDeriveOptions</a>,
 ) -&gt; <a class="ident" href="../../../syn/item/enum.Item.html">syn::Item</a> {
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">conjuncts</span> <span class="op">=</span> <span class="ident">Vec</span>::<span class="op">&lt;</span><a class="ident" href="../../../syn/expr/enum.Expr.html">syn::Expr</a><span class="op">&gt;</span><span class="ident">::new</span>();
-    <span class="kw">for</span> <span class="ident">field</span> <span class="kw">in</span> <a class="ident" href="../../../src/vir_gen/deriver/singles.rs.html#180">fields_iter</a> {
-        <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <a class="ident" href="../../../src/vir_gen/deriver/singles.rs.html#184">field</a>.<span class="ident">ident</span>.<span class="ident">as_ref</span>().<span class="ident">unwrap</span>();
-        <span class="kw">if</span> <span class="op">!</span><a class="ident" href="../../../src/vir_gen/deriver/singles.rs.html#181">options</a>.<span class="ident">ignored_fields</span>.<span class="ident">contains</span>(<a class="ident" href="../../../src/vir_gen/deriver/singles.rs.html#185">name</a>) {
-            <a class="ident" href="../../../src/vir_gen/deriver/singles.rs.html#183">conjuncts</a>.<span class="ident">push</span>(<span class="macro">parse_quote!</span> {
+    <span class="kw">for</span> <span class="ident">field</span> <span class="kw">in</span> <a class="ident" href="../../../src/vir_gen/deriver/singles.rs.html#193">fields_iter</a> {
+        <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <a class="ident" href="../../../src/vir_gen/deriver/singles.rs.html#197">field</a>.<span class="ident">ident</span>.<span class="ident">as_ref</span>().<span class="ident">unwrap</span>();
+        <span class="kw">if</span> <span class="op">!</span><a class="ident" href="../../../src/vir_gen/deriver/singles.rs.html#194">options</a>.<span class="ident">ignored_fields</span>.<span class="ident">contains</span>(<a class="ident" href="../../../src/vir_gen/deriver/singles.rs.html#198">name</a>) {
+            <a class="ident" href="../../../src/vir_gen/deriver/singles.rs.html#196">conjuncts</a>.<span class="ident">push</span>(<span class="macro">parse_quote!</span> {
                 <span class="self">self</span>.#<span class="ident">name</span> <span class="op">==</span> <span class="ident">other</span>.#<span class="ident">name</span>
             });
         }
     }
+    <span class="kw">let</span> <span class="ident">body</span> <span class="op">=</span> <span class="kw">if</span> <a class="ident" href="../../../src/vir_gen/deriver/singles.rs.html#196">conjuncts</a>.<span class="ident">is_empty</span>() {
+        <span class="macro">quote!</span> {
+            <span class="bool-val">true</span>
+        }
+    } <span class="kw">else</span> {
+        <span class="macro">quote!</span> {
+            #(#<span class="ident">conjuncts</span>)<span class="op">&amp;&amp;</span><span class="op">*</span>
+        }
+    };
     <span class="macro">parse_quote!</span> {
         <span class="kw">impl</span> <span class="ident">PartialEq</span> <span class="kw">for</span> #<span class="ident">struct_ident</span> {
+            <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">unused_variables</span>)]</span>
             <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="ident">bool</span> {
-                #(#<span class="ident">conjuncts</span>)<span class="op">&amp;&amp;</span><span class="op">*</span>
+                #<span class="ident">body</span>
+            }
+        }
+    }
+}
+
+<span class="kw">fn</span> <span class="ident">derive_ord</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(
+    <span class="ident">struct_ident</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../proc_macro2/struct.Ident.html">syn::Ident</a>,
+    <span class="ident">fields_iter</span>: <span class="kw">impl</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">syn::Field</span><span class="op">&gt;</span>,
+    <span class="ident">options</span>: <a class="ident" href="../../../src/vir_gen/ast/mod.rs.html#52-55">CustomDeriveOptions</a>,
+) -&gt; <a class="ident" href="../../../syn/item/enum.Item.html">syn::Item</a> {
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">fields_iter</span> <span class="op">=</span> <a class="ident" href="../../../src/vir_gen/deriver/singles.rs.html#226">fields_iter</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter</a>(<span class="op">|</span><span class="ident">field</span><span class="op">|</span> {
+        <span class="op">!</span><a class="ident" href="../../../src/vir_gen/deriver/singles.rs.html#227">options</a>
+            .<span class="ident">ignored_fields</span>
+            .<span class="ident">contains</span>(<a class="ident" href="../../../src/vir_gen/deriver/singles.rs.html#229">field</a>.<span class="ident">ident</span>.<span class="ident">as_ref</span>().<span class="ident">unwrap</span>())
+    });
+    <span class="kw">let</span> <span class="ident">comparison</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">first</span>) <span class="op">=</span> <a class="ident" href="../../../src/vir_gen/deriver/singles.rs.html#229">fields_iter</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>() {
+        <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <a class="ident" href="../../../src/vir_gen/deriver/singles.rs.html#234">first</a>.<span class="ident">ident</span>.<span class="ident">as_ref</span>().<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">comparison</span>: <a class="ident" href="../../../syn/expr/enum.Expr.html">syn::Expr</a> <span class="op">=</span> <span class="macro">syn::parse_quote!</span>( <span class="self">self</span>.#<span class="ident">name</span>.<span class="ident">cmp</span>(<span class="kw-2">&amp;</span><span class="ident">other</span>.#<span class="ident">name</span>) );
+        <span class="kw">for</span> <span class="ident">field</span> <span class="kw">in</span> <a class="ident" href="../../../src/vir_gen/deriver/singles.rs.html#229">fields_iter</a> {
+            <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <a class="ident" href="../../../src/vir_gen/deriver/singles.rs.html#237">field</a>.<span class="ident">ident</span>.<span class="ident">as_ref</span>().<span class="ident">unwrap</span>();
+            <a class="ident" href="../../../src/vir_gen/deriver/singles.rs.html#236">comparison</a> <span class="op">=</span> <span class="macro">syn::parse_quote!</span> {
+                #<span class="ident">comparison</span>.<span class="ident">then</span>(<span class="self">self</span>.#<span class="ident">name</span>.<span class="ident">cmp</span>(<span class="kw-2">&amp;</span><span class="ident">other</span>.#<span class="ident">name</span>))
+            };
+        }
+        <a class="ident" href="../../../src/vir_gen/deriver/singles.rs.html#236">comparison</a>
+    } <span class="kw">else</span> {
+        <span class="macro">parse_quote!</span> { <span class="ident">std::cmp::Ordering::Equal</span> }
+    };
+    <span class="macro">parse_quote!</span> {
+        <span class="kw">impl</span> <span class="ident">Ord</span> <span class="kw">for</span> #<span class="ident">struct_ident</span> {
+            <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">unused_variables</span>)]</span>
+            <span class="kw">fn</span> <span class="ident">cmp</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="ident">std::cmp::Ordering</span> {
+                #<span class="ident">comparison</span>
+            }
+        }
+    }
+}
+
+<span class="kw">fn</span> <span class="ident">derive_partial_ord</span>(<span class="ident">struct_ident</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../proc_macro2/struct.Ident.html">syn::Ident</a>) -&gt; <a class="ident" href="../../../syn/item/enum.Item.html">syn::Item</a> {
+    <span class="macro">parse_quote!</span> {
+        <span class="kw">impl</span> <span class="ident">PartialOrd</span> <span class="kw">for</span> #<span class="ident">struct_ident</span> {
+            <span class="kw">fn</span> <span class="ident">partial_cmp</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">std::cmp::Ordering</span><span class="op">&gt;</span> {
+                <span class="prelude-val">Some</span>(<span class="self">self</span>.<span class="ident">cmp</span>(<span class="ident">other</span>))
             }
         }
     }

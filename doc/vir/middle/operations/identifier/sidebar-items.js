@@ -1,1 +1,1 @@
-initSidebarItems({"mod":[["common",""],["expression",""],["function",""],["predicate",""],["ty",""]]});
+initSidebarItems({"mod":[["common",""],["expression",""],["function",""],["predicate",""],["rvalue",""],["ty",""]]});

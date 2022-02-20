@@ -306,7 +306,10 @@
 <span id="301">301</span>
 <span id="302">302</span>
 <span id="303">303</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::ast</span>::{<a class="ident" href="../../../src/vir_gen/ast/mod.rs.html#26-29">CopyModule</a>, <a class="ident" href="../../../src/vir_gen/ast/mod.rs.html#58-64">CustomDerive</a>, <a class="ident" href="../../../src/vir_gen/ast/mod.rs.html#67-69">CustomDeriveList</a>, <a class="ident" href="../../../src/vir_gen/ast/mod.rs.html#16-23">Include</a>, <a class="ident" href="../../../src/vir_gen/ast/mod.rs.html#31-36">RawBlock</a>};
+<span id="304">304</span>
+<span id="305">305</span>
+<span id="306">306</span>
+</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::ast</span>::{<a class="ident" href="../../../src/vir_gen/ast/mod.rs.html#26-29">CopyModule</a>, <a class="ident" href="../../../src/vir_gen/ast/mod.rs.html#58-66">CustomDerive</a>, <a class="ident" href="../../../src/vir_gen/ast/mod.rs.html#69-71">CustomDeriveList</a>, <a class="ident" href="../../../src/vir_gen/ast/mod.rs.html#16-23">Include</a>, <a class="ident" href="../../../src/vir_gen/ast/mod.rs.html#31-36">RawBlock</a>};
 <span class="kw">use</span> <a class="ident" href="../../../proc_macro2/struct.TokenStream.html">proc_macro2::TokenStream</a>;
 <span class="kw">use</span> <span class="ident">quote::quote</span>;
 <span class="kw">use</span> <span class="ident">syn</span>::{<a class="ident" href="../../../syn/gen/fold/trait.Fold.html">fold::Fold</a>, <span class="ident">parse_quote</span>, <a class="ident" href="../../../syn/spanned/trait.Spanned.html">spanned::Spanned</a>};
@@ -332,96 +335,99 @@
     <span class="ident">expanded_irs</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<a class="ident" href="../../../syn/item/struct.ItemMod.html">syn::ItemMod</a>],
     <span class="ident">errors</span>: <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../../syn/error/struct.Error.html">syn::Error</a><span class="op">&gt;</span>,
     <span class="doccomment">/// A list of things to derive for each type.</span>
-    <span class="ident">new_derives</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../../src/vir_gen/ast/mod.rs.html#58-64">CustomDerive</a><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="ident">new_derives</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../../src/vir_gen/ast/mod.rs.html#58-66">CustomDerive</a><span class="op">&gt;</span><span class="op">&gt;</span>,
     <span class="doccomment">/// A list of things to derive for each struct.</span>
-    <span class="ident">new_struct_derives</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../../src/vir_gen/ast/mod.rs.html#58-64">CustomDerive</a><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="ident">new_struct_derives</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../../src/vir_gen/ast/mod.rs.html#58-66">CustomDerive</a><span class="op">&gt;</span><span class="op">&gt;</span>,
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">Expander</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">register_error</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">error</span>: <a class="ident" href="../../../syn/error/struct.Error.html">syn::Error</a>) {
+        <a class="self" href="../../../src/vir_gen/resolver/mod.rs.html#33">self</a>.<span class="ident">errors</span>.<span class="ident">push</span>(<a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#33">error</a>);
+    }
     <span class="kw">fn</span> <span class="ident">expand_include</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">items</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../../syn/item/enum.Item.html">syn::Item</a><span class="op">&gt;</span>, <span class="ident">include</span>: <a class="ident" href="../../../src/vir_gen/ast/mod.rs.html#16-23">Include</a>) -&gt; <span class="ident">syn::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">module</span> <span class="op">=</span> <a class="self" href="../../../src/vir_gen/resolver/mod.rs.html#33">self</a>.<a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#136">find_component</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#33">include</a>.<span class="ident">path</span>)<span class="question-mark">?</span>;
-        <span class="kw">for</span> <span class="ident">imported_type</span> <span class="kw">in</span> <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#33">include</a>.<span class="ident">imported_types</span> {
+        <span class="kw">let</span> <span class="ident">module</span> <span class="op">=</span> <a class="self" href="../../../src/vir_gen/resolver/mod.rs.html#36">self</a>.<a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#139">find_component</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#36">include</a>.<span class="ident">path</span>)<span class="question-mark">?</span>;
+        <span class="kw">for</span> <span class="ident">imported_type</span> <span class="kw">in</span> <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#36">include</a>.<span class="ident">imported_types</span> {
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">found</span> <span class="op">=</span> <span class="bool-val">false</span>;
-            <span class="kw">for</span> <span class="ident">item</span> <span class="kw">in</span> <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#34">module</a> {
-                <span class="kw">match</span> <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#37">item</a> {
+            <span class="kw">for</span> <span class="ident">item</span> <span class="kw">in</span> <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#37">module</a> {
+                <span class="kw">match</span> <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#40">item</a> {
                     <span class="ident">syn::Item::Struct</span>(<a class="ident" href="../../../syn/item/struct.ItemStruct.html">syn::ItemStruct</a> { <span class="ident">ident</span>, .. })
                     <span class="op">|</span> <span class="ident">syn::Item::Enum</span>(<a class="ident" href="../../../syn/item/struct.ItemEnum.html">syn::ItemEnum</a> { <span class="ident">ident</span>, .. })
                     <span class="op">|</span> <span class="ident">syn::Item::Trait</span>(<a class="ident" href="../../../syn/item/struct.ItemTrait.html">syn::ItemTrait</a> { <span class="ident">ident</span>, .. })
-                        <span class="kw">if</span> <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#39">ident</a> <span class="op">==</span> <span class="kw-2">&amp;</span><a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#35">imported_type</a>.<span class="ident">name</span> =&gt;
+                        <span class="kw">if</span> <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#42">ident</a> <span class="op">==</span> <span class="kw-2">&amp;</span><a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#38">imported_type</a>.<span class="ident">name</span> =&gt;
                     {
-                        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">item</span> <span class="op">=</span> <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#37">item</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
-                        <span class="kw">match</span> <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#44">item</a> {
+                        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">item</span> <span class="op">=</span> <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#40">item</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+                        <span class="kw">match</span> <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#47">item</a> {
                             <span class="ident">syn::Item::Struct</span>(<a class="ident" href="../../../syn/item/struct.ItemStruct.html">syn::ItemStruct</a> { <span class="ident">ident</span>, <span class="ident">attrs</span>, .. })
                             <span class="op">|</span> <span class="ident">syn::Item::Enum</span>(<a class="ident" href="../../../syn/item/struct.ItemEnum.html">syn::ItemEnum</a> { <span class="ident">ident</span>, <span class="ident">attrs</span>, .. }) =&gt; {
-                                <span class="kw-2">*</span><a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#46">ident</a> <span class="op">=</span> <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#35">imported_type</a>.<span class="ident">alias</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
-                                <span class="kw">if</span> <span class="op">!</span><a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#33">include</a>.<span class="ident">derive_macros</span>.<span class="ident">is_empty</span>() {
+                                <span class="kw-2">*</span><a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#49">ident</a> <span class="op">=</span> <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#38">imported_type</a>.<span class="ident">alias</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+                                <span class="kw">if</span> <span class="op">!</span><a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#36">include</a>.<span class="ident">derive_macros</span>.<span class="ident">is_empty</span>() {
                                     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">derive_idents</span> <span class="op">=</span> <span class="ident">TokenStream::new</span>();
-                                    <span class="kw">for</span> <span class="ident">derive_macro</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#33">include</a>.<span class="ident">derive_macros</span> {
-                                        <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#50">derive_idents</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<span class="macro">quote!</span> {#<span class="ident">derive_macro</span>,});
+                                    <span class="kw">for</span> <span class="ident">derive_macro</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#36">include</a>.<span class="ident">derive_macros</span> {
+                                        <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#53">derive_idents</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<span class="macro">quote!</span> {#<span class="ident">derive_macro</span>,});
                                     }
-                                    <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#46">attrs</a>.<span class="ident">push</span>(<span class="macro">parse_quote!</span>(<span class="attribute">#[<span class="ident">derive</span>(#<span class="ident">derive_idents</span>)]</span>))
+                                    <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#49">attrs</a>.<span class="ident">push</span>(<span class="macro">parse_quote!</span>(<span class="attribute">#[<span class="ident">derive</span>(#<span class="ident">derive_idents</span>)]</span>))
                                 }
                             }
                             <span class="ident">syn::Item::Trait</span>(<a class="ident" href="../../../syn/item/struct.ItemTrait.html">syn::ItemTrait</a> { <span class="ident">ident</span>, .. }) =&gt; {
-                                <span class="kw-2">*</span><a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#57">ident</a> <span class="op">=</span> <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#35">imported_type</a>.<span class="ident">alias</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+                                <span class="kw-2">*</span><a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#60">ident</a> <span class="op">=</span> <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#38">imported_type</a>.<span class="ident">alias</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
                             }
                             <span class="kw">_</span> =&gt; <span class="macro">unreachable!</span>(),
                         }
-                        <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#33">items</a>.<span class="ident">push</span>(<a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#44">item</a>);
-                        <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#36">found</a> <span class="op">=</span> <span class="bool-val">true</span>;
+                        <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#36">items</a>.<span class="ident">push</span>(<a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#47">item</a>);
+                        <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#39">found</a> <span class="op">=</span> <span class="bool-val">true</span>;
                     }
                     <span class="ident">syn::Item::Impl</span>(<a class="ident" href="../../../syn/item/struct.ItemImpl.html">syn::ItemImpl</a> {
                         <span class="ident">trait_</span>: <span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="ident">path</span>, <span class="kw">_</span>)),
                         ..
-                    }) <span class="kw">if</span> <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#66">path</a>.<span class="ident">is_ident</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#35">imported_type</a>.<span class="ident">name</span>) =&gt; {
-                        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">item</span> <span class="op">=</span> <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#37">item</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
-                        <span class="kw">match</span> <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#69">item</a> {
+                    }) <span class="kw">if</span> <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#69">path</a>.<span class="ident">is_ident</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#38">imported_type</a>.<span class="ident">name</span>) =&gt; {
+                        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">item</span> <span class="op">=</span> <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#40">item</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+                        <span class="kw">match</span> <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#72">item</a> {
                             <span class="ident">syn::Item::Impl</span>(<a class="ident" href="../../../syn/item/struct.ItemImpl.html">syn::ItemImpl</a> {
                                 <span class="ident">trait_</span>: <span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="ident">path</span>, <span class="kw">_</span>)),
                                 ..
                             }) =&gt; {
-                                <span class="kw-2">*</span><a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#72">path</a> <span class="op">=</span> <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#35">imported_type</a>.<span class="ident">alias</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
+                                <span class="kw-2">*</span><a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#75">path</a> <span class="op">=</span> <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#38">imported_type</a>.<span class="ident">alias</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
                             }
                             <span class="kw">_</span> =&gt; <span class="macro">unreachable!</span>(),
                         }
-                        <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#33">items</a>.<span class="ident">push</span>(<a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#69">item</a>);
+                        <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#36">items</a>.<span class="ident">push</span>(<a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#72">item</a>);
                     }
-                    <span class="ident">syn::Item::Impl</span>(<a class="ident" href="../../../syn/item/struct.ItemImpl.html">syn::ItemImpl</a> { <span class="ident">self_ty</span>, .. }) =&gt; <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="kw-2">*</span><a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#81">self_ty</a> {
+                    <span class="ident">syn::Item::Impl</span>(<a class="ident" href="../../../syn/item/struct.ItemImpl.html">syn::ItemImpl</a> { <span class="ident">self_ty</span>, .. }) =&gt; <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="kw-2">*</span><a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#84">self_ty</a> {
                         <span class="ident">syn::Type::Path</span>(<a class="ident" href="../../../syn/ty/struct.TypePath.html">syn::TypePath</a> { <span class="ident">qself</span>: <span class="prelude-val">None</span>, <span class="ident">path</span> })
-                            <span class="kw">if</span> <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#82">path</a>.<span class="ident">is_ident</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#35">imported_type</a>.<span class="ident">name</span>) =&gt;
+                            <span class="kw">if</span> <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#85">path</a>.<span class="ident">is_ident</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#38">imported_type</a>.<span class="ident">name</span>) =&gt;
                         {
-                            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">item</span> <span class="op">=</span> <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#37">item</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
-                            <span class="kw">match</span> <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#85">item</a> {
+                            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">item</span> <span class="op">=</span> <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#40">item</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+                            <span class="kw">match</span> <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#88">item</a> {
                                 <span class="ident">syn::Item::Impl</span>(<a class="ident" href="../../../syn/item/struct.ItemImpl.html">syn::ItemImpl</a> { <span class="ident">self_ty</span>, .. }) =&gt; {
-                                    <span class="kw-2">*</span><a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#87">self_ty</a> <span class="op">=</span> <span class="ident">Box::new</span>(<span class="ident">syn::Type::Path</span>(<a class="ident" href="../../../syn/ty/struct.TypePath.html">syn::TypePath</a> {
+                                    <span class="kw-2">*</span><a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#90">self_ty</a> <span class="op">=</span> <span class="ident">Box::new</span>(<span class="ident">syn::Type::Path</span>(<a class="ident" href="../../../syn/ty/struct.TypePath.html">syn::TypePath</a> {
                                         <span class="ident">qself</span>: <span class="prelude-val">None</span>,
-                                        <span class="ident">path</span>: <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#35">imported_type</a>.<span class="ident">alias</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
+                                        <span class="ident">path</span>: <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#38">imported_type</a>.<span class="ident">alias</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
                                     }));
                                 }
                                 <span class="kw">_</span> =&gt; <span class="macro">unreachable!</span>(),
                             }
-                            <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#33">items</a>.<span class="ident">push</span>(<a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#85">item</a>);
+                            <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#36">items</a>.<span class="ident">push</span>(<a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#88">item</a>);
                         }
                         <span class="kw">_</span> =&gt; {}
                     },
                     <span class="ident">syn::Item::Macro</span>(<a class="ident" href="../../../syn/item/struct.ItemMacro.html">syn::ItemMacro</a> { <span class="ident">mac</span>, .. })
-                        <span class="kw">if</span> <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#99">mac</a>.<span class="ident">path</span>.<span class="ident">is_ident</span>(<span class="string">&quot;vir_raw_block&quot;</span>) =&gt;
+                        <span class="kw">if</span> <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#102">mac</a>.<span class="ident">path</span>.<span class="ident">is_ident</span>(<span class="string">&quot;vir_raw_block&quot;</span>) =&gt;
                     {
-                        <span class="kw">let</span> <span class="ident">block</span> <span class="op">=</span> <span class="ident">syn::parse2</span>::<span class="op">&lt;</span><a class="ident" href="../../../src/vir_gen/ast/mod.rs.html#31-36">RawBlock</a><span class="op">&gt;</span>(<a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#99">mac</a>.<span class="ident">tokens</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())<span class="question-mark">?</span>;
-                        <span class="kw">if</span> <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#102">block</a>.<span class="ident">name</span> <span class="op">==</span> <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#35">imported_type</a>.<span class="ident">name</span> {
-                            <span class="kw">for</span> <span class="ident">item</span> <span class="kw">in</span> <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#102">block</a>.<span class="ident">content</span> {
-                                <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#33">items</a>.<span class="ident">push</span>(<a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#104">item</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
+                        <span class="kw">let</span> <span class="ident">block</span> <span class="op">=</span> <span class="ident">syn::parse2</span>::<span class="op">&lt;</span><a class="ident" href="../../../src/vir_gen/ast/mod.rs.html#31-36">RawBlock</a><span class="op">&gt;</span>(<a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#102">mac</a>.<span class="ident">tokens</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())<span class="question-mark">?</span>;
+                        <span class="kw">if</span> <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#105">block</a>.<span class="ident">name</span> <span class="op">==</span> <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#38">imported_type</a>.<span class="ident">name</span> {
+                            <span class="kw">for</span> <span class="ident">item</span> <span class="kw">in</span> <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#105">block</a>.<span class="ident">content</span> {
+                                <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#36">items</a>.<span class="ident">push</span>(<a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#107">item</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
                             }
-                            <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#36">found</a> <span class="op">=</span> <span class="bool-val">true</span>;
+                            <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#39">found</a> <span class="op">=</span> <span class="bool-val">true</span>;
                         }
                     }
                     <span class="kw">_</span> =&gt; {}
                 }
             }
-            <span class="kw">if</span> <span class="op">!</span><a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#36">found</a> {
+            <span class="kw">if</span> <span class="op">!</span><a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#39">found</a> {
                 <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">syn::Error::new</span>(
-                    <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#35">imported_type</a>.<span class="ident">name</span>.<span class="ident">span</span>(),
-                    <span class="macro">format!</span>(<span class="string">&quot;not found {}&quot;</span>, <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#35">imported_type</a>.<span class="ident">name</span>),
+                    <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#38">imported_type</a>.<span class="ident">name</span>.<span class="ident">span</span>(),
+                    <span class="macro">format!</span>(<span class="string">&quot;not found {}&quot;</span>, <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#38">imported_type</a>.<span class="ident">name</span>),
                 ));
             }
         }
@@ -432,9 +438,9 @@
         <span class="ident">items</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../../syn/item/enum.Item.html">syn::Item</a><span class="op">&gt;</span>,
         <span class="ident">copy_module</span>: <a class="ident" href="../../../src/vir_gen/ast/mod.rs.html#26-29">CopyModule</a>,
     ) -&gt; <span class="ident">syn::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">content</span> <span class="op">=</span> <a class="self" href="../../../src/vir_gen/resolver/mod.rs.html#123">self</a>.<a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#136">find_component</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#125">copy_module</a>.<span class="ident">path</span>)<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">module_name</span> <span class="op">=</span> <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#125">copy_module</a>.<span class="ident">path</span>.<span class="ident">segments</span>.<span class="ident">last</span>().<span class="ident">unwrap</span>().<span class="ident">ident</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
-        <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#124">items</a>.<span class="ident">push</span>(<span class="macro">syn::parse_quote!</span> {
+        <span class="kw">let</span> <span class="ident">content</span> <span class="op">=</span> <a class="self" href="../../../src/vir_gen/resolver/mod.rs.html#126">self</a>.<a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#139">find_component</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#128">copy_module</a>.<span class="ident">path</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">module_name</span> <span class="op">=</span> <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#128">copy_module</a>.<span class="ident">path</span>.<span class="ident">segments</span>.<span class="ident">last</span>().<span class="ident">unwrap</span>().<span class="ident">ident</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+        <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#127">items</a>.<span class="ident">push</span>(<span class="macro">syn::parse_quote!</span> {
             <span class="kw">pub</span> <span class="kw">mod</span> #<span class="ident">module_name</span> {
                 #(#<span class="ident">content</span>)<span class="op">*</span>
             }
@@ -442,171 +448,171 @@
         <span class="prelude-val">Ok</span>(())
     }
     <span class="kw">fn</span> <span class="ident">find_component</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">path</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../syn/path/struct.Path.html">syn::Path</a>) -&gt; <span class="ident">syn::Result</span><span class="op">&lt;</span><span class="kw-2">&amp;</span>[<a class="ident" href="../../../syn/item/enum.Item.html">syn::Item</a>]<span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">segments</span> <span class="op">=</span> <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#136">path</a>.<span class="ident">segments</span>.<span class="ident">iter</span>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">current_mod</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">first</span>) <span class="op">=</span> <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#136">path</a>.<span class="ident">segments</span>.<span class="ident">first</span>() {
-            <span class="kw">if</span> <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#138">first</a>.<span class="ident">ident</span> <span class="op">==</span> <span class="string">&quot;crate&quot;</span> <span class="op">&amp;&amp;</span> <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#138">first</a>.<span class="ident">arguments</span> <span class="op">==</span> <span class="ident">syn::PathArguments::None</span> {
-                <span class="kw">if</span> <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#136">path</a>.<span class="ident">segments</span>.<span class="ident">len</span>() <span class="op">&lt;</span> <span class="number">2</span> {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">segments</span> <span class="op">=</span> <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#139">path</a>.<span class="ident">segments</span>.<span class="ident">iter</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">current_mod</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">first</span>) <span class="op">=</span> <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#139">path</a>.<span class="ident">segments</span>.<span class="ident">first</span>() {
+            <span class="kw">if</span> <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#141">first</a>.<span class="ident">ident</span> <span class="op">==</span> <span class="string">&quot;crate&quot;</span> <span class="op">&amp;&amp;</span> <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#141">first</a>.<span class="ident">arguments</span> <span class="op">==</span> <span class="ident">syn::PathArguments::None</span> {
+                <span class="kw">if</span> <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#139">path</a>.<span class="ident">segments</span>.<span class="ident">len</span>() <span class="op">&lt;</span> <span class="number">2</span> {
                     <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">syn::Error::new</span>(
-                        <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#136">path</a>.<a class="ident" href="../../../syn/spanned/trait.Spanned.html">span</a>(),
+                        <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#139">path</a>.<a class="ident" href="../../../syn/spanned/trait.Spanned.html">span</a>(),
                         <span class="string">&quot;must be at least two segments long&quot;</span>,
                     ));
                 }
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">current_mod</span> <span class="op">=</span> <span class="prelude-val">None</span>;
-                <span class="kw">for</span> <span class="ident">ir</span> <span class="kw">in</span> <a class="self" href="../../../src/vir_gen/resolver/mod.rs.html#136">self</a>.<span class="ident">expanded_irs</span> {
-                    <span class="kw">if</span> <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#147">ir</a>.<span class="ident">ident</span> <span class="op">==</span> <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#136">path</a>.<span class="ident">segments</span>[<span class="number">1</span>].<span class="ident">ident</span> {
-                        <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#146">current_mod</a> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#147">ir</a>);
+                <span class="kw">for</span> <span class="ident">ir</span> <span class="kw">in</span> <a class="self" href="../../../src/vir_gen/resolver/mod.rs.html#139">self</a>.<span class="ident">expanded_irs</span> {
+                    <span class="kw">if</span> <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#150">ir</a>.<span class="ident">ident</span> <span class="op">==</span> <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#139">path</a>.<span class="ident">segments</span>[<span class="number">1</span>].<span class="ident">ident</span> {
+                        <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#149">current_mod</a> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#150">ir</a>);
                         <span class="kw">break</span>;
                     }
                 }
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">current_mod</span>) <span class="op">=</span> <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#146">current_mod</a> {
-                    <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#137">segments</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>();
-                    <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#137">segments</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>();
-                    <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#153">current_mod</a>
+                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">current_mod</span>) <span class="op">=</span> <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#149">current_mod</a> {
+                    <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#140">segments</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>();
+                    <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#140">segments</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>();
+                    <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#156">current_mod</a>
                 } <span class="kw">else</span> {
                     <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">syn::Error::new</span>(
-                        <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#136">path</a>.<a class="ident" href="../../../syn/spanned/trait.Spanned.html">span</a>(),
+                        <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#139">path</a>.<a class="ident" href="../../../syn/spanned/trait.Spanned.html">span</a>(),
                         <span class="string">&quot;the module was not yet expanded&quot;</span>,
                     ));
                 }
             } <span class="kw">else</span> {
-                <a class="self" href="../../../src/vir_gen/resolver/mod.rs.html#136">self</a>.<span class="ident">components</span>
+                <a class="self" href="../../../src/vir_gen/resolver/mod.rs.html#139">self</a>.<span class="ident">components</span>
             }
         } <span class="kw">else</span> {
-            <a class="self" href="../../../src/vir_gen/resolver/mod.rs.html#136">self</a>.<span class="ident">components</span>
+            <a class="self" href="../../../src/vir_gen/resolver/mod.rs.html#139">self</a>.<span class="ident">components</span>
         };
-        <span class="kw">for</span> <span class="ident">segment</span> <span class="kw">in</span> <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#137">segments</a> {
-            <span class="kw">let</span> (<span class="kw">_</span>, <span class="ident">content</span>) <span class="op">=</span> <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#138">current_mod</a>
+        <span class="kw">for</span> <span class="ident">segment</span> <span class="kw">in</span> <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#140">segments</a> {
+            <span class="kw">let</span> (<span class="kw">_</span>, <span class="ident">content</span>) <span class="op">=</span> <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#141">current_mod</a>
                 .<span class="ident">content</span>
                 .<span class="ident">as_ref</span>()
                 .<span class="ident">expect</span>(<span class="string">&quot;bug: expander did not expand all modules&quot;</span>);
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">found</span> <span class="op">=</span> <span class="bool-val">false</span>;
-            <span class="kw">for</span> <span class="ident">item</span> <span class="kw">in</span> <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#170">content</a> {
-                <span class="kw">if</span> <span class="kw">let</span> <span class="ident">syn::Item::Mod</span>(<span class="ident">module</span>) <span class="op">=</span> <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#175">item</a> {
-                    <span class="kw">if</span> <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#176">module</a>.<span class="ident">ident</span> <span class="op">==</span> <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#169">segment</a>.<span class="ident">ident</span> {
-                        <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#138">current_mod</a> <span class="op">=</span> <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#176">module</a>;
-                        <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#174">found</a> <span class="op">=</span> <span class="bool-val">true</span>;
+            <span class="kw">for</span> <span class="ident">item</span> <span class="kw">in</span> <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#173">content</a> {
+                <span class="kw">if</span> <span class="kw">let</span> <span class="ident">syn::Item::Mod</span>(<span class="ident">module</span>) <span class="op">=</span> <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#178">item</a> {
+                    <span class="kw">if</span> <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#179">module</a>.<span class="ident">ident</span> <span class="op">==</span> <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#172">segment</a>.<span class="ident">ident</span> {
+                        <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#141">current_mod</a> <span class="op">=</span> <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#179">module</a>;
+                        <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#177">found</a> <span class="op">=</span> <span class="bool-val">true</span>;
                         <span class="kw">break</span>;
                     }
                 }
             }
-            <span class="kw">if</span> <span class="op">!</span><a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#174">found</a> {
-                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">syn::Error::new</span>(<a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#169">segment</a>.<a class="ident" href="../../../syn/spanned/trait.Spanned.html">span</a>(), <span class="string">&quot;not found matching module&quot;</span>));
+            <span class="kw">if</span> <span class="op">!</span><a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#177">found</a> {
+                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">syn::Error::new</span>(<a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#172">segment</a>.<a class="ident" href="../../../syn/spanned/trait.Spanned.html">span</a>(), <span class="string">&quot;not found matching module&quot;</span>));
             }
         }
-        <span class="kw">let</span> (<span class="kw">_</span>, <span class="ident">content</span>) <span class="op">=</span> <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#138">current_mod</a>
+        <span class="kw">let</span> (<span class="kw">_</span>, <span class="ident">content</span>) <span class="op">=</span> <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#141">current_mod</a>
             .<span class="ident">content</span>
             .<span class="ident">as_ref</span>()
             .<span class="ident">expect</span>(<span class="string">&quot;bug (2): expander did not expand all modules&quot;</span>);
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#188">content</a>)
+        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#191">content</a>)
     }
     <span class="doccomment">/// Add additional `#[derive(...)]` attributes.</span>
     <span class="kw">fn</span> <span class="ident">add_derives</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">attributes</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../../syn/attr/struct.Attribute.html">syn::Attribute</a><span class="op">&gt;</span>, <span class="ident">is_struct</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">new_attributes</span>: <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../../syn/attr/struct.Attribute.html">syn::Attribute</a><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
-        <span class="kw">for</span> <span class="ident">frame</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><a class="self" href="../../../src/vir_gen/resolver/mod.rs.html#195">self</a>.<span class="ident">new_derives</span> {
-            <span class="kw">for</span> <span class="ident">derive</span> <span class="kw">in</span> <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#197">frame</a> {
-                <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#196">new_attributes</a>.<span class="ident">push</span>(<span class="macro">parse_quote!</span> {
+        <span class="kw">for</span> <span class="ident">frame</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><a class="self" href="../../../src/vir_gen/resolver/mod.rs.html#198">self</a>.<span class="ident">new_derives</span> {
+            <span class="kw">for</span> <span class="ident">derive</span> <span class="kw">in</span> <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#200">frame</a> {
+                <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#199">new_attributes</a>.<span class="ident">push</span>(<span class="macro">parse_quote!</span> {
                     <span class="attribute">#[<span class="ident">derive</span>(#<span class="ident">derive</span>)]</span>
                 });
             }
         }
-        <span class="kw">if</span> <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#195">is_struct</a> {
-            <span class="kw">for</span> <span class="ident">frame</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><a class="self" href="../../../src/vir_gen/resolver/mod.rs.html#195">self</a>.<span class="ident">new_struct_derives</span> {
-                <span class="kw">for</span> <span class="ident">derive</span> <span class="kw">in</span> <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#205">frame</a> {
-                    <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#196">new_attributes</a>.<span class="ident">push</span>(<span class="macro">parse_quote!</span> {
+        <span class="kw">if</span> <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#198">is_struct</a> {
+            <span class="kw">for</span> <span class="ident">frame</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><a class="self" href="../../../src/vir_gen/resolver/mod.rs.html#198">self</a>.<span class="ident">new_struct_derives</span> {
+                <span class="kw">for</span> <span class="ident">derive</span> <span class="kw">in</span> <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#208">frame</a> {
+                    <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#199">new_attributes</a>.<span class="ident">push</span>(<span class="macro">parse_quote!</span> {
                         <span class="attribute">#[<span class="ident">derive</span>(#<span class="ident">derive</span>)]</span>
                     });
                 }
             }
         }
-        <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#196">new_attributes</a>.<span class="ident">append</span>(<a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#195">attributes</a>);
-        <span class="kw-2">*</span><a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#195">attributes</a> <span class="op">=</span> <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#196">new_attributes</a>;
+        <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#199">new_attributes</a>.<span class="ident">append</span>(<a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#198">attributes</a>);
+        <span class="kw-2">*</span><a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#198">attributes</a> <span class="op">=</span> <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#199">new_attributes</a>;
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <a class="ident" href="../../../syn/gen/fold/trait.Fold.html">Fold</a> <span class="kw">for</span> <span class="ident">Expander</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">fold_item_mod</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="kw-2">mut</span> <span class="ident">item_mod</span>: <a class="ident" href="../../../syn/item/struct.ItemMod.html">syn::ItemMod</a>) -&gt; <a class="ident" href="../../../syn/item/struct.ItemMod.html">syn::ItemMod</a> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="ident">brace</span>, <span class="ident">content</span>)) <span class="op">=</span> <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#219">item_mod</a>.<span class="ident">content</span> {
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="ident">brace</span>, <span class="ident">content</span>)) <span class="op">=</span> <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#222">item_mod</a>.<span class="ident">content</span> {
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">new_attributes</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">new_derives</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">new_struct_derives</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
-            <span class="kw">for</span> <span class="ident">attribute</span> <span class="kw">in</span> <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#219">item_mod</a>.<span class="ident">attrs</span> {
-                <span class="kw">match</span> <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#224">attribute</a> {
+            <span class="kw">for</span> <span class="ident">attribute</span> <span class="kw">in</span> <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#222">item_mod</a>.<span class="ident">attrs</span> {
+                <span class="kw">match</span> <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#227">attribute</a> {
                     <a class="ident" href="../../../syn/attr/struct.Attribute.html">syn::Attribute</a> {
                         <span class="ident">style</span>: <span class="ident">syn::AttrStyle::Outer</span>,
                         <span class="ident">path</span>,
                         <span class="ident">tokens</span>,
                         ..
-                    } <span class="kw">if</span> <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#228">path</a>.<span class="ident">is_ident</span>(<span class="string">&quot;derive_for_all&quot;</span>)
-                        <span class="op">|</span><span class="op">|</span> <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#228">path</a>.<span class="ident">is_ident</span>(<span class="string">&quot;derive_for_all_structs&quot;</span>) =&gt;
+                    } <span class="kw">if</span> <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#231">path</a>.<span class="ident">is_ident</span>(<span class="string">&quot;derive_for_all&quot;</span>)
+                        <span class="op">|</span><span class="op">|</span> <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#231">path</a>.<span class="ident">is_ident</span>(<span class="string">&quot;derive_for_all_structs&quot;</span>) =&gt;
                     {
-                        <span class="kw">match</span> <span class="ident">syn::parse2</span>::<span class="op">&lt;</span><a class="ident" href="../../../src/vir_gen/ast/mod.rs.html#67-69">CustomDeriveList</a><span class="op">&gt;</span>(<a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#229">tokens</a>) {
+                        <span class="kw">match</span> <span class="ident">syn::parse2</span>::<span class="op">&lt;</span><a class="ident" href="../../../src/vir_gen/ast/mod.rs.html#69-71">CustomDeriveList</a><span class="op">&gt;</span>(<a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#232">tokens</a>) {
                             <span class="prelude-val">Ok</span>(<span class="ident">list</span>) =&gt; {
-                                <span class="kw">if</span> <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#228">path</a>.<span class="ident">is_ident</span>(<span class="string">&quot;derive_for_all&quot;</span>) {
-                                    <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#222">new_derives</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#235">list</a>.<span class="ident">derives</span>);
+                                <span class="kw">if</span> <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#231">path</a>.<span class="ident">is_ident</span>(<span class="string">&quot;derive_for_all&quot;</span>) {
+                                    <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#225">new_derives</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#238">list</a>.<span class="ident">derives</span>);
                                 } <span class="kw">else</span> {
-                                    <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#223">new_struct_derives</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#235">list</a>.<span class="ident">derives</span>);
+                                    <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#226">new_struct_derives</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#238">list</a>.<span class="ident">derives</span>);
                                 }
                             }
                             <span class="prelude-val">Err</span>(<span class="ident">error</span>) =&gt; {
-                                <a class="self" href="../../../src/vir_gen/resolver/mod.rs.html#219">self</a>.<span class="ident">errors</span>.<span class="ident">push</span>(<a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#242">error</a>);
+                                <a class="self" href="../../../src/vir_gen/resolver/mod.rs.html#222">self</a>.<a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#33">register_error</a>(<a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#245">error</a>);
                             }
                         }
                     }
                     <span class="kw">_</span> =&gt; {
-                        <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#221">new_attributes</a>.<span class="ident">push</span>(<a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#224">attribute</a>);
+                        <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#224">new_attributes</a>.<span class="ident">push</span>(<a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#227">attribute</a>);
                     }
                 }
             }
-            <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#219">item_mod</a>.<span class="ident">attrs</span> <span class="op">=</span> <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#221">new_attributes</a>;
-            <a class="self" href="../../../src/vir_gen/resolver/mod.rs.html#219">self</a>.<span class="ident">new_derives</span>.<span class="ident">push</span>(<a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#222">new_derives</a>);
-            <a class="self" href="../../../src/vir_gen/resolver/mod.rs.html#219">self</a>.<span class="ident">new_struct_derives</span>.<span class="ident">push</span>(<a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#223">new_struct_derives</a>);
+            <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#222">item_mod</a>.<span class="ident">attrs</span> <span class="op">=</span> <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#224">new_attributes</a>;
+            <a class="self" href="../../../src/vir_gen/resolver/mod.rs.html#222">self</a>.<span class="ident">new_derives</span>.<span class="ident">push</span>(<a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#225">new_derives</a>);
+            <a class="self" href="../../../src/vir_gen/resolver/mod.rs.html#222">self</a>.<span class="ident">new_struct_derives</span>.<span class="ident">push</span>(<a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#226">new_struct_derives</a>);
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">new_content</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
-            <span class="kw">for</span> <span class="ident">item</span> <span class="kw">in</span> <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#220">content</a> {
-                <span class="kw">match</span> <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#256">item</a> {
-                    <span class="ident">syn::Item::Macro</span>(<span class="ident">macro_item</span>) <span class="kw">if</span> <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#258">macro_item</a>.<span class="ident">mac</span>.<span class="ident">path</span>.<span class="ident">is_ident</span>(<span class="string">&quot;vir_include&quot;</span>) =&gt; {
-                        <span class="kw">match</span> <span class="ident">syn::parse2</span>::<span class="op">&lt;</span><a class="ident" href="../../../src/vir_gen/ast/mod.rs.html#16-23">Include</a><span class="op">&gt;</span>(<a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#258">macro_item</a>.<span class="ident">mac</span>.<span class="ident">tokens</span>) {
+            <span class="kw">for</span> <span class="ident">item</span> <span class="kw">in</span> <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#223">content</a> {
+                <span class="kw">match</span> <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#259">item</a> {
+                    <span class="ident">syn::Item::Macro</span>(<span class="ident">macro_item</span>) <span class="kw">if</span> <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#261">macro_item</a>.<span class="ident">mac</span>.<span class="ident">path</span>.<span class="ident">is_ident</span>(<span class="string">&quot;vir_include&quot;</span>) =&gt; {
+                        <span class="kw">match</span> <span class="ident">syn::parse2</span>::<span class="op">&lt;</span><a class="ident" href="../../../src/vir_gen/ast/mod.rs.html#16-23">Include</a><span class="op">&gt;</span>(<a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#261">macro_item</a>.<span class="ident">mac</span>.<span class="ident">tokens</span>) {
                             <span class="prelude-val">Ok</span>(<span class="ident">include</span>) =&gt; {
-                                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">error</span>) <span class="op">=</span> <a class="self" href="../../../src/vir_gen/resolver/mod.rs.html#219">self</a>.<a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#33">expand_include</a>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#255">new_content</a>, <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#260">include</a>) {
-                                    <a class="self" href="../../../src/vir_gen/resolver/mod.rs.html#219">self</a>.<span class="ident">errors</span>.<span class="ident">push</span>(<a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#261">error</a>);
+                                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">error</span>) <span class="op">=</span> <a class="self" href="../../../src/vir_gen/resolver/mod.rs.html#222">self</a>.<a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#36">expand_include</a>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#258">new_content</a>, <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#263">include</a>) {
+                                    <a class="self" href="../../../src/vir_gen/resolver/mod.rs.html#222">self</a>.<a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#33">register_error</a>(<a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#264">error</a>);
                                 }
                             }
                             <span class="prelude-val">Err</span>(<span class="ident">error</span>) =&gt; {
-                                <a class="self" href="../../../src/vir_gen/resolver/mod.rs.html#219">self</a>.<span class="ident">errors</span>.<span class="ident">push</span>(<a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#265">error</a>);
+                                <a class="self" href="../../../src/vir_gen/resolver/mod.rs.html#222">self</a>.<a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#33">register_error</a>(<a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#268">error</a>);
                             }
                         }
                     }
-                    <span class="ident">syn::Item::Macro</span>(<span class="ident">macro_item</span>) <span class="kw">if</span> <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#270">macro_item</a>.<span class="ident">mac</span>.<span class="ident">path</span>.<span class="ident">is_ident</span>(<span class="string">&quot;copy_module&quot;</span>) =&gt; {
-                        <span class="kw">match</span> <span class="ident">syn::parse2</span>::<span class="op">&lt;</span><a class="ident" href="../../../src/vir_gen/ast/mod.rs.html#26-29">CopyModule</a><span class="op">&gt;</span>(<a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#270">macro_item</a>.<span class="ident">mac</span>.<span class="ident">tokens</span>) {
+                    <span class="ident">syn::Item::Macro</span>(<span class="ident">macro_item</span>) <span class="kw">if</span> <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#273">macro_item</a>.<span class="ident">mac</span>.<span class="ident">path</span>.<span class="ident">is_ident</span>(<span class="string">&quot;copy_module&quot;</span>) =&gt; {
+                        <span class="kw">match</span> <span class="ident">syn::parse2</span>::<span class="op">&lt;</span><a class="ident" href="../../../src/vir_gen/ast/mod.rs.html#26-29">CopyModule</a><span class="op">&gt;</span>(<a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#273">macro_item</a>.<span class="ident">mac</span>.<span class="ident">tokens</span>) {
                             <span class="prelude-val">Ok</span>(<span class="ident">copy_from</span>) =&gt; {
                                 <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">error</span>) <span class="op">=</span>
-                                    <a class="self" href="../../../src/vir_gen/resolver/mod.rs.html#219">self</a>.<a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#122-126">expand_copy_module</a>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#255">new_content</a>, <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#272">copy_from</a>)
+                                    <a class="self" href="../../../src/vir_gen/resolver/mod.rs.html#222">self</a>.<a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#125-129">expand_copy_module</a>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#258">new_content</a>, <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#275">copy_from</a>)
                                 {
-                                    <a class="self" href="../../../src/vir_gen/resolver/mod.rs.html#219">self</a>.<span class="ident">errors</span>.<span class="ident">push</span>(<a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#273">error</a>);
+                                    <a class="self" href="../../../src/vir_gen/resolver/mod.rs.html#222">self</a>.<a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#33">register_error</a>(<a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#276">error</a>);
                                 }
                             }
                             <span class="prelude-val">Err</span>(<span class="ident">error</span>) =&gt; {
-                                <a class="self" href="../../../src/vir_gen/resolver/mod.rs.html#219">self</a>.<span class="ident">errors</span>.<span class="ident">push</span>(<a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#279">error</a>);
+                                <a class="self" href="../../../src/vir_gen/resolver/mod.rs.html#222">self</a>.<a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#33">register_error</a>(<a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#282">error</a>);
                             }
                         }
                     }
                     <span class="kw">_</span> =&gt; {
-                        <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#255">new_content</a>.<span class="ident">push</span>(<span class="ident">syn::fold::fold_item</span>(<a class="self" href="../../../src/vir_gen/resolver/mod.rs.html#219">self</a>, <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#256">item</a>));
+                        <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#258">new_content</a>.<span class="ident">push</span>(<span class="ident">syn::fold::fold_item</span>(<a class="self" href="../../../src/vir_gen/resolver/mod.rs.html#222">self</a>, <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#259">item</a>));
                     }
                 }
             }
-            <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#219">item_mod</a>.<span class="ident">content</span> <span class="op">=</span> <span class="prelude-val">Some</span>((<a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#220">brace</a>, <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#255">new_content</a>));
-            <a class="self" href="../../../src/vir_gen/resolver/mod.rs.html#219">self</a>.<span class="ident">new_derives</span>.<span class="ident">pop</span>();
-            <a class="self" href="../../../src/vir_gen/resolver/mod.rs.html#219">self</a>.<span class="ident">new_struct_derives</span>.<span class="ident">pop</span>();
+            <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#222">item_mod</a>.<span class="ident">content</span> <span class="op">=</span> <span class="prelude-val">Some</span>((<a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#223">brace</a>, <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#258">new_content</a>));
+            <a class="self" href="../../../src/vir_gen/resolver/mod.rs.html#222">self</a>.<span class="ident">new_derives</span>.<span class="ident">pop</span>();
+            <a class="self" href="../../../src/vir_gen/resolver/mod.rs.html#222">self</a>.<span class="ident">new_struct_derives</span>.<span class="ident">pop</span>();
         }
-        <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#219">item_mod</a>
+        <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#222">item_mod</a>
     }
     <span class="kw">fn</span> <span class="ident">fold_item_enum</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="kw-2">mut</span> <span class="ident">item</span>: <a class="ident" href="../../../syn/item/struct.ItemEnum.html">syn::ItemEnum</a>) -&gt; <a class="ident" href="../../../syn/item/struct.ItemEnum.html">syn::ItemEnum</a> {
-        <a class="self" href="../../../src/vir_gen/resolver/mod.rs.html#295">self</a>.<a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#195">add_derives</a>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#295">item</a>.<span class="ident">attrs</span>, <span class="bool-val">false</span>);
-        <span class="ident">syn::fold::fold_item_enum</span>(<a class="self" href="../../../src/vir_gen/resolver/mod.rs.html#295">self</a>, <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#295">item</a>)
+        <a class="self" href="../../../src/vir_gen/resolver/mod.rs.html#298">self</a>.<a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#198">add_derives</a>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#298">item</a>.<span class="ident">attrs</span>, <span class="bool-val">false</span>);
+        <span class="ident">syn::fold::fold_item_enum</span>(<a class="self" href="../../../src/vir_gen/resolver/mod.rs.html#298">self</a>, <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#298">item</a>)
     }
     <span class="kw">fn</span> <span class="ident">fold_item_struct</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="kw-2">mut</span> <span class="ident">item</span>: <a class="ident" href="../../../syn/item/struct.ItemStruct.html">syn::ItemStruct</a>) -&gt; <a class="ident" href="../../../syn/item/struct.ItemStruct.html">syn::ItemStruct</a> {
-        <a class="self" href="../../../src/vir_gen/resolver/mod.rs.html#299">self</a>.<a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#195">add_derives</a>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#299">item</a>.<span class="ident">attrs</span>, <span class="bool-val">true</span>);
-        <span class="ident">syn::fold::fold_item_struct</span>(<a class="self" href="../../../src/vir_gen/resolver/mod.rs.html#299">self</a>, <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#299">item</a>)
+        <a class="self" href="../../../src/vir_gen/resolver/mod.rs.html#302">self</a>.<a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#198">add_derives</a>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#302">item</a>.<span class="ident">attrs</span>, <span class="bool-val">true</span>);
+        <span class="ident">syn::fold::fold_item_struct</span>(<a class="self" href="../../../src/vir_gen/resolver/mod.rs.html#302">self</a>, <a class="ident" href="../../../src/vir_gen/resolver/mod.rs.html#302">item</a>)
     }
 }
 </code></pre></div>
