@@ -18,6 +18,7 @@ use std::fmt;
 use crate::utils::type_visitor::{self, TypeVisitor};
 use prusti_interface::specs::typed;
 use log::{trace};
+use prusti_interface::specs::typed::SpecItemIter;
 use crate::encoder::errors::EncodingError;
 use crate::encoder::errors::EncodingResult;
 
@@ -99,25 +100,25 @@ where
 }
 
 impl<L: fmt::Debug, P: fmt::Debug> ProcedureContractGeneric<L, P> {
-    pub fn functional_precondition(&self) -> &[LocalDefId] {
+    pub fn functional_precondition(&self) -> SpecItemIter<LocalDefId> {
         if let typed::SpecificationSet::Procedure(spec) = &self.specification {
-            &spec.pres
+            spec.pres.iter()
         } else {
             unreachable!("Unexpected: {:?}", self.specification)
         }
     }
 
-    pub fn functional_postcondition(&self) -> &[LocalDefId] {
+    pub fn functional_postcondition(&self) -> SpecItemIter<LocalDefId> {
         if let typed::SpecificationSet::Procedure(spec) = &self.specification {
-            &spec.posts
+            spec.posts.iter()
         } else {
             unreachable!("Unexpected: {:?}", self.specification)
         }
     }
 
-    pub fn pledges(&self) -> &[typed::Pledge] {
+    pub fn pledges(&self) -> SpecItemIter<typed::Pledge> {
         if let typed::SpecificationSet::Procedure(spec) = &self.specification {
-            &spec.pledges
+            spec.pledges.iter()
         } else {
             unreachable!("Unexpected: {:?}", self.specification)
         }

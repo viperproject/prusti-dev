@@ -307,6 +307,27 @@ impl<'tcx> Environment<'tcx> {
         self.tcx().associated_items(id).filter_by_name_unhygienic(name).next().cloned()
     }
 
+    /// Returns true iff `def_id` is a trait method
+    pub fn is_trait_method(&self, def_id: ProcedureDefId) -> bool {
+        self.tcx.trait_of_item(def_id).is_some()
+    }
+
+    /// Returns true iff `def_id` is an implementation of a trait method
+    pub fn is_trait_method_impl(&self, def_id: ProcedureDefId) -> bool {
+        self.tcx.impl_of_method(def_id)
+            .and_then(|impl_id| self.tcx.trait_id_of_impl(impl_id))
+            .is_some()
+    }
+
+    /// Returns the `DefId` of the corresponding trait method
+    pub fn find_trait_method(&self, impl_def_id: ProcedureDefId) -> Option<DefId> {
+        self.tcx
+            .impl_of_method(impl_def_id)
+            .and_then(|impl_id| self.tcx.trait_id_of_impl(impl_id))
+            .and_then(|trait_id| self.get_assoc_item(trait_id, self.tcx().item_name(impl_def_id)))
+            .map(|assoc_item| assoc_item.def_id)
+    }
+
     /// Given some procedure `proc_def_id` which is called, this method returns the actual method which will be executed when `proc_def_id` is defined on a trait.
     /// Returns `None` if this method can not be found or the provided `proc_def_id` is no trait item.
     pub fn find_impl_of_trait_method_call(&self, proc_def_id: ProcedureDefId, substs: SubstsRef<'tcx>) -> Option<ProcedureDefId> {
