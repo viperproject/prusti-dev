@@ -1,1 +1,0 @@
-initSidebarItems({"enum":[["AnyFnItem","An abstraction over all kinds of function items."]]});

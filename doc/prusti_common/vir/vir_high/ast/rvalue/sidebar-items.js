@@ -1,1 +1,0 @@
-initSidebarItems({"enum":[["OperandKind",""],["Rvalue",""]],"mod":[["visitors",""]],"struct":[["BinaryOp",""],["Operand",""],["UnaryOp",""]]});

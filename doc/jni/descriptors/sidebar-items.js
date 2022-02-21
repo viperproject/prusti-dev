@@ -1,1 +1,0 @@
-initSidebarItems({"trait":[["Desc","Trait for things that can be looked up through the JNI via a descriptor. This will be something like the fully-qualified class name `java/lang/String` or a tuple containing a class descriptor, method name, and method signature. For convenience, this is also implemented for the concrete types themselves in addition to their descriptors."]]});

@@ -1,1 +1,0 @@
-initSidebarItems({"enum":[["Statement",""]],"mod":[["visitors",""]],"struct":[["Assert","Assert a pure assertion."],["Assign",""],["Assume","Assume a pure assertion."],["Comment",""],["Conditional",""],["Exhale",""],["Fold",""],["Inhale",""],["MethodCall",""],["Unfold",""]]});

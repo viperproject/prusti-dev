@@ -1,1 +1,0 @@
-initSidebarItems({"struct":[["OnUpgrade","A future for a possible HTTP upgrade."],["Parts","The deconstructed parts of an `Upgraded` type."],["Upgraded","An upgraded HTTP connection."]]});

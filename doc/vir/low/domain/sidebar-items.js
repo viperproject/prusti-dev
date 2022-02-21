@@ -1,1 +1,0 @@
-initSidebarItems({"struct":[["DomainAxiomDecl",""],["DomainDecl",""],["DomainFunctionDecl",""]]});
