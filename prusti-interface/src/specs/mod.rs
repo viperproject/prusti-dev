@@ -20,6 +20,7 @@ use typed::SpecIdRef;
 
 use crate::specs::external::ExternSpecResolver;
 use prusti_specs::specifications::common::SpecificationId;
+use crate::specs::typed::SpecificationItem;
 
 #[derive(Debug)]
 struct ProcedureSpecRefs {
@@ -65,15 +66,17 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
         self.determine_loop_specs(&mut def_spec);
         self.determine_struct_specs(&mut def_spec);
         // TODO: remove spec functions (make sure none are duplicated or left over)
+
         def_spec
     }
 
     fn determine_procedure_specs(&self, def_spec: &mut typed::DefSpecificationMap) {
+        // First: Build specs as they are typed by the user
         for (local_id, refs) in self.procedure_specs.iter() {
             let mut pres = vec![];
             let mut posts = vec![];
             let mut pledges = vec![];
-            let mut predicate_body = None;
+            let mut predicate_body = SpecificationItem::Empty;
             for spec_id_ref in &refs.spec_id_refs {
                 match spec_id_ref {
                     SpecIdRef::Precondition(spec_id) => {
@@ -90,10 +93,32 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
                         });
                     }
                     SpecIdRef::Predicate(spec_id) => {
-                        predicate_body = Some(*self.spec_functions.get(spec_id).unwrap());
+                        predicate_body = SpecificationItem::Inherent(*self.spec_functions.get(spec_id).unwrap());
                     }
                 }
             }
+
+            let pres = if pres.is_empty() {
+                SpecificationItem::Empty
+            } else {
+                SpecificationItem::Inherent(pres)
+            };
+
+            let posts = if posts.is_empty() {
+                SpecificationItem::Empty
+            } else {
+                SpecificationItem::Inherent(posts)
+            };
+
+            let pledges = if pledges.is_empty() {
+                SpecificationItem::Empty
+            } else {
+                SpecificationItem::Inherent(pledges)
+            };
+
+            let pure = SpecificationItem::Inherent(refs.pure);
+            let trusted = SpecificationItem::Inherent(refs.trusted);
+
             def_spec.specs.insert(
                 *local_id,
                 typed::SpecificationSet::Procedure(typed::ProcedureSpecification {
@@ -101,8 +126,8 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
                     posts,
                     pledges,
                     predicate_body,
-                    pure: refs.pure,
-                    trusted: refs.trusted,
+                    pure,
+                    trusted,
                 })
             );
         }
