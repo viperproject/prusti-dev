@@ -96,6 +96,7 @@ pub enum SpecificationItem<T> {
 }
 
 impl<T> SpecificationItem<T> {
+    /// Returns the contained value of this item
     pub fn get(&self) -> Option<(Option<&T>, &T)> {
         match self {
             SpecificationItem::Empty => None,
