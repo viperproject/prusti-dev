@@ -1,0 +1,1 @@
+initSidebarItems({"fn":[["cookie","Creates a `Filter` that requires a cookie by name."],["optional","Creates a `Filter` that looks for an optional cookie by name."]]});

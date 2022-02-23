@@ -1,0 +1,1704 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `prusti-specs/src/specifications/preparser.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>preparser.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
+    <noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../prusti_specs/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
+        </a><h2 class="location"></h2>
+    </nav>
+    <nav class="sidebar"><a class="sidebar-logo" href="../../../prusti_specs/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
+        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../prusti_specs/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><div class="theme-picker hidden"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="22" height="22" alt="Pick another theme!" src="../../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
+<span id="2">  2</span>
+<span id="3">  3</span>
+<span id="4">  4</span>
+<span id="5">  5</span>
+<span id="6">  6</span>
+<span id="7">  7</span>
+<span id="8">  8</span>
+<span id="9">  9</span>
+<span id="10"> 10</span>
+<span id="11"> 11</span>
+<span id="12"> 12</span>
+<span id="13"> 13</span>
+<span id="14"> 14</span>
+<span id="15"> 15</span>
+<span id="16"> 16</span>
+<span id="17"> 17</span>
+<span id="18"> 18</span>
+<span id="19"> 19</span>
+<span id="20"> 20</span>
+<span id="21"> 21</span>
+<span id="22"> 22</span>
+<span id="23"> 23</span>
+<span id="24"> 24</span>
+<span id="25"> 25</span>
+<span id="26"> 26</span>
+<span id="27"> 27</span>
+<span id="28"> 28</span>
+<span id="29"> 29</span>
+<span id="30"> 30</span>
+<span id="31"> 31</span>
+<span id="32"> 32</span>
+<span id="33"> 33</span>
+<span id="34"> 34</span>
+<span id="35"> 35</span>
+<span id="36"> 36</span>
+<span id="37"> 37</span>
+<span id="38"> 38</span>
+<span id="39"> 39</span>
+<span id="40"> 40</span>
+<span id="41"> 41</span>
+<span id="42"> 42</span>
+<span id="43"> 43</span>
+<span id="44"> 44</span>
+<span id="45"> 45</span>
+<span id="46"> 46</span>
+<span id="47"> 47</span>
+<span id="48"> 48</span>
+<span id="49"> 49</span>
+<span id="50"> 50</span>
+<span id="51"> 51</span>
+<span id="52"> 52</span>
+<span id="53"> 53</span>
+<span id="54"> 54</span>
+<span id="55"> 55</span>
+<span id="56"> 56</span>
+<span id="57"> 57</span>
+<span id="58"> 58</span>
+<span id="59"> 59</span>
+<span id="60"> 60</span>
+<span id="61"> 61</span>
+<span id="62"> 62</span>
+<span id="63"> 63</span>
+<span id="64"> 64</span>
+<span id="65"> 65</span>
+<span id="66"> 66</span>
+<span id="67"> 67</span>
+<span id="68"> 68</span>
+<span id="69"> 69</span>
+<span id="70"> 70</span>
+<span id="71"> 71</span>
+<span id="72"> 72</span>
+<span id="73"> 73</span>
+<span id="74"> 74</span>
+<span id="75"> 75</span>
+<span id="76"> 76</span>
+<span id="77"> 77</span>
+<span id="78"> 78</span>
+<span id="79"> 79</span>
+<span id="80"> 80</span>
+<span id="81"> 81</span>
+<span id="82"> 82</span>
+<span id="83"> 83</span>
+<span id="84"> 84</span>
+<span id="85"> 85</span>
+<span id="86"> 86</span>
+<span id="87"> 87</span>
+<span id="88"> 88</span>
+<span id="89"> 89</span>
+<span id="90"> 90</span>
+<span id="91"> 91</span>
+<span id="92"> 92</span>
+<span id="93"> 93</span>
+<span id="94"> 94</span>
+<span id="95"> 95</span>
+<span id="96"> 96</span>
+<span id="97"> 97</span>
+<span id="98"> 98</span>
+<span id="99"> 99</span>
+<span id="100">100</span>
+<span id="101">101</span>
+<span id="102">102</span>
+<span id="103">103</span>
+<span id="104">104</span>
+<span id="105">105</span>
+<span id="106">106</span>
+<span id="107">107</span>
+<span id="108">108</span>
+<span id="109">109</span>
+<span id="110">110</span>
+<span id="111">111</span>
+<span id="112">112</span>
+<span id="113">113</span>
+<span id="114">114</span>
+<span id="115">115</span>
+<span id="116">116</span>
+<span id="117">117</span>
+<span id="118">118</span>
+<span id="119">119</span>
+<span id="120">120</span>
+<span id="121">121</span>
+<span id="122">122</span>
+<span id="123">123</span>
+<span id="124">124</span>
+<span id="125">125</span>
+<span id="126">126</span>
+<span id="127">127</span>
+<span id="128">128</span>
+<span id="129">129</span>
+<span id="130">130</span>
+<span id="131">131</span>
+<span id="132">132</span>
+<span id="133">133</span>
+<span id="134">134</span>
+<span id="135">135</span>
+<span id="136">136</span>
+<span id="137">137</span>
+<span id="138">138</span>
+<span id="139">139</span>
+<span id="140">140</span>
+<span id="141">141</span>
+<span id="142">142</span>
+<span id="143">143</span>
+<span id="144">144</span>
+<span id="145">145</span>
+<span id="146">146</span>
+<span id="147">147</span>
+<span id="148">148</span>
+<span id="149">149</span>
+<span id="150">150</span>
+<span id="151">151</span>
+<span id="152">152</span>
+<span id="153">153</span>
+<span id="154">154</span>
+<span id="155">155</span>
+<span id="156">156</span>
+<span id="157">157</span>
+<span id="158">158</span>
+<span id="159">159</span>
+<span id="160">160</span>
+<span id="161">161</span>
+<span id="162">162</span>
+<span id="163">163</span>
+<span id="164">164</span>
+<span id="165">165</span>
+<span id="166">166</span>
+<span id="167">167</span>
+<span id="168">168</span>
+<span id="169">169</span>
+<span id="170">170</span>
+<span id="171">171</span>
+<span id="172">172</span>
+<span id="173">173</span>
+<span id="174">174</span>
+<span id="175">175</span>
+<span id="176">176</span>
+<span id="177">177</span>
+<span id="178">178</span>
+<span id="179">179</span>
+<span id="180">180</span>
+<span id="181">181</span>
+<span id="182">182</span>
+<span id="183">183</span>
+<span id="184">184</span>
+<span id="185">185</span>
+<span id="186">186</span>
+<span id="187">187</span>
+<span id="188">188</span>
+<span id="189">189</span>
+<span id="190">190</span>
+<span id="191">191</span>
+<span id="192">192</span>
+<span id="193">193</span>
+<span id="194">194</span>
+<span id="195">195</span>
+<span id="196">196</span>
+<span id="197">197</span>
+<span id="198">198</span>
+<span id="199">199</span>
+<span id="200">200</span>
+<span id="201">201</span>
+<span id="202">202</span>
+<span id="203">203</span>
+<span id="204">204</span>
+<span id="205">205</span>
+<span id="206">206</span>
+<span id="207">207</span>
+<span id="208">208</span>
+<span id="209">209</span>
+<span id="210">210</span>
+<span id="211">211</span>
+<span id="212">212</span>
+<span id="213">213</span>
+<span id="214">214</span>
+<span id="215">215</span>
+<span id="216">216</span>
+<span id="217">217</span>
+<span id="218">218</span>
+<span id="219">219</span>
+<span id="220">220</span>
+<span id="221">221</span>
+<span id="222">222</span>
+<span id="223">223</span>
+<span id="224">224</span>
+<span id="225">225</span>
+<span id="226">226</span>
+<span id="227">227</span>
+<span id="228">228</span>
+<span id="229">229</span>
+<span id="230">230</span>
+<span id="231">231</span>
+<span id="232">232</span>
+<span id="233">233</span>
+<span id="234">234</span>
+<span id="235">235</span>
+<span id="236">236</span>
+<span id="237">237</span>
+<span id="238">238</span>
+<span id="239">239</span>
+<span id="240">240</span>
+<span id="241">241</span>
+<span id="242">242</span>
+<span id="243">243</span>
+<span id="244">244</span>
+<span id="245">245</span>
+<span id="246">246</span>
+<span id="247">247</span>
+<span id="248">248</span>
+<span id="249">249</span>
+<span id="250">250</span>
+<span id="251">251</span>
+<span id="252">252</span>
+<span id="253">253</span>
+<span id="254">254</span>
+<span id="255">255</span>
+<span id="256">256</span>
+<span id="257">257</span>
+<span id="258">258</span>
+<span id="259">259</span>
+<span id="260">260</span>
+<span id="261">261</span>
+<span id="262">262</span>
+<span id="263">263</span>
+<span id="264">264</span>
+<span id="265">265</span>
+<span id="266">266</span>
+<span id="267">267</span>
+<span id="268">268</span>
+<span id="269">269</span>
+<span id="270">270</span>
+<span id="271">271</span>
+<span id="272">272</span>
+<span id="273">273</span>
+<span id="274">274</span>
+<span id="275">275</span>
+<span id="276">276</span>
+<span id="277">277</span>
+<span id="278">278</span>
+<span id="279">279</span>
+<span id="280">280</span>
+<span id="281">281</span>
+<span id="282">282</span>
+<span id="283">283</span>
+<span id="284">284</span>
+<span id="285">285</span>
+<span id="286">286</span>
+<span id="287">287</span>
+<span id="288">288</span>
+<span id="289">289</span>
+<span id="290">290</span>
+<span id="291">291</span>
+<span id="292">292</span>
+<span id="293">293</span>
+<span id="294">294</span>
+<span id="295">295</span>
+<span id="296">296</span>
+<span id="297">297</span>
+<span id="298">298</span>
+<span id="299">299</span>
+<span id="300">300</span>
+<span id="301">301</span>
+<span id="302">302</span>
+<span id="303">303</span>
+<span id="304">304</span>
+<span id="305">305</span>
+<span id="306">306</span>
+<span id="307">307</span>
+<span id="308">308</span>
+<span id="309">309</span>
+<span id="310">310</span>
+<span id="311">311</span>
+<span id="312">312</span>
+<span id="313">313</span>
+<span id="314">314</span>
+<span id="315">315</span>
+<span id="316">316</span>
+<span id="317">317</span>
+<span id="318">318</span>
+<span id="319">319</span>
+<span id="320">320</span>
+<span id="321">321</span>
+<span id="322">322</span>
+<span id="323">323</span>
+<span id="324">324</span>
+<span id="325">325</span>
+<span id="326">326</span>
+<span id="327">327</span>
+<span id="328">328</span>
+<span id="329">329</span>
+<span id="330">330</span>
+<span id="331">331</span>
+<span id="332">332</span>
+<span id="333">333</span>
+<span id="334">334</span>
+<span id="335">335</span>
+<span id="336">336</span>
+<span id="337">337</span>
+<span id="338">338</span>
+<span id="339">339</span>
+<span id="340">340</span>
+<span id="341">341</span>
+<span id="342">342</span>
+<span id="343">343</span>
+<span id="344">344</span>
+<span id="345">345</span>
+<span id="346">346</span>
+<span id="347">347</span>
+<span id="348">348</span>
+<span id="349">349</span>
+<span id="350">350</span>
+<span id="351">351</span>
+<span id="352">352</span>
+<span id="353">353</span>
+<span id="354">354</span>
+<span id="355">355</span>
+<span id="356">356</span>
+<span id="357">357</span>
+<span id="358">358</span>
+<span id="359">359</span>
+<span id="360">360</span>
+<span id="361">361</span>
+<span id="362">362</span>
+<span id="363">363</span>
+<span id="364">364</span>
+<span id="365">365</span>
+<span id="366">366</span>
+<span id="367">367</span>
+<span id="368">368</span>
+<span id="369">369</span>
+<span id="370">370</span>
+<span id="371">371</span>
+<span id="372">372</span>
+<span id="373">373</span>
+<span id="374">374</span>
+<span id="375">375</span>
+<span id="376">376</span>
+<span id="377">377</span>
+<span id="378">378</span>
+<span id="379">379</span>
+<span id="380">380</span>
+<span id="381">381</span>
+<span id="382">382</span>
+<span id="383">383</span>
+<span id="384">384</span>
+<span id="385">385</span>
+<span id="386">386</span>
+<span id="387">387</span>
+<span id="388">388</span>
+<span id="389">389</span>
+<span id="390">390</span>
+<span id="391">391</span>
+<span id="392">392</span>
+<span id="393">393</span>
+<span id="394">394</span>
+<span id="395">395</span>
+<span id="396">396</span>
+<span id="397">397</span>
+<span id="398">398</span>
+<span id="399">399</span>
+<span id="400">400</span>
+<span id="401">401</span>
+<span id="402">402</span>
+<span id="403">403</span>
+<span id="404">404</span>
+<span id="405">405</span>
+<span id="406">406</span>
+<span id="407">407</span>
+<span id="408">408</span>
+<span id="409">409</span>
+<span id="410">410</span>
+<span id="411">411</span>
+<span id="412">412</span>
+<span id="413">413</span>
+<span id="414">414</span>
+<span id="415">415</span>
+<span id="416">416</span>
+<span id="417">417</span>
+<span id="418">418</span>
+<span id="419">419</span>
+<span id="420">420</span>
+<span id="421">421</span>
+<span id="422">422</span>
+<span id="423">423</span>
+<span id="424">424</span>
+<span id="425">425</span>
+<span id="426">426</span>
+<span id="427">427</span>
+<span id="428">428</span>
+<span id="429">429</span>
+<span id="430">430</span>
+<span id="431">431</span>
+<span id="432">432</span>
+<span id="433">433</span>
+<span id="434">434</span>
+<span id="435">435</span>
+<span id="436">436</span>
+<span id="437">437</span>
+<span id="438">438</span>
+<span id="439">439</span>
+<span id="440">440</span>
+<span id="441">441</span>
+<span id="442">442</span>
+<span id="443">443</span>
+<span id="444">444</span>
+<span id="445">445</span>
+<span id="446">446</span>
+<span id="447">447</span>
+<span id="448">448</span>
+<span id="449">449</span>
+<span id="450">450</span>
+<span id="451">451</span>
+<span id="452">452</span>
+<span id="453">453</span>
+<span id="454">454</span>
+<span id="455">455</span>
+<span id="456">456</span>
+<span id="457">457</span>
+<span id="458">458</span>
+<span id="459">459</span>
+<span id="460">460</span>
+<span id="461">461</span>
+<span id="462">462</span>
+<span id="463">463</span>
+<span id="464">464</span>
+<span id="465">465</span>
+<span id="466">466</span>
+<span id="467">467</span>
+<span id="468">468</span>
+<span id="469">469</span>
+<span id="470">470</span>
+<span id="471">471</span>
+<span id="472">472</span>
+<span id="473">473</span>
+<span id="474">474</span>
+<span id="475">475</span>
+<span id="476">476</span>
+<span id="477">477</span>
+<span id="478">478</span>
+<span id="479">479</span>
+<span id="480">480</span>
+<span id="481">481</span>
+<span id="482">482</span>
+<span id="483">483</span>
+<span id="484">484</span>
+<span id="485">485</span>
+<span id="486">486</span>
+<span id="487">487</span>
+<span id="488">488</span>
+<span id="489">489</span>
+<span id="490">490</span>
+<span id="491">491</span>
+<span id="492">492</span>
+<span id="493">493</span>
+<span id="494">494</span>
+<span id="495">495</span>
+<span id="496">496</span>
+<span id="497">497</span>
+<span id="498">498</span>
+<span id="499">499</span>
+<span id="500">500</span>
+<span id="501">501</span>
+<span id="502">502</span>
+<span id="503">503</span>
+<span id="504">504</span>
+<span id="505">505</span>
+<span id="506">506</span>
+<span id="507">507</span>
+<span id="508">508</span>
+<span id="509">509</span>
+<span id="510">510</span>
+<span id="511">511</span>
+<span id="512">512</span>
+<span id="513">513</span>
+<span id="514">514</span>
+<span id="515">515</span>
+<span id="516">516</span>
+<span id="517">517</span>
+<span id="518">518</span>
+<span id="519">519</span>
+<span id="520">520</span>
+<span id="521">521</span>
+<span id="522">522</span>
+<span id="523">523</span>
+<span id="524">524</span>
+<span id="525">525</span>
+<span id="526">526</span>
+<span id="527">527</span>
+<span id="528">528</span>
+<span id="529">529</span>
+<span id="530">530</span>
+<span id="531">531</span>
+<span id="532">532</span>
+<span id="533">533</span>
+<span id="534">534</span>
+<span id="535">535</span>
+<span id="536">536</span>
+<span id="537">537</span>
+<span id="538">538</span>
+<span id="539">539</span>
+<span id="540">540</span>
+<span id="541">541</span>
+<span id="542">542</span>
+<span id="543">543</span>
+<span id="544">544</span>
+<span id="545">545</span>
+<span id="546">546</span>
+<span id="547">547</span>
+<span id="548">548</span>
+<span id="549">549</span>
+<span id="550">550</span>
+<span id="551">551</span>
+<span id="552">552</span>
+<span id="553">553</span>
+<span id="554">554</span>
+<span id="555">555</span>
+<span id="556">556</span>
+<span id="557">557</span>
+<span id="558">558</span>
+<span id="559">559</span>
+<span id="560">560</span>
+<span id="561">561</span>
+<span id="562">562</span>
+<span id="563">563</span>
+<span id="564">564</span>
+<span id="565">565</span>
+<span id="566">566</span>
+<span id="567">567</span>
+<span id="568">568</span>
+<span id="569">569</span>
+<span id="570">570</span>
+<span id="571">571</span>
+<span id="572">572</span>
+<span id="573">573</span>
+<span id="574">574</span>
+<span id="575">575</span>
+<span id="576">576</span>
+<span id="577">577</span>
+<span id="578">578</span>
+<span id="579">579</span>
+<span id="580">580</span>
+<span id="581">581</span>
+<span id="582">582</span>
+<span id="583">583</span>
+<span id="584">584</span>
+<span id="585">585</span>
+<span id="586">586</span>
+<span id="587">587</span>
+<span id="588">588</span>
+<span id="589">589</span>
+<span id="590">590</span>
+<span id="591">591</span>
+<span id="592">592</span>
+<span id="593">593</span>
+<span id="594">594</span>
+<span id="595">595</span>
+<span id="596">596</span>
+<span id="597">597</span>
+<span id="598">598</span>
+<span id="599">599</span>
+<span id="600">600</span>
+<span id="601">601</span>
+<span id="602">602</span>
+<span id="603">603</span>
+<span id="604">604</span>
+<span id="605">605</span>
+<span id="606">606</span>
+<span id="607">607</span>
+<span id="608">608</span>
+<span id="609">609</span>
+<span id="610">610</span>
+<span id="611">611</span>
+<span id="612">612</span>
+<span id="613">613</span>
+<span id="614">614</span>
+<span id="615">615</span>
+<span id="616">616</span>
+<span id="617">617</span>
+<span id="618">618</span>
+<span id="619">619</span>
+<span id="620">620</span>
+<span id="621">621</span>
+<span id="622">622</span>
+<span id="623">623</span>
+<span id="624">624</span>
+<span id="625">625</span>
+<span id="626">626</span>
+<span id="627">627</span>
+<span id="628">628</span>
+<span id="629">629</span>
+<span id="630">630</span>
+<span id="631">631</span>
+<span id="632">632</span>
+<span id="633">633</span>
+<span id="634">634</span>
+<span id="635">635</span>
+<span id="636">636</span>
+<span id="637">637</span>
+<span id="638">638</span>
+<span id="639">639</span>
+<span id="640">640</span>
+<span id="641">641</span>
+<span id="642">642</span>
+<span id="643">643</span>
+<span id="644">644</span>
+<span id="645">645</span>
+<span id="646">646</span>
+<span id="647">647</span>
+<span id="648">648</span>
+<span id="649">649</span>
+<span id="650">650</span>
+<span id="651">651</span>
+<span id="652">652</span>
+<span id="653">653</span>
+<span id="654">654</span>
+<span id="655">655</span>
+<span id="656">656</span>
+<span id="657">657</span>
+<span id="658">658</span>
+<span id="659">659</span>
+<span id="660">660</span>
+<span id="661">661</span>
+<span id="662">662</span>
+<span id="663">663</span>
+<span id="664">664</span>
+<span id="665">665</span>
+<span id="666">666</span>
+<span id="667">667</span>
+<span id="668">668</span>
+<span id="669">669</span>
+<span id="670">670</span>
+<span id="671">671</span>
+<span id="672">672</span>
+<span id="673">673</span>
+<span id="674">674</span>
+<span id="675">675</span>
+<span id="676">676</span>
+<span id="677">677</span>
+<span id="678">678</span>
+<span id="679">679</span>
+<span id="680">680</span>
+<span id="681">681</span>
+<span id="682">682</span>
+<span id="683">683</span>
+<span id="684">684</span>
+<span id="685">685</span>
+<span id="686">686</span>
+<span id="687">687</span>
+<span id="688">688</span>
+<span id="689">689</span>
+<span id="690">690</span>
+<span id="691">691</span>
+<span id="692">692</span>
+<span id="693">693</span>
+<span id="694">694</span>
+<span id="695">695</span>
+<span id="696">696</span>
+<span id="697">697</span>
+<span id="698">698</span>
+<span id="699">699</span>
+<span id="700">700</span>
+<span id="701">701</span>
+<span id="702">702</span>
+<span id="703">703</span>
+<span id="704">704</span>
+<span id="705">705</span>
+<span id="706">706</span>
+<span id="707">707</span>
+<span id="708">708</span>
+<span id="709">709</span>
+<span id="710">710</span>
+<span id="711">711</span>
+<span id="712">712</span>
+<span id="713">713</span>
+<span id="714">714</span>
+<span id="715">715</span>
+<span id="716">716</span>
+<span id="717">717</span>
+<span id="718">718</span>
+<span id="719">719</span>
+<span id="720">720</span>
+<span id="721">721</span>
+<span id="722">722</span>
+<span id="723">723</span>
+<span id="724">724</span>
+<span id="725">725</span>
+<span id="726">726</span>
+<span id="727">727</span>
+<span id="728">728</span>
+<span id="729">729</span>
+<span id="730">730</span>
+<span id="731">731</span>
+<span id="732">732</span>
+<span id="733">733</span>
+<span id="734">734</span>
+<span id="735">735</span>
+<span id="736">736</span>
+<span id="737">737</span>
+<span id="738">738</span>
+<span id="739">739</span>
+<span id="740">740</span>
+<span id="741">741</span>
+<span id="742">742</span>
+<span id="743">743</span>
+<span id="744">744</span>
+<span id="745">745</span>
+<span id="746">746</span>
+<span id="747">747</span>
+<span id="748">748</span>
+<span id="749">749</span>
+<span id="750">750</span>
+<span id="751">751</span>
+<span id="752">752</span>
+<span id="753">753</span>
+<span id="754">754</span>
+<span id="755">755</span>
+<span id="756">756</span>
+<span id="757">757</span>
+<span id="758">758</span>
+<span id="759">759</span>
+<span id="760">760</span>
+<span id="761">761</span>
+<span id="762">762</span>
+<span id="763">763</span>
+<span id="764">764</span>
+<span id="765">765</span>
+<span id="766">766</span>
+<span id="767">767</span>
+<span id="768">768</span>
+<span id="769">769</span>
+<span id="770">770</span>
+<span id="771">771</span>
+<span id="772">772</span>
+<span id="773">773</span>
+<span id="774">774</span>
+<span id="775">775</span>
+<span id="776">776</span>
+<span id="777">777</span>
+<span id="778">778</span>
+<span id="779">779</span>
+<span id="780">780</span>
+<span id="781">781</span>
+<span id="782">782</span>
+<span id="783">783</span>
+<span id="784">784</span>
+<span id="785">785</span>
+<span id="786">786</span>
+<span id="787">787</span>
+<span id="788">788</span>
+<span id="789">789</span>
+<span id="790">790</span>
+<span id="791">791</span>
+<span id="792">792</span>
+<span id="793">793</span>
+<span id="794">794</span>
+<span id="795">795</span>
+<span id="796">796</span>
+<span id="797">797</span>
+<span id="798">798</span>
+<span id="799">799</span>
+<span id="800">800</span>
+<span id="801">801</span>
+<span id="802">802</span>
+<span id="803">803</span>
+<span id="804">804</span>
+<span id="805">805</span>
+<span id="806">806</span>
+<span id="807">807</span>
+<span id="808">808</span>
+<span id="809">809</span>
+<span id="810">810</span>
+<span id="811">811</span>
+<span id="812">812</span>
+<span id="813">813</span>
+<span id="814">814</span>
+<span id="815">815</span>
+<span id="816">816</span>
+<span id="817">817</span>
+<span id="818">818</span>
+<span id="819">819</span>
+<span id="820">820</span>
+<span id="821">821</span>
+<span id="822">822</span>
+<span id="823">823</span>
+<span id="824">824</span>
+<span id="825">825</span>
+<span id="826">826</span>
+<span id="827">827</span>
+<span id="828">828</span>
+<span id="829">829</span>
+<span id="830">830</span>
+<span id="831">831</span>
+<span id="832">832</span>
+<span id="833">833</span>
+<span id="834">834</span>
+<span id="835">835</span>
+<span id="836">836</span>
+<span id="837">837</span>
+<span id="838">838</span>
+<span id="839">839</span>
+<span id="840">840</span>
+<span id="841">841</span>
+<span id="842">842</span>
+<span id="843">843</span>
+<span id="844">844</span>
+<span id="845">845</span>
+<span id="846">846</span>
+<span id="847">847</span>
+<span id="848">848</span>
+</pre><pre class="rust"><code><span class="doccomment">/// The preparser processes Prusti syntax into Rust syntax.</span>
+
+<span class="kw">use</span> <span class="ident">proc_macro2</span>::{<a class="ident" href="../../../proc_macro2/struct.Span.html">Span</a>, <a class="ident" href="../../../proc_macro2/struct.TokenStream.html">TokenStream</a>, <a class="ident" href="../../../proc_macro2/enum.TokenTree.html">TokenTree</a>, <a class="ident" href="../../../proc_macro2/enum.Delimiter.html">Delimiter</a>};
+<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/collections/vec_deque/struct.VecDeque.html">std::collections::VecDeque</a>;
+<span class="kw">use</span> <span class="ident">quote</span>::{<a class="ident" href="../../../quote/to_tokens/trait.ToTokens.html">ToTokens</a>, <span class="ident">quote</span>, <span class="ident">quote_spanned</span>};
+<span class="kw">use</span> <a class="ident" href="../../../proc_macro2/struct.Punct.html">proc_macro2::Punct</a>;
+<span class="kw">use</span> <a class="ident" href="../../../proc_macro2/enum.Spacing.html">proc_macro2::Spacing</a>::<span class="kw-2">*</span>;
+<span class="kw">use</span> <a class="ident" href="../../../syn/spanned/trait.Spanned.html">syn::spanned::Spanned</a>;
+
+<span class="doccomment">/// The representation of an argument to a quantifier (for example `a: i32`)</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>)]</span>
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Arg</span> {
+    <span class="kw">pub</span> <span class="ident">name</span>: <a class="ident" href="../../../proc_macro2/struct.Ident.html">syn::Ident</a>,
+    <span class="kw">pub</span> <span class="ident">typ</span>: <a class="ident" href="../../../syn/ty/enum.Type.html">syn::Type</a>
+}
+
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">parse_prusti</span>(<span class="ident">tokens</span>: <a class="ident" href="../../../proc_macro2/struct.TokenStream.html">TokenStream</a>) -&gt; <span class="ident">syn::Result</span><span class="op">&lt;</span><a class="ident" href="../../../proc_macro2/struct.TokenStream.html">TokenStream</a><span class="op">&gt;</span> {
+    <span class="kw">let</span> <span class="ident">parsed</span> <span class="op">=</span> <span class="ident">PrustiTokenStream::new</span>(<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#17">tokens</a>).<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#159">parse</a>()<span class="question-mark">?</span>;
+    <span class="comment">// to make sure we catch errors in the Rust syntax early (and with the</span>
+    <span class="comment">// correct spans), we try to parse the resulting stream using syn here</span>
+    <span class="ident">syn::parse2</span>::<span class="op">&lt;</span><a class="ident" href="../../../syn/expr/enum.Expr.html">syn::Expr</a><span class="op">&gt;</span>(<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#18">parsed</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())<span class="question-mark">?</span>;
+    <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#18">parsed</a>)
+}
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">parse_prusti_pledge</span>(<span class="ident">tokens</span>: <a class="ident" href="../../../proc_macro2/struct.TokenStream.html">TokenStream</a>) -&gt; <span class="ident">syn::Result</span><span class="op">&lt;</span><a class="ident" href="../../../proc_macro2/struct.TokenStream.html">TokenStream</a><span class="op">&gt;</span> {
+    <span class="comment">// TODO: pledges with reference that is not &quot;result&quot; are not supported;</span>
+    <span class="comment">// for this reason we assert here that the reference (if there is any) is &quot;result&quot;</span>
+    <span class="comment">// then return the RHS only</span>
+    <span class="kw">let</span> (<span class="ident">reference</span>, <span class="ident">rhs</span>) <span class="op">=</span> <span class="ident">PrustiTokenStream::new</span>(<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#24">tokens</a>).<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#180-183">parse_pledge</a>()<span class="question-mark">?</span>;
+    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">reference</span>) <span class="op">=</span> <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#28">reference</a> {
+        <span class="kw">if</span> <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#29">reference</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>() <span class="op">!</span><span class="op">=</span> <span class="string">&quot;result&quot;</span> {
+            <span class="kw">return</span> <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#71">error</a>(<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#29">reference</a>.<a class="ident" href="../../../syn/spanned/trait.Spanned.html">span</a>(), <span class="string">&quot;reference of after_expiry must be \&quot;result\&quot;&quot;</span>);
+        }
+    }
+    <span class="ident">syn::parse2</span>::<span class="op">&lt;</span><a class="ident" href="../../../syn/expr/enum.Expr.html">syn::Expr</a><span class="op">&gt;</span>(<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#28">rhs</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())<span class="question-mark">?</span>;
+    <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#28">rhs</a>)
+}
+
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">parse_prusti_assert_pledge</span>(<span class="ident">tokens</span>: <a class="ident" href="../../../proc_macro2/struct.TokenStream.html">TokenStream</a>) -&gt; <span class="ident">syn::Result</span><span class="op">&lt;</span>(<a class="ident" href="../../../proc_macro2/struct.TokenStream.html">TokenStream</a>, <a class="ident" href="../../../proc_macro2/struct.TokenStream.html">TokenStream</a>)<span class="op">&gt;</span> {
+    <span class="comment">// TODO: pledges with reference that is not &quot;result&quot; are not supported;</span>
+    <span class="comment">// for this reason we assert here that the reference (if there is any) is &quot;result&quot;</span>
+    <span class="comment">// then return the RHS only</span>
+    <span class="kw">let</span> (<span class="ident">reference</span>, <span class="ident">lhs</span>, <span class="ident">rhs</span>) <span class="op">=</span> <span class="ident">PrustiTokenStream::new</span>(<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#38">tokens</a>).<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#196-200">parse_assert_pledge</a>()<span class="question-mark">?</span>;
+    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">reference</span>) <span class="op">=</span> <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#42">reference</a> {
+        <span class="kw">if</span> <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#43">reference</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>() <span class="op">!</span><span class="op">=</span> <span class="string">&quot;result&quot;</span> {
+            <span class="kw">return</span> <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#71">error</a>(<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#43">reference</a>.<a class="ident" href="../../../syn/spanned/trait.Spanned.html">span</a>(), <span class="string">&quot;reference of assert_on_expiry must be \&quot;result\&quot;&quot;</span>);
+        }
+    }
+    <span class="ident">syn::parse2</span>::<span class="op">&lt;</span><a class="ident" href="../../../syn/expr/enum.Expr.html">syn::Expr</a><span class="op">&gt;</span>(<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#42">lhs</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())<span class="question-mark">?</span>;
+    <span class="ident">syn::parse2</span>::<span class="op">&lt;</span><a class="ident" href="../../../syn/expr/enum.Expr.html">syn::Expr</a><span class="op">&gt;</span>(<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#42">rhs</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())<span class="question-mark">?</span>;
+    <span class="prelude-val">Ok</span>((<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#42">lhs</a>, <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#42">rhs</a>))
+}
+
+<span class="comment">/*
+Preparsing consists of two stages:
+
+1. In [PrustiTokenStream::new], we map a [TokenStream] to a [PrustiTokenStream]
+   by identifying unary and binary operators. We also take care of Rust binary
+   operators that have lower precedence than the Prusti ones. Note that at this
+   token-based stage, a &quot;binary operator&quot; includes e.g. the semicolon for
+   statement sequencing.
+
+2. In [PrustiTokenStream::parse], we perform the actual parsing as well as the
+   translation back to Rust syntax. The parser is a Pratt parser with binding
+   powers defined in [PrustiBinaryOp::binding_power]. Performing translation to
+   Rust syntax in this step allows us to not have to define data types for the
+   Prusti AST, as we reuse the Rust AST (i.e. [TokenTree] and [TokenStream]).
+*/</span>
+
+<span class="doccomment">/// The preparser reuses [syn::Result] to integrate with the rest of the specs</span>
+<span class="doccomment">/// library, even though syn is not used here.</span>
+<span class="kw">fn</span> <span class="ident">error</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">span</span>: <a class="ident" href="../../../proc_macro2/struct.Span.html">Span</a>, <span class="ident">msg</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="ident">syn::Result</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+    <span class="ident">syn::Result::Err</span>(<span class="ident">syn::parse::Error::new</span>(<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#71">span</a>, <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#71">msg</a>))
+}
+
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>)]</span>
+<span class="kw">struct</span> <span class="ident">PrustiTokenStream</span> {
+    <span class="ident">tokens</span>: <span class="ident">VecDeque</span><span class="op">&lt;</span><a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#483-492">PrustiToken</a><span class="op">&gt;</span>,
+}
+
+<span class="kw">impl</span> <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#76-78">PrustiTokenStream</a> {
+    <span class="doccomment">/// Constructs a stream of Prusti tokens from a stream of Rust tokens.</span>
+    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">source</span>: <a class="ident" href="../../../proc_macro2/struct.TokenStream.html">TokenStream</a>) -&gt; <span class="self">Self</span> {
+        <span class="kw">let</span> <span class="ident">source</span> <span class="op">=</span> <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#82">source</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>();
+
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">pos</span> <span class="op">=</span> <span class="number">0</span>;
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">tokens</span> <span class="op">=</span> <span class="ident">VecDeque::new</span>();
+
+        <span class="comment">// TODO: figure out syntax for spec entailments (|= is taken in Rust)</span>
+
+        <span class="kw">while</span> <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#85">pos</a> <span class="op">&lt;</span> <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#83">source</a>.<span class="ident">len</span>() {
+            <span class="comment">// no matter what tokens we see, we will consume at least one</span>
+            <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#85">pos</a> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+            <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#86">tokens</a>.<span class="ident">push_back</span>(<span class="kw">match</span> (<span class="kw-2">&amp;</span><a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#83">source</a>[<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#85">pos</a> <span class="op">-</span> <span class="number">1</span>], <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#83">source</a>.<span class="ident">get</span>(<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#85">pos</a>), <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#83">source</a>.<span class="ident">get</span>(<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#85">pos</a> <span class="op">+</span> <span class="number">1</span>)) {
+                (
+                    <span class="ident">TokenTree::Punct</span>(<span class="ident">p1</span>),
+                    <span class="prelude-val">Some</span>(<span class="ident">TokenTree::Punct</span>(<span class="ident">p2</span>)),
+                    <span class="prelude-val">Some</span>(<span class="ident">TokenTree::Punct</span>(<span class="ident">p3</span>)),
+                ) <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">op</span>) <span class="op">=</span> <span class="ident">PrustiToken::parse_op3</span>(<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#95">p1</a>, <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#96">p2</a>, <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#97">p3</a>) =&gt; {
+                    <span class="comment">// this was a three-character operator, consume two</span>
+                    <span class="comment">// additional tokens</span>
+                    <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#85">pos</a> <span class="op">+</span><span class="op">=</span> <span class="number">2</span>;
+                    <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#98">op</a>
+                }
+                (
+                    <span class="ident">TokenTree::Punct</span>(<span class="ident">p1</span>),
+                    <span class="prelude-val">Some</span>(<span class="ident">TokenTree::Punct</span>(<span class="ident">p2</span>)),
+                    <span class="kw">_</span>,
+                ) <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">op</span>) <span class="op">=</span> <span class="ident">PrustiToken::parse_op2</span>(<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#105">p1</a>, <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#106">p2</a>) =&gt; {
+                    <span class="comment">// this was a three-character operator, consume one</span>
+                    <span class="comment">// additional token</span>
+                    <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#85">pos</a> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+                    <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#108">op</a>
+                }
+                (<span class="ident">TokenTree::Ident</span>(<span class="ident">ident</span>), <span class="kw">_</span>, <span class="kw">_</span>) <span class="kw">if</span> <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#114">ident</a> <span class="op">==</span> <span class="string">&quot;outer&quot;</span> =&gt;
+                    <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#488">PrustiToken::Outer</a>(<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#114">ident</a>.<span class="ident">span</span>()),
+                (<span class="ident">TokenTree::Ident</span>(<span class="ident">ident</span>), <span class="kw">_</span>, <span class="kw">_</span>) <span class="kw">if</span> <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#116">ident</a> <span class="op">==</span> <span class="string">&quot;forall&quot;</span> =&gt;
+                    <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#489">PrustiToken::Quantifier</a>(<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#116">ident</a>.<span class="ident">span</span>(), <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#566">Quantifier::Forall</a>),
+                (<span class="ident">TokenTree::Ident</span>(<span class="ident">ident</span>), <span class="kw">_</span>, <span class="kw">_</span>) <span class="kw">if</span> <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#118">ident</a> <span class="op">==</span> <span class="string">&quot;exists&quot;</span> =&gt;
+                    <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#489">PrustiToken::Quantifier</a>(<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#118">ident</a>.<span class="ident">span</span>(), <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#567">Quantifier::Exists</a>),
+                (<span class="ident">TokenTree::Punct</span>(<span class="ident">punct</span>), <span class="kw">_</span>, <span class="kw">_</span>)
+                    <span class="kw">if</span> <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#120">punct</a>.<span class="ident">as_char</span>() <span class="op">==</span> <span class="string">&#39;,&#39;</span> <span class="op">&amp;&amp;</span> <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#120">punct</a>.<span class="ident">spacing</span>() <span class="op">==</span> <span class="ident">Alone</span> =&gt;
+                    <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#486">PrustiToken::BinOp</a>(<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#120">punct</a>.<span class="ident">span</span>(), <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#723">PrustiBinaryOp::Rust</a>(<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#781">RustOp::Comma</a>)),
+                (<span class="ident">TokenTree::Punct</span>(<span class="ident">punct</span>), <span class="kw">_</span>, <span class="kw">_</span>)
+                    <span class="kw">if</span> <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#123">punct</a>.<span class="ident">as_char</span>() <span class="op">==</span> <span class="string">&#39;;&#39;</span> <span class="op">&amp;&amp;</span> <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#123">punct</a>.<span class="ident">spacing</span>() <span class="op">==</span> <span class="ident">Alone</span> =&gt;
+                    <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#486">PrustiToken::BinOp</a>(<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#123">punct</a>.<span class="ident">span</span>(), <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#723">PrustiBinaryOp::Rust</a>(<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#782">RustOp::Semicolon</a>)),
+                (<span class="ident">TokenTree::Punct</span>(<span class="ident">punct</span>), <span class="kw">_</span>, <span class="kw">_</span>)
+                    <span class="kw">if</span> <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#126">punct</a>.<span class="ident">as_char</span>() <span class="op">==</span> <span class="string">&#39;=&#39;</span> <span class="op">&amp;&amp;</span> <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#126">punct</a>.<span class="ident">spacing</span>() <span class="op">==</span> <span class="ident">Alone</span> =&gt;
+                    <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#486">PrustiToken::BinOp</a>(<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#126">punct</a>.<span class="ident">span</span>(), <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#723">PrustiBinaryOp::Rust</a>(<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#783">RustOp::Assign</a>)),
+                (<span class="ident">token</span> @ <span class="ident">TokenTree::Punct</span>(<span class="ident">punct</span>), <span class="kw">_</span>, <span class="kw">_</span>) <span class="kw">if</span> <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#129">punct</a>.<span class="ident">spacing</span>() <span class="op">==</span> <span class="ident">Joint</span> =&gt; {
+                    <span class="comment">// make sure to fully consume any Rust operator</span>
+                    <span class="comment">// to avoid later mis-identifying its suffix</span>
+                    <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#86">tokens</a>.<span class="ident">push_back</span>(<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#485">PrustiToken::Token</a>(<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#129">token</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()));
+                    <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">token</span> @ <span class="ident">TokenTree::Punct</span>(<span class="ident">p</span>)) <span class="op">=</span> <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#83">source</a>.<span class="ident">get</span>(<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#85">pos</a>) {
+                        <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#85">pos</a> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+                        <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#86">tokens</a>.<span class="ident">push_back</span>(<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#485">PrustiToken::Token</a>(<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#133">token</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()));
+                        <span class="kw">if</span> <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#133">p</a>.<span class="ident">spacing</span>() <span class="op">!</span><span class="op">=</span> <span class="ident">Joint</span> {
+                            <span class="kw">break</span>;
+                        }
+                    }
+                    <span class="kw">continue</span>;
+                }
+                (<span class="ident">TokenTree::Group</span>(<span class="ident">group</span>), <span class="kw">_</span>, <span class="kw">_</span>) =&gt; <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#484">PrustiToken::Group</a>(
+                    <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#142">group</a>.<span class="ident">span</span>(),
+                    <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#142">group</a>.<span class="ident">delimiter</span>(),
+                    <span class="kw">box</span> <span class="ident"><span class="self">Self</span>::new</span>(<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#142">group</a>.<span class="ident">stream</span>()),
+                ),
+                (<span class="ident">token</span>, <span class="kw">_</span>, <span class="kw">_</span>) =&gt; <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#485">PrustiToken::Token</a>(<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#147">token</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()),
+            });
+        }
+        <span class="self">Self</span> { <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#86">tokens</a> }
+    }
+
+    <span class="kw">fn</span> <span class="ident">is_empty</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a class="self" href="../../../src/prusti_specs/specifications/preparser.rs.html#153">self</a>.<span class="ident">tokens</span>.<span class="ident">is_empty</span>()
+    }
+
+    <span class="doccomment">/// Processes a Prusti token stream back into Rust syntax.</span>
+    <span class="doccomment">/// Prusti-specific syntax is allowed and translated.</span>
+    <span class="kw">fn</span> <span class="ident">parse</span>(<span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="ident">syn::Result</span><span class="op">&lt;</span><a class="ident" href="../../../proc_macro2/struct.TokenStream.html">TokenStream</a><span class="op">&gt;</span> {
+        <a class="self" href="../../../src/prusti_specs/specifications/preparser.rs.html#159">self</a>.<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#221">expr_bp</a>(<span class="number">0</span>)
+    }
+
+    <span class="doccomment">/// Processes a Prusti token stream back into Rust syntax.</span>
+    <span class="doccomment">/// Prusti-specific syntax is not allowed and will raise an error.</span>
+    <span class="kw">fn</span> <span class="ident">parse_rust_only</span>(<span class="self">self</span>) -&gt; <span class="ident">syn::Result</span><span class="op">&lt;</span><a class="ident" href="../../../proc_macro2/struct.TokenStream.html">TokenStream</a><span class="op">&gt;</span> {
+        <span class="prelude-val">Ok</span>(<span class="ident">TokenStream::from_iter</span>(<a class="self" href="../../../src/prusti_specs/specifications/preparser.rs.html#165">self</a>.<span class="ident">tokens</span>
+            .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
+            .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="op">|</span><span class="ident">token</span><span class="op">|</span> <span class="kw">match</span> <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#168">token</a> {
+                <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#484">PrustiToken::Group</a>(<span class="kw">_</span>, <span class="kw">_</span>, <span class="kw">box</span> <span class="ident">stream</span>) =&gt; <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#169">stream</a>.<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#165">parse_rust_only</a>(),
+                <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#485">PrustiToken::Token</a>(<span class="ident">tree</span>) =&gt; <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#170">tree</a>.<a class="ident" href="../../../quote/to_tokens/trait.ToTokens.html">to_token_stream</a>()),
+                <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#486">PrustiToken::BinOp</a>(<span class="ident">span</span>, <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#723">PrustiBinaryOp::Rust</a>(<span class="ident">op</span>)) =&gt; <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#171">op</a>.<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#797-800">to_tokens</a>(<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#171">span</a>)),
+                <span class="kw">_</span> =&gt; <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#71">error</a>(<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#168">token</a>.<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#638">span</a>(), <span class="string">&quot;unexpected Prusti syntax&quot;</span>),
+            })
+            .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>::<span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span>, <span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>()<span class="question-mark">?</span>
+            .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()))
+    }
+
+    <span class="doccomment">/// Processes a Prusti token stream for a pledge, in the form `a =&gt; b` or</span>
+    <span class="doccomment">/// just `b`.</span>
+    <span class="kw">fn</span> <span class="ident">parse_pledge</span>(<span class="self">self</span>) -&gt; <span class="ident">syn::Result</span><span class="op">&lt;</span>(
+        <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../proc_macro2/struct.TokenStream.html">TokenStream</a><span class="op">&gt;</span>,
+        <a class="ident" href="../../../proc_macro2/struct.TokenStream.html">TokenStream</a>
+    )<span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">pledge_ops</span> <span class="op">=</span> <a class="self" href="../../../src/prusti_specs/specifications/preparser.rs.html#180">self</a>.<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#412-416">split</a>(<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#723">PrustiBinaryOp::Rust</a>(<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#780">RustOp::Arrow</a>), <span class="bool-val">false</span>);
+        <span class="kw">if</span> <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#184">pledge_ops</a>.<span class="ident">len</span>() <span class="op">==</span> <span class="number">1</span> {
+            <span class="prelude-val">Ok</span>((<span class="prelude-val">None</span>, <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#184">pledge_ops</a>[<span class="number">0</span>].<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#221">expr_bp</a>(<span class="number">0</span>)<span class="question-mark">?</span>))
+        } <span class="kw">else</span> <span class="kw">if</span> <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#184">pledge_ops</a>.<span class="ident">len</span>() <span class="op">==</span> <span class="number">2</span> {
+            <span class="prelude-val">Ok</span>((<span class="prelude-val">Some</span>(<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#184">pledge_ops</a>[<span class="number">0</span>].<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#221">expr_bp</a>(<span class="number">0</span>)<span class="question-mark">?</span>), <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#184">pledge_ops</a>[<span class="number">1</span>].<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#221">expr_bp</a>(<span class="number">0</span>)<span class="question-mark">?</span>))
+        } <span class="kw">else</span> {
+            <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#71">error</a>(<span class="ident">Span::call_site</span>(), <span class="string">&quot;too many arrows in after_expiry&quot;</span>)
+        }
+    }
+
+    <span class="doccomment">/// Processes a Prusti token stream for an assert pledge, in the form `a =&gt;</span>
+    <span class="doccomment">/// b, c` or `b, c`.</span>
+    <span class="kw">fn</span> <span class="ident">parse_assert_pledge</span>(<span class="self">self</span>) -&gt; <span class="ident">syn::Result</span><span class="op">&lt;</span>(
+        <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../proc_macro2/struct.TokenStream.html">TokenStream</a><span class="op">&gt;</span>,
+        <a class="ident" href="../../../proc_macro2/struct.TokenStream.html">TokenStream</a>,
+        <a class="ident" href="../../../proc_macro2/struct.TokenStream.html">TokenStream</a>
+    )<span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">pledge_ops</span> <span class="op">=</span> <a class="self" href="../../../src/prusti_specs/specifications/preparser.rs.html#196">self</a>.<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#412-416">split</a>(<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#723">PrustiBinaryOp::Rust</a>(<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#780">RustOp::Arrow</a>), <span class="bool-val">false</span>);
+        <span class="kw">let</span> (<span class="ident">reference</span>, <span class="ident">body</span>) <span class="op">=</span> <span class="kw">if</span> <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#201">pledge_ops</a>.<span class="ident">len</span>() <span class="op">==</span> <span class="number">1</span> {
+            (<span class="prelude-val">None</span>, <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#201">pledge_ops</a>.<span class="ident">pop</span>().<span class="ident">unwrap</span>())
+        } <span class="kw">else</span> <span class="kw">if</span> <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#201">pledge_ops</a>.<span class="ident">len</span>() <span class="op">==</span> <span class="number">2</span> {
+            (<span class="prelude-val">Some</span>(<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#201">pledge_ops</a>[<span class="number">0</span>].<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#221">expr_bp</a>(<span class="number">0</span>)<span class="question-mark">?</span>), <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#201">pledge_ops</a>.<span class="ident">pop</span>().<span class="ident">unwrap</span>())
+        } <span class="kw">else</span> {
+            <span class="kw">return</span> <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#71">error</a>(<span class="ident">Span::call_site</span>(), <span class="string">&quot;too many arrows in assert_on_expiry&quot;</span>);
+        };
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">body_parts</span> <span class="op">=</span> <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#202">body</a>.<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#412-416">split</a>(<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#723">PrustiBinaryOp::Rust</a>(<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#781">RustOp::Comma</a>), <span class="bool-val">false</span>);
+        <span class="kw">if</span> <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#209">body_parts</a>.<span class="ident">len</span>() <span class="op">==</span> <span class="number">2</span> {
+            <span class="prelude-val">Ok</span>((<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#202">reference</a>, <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#209">body_parts</a>[<span class="number">0</span>].<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#221">expr_bp</a>(<span class="number">0</span>)<span class="question-mark">?</span>, <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#209">body_parts</a>[<span class="number">1</span>].<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#221">expr_bp</a>(<span class="number">0</span>)<span class="question-mark">?</span>))
+        } <span class="kw">else</span> {
+            <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#71">error</a>(<span class="ident">Span::call_site</span>(), <span class="string">&quot;missing assertion&quot;</span>)
+        }
+    }
+
+    <span class="doccomment">/// The core of the Pratt parser algorithm. [self.tokens] is the source of</span>
+    <span class="doccomment">/// &quot;lexemes&quot;. [min_bp] is the minimum binding power we need to see when</span>
+    <span class="doccomment">/// identifying a binary operator.</span>
+    <span class="doccomment">/// See https://matklad.github.io/2020/04/13/simple-but-powerful-pratt-parsing.html</span>
+    <span class="kw">fn</span> <span class="ident">expr_bp</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">min_bp</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) -&gt; <span class="ident">syn::Result</span><span class="op">&lt;</span><a class="ident" href="../../../proc_macro2/struct.TokenStream.html">TokenStream</a><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">lhs</span> <span class="op">=</span> <span class="kw">match</span> <a class="self" href="../../../src/prusti_specs/specifications/preparser.rs.html#221">self</a>.<span class="ident">tokens</span>.<span class="ident">pop_front</span>() {
+            <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#484">PrustiToken::Group</a>(<span class="ident">span</span>, <span class="ident">delimiter</span>, <span class="kw">box</span> <span class="ident">stream</span>)) =&gt; {
+                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">group</span> <span class="op">=</span> <span class="ident">proc_macro2::Group::new</span>(
+                    <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#223">delimiter</a>,
+                    <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#223">stream</a>.<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#159">parse</a>()<span class="question-mark">?</span>,
+                );
+                <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#224">group</a>.<span class="ident">set_span</span>(<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#223">span</a>);
+                <span class="ident">TokenTree::Group</span>(<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#224">group</a>).<a class="ident" href="../../../quote/to_tokens/trait.ToTokens.html">to_token_stream</a>()
+            }
+            <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#488">PrustiToken::Outer</a>(<span class="ident">span</span>)) =&gt; {
+                <span class="kw">let</span> <span class="ident">_stream</span> <span class="op">=</span> <a class="self" href="../../../src/prusti_specs/specifications/preparser.rs.html#221">self</a>.<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#354">pop_group</a>(<span class="ident">Delimiter::Parenthesis</span>)
+                    .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">syn::parse::Error::new</span>(<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#231">span</a>, <span class="string">&quot;expected parenthesized expression after outer&quot;</span>))<span class="question-mark">?</span>;
+                <span class="macro">todo!</span>()
+            }
+            <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#489">PrustiToken::Quantifier</a>(<span class="ident">span</span>, <span class="ident">kind</span>)) =&gt; {
+                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">stream</span> <span class="op">=</span> <a class="self" href="../../../src/prusti_specs/specifications/preparser.rs.html#221">self</a>.<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#354">pop_group</a>(<span class="ident">Delimiter::Parenthesis</span>)
+                    .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">syn::parse::Error::new</span>(<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#236">span</a>, <span class="string">&quot;expected parenthesized expression after quantifier&quot;</span>))<span class="question-mark">?</span>;
+                <span class="kw">let</span> <span class="ident">args</span> <span class="op">=</span> <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#237">stream</a>.<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#362">pop_closure_args</a>()
+                    .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">syn::parse::Error::new</span>(<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#236">span</a>, <span class="string">&quot;expected quantifier body&quot;</span>))<span class="question-mark">?</span>;
+
+                {
+                    <span class="comment">// for quantifiers, argument types must be explicit</span>
+                    <span class="comment">// here we parse the closure with syn and check each</span>
+                    <span class="comment">// argument has a type annotation</span>
+                    <span class="kw">let</span> <span class="ident">cl_args</span> <span class="op">=</span> <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#239">args</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#165">parse_rust_only</a>()<span class="question-mark">?</span>;
+                    <span class="kw">let</span> <span class="ident">check_cl</span> <span class="op">=</span> <span class="macro">quote!</span> { <span class="op">|</span> #<span class="ident">cl_args</span> <span class="op">|</span> <span class="number">0</span> };
+                    <span class="kw">let</span> <span class="ident">parsed_cl</span> <span class="op">=</span> <span class="ident">syn::parse2</span>::<span class="op">&lt;</span><a class="ident" href="../../../syn/expr/struct.ExprClosure.html">syn::ExprClosure</a><span class="op">&gt;</span>(<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#247">check_cl</a>)<span class="question-mark">?</span>;
+                    <span class="kw">for</span> <span class="ident">pat</span> <span class="kw">in</span> <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#248">parsed_cl</a>.<span class="ident">inputs</span> {
+                        <span class="kw">match</span> <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#249">pat</a> {
+                            <span class="ident">syn::Pat::Type</span>(<span class="kw">_</span>) =&gt; {}
+                            <span class="kw">_</span> =&gt; <span class="kw">return</span> <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#71">error</a>(<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#249">pat</a>.<a class="ident" href="../../../syn/spanned/trait.Spanned.html">span</a>(), <span class="string">&quot;quantifier arguments must have explicit types&quot;</span>),
+                        }
+                    }
+                };
+
+                <span class="kw">let</span> <span class="ident">triggers</span> <span class="op">=</span> <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#237">stream</a>.<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#432">extract_triggers</a>()<span class="question-mark">?</span>;
+                <span class="kw">if</span> <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#239">args</a>.<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#153">is_empty</a>() {
+                    <span class="kw">return</span> <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#71">error</a>(<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#236">span</a>, <span class="string">&quot;a quantifier must have at least one argument&quot;</span>);
+                }
+                <span class="kw">let</span> <span class="ident">args</span> <span class="op">=</span> <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#239">args</a>.<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#159">parse</a>()<span class="question-mark">?</span>;
+                <span class="kw">let</span> <span class="ident">body</span> <span class="op">=</span> <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#237">stream</a>.<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#159">parse</a>()<span class="question-mark">?</span>;
+                <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#236">kind</a>.<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#571-577">translate</a>(<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#236">span</a>, <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#257">triggers</a>, <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#261">args</a>, <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#262">body</a>)
+            }
+
+            <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#490">PrustiToken::SpecEnt</a>(<span class="ident">span</span>, <span class="kw">_</span>))
+            <span class="op">|</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#491">PrustiToken::CallDesc</a>(<span class="ident">span</span>, <span class="kw">_</span>)) =&gt;
+                <span class="kw">return</span> <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#71">error</a>(<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#266">span</a>, <span class="string">&quot;unexpected operator&quot;</span>),
+
+            <span class="comment">// some Rust binary operators can appear on their own, e.g. `(..)`</span>
+            <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#486">PrustiToken::BinOp</a>(<span class="ident">span</span>, <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#723">PrustiBinaryOp::Rust</a>(<span class="ident">op</span>))) =&gt;
+                <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#271">op</a>.<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#797-800">to_tokens</a>(<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#271">span</a>),
+
+            <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#486">PrustiToken::BinOp</a>(<span class="ident">span</span>, <span class="kw">_</span>)) =&gt;
+                <span class="kw">return</span> <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#71">error</a>(<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#274">span</a>, <span class="string">&quot;unexpected binary operator&quot;</span>),
+            <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#485">PrustiToken::Token</a>(<span class="ident">token</span>)) =&gt; <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#276">token</a>.<a class="ident" href="../../../quote/to_tokens/trait.ToTokens.html">to_token_stream</a>(),
+            <span class="prelude-val">None</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">TokenStream::new</span>()),
+        };
+        <span class="kw">loop</span> {
+            <span class="kw">let</span> (<span class="ident">span</span>, <span class="ident">op</span>) <span class="op">=</span> <span class="kw">match</span> <a class="self" href="../../../src/prusti_specs/specifications/preparser.rs.html#221">self</a>.<span class="ident">tokens</span>.<span class="ident">front</span>() {
+                <span class="comment">// If we see a group or token, we simply add them to the</span>
+                <span class="comment">// current LHS. This way fragments of Rust code with higher-</span>
+                <span class="comment">// precedence operators (e.g. plus) are connected into atoms</span>
+                <span class="comment">// as far as our parser is concerned.</span>
+                <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#484">PrustiToken::Group</a>(<span class="ident">span</span>, <span class="ident">delimiter</span>, <span class="kw">box</span> <span class="ident">stream</span>)) =&gt; {
+                    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">group</span> <span class="op">=</span> <span class="ident">proc_macro2::Group::new</span>(
+                        <span class="kw-2">*</span><a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#285">delimiter</a>,
+                        <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#285">stream</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#159">parse</a>()<span class="question-mark">?</span>,
+                    );
+                    <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#286">group</a>.<span class="ident">set_span</span>(<span class="kw-2">*</span><a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#285">span</a>);
+                    <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#222">lhs</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<span class="ident">TokenTree::Group</span>(<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#286">group</a>).<a class="ident" href="../../../quote/to_tokens/trait.ToTokens.html">to_token_stream</a>());
+                    <a class="self" href="../../../src/prusti_specs/specifications/preparser.rs.html#221">self</a>.<span class="ident">tokens</span>.<span class="ident">pop_front</span>();
+                    <span class="kw">continue</span>;
+                }
+                <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#485">PrustiToken::Token</a>(<span class="ident">token</span>)) =&gt; {
+                    <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#222">lhs</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#295">token</a>.<a class="ident" href="../../../quote/to_tokens/trait.ToTokens.html">to_token_stream</a>());
+                    <a class="self" href="../../../src/prusti_specs/specifications/preparser.rs.html#221">self</a>.<span class="ident">tokens</span>.<span class="ident">pop_front</span>();
+                    <span class="kw">continue</span>;
+                }
+
+                <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#490">PrustiToken::SpecEnt</a>(<span class="ident">span</span>, <span class="ident">once</span>)) =&gt; {
+                    <span class="kw">let</span> <span class="ident">span</span> <span class="op">=</span> <span class="kw-2">*</span><a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#301">span</a>;
+                    <span class="kw">let</span> <span class="ident">once</span> <span class="op">=</span> <span class="kw-2">*</span><a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#301">once</a>;
+                    <a class="self" href="../../../src/prusti_specs/specifications/preparser.rs.html#221">self</a>.<span class="ident">tokens</span>.<span class="ident">pop_front</span>();
+                    <span class="kw">let</span> <span class="ident">args</span> <span class="op">=</span> <a class="self" href="../../../src/prusti_specs/specifications/preparser.rs.html#221">self</a>.<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#362">pop_closure_args</a>()
+                        .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">syn::parse::Error::new</span>(<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#302">span</a>, <span class="string">&quot;expected closure arguments&quot;</span>))<span class="question-mark">?</span>;
+                    <span class="kw">let</span> <span class="ident">contract</span> <span class="op">=</span> <a class="self" href="../../../src/prusti_specs/specifications/preparser.rs.html#221">self</a>.<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#354">pop_group</a>(<span class="ident">Delimiter::Bracket</span>)
+                        .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">syn::parse::Error::new</span>(<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#302">span</a>, <span class="string">&quot;expected closure specification in brackets&quot;</span>))<span class="question-mark">?</span>;
+                    <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#222">lhs</a> <span class="op">=</span> <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#494-500">translate_spec_ent</a>(
+                        <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#302">span</a>,
+                        <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#303">once</a>,
+                        <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#222">lhs</a>,
+                        <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#305">args</a>
+                            .<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#412-416">split</a>(<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#723">PrustiBinaryOp::Rust</a>(<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#781">RustOp::Comma</a>), <span class="bool-val">true</span>)
+                            .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
+                            .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="op">|</span><span class="ident">stream</span><span class="op">|</span> <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#316">stream</a>.<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#159">parse</a>())
+                            .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>::<span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span>, <span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>()<span class="question-mark">?</span>,
+                        <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#307">contract</a>
+                            .<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#412-416">split</a>(<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#723">PrustiBinaryOp::Rust</a>(<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#781">RustOp::Comma</a>), <span class="bool-val">true</span>)
+                            .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
+                            .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="op">|</span><span class="ident">stream</span><span class="op">|</span> <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#321">stream</a>.<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#384">pop_closure_spec</a>().<span class="ident">unwrap</span>())
+                            <span class="comment">// TODO: assert empty afterwards ...</span>
+                            .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="op">|</span><span class="ident">stream</span><span class="op">|</span> <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#323">stream</a>.<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#474">parse</a>())
+                            .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>::<span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span>, <span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>()<span class="question-mark">?</span>,
+                    );
+                    <span class="kw">continue</span>;
+                }
+
+                <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#491">PrustiToken::CallDesc</a>(..)) =&gt; <span class="macro">todo!</span>(<span class="string">&quot;call desc&quot;</span>),
+
+                <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#486">PrustiToken::BinOp</a>(<span class="ident">span</span>, <span class="ident">op</span>)) =&gt; (<span class="kw-2">*</span><a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#331">span</a>, <span class="kw-2">*</span><a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#331">op</a>),
+                <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#488">PrustiToken::Outer</a>(<span class="ident">span</span>)) =&gt;
+                    <span class="kw">return</span> <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#71">error</a>(<span class="kw-2">*</span><a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#332">span</a>, <span class="string">&quot;unexpected outer&quot;</span>),
+                <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#489">PrustiToken::Quantifier</a>(<span class="ident">span</span>, <span class="kw">_</span>)) =&gt;
+                    <span class="kw">return</span> <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#71">error</a>(<span class="kw-2">*</span><a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#334">span</a>, <span class="string">&quot;unexpected quantifier&quot;</span>),
+
+                <span class="prelude-val">None</span> =&gt; <span class="kw">break</span>,
+            };
+            <span class="kw">let</span> (<span class="ident">l_bp</span>, <span class="ident">r_bp</span>) <span class="op">=</span> <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#280">op</a>.<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#731">binding_power</a>();
+            <span class="kw">if</span> <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#339">l_bp</a> <span class="op">&lt;</span> <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#221">min_bp</a> {
+                <span class="kw">break</span>;
+            }
+            <a class="self" href="../../../src/prusti_specs/specifications/preparser.rs.html#221">self</a>.<span class="ident">tokens</span>.<span class="ident">pop_front</span>();
+            <span class="kw">let</span> <span class="ident">rhs</span> <span class="op">=</span> <a class="self" href="../../../src/prusti_specs/specifications/preparser.rs.html#221">self</a>.<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#221">expr_bp</a>(<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#339">r_bp</a>)<span class="question-mark">?</span>;
+            <span class="comment">// TODO: explain</span>
+            <span class="kw">if</span> <span class="op">!</span><span class="macro">matches!</span>(<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#280">op</a>, <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#723">PrustiBinaryOp::Rust</a>(<span class="kw">_</span>)) <span class="op">&amp;&amp;</span> <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#344">rhs</a>.<span class="ident">is_empty</span>() {
+                <span class="kw">return</span> <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#71">error</a>(<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#280">span</a>, <span class="string">&quot;expected expression&quot;</span>);
+            }
+            <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#222">lhs</a> <span class="op">=</span> <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#280">op</a>.<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#742-747">translate</a>(<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#280">span</a>, <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#222">lhs</a>, <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#344">rhs</a>);
+        }
+        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#222">lhs</a>)
+    }
+
+    <span class="kw">fn</span> <span class="ident">pop_group</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">delimiter</span>: <a class="ident" href="../../../proc_macro2/enum.Delimiter.html">Delimiter</a>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
+        <span class="kw">match</span> <a class="self" href="../../../src/prusti_specs/specifications/preparser.rs.html#354">self</a>.<span class="ident">tokens</span>.<span class="ident">pop_front</span>() {
+            <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#484">PrustiToken::Group</a>(<span class="kw">_</span>, <span class="ident">del</span>, <span class="kw">box</span> <span class="ident">stream</span>)) <span class="kw">if</span> <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#356">del</a> <span class="op">==</span> <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#354">delimiter</a>
+                =&gt; <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#356">stream</a>),
+            <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
+        }
+    }
+
+    <span class="kw">fn</span> <span class="ident">pop_closure_args</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">tokens</span> <span class="op">=</span> <span class="ident">VecDeque::new</span>();
+
+        <span class="comment">// special case: empty closure might be parsed as a logical or</span>
+        <span class="kw">if</span> <span class="macro">matches!</span>(<a class="self" href="../../../src/prusti_specs/specifications/preparser.rs.html#362">self</a>.<span class="ident">tokens</span>.<span class="ident">front</span>(), <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#486">PrustiToken::BinOp</a>(<span class="kw">_</span>, <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#725">PrustiBinaryOp::Or</a>))) {
+            <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="self">Self</span> { <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#363">tokens</a> });
+        }
+
+        <span class="kw">if</span> <span class="op">!</span><a class="self" href="../../../src/prusti_specs/specifications/preparser.rs.html#362">self</a>.<span class="ident">tokens</span>.<span class="ident">pop_front</span>()<span class="question-mark">?</span>.<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#650">is_closure_brace</a>() {
+            <span class="kw">return</span> <span class="prelude-val">None</span>;
+        }
+        <span class="kw">loop</span> {
+            <span class="kw">let</span> <span class="ident">token</span> <span class="op">=</span> <a class="self" href="../../../src/prusti_specs/specifications/preparser.rs.html#362">self</a>.<span class="ident">tokens</span>.<span class="ident">pop_front</span>()<span class="question-mark">?</span>;
+            <span class="kw">if</span> <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#374">token</a>.<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#650">is_closure_brace</a>() {
+                <span class="kw">break</span>;
+            }
+            <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#363">tokens</a>.<span class="ident">push_back</span>(<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#374">token</a>);
+        }
+
+        <span class="prelude-val">Some</span>(<span class="self">Self</span> { <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#363">tokens</a> })
+    }
+
+    <span class="kw">fn</span> <span class="ident">pop_closure_spec</span>(<span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ClosureSpec</span><span class="op">&lt;</span><a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#76-78">PrustiTokenStream</a><span class="op">&gt;</span><span class="op">&gt;</span> {
+        <span class="comment">// TODO: clean up the interface somehow ...</span>
+        <span class="kw">if</span> <a class="self" href="../../../src/prusti_specs/specifications/preparser.rs.html#384">self</a>.<span class="ident">tokens</span>.<span class="ident">is_empty</span>() {
+            <span class="kw">return</span> <span class="prelude-val">None</span>;
+        }
+        <span class="kw">if</span> <a class="self" href="../../../src/prusti_specs/specifications/preparser.rs.html#384">self</a>.<span class="ident">tokens</span>.<span class="ident">len</span>() <span class="op">!</span><span class="op">=</span> <span class="number">2</span> {
+            <span class="macro">panic!</span>();
+        }
+        <span class="kw">match</span> [
+            <span class="kw-2">&amp;</span><a class="self" href="../../../src/prusti_specs/specifications/preparser.rs.html#384">self</a>.<span class="ident">tokens</span>[<span class="number">0</span>],
+            <span class="kw-2">&amp;</span><a class="self" href="../../../src/prusti_specs/specifications/preparser.rs.html#384">self</a>.<span class="ident">tokens</span>[<span class="number">1</span>],
+        ] {
+            [
+                <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#485">PrustiToken::Token</a>(<span class="ident">TokenTree::Ident</span>(<span class="ident">ident</span>)),
+                <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#484">PrustiToken::Group</a>(<span class="ident">_span</span>, <span class="ident">Delimiter::Parenthesis</span>, <span class="kw">box</span> <span class="ident">group</span>),
+            ] =&gt; {
+                <span class="kw">if</span> <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#397">ident</a> <span class="op">==</span> <span class="string">&quot;requires&quot;</span> {
+                    <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#469">ClosureSpec::Requires</a>(<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#398">group</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()))
+                } <span class="kw">else</span> <span class="kw">if</span> <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#397">ident</a> <span class="op">==</span> <span class="string">&quot;ensures&quot;</span> {
+                    <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#470">ClosureSpec::Ensures</a>(<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#398">group</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()))
+                } <span class="kw">else</span> {
+                    <span class="prelude-val">None</span>
+                }
+            }
+            <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>
+        }
+    }
+
+    <span class="kw">fn</span> <span class="ident">split</span>(
+        <span class="self">self</span>,
+        <span class="ident">split_on</span>: <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#722-728">PrustiBinaryOp</a>,
+        <span class="ident">allow_trailing</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+    ) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
+        <span class="kw">if</span> <a class="self" href="../../../src/prusti_specs/specifications/preparser.rs.html#413">self</a>.<span class="ident">tokens</span>.<span class="ident">is_empty</span>() {
+            <span class="kw">return</span> <span class="macro">vec!</span>[];
+        }
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">res</span> <span class="op">=</span> <a class="self" href="../../../src/prusti_specs/specifications/preparser.rs.html#413">self</a>.<span class="ident">tokens</span>
+            .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
+            .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>()
+            .<span class="ident">split</span>(<span class="op">|</span><span class="ident">token</span><span class="op">|</span> <span class="macro">matches!</span>(<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#423">token</a>, <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#486">PrustiToken::BinOp</a>(<span class="kw">_</span>, <span class="ident">t</span>) <span class="kw">if</span> <span class="kw-2">*</span><a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#423">t</a> <span class="op">==</span> <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#414">split_on</a>))
+            .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="op">|</span><span class="ident">group</span><span class="op">|</span> <span class="self">Self</span> { <span class="ident">tokens</span>: <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#424">group</a>.<span class="ident">iter</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">cloned</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>() })
+            .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>();
+        <span class="kw">if</span> <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#415">allow_trailing</a> <span class="op">&amp;&amp;</span> <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#420">res</a>.<span class="ident">len</span>() <span class="op">&gt;</span> <span class="number">1</span> <span class="op">&amp;&amp;</span> <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#420">res</a>[<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#420">res</a>.<span class="ident">len</span>() <span class="op">-</span> <span class="number">1</span>].<span class="ident">tokens</span>.<span class="ident">is_empty</span>() {
+            <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#420">res</a>.<span class="ident">pop</span>();
+        }
+        <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#420">res</a>
+    }
+
+    <span class="kw">fn</span> <span class="ident">extract_triggers</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">syn::Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../../proc_macro2/struct.TokenStream.html">TokenStream</a><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <a class="self" href="../../../src/prusti_specs/specifications/preparser.rs.html#432">self</a>.<span class="ident">tokens</span>.<span class="ident">len</span>();
+        <span class="kw">if</span> <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#433">len</a> <span class="op">&lt;</span> <span class="number">4</span> {
+            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="macro">vec!</span>[]);
+        }
+        <span class="kw">match</span> [
+            <span class="kw-2">&amp;</span><a class="self" href="../../../src/prusti_specs/specifications/preparser.rs.html#432">self</a>.<span class="ident">tokens</span>[<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#433">len</a> <span class="op">-</span> <span class="number">4</span>],
+            <span class="kw-2">&amp;</span><a class="self" href="../../../src/prusti_specs/specifications/preparser.rs.html#432">self</a>.<span class="ident">tokens</span>[<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#433">len</a> <span class="op">-</span> <span class="number">3</span>],
+            <span class="kw-2">&amp;</span><a class="self" href="../../../src/prusti_specs/specifications/preparser.rs.html#432">self</a>.<span class="ident">tokens</span>[<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#433">len</a> <span class="op">-</span> <span class="number">2</span>],
+            <span class="kw-2">&amp;</span><a class="self" href="../../../src/prusti_specs/specifications/preparser.rs.html#432">self</a>.<span class="ident">tokens</span>[<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#433">len</a> <span class="op">-</span> <span class="number">1</span>],
+        ] {
+            [
+                <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#486">PrustiToken::BinOp</a>(<span class="kw">_</span>, <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#723">PrustiBinaryOp::Rust</a>(<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#781">RustOp::Comma</a>)),
+                <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#485">PrustiToken::Token</a>(<span class="ident">TokenTree::Ident</span>(<span class="ident">ident</span>)),
+                <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#486">PrustiToken::BinOp</a>(<span class="kw">_</span>, <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#723">PrustiBinaryOp::Rust</a>(<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#783">RustOp::Assign</a>)),
+                <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#484">PrustiToken::Group</a>(<span class="ident">triggers_span</span>, <span class="ident">Delimiter::Bracket</span>, <span class="kw">box</span> <span class="ident">triggers</span>),
+            ] <span class="kw">if</span> <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#445">ident</a> <span class="op">==</span> <span class="string">&quot;triggers&quot;</span> =&gt; {
+                <span class="kw">let</span> <span class="ident">triggers</span> <span class="op">=</span> <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#447">triggers</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()
+                    .<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#412-416">split</a>(<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#723">PrustiBinaryOp::Rust</a>(<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#781">RustOp::Comma</a>), <span class="bool-val">true</span>)
+                    .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
+                    .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="op">|</span><span class="kw-2">mut</span> <span class="ident">stream</span><span class="op">|</span> <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#452">stream</a>
+                        .<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#354">pop_group</a>(<span class="ident">Delimiter::Parenthesis</span>)
+                        .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">syn::parse::Error::new</span>(<span class="kw-2">*</span><a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#447">triggers_span</a>, <span class="string">&quot;trigger sets must be tuples of expressions&quot;</span>))<span class="question-mark">?</span>
+                        .<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#412-416">split</a>(<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#723">PrustiBinaryOp::Rust</a>(<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#781">RustOp::Comma</a>), <span class="bool-val">true</span>)
+                        .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
+                        .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="op">|</span><span class="ident">stream</span><span class="op">|</span> <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#457">stream</a>.<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#159">parse</a>())
+                        .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>::<span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span>, <span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>())
+                    .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>::<span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span>, <span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>();
+                <a class="self" href="../../../src/prusti_specs/specifications/preparser.rs.html#432">self</a>.<span class="ident">tokens</span>.<span class="ident">truncate</span>(<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#433">len</a> <span class="op">-</span> <span class="number">4</span>);
+                <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#449">triggers</a>
+            }
+            <span class="kw">_</span> =&gt; <span class="prelude-val">Ok</span>(<span class="macro">vec!</span>[]),
+        }
+    }
+}
+
+<span class="kw">enum</span> <span class="ident">ClosureSpec</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+    <span class="ident">Requires</span>(<span class="ident">T</span>),
+    <span class="ident">Ensures</span>(<span class="ident">T</span>),
+}
+
+<span class="kw">impl</span> <span class="ident">ClosureSpec</span><span class="op">&lt;</span><a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#76-78">PrustiTokenStream</a><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">parse</span>(<span class="self">self</span>) -&gt; <span class="ident">syn::Result</span><span class="op">&lt;</span><span class="ident">ClosureSpec</span><span class="op">&lt;</span><a class="ident" href="../../../proc_macro2/struct.TokenStream.html">TokenStream</a><span class="op">&gt;</span><span class="op">&gt;</span> {
+        <span class="prelude-val">Ok</span>(<span class="kw">match</span> <a class="self" href="../../../src/prusti_specs/specifications/preparser.rs.html#474">self</a> {
+            <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#469">ClosureSpec::Requires</a>(<span class="ident">stream</span>) =&gt; <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#469">ClosureSpec::Requires</a>(<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#476">stream</a>.<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#159">parse</a>()<span class="question-mark">?</span>),
+            <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#470">ClosureSpec::Ensures</a>(<span class="ident">stream</span>) =&gt; <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#470">ClosureSpec::Ensures</a>(<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#477">stream</a>.<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#159">parse</a>()<span class="question-mark">?</span>),
+        })
+    }
+}
+
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>)]</span>
+<span class="kw">enum</span> <span class="ident">PrustiToken</span> {
+    <span class="ident">Group</span>(<a class="ident" href="../../../proc_macro2/struct.Span.html">Span</a>, <a class="ident" href="../../../proc_macro2/enum.Delimiter.html">Delimiter</a>, <span class="ident">Box</span><span class="op">&lt;</span><a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#76-78">PrustiTokenStream</a><span class="op">&gt;</span>),
+    <span class="ident">Token</span>(<a class="ident" href="../../../proc_macro2/enum.TokenTree.html">TokenTree</a>),
+    <span class="ident">BinOp</span>(<a class="ident" href="../../../proc_macro2/struct.Span.html">Span</a>, <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#722-728">PrustiBinaryOp</a>),
+    <span class="comment">// TODO: add note about unops not sharing a variant, descriptions ...</span>
+    <span class="ident">Outer</span>(<a class="ident" href="../../../proc_macro2/struct.Span.html">Span</a>),
+    <span class="ident">Quantifier</span>(<a class="ident" href="../../../proc_macro2/struct.Span.html">Span</a>, <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#565-568">Quantifier</a>),
+    <span class="ident">SpecEnt</span>(<a class="ident" href="../../../proc_macro2/struct.Span.html">Span</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>),
+    <span class="ident">CallDesc</span>(<a class="ident" href="../../../proc_macro2/struct.Span.html">Span</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>),
+}
+
+<span class="kw">fn</span> <span class="ident">translate_spec_ent</span>(
+    <span class="ident">span</span>: <a class="ident" href="../../../proc_macro2/struct.Span.html">Span</a>,
+    <span class="ident">once</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+    <span class="ident">cl_expr</span>: <a class="ident" href="../../../proc_macro2/struct.TokenStream.html">TokenStream</a>,
+    <span class="ident">cl_args</span>: <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../../proc_macro2/struct.TokenStream.html">TokenStream</a><span class="op">&gt;</span>,
+    <span class="ident">contract</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">ClosureSpec</span><span class="op">&lt;</span><a class="ident" href="../../../proc_macro2/struct.TokenStream.html">TokenStream</a><span class="op">&gt;</span><span class="op">&gt;</span>,
+) -&gt; <a class="ident" href="../../../proc_macro2/struct.TokenStream.html">TokenStream</a> {
+    <span class="kw">let</span> <span class="ident">once</span> <span class="op">=</span> <span class="kw">if</span> <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#496">once</a> {
+        <span class="macro">quote_spanned!</span> { <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#495">span</a> =&gt; <span class="bool-val">true</span> }
+    } <span class="kw">else</span> {
+        <span class="macro">quote_spanned!</span> { <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#495">span</a> =&gt; <span class="bool-val">false</span> }
+    };
+
+    <span class="comment">// TODO: move extraction function generation into &quot;fn_type_extractor&quot;</span>
+    <span class="kw">let</span> <span class="ident">arg_count</span> <span class="op">=</span> <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#498">cl_args</a>.<span class="ident">len</span>();
+    <span class="kw">let</span> <span class="ident">generics_args</span> <span class="op">=</span> (<span class="number">0</span>..<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#508">arg_count</a>)
+        .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="op">|</span><span class="ident">i</span><span class="op">|</span> <span class="ident">TokenTree::Ident</span>(<span class="ident">proc_macro2::Ident::new</span>(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;GA{}&quot;</span>, <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#510">i</a>), <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#495">span</a>)))
+        .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>();
+    <span class="kw">let</span> <span class="ident">generic_res</span> <span class="op">=</span> <span class="ident">TokenTree::Ident</span>(<span class="ident">proc_macro2::Ident::new</span>(<span class="string">&quot;GR&quot;</span>, <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#495">span</a>));
+
+    <span class="kw">let</span> <span class="ident">extract_args</span> <span class="op">=</span> (<span class="number">0</span>..<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#508">arg_count</a>)
+        .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="op">|</span><span class="ident">i</span><span class="op">|</span> <span class="ident">TokenTree::Ident</span>(<span class="ident">proc_macro2::Ident::new</span>(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;__extract_arg{}&quot;</span>, <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#515">i</a>), <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#495">span</a>)))
+        .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>();
+    <span class="kw">let</span> <span class="ident">extract_args_decl</span> <span class="op">=</span> <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#514">extract_args</a>.<span class="ident">iter</span>()
+        .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">zip</a>(<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#509">generics_args</a>.<span class="ident">iter</span>())
+        .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="op">|</span>(<span class="ident">ident</span>, <span class="ident">arg_type</span>)<span class="op">|</span> <span class="macro">quote_spanned!</span> { <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#495">span</a> =&gt;
+            <span class="attribute">#[<span class="ident">prusti::spec_only</span>]</span>
+            <span class="kw">fn</span> #<span class="ident">ident</span><span class="op">&lt;</span>
+                #(#<span class="ident">generics_args</span>),<span class="op">*</span> ,
+                #<span class="ident">generic_res</span>,
+                <span class="ident">F</span>: <span class="ident">FnOnce</span>( #(#<span class="ident">generics_args</span>),<span class="op">*</span> ) -&gt; #<span class="ident">generic_res</span>
+            <span class="op">&gt;</span>(<span class="ident">_f</span>: <span class="kw-2">&amp;</span><span class="ident">F</span>) -&gt; #<span class="ident">arg_type</span> { <span class="macro">unreachable!</span>() }
+        })
+        .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>();
+
+    <span class="kw">let</span> <span class="ident">preconds</span> <span class="op">=</span> <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#499">contract</a>.<span class="ident">iter</span>()
+        .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter_map</a>(<span class="op">|</span><span class="ident">spec</span><span class="op">|</span> <span class="kw">match</span> <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#530">spec</a> {
+            <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#469">ClosureSpec::Requires</a>(<span class="ident">stream</span>) =&gt; <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#531">stream</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()),
+            <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
+        })
+        .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>();
+    <span class="kw">let</span> <span class="ident">postconds</span> <span class="op">=</span> <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#499">contract</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
+        .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter_map</a>(<span class="op">|</span><span class="ident">spec</span><span class="op">|</span> <span class="kw">match</span> <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#536">spec</a> {
+            <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#470">ClosureSpec::Ensures</a>(<span class="ident">stream</span>) =&gt; <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#537">stream</a>),
+            <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
+        })
+        .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>();
+
+    <span class="comment">// TODO: figure out `outer`</span>
+
+    <span class="macro">quote_spanned!</span> { <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#495">span</a> =&gt; {
+        <span class="kw">let</span> <span class="ident">__cl_ref</span> <span class="op">=</span> <span class="op">&amp;</span> #<span class="ident">cl_expr</span>;
+        #(#<span class="ident">extract_args_decl</span>)<span class="op">*</span>
+        <span class="attribute">#[<span class="ident">prusti::spec_only</span>]</span>
+        <span class="kw">fn</span> <span class="ident">__extract_res</span><span class="op">&lt;</span>
+            #(#<span class="ident">generics_args</span>),<span class="op">*</span> ,
+            #<span class="ident">generic_res</span>,
+            <span class="ident">F</span>: <span class="ident">FnOnce</span>( #(#<span class="ident">generics_args</span>),<span class="op">*</span> ) -&gt; #<span class="ident">generic_res</span>
+        <span class="op">&gt;</span>(<span class="ident">_f</span>: <span class="kw-2">&amp;</span><span class="ident">F</span>) -&gt; #<span class="ident">generic_res</span> { <span class="macro">unreachable!</span>() }
+        #( <span class="kw">let</span> #<span class="ident">cl_args</span> <span class="op">=</span> #<span class="ident">extract_args</span>(<span class="ident">__cl_ref</span>); )<span class="op">*</span>
+        <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">__extract_res</span>(<span class="ident">__cl_ref</span>);
+        <span class="ident">specification_entailment</span>(
+            #<span class="ident">once</span>,
+            <span class="ident">__cl_ref</span>,
+            ( #( <span class="attribute">#[<span class="ident">prusti::spec_only</span>]</span> <span class="op">|</span><span class="op">|</span> -&gt; <span class="ident">bool</span> { ((#<span class="ident">preconds</span>): <span class="ident">bool</span>) }, )<span class="op">*</span> ),
+            ( #( <span class="attribute">#[<span class="ident">prusti::spec_only</span>]</span> <span class="op">|</span><span class="op">|</span> -&gt; <span class="ident">bool</span> { ((#<span class="ident">postconds</span>): <span class="ident">bool</span>) }, )<span class="op">*</span> ),
+        )
+    } }
+}
+
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>)]</span>
+<span class="kw">enum</span> <span class="ident">Quantifier</span> {
+    <span class="ident">Forall</span>,
+    <span class="ident">Exists</span>,
+}
+
+<span class="kw">impl</span> <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#565-568">Quantifier</a> {
+    <span class="kw">fn</span> <span class="ident">translate</span>(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        <span class="ident">span</span>: <a class="ident" href="../../../proc_macro2/struct.Span.html">Span</a>,
+        <span class="ident">triggers</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../../proc_macro2/struct.TokenStream.html">TokenStream</a><span class="op">&gt;</span><span class="op">&gt;</span>,
+        <span class="ident">args</span>: <a class="ident" href="../../../proc_macro2/struct.TokenStream.html">TokenStream</a>,
+        <span class="ident">body</span>: <a class="ident" href="../../../proc_macro2/struct.TokenStream.html">TokenStream</a>,
+    ) -&gt; <a class="ident" href="../../../proc_macro2/struct.TokenStream.html">TokenStream</a> {
+        <span class="comment">// TODO: refer to forall and exists with prusti_contracts:: prefix</span>
+        <span class="kw">let</span> <span class="ident">trigger_sets</span> <span class="op">=</span> <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#574">triggers</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
+            .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="op">|</span><span class="ident">set</span><span class="op">|</span> {
+                <span class="kw">let</span> <span class="ident">triggers</span> <span class="op">=</span> <span class="ident">TokenStream::from_iter</span>(<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#580">set</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
+                    .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="op">|</span><span class="ident">trigger</span><span class="op">|</span> <span class="macro">quote_spanned!</span> { <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#582">trigger</a>.<a class="ident" href="../../../syn/spanned/trait.Spanned.html">span</a>() =&gt;
+                        <span class="attribute">#[<span class="ident">prusti::spec_only</span>]</span> <span class="op">|</span> #<span class="ident">args</span> <span class="op">|</span> ( #<span class="ident">trigger</span> ), }));
+                <span class="macro">quote_spanned!</span> { <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#573">span</a> =&gt; ( #<span class="ident">triggers</span> ) }
+            })
+            <span class="comment">//.map(|set| quote_spanned! { span =&gt;</span>
+            <span class="comment">//    ( #( #[prusti::spec_only] | #args | ( #set ), )* ) })</span>
+            .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>();
+        <span class="kw">match</span> <a class="self" href="../../../src/prusti_specs/specifications/preparser.rs.html#572">self</a> {
+            <span class="ident"><span class="self">Self</span>::Forall</span> =&gt; <span class="macro">quote_spanned!</span> { <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#576">body</a>.<a class="ident" href="../../../syn/spanned/trait.Spanned.html">span</a>() =&gt; <span class="ident">forall</span>(
+                ( #( #<span class="ident">trigger_sets</span>, )<span class="op">*</span> ),
+                <span class="attribute">#[<span class="ident">prusti::spec_only</span>]</span> <span class="op">|</span> #<span class="ident">args</span> <span class="op">|</span> -&gt; <span class="ident">bool</span> { ((#<span class="ident">body</span>): <span class="ident">bool</span>) }
+            ) },
+            <span class="ident"><span class="self">Self</span>::Exists</span> =&gt; <span class="macro">quote_spanned!</span> { <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#576">body</a>.<a class="ident" href="../../../syn/spanned/trait.Spanned.html">span</a>() =&gt; <span class="ident">exists</span>(
+                ( #( #<span class="ident">trigger_sets</span>, )<span class="op">*</span> ),
+                <span class="attribute">#[<span class="ident">prusti::spec_only</span>]</span> <span class="op">|</span> #<span class="ident">args</span> <span class="op">|</span> -&gt; <span class="ident">bool</span> { ((#<span class="ident">body</span>): <span class="ident">bool</span>) }
+            ) },
+        }
+    }
+}
+
+<span class="comment">// For Prusti-specific operators, in both [operator2] and [operator3]</span>
+<span class="comment">// we only care about the spacing of the last [Punct], as this lets us</span>
+<span class="comment">// know that the last character is not itself part of an actual Rust</span>
+<span class="comment">// operator.</span>
+<span class="comment">//</span>
+<span class="comment">// &quot;==&gt;&quot; will never have the &quot;expected&quot; spacing of [Joint, Joint, Alone]</span>
+<span class="comment">// because &quot;==&quot; and &quot;&gt;&quot; are Rust operators, but &quot;==&gt;&quot; is not.</span>
+<span class="comment">//</span>
+<span class="comment">// If [all_spacing] is enabled, we care about the spacing of all three</span>
+<span class="comment">// [Punct] characters, since we are parsing a Rust operator.</span>
+<span class="kw">fn</span> <span class="ident">operator2</span>(
+    <span class="ident">op</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>,
+    <span class="ident">p1</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../proc_macro2/struct.Punct.html">Punct</a>,
+    <span class="ident">p2</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../proc_macro2/struct.Punct.html">Punct</a>,
+    <span class="ident">all_spacing</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    <span class="kw">let</span> <span class="ident">chars</span> <span class="op">=</span> <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#613">op</a>.<span class="ident">chars</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>();
+    [<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#614">p1</a>.<span class="ident">as_char</span>(), <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#615">p2</a>.<span class="ident">as_char</span>()] <span class="op">==</span> <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#618">chars</a>[<span class="number">0</span>..<span class="number">2</span>]
+        <span class="op">&amp;&amp;</span> (<span class="op">!</span><a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#616">all_spacing</a> <span class="op">|</span><span class="op">|</span> <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#614">p1</a>.<span class="ident">spacing</span>() <span class="op">==</span> <span class="ident">Joint</span>)
+        <span class="op">&amp;&amp;</span> <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#615">p2</a>.<span class="ident">spacing</span>() <span class="op">==</span> <span class="ident">Alone</span>
+}
+
+<span class="kw">fn</span> <span class="ident">operator3</span>(
+    <span class="ident">op</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>,
+    <span class="ident">p1</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../proc_macro2/struct.Punct.html">Punct</a>,
+    <span class="ident">p2</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../proc_macro2/struct.Punct.html">Punct</a>,
+    <span class="ident">p3</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../proc_macro2/struct.Punct.html">Punct</a>,
+    <span class="ident">all_spacing</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    <span class="kw">let</span> <span class="ident">chars</span> <span class="op">=</span> <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#625">op</a>.<span class="ident">chars</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>();
+    [<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#626">p1</a>.<span class="ident">as_char</span>(), <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#627">p2</a>.<span class="ident">as_char</span>(), <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#628">p3</a>.<span class="ident">as_char</span>()] <span class="op">==</span> <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#631">chars</a>[<span class="number">0</span>..<span class="number">3</span>]
+        <span class="op">&amp;&amp;</span> (<span class="op">!</span><a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#629">all_spacing</a> <span class="op">|</span><span class="op">|</span> (<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#626">p1</a>.<span class="ident">spacing</span>() <span class="op">==</span> <span class="ident">Joint</span> <span class="op">&amp;&amp;</span> <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#627">p2</a>.<span class="ident">spacing</span>() <span class="op">==</span> <span class="ident">Joint</span>))
+        <span class="op">&amp;&amp;</span> <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#628">p3</a>.<span class="ident">spacing</span>() <span class="op">==</span> <span class="ident">Alone</span>
+}
+
+<span class="kw">impl</span> <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#483-492">PrustiToken</a> {
+    <span class="kw">fn</span> <span class="ident">span</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="../../../proc_macro2/struct.Span.html">Span</a> {
+        <span class="kw">match</span> <a class="self" href="../../../src/prusti_specs/specifications/preparser.rs.html#638">self</a> {
+            <span class="ident"><span class="self">Self</span>::Group</span>(<span class="ident">span</span>, <span class="kw">_</span>, <span class="kw">_</span>)
+            <span class="op">|</span> <span class="ident"><span class="self">Self</span>::BinOp</span>(<span class="ident">span</span>, <span class="kw">_</span>)
+            <span class="op">|</span> <span class="ident"><span class="self">Self</span>::Outer</span>(<span class="ident">span</span>)
+            <span class="op">|</span> <span class="ident"><span class="self">Self</span>::Quantifier</span>(<span class="ident">span</span>, <span class="kw">_</span>)
+            <span class="op">|</span> <span class="ident"><span class="self">Self</span>::SpecEnt</span>(<span class="ident">span</span>, <span class="kw">_</span>)
+            <span class="op">|</span> <span class="ident"><span class="self">Self</span>::CallDesc</span>(<span class="ident">span</span>, <span class="kw">_</span>) =&gt; <span class="kw-2">*</span><a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#640">span</a>,
+            <span class="ident"><span class="self">Self</span>::Token</span>(<span class="ident">tree</span>) =&gt; <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#646">tree</a>.<span class="ident">span</span>(),
+        }
+    }
+
+    <span class="kw">fn</span> <span class="ident">is_closure_brace</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <span class="macro">matches!</span>(<a class="self" href="../../../src/prusti_specs/specifications/preparser.rs.html#650">self</a>, <span class="ident"><span class="self">Self</span>::Token</span>(<span class="ident">TokenTree::Punct</span>(<span class="ident">p</span>))
+            <span class="kw">if</span> <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#651">p</a>.<span class="ident">as_char</span>() <span class="op">==</span> <span class="string">&#39;|&#39;</span> <span class="op">&amp;&amp;</span> <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#651">p</a>.<span class="ident">spacing</span>() <span class="op">==</span> <span class="ident">proc_macro2::Spacing::Alone</span>)
+    }
+
+    <span class="kw">fn</span> <span class="ident">parse_op2</span>(
+        <span class="ident">p1</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../proc_macro2/struct.Punct.html">Punct</a>,
+        <span class="ident">p2</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../proc_macro2/struct.Punct.html">Punct</a>,
+    ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="ident">span</span> <span class="op">=</span> <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#656">p1</a>.<span class="ident">span</span>().<span class="ident">join</span>(<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#657">p2</a>.<span class="ident">span</span>()).<span class="ident">unwrap</span>();
+        <span class="prelude-val">Some</span>(<span class="ident"><span class="self">Self</span>::BinOp</span>(<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#659">span</a>, <span class="kw">if</span> <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#612-617">operator2</a>(<span class="string">&quot;&amp;&amp;&quot;</span>, <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#656">p1</a>, <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#657">p2</a>, <span class="bool-val">true</span>) {
+            <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#726">PrustiBinaryOp::And</a>
+        } <span class="kw">else</span> <span class="kw">if</span> <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#612-617">operator2</a>(<span class="string">&quot;||&quot;</span>, <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#656">p1</a>, <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#657">p2</a>, <span class="bool-val">true</span>) {
+            <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#725">PrustiBinaryOp::Or</a>
+        } <span class="kw">else</span> <span class="kw">if</span> <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#612-617">operator2</a>(<span class="string">&quot;-&gt;&quot;</span>, <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#656">p1</a>, <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#657">p2</a>, <span class="bool-val">true</span>) {
+            <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#724">PrustiBinaryOp::Implies</a>
+        } <span class="kw">else</span> <span class="kw">if</span> <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#612-617">operator2</a>(<span class="string">&quot;..&quot;</span>, <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#656">p1</a>, <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#657">p2</a>, <span class="bool-val">true</span>) {
+            <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#723">PrustiBinaryOp::Rust</a>(<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#770">RustOp::Range</a>)
+        } <span class="kw">else</span> <span class="kw">if</span> <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#612-617">operator2</a>(<span class="string">&quot;+=&quot;</span>, <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#656">p1</a>, <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#657">p2</a>, <span class="bool-val">true</span>) {
+            <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#723">PrustiBinaryOp::Rust</a>(<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#771">RustOp::AddAssign</a>)
+        } <span class="kw">else</span> <span class="kw">if</span> <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#612-617">operator2</a>(<span class="string">&quot;-=&quot;</span>, <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#656">p1</a>, <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#657">p2</a>, <span class="bool-val">true</span>) {
+            <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#723">PrustiBinaryOp::Rust</a>(<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#772">RustOp::SubtractAssign</a>)
+        } <span class="kw">else</span> <span class="kw">if</span> <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#612-617">operator2</a>(<span class="string">&quot;*=&quot;</span>, <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#656">p1</a>, <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#657">p2</a>, <span class="bool-val">true</span>) {
+            <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#723">PrustiBinaryOp::Rust</a>(<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#773">RustOp::MultiplyAssign</a>)
+        } <span class="kw">else</span> <span class="kw">if</span> <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#612-617">operator2</a>(<span class="string">&quot;/=&quot;</span>, <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#656">p1</a>, <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#657">p2</a>, <span class="bool-val">true</span>) {
+            <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#723">PrustiBinaryOp::Rust</a>(<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#774">RustOp::DivideAssign</a>)
+        } <span class="kw">else</span> <span class="kw">if</span> <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#612-617">operator2</a>(<span class="string">&quot;%=&quot;</span>, <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#656">p1</a>, <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#657">p2</a>, <span class="bool-val">true</span>) {
+            <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#723">PrustiBinaryOp::Rust</a>(<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#775">RustOp::ModuloAssign</a>)
+        } <span class="kw">else</span> <span class="kw">if</span> <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#612-617">operator2</a>(<span class="string">&quot;&amp;=&quot;</span>, <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#656">p1</a>, <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#657">p2</a>, <span class="bool-val">true</span>) {
+            <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#723">PrustiBinaryOp::Rust</a>(<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#776">RustOp::BitAndAssign</a>)
+        <span class="comment">//} else if operator2(&quot;|=&quot;, p1, p2, true) {</span>
+        <span class="comment">//    PrustiBinaryOp::Rust(RustOp::BitOrAssign)</span>
+        } <span class="kw">else</span> <span class="kw">if</span> <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#612-617">operator2</a>(<span class="string">&quot;^=&quot;</span>, <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#656">p1</a>, <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#657">p2</a>, <span class="bool-val">true</span>) {
+            <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#723">PrustiBinaryOp::Rust</a>(<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#779">RustOp::BitXorAssign</a>)
+        } <span class="kw">else</span> <span class="kw">if</span> <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#612-617">operator2</a>(<span class="string">&quot;=&gt;&quot;</span>, <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#656">p1</a>, <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#657">p2</a>, <span class="bool-val">true</span>) {
+            <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#723">PrustiBinaryOp::Rust</a>(<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#780">RustOp::Arrow</a>)
+        } <span class="kw">else</span> <span class="kw">if</span> <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#612-617">operator2</a>(<span class="string">&quot;|=&quot;</span>, <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#656">p1</a>, <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#657">p2</a>, <span class="bool-val">true</span>) {
+            <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="ident"><span class="self">Self</span>::SpecEnt</span>(<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#659">span</a>, <span class="bool-val">false</span>));
+        } <span class="kw">else</span> <span class="kw">if</span> <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#612-617">operator2</a>(<span class="string">&quot;~&gt;&quot;</span>, <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#656">p1</a>, <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#657">p2</a>, <span class="bool-val">false</span>) {
+            <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="ident"><span class="self">Self</span>::CallDesc</span>(<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#659">span</a>, <span class="bool-val">false</span>));
+        } <span class="kw">else</span> {
+            <span class="kw">return</span> <span class="prelude-val">None</span>;
+        }))
+    }
+
+    <span class="kw">fn</span> <span class="ident">parse_op3</span>(
+        <span class="ident">p1</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../proc_macro2/struct.Punct.html">Punct</a>,
+        <span class="ident">p2</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../proc_macro2/struct.Punct.html">Punct</a>,
+        <span class="ident">p3</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../proc_macro2/struct.Punct.html">Punct</a>,
+    ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="ident">span</span> <span class="op">=</span> <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#696">p1</a>.<span class="ident">span</span>().<span class="ident">join</span>(<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#697">p2</a>.<span class="ident">span</span>()).<span class="ident">unwrap</span>().<span class="ident">join</span>(<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#698">p3</a>.<span class="ident">span</span>()).<span class="ident">unwrap</span>();
+        <span class="prelude-val">Some</span>(<span class="ident"><span class="self">Self</span>::BinOp</span>(<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#700">span</a>, <span class="kw">if</span> <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#624-630">operator3</a>(<span class="string">&quot;==&gt;&quot;</span>, <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#696">p1</a>, <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#697">p2</a>, <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#698">p3</a>, <span class="bool-val">false</span>) {
+            <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#724">PrustiBinaryOp::Implies</a>
+        } <span class="kw">else</span> <span class="kw">if</span> <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#624-630">operator3</a>(<span class="string">&quot;===&quot;</span>, <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#696">p1</a>, <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#697">p2</a>, <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#698">p3</a>, <span class="bool-val">false</span>) {
+            <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#727">PrustiBinaryOp::SnapEq</a>
+        } <span class="kw">else</span> <span class="kw">if</span> <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#624-630">operator3</a>(<span class="string">&quot;..=&quot;</span>, <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#696">p1</a>, <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#697">p2</a>, <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#698">p3</a>, <span class="bool-val">true</span>) {
+            <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#723">PrustiBinaryOp::Rust</a>(<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#767">RustOp::RangeInclusive</a>)
+        } <span class="kw">else</span> <span class="kw">if</span> <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#624-630">operator3</a>(<span class="string">&quot;&lt;&lt;=&quot;</span>, <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#696">p1</a>, <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#697">p2</a>, <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#698">p3</a>, <span class="bool-val">true</span>) {
+            <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#723">PrustiBinaryOp::Rust</a>(<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#768">RustOp::LeftShiftAssign</a>)
+        } <span class="kw">else</span> <span class="kw">if</span> <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#624-630">operator3</a>(<span class="string">&quot;&gt;&gt;=&quot;</span>, <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#696">p1</a>, <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#697">p2</a>, <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#698">p3</a>, <span class="bool-val">true</span>) {
+            <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#723">PrustiBinaryOp::Rust</a>(<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#769">RustOp::RightShiftAssign</a>)
+        } <span class="kw">else</span> <span class="kw">if</span> <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#624-630">operator3</a>(<span class="string">&quot;|=!&quot;</span>, <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#696">p1</a>, <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#697">p2</a>, <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#698">p3</a>, <span class="bool-val">false</span>) {
+            <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="ident"><span class="self">Self</span>::SpecEnt</span>(<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#700">span</a>, <span class="bool-val">true</span>));
+        } <span class="kw">else</span> <span class="kw">if</span> <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#624-630">operator3</a>(<span class="string">&quot;~&gt;!&quot;</span>, <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#696">p1</a>, <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#697">p2</a>, <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#698">p3</a>, <span class="bool-val">false</span>) {
+            <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="ident"><span class="self">Self</span>::CallDesc</span>(<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#700">span</a>, <span class="bool-val">true</span>));
+        } <span class="kw">else</span> {
+            <span class="kw">return</span> <span class="prelude-val">None</span>;
+        }))
+    }
+}
+
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
+<span class="kw">enum</span> <span class="ident">PrustiBinaryOp</span> {
+    <span class="ident">Rust</span>(<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#766-784">RustOp</a>),
+    <span class="ident">Implies</span>,
+    <span class="ident">Or</span>,
+    <span class="ident">And</span>,
+    <span class="ident">SnapEq</span>,
+}
+
+<span class="kw">impl</span> <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#722-728">PrustiBinaryOp</a> {
+    <span class="kw">fn</span> <span class="ident">binding_power</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) {
+        <span class="kw">match</span> <a class="self" href="../../../src/prusti_specs/specifications/preparser.rs.html#731">self</a> {
+            <span class="comment">// TODO: explain</span>
+            <span class="ident"><span class="self">Self</span>::Rust</span>(<span class="kw">_</span>) =&gt; (<span class="number">0</span>, <span class="number">0</span>),
+            <span class="ident"><span class="self">Self</span>::Implies</span> =&gt; (<span class="number">4</span>, <span class="number">3</span>),
+            <span class="ident"><span class="self">Self</span>::Or</span> =&gt; (<span class="number">5</span>, <span class="number">6</span>),
+            <span class="ident"><span class="self">Self</span>::And</span> =&gt; (<span class="number">7</span>, <span class="number">8</span>),
+            <span class="ident"><span class="self">Self</span>::SnapEq</span> =&gt; (<span class="number">9</span>, <span class="number">10</span>),
+        }
+    }
+
+    <span class="kw">fn</span> <span class="ident">translate</span>(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        <span class="ident">span</span>: <a class="ident" href="../../../proc_macro2/struct.Span.html">Span</a>,
+        <span class="ident">lhs</span>: <a class="ident" href="../../../proc_macro2/struct.TokenStream.html">TokenStream</a>,
+        <span class="ident">rhs</span>: <a class="ident" href="../../../proc_macro2/struct.TokenStream.html">TokenStream</a>,
+    ) -&gt; <a class="ident" href="../../../proc_macro2/struct.TokenStream.html">TokenStream</a> {
+        <span class="kw">match</span> <a class="self" href="../../../src/prusti_specs/specifications/preparser.rs.html#743">self</a> {
+            <span class="ident"><span class="self">Self</span>::Rust</span>(<span class="ident">op</span>) =&gt; <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#749">op</a>.<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#787-792">translate</a>(<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#744">span</a>, <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#745">lhs</a>, <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#746">rhs</a>),
+            <span class="comment">// implication is desugared into this form to avoid evaluation</span>
+            <span class="comment">// order issues: `f(a, b)` makes Rust evaluate both `a` and `b`</span>
+            <span class="comment">// before the `f` call</span>
+            <span class="ident"><span class="self">Self</span>::Implies</span> =&gt; {
+                <span class="comment">// preserve span of LHS</span>
+                <span class="kw">let</span> <span class="ident">not_lhs</span> <span class="op">=</span> <span class="macro">quote_spanned!</span> { <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#745">lhs</a>.<a class="ident" href="../../../syn/spanned/trait.Spanned.html">span</a>() =&gt; <span class="op">!</span>(#<span class="ident">lhs</span>) };
+                <span class="macro">quote_spanned!</span> { <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#744">span</a> =&gt; (#<span class="ident">not_lhs</span> <span class="op">|</span><span class="op">|</span> (#<span class="ident">rhs</span>)) }
+            }
+            <span class="ident"><span class="self">Self</span>::Or</span> =&gt; <span class="macro">quote_spanned!</span> { <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#744">span</a> =&gt; #<span class="ident">lhs</span> <span class="op">|</span><span class="op">|</span> #<span class="ident">rhs</span> },
+            <span class="ident"><span class="self">Self</span>::And</span> =&gt; <span class="macro">quote_spanned!</span> { <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#744">span</a> =&gt; #<span class="ident">lhs</span> <span class="op">&amp;&amp;</span> #<span class="ident">rhs</span> },
+            <span class="ident"><span class="self">Self</span>::SnapEq</span> =&gt; <span class="macro">quote_spanned!</span> { <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#744">span</a> =&gt; <span class="ident">snapshot_equality</span>(#<span class="ident">lhs</span>, #<span class="ident">rhs</span>) },
+        }
+    }
+}
+
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
+<span class="kw">enum</span> <span class="ident">RustOp</span> {
+    <span class="ident">RangeInclusive</span>,
+    <span class="ident">LeftShiftAssign</span>,
+    <span class="ident">RightShiftAssign</span>,
+    <span class="ident">Range</span>,
+    <span class="ident">AddAssign</span>,
+    <span class="ident">SubtractAssign</span>,
+    <span class="ident">MultiplyAssign</span>,
+    <span class="ident">DivideAssign</span>,
+    <span class="ident">ModuloAssign</span>,
+    <span class="ident">BitAndAssign</span>,
+    <span class="comment">// FIXME: |= spec entailment</span>
+    <span class="comment">// BitOrAssign,</span>
+    <span class="ident">BitXorAssign</span>,
+    <span class="ident">Arrow</span>,
+    <span class="ident">Comma</span>,
+    <span class="ident">Semicolon</span>,
+    <span class="ident">Assign</span>,
+}
+
+<span class="kw">impl</span> <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#766-784">RustOp</a> {
+    <span class="kw">fn</span> <span class="ident">translate</span>(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        <span class="ident">span</span>: <a class="ident" href="../../../proc_macro2/struct.Span.html">Span</a>,
+        <span class="ident">lhs</span>: <a class="ident" href="../../../proc_macro2/struct.TokenStream.html">TokenStream</a>,
+        <span class="ident">rhs</span>: <a class="ident" href="../../../proc_macro2/struct.TokenStream.html">TokenStream</a>,
+    ) -&gt; <a class="ident" href="../../../proc_macro2/struct.TokenStream.html">TokenStream</a> {
+        <span class="kw">let</span> <span class="ident">op</span> <span class="op">=</span> <a class="self" href="../../../src/prusti_specs/specifications/preparser.rs.html#788">self</a>.<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#797-800">to_tokens</a>(<a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#789">span</a>);
+        <span class="macro">quote!</span> { #<span class="ident">lhs</span> #<span class="ident">op</span> #<span class="ident">rhs</span> }
+    }
+
+    <span class="kw">fn</span> <span class="ident">to_tokens</span>(
+        <span class="self">self</span>,
+        <span class="ident">span</span>: <a class="ident" href="../../../proc_macro2/struct.Span.html">Span</a>,
+    ) -&gt; <a class="ident" href="../../../proc_macro2/struct.TokenStream.html">TokenStream</a> {
+        <span class="kw">match</span> <a class="self" href="../../../src/prusti_specs/specifications/preparser.rs.html#798">self</a> {
+            <span class="ident"><span class="self">Self</span>::RangeInclusive</span> =&gt; <span class="macro">quote_spanned!</span> { <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#799">span</a> =&gt; ..<span class="op">=</span> },
+            <span class="ident"><span class="self">Self</span>::LeftShiftAssign</span> =&gt; <span class="macro">quote_spanned!</span> { <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#799">span</a> =&gt; <span class="op">&lt;</span><span class="op">&lt;</span><span class="op">=</span> },
+            <span class="ident"><span class="self">Self</span>::RightShiftAssign</span> =&gt; <span class="macro">quote_spanned!</span> { <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#799">span</a> =&gt; <span class="op">&gt;</span><span class="op">&gt;</span><span class="op">=</span> },
+            <span class="ident"><span class="self">Self</span>::Range</span> =&gt; <span class="macro">quote_spanned!</span> { <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#799">span</a> =&gt; .. },
+            <span class="ident"><span class="self">Self</span>::AddAssign</span> =&gt; <span class="macro">quote_spanned!</span> { <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#799">span</a> =&gt; <span class="op">+</span><span class="op">=</span> },
+            <span class="ident"><span class="self">Self</span>::SubtractAssign</span> =&gt; <span class="macro">quote_spanned!</span> { <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#799">span</a> =&gt; <span class="op">-</span><span class="op">=</span> },
+            <span class="ident"><span class="self">Self</span>::MultiplyAssign</span> =&gt; <span class="macro">quote_spanned!</span> { <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#799">span</a> =&gt; <span class="kw-2">*</span><span class="op">=</span> },
+            <span class="ident"><span class="self">Self</span>::DivideAssign</span> =&gt; <span class="macro">quote_spanned!</span> { <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#799">span</a> =&gt; <span class="op">/</span><span class="op">=</span> },
+            <span class="ident"><span class="self">Self</span>::ModuloAssign</span> =&gt; <span class="macro">quote_spanned!</span> { <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#799">span</a> =&gt; <span class="op">%</span><span class="op">=</span> },
+            <span class="ident"><span class="self">Self</span>::BitAndAssign</span> =&gt; <span class="macro">quote_spanned!</span> { <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#799">span</a> =&gt; <span class="op">&amp;=</span> },
+            <span class="comment">// Self::BitOrAssign =&gt; quote_spanned! { span =&gt; |= },</span>
+            <span class="ident"><span class="self">Self</span>::BitXorAssign</span> =&gt; <span class="macro">quote_spanned!</span> { <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#799">span</a> =&gt; <span class="op">^</span><span class="op">=</span> },
+            <span class="ident"><span class="self">Self</span>::Arrow</span> =&gt; <span class="macro">quote_spanned!</span> { <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#799">span</a> =&gt; =&gt; },
+            <span class="ident"><span class="self">Self</span>::Comma</span> =&gt; <span class="macro">quote_spanned!</span> { <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#799">span</a> =&gt; , },
+            <span class="ident"><span class="self">Self</span>::Semicolon</span> =&gt; <span class="macro">quote_spanned!</span> { <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#799">span</a> =&gt; ; },
+            <span class="ident"><span class="self">Self</span>::Assign</span> =&gt; <span class="macro">quote_spanned!</span> { <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#799">span</a> =&gt; <span class="op">=</span> },
+        }
+    }
+}
+
+<span class="attribute">#[<span class="ident">test</span>]</span>
+<span class="kw">fn</span> <span class="ident">test_preparser</span>() {
+    <span class="macro">assert_eq!</span>(
+        <span class="ident">parse_prusti</span>(<span class="macro">quote!</span> { <span class="ident">a</span> <span class="op">==</span><span class="op">&gt;</span> <span class="ident">b</span> }).<span class="ident">unwrap</span>().<span class="ident">to_string</span>(),
+        <span class="string">&quot;(! (a) || (b))&quot;</span>,
+    );
+    <span class="macro">assert_eq!</span>(
+        <span class="ident">parse_prusti</span>(<span class="macro">quote!</span> { <span class="ident">a</span> <span class="op">==</span><span class="op">&gt;</span> <span class="ident">b</span> <span class="op">==</span><span class="op">&gt;</span> <span class="ident">c</span> }).<span class="ident">unwrap</span>().<span class="ident">to_string</span>(),
+        <span class="string">&quot;(! (a) || ((! (b) || (c))))&quot;</span>,
+    );
+    <span class="macro">assert_eq!</span>(
+        <span class="ident">parse_prusti</span>(<span class="macro">quote!</span> { (<span class="ident">a</span> <span class="op">==</span><span class="op">&gt;</span> <span class="ident">b</span> <span class="op">&amp;&amp;</span> <span class="ident">c</span>) <span class="op">==</span><span class="op">&gt;</span> <span class="ident">d</span> <span class="op">|</span><span class="op">|</span> <span class="ident">e</span> }).<span class="ident">unwrap</span>().<span class="ident">to_string</span>(),
+        <span class="string">&quot;(! (((! (a) || (b &amp;&amp; c)))) || (d || e))&quot;</span>,
+    );
+    <span class="macro">assert_eq!</span>(
+        <span class="ident">parse_prusti</span>(<span class="macro">quote!</span> { <span class="ident">forall</span>(<span class="op">|</span><span class="ident">x</span>: <span class="ident">i32</span><span class="op">|</span> <span class="ident">a</span> <span class="op">==</span><span class="op">&gt;</span> <span class="ident">b</span>) }).<span class="ident">unwrap</span>().<span class="ident">to_string</span>(),
+        <span class="string">&quot;forall (() , # [prusti :: spec_only] | x : i32 | -&gt; bool { (((! (a) || (b))) : bool) })&quot;</span>,
+    );
+    <span class="macro">assert_eq!</span>(
+        <span class="ident">parse_prusti</span>(<span class="macro">quote!</span> { <span class="ident">exists</span>(<span class="op">|</span><span class="ident">x</span>: <span class="ident">i32</span><span class="op">|</span> <span class="ident">a</span> <span class="op">==</span><span class="op">=</span> <span class="ident">b</span>) }).<span class="ident">unwrap</span>().<span class="ident">to_string</span>(),
+        <span class="string">&quot;exists (() , # [prusti :: spec_only] | x : i32 | -&gt; bool { ((snapshot_equality (a , b)) : bool) })&quot;</span>,
+    );
+    <span class="macro">assert_eq!</span>(
+        <span class="ident">parse_prusti</span>(<span class="macro">quote!</span> { <span class="ident">forall</span>(<span class="op">|</span><span class="ident">x</span>: <span class="ident">i32</span><span class="op">|</span> <span class="ident">a</span> <span class="op">==</span><span class="op">&gt;</span> <span class="ident">b</span>, <span class="ident">triggers</span> <span class="op">=</span> [(<span class="ident">c</span>,), (<span class="ident">d</span>, <span class="ident">e</span>)]) }).<span class="ident">unwrap</span>().<span class="ident">to_string</span>(),
+        <span class="string">&quot;forall (((# [prusti :: spec_only] | x : i32 | (c) ,) , (# [prusti :: spec_only] | x : i32 | (d) , # [prusti :: spec_only] | x : i32 | (e) ,) ,) , # [prusti :: spec_only] | x : i32 | -&gt; bool { (((! (a) || (b))) : bool) })&quot;</span>,
+    );
+}
+</code></pre></div>
+</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="prusti_specs" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.60.0-nightly (c5c610aad 2022-02-14)" ></div>
+</body></html>

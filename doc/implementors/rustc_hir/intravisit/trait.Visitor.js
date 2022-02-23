@@ -1,0 +1,3 @@
+(function() {var implementors = {};
+implementors["prusti_interface"] = [{"text":"impl&lt;'a, 'tcx&gt; Visitor&lt;'tcx&gt; for <a class=\"struct\" href=\"prusti_interface/specs/struct.SpecCollector.html\" title=\"struct prusti_interface::specs::SpecCollector\">SpecCollector</a>&lt;'a, 'tcx&gt;","synthetic":false,"types":["prusti_interface::specs::SpecCollector"]}];
+if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

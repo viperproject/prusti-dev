@@ -1,0 +1,1 @@
+initSidebarItems({"fn":[["create_response","Create a response for the request."]],"struct":[["NoCallback","Stub for callback that does nothing."],["ServerHandshake","Server handshake role."]],"trait":[["Callback","The callback trait."]],"type":[["ErrorResponse","Server error response type."],["Request","Server request type."],["Response","Server response type."]]});

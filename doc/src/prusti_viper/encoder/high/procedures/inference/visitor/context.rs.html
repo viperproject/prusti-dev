@@ -1,0 +1,114 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `prusti-viper/src/encoder/high/procedures/inference/visitor/context.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>context.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../../../../storage.js"></script><script src="../../../../../../../crates.js"></script><script defer src="../../../../../../../main.js"></script><script defer src="../../../../../../../source-script.js"></script><script defer src="../../../../../../../source-files.js"></script>
+    <noscript><link rel="stylesheet" href="../../../../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../../../../prusti_viper/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../../../../rust-logo.svg" alt="logo"></div>
+        </a><h2 class="location"></h2>
+    </nav>
+    <nav class="sidebar"><a class="sidebar-logo" href="../../../../../../../prusti_viper/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../../../../rust-logo.svg" alt="logo"></div>
+        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../../../../prusti_viper/index.html"><img class="rust-logo" src="../../../../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><div class="theme-picker hidden"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="22" height="22" alt="Pick another theme!" src="../../../../../../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../../../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../../../../wheel.svg"></a></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1"> 1</span>
+<span id="2"> 2</span>
+<span id="3"> 3</span>
+<span id="4"> 4</span>
+<span id="5"> 5</span>
+<span id="6"> 6</span>
+<span id="7"> 7</span>
+<span id="8"> 8</span>
+<span id="9"> 9</span>
+<span id="10">10</span>
+<span id="11">11</span>
+<span id="12">12</span>
+<span id="13">13</span>
+<span id="14">14</span>
+<span id="15">15</span>
+<span id="16">16</span>
+<span id="17">17</span>
+<span id="18">18</span>
+<span id="19">19</span>
+<span id="20">20</span>
+<span id="21">21</span>
+<span id="22">22</span>
+<span id="23">23</span>
+<span id="24">24</span>
+<span id="25">25</span>
+<span id="26">26</span>
+<span id="27">27</span>
+<span id="28">28</span>
+<span id="29">29</span>
+<span id="30">30</span>
+<span id="31">31</span>
+<span id="32">32</span>
+<span id="33">33</span>
+<span id="34">34</span>
+<span id="35">35</span>
+<span id="36">36</span>
+<span id="37">37</span>
+<span id="38">38</span>
+<span id="39">39</span>
+<span id="40">40</span>
+<span id="41">41</span>
+<span id="42">42</span>
+<span id="43">43</span>
+<span id="44">44</span>
+<span id="45">45</span>
+<span id="46">46</span>
+<span id="47">47</span>
+<span id="48">48</span>
+<span id="49">49</span>
+<span id="50">50</span>
+<span id="51">51</span>
+<span id="52">52</span>
+<span id="53">53</span>
+</pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">super</span>::{<a class="ident" href="../../../../../../../src/prusti_viper/encoder/high/procedures/inference/ensurer.rs.html#12-17"><span class="kw">super</span>::ensurer::ExpandedPermissionKind</a>, <a class="ident" href="../../../../../../../src/prusti_viper/encoder/high/procedures/inference/visitor/mod.rs.html#28-42">Visitor</a>};
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::encoder</span>::{<a class="ident" href="../../../../../../../src/prusti_viper/encoder/errors/spanned_encoding_error.rs.html#21">errors::SpannedEncodingResult</a>, <a class="ident" href="../../../../../../../src/prusti_viper/encoder/mir/types/interface.rs.html#26-75">mir::types::MirTypeEncoderInterface</a>};
+<span class="kw">use</span> <span class="ident">vir_crate::high</span>::{<a class="self" href="../../../../../../../vir/high/index.html">self</a> <span class="kw">as</span> <span class="ident">vir_high</span>, <a class="ident" href="../../../../../../../vir/gen/high/operations_internal/ty/trait.Typed.html">operations::ty::Typed</a>};
+
+<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> <a class="ident" href="../../../../../../../src/prusti_viper/encoder/high/procedures/inference/ensurer.rs.html#19-24"><span class="kw">super</span>::<span class="kw">super</span>::ensurer::Context</a> <span class="kw">for</span> <span class="ident">Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">expand_place</span>(
+        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
+        <span class="ident">place</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../../../../vir/gen/high/ast/expression/enum.Expression.html">vir_high::Expression</a>,
+    ) -&gt; <span class="ident">SpannedEncodingResult</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span>(<a class="ident" href="../../../../../../../src/prusti_viper/encoder/high/procedures/inference/ensurer.rs.html#12-17">ExpandedPermissionKind</a>, <a class="ident" href="../../../../../../../vir/gen/high/ast/expression/enum.Expression.html">vir_high::Expression</a>)<span class="op">&gt;</span><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="ident">ty</span> <span class="op">=</span> <a class="ident" href="../../../../../../../src/prusti_viper/encoder/high/procedures/inference/visitor/context.rs.html#8">place</a>.<a class="ident" href="../../../../../../../vir/gen/high/operations_internal/ty/trait.Typed.html">get_type</a>();
+        <span class="kw">let</span> <span class="ident">type_decl</span> <span class="op">=</span> <a class="self" href="../../../../../../../src/prusti_viper/encoder/high/procedures/inference/visitor/context.rs.html#7">self</a>.<span class="ident">encoder</span>.<a class="ident" href="../../../../../../../src/prusti_viper/encoder/mir/types/interface.rs.html#56">encode_type_def</a>(<a class="ident" href="../../../../../../../src/prusti_viper/encoder/high/procedures/inference/visitor/context.rs.html#10">ty</a>)<span class="question-mark">?</span>;
+        <span class="kw">fn</span> <span class="ident">expand_fields</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(
+            <span class="ident">place</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../../../../vir/gen/high/ast/expression/enum.Expression.html">vir_high::Expression</a>,
+            <span class="ident">fields</span>: <span class="kw">impl</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">std::borrow::Cow</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">vir_high::FieldDecl</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+        ) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span>(<a class="ident" href="../../../../../../../src/prusti_viper/encoder/high/procedures/inference/ensurer.rs.html#12-17">ExpandedPermissionKind</a>, <a class="ident" href="../../../../../../../vir/gen/high/ast/expression/enum.Expression.html">vir_high::Expression</a>)<span class="op">&gt;</span> {
+            <span class="kw">let</span> <span class="ident">places</span> <span class="op">=</span> <a class="ident" href="../../../../../../../src/prusti_viper/encoder/high/procedures/inference/visitor/context.rs.html#14">fields</a>
+                .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="op">|</span><span class="ident">field</span><span class="op">|</span> {
+                    (
+                        <a class="ident" href="../../../../../../../src/prusti_viper/encoder/high/procedures/inference/ensurer.rs.html#14">ExpandedPermissionKind::Same</a>,
+                        <span class="ident">vir_high::Expression::field_no_pos</span>(<a class="ident" href="../../../../../../../src/prusti_viper/encoder/high/procedures/inference/visitor/context.rs.html#13">place</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <a class="ident" href="../../../../../../../src/prusti_viper/encoder/high/procedures/inference/visitor/context.rs.html#17">field</a>.<span class="ident">into_owned</span>()),
+                    )
+                })
+                .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>();
+            <span class="kw">if</span> <a class="ident" href="../../../../../../../src/prusti_viper/encoder/high/procedures/inference/visitor/context.rs.html#16">places</a>.<span class="ident">is_empty</span>() {
+                <span class="comment">// We have a ZST; unfolding it just gives a zero sized memory</span>
+                <span class="comment">// block at the same place.</span>
+                <span class="macro">vec!</span>[(<a class="ident" href="../../../../../../../src/prusti_viper/encoder/high/procedures/inference/ensurer.rs.html#16">ExpandedPermissionKind::MemoryBlock</a>, <a class="ident" href="../../../../../../../src/prusti_viper/encoder/high/procedures/inference/visitor/context.rs.html#13">place</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())]
+            } <span class="kw">else</span> {
+                <a class="ident" href="../../../../../../../src/prusti_viper/encoder/high/procedures/inference/visitor/context.rs.html#16">places</a>
+            }
+        }
+        <span class="kw">let</span> <span class="ident">expansion</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../../../../../../src/prusti_viper/encoder/high/procedures/inference/visitor/context.rs.html#11">type_decl</a> {
+            <span class="ident">vir_high::TypeDecl::Bool</span>
+            <span class="op">|</span> <span class="ident">vir_high::TypeDecl::Int</span>(<span class="kw">_</span>)
+            <span class="op">|</span> <span class="ident">vir_high::TypeDecl::Float</span>(<span class="kw">_</span>) =&gt; {
+                <span class="comment">// Primitive type. Convert.</span>
+                <span class="macro">vec!</span>[(<a class="ident" href="../../../../../../../src/prusti_viper/encoder/high/procedures/inference/ensurer.rs.html#16">ExpandedPermissionKind::MemoryBlock</a>, <a class="ident" href="../../../../../../../src/prusti_viper/encoder/high/procedures/inference/visitor/context.rs.html#8">place</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())]
+            }
+            <span class="ident">vir_high::TypeDecl::TypeVar</span>(<span class="kw">_</span>) =&gt; <span class="macro">unimplemented!</span>(<span class="string">&quot;ty: {}&quot;</span>, <a class="ident" href="../../../../../../../src/prusti_viper/encoder/high/procedures/inference/visitor/context.rs.html#10">ty</a>),
+            <span class="ident">vir_high::TypeDecl::Tuple</span>(<span class="ident">tuple_decl</span>) =&gt; <a class="ident" href="../../../../../../../src/prusti_viper/encoder/high/procedures/inference/visitor/context.rs.html#12-15">expand_fields</a>(<a class="ident" href="../../../../../../../src/prusti_viper/encoder/high/procedures/inference/visitor/context.rs.html#8">place</a>, <a class="ident" href="../../../../../../../src/prusti_viper/encoder/high/procedures/inference/visitor/context.rs.html#40">tuple_decl</a>.<span class="ident">iter_fields</span>()),
+            <span class="ident">vir_high::TypeDecl::Struct</span>(<span class="ident">struct_decl</span>) =&gt; {
+                <a class="ident" href="../../../../../../../src/prusti_viper/encoder/high/procedures/inference/visitor/context.rs.html#12-15">expand_fields</a>(<a class="ident" href="../../../../../../../src/prusti_viper/encoder/high/procedures/inference/visitor/context.rs.html#8">place</a>, <a class="ident" href="../../../../../../../src/prusti_viper/encoder/high/procedures/inference/visitor/context.rs.html#41">struct_decl</a>.<span class="ident">iter_fields</span>())
+            }
+            <span class="ident">vir_high::TypeDecl::Enum</span>(<span class="kw">_</span>) =&gt; <span class="macro">unimplemented!</span>(<span class="string">&quot;ty: {}&quot;</span>, <a class="ident" href="../../../../../../../src/prusti_viper/encoder/high/procedures/inference/visitor/context.rs.html#10">ty</a>),
+            <span class="ident">vir_high::TypeDecl::Array</span>(<span class="kw">_</span>) =&gt; <span class="macro">unimplemented!</span>(<span class="string">&quot;ty: {}&quot;</span>, <a class="ident" href="../../../../../../../src/prusti_viper/encoder/high/procedures/inference/visitor/context.rs.html#10">ty</a>),
+            <span class="ident">vir_high::TypeDecl::Reference</span>(<span class="kw">_</span>) =&gt; <span class="macro">unimplemented!</span>(<span class="string">&quot;ty: {}&quot;</span>, <a class="ident" href="../../../../../../../src/prusti_viper/encoder/high/procedures/inference/visitor/context.rs.html#10">ty</a>),
+            <span class="ident">vir_high::TypeDecl::Never</span> =&gt; <span class="macro">unimplemented!</span>(<span class="string">&quot;ty: {}&quot;</span>, <a class="ident" href="../../../../../../../src/prusti_viper/encoder/high/procedures/inference/visitor/context.rs.html#10">ty</a>),
+            <span class="ident">vir_high::TypeDecl::Closure</span>(<span class="kw">_</span>) =&gt; <span class="macro">unimplemented!</span>(<span class="string">&quot;ty: {}&quot;</span>, <a class="ident" href="../../../../../../../src/prusti_viper/encoder/high/procedures/inference/visitor/context.rs.html#10">ty</a>),
+            <span class="ident">vir_high::TypeDecl::Unsupported</span>(<span class="kw">_</span>) =&gt; <span class="macro">unimplemented!</span>(<span class="string">&quot;ty: {}&quot;</span>, <a class="ident" href="../../../../../../../src/prusti_viper/encoder/high/procedures/inference/visitor/context.rs.html#10">ty</a>),
+        };
+        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../../../../../src/prusti_viper/encoder/high/procedures/inference/visitor/context.rs.html#32">expansion</a>)
+    }
+}
+</code></pre></div>
+</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../../../../../../" data-current-crate="prusti_viper" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.60.0-nightly (c5c610aad 2022-02-14)" ></div>
+</body></html>

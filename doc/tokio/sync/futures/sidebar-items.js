@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["Notified","Future returned from [`Notify::notified()`]"]]});

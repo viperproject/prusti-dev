@@ -1,0 +1,1 @@
+initSidebarItems({"mod":[["executor","Implementations for `Instrument`ed future executors."]],"struct":[["Instrumented","A future, stream, sink, or executor that has been instrumented with a `tracing` span."]],"trait":[["Instrument","Extension trait allowing futures, streams, sinks, and executors to be instrumented with a `tracing` span."]]});
