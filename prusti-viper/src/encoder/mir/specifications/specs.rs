@@ -82,7 +82,7 @@ impl Specifications {
     pub fn compute_is_pure<'tcx>(&mut self, env: &Environment<'tcx>, def_id: DefId) -> bool {
         self.get_proc_spec(env, def_id)
             .and_then(|spec| spec.pure.get())
-            .map(|(_, val)| *val)
+            .map(|(parent_is_pure, is_pure)| *parent_is_pure.unwrap_or(&false) || *is_pure)
             .unwrap_or(false)
     }
 
