@@ -99,11 +99,6 @@ impl<T> SpecificationItem<T> {
         matches!(self, SpecificationItem::Empty)
     }
 
-    /// Extract the value of this item via different refinement strategies
-    pub fn extract_refinements(&self) -> ExtractedRefinement<T> {
-        ExtractedRefinement { item: self }
-    }
-
     /// Returns the contained value of this item
     fn get(&self) -> Option<(Option<&T>, &T)> {
         match self {
@@ -113,39 +108,32 @@ impl<T> SpecificationItem<T> {
             SpecificationItem::Refined(from, to) => Some((Some(from), to)),
         }
     }
-}
 
-/// A type to access possibly refined [SpecificationItem] values with different strategies
-pub struct ExtractedRefinement<'a, T> {
-    item: &'a SpecificationItem<T>,
-}
+    /// Extracts the refined value out of this item by applying the provided strategy
+    pub fn extract_with_strategy<'a, R, S: FnOnce((Option<&'a T>, &'a T)) -> R>(
+        &'a self,
+        strategy: S,
+    ) -> Option<R> {
+        self.get().map(strategy)
+    }
 
-impl<'a, T> ExtractedRefinement<'a, T> {
     /// Uses alternative C as discussed in
     /// https://ethz.ch/content/dam/ethz/special-interest/infk/chair-program-method/pm/documents/Education/Theses/Matthias_Erdin_MA_report.pdf
     /// pp 19-23
-    pub fn with_selective_replacement(self) -> Option<&'a T> {
-        self.with_strategy(|(_, refined)| refined)
-    }
-
-    /// Extracts the refined value out of this item by applying the provided strategy
-    pub fn with_strategy<R, S: FnOnce((Option<&'a T>, &'a T)) -> R>(
-        self,
-        strategy: S,
-    ) -> Option<R> {
-        self.item.get().map(strategy)
+    pub fn extract_with_selective_replacement(&self) -> Option<&T> {
+        self.extract_with_strategy(|(_, refined)| refined)
     }
 }
 
-impl<'a> ExtractedRefinement<'a, bool> {
-    pub fn inherit_refined(self) -> Option<bool> {
-        self.with_strategy(|(refined_from, refined)| *(refined_from.unwrap_or(&false)) || *refined)
+impl SpecificationItem<bool> {
+    pub fn extract_inherit(&self) -> Option<bool> {
+        self.extract_with_strategy(|(refined_from, refined)| *(refined_from.unwrap_or(&false)) || *refined)
     }
 }
 
-impl<'a, T> ExtractedRefinement<'a, Vec<T>> {
-    pub fn with_selective_replacement_iter(self) -> Box<dyn Iterator<Item = &'a T> + 'a> {
-        if let Some(items) = self.with_selective_replacement() {
+impl<T> SpecificationItem<Vec<T>> {
+    pub fn extract_with_selective_replacement_iter(&self) -> Box<dyn Iterator<Item = &T> + '_> {
+        if let Some(items) = self.extract_with_selective_replacement() {
             return Box::new(items.iter());
         }
         Box::new(std::iter::empty())
