@@ -70,10 +70,11 @@ impl<'v, 'tcx: 'v> SpecificationsInterface for super::super::super::Encoder<'v, 
 
     fn get_predicate_body(&self, def_id: DefId) -> Option<LocalDefId> {
         let mut specs = self.specifications_state.specs.borrow_mut();
-        let result = specs
-            .get_proc_spec(self.env(), def_id)
-            .and_then(|spec| spec.predicate_body.get())
-            .map(|(_, val)| val);
+        let result = specs.get_proc_spec(self.env(), def_id).and_then(|spec| {
+            spec.predicate_body
+                .extract_refinements()
+                .with_selective_replacement()
+        });
         trace!("get_predicate_body {:?} = {:?}", def_id, result);
         result.cloned()
     }
