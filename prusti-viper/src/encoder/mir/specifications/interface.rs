@@ -50,7 +50,7 @@ impl<'v, 'tcx: 'v> SpecificationsInterface for super::super::super::Encoder<'v, 
             .specs
             .borrow_mut()
             .get_and_refine_proc_spec(self.env(), def_id)
-            .and_then(|spec| spec.pure.extract_refinements().inherit_refined())
+            .and_then(|spec| spec.pure.extract_inherit())
             .unwrap_or(false);
         trace!("is_pure {:?} = {}", def_id, result);
         result
@@ -62,12 +62,7 @@ impl<'v, 'tcx: 'v> SpecificationsInterface for super::super::super::Encoder<'v, 
             .specs
             .borrow_mut()
             .get_and_refine_proc_spec(self.env(), def_id)
-            .and_then(|spec| {
-                spec.trusted
-                    .extract_refinements()
-                    .with_selective_replacement()
-                    .copied()
-            })
+            .and_then(|spec| spec.trusted.extract_with_selective_replacement().copied())
             .unwrap_or(false);
         trace!("is_trusted {:?} = {}", def_id, result);
         result
@@ -77,11 +72,7 @@ impl<'v, 'tcx: 'v> SpecificationsInterface for super::super::super::Encoder<'v, 
         let mut specs = self.specifications_state.specs.borrow_mut();
         let result = specs
             .get_and_refine_proc_spec(self.env(), def_id)
-            .and_then(|spec| {
-                spec.predicate_body
-                    .extract_refinements()
-                    .with_selective_replacement()
-            });
+            .and_then(|spec| spec.predicate_body.extract_with_selective_replacement());
         trace!("get_predicate_body {:?} = {:?}", def_id, result);
         result.cloned()
     }

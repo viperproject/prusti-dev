@@ -101,7 +101,7 @@ where
 impl<L: fmt::Debug, P: fmt::Debug> ProcedureContractGeneric<L, P> {
     pub fn functional_precondition(&self) -> impl Iterator<Item = &LocalDefId> + '_ {
         if let typed::SpecificationSet::Procedure(spec) = &self.specification {
-            spec.pres.extract_refinements().with_selective_replacement_iter()
+            spec.pres.extract_with_selective_replacement_iter()
         } else {
             unreachable!("Unexpected: {:?}", self.specification)
         }
@@ -109,7 +109,7 @@ impl<L: fmt::Debug, P: fmt::Debug> ProcedureContractGeneric<L, P> {
 
     pub fn functional_postcondition(&self) -> impl Iterator<Item = &LocalDefId> + '_ {
         if let typed::SpecificationSet::Procedure(spec) = &self.specification {
-            spec.posts.extract_refinements().with_selective_replacement_iter()
+            spec.posts.extract_with_selective_replacement_iter()
         } else {
             unreachable!("Unexpected: {:?}", self.specification)
         }
@@ -117,7 +117,7 @@ impl<L: fmt::Debug, P: fmt::Debug> ProcedureContractGeneric<L, P> {
 
     pub fn pledges(&self) -> impl Iterator<Item = &typed::Pledge> + '_ {
         if let typed::SpecificationSet::Procedure(spec) = &self.specification {
-            spec.pledges.extract_refinements().with_selective_replacement_iter()
+            spec.pledges.extract_with_selective_replacement_iter()
         } else {
             unreachable!("Unexpected: {:?}", self.specification)
         }

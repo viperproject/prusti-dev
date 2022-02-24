@@ -14,28 +14,28 @@ pub(super) struct Specifications {
 }
 
 impl Specifications {
-    pub fn new(user_typed_specs: DefSpecificationMap) -> Self {
+    pub(super) fn new(user_typed_specs: DefSpecificationMap) -> Self {
         Self {
             user_typed_specs,
             refined_specs: FxHashMap::default(),
         }
     }
 
-    pub fn get_user_typed_specs(&self) -> &DefSpecificationMap {
+    pub(super) fn get_user_typed_specs(&self) -> &DefSpecificationMap {
         &self.user_typed_specs
     }
 
-    pub fn get_extern_spec_map(&self) -> &HashMap<DefId, LocalDefId> {
+    pub(super) fn get_extern_spec_map(&self) -> &HashMap<DefId, LocalDefId> {
         &self.get_user_typed_specs().extern_specs
     }
 
-    pub fn get_loop_spec(&self, def_id: DefId) -> Option<&LoopSpecification> {
+    pub(super) fn get_loop_spec(&self, def_id: DefId) -> Option<&LoopSpecification> {
         trace!("Get loop specs of {:?}", def_id);
         let spec = self.get_user_typed_specs().get(&def_id)?;
         spec.as_loop()
     }
 
-    pub fn get_and_refine_proc_spec<'tcx>(
+    pub(super) fn get_and_refine_proc_spec<'tcx>(
         &mut self,
         env: &Environment<'tcx>,
         def_id: DefId,
