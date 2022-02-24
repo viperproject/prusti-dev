@@ -9,22 +9,50 @@ use std::collections::HashMap;
 
 /// Provides access to specifications, handling refinement if needed
 pub(super) struct Specifications {
-    spec_map: SpecMap,
+    user_typed_specs: DefSpecificationMap,
+    refined_specs: FxHashMap<DefId, ProcedureSpecification>,
 }
 
 impl Specifications {
     pub fn new(user_typed_specs: DefSpecificationMap) -> Self {
         Self {
-            spec_map: SpecMap::new(user_typed_specs),
+            user_typed_specs,
+            refined_specs: FxHashMap::default(),
         }
+    }
+
+    pub fn compute_is_pure<'tcx>(&mut self, env: &Environment<'tcx>, def_id: DefId) -> bool {
+        self.get_and_refine_proc_spec(env, def_id)
+            .and_then(|spec| spec.pure.extract_refinements().inherit_refined())
+            .unwrap_or(false)
+    }
+
+    pub fn compute_is_trusted<'tcx>(&mut self, env: &Environment<'tcx>, def_id: DefId) -> bool {
+        self.get_and_refine_proc_spec(env, def_id)
+            .and_then(|spec| {
+                spec.trusted
+                    .extract_refinements()
+                    .with_selective_replacement()
+            })
+            .copied()
+            .unwrap_or(false)
+    }
+
+    pub fn get_user_typed_specs(&self) -> &DefSpecificationMap {
+        &self.user_typed_specs
+    }
+
+    pub fn get_extern_spec_map(&self) -> &HashMap<DefId, LocalDefId> {
+        &self.get_user_typed_specs().extern_specs
     }
 
     pub fn get_loop_spec(&self, def_id: DefId) -> Option<&LoopSpecification> {
         trace!("Get loop specs of {:?}", def_id);
-        self.spec_map.get_loop_spec(def_id)
+        let spec = self.get_user_typed_specs().get(&def_id)?;
+        spec.as_loop()
     }
 
-    pub fn get_proc_spec<'tcx>(
+    pub fn get_and_refine_proc_spec<'tcx>(
         &mut self,
         env: &Environment<'tcx>,
         def_id: DefId,
@@ -44,7 +72,7 @@ impl Specifications {
             }
         }
 
-        self.spec_map.get_proc_spec(def_id)
+        self.get_proc_spec(def_id)
     }
 
     fn perform_proc_spec_refinement(
@@ -58,12 +86,11 @@ impl Specifications {
         );
 
         let impl_spec = self
-            .spec_map
             .get_proc_spec(of_def_id)
             .cloned()
             .unwrap_or_else(ProcedureSpecification::empty);
 
-        let trait_spec = self.spec_map.get_proc_spec(with_trait_def_id);
+        let trait_spec = self.get_proc_spec(with_trait_def_id);
 
         let refined = if let Some(trait_spec_set) = trait_spec {
             impl_spec.refine(trait_spec_set)
@@ -71,52 +98,8 @@ impl Specifications {
             impl_spec
         };
 
-        self.spec_map.insert_refined_spec(of_def_id, refined);
-        self.spec_map.get_proc_spec(of_def_id)
-    }
-
-    fn is_refined(&self, def_id: DefId) -> bool {
-        self.spec_map.is_refined(def_id)
-    }
-
-    pub fn compute_is_pure<'tcx>(&mut self, env: &Environment<'tcx>, def_id: DefId) -> bool {
-        self.get_proc_spec(env, def_id)
-            .and_then(|spec| spec.pure.extract_refinements().inherit_refined())
-            .unwrap_or(false)
-    }
-
-    pub fn compute_is_trusted<'tcx>(&mut self, env: &Environment<'tcx>, def_id: DefId) -> bool {
-        self.get_proc_spec(env, def_id)
-            .and_then(|spec| {
-                spec.trusted
-                    .extract_refinements()
-                    .with_selective_replacement()
-            })
-            .copied()
-            .unwrap_or(false)
-    }
-
-    pub fn get_user_typed_specs(&self) -> &DefSpecificationMap {
-        &self.spec_map.user_typed_specs
-    }
-
-    pub fn get_extern_spec_map(&self) -> &HashMap<DefId, LocalDefId> {
-        &self.get_user_typed_specs().extern_specs
-    }
-}
-
-/// A wrapper around `DefSpecificationMap` to account for refined specifications
-struct SpecMap {
-    user_typed_specs: DefSpecificationMap,
-    refined_specs: FxHashMap<DefId, ProcedureSpecification>,
-}
-
-impl SpecMap {
-    fn new(user_typed_specs: DefSpecificationMap) -> Self {
-        Self {
-            user_typed_specs,
-            refined_specs: FxHashMap::default(),
-        }
+        self.refined_specs.insert(of_def_id, refined);
+        self.get_proc_spec(of_def_id)
     }
 
     fn get_proc_spec(&self, def_id: DefId) -> Option<&ProcedureSpecification> {
@@ -125,15 +108,6 @@ impl SpecMap {
                 .get(&def_id)
                 .and_then(|spec_set| spec_set.as_procedure())
         })
-    }
-
-    fn get_loop_spec(&self, def_id: DefId) -> Option<&LoopSpecification> {
-        let spec = self.user_typed_specs.get(&def_id)?;
-        spec.as_loop()
-    }
-
-    fn insert_refined_spec(&mut self, def_id: DefId, proc_spec: ProcedureSpecification) {
-        self.refined_specs.insert(def_id, proc_spec);
     }
 
     fn is_refined(&self, def_id: DefId) -> bool {
