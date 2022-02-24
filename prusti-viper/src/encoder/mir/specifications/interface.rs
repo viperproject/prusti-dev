@@ -1,22 +1,17 @@
 use crate::encoder::mir::specifications::specs::Specifications;
 use log::trace;
 use prusti_interface::specs::{typed, typed::DefSpecificationMap};
-use rustc_hash::FxHashMap;
 use rustc_hir::def_id::{DefId, LocalDefId};
 use std::cell::RefCell;
 
 pub(crate) struct SpecificationsState {
     specs: RefCell<Specifications>,
-    pure_cache: RefCell<FxHashMap<DefId, bool>>,
-    trusted_cache: RefCell<FxHashMap<DefId, bool>>,
 }
 
 impl SpecificationsState {
     pub fn new(user_typed_specs: DefSpecificationMap) -> Self {
         Self {
             specs: RefCell::new(Specifications::new(user_typed_specs)),
-            pure_cache: RefCell::default(),
-            trusted_cache: RefCell::default(),
         }
     }
 }
@@ -44,28 +39,32 @@ pub(crate) trait SpecificationsInterface {
 
 impl<'v, 'tcx: 'v> SpecificationsInterface for super::super::super::Encoder<'v, 'tcx> {
     fn is_pure(&self, def_id: DefId) -> bool {
-        let mut cache = self.specifications_state.pure_cache.borrow_mut();
-        let result = cache.entry(def_id).or_insert_with(|| {
-            self.specifications_state
-                .specs
-                .borrow_mut()
-                .compute_is_pure(self.env(), def_id)
-        });
-
+        let result = self
+            .specifications_state
+            .specs
+            .borrow_mut()
+            .get_and_refine_proc_spec(self.env(), def_id)
+            .and_then(|spec| spec.pure.extract_refinements().inherit_refined())
+            .unwrap_or(false);
         trace!("is_pure {:?} = {}", def_id, result);
-        *result
+        result
     }
 
     fn is_trusted(&self, def_id: DefId) -> bool {
-        let mut cache = self.specifications_state.trusted_cache.borrow_mut();
-        let result = cache.entry(def_id).or_insert_with(|| {
-            self.specifications_state
-                .specs
-                .borrow_mut()
-                .compute_is_trusted(self.env(), def_id)
-        });
+        let result = self
+            .specifications_state
+            .specs
+            .borrow_mut()
+            .get_and_refine_proc_spec(self.env(), def_id)
+            .and_then(|spec| {
+                spec.trusted
+                    .extract_refinements()
+                    .with_selective_replacement()
+                    .copied()
+            })
+            .unwrap_or(false);
         trace!("is_trusted {:?} = {}", def_id, result);
-        *result
+        result
     }
 
     fn get_predicate_body(&self, def_id: DefId) -> Option<LocalDefId> {
