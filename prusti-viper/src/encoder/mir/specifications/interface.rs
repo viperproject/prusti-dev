@@ -1,6 +1,9 @@
 use crate::encoder::mir::specifications::specs::Specifications;
 use log::trace;
-use prusti_interface::specs::{typed, typed::DefSpecificationMap};
+use prusti_interface::{
+    specs::{typed, typed::DefSpecificationMap},
+    utils::has_spec_only_attr,
+};
 use rustc_hir::def_id::{DefId, LocalDefId};
 use std::cell::RefCell;
 
@@ -35,6 +38,9 @@ pub(crate) trait SpecificationsInterface {
     /// Get a local wrapper `DefId` for functions that have external specs.
     /// Return the original `DefId` for everything else.
     fn get_wrapper_def_id(&self, def_id: DefId) -> DefId;
+
+    /// Is the closure specified with the `def_id` is spec only?
+    fn is_spec_closure(&self, def_id: DefId) -> bool;
 }
 
 impl<'v, 'tcx: 'v> SpecificationsInterface for super::super::super::Encoder<'v, 'tcx> {
@@ -118,5 +124,10 @@ impl<'v, 'tcx: 'v> SpecificationsInterface for super::super::super::Encoder<'v, 
             .get(&def_id)
             .map(|local_id| local_id.to_def_id())
             .unwrap_or(def_id)
+    }
+
+    /// Is the closure specified with the `def_id` is spec only?
+    fn is_spec_closure(&self, def_id: DefId) -> bool {
+        has_spec_only_attr(self.env().tcx().get_attrs(def_id))
     }
 }

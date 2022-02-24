@@ -20,7 +20,6 @@ use prusti_common::report::log;
 use prusti_interface::data::ProcedureDefId;
 use prusti_interface::environment::Environment;
 use prusti_interface::specs::typed;
-use prusti_interface::utils::{has_spec_only_attr};
 use prusti_interface::PrustiError;
 use vir_crate::polymorphic::{self as vir};
 use vir_crate::common::identifier::WithIdentifier;
@@ -284,11 +283,6 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         Vec<ty::Ty<'tcx>>,
     )> {
         self.closures_collector.borrow().get_single_instantiation(closure_def_id)
-    }
-
-    /// Is the closure specified with the `def_id` is spec only?
-    pub fn is_spec_closure(&self, def_id: DefId) -> bool {
-        has_spec_only_attr(self.env().tcx().get_attrs(def_id))
     }
 
     fn get_procedure_contract(&self, proc_def_id: ProcedureDefId)
