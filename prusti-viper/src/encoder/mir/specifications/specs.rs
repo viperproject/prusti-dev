@@ -81,15 +81,18 @@ impl Specifications {
 
     pub fn compute_is_pure<'tcx>(&mut self, env: &Environment<'tcx>, def_id: DefId) -> bool {
         self.get_proc_spec(env, def_id)
-            .and_then(|spec| spec.pure.get())
-            .map(|(parent_is_pure, is_pure)| *parent_is_pure.unwrap_or(&false) || *is_pure)
+            .and_then(|spec| spec.pure.extract_refinements().inherit_refined())
             .unwrap_or(false)
     }
 
     pub fn compute_is_trusted<'tcx>(&mut self, env: &Environment<'tcx>, def_id: DefId) -> bool {
         self.get_proc_spec(env, def_id)
-            .and_then(|spec| spec.trusted.get())
-            .map(|(_, val)| *val)
+            .and_then(|spec| {
+                spec.trusted
+                    .extract_refinements()
+                    .with_selective_replacement()
+            })
+            .copied()
             .unwrap_or(false)
     }
 

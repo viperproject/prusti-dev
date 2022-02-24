@@ -1,10 +1,8 @@
+pub use common::{SpecIdRef, SpecType, SpecificationId};
+use log::trace;
 use prusti_specs::specifications::common;
 use rustc_hir::def_id::{DefId, LocalDefId};
-use std::collections::HashMap;
-use std::fmt::Debug;
-use log::trace;
-pub use common::{SpecType, SpecificationId, SpecIdRef};
-
+use std::{collections::HashMap, fmt::Debug};
 
 #[derive(Debug, Clone)]
 pub enum SpecificationSet {
@@ -78,6 +76,7 @@ pub struct Pledge {
 }
 
 /// A specification, such as preconditions or a `#[pure]` annotation.
+/// Contains information about the refinement of these specifications.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum SpecificationItem<T> {
     /// Represents an empty specification, i.e. when the user has not defined the property
@@ -96,96 +95,74 @@ pub enum SpecificationItem<T> {
 }
 
 impl<T> SpecificationItem<T> {
+    pub fn is_empty(&self) -> bool {
+        matches!(self, SpecificationItem::Empty)
+    }
+
+    /// Extract the value of this item via different refinement strategies
+    pub fn extract_refinements(&self) -> ExtractedRefinement<T> {
+        ExtractedRefinement { item: self }
+    }
+
     /// Returns the contained value of this item
-    pub fn get(&self) -> Option<(Option<&T>, &T)> {
+    fn get(&self) -> Option<(Option<&T>, &T)> {
         match self {
             SpecificationItem::Empty => None,
             SpecificationItem::Inherited(val) => Some((None, val)),
             SpecificationItem::Inherent(val) => Some((None, val)),
-            SpecificationItem::Refined(from, to) => Some((Some(from), to))
-        }
-    }
-
-    pub fn get_or<'a>(&'a self, default: &'a T) -> (Option<&'a T>, &'a T) {
-        self.get().unwrap_or((None, default))
-    }
-
-    pub fn is_empty(&self) -> bool {
-        matches!(self, SpecificationItem::Empty)
-    }
-}
-
-impl<T> SpecificationItem<Vec<T>> {
-    pub fn iter(&self) -> SpecItemIter<'_, T> {
-        if self.is_empty() {
-            SpecItemIter::empty()
-        } else {
-            SpecItemIter::new(self.get().map(|(_, val)| val).unwrap())
+            SpecificationItem::Refined(from, to) => Some((Some(from), to)),
         }
     }
 }
 
-pub struct SpecItemIter<'a, T> {
-    items: Option<&'a Vec<T>>,
-    pos: usize,
+/// A type to access possibly refined [SpecificationItem] values with different strategies
+pub struct ExtractedRefinement<'a, T> {
+    item: &'a SpecificationItem<T>,
 }
 
-impl<'a, T> SpecItemIter<'a, T> {
-    fn empty() -> Self {
-        SpecItemIter {
-            items: None,
-            pos: 0,
-        }
+impl<'a, T> ExtractedRefinement<'a, T> {
+    /// Uses alternative C as discussed in
+    /// https://ethz.ch/content/dam/ethz/special-interest/infk/chair-program-method/pm/documents/Education/Theses/Matthias_Erdin_MA_report.pdf
+    /// pp 19-23
+    pub fn with_selective_replacement(self) -> Option<&'a T> {
+        self.with_strategy(|(_, refined)| refined)
     }
 
-    fn new(items: &'a Vec<T>) -> Self {
-        SpecItemIter {
-            items: Some(items),
-            pos: 0,
-        }
-    }
-
-    pub fn first(&self) -> Option<&'a T> {
-        self.items.and_then(|items| items.first())
+    /// Extracts the refined value out of this item by applying the provided strategy
+    pub fn with_strategy<R, S: FnOnce((Option<&'a T>, &'a T)) -> R>(
+        self,
+        strategy: S,
+    ) -> Option<R> {
+        self.item.get().map(strategy)
     }
 }
 
-impl<'a, T> Iterator for SpecItemIter<'a, T> {
-    type Item = &'a T;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        if let Some(items) = self.items {
-            if self.pos >= items.len() {
-                return None;
-            }
-            let next = items.get(self.pos);
-            self.pos += 1;
-            return next;
-        }
-        None
-    }
-
-    fn size_hint(&self) -> (usize, Option<usize>) {
-        match self.items {
-            Some(items) => {
-                let remaining = items.len() - self.pos;
-                (remaining, Some(remaining))
-            },
-            None => (0, Some(0))
-        }
+impl<'a> ExtractedRefinement<'a, bool> {
+    pub fn inherit_refined(self) -> Option<bool> {
+        self.with_strategy(|(refined_from, refined)| *(refined_from.unwrap_or(&false)) || *refined)
     }
 }
 
-impl<'a, T> ExactSizeIterator for SpecItemIter<'a, T> {
+impl<'a, T> ExtractedRefinement<'a, Vec<T>> {
+    pub fn with_selective_replacement_iter(self) -> Box<dyn Iterator<Item = &'a T> + 'a> {
+        if let Some(items) = self.with_selective_replacement() {
+            return Box::new(items.iter());
+        }
+        Box::new(std::iter::empty())
+    }
 }
 
 pub trait Refinable {
-    fn refine(self, other: &Self) -> Self where Self: Sized;
+    fn refine(self, other: &Self) -> Self
+    where
+        Self: Sized;
 }
 
 impl<T: std::fmt::Debug + Clone + PartialEq> Refinable for SpecificationItem<T> {
-
-    fn refine(self, other: &Self) -> Self where Self: Sized {
+    fn refine(self, other: &Self) -> Self
+    where
+        Self: Sized,
+    {
         use SpecificationItem::*;
 
         if self.is_empty() && other.is_empty() {
@@ -211,7 +188,7 @@ impl<T: std::fmt::Debug + Clone + PartialEq> Refinable for SpecificationItem<T> 
             match other.clone() {
                 Inherent(val) => Inherited(val),
                 Inherited(val) => Inherited(val),
-                Empty | Refined(_, _) => unreachable!()
+                Empty | Refined(_, _) => unreachable!(),
             }
         } else if !self.is_empty() && !other.is_empty() {
             let (_, self_val) = self.get().unwrap();
@@ -251,7 +228,6 @@ impl Refinable for SpecificationSet {
     }
 }
 
-
 #[derive(Debug, Clone)]
 pub struct ProcedureSpecification {
     pub pres: SpecificationItem<Vec<LocalDefId>>,
@@ -280,15 +256,12 @@ pub struct LoopSpecification {
     pub invariant: LocalDefId,
 }
 
-
-
 /// A map of specifications keyed by crate-local DefIds.
 #[derive(Default, Debug, Clone)]
 pub struct DefSpecificationMap {
     pub specs: HashMap<LocalDefId, SpecificationSet>,
     pub extern_specs: HashMap<DefId, LocalDefId>,
 }
-
 
 impl DefSpecificationMap {
     pub fn new() -> Self {
@@ -307,9 +280,8 @@ impl DefSpecificationMap {
 #[cfg(test)]
 mod tests {
     mod refinement {
-        use crate::specs::typed::Refinable;
-        use crate::specs::typed::SpecificationItem;
-        use SpecificationItem::{Refined, Empty, Inherent, Inherited};
+        use crate::specs::typed::{Refinable, SpecificationItem};
+        use SpecificationItem::{Empty, Inherent, Inherited, Refined};
 
         macro_rules! refine_success_tests {
             ($($name:ident: $value:expr,)*) => {
@@ -367,7 +339,6 @@ mod tests {
             refine_from_inherited_with_refined: (Inherited(1), Refined(2,3)),
         );
 
-
         refine_success_tests!(
             refine_from_refined_with_empty: (Refined(1, 2), Empty, Refined(1, 2)),
             // Generally, we can not refine a refined item.
@@ -380,26 +351,5 @@ mod tests {
             refine_from_refined_with_inherited_unrefinable: (Refined(1, 2), Inherited(3)),
             refine_from_refined_with_refined: (Refined(1, 2), Refined(3,4)),
         );
-    }
-
-    mod spec_iter {
-        use crate::specs::typed::SpecificationItem;
-
-        #[test]
-        fn length() {
-            let v = vec![1,2,3];
-            let spec_item = SpecificationItem::Inherent(v);
-            let mut iter = spec_item.iter();
-            assert_eq!(iter.len(), 3);
-            assert!(iter.next().is_some());
-            assert_eq!(iter.len(), 2);
-            assert!(iter.next().is_some());
-            assert_eq!(iter.len(), 1);
-            assert!(iter.next().is_some());
-            assert_eq!(iter.len(), 0);
-            assert!(iter.next().is_none());
-            assert_eq!(iter.len(), 0);
-            assert!(iter.next().is_none());
-        }
     }
 }

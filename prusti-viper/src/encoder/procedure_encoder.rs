@@ -58,7 +58,7 @@ use ::log::{trace, debug};
 use prusti_interface::environment::borrowck::regions::PlaceRegionsError;
 use crate::encoder::errors::EncodingErrorKind;
 use std::convert::TryInto;
-use prusti_interface::specs::typed::SpecificationItem;
+use prusti_interface::specs::typed::{Pledge, SpecificationItem};
 use vir_crate::polymorphic::Float;
 use crate::utils::is_reference;
 use crate::encoder::mir::pure::PureFunctionEncoderInterface;
@@ -3677,7 +3677,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 "We can have at most one magic wand in the postcondition."
             );
             let borrow_info = &borrow_infos[0];
-            let pledges = contract.pledges();
+            let pledges: Vec<&Pledge> = contract.pledges().collect();
             assert!(
                 pledges.len() <= 1,
                 "There can be at most one pledge in the function postcondition."
