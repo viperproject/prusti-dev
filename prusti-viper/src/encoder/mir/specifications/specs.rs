@@ -21,23 +21,6 @@ impl Specifications {
         }
     }
 
-    pub fn compute_is_pure<'tcx>(&mut self, env: &Environment<'tcx>, def_id: DefId) -> bool {
-        self.get_and_refine_proc_spec(env, def_id)
-            .and_then(|spec| spec.pure.extract_refinements().inherit_refined())
-            .unwrap_or(false)
-    }
-
-    pub fn compute_is_trusted<'tcx>(&mut self, env: &Environment<'tcx>, def_id: DefId) -> bool {
-        self.get_and_refine_proc_spec(env, def_id)
-            .and_then(|spec| {
-                spec.trusted
-                    .extract_refinements()
-                    .with_selective_replacement()
-            })
-            .copied()
-            .unwrap_or(false)
-    }
-
     pub fn get_user_typed_specs(&self) -> &DefSpecificationMap {
         &self.user_typed_specs
     }
@@ -60,8 +43,8 @@ impl Specifications {
         trace!("Get procedure specs of {:?}", def_id);
 
         // Refinement (if needed)
-        if let Some(trait_def_id) = env.find_trait_method(def_id) {
-            if !self.is_refined(def_id) {
+        if !self.is_refined(def_id) {
+            if let Some(trait_def_id) = env.find_trait_method(def_id) {
                 let refined = self.perform_proc_spec_refinement(def_id, trait_def_id);
                 assert!(
                     refined.is_some(),
