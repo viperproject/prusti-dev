@@ -1282,7 +1282,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
             expr = expr.set_default_pos(
                 self.encoder
                     .error_manager()
-                    .register_span(self.caller_def_id, span),
+                    .register_error(span, ErrorCtxt::PureFunctionDefinition, self.caller_def_id),
             );
             let _ = mem::replace(state_expr, expr);
         }
