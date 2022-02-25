@@ -180,6 +180,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
             self.tymap,
             self.substs,
         )?;
+        self.encoder.error_manager().register_additional_error(
+            predicate_body_encoded.pos(),
+            ErrorCtxt::PureFunctionDefinition,
+        );
 
         self.encode_function_given_body(Some(predicate_body_encoded))
     }
@@ -335,7 +339,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
             .collect::<Result<_, _>>()?;
         for item in contract.functional_precondition() {
             debug!("Encode spec item: {:?}", item);
-            func_spec.push(self.encoder.encode_assertion(
+            let assertion = self.encoder.encode_assertion(
                 item,
                 None,
                 &encoded_args,
@@ -344,7 +348,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
                 self.parent_def_id,
                 self.tymap,
                 self.substs,
-            )?);
+            )?;
+            self.encoder
+                .error_manager()
+                .register_additional_error(assertion.pos(), ErrorCtxt::PureFunctionDefinition);
+            func_spec.push(assertion);
         }
 
         Ok((
@@ -381,7 +389,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
                 self.tymap,
                 self.substs,
             )?;
-            debug_assert!(!encoded_postcond.pos().is_default());
+            self.encoder.error_manager().register_additional_error(
+                encoded_postcond.pos(),
+                ErrorCtxt::PureFunctionDefinition,
+            );
             func_spec.push(encoded_postcond);
         }
 

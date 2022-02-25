@@ -11,12 +11,16 @@ use rustc_span::MultiSpan;
 use log::{debug, trace};
 use prusti_interface::data::ProcedureDefId;
 
-/// Mapping from VIR locations to MIR and to the source code.
+/// Mapping from VIR positions to the source code that generated them.
+/// One VIR position can be involved in multiple errors. If an error needs to refer to a special
+/// span, that should be done by adding the span to `ErrorCtxt`, not by registering a new span.
 #[derive(Clone)]
 pub struct PositionManager<'tcx> {
     codemap: &'tcx SourceMap,
     next_pos_id: u64,
+    /// The def_id of the procedure that generated the given VIR position.
     pub(crate) def_id: FxHashMap<u64, ProcedureDefId>,
+    /// The span of the source code that generated the given VIR position.
     pub(crate) source_span: FxHashMap<u64, MultiSpan>,
 }
 
