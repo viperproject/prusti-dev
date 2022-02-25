@@ -307,7 +307,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureEncoder<'p, 'v, 'tcx> {
                 None,
                 &parameter_expressions,
                 None,
-                ErrorCtxt::GenericExpression,
                 self.parent_def_id,
                 self.tymap,
             )?);
@@ -329,7 +328,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureEncoder<'p, 'v, 'tcx> {
                 None,
                 &parameter_expressions,
                 Some(&vir_high::Expression::local_no_pos(encoded_return.clone())),
-                ErrorCtxt::GenericExpression,
                 self.parent_def_id,
                 self.tymap,
             )?);
@@ -339,7 +337,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureEncoder<'p, 'v, 'tcx> {
         // TODO: use a better span
         let postcondition_pos = self.encoder.error_manager().register(
             self.mir.span,
-            ErrorCtxt::GenericExpression,
+            ErrorCtxt::PureFunctionDefinition,
             self.parent_def_id,
         );
 

@@ -321,7 +321,7 @@ impl<'v, 'tcx> Verifier<'v, 'tcx> {
                     if let Some(def_id) = error_manager.get_def_id(&verification_error) {
                         let counterexample = counterexample_translation::backtranslate(
                             &self.encoder,
-                            *def_id,
+                            def_id,
                             silicon_counterexample,
                         );
                         prusti_error = counterexample.annotate_error(prusti_error);
