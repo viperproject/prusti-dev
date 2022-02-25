@@ -5,12 +5,13 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use vir_crate::polymorphic::Position;
-use rustc_hash::{FxHashMap};
+use rustc_hash::FxHashMap;
 use rustc_span::source_map::SourceMap;
 use rustc_span::MultiSpan;
 use viper::VerificationError;
 use prusti_interface::PrustiError;
 use log::{debug, trace};
+use super::PositionManager;
 use prusti_interface::data::ProcedureDefId;
 
 
@@ -95,10 +96,6 @@ pub enum ErrorCtxt {
     /// `assert` Rust terminator in a Rust pure function.
     /// Arguments: the message of the Rust assertion
     PureFunctionAssertTerminator(String),
-    /// A generic expression
-    GenericExpression,
-    /// A generic statement
-    GenericStatement,
     /// Package a magic wand for the postcondition, at the end of a method
     PackageMagicWandForPostcondition,
     /// Apply a magic wand as a borrow expires, relevant for pledge conditions
@@ -122,70 +119,40 @@ pub enum ErrorCtxt {
 /// The error manager
 #[derive(Clone)]
 pub struct ErrorManager<'tcx> {
-    codemap: &'tcx SourceMap,
-    source_span: FxHashMap<u64, MultiSpan>,
-    error_contexts: FxHashMap<u64, (ErrorCtxt, ProcedureDefId)>,
-    next_pos_id: u64,
+    position_manager: PositionManager<'tcx>,
+    error_contexts: FxHashMap<u64, ErrorCtxt>,
 }
 
-impl<'tcx> ErrorManager<'tcx>
- {
+impl<'tcx> ErrorManager<'tcx> {
     pub fn new(codemap: &'tcx SourceMap) -> Self {
         ErrorManager {
-            codemap,
-            source_span: FxHashMap::default(),
+            position_manager: PositionManager::new(codemap),
             error_contexts: FxHashMap::default(),
-            next_pos_id: 1,
         }
     }
 
-    pub fn register<T: Into<MultiSpan>>(&mut self, span: T, error_ctxt: ErrorCtxt, def_id: ProcedureDefId) -> Position {
-        let pos = self.register_span(span);
-        trace!("Register error {:?} of {:?} at position id {:?}", error_ctxt, def_id, pos.id());
-        self.error_contexts.insert(pos.id(), (error_ctxt, def_id));
-        pos
+    pub fn register_span<T: Into<MultiSpan>>(&mut self, def_id: ProcedureDefId, span: T) -> Position {
+        self.position_manager.register(def_id, span)
     }
 
-    pub fn register_span<T: Into<MultiSpan>>(&mut self, span: T) -> Position {
-        let span = span.into();
-        let pos_id = self.next_pos_id;
-        self.next_pos_id += 1;
-        trace!("Register span {:?} at position id {:?}", span, pos_id);
-        let pos = if let Some(primary_span) = span.primary_span() {
-            let lines_info_res = self
-                .codemap
-                .span_to_lines(primary_span.source_callsite());
-            if lines_info_res.is_err() {
-                debug!("Error converting span to lines {:?}", lines_info_res.err());
-                return Position::new(0, 0, pos_id);
-            }
-            let lines_info = lines_info_res.unwrap();
-            if let Some(first_line_info) = lines_info.lines.get(0) {
-                let line = first_line_info.line_index as i32 + 1;
-                let column = first_line_info.start_col.0 as i32 + 1;
-                Position::new(line, column, pos_id)
-            } else {
-                Position::new(0, 0, pos_id)
-            }
-        } else {
-            Position::new(0, 0, pos_id)
-        };
-        self.source_span.insert(pos_id, span);
+    pub fn register<T: Into<MultiSpan>>(&mut self, span: T, error_ctxt: ErrorCtxt, def_id: ProcedureDefId) -> Position {
+        let pos = self.register_span(def_id, span);
+        trace!("Register error {:?} at position id {:?}", error_ctxt, pos.id());
+        self.error_contexts.insert(pos.id(), error_ctxt);
         pos
     }
 
     pub fn change_error_context(&mut self, position: Position, error_ctxt: ErrorCtxt) -> Position {
-        let span = self.source_span[&position.id()].clone();
-        let (_, def_id) = &self.error_contexts[&position.id()];
-        let def_id = *def_id;
-        self.register(span, error_ctxt, def_id)
+        let new_pos = self.position_manager.duplicate(position);
+        trace!("Register error {:?} at position id {:?}", error_ctxt, new_pos.id());
+        self.error_contexts.insert(new_pos.id(), error_ctxt);
+        new_pos
     }
 
-    pub fn get_def_id(&self, ver_error: &VerificationError) -> Option<&ProcedureDefId> {
+    pub fn get_def_id(&self, ver_error: &VerificationError) -> Option<ProcedureDefId> {
         ver_error.pos_id.as_ref()
             .and_then(|id| id.parse().ok())
-            .and_then(|id| self.error_contexts.get(&id))
-            .map(|v| &v.1)
+            .and_then(|id| self.position_manager.def_id.get(&id).copied())
     }
 
     pub fn translate_verification_error(&self, ver_error: &VerificationError) -> PrustiError {
@@ -226,11 +193,10 @@ impl<'tcx> ErrorManager<'tcx>
         };
 
         let opt_error_ctxt = opt_pos_id
-            .and_then(|pos_id| self.error_contexts.get(&pos_id))
-            .map(|v| &v.0);
-        let opt_error_span = opt_pos_id.and_then(|pos_id| self.source_span.get(&pos_id));
+            .and_then(|pos_id| self.error_contexts.get(&pos_id));
+        let opt_error_span = opt_pos_id.and_then(|pos_id| self.position_manager.source_span.get(&pos_id));
         let opt_cause_span = opt_reason_pos_id.and_then(|reason_pos_id| {
-            let res = self.source_span.get(&reason_pos_id);
+            let res = self.position_manager.source_span.get(&reason_pos_id);
             if res.is_none() {
                 debug!("Unregistered reason position: {:?}", reason_pos_id);
             }
@@ -443,8 +409,7 @@ impl<'tcx> ErrorManager<'tcx>
             }
 
             ("postcondition.violated:assertion.false", ErrorCtxt::PureFunctionDefinition) |
-            ("postcondition.violated:assertion.false", ErrorCtxt::PureFunctionCall) |
-            ("postcondition.violated:assertion.false", ErrorCtxt::GenericExpression) => {
+            ("postcondition.violated:assertion.false", ErrorCtxt::PureFunctionCall) => {
                 PrustiError::disabled_verification(
                     "postcondition of pure function definition might not hold",
                     error_span

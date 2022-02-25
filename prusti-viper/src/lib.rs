@@ -28,6 +28,7 @@ extern crate rustc_target;
 extern crate rustc_attr;
 extern crate rustc_data_structures;
 extern crate lazy_static;
+extern crate rustc_hash;
 
 pub mod encoder;
 mod utils;

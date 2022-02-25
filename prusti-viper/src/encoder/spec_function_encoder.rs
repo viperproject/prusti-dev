@@ -1,6 +1,6 @@
 use crate::encoder::snapshot::interface::SnapshotEncoderInterface;
 use crate::encoder::{Encoder, borrows::ProcedureContract};
-use crate::encoder::errors::{SpannedEncodingResult, ErrorCtxt, WithSpan};
+use crate::encoder::errors::{SpannedEncodingResult, WithSpan};
 use crate::encoder::borrows::compute_procedure_contract;
 use crate::encoder::mir_encoder::{MirEncoder, PlaceEncoder};
 use crate::encoder::mir::pure::SpecificationEncoderInterface;
@@ -98,7 +98,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecFunctionEncoder<'p, 'v, 'tcx> {
                     .map(|e| -> vir::Expr { e.into() }).collect::<Vec<_>>(),
                 None,
                 true,
-                ErrorCtxt::GenericExpression,
                 self.proc_def_id,
                 self.tymap,
                 self.substs,
@@ -143,7 +142,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecFunctionEncoder<'p, 'v, 'tcx> {
                     .map(|e| -> vir::Expr { e.into() }).collect::<Vec<_>>(),
                 Some(&encoded_return.clone().into()),
                 true,
-                ErrorCtxt::GenericExpression,
                 self.proc_def_id,
                 self.tymap,
                 self.substs,
