@@ -228,7 +228,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
             }
             mir::Rvalue::Discriminant(src) => {
                 let arg = self.encoder.encode_place_high(self.mir, *src)?;
-                let expr = self.encoder.encode_discriminant_call(arg, encoded_lhs.get_type().clone()).with_span(span)?;
+                let expr = self
+                    .encoder
+                    .encode_discriminant_call(arg, encoded_lhs.get_type().clone())
+                    .with_span(span)?;
                 state.substitute_value(&encoded_lhs, expr);
             }
             mir::Rvalue::Ref(_, mir::BorrowKind::Unique, place)
