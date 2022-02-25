@@ -1279,11 +1279,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
 
         if let Some(state_expr) = state.expr_mut() {
             let mut expr = mem::replace(state_expr, true.into());
-            expr = expr.set_default_pos(
-                self.encoder
-                    .error_manager()
-                    .register_error(span, ErrorCtxt::PureFunctionDefinition, self.caller_def_id),
-            );
+            expr = expr.set_default_pos(self.encoder.error_manager().register_error(
+                span,
+                ErrorCtxt::PureFunctionDefinition,
+                self.caller_def_id,
+            ));
             let _ = mem::replace(state_expr, expr);
         }
 
