@@ -547,10 +547,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
 
                     _ => ErrorCtxt::DivergingCallInPureFunction,
                 };
-                let pos =
-                    self.encoder
-                        .error_manager()
-                        .register_error(span, error_ctxt, self.caller_def_id);
+                let pos = self.encoder.error_manager().register_error(
+                    span,
+                    error_ctxt,
+                    self.caller_def_id,
+                );
                 ExprBackwardInterpreterState::new_defined(
                     self.unreachable_expr(pos.into()).with_span(span)?,
                 )
