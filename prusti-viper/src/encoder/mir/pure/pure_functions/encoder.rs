@@ -217,7 +217,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
         let formal_args = self.encode_formal_args()?;
         let return_type = self.encode_function_return_type()?;
 
-        let res_value_range_pos = self.encoder.error_manager().register(
+        let res_value_range_pos = self.encoder.error_manager().register_error(
             self.mir.span,
             ErrorCtxt::PureFunctionPostconditionValueRangeOfResult,
             self.parent_def_id,
@@ -388,7 +388,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
         let post = func_spec.into_iter().conjoin();
 
         // TODO: use a better span
-        let postcondition_pos = self.encoder.error_manager().register(
+        let postcondition_pos = self.encoder.error_manager().register_error(
             self.mir.span,
             ErrorCtxt::PureFunctionDefinition,
             self.parent_def_id,

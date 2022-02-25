@@ -31,7 +31,7 @@ impl<'tcx> PositionManager<'tcx>
         }
     }
 
-    pub fn register<T: Into<MultiSpan>>(&mut self, def_id: ProcedureDefId, span: T) -> Position {
+    pub fn register_span<T: Into<MultiSpan>>(&mut self, def_id: ProcedureDefId, span: T) -> Position {
         let span = span.into();
         let pos_id = self.next_pos_id;
         self.next_pos_id += 1;
@@ -68,7 +68,7 @@ impl<'tcx> PositionManager<'tcx>
     }
 
     pub fn duplicate(&mut self, pos: Position) -> Position {
-        self.register(
+        self.register_span(
             self.get_def_id(pos).unwrap(),
             self.get_span(pos).cloned().unwrap(),
         )

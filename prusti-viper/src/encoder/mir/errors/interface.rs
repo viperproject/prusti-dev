@@ -27,7 +27,7 @@ impl<'v, 'tcx: 'v> ErrorInterface for super::super::super::Encoder<'v, 'tcx> {
         def_id: ProcedureDefId,
     ) -> vir_high::Position {
         self.error_manager()
-            .register(span, error_ctxt, def_id)
+            .register_error(span, error_ctxt, def_id)
             .into()
     }
     fn change_error_context(

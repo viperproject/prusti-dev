@@ -132,10 +132,10 @@ impl<'tcx> ErrorManager<'tcx> {
     }
 
     pub fn register_span<T: Into<MultiSpan>>(&mut self, def_id: ProcedureDefId, span: T) -> Position {
-        self.position_manager.register(def_id, span)
+        self.position_manager.register_span(def_id, span)
     }
 
-    pub fn register<T: Into<MultiSpan>>(&mut self, span: T, error_ctxt: ErrorCtxt, def_id: ProcedureDefId) -> Position {
+    pub fn register_error<T: Into<MultiSpan>>(&mut self, span: T, error_ctxt: ErrorCtxt, def_id: ProcedureDefId) -> Position {
         let pos = self.register_span(def_id, span);
         trace!("Register error {:?} at position id {:?}", error_ctxt, pos.id());
         self.error_contexts.insert(pos.id(), error_ctxt);

@@ -335,7 +335,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureEncoder<'p, 'v, 'tcx> {
         let post = conjuncts.into_iter().conjoin();
 
         // TODO: use a better span
-        let postcondition_pos = self.encoder.error_manager().register(
+        let postcondition_pos = self.encoder.error_manager().register_error(
             self.mir.span,
             ErrorCtxt::PureFunctionDefinition,
             self.parent_def_id,
