@@ -16,6 +16,7 @@ fn selection_sort(a: &mut [i32; 10]) {
 
     while i < a.len() {
         body_invariant!(0 <= i && i < 10);
+        body_invariant!(a[0] <= a[i]);
 
         // sorted below i
         body_invariant!(forall(|k1: usize, k2: usize| (0 <= k1 && k1 < k2 && k2 < i)
@@ -32,6 +33,7 @@ fn selection_sort(a: &mut [i32; 10]) {
         while j < a.len() {
             // these three are the same as the outer loop
             body_invariant!(0 <= i && i < 10);
+            body_invariant!(a[0] <= a[i]);
             body_invariant!(forall(|k1: usize, k2: usize| (0 <= k1 && k1 < k2 && k2 < i)
                                     ==> a[k1] <= a[k2],
                                     triggers=[(a[k1],a[k2])]));
@@ -61,19 +63,9 @@ fn selection_sort(a: &mut [i32; 10]) {
 
         let a_i = a[i];
         let a_min = a[min];
-        // FIXME: replace all calls to `set` with array assignments when possible
-        set(a, i,  a_min);
-        set(a, min, a_i);
-        // a[i] = a_min;
-        // a[min] = a_i;
+        a[i] = a_min;
+        a[min] = a_i;
 
         i += 1;
     }
-}
-
-#[requires(0 <= i && i < 10)]
-#[ensures(forall(|j: usize| (0 <= j && j < 10 && j != old(i)) ==> (a[j] == old(a[j])), triggers=[(a[j],)]))]
-#[ensures(a[old(i)] == old(v))]
-fn set(a: &mut [i32; 10], i: usize, v: i32) {
-    a[i] = v;
 }
