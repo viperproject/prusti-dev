@@ -756,6 +756,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         )?;
         heads.push(first_b1_head);
 
+        // Calculate if `G` and `B1` are safe to include as the first `body_invariant!(...)`
+        let mut preconds = first_g_head.map(|cbi| self.block_preconditions(&cbi)).unwrap_or_default();
+        preconds.extend(first_b1_head.map(|cbi| self.block_preconditions(&cbi)).unwrap_or_default());
+
         // Build the "invariant" CFG block (start - G - B1 - *invariant* - B2 - G - B1 - end)
         // (1) checks the loop invariant on entry
         // (2) havocs the invariant and the local variables.
@@ -800,26 +804,25 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             self.cfg_method.add_stmts(inv_post_block_perms, stmts);
         }
 
-        let old_len = self.cfg_method.basic_blocks.len();
-        // Encode the mid G group (start - G - B1 - invariant_perm - *G* - B1 - invariant_fnspec - B2 - G - B1 - end)
-        let (mid_g_head, mid_g_edges) = self.encode_blocks_group(
-            &format!("{}_group2a_", loop_label_prefix),
-            loop_guard_evaluation,
-            loop_depth,
-            return_block,
-        )?;
-        let mut preconds = mid_g_head.map(|cbi| self.block_preconditions(&cbi)).unwrap_or_default();
+        let mid_groups = if preconds.len() == 0 {
+            // Encode the mid G group (start - G - B1 - invariant_perm - *G* - B1 - invariant_fnspec - B2 - G - B1 - end)
+            let mid_g = self.encode_blocks_group(
+                &format!("{}_group2a_", loop_label_prefix),
+                loop_guard_evaluation,
+                loop_depth,
+                return_block,
+            )?;
 
-        // Encode the mid B1 group (start - G - B1 - invariant_perm - G - *B1* - invariant_fnspec - B2 - G - B1 - end)
-        let (mid_b1_head, mid_b1_edges) = self.encode_blocks_group(
-            &format!("{}_group2b_", loop_label_prefix),
-            loop_body_before_inv,
-            loop_depth,
-            return_block,
-        )?;
-        preconds.extend(mid_b1_head.map(|cbi| self.block_preconditions(&cbi)).unwrap_or_default());
-
-        if preconds.len() != 0 {
+            // Encode the mid B1 group (start - G - B1 - invariant_perm - G - *B1* - invariant_fnspec - B2 - G - B1 - end)
+            let mid_b1 = self.encode_blocks_group(
+                &format!("{}_group2b_", loop_label_prefix),
+                loop_body_before_inv,
+                loop_depth,
+                return_block,
+            )?;
+            // Save for later linking up
+            Some((mid_g, mid_b1))
+        } else {
             // Cannot add loop guard to loop invariant
             let warning_msg = "the loop guard was not automatically added as a `body_invariant` \
                 (it requires the viper preconditions: [".to_string() + &preconds.iter().map(|pe|
@@ -836,13 +839,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             let span = MultiSpan::from_spans(vec![span_lg, span_lb].into_iter().filter_map(|span| span).collect());
             // It's only a warning so we might as well emit it straight away
             PrustiError::loop_invariant(warning_msg, span).emit(self.encoder.env());
-
-            // Delete unrolled blocks
-            for i in old_len..self.cfg_method.basic_blocks.len() {
-                self.cfg_method.basic_blocks[i].stmts = vec![];
-                self.cfg_method.basic_blocks[i].successor = Successor::Return;
-            }
-        }
+            None
+        };
 
         // Encode the last B2 group (start - G - B1 - invariant - *B2* - G - B1 - end)
         let (last_b2_head, last_b2_edges) = self.encode_blocks_group(
@@ -923,12 +921,15 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             }
         })?);
 
-        if preconds.len() == 0 {
+        if let Some(((mid_g_head, mid_g_edges), (mid_b1_head, mid_b1_edges))) = mid_groups {
             let mid_b1_block = mid_b1_head.unwrap_or(inv_post_block_fnspc);
             // Link edges of "invariant_perm" (start - G - B1 - *invariant_perm* - G - B1 - invariant_fnspec - B2 - G - B1 - end)
             self.cfg_method
                 .set_successor(inv_post_block_perms, vir::Successor::Goto(mid_g_head.unwrap_or(mid_b1_block)));
 
+            // We know that there is at least one loop iteration of B2, thus it is safe to assume
+            // that anything beforehand couldn't have exited the loop. Here we use
+            // `self.cfg_method.set_successor(..., Successor::Return)` as the same as `assume false`
             for (curr_block, target) in &mid_g_edges {
                 if self.loop_encoder.get_loop_depth(*target) < loop_depth {
                     self.cfg_method.set_successor(*curr_block, Successor::Return);
@@ -946,6 +947,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 }
             })?);
 
+            // We know that there is at least one loop iteration of B2, thus it is safe to assume
+            // that anything beforehand couldn't have exited the loop.
             for (curr_block, target) in &mid_b1_edges {
                 if self.loop_encoder.get_loop_depth(*target) < loop_depth {
                     self.cfg_method.set_successor(*curr_block, Successor::Return);
