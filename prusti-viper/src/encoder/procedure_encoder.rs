@@ -32,7 +32,7 @@ use vir_crate::{
         compute_identifier,
         borrows::Borrow,
         collect_assigned_vars,
-        CfgBlockIndex, Expr, ExprIterator, StmtWalker, Successor, Type},
+        CfgBlockIndex, Expr, ExprIterator, Successor, Type},
 };
 use prusti_interface::{
     data::ProcedureDefId,
@@ -513,96 +513,84 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
     }
 
     fn stmt_preconditions(&self, stmt: &vir::Stmt) -> Vec<vir::Expr> {
-        struct FindFnApps<'a, 'b, 'c>(Vec<vir::Expr>, &'a Encoder<'b, 'c>);
-        impl<'a, 'b, 'c> StmtWalker for FindFnApps<'a, 'b, 'c> {
-            fn walk_exhale(&mut self, statement: &vir::Exhale) {
-                self.0.push(statement.expr.clone());
-            }
-            fn walk_assert(&mut self, statement: &vir::Assert) {
-                self.0.push(statement.expr.clone());
-            }
-            fn walk_method_call(&mut self, statement: &vir::MethodCall) {
-                // Note: We know that in Prusti method's preconditions and postconditions are empty
-                for arg in &statement.arguments {
-                    self.walk_expr(arg);
-                }
-            }
-            fn walk_expr(&mut self, expr: &vir::Expr) {
-                match expr {
-                    vir::Expr::Local(_) |
-                    vir::Expr::Const(_) |
-                    vir::Expr::MagicWand(_) => {}, // TODO: Is this correct?
-
-                    vir::Expr::Variant(vir::Variant { base, .. }) |
-                    vir::Expr::Field(vir::FieldExpr { base, .. }) |
-                    vir::Expr::AddrOf(vir::AddrOf { base, .. }) |
-                    vir::Expr::LabelledOld(vir::LabelledOld { base, .. }) |
-                    vir::Expr::FieldAccessPredicate(vir::FieldAccessPredicate { base, .. }) |
-                    vir::Expr::Unfolding(vir::Unfolding { base, .. }) |
-                    vir::Expr::SnapApp(vir::SnapApp { base, .. }) |
-                    vir::Expr::Cast(vir::Cast { base, .. }) => self.walk_expr(&*base),
-
-                    vir::Expr::PredicateAccessPredicate(vir::PredicateAccessPredicate { argument, .. }) |
-                    vir::Expr::UnaryOp(vir::UnaryOp { argument, .. }) =>
-                        self.walk_expr(&*argument),
-
-                    vir::Expr::BinOp(vir::BinOp { left, right, .. }) |
-                    vir::Expr::ContainerOp(vir::ContainerOp { left, right, .. }) => {
-                        self.walk_expr(&*left);
-                        self.walk_expr(&*right);
-                    }
-
-                    vir::Expr::Cond(vir::Cond { guard, then_expr, else_expr, .. }) => {
-                        self.walk_expr(&*guard);
-                        self.walk_expr(&*then_expr);
-                        self.walk_expr(&*else_expr);
-                    }
-                    vir::Expr::ForAll(vir::ForAll { body, .. }) |
-                    vir::Expr::Exists(vir::Exists { body, .. }) => self.walk_expr(&*body),
-                    vir::Expr::LetExpr(vir::LetExpr { def, body, ..}) => {
-                        self.walk_expr(&*def);
-                        self.walk_expr(&*body);
-                    }
-                    vir::Expr::FuncApp(vir::FuncApp { function_name, type_arguments, arguments, formal_arguments, return_type, .. }) => {
-                        let identifier: vir::FunctionIdentifier =
-                            compute_identifier(function_name, type_arguments, formal_arguments, return_type).into();
-                        self.0.extend(self.1.get_function(&identifier).unwrap().pres.clone());
-                        for expr in arguments {
-                            self.walk_expr(expr);
-                        }
-                    },
-                    vir::Expr::DomainFuncApp(vir::DomainFuncApp { arguments, .. }) => {
-                        for expr in arguments {
-                            self.walk_expr(expr);
-                        }
-                    }
-                    vir::Expr::InhaleExhale(ie) => {
-                        self.0.push((*ie.exhale_expr).clone());
-                    }
-                    vir::Expr::Seq(vir::Seq { elements, .. }) => {
-                        for expr in elements {
-                            self.walk_expr(expr);
-                        }
-                    }
-                    vir::Expr::Downcast(vir::DowncastExpr { enum_place, base, .. }) => {
-                        self.walk_expr(&*enum_place);
-                        self.walk_expr(&*base);
-                    }
-                }
-            }
+        use vir::{ExprFolder, StmtWalker};
+        struct FindFnApps<'a, 'b, 'c> {
+            recurse: bool,
+            preconds: Vec<vir::Expr>,
+            encoder: &'a Encoder<'b, 'c>,
         }
-        let mut walker = FindFnApps(Vec::new(), self.encoder);
-        walker.walk(stmt);
-        walker.0.into_iter().filter(|exp| !matches!(
-                exp,
-                // Note: This doesn't remove e.g. `true && acc(Pred(...), ...)`
+        fn is_const_true(expr: &vir::Expr) -> bool {
+            matches!(
+                expr,
                 vir::Expr::Const(vir::ConstExpr {
                     value: vir::Const::Bool(true), ..
                 })
-                | vir::Expr::PredicateAccessPredicate(_)
-                | vir::Expr::FieldAccessPredicate(_)
             )
-        ).collect()
+        }
+        impl<'a, 'b, 'c> StmtWalker for FindFnApps<'a, 'b, 'c> {
+            fn walk_exhale(&mut self, statement: &vir::Exhale) {
+                let expr = self.fold(statement.expr.clone());
+                self.preconds.push(expr);
+            }
+            fn walk_assert(&mut self, statement: &vir::Assert) {
+                let expr = self.fold(statement.expr.clone());
+                self.preconds.push(expr);
+            }
+            fn walk_expr(&mut self, expr: &vir::Expr) {
+                self.fold(expr.clone());
+            }
+        }
+        impl<'a, 'b, 'c> ExprFolder for FindFnApps<'a, 'b, 'c> { 
+            fn fold_func_app(&mut self, expr: vir::FuncApp) -> vir::Expr {
+                let vir::FuncApp { function_name, type_arguments, arguments, formal_arguments, return_type, .. } = expr;
+                if self.recurse {
+                    let identifier: vir::FunctionIdentifier =
+                                compute_identifier(&function_name, &type_arguments, &formal_arguments, &return_type).into();
+                    let pres = self.encoder.get_function(&identifier).unwrap().pres.clone();
+                    // Avoid recursively collecting preconditions: they should be self-framing anyway
+                    self.recurse = false;
+                    let pres = pres.into_iter().map(|expr| self.fold(expr)).collect::<Vec<_>>();
+                    self.recurse = true;
+                    self.preconds.extend(pres);
+
+                    for arg in arguments {
+                        self.fold(arg);
+                    }
+                }
+                true.into()
+            }
+            fn fold_inhale_exhale(&mut self, expr: vir::InhaleExhale) -> vir::Expr {
+                // We only care about the exhale part (e.g. for `walk_exhale`)
+                self.fold(*expr.exhale_expr)
+            }
+            fn fold_predicate_access_predicate(&mut self, expr: vir::PredicateAccessPredicate) -> vir::Expr {
+                self.fold(*expr.argument);
+                true.into()
+            }
+            fn fold_field_access_predicate(&mut self, expr: vir::FieldAccessPredicate) -> vir::Expr {
+                self.fold(*expr.base);
+                true.into()
+            }
+            fn fold_bin_op(&mut self, expr: vir::BinOp) -> vir::Expr {
+                let vir::BinOp { op_kind, left, right, position } = expr;
+                let left = self.fold_boxed(left);
+                let right = self.fold_boxed(right);
+                match op_kind {
+                    vir::BinaryOpKind::And if is_const_true(&*left) => *right,
+                    vir::BinaryOpKind::And if is_const_true(&*right) => *left,
+                    vir::BinaryOpKind::Or if is_const_true(&*left) => *left,
+                    vir::BinaryOpKind::Or if is_const_true(&*right) => *right,
+                    _ => vir::Expr::BinOp(vir::BinOp {
+                        op_kind, left, right, position,
+                    }),
+                }
+            }
+        }
+        let mut walker = FindFnApps {
+            recurse: true, preconds: Vec::new(), encoder: self.encoder
+        };
+        walker.walk(stmt);
+        walker.preconds.into_iter().filter(|exp| !is_const_true(exp)).collect()
     }
     fn block_preconditions(&self, block: &CfgBlockIndex) -> Vec<vir::Expr> {
         let bb = &self.cfg_method.basic_blocks[block.block_index];
