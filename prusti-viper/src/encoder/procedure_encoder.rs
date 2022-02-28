@@ -522,9 +522,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 self.0.push(statement.expr.clone());
             }
             fn walk_method_call(&mut self, statement: &vir::MethodCall) {
-                if !statement.method_name.starts_with("builtin$havoc") {
-                    todo!("Unclear how to handle call to {}", statement.method_name);
-                }
+                // Note: We know that in Prusti method's preconditions and postconditions are empty
                 for arg in &statement.arguments {
                     self.walk_expr(arg);
                 }
