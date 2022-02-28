@@ -309,7 +309,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureEncoder<'p, 'v, 'tcx> {
                 self.parent_def_id,
                 self.tymap,
             )?;
-            self.encoder.error_manager().register_additional_error(
+            self.encoder.error_manager().set_error(
                 assertion.position().into(),
                 ErrorCtxt::PureFunctionDefinition,
             );
@@ -335,7 +335,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureEncoder<'p, 'v, 'tcx> {
                 self.parent_def_id,
                 self.tymap,
             )?;
-            self.encoder.error_manager().register_additional_error(
+            self.encoder.error_manager().set_error(
                 assertion.position().into(),
                 ErrorCtxt::PureFunctionDefinition,
             );

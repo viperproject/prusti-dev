@@ -180,7 +180,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
             self.tymap,
             self.substs,
         )?;
-        self.encoder.error_manager().register_additional_error(
+        self.encoder.error_manager().set_error(
             predicate_body_encoded.pos(),
             ErrorCtxt::PureFunctionDefinition,
         );
@@ -351,7 +351,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
             )?;
             self.encoder
                 .error_manager()
-                .register_additional_error(assertion.pos(), ErrorCtxt::PureFunctionDefinition);
+                .set_error(assertion.pos(), ErrorCtxt::PureFunctionDefinition);
             func_spec.push(assertion);
         }
 
@@ -389,10 +389,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
                 self.tymap,
                 self.substs,
             )?;
-            self.encoder.error_manager().register_additional_error(
-                encoded_postcond.pos(),
-                ErrorCtxt::PureFunctionDefinition,
-            );
+            self.encoder
+                .error_manager()
+                .set_error(encoded_postcond.pos(), ErrorCtxt::PureFunctionDefinition);
             func_spec.push(encoded_postcond);
         }
 
