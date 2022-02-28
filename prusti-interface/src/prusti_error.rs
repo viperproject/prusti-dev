@@ -101,10 +101,10 @@ impl PrustiError {
     }
 
     /// Issue with loop invariants (e.g. cannot automatically include loop guard)
-    pub fn loop_invariant<S: ToString>(message: S, span: MultiSpan) -> Self {
+    pub fn warning<S: ToString>(message: S, span: MultiSpan) -> Self {
         check_message(message.to_string());
         let mut err = PrustiError::new(
-            format!("[Prusti: loop invariant] {}", message.to_string()),
+            format!("[Prusti: warning] {}", message.to_string()),
             span
         );
         err.is_error = false;

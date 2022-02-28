@@ -832,7 +832,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             // Multispan to highlight both
             let span = MultiSpan::from_spans(vec![span_lg, span_lb].into_iter().flatten().collect());
             // It's only a warning so we might as well emit it straight away
-            PrustiError::loop_invariant(warning_msg, span).emit(self.encoder.env());
+            PrustiError::warning(warning_msg, span).emit(self.encoder.env());
             None
         };
 
