@@ -36,8 +36,7 @@ impl<'v, 'tcx: 'v> ErrorInterface for super::super::super::Encoder<'v, 'tcx> {
         error_ctxt: ErrorCtxt,
     ) -> vir_high::Position {
         let new_pos = self.error_manager().duplicate_position(position.into());
-        self.error_manager()
-            .register_additional_error(new_pos, error_ctxt);
+        self.error_manager().set_error(new_pos, error_ctxt);
         new_pos.into()
     }
 }

@@ -5,12 +5,12 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use vir_crate::polymorphic::Position;
-use rustc_hash::{FxHashMap, FxHashSet};
+use rustc_hash::FxHashMap;
 use rustc_span::source_map::SourceMap;
 use rustc_span::MultiSpan;
 use viper::VerificationError;
 use prusti_interface::PrustiError;
-use log::{debug, error, trace};
+use log::{debug, trace};
 use super::PositionManager;
 use prusti_interface::data::ProcedureDefId;
 
@@ -120,7 +120,7 @@ pub enum ErrorCtxt {
 #[derive(Clone)]
 pub struct ErrorManager<'tcx> {
     position_manager: PositionManager<'tcx>,
-    error_contexts: FxHashMap<u64, FxHashSet<ErrorCtxt>>,
+    error_contexts: FxHashMap<u64, ErrorCtxt>,
 }
 
 impl<'tcx> ErrorManager<'tcx> {
@@ -141,18 +141,30 @@ impl<'tcx> ErrorManager<'tcx> {
         self.position_manager.duplicate(pos)
     }
 
-    /// Register an ErrorCtxt on an existing VIR position.
-    pub fn register_additional_error(&mut self, pos: Position, error_ctxt: ErrorCtxt) {
+    /// Register the ErrorCtxt on an existing VIR position.
+    pub fn set_error(&mut self, pos: Position, error_ctxt: ErrorCtxt) {
         trace!("Register error {:?} at position id {:?}", error_ctxt, pos.id());
         assert_ne!(pos, Position::default(), "Trying to register an error on a default position");
-        self.error_contexts.entry(pos.id()).or_default().insert(error_ctxt);
+        if let Some(existing_error_ctxt) = self.error_contexts.get(&pos.id()) {
+            debug_assert_eq!(
+                existing_error_ctxt, &error_ctxt,
+                "An existing error context would be overwritten.\n\
+                Position id: {}\n\
+                Existing error context: {:?}\n\
+                New error context: {:?}",
+                pos.id(),
+                existing_error_ctxt,
+                error_ctxt
+            );
+        }
+        self.error_contexts.insert(pos.id(), error_ctxt);
     }
 
     /// Register a new VIR position with the given ErrorCtxt.
-    /// Equivalent to calling `register_additional_error` on the output of `register_span`.
+    /// Equivalent to calling `set_error` on the output of `register_span`.
     pub fn register_error<T: Into<MultiSpan>>(&mut self, span: T, error_ctxt: ErrorCtxt, def_id: ProcedureDefId) -> Position {
         let pos = self.register_span(def_id, span);
-        self.register_additional_error(pos, error_ctxt);
+        self.set_error(pos, error_ctxt);
         pos
     }
 
@@ -199,10 +211,8 @@ impl<'tcx> ErrorManager<'tcx> {
             None => None
         };
 
-        let empty_ctxts: FxHashSet<ErrorCtxt> = FxHashSet::default();
-        let error_ctxts = opt_pos_id
-            .and_then(|pos_id| self.error_contexts.get(&pos_id))
-            .unwrap_or(&empty_ctxts);
+        let opt_error_ctxts = opt_pos_id
+            .and_then(|pos_id| self.error_contexts.get(&pos_id));
         let opt_error_span = opt_pos_id.and_then(|pos_id| self.position_manager.source_span.get(&pos_id));
         let opt_cause_span = opt_reason_pos_id.and_then(|reason_pos_id| {
             let res = self.position_manager.source_span.get(&reason_pos_id);
@@ -212,7 +222,16 @@ impl<'tcx> ErrorManager<'tcx> {
             res
         });
 
-        if error_ctxts.is_empty() {
+        if let Some(error_ctxt) = opt_error_ctxts {
+            debug_assert!(opt_error_span.is_some());
+            let error_span = opt_error_span.cloned().unwrap_or_else(MultiSpan::new);
+            self.translate_verification_error_with_context(
+                ver_error,
+                error_span,
+                opt_cause_span,
+                error_ctxt
+            )
+        } else {
             debug!("Unregistered verification error: {:?}", ver_error);
             let error_span = if let Some(error_span) = opt_error_span {
                 error_span.clone()
@@ -220,7 +239,7 @@ impl<'tcx> ErrorManager<'tcx> {
                 opt_cause_span.cloned().unwrap_or_else(MultiSpan::new)
             };
 
-            return match opt_pos_id {
+            match opt_pos_id {
                 Some(ref pos_id) => {
                     PrustiError::internal(
                         format!(
@@ -247,166 +266,121 @@ impl<'tcx> ErrorManager<'tcx> {
                         ASSERT_TIMEOUT to a larger value."
                     )
                 }
-            };
-        }
-
-        debug_assert!(opt_error_span.is_some());
-        let error_span = opt_error_span.cloned().unwrap_or_else(MultiSpan::new);
-
-        let mut opt_prusti_error = None;
-        for error_ctxt in error_ctxts {
-            let new_prusti_error = self.translate_verification_error_with_context(
-                ver_error,
-                &error_span,
-                opt_cause_span,
-                error_ctxt
-            );
-            if opt_prusti_error.is_none() {
-                opt_prusti_error = new_prusti_error;
-            } else if let Some(duplicate_error) = new_prusti_error {
-                error!(
-                    "A verification error has been translated to multiple \
-                    Prusti errors: [{}] {}", ver_error.full_id, ver_error.message
-                );
-                error!("Ignoring Prusti error {:?}", duplicate_error);
-                debug_assert!(false);
             }
-        }
-
-        if let Some(prusti_error) = opt_prusti_error {
-            prusti_error
-        } else {
-            debug!(
-                "Unhandled verification error: {:?}, context: {:?}",
-                ver_error, error_ctxts
-            );
-            PrustiError::internal(
-                format!(
-                    "unhandled verification error: {} [{}] {:?}",
-                    ver_error.message, ver_error.full_id.as_str(), error_ctxts
-                ),
-                error_span,
-            ).set_failing_assertion(
-                opt_cause_span
-            ).set_help(
-                "This could be caused by too small assertion timeout. \
-                Try increasing it by setting the configuration parameter \
-                ASSERT_TIMEOUT to a larger value."
-            )
         }
     }
 
     fn translate_verification_error_with_context(
         &self,
         ver_error: &VerificationError,
-        error_span: &MultiSpan,
+        error_span: MultiSpan,
         opt_cause_span: Option<&MultiSpan>,
         error_ctxt: &ErrorCtxt,
-    ) -> Option<PrustiError> {
-        Some(match (ver_error.full_id.as_str(), error_ctxt) {
+    ) -> PrustiError {
+        match (ver_error.full_id.as_str(), error_ctxt) {
             ("assert.failed:assertion.false", ErrorCtxt::Panic(PanicCause::Generic)) => {
-                PrustiError::verification("statement might panic", error_span.clone())
+                PrustiError::verification("statement might panic", error_span)
                     .set_failing_assertion(opt_cause_span)
             }
 
             ("assert.failed:assertion.false", ErrorCtxt::Panic(PanicCause::Panic)) => {
-                PrustiError::verification("panic!(..) statement might be reachable", error_span.clone())
+                PrustiError::verification("panic!(..) statement might be reachable", error_span)
                     .set_failing_assertion(opt_cause_span)
             }
 
             ("assert.failed:assertion.false", ErrorCtxt::Panic(PanicCause::Assert)) |
             ("assert.failed:assertion.false", ErrorCtxt::Panic(PanicCause::DebugAssert)) => {
-                    PrustiError::verification("the asserted expression might not hold", error_span.clone())
+                    PrustiError::verification("the asserted expression might not hold", error_span)
                     .set_failing_assertion(opt_cause_span)
             }
 
             ("assert.failed:assertion.false", ErrorCtxt::Panic(PanicCause::Unreachable)) => {
-                PrustiError::verification("unreachable!(..) statement might be reachable", error_span.clone())
+                PrustiError::verification("unreachable!(..) statement might be reachable", error_span)
                     .set_failing_assertion(opt_cause_span)
             }
 
             ("assert.failed:assertion.false", ErrorCtxt::Panic(PanicCause::Unimplemented)) => {
-                PrustiError::verification("unimplemented!(..) statement might be reachable", error_span.clone())
+                PrustiError::verification("unimplemented!(..) statement might be reachable", error_span)
                     .set_failing_assertion(opt_cause_span)
             }
 
             ("assert.failed:assertion.false", ErrorCtxt::AssertTerminator(ref message)) => {
-                PrustiError::verification(format!("assertion might fail with \"{}\"", message), error_span.clone())
+                PrustiError::verification(format!("assertion might fail with \"{}\"", message), error_span)
                     .set_failing_assertion(opt_cause_span)
             }
 
             ("assert.failed:assertion.false", ErrorCtxt::AbortTerminator) => {
-                PrustiError::verification("statement might abort", error_span.clone())
+                PrustiError::verification("statement might abort", error_span)
                     .set_failing_assertion(opt_cause_span)
             }
 
             ("assert.failed:assertion.false", ErrorCtxt::UnreachableTerminator) => {
                 PrustiError::internal(
                     "unreachable code might be reachable",
-                    error_span.clone()
+                    error_span
                 ).set_failing_assertion(opt_cause_span)
                     .set_help("This might be a bug in the Rust compiler.")
             }
 
             ("assert.failed:assertion.false", ErrorCtxt::ExhaleMethodPrecondition) => {
-                PrustiError::verification("precondition might not hold.", error_span.clone())
+                PrustiError::verification("precondition might not hold.", error_span)
                     .set_failing_assertion(opt_cause_span)
             }
 
             ("fold.failed:assertion.false", ErrorCtxt::ExhaleMethodPrecondition) => {
                 PrustiError::verification(
                     "implicit type invariant expected by the function call might not hold.",
-                    error_span.clone()
+                    error_span
                 ).set_failing_assertion(opt_cause_span)
             }
 
             ("assert.failed:assertion.false", ErrorCtxt::ExhaleMethodPostcondition) => {
-                PrustiError::verification("postcondition might not hold.", error_span.clone())
+                PrustiError::verification("postcondition might not hold.", error_span)
                     .push_primary_span(opt_cause_span)
             }
 
             ("assert.failed:assertion.false", ErrorCtxt::ExhaleLoopInvariantOnEntry) => {
-                PrustiError::verification("loop invariant might not hold in the first loop iteration.", error_span.clone())
+                PrustiError::verification("loop invariant might not hold in the first loop iteration.", error_span)
                     .push_primary_span(opt_cause_span)
             }
 
             ("fold.failed:assertion.false", ErrorCtxt::ExhaleLoopInvariantOnEntry) => {
                 PrustiError::verification(
                     "implicit type invariant of a variable might not hold on loop entry.",
-                    error_span.clone()
+                    error_span
                 ).push_primary_span(opt_cause_span)
             }
 
             ("assert.failed:assertion.false", ErrorCtxt::AssertLoopInvariantOnEntry) => {
-                PrustiError::verification("loop invariant might not hold in the first loop iteration.", error_span.clone())
+                PrustiError::verification("loop invariant might not hold in the first loop iteration.", error_span)
                     .push_primary_span(opt_cause_span)
             }
 
             ("assert.failed:assertion.false", ErrorCtxt::ExhaleLoopInvariantAfterIteration) => {
                 PrustiError::verification(
                     "loop invariant might not hold after a loop iteration that preserves the loop condition.",
-                    error_span.clone()
+                    error_span
                 ).push_primary_span(opt_cause_span)
             }
 
             ("assert.failed:assertion.false", ErrorCtxt::AssertLoopInvariantAfterIteration) => {
                 PrustiError::verification(
                     "loop invariant might not hold after a loop iteration that preserves the loop condition.",
-                    error_span.clone()
+                    error_span
                 ).push_primary_span(opt_cause_span)
             }
 
             ("application.precondition:assertion.false", ErrorCtxt::PureFunctionCall) => {
                 PrustiError::verification(
                     "precondition of pure function call might not hold.",
-                    error_span.clone()
+                    error_span
                 ).set_failing_assertion(opt_cause_span)
             }
 
             ("package.failed:assertion.false", ErrorCtxt::PackageMagicWandForPostcondition) => {
                 PrustiError::verification(
                     "pledge in the postcondition might not hold.",
-                    error_span.clone()
+                    error_span
                 ).push_primary_span(opt_cause_span)
             }
 
@@ -416,7 +390,7 @@ impl<'tcx> ErrorManager<'tcx> {
             ) => {
                 PrustiError::verification(
                     "diverging function call in pure function might be reachable.",
-                    error_span.clone()
+                    error_span
                 ).push_primary_span(opt_cause_span)
             }
 
@@ -424,7 +398,7 @@ impl<'tcx> ErrorManager<'tcx> {
                 "application.precondition:assertion.false",
                 ErrorCtxt::PanicInPureFunction(PanicCause::Generic),
             ) => {
-                PrustiError::disabled_verification("statement in pure function might panic", error_span.clone())
+                PrustiError::disabled_verification("statement in pure function might panic", error_span)
                     .push_primary_span(opt_cause_span)
             }
 
@@ -434,7 +408,7 @@ impl<'tcx> ErrorManager<'tcx> {
             ) => {
                 PrustiError::disabled_verification(
                     "panic!(..) statement in pure function might panic",
-                    error_span.clone()
+                    error_span
                 ).push_primary_span(opt_cause_span)
             }
 
@@ -442,7 +416,7 @@ impl<'tcx> ErrorManager<'tcx> {
                 "application.precondition:assertion.false",
                 ErrorCtxt::PanicInPureFunction(PanicCause::Assert),
             ) => {
-                PrustiError::disabled_verification("asserted expression might not hold", error_span.clone())
+                PrustiError::disabled_verification("asserted expression might not hold", error_span)
                     .set_failing_assertion(opt_cause_span)
             }
 
@@ -452,7 +426,7 @@ impl<'tcx> ErrorManager<'tcx> {
             ) => {
                 PrustiError::disabled_verification(
                     "unreachable!(..) statement in pure function might be reachable",
-                    error_span.clone()
+                    error_span
                 ).push_primary_span(opt_cause_span)
             }
 
@@ -462,7 +436,7 @@ impl<'tcx> ErrorManager<'tcx> {
             ) => {
                 PrustiError::disabled_verification(
                     "unimplemented!(..) statement in pure function might be reachable",
-                    error_span.clone()
+                    error_span
                 ).push_primary_span(opt_cause_span)
             }
 
@@ -470,7 +444,7 @@ impl<'tcx> ErrorManager<'tcx> {
             ("postcondition.violated:assertion.false", ErrorCtxt::PureFunctionCall) => {
                 PrustiError::disabled_verification(
                     "postcondition of pure function definition might not hold",
-                    error_span.clone()
+                    error_span
                 ).push_primary_span(opt_cause_span)
             }
 
@@ -480,24 +454,24 @@ impl<'tcx> ErrorManager<'tcx> {
             ) => {
                 PrustiError::disabled_verification(
                     format!("assertion might fail with \"{}\"", message),
-                    error_span.clone()
+                    error_span
                 ).set_failing_assertion(opt_cause_span)
             },
 
             ("application.precondition:assertion.false", ErrorCtxt::TypeCast) => {
                 PrustiError::verification(
                     "value might not fit into the target type.",
-                    error_span.clone()
+                    error_span
                 ).set_failing_assertion(opt_cause_span)
             }
 
             ("apply.failed:assertion.false", ErrorCtxt::ApplyMagicWandOnExpiry) => {
-                PrustiError::verification("obligation might not hold on borrow expiry", error_span.clone())
+                PrustiError::verification("obligation might not hold on borrow expiry", error_span)
                     .set_failing_assertion(opt_cause_span)
             }
 
             ("assert.failed:assertion.false", ErrorCtxt::AssertMethodPostcondition) => {
-                PrustiError::verification("postcondition might not hold.".to_string(), error_span.clone())
+                PrustiError::verification("postcondition might not hold.".to_string(), error_span)
                     .push_primary_span(opt_cause_span)
             }
 
@@ -507,7 +481,7 @@ impl<'tcx> ErrorManager<'tcx> {
             ) => {
                 PrustiError::verification(
                     "type invariants might not hold at the end of the method.".to_string(),
-                    error_span.clone()
+                    error_span
                 ).set_failing_assertion(opt_cause_span)
             },
 
@@ -515,19 +489,19 @@ impl<'tcx> ErrorManager<'tcx> {
             ("fold.failed:assertion.false", ErrorCtxt::AssertMethodPostconditionTypeInvariants) => {
                 PrustiError::verification(
                     "implicit type invariants might not hold at the end of the method.".to_string(),
-                    error_span.clone()
+                    error_span
                 ).set_failing_assertion(opt_cause_span)
             }
 
             ("assert.failed:assertion.false", ErrorCtxt::AssertMethodPreconditionWeakening(impl_span)) => {
-                PrustiError::verification("the method's precondition may not be a valid weakening of the trait's precondition.".to_string(), error_span.clone())
+                PrustiError::verification("the method's precondition may not be a valid weakening of the trait's precondition.".to_string(), error_span)
                     //.push_primary_span(opt_cause_span)
                     .push_primary_span(Some(impl_span))
                     .set_help("The trait's precondition should imply the implemented method's precondition.")
             }
 
             ("assert.failed:assertion.false", ErrorCtxt::AssertMethodPostconditionStrengthening(impl_span)) => {
-                PrustiError::verification("the method's postcondition may not be a valid strengthening of the trait's postcondition.".to_string(), error_span.clone())
+                PrustiError::verification("the method's postcondition may not be a valid strengthening of the trait's postcondition.".to_string(), error_span)
                     //.push_primary_span(opt_cause_span)
                     .push_primary_span(Some(impl_span))
                     .set_help("The implemented method's postcondition should imply the trait's postcondition.")
@@ -537,14 +511,14 @@ impl<'tcx> ErrorManager<'tcx> {
             ("application.precondition:assertion.false", ErrorCtxt::BoundsCheckAssert) => {
                 PrustiError::verification(
                     "the array or slice index may be out of bounds".to_string(),
-                    error_span.clone(),
+                    error_span,
                 ).set_failing_assertion(opt_cause_span)
             }
 
             ("assert.failed:assertion.false", ErrorCtxt::Unsupported(ref reason)) => {
                 PrustiError::unsupported(
                     format!("an unsupported Rust feature might be reachable: {}.", reason),
-                    error_span.clone()
+                    error_span
                 ).set_failing_assertion(opt_cause_span)
             }
 
@@ -554,7 +528,7 @@ impl<'tcx> ErrorManager<'tcx> {
                         "unexpected verification error: [{}] {}",
                         full_err_id, ver_error.message
                     ),
-                    error_span.clone(),
+                    error_span,
                 ).set_failing_assertion(
                     opt_cause_span
                 ).set_help(
@@ -564,8 +538,25 @@ impl<'tcx> ErrorManager<'tcx> {
                 )
             },
 
-            // The verification error doesn't correspond to the given ErrorCtxt.
-            _ => return None,
-        })
+            _ => {
+                debug!(
+                    "Unhandled verification error: {:?}, context: {:?}",
+                    ver_error, error_ctxt
+                );
+                PrustiError::internal(
+                    format!(
+                        "unhandled verification error: {} [{}] {:?}",
+                        ver_error.message, ver_error.full_id.as_str(), error_ctxt
+                    ),
+                    error_span,
+                ).set_failing_assertion(
+                    opt_cause_span
+                ).set_help(
+                    "This could be caused by too small assertion timeout. \
+                    Try increasing it by setting the configuration parameter \
+                    ASSERT_TIMEOUT to a larger value."
+                )
+            }
+        }
     }
 }

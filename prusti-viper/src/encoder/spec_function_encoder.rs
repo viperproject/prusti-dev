@@ -99,7 +99,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecFunctionEncoder<'p, 'v, 'tcx> {
                 self.tymap,
                 self.substs,
             )?;
-            self.encoder.error_manager().register_additional_error(
+            self.encoder.error_manager().set_error(
                 assertion.pos(),
                 ErrorCtxt::PureFunctionDefinition,
             );
@@ -148,7 +148,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecFunctionEncoder<'p, 'v, 'tcx> {
                 self.tymap,
                 self.substs,
             )?;
-            self.encoder.error_manager().register_additional_error(
+            self.encoder.error_manager().set_error(
                 assertion.pos(),
                 ErrorCtxt::PureFunctionDefinition,
             );
