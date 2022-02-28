@@ -592,9 +592,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         walker.walk(stmt);
         walker.0.into_iter().filter(|exp| !matches!(
                 exp,
+                // Note: This doesn't remove e.g. `true && acc(Pred(...), ...)`
                 vir::Expr::Const(vir::ConstExpr {
                     value: vir::Const::Bool(true), ..
                 })
+                | vir::Expr::PredicateAccessPredicate(_)
+                | vir::Expr::FieldAccessPredicate(_)
             )
         ).collect()
     }
