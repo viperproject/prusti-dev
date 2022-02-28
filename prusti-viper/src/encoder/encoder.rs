@@ -264,6 +264,23 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         }
     }
 
+    pub(super) fn fun_preconds(&self, ident: &str) -> Vec<vir::Expr> {
+        let identifier = &ident.to_string().into();
+        // TODO: if we have generic args, the name stored will be `m_foo__$TY$__GAs`
+        // But the `ident` passed in will be `m_foo`
+        self.ensure_pure_function_encoded(identifier).unwrap();
+        if self.functions.borrow().contains_key(identifier) {
+            let map = self.functions.borrow();
+            map[identifier].pres.clone()
+        } else if self.contains_snapshot_function(identifier) {
+            self.get_snapshot_function(identifier).pres.clone()
+        } else if ident.starts_with("builtin") {
+            Vec::new()
+        } else {
+            unreachable!("Not found function: {:?}", identifier)
+        }
+    }
+
     pub(super) fn get_builtin_methods(
         &self
     ) -> Ref<'_, FxHashMap<BuiltinMethodKind, vir::BodylessMethod>> {

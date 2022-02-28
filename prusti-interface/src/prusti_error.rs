@@ -100,6 +100,17 @@ impl PrustiError {
         )
     }
 
+    /// Issue with loop invariants (e.g. cannot automatically include loop guard)
+    pub fn loop_invariant<S: ToString>(message: S, span: MultiSpan) -> Self {
+        check_message(message.to_string());
+        let mut err = PrustiError::new(
+            format!("[Prusti: loop invariant] {}", message.to_string()),
+            span
+        );
+        err.is_error = false;
+        err
+    }
+
     /// Report an internal error of Prusti (e.g. failure of the fold-unfold)
     pub fn internal<S: ToString>(message: S, span: MultiSpan) -> Self {
         check_message(message.to_string());
