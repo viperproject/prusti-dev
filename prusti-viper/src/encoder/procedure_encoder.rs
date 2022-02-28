@@ -29,6 +29,7 @@ use prusti_common::{
 use vir_crate::{
     polymorphic::{
         self as vir,
+        compute_identifier,
         borrows::Borrow,
         collect_assigned_vars,
         CfgBlockIndex, Expr, ExprIterator, StmtWalker, Successor, Type},
@@ -521,7 +522,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 self.0.push(statement.expr.clone());
             }
             fn walk_method_call(&mut self, statement: &vir::MethodCall) {
-                self.0.extend(self.1.fun_preconds(&statement.method_name));
+                if !statement.method_name.starts_with("builtin$havoc") {
+                    todo!("Unclear how to handle call to {}", statement.method_name);
+                }
                 for arg in &statement.arguments {
                     self.walk_expr(arg);
                 }
@@ -562,8 +565,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                         self.walk_expr(&*def);
                         self.walk_expr(&*body);
                     }
-                    vir::Expr::FuncApp(vir::FuncApp { function_name, arguments, .. }) => {
-                        self.0.extend(self.1.fun_preconds(&function_name));
+                    vir::Expr::FuncApp(vir::FuncApp { function_name, type_arguments, arguments, formal_arguments, return_type, .. }) => {
+                        let identifier: vir::FunctionIdentifier =
+                            compute_identifier(function_name, type_arguments, formal_arguments, return_type).into();
+                        self.0.extend(self.1.get_function(&identifier).unwrap().pres.clone());
                         for expr in arguments {
                             self.walk_expr(expr);
                         }
