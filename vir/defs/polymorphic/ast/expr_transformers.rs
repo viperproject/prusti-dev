@@ -1293,10 +1293,7 @@ pub trait FallibleExprWalker: Sized {
         }
         self.fallible_walk_type(return_type)
     }
-    fn fallible_walk_domain_func_app(
-        &mut self,
-        expr: &DomainFuncApp,
-    ) -> Result<(), Self::Error> {
+    fn fallible_walk_domain_func_app(&mut self, expr: &DomainFuncApp) -> Result<(), Self::Error> {
         let DomainFuncApp {
             domain_function,
             arguments,
