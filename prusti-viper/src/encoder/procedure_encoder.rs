@@ -812,7 +812,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             self.cfg_method.add_stmts(inv_post_block_perms, stmts);
         }
 
-        let mid_groups = if preconds.len() == 0 {
+        let mid_groups = if preconds.is_empty() {
             // Encode the mid G group (start - G - B1 - invariant_perm - *G* - B1 - invariant_fnspec - B2 - G - B1 - end)
             let mid_g = self.encode_blocks_group(
                 &format!("{}_group2a_", loop_label_prefix),
@@ -844,7 +844,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     if span.ctxt() == other.ctxt() { span.to(other) } else { other }
                 ).unwrap_or(span)) );
             // Multispan to highlight both
-            let span = MultiSpan::from_spans(vec![span_lg, span_lb].into_iter().filter_map(|span| span).collect());
+            let span = MultiSpan::from_spans(vec![span_lg, span_lb].into_iter().flatten().collect());
             // It's only a warning so we might as well emit it straight away
             PrustiError::loop_invariant(warning_msg, span).emit(self.encoder.env());
             None
