@@ -6,7 +6,7 @@
 
 use crate::encoder::{
     encoder::SubstMap,
-    errors::{ErrorCtxt, SpannedEncodingResult, WithSpan},
+    errors::{SpannedEncodingResult, WithSpan},
     mir::pure::{
         specifications::{
             encoder_high::{encode_quantifier_high, inline_spec_item_high},
@@ -41,7 +41,6 @@ pub(crate) trait SpecificationEncoderInterface<'tcx> {
         pre_label: Option<&str>,
         target_args: &[Expression],
         target_return: Option<&Expression>,
-        error: ErrorCtxt,
         parent_def_id: DefId,
         tymap: &SubstMap<'tcx>,
     ) -> SpannedEncodingResult<Expression>;
@@ -64,7 +63,6 @@ pub(crate) trait SpecificationEncoderInterface<'tcx> {
         target_args: &[vir_crate::polymorphic::Expr],
         target_return: Option<&vir_crate::polymorphic::Expr>,
         targets_are_values: bool,
-        error: ErrorCtxt,
         parent_def_id: DefId,
         tymap: &SubstMap<'tcx>,
         substs: &SubstsRef<'tcx>,
@@ -110,7 +108,6 @@ impl<'v, 'tcx: 'v> SpecificationEncoderInterface<'tcx> for crate::encoder::Encod
         _pre_label: Option<&str>, // TODO: use pre_label (map labels)
         target_args: &[Expression],
         target_return: Option<&Expression>,
-        error: ErrorCtxt,
         parent_def_id: DefId,
         tymap: &SubstMap<'tcx>,
     ) -> SpannedEncodingResult<Expression> {
@@ -123,10 +120,9 @@ impl<'v, 'tcx: 'v> SpecificationEncoderInterface<'tcx> for crate::encoder::Encod
             parent_def_id,
             tymap,
         )?;
-        let position = self.error_manager().register(
-            self.env().tcx().def_span(assertion.to_def_id()),
-            error,
+        let position = self.error_manager().register_span(
             parent_def_id,
+            self.env().tcx().def_span(assertion.to_def_id()),
         );
         Ok(encoded_assertion.set_default_position(position.into()))
     }
@@ -161,7 +157,6 @@ impl<'v, 'tcx: 'v> SpecificationEncoderInterface<'tcx> for crate::encoder::Encod
         target_args: &[vir_crate::polymorphic::Expr],
         target_return: Option<&vir_crate::polymorphic::Expr>,
         targets_are_values: bool,
-        error: ErrorCtxt,
         parent_def_id: DefId,
         tymap: &SubstMap<'tcx>,
         substs: &SubstsRef<'tcx>,
@@ -192,13 +187,8 @@ impl<'v, 'tcx: 'v> SpecificationEncoderInterface<'tcx> for crate::encoder::Encod
         encoded_assertion = self
             .patch_snapshots(encoded_assertion, tymap)
             .with_span(span)?;
-        Ok(
-            encoded_assertion.set_default_pos(self.error_manager().register(
-                span,
-                error,
-                parent_def_id,
-            )),
-        )
+        Ok(encoded_assertion
+            .set_default_pos(self.error_manager().register_span(parent_def_id, span)))
     }
 
     fn encode_invariant(

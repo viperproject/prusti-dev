@@ -547,10 +547,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
 
                     _ => ErrorCtxt::DivergingCallInPureFunction,
                 };
-                let pos =
-                    self.encoder
-                        .error_manager()
-                        .register(span, error_ctxt, self.caller_def_id);
+                let pos = self.encoder.error_manager().register_error(
+                    span,
+                    error_ctxt,
+                    self.caller_def_id,
+                );
                 ExprBackwardInterpreterState::new_defined(
                     self.unreachable_expr(pos.into()).with_span(span)?,
                 )
@@ -615,7 +616,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
             .encode_pure_function_use_high(def_id, self.caller_def_id, tymap, substs)
             .with_span(span)?;
         trace!("Encoding pure function call '{}'", function_name);
-        let pos = self.encoder.error_manager().register(
+        let pos = self.encoder.error_manager().register_error(
             span,
             ErrorCtxt::PureFunctionCall,
             self.caller_def_id,
@@ -690,7 +691,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
         let state = match &terminator.kind {
             TerminatorKind::Unreachable => {
                 assert!(states.is_empty());
-                let pos = self.encoder.error_manager().register(
+                let pos = self.encoder.error_manager().register_error(
                     span,
                     ErrorCtxt::Unexpected,
                     self.caller_def_id,
@@ -705,7 +706,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                 let pos = self
                     .encoder
                     .error_manager()
-                    .register(span, ErrorCtxt::Unexpected, self.caller_def_id)
+                    .register_error(span, ErrorCtxt::Unexpected, self.caller_def_id)
                     .into();
                 ExprBackwardInterpreterState::new_defined(
                     self.unreachable_expr(pos).with_span(span)?,
@@ -792,7 +793,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                     ErrorCtxt::PureFunctionAssertTerminator(assert_msg)
                 };
 
-                let pos = self.encoder.error_manager().register(
+                let pos = self.encoder.error_manager().register_error(
                     terminator.source_info.span,
                     error_ctxt,
                     self.caller_def_id,

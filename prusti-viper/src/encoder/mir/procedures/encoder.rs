@@ -629,7 +629,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         let span = self.encoder.get_mir_location_span(self.mir, location);
         self.encoder
             .error_manager()
-            .register(span, error_ctxt, self.def_id)
+            .register_error(span, error_ctxt, self.def_id)
             .into()
     }
 }

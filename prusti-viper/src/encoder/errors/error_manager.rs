@@ -5,17 +5,18 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use vir_crate::polymorphic::Position;
-use rustc_hash::{FxHashMap};
+use rustc_hash::FxHashMap;
 use rustc_span::source_map::SourceMap;
 use rustc_span::MultiSpan;
 use viper::VerificationError;
 use prusti_interface::PrustiError;
 use log::{debug, trace};
+use super::PositionManager;
 use prusti_interface::data::ProcedureDefId;
 
 
 /// The cause of a panic!()
-#[derive(Clone, Debug)]
+#[derive(Copy, Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Hash)]
 pub enum PanicCause {
     /// Generic cause
     Generic,
@@ -32,7 +33,7 @@ pub enum PanicCause {
 }
 
 /// The kind of the method whose proof failed.
-#[derive(Clone, Debug)]
+#[derive(Copy, Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Hash)]
 pub enum BuiltinMethodKind {
     WritePlace,
     MovePlace,
@@ -40,7 +41,7 @@ pub enum BuiltinMethodKind {
 
 /// In case of verification error, this enum will contain additional information
 /// required to describe the error.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Eq, PartialEq, Hash)]
 pub enum ErrorCtxt {
     /// A Viper `assert false` that encodes a Rust panic
     Panic(PanicCause),
@@ -95,10 +96,6 @@ pub enum ErrorCtxt {
     /// `assert` Rust terminator in a Rust pure function.
     /// Arguments: the message of the Rust assertion
     PureFunctionAssertTerminator(String),
-    /// A generic expression
-    GenericExpression,
-    /// A generic statement
-    GenericStatement,
     /// Package a magic wand for the postcondition, at the end of a method
     PackageMagicWandForPostcondition,
     /// Apply a magic wand as a borrow expires, relevant for pledge conditions
@@ -122,70 +119,59 @@ pub enum ErrorCtxt {
 /// The error manager
 #[derive(Clone)]
 pub struct ErrorManager<'tcx> {
-    codemap: &'tcx SourceMap,
-    source_span: FxHashMap<u64, MultiSpan>,
-    error_contexts: FxHashMap<u64, (ErrorCtxt, ProcedureDefId)>,
-    next_pos_id: u64,
+    position_manager: PositionManager<'tcx>,
+    error_contexts: FxHashMap<u64, ErrorCtxt>,
 }
 
-impl<'tcx> ErrorManager<'tcx>
- {
+impl<'tcx> ErrorManager<'tcx> {
     pub fn new(codemap: &'tcx SourceMap) -> Self {
         ErrorManager {
-            codemap,
-            source_span: FxHashMap::default(),
+            position_manager: PositionManager::new(codemap),
             error_contexts: FxHashMap::default(),
-            next_pos_id: 1,
         }
     }
 
-    pub fn register<T: Into<MultiSpan>>(&mut self, span: T, error_ctxt: ErrorCtxt, def_id: ProcedureDefId) -> Position {
-        let pos = self.register_span(span);
-        trace!("Register error {:?} of {:?} at position id {:?}", error_ctxt, def_id, pos.id());
-        self.error_contexts.insert(pos.id(), (error_ctxt, def_id));
+    /// Register a new VIR position.
+    pub fn register_span<T: Into<MultiSpan>>(&mut self, def_id: ProcedureDefId, span: T) -> Position {
+        self.position_manager.register_span(def_id, span)
+    }
+
+    /// Duplicate an existing VIR position.
+    pub fn duplicate_position(&mut self, pos: Position) -> Position {
+        self.position_manager.duplicate(pos)
+    }
+
+    /// Register the ErrorCtxt on an existing VIR position.
+    pub fn set_error(&mut self, pos: Position, error_ctxt: ErrorCtxt) {
+        trace!("Register error {:?} at position id {:?}", error_ctxt, pos.id());
+        assert_ne!(pos, Position::default(), "Trying to register an error on a default position");
+        if let Some(existing_error_ctxt) = self.error_contexts.get(&pos.id()) {
+            debug_assert_eq!(
+                existing_error_ctxt, &error_ctxt,
+                "An existing error context would be overwritten.\n\
+                Position id: {}\n\
+                Existing error context: {:?}\n\
+                New error context: {:?}",
+                pos.id(),
+                existing_error_ctxt,
+                error_ctxt
+            );
+        }
+        self.error_contexts.insert(pos.id(), error_ctxt);
+    }
+
+    /// Register a new VIR position with the given ErrorCtxt.
+    /// Equivalent to calling `set_error` on the output of `register_span`.
+    pub fn register_error<T: Into<MultiSpan>>(&mut self, span: T, error_ctxt: ErrorCtxt, def_id: ProcedureDefId) -> Position {
+        let pos = self.register_span(def_id, span);
+        self.set_error(pos, error_ctxt);
         pos
     }
 
-    pub fn register_span<T: Into<MultiSpan>>(&mut self, span: T) -> Position {
-        let span = span.into();
-        let pos_id = self.next_pos_id;
-        self.next_pos_id += 1;
-        trace!("Register span {:?} at position id {:?}", span, pos_id);
-        let pos = if let Some(primary_span) = span.primary_span() {
-            let lines_info_res = self
-                .codemap
-                .span_to_lines(primary_span.source_callsite());
-            if lines_info_res.is_err() {
-                debug!("Error converting span to lines {:?}", lines_info_res.err());
-                return Position::new(0, 0, pos_id);
-            }
-            let lines_info = lines_info_res.unwrap();
-            if let Some(first_line_info) = lines_info.lines.get(0) {
-                let line = first_line_info.line_index as i32 + 1;
-                let column = first_line_info.start_col.0 as i32 + 1;
-                Position::new(line, column, pos_id)
-            } else {
-                Position::new(0, 0, pos_id)
-            }
-        } else {
-            Position::new(0, 0, pos_id)
-        };
-        self.source_span.insert(pos_id, span);
-        pos
-    }
-
-    pub fn change_error_context(&mut self, position: Position, error_ctxt: ErrorCtxt) -> Position {
-        let span = self.source_span[&position.id()].clone();
-        let (_, def_id) = &self.error_contexts[&position.id()];
-        let def_id = *def_id;
-        self.register(span, error_ctxt, def_id)
-    }
-
-    pub fn get_def_id(&self, ver_error: &VerificationError) -> Option<&ProcedureDefId> {
+    pub fn get_def_id(&self, ver_error: &VerificationError) -> Option<ProcedureDefId> {
         ver_error.pos_id.as_ref()
             .and_then(|id| id.parse().ok())
-            .and_then(|id| self.error_contexts.get(&id))
-            .map(|v| &v.1)
+            .and_then(|id| self.position_manager.def_id.get(&id).copied())
     }
 
     pub fn translate_verification_error(&self, ver_error: &VerificationError) -> PrustiError {
@@ -225,22 +211,26 @@ impl<'tcx> ErrorManager<'tcx>
             None => None
         };
 
-        let opt_error_ctxt = opt_pos_id
-            .and_then(|pos_id| self.error_contexts.get(&pos_id))
-            .map(|v| &v.0);
-        let opt_error_span = opt_pos_id.and_then(|pos_id| self.source_span.get(&pos_id));
+        let opt_error_ctxts = opt_pos_id
+            .and_then(|pos_id| self.error_contexts.get(&pos_id));
+        let opt_error_span = opt_pos_id.and_then(|pos_id| self.position_manager.source_span.get(&pos_id));
         let opt_cause_span = opt_reason_pos_id.and_then(|reason_pos_id| {
-            let res = self.source_span.get(&reason_pos_id);
+            let res = self.position_manager.source_span.get(&reason_pos_id);
             if res.is_none() {
                 debug!("Unregistered reason position: {:?}", reason_pos_id);
             }
             res
         });
 
-        let (error_span, error_ctxt) = if let Some(error_ctxt) = opt_error_ctxt {
+        if let Some(error_ctxt) = opt_error_ctxts {
             debug_assert!(opt_error_span.is_some());
             let error_span = opt_error_span.cloned().unwrap_or_else(MultiSpan::new);
-            (error_span, error_ctxt)
+            self.translate_verification_error_with_context(
+                ver_error,
+                error_span,
+                opt_cause_span,
+                error_ctxt
+            )
         } else {
             debug!("Unregistered verification error: {:?}", ver_error);
             let error_span = if let Some(error_span) = opt_error_span {
@@ -251,7 +241,7 @@ impl<'tcx> ErrorManager<'tcx>
 
             match opt_pos_id {
                 Some(ref pos_id) => {
-                    return PrustiError::internal(
+                    PrustiError::internal(
                         format!(
                             "unregistered verification error: [{}; {}] {}",
                             ver_error.full_id, pos_id, ver_error.message
@@ -264,7 +254,7 @@ impl<'tcx> ErrorManager<'tcx>
                     )
                 }
                 None => {
-                    return PrustiError::internal(
+                    PrustiError::internal(
                         format!(
                             "unregistered verification error: [{}] {}",
                             ver_error.full_id, ver_error.message
@@ -277,8 +267,16 @@ impl<'tcx> ErrorManager<'tcx>
                     )
                 }
             }
-        };
+        }
+    }
 
+    fn translate_verification_error_with_context(
+        &self,
+        ver_error: &VerificationError,
+        error_span: MultiSpan,
+        opt_cause_span: Option<&MultiSpan>,
+        error_ctxt: &ErrorCtxt,
+    ) -> PrustiError {
         match (ver_error.full_id.as_str(), error_ctxt) {
             ("assert.failed:assertion.false", ErrorCtxt::Panic(PanicCause::Generic)) => {
                 PrustiError::verification("statement might panic", error_span)
@@ -443,8 +441,7 @@ impl<'tcx> ErrorManager<'tcx>
             }
 
             ("postcondition.violated:assertion.false", ErrorCtxt::PureFunctionDefinition) |
-            ("postcondition.violated:assertion.false", ErrorCtxt::PureFunctionCall) |
-            ("postcondition.violated:assertion.false", ErrorCtxt::GenericExpression) => {
+            ("postcondition.violated:assertion.false", ErrorCtxt::PureFunctionCall) => {
                 PrustiError::disabled_verification(
                     "postcondition of pure function definition might not hold",
                     error_span
@@ -541,15 +538,15 @@ impl<'tcx> ErrorManager<'tcx>
                 )
             },
 
-            (full_err_id, _) => {
+            _ => {
                 debug!(
                     "Unhandled verification error: {:?}, context: {:?}",
                     ver_error, error_ctxt
                 );
                 PrustiError::internal(
                     format!(
-                        "unhandled verification error: {:?} [{}] {}",
-                        error_ctxt, full_err_id, ver_error.message,
+                        "unhandled verification error: {} [{}] {:?}",
+                        ver_error.message, ver_error.full_id.as_str(), error_ctxt
                     ),
                     error_span,
                 ).set_failing_assertion(

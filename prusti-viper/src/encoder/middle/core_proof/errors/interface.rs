@@ -21,7 +21,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ErrorsInterface for Lowerer<'p, 'v, 'tcx> {
     ) -> vir_low::Position {
         self.encoder
             .error_manager()
-            .register(
+            .register_error(
                 span,
                 error_ctxt,
                 self.encoder

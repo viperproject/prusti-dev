@@ -176,11 +176,14 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
             &encoded_args,
             None,
             true,
-            ErrorCtxt::GenericExpression,
             self.parent_def_id,
             self.tymap,
             self.substs,
         )?;
+        self.encoder.error_manager().set_error(
+            predicate_body_encoded.pos(),
+            ErrorCtxt::PureFunctionDefinition,
+        );
 
         self.encode_function_given_body(Some(predicate_body_encoded))
     }
@@ -218,7 +221,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
         let formal_args = self.encode_formal_args()?;
         let return_type = self.encode_function_return_type()?;
 
-        let res_value_range_pos = self.encoder.error_manager().register(
+        let res_value_range_pos = self.encoder.error_manager().register_error(
             self.mir.span,
             ErrorCtxt::PureFunctionPostconditionValueRangeOfResult,
             self.parent_def_id,
@@ -336,17 +339,20 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
             .collect::<Result<_, _>>()?;
         for item in contract.functional_precondition() {
             debug!("Encode spec item: {:?}", item);
-            func_spec.push(self.encoder.encode_assertion(
+            let assertion = self.encoder.encode_assertion(
                 item,
                 None,
                 &encoded_args,
                 None,
                 true,
-                ErrorCtxt::GenericExpression,
                 self.parent_def_id,
                 self.tymap,
                 self.substs,
-            )?);
+            )?;
+            self.encoder
+                .error_manager()
+                .set_error(assertion.pos(), ErrorCtxt::PureFunctionDefinition);
+            func_spec.push(assertion);
         }
 
         Ok((
@@ -379,21 +385,22 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
                 &encoded_args,
                 Some(&encoded_return.clone().into()),
                 true,
-                ErrorCtxt::GenericExpression,
                 self.parent_def_id,
                 self.tymap,
                 self.substs,
             )?;
-            debug_assert!(!encoded_postcond.pos().is_default());
+            self.encoder
+                .error_manager()
+                .set_error(encoded_postcond.pos(), ErrorCtxt::PureFunctionDefinition);
             func_spec.push(encoded_postcond);
         }
 
         let post = func_spec.into_iter().conjoin();
 
         // TODO: use a better span
-        let postcondition_pos = self.encoder.error_manager().register(
+        let postcondition_pos = self.encoder.error_manager().register_error(
             self.mir.span,
-            ErrorCtxt::GenericExpression,
+            ErrorCtxt::PureFunctionDefinition,
             self.parent_def_id,
         );
 

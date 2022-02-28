@@ -533,9 +533,9 @@ impl<'v, 'tcx: 'v> PlacesEncoderInterface<'tcx> for super::super::super::Encoder
                     let function_name = self
                         .encode_cast_function_use(src_ty, dst_ty, tymap)
                         .with_span(span)?;
-                    let position = self
-                        .error_manager()
-                        .register(span, ErrorCtxt::TypeCast, def_id);
+                    let position =
+                        self.error_manager()
+                            .register_error(span, ErrorCtxt::TypeCast, def_id);
                     let call = vir_high::Expression::function_call(
                         function_name,
                         vec![], // FIXME: This is probably wrong.
