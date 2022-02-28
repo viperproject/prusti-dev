@@ -257,7 +257,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
         let mut state = match term.kind {
             TerminatorKind::Unreachable => {
                 assert!(states.is_empty());
-                let pos = self.encoder.error_manager().register(
+                let pos = self.encoder.error_manager().register_error(
                     term.source_info.span,
                     ErrorCtxt::Unexpected,
                     self.caller_def_id,
@@ -269,7 +269,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
 
             TerminatorKind::Abort | TerminatorKind::Resume { .. } => {
                 assert!(states.is_empty());
-                let pos = self.encoder.error_manager().register(
+                let pos = self.encoder.error_manager().register_error(
                     term.source_info.span,
                     ErrorCtxt::Unexpected,
                     self.caller_def_id,
@@ -658,7 +658,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                                     .collect::<Result<_, _>>()
                                     .with_span(term.source_info.span)?;
 
-                                let pos = self.encoder.error_manager().register(
+                                let pos = self.encoder.error_manager().register_error(
                                     term.source_info.span,
                                     ErrorCtxt::PureFunctionCall,
                                     self.caller_def_id,
@@ -712,7 +712,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
 
                                     _ => ErrorCtxt::DivergingCallInPureFunction,
                                 };
-                                let pos = self.encoder.error_manager().register(
+                                let pos = self.encoder.error_manager().register_error(
                                     term.source_info.span,
                                     error_ctxt,
                                     self.caller_def_id,
@@ -757,7 +757,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                     ErrorCtxt::PureFunctionAssertTerminator(assert_msg)
                 };
 
-                let pos = self.encoder.error_manager().register(
+                let pos = self.encoder.error_manager().register_error(
                     term.source_info.span,
                     error_ctxt,
                     self.caller_def_id,
@@ -809,11 +809,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
 
         if let Some(state_expr) = state.expr_mut() {
             let mut expr = mem::replace(state_expr, true.into());
-            expr = expr.set_default_pos(self.encoder.error_manager().register(
-                span,
-                ErrorCtxt::GenericExpression,
-                self.caller_def_id,
-            ));
+            expr = expr.set_default_pos(
+                self.encoder
+                    .error_manager()
+                    .register_span(self.caller_def_id, span),
+            );
             let _ = mem::replace(state_expr, expr);
         }
 
@@ -1133,7 +1133,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                                     let pos = self
                                         .encoder
                                         .error_manager()
-                                        .register(stmt.source_info.span, ErrorCtxt::Unexpected, self.caller_def_id);
+                                        .register_error(stmt.source_info.span, ErrorCtxt::Unexpected, self.caller_def_id);
                                     let (function_name, type_arguments) = self.encoder.encode_builtin_function_use(
                                         BuiltinFunctionKind::Unreachable(vir::Type::Int),
                                     );
@@ -1279,9 +1279,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
 
         if let Some(state_expr) = state.expr_mut() {
             let mut expr = mem::replace(state_expr, true.into());
-            expr = expr.set_default_pos(self.encoder.error_manager().register(
+            expr = expr.set_default_pos(self.encoder.error_manager().register_error(
                 span,
-                ErrorCtxt::GenericExpression,
+                ErrorCtxt::PureFunctionDefinition,
                 self.caller_def_id,
             ));
             let _ = mem::replace(state_expr, expr);

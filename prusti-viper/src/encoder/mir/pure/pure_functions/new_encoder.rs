@@ -1,3 +1,4 @@
+use super::encoder::FunctionCallInfoHigh;
 use crate::encoder::{
     borrows::ProcedureContractMirDef,
     encoder::SubstMap,
@@ -21,11 +22,9 @@ use rustc_hir::def_id::DefId;
 use rustc_middle::mir;
 use rustc_span::Span;
 use vir_crate::{
-    common::expression::ExpressionIterator,
+    common::{expression::ExpressionIterator, position::Positioned},
     high::{self as vir_high},
 };
-
-use super::encoder::FunctionCallInfoHigh;
 
 pub(super) fn encode_function_decl<'p, 'v: 'p, 'tcx: 'v>(
     encoder: &'p Encoder<'v, 'tcx>,
@@ -302,15 +301,19 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureEncoder<'p, 'v, 'tcx> {
         let parameter_expressions = self.convert_parameters_into_expressions(parameters);
         let mut conjuncts = Vec::new();
         for item in contract.functional_precondition() {
-            conjuncts.push(self.encoder.encode_assertion_high(
+            let assertion = self.encoder.encode_assertion_high(
                 item,
                 None,
                 &parameter_expressions,
                 None,
-                ErrorCtxt::GenericExpression,
                 self.parent_def_id,
                 self.tymap,
-            )?);
+            )?;
+            self.encoder.error_manager().set_error(
+                assertion.position().into(),
+                ErrorCtxt::PureFunctionDefinition,
+            );
+            conjuncts.push(assertion);
         }
         Ok(conjuncts.into_iter().conjoin())
     }
@@ -324,22 +327,26 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureEncoder<'p, 'v, 'tcx> {
         let mut conjuncts = Vec::new();
         let encoded_return = self.encode_mir_local(contract.returned_value)?;
         for item in contract.functional_postcondition() {
-            conjuncts.push(self.encoder.encode_assertion_high(
+            let assertion = self.encoder.encode_assertion_high(
                 item,
                 None,
                 &parameter_expressions,
                 Some(&vir_high::Expression::local_no_pos(encoded_return.clone())),
-                ErrorCtxt::GenericExpression,
                 self.parent_def_id,
                 self.tymap,
-            )?);
+            )?;
+            self.encoder.error_manager().set_error(
+                assertion.position().into(),
+                ErrorCtxt::PureFunctionDefinition,
+            );
+            conjuncts.push(assertion);
         }
         let post = conjuncts.into_iter().conjoin();
 
         // TODO: use a better span
-        let postcondition_pos = self.encoder.error_manager().register(
+        let postcondition_pos = self.encoder.error_manager().register_error(
             self.mir.span,
-            ErrorCtxt::GenericExpression,
+            ErrorCtxt::PureFunctionDefinition,
             self.parent_def_id,
         );
 

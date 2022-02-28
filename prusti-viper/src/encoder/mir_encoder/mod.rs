@@ -24,6 +24,7 @@ use prusti_interface::environment::mir_utils::MirPlace;
 use crate::encoder::mir::types::MirTypeEncoderInterface;
 use super::encoder::SubstMap;
 use super::high::types::HighTypeEncoderInterface;
+use rustc_span::MultiSpan;
 
 mod downcast_detector;
 mod place_encoding;
@@ -477,7 +478,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
             //             .encode_builtin_function_use(BuiltinFunctionKind::Unreachable(
             //                 encoded_type.clone(),
             //             ));
-            //     let pos = self.encoder.error_manager().register(
+            //     let pos = self.encoder.error_manager().register_error(
             //         // TODO: use a proper span
             //         self.mir.span,
             //         ErrorCtxt::PureFunctionCall,
@@ -777,10 +778,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
                         String::from("number"),
                         self.encode_operand_expr_type(operand, tymap).with_span(span)?,
                     )];
-                    let pos = self
-                        .encoder
-                        .error_manager()
-                        .register(span, ErrorCtxt::TypeCast, self.def_id);
+                    let pos = self.register_error(span, ErrorCtxt::TypeCast);
                     let return_type = self.encoder.encode_snapshot_type(dst_ty, tymap).with_span(span)?;
                     return Ok(vir::Expr::func_app(
                         function_name,
@@ -852,10 +850,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
         bb_data.terminator().source_info.span
     }
 
-    pub fn encode_expr_pos(&self, span: Span) -> vir::Position {
-        self.encoder
-            .error_manager()
-            .register(span, ErrorCtxt::GenericExpression, self.def_id)
+    pub fn register_span<T: Into<MultiSpan>>(&self, span: T) -> vir::Position {
+        self.encoder.error_manager().register_span(self.def_id, span)
+    }
+
+    pub fn register_error<T: Into<MultiSpan>>(&self, span: T, error_ctxt: ErrorCtxt) -> vir::Position {
+        self.encoder.error_manager().register_error(span, error_ctxt, self.def_id)
     }
 
     /// Return the cause of a call to `begin_panic`
