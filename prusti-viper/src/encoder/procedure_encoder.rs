@@ -31,7 +31,7 @@ use vir_crate::{
         self as vir,
         borrows::Borrow,
         collect_assigned_vars,
-        CfgBlockIndex, Expr, ExprIterator, Successor, Type},
+        CfgBlockIndex, Expr, ExprIterator, StmtWalker, Successor, Type},
 };
 use prusti_interface::{
     data::ProcedureDefId,
@@ -43,6 +43,7 @@ use prusti_interface::{
         },
         BasicBlockIndex, PermissionKind, Procedure,
     },
+    PrustiError,
 };
 use prusti_interface::utils;
 use rustc_middle::mir::Mutability;
@@ -510,6 +511,110 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         Ok(still_unresolved_edges)
     }
 
+    fn stmt_preconditions(&self, stmt: &vir::Stmt) -> Vec<vir::Expr> {
+        struct FindFnApps<'a, 'b, 'c>(Vec<vir::Expr>, &'a Encoder<'b, 'c>);
+        impl<'a, 'b, 'c> StmtWalker for FindFnApps<'a, 'b, 'c> {
+            fn walk_exhale(&mut self, statement: &vir::Exhale) {
+                self.0.push(statement.expr.clone());
+            }
+            fn walk_assert(&mut self, statement: &vir::Assert) {
+                self.0.push(statement.expr.clone());
+            }
+            fn walk_method_call(&mut self, statement: &vir::MethodCall) {
+                self.0.extend(self.1.fun_preconds(&statement.method_name));
+                for arg in &statement.arguments {
+                    self.walk_expr(arg);
+                }
+            }
+            fn walk_expr(&mut self, expr: &vir::Expr) {
+                match expr {
+                    vir::Expr::Local(_) |
+                    vir::Expr::Const(_) |
+                    vir::Expr::MagicWand(_) => {}, // TODO: Is this correct?
+
+                    vir::Expr::Variant(vir::Variant { base, .. }) |
+                    vir::Expr::Field(vir::FieldExpr { base, .. }) |
+                    vir::Expr::AddrOf(vir::AddrOf { base, .. }) |
+                    vir::Expr::LabelledOld(vir::LabelledOld { base, .. }) |
+                    vir::Expr::FieldAccessPredicate(vir::FieldAccessPredicate { base, .. }) |
+                    vir::Expr::Unfolding(vir::Unfolding { base, .. }) |
+                    vir::Expr::SnapApp(vir::SnapApp { base, .. }) |
+                    vir::Expr::Cast(vir::Cast { base, .. }) => self.walk_expr(&*base),
+
+                    vir::Expr::PredicateAccessPredicate(vir::PredicateAccessPredicate { argument, .. }) |
+                    vir::Expr::UnaryOp(vir::UnaryOp { argument, .. }) =>
+                        self.walk_expr(&*argument),
+
+                    vir::Expr::BinOp(vir::BinOp { left, right, .. }) |
+                    vir::Expr::ContainerOp(vir::ContainerOp { left, right, .. }) => {
+                        self.walk_expr(&*left);
+                        self.walk_expr(&*right);
+                    }
+
+                    vir::Expr::Cond(vir::Cond { guard, then_expr, else_expr, .. }) => {
+                        self.walk_expr(&*guard);
+                        self.walk_expr(&*then_expr);
+                        self.walk_expr(&*else_expr);
+                    }
+                    vir::Expr::ForAll(vir::ForAll { body, .. }) |
+                    vir::Expr::Exists(vir::Exists { body, .. }) => self.walk_expr(&*body),
+                    vir::Expr::LetExpr(vir::LetExpr { def, body, ..}) => {
+                        self.walk_expr(&*def);
+                        self.walk_expr(&*body);
+                    }
+                    vir::Expr::FuncApp(vir::FuncApp { function_name, arguments, .. }) => {
+                        self.0.extend(self.1.fun_preconds(&function_name));
+                        for expr in arguments {
+                            self.walk_expr(expr);
+                        }
+                    },
+                    vir::Expr::DomainFuncApp(vir::DomainFuncApp { arguments, .. }) => {
+                        for expr in arguments {
+                            self.walk_expr(expr);
+                        }
+                    }
+                    vir::Expr::InhaleExhale(ie) => {
+                        self.0.push((*ie.exhale_expr).clone());
+                    }
+                    vir::Expr::Seq(vir::Seq { elements, .. }) => {
+                        for expr in elements {
+                            self.walk_expr(expr);
+                        }
+                    }
+                    vir::Expr::Downcast(vir::DowncastExpr { enum_place, base, .. }) => {
+                        self.walk_expr(&*enum_place);
+                        self.walk_expr(&*base);
+                    }
+                }
+            }
+        }
+        let mut walker = FindFnApps(Vec::new(), self.encoder);
+        walker.walk(stmt);
+        walker.0.into_iter().filter(|exp| !matches!(
+                exp,
+                vir::Expr::Const(vir::ConstExpr {
+                    value: vir::Const::Bool(true), ..
+                })
+            )
+        ).collect()
+    }
+    fn block_preconditions(&self, block: &CfgBlockIndex) -> Vec<vir::Expr> {
+        let bb = &self.cfg_method.basic_blocks[block.block_index];
+        let mut preconds: Vec<_> = bb.stmts.iter().flat_map(|stmt| self.stmt_preconditions(stmt)).collect();
+        match &bb.successor {
+            Successor::Undefined => {}
+            Successor::Return => {}
+            Successor::Goto(cbi) => preconds.extend(self.block_preconditions(cbi)),
+            Successor::GotoSwitch(succs, def) => {
+                preconds.extend(
+                    succs.iter().flat_map(|cond_bb| self.block_preconditions(&cond_bb.1))
+                );
+                preconds.extend(self.block_preconditions(def));
+            },
+        }
+        preconds
+    }
+
     /// Encodes a loop.
     ///
     /// Returns:
@@ -661,26 +766,82 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 loop_label_prefix
             ))],
         );
-        let inv_post_block = self.cfg_method.add_block(
-            &format!("{}_inv_post", loop_label_prefix),
+        let inv_post_block_perms = self.cfg_method.add_block(
+            &format!("{}_inv_post_perm", loop_label_prefix),
             vec![vir::Stmt::comment(format!(
-                "========== {}_inv_post ==========",
+                "========== {}_inv_post_perm ==========",
+                loop_label_prefix
+            ))],
+        );
+        let inv_post_block_fnspc = self.cfg_method.add_block(
+            &format!("{}_inv_post_fnspc", loop_label_prefix),
+            vec![vir::Stmt::comment(format!(
+                "========== {}_inv_post_fnspc ==========",
                 loop_label_prefix
             ))],
         );
         heads.push(Some(inv_pre_block));
         self.cfg_method
-            .set_successor(inv_pre_block, vir::Successor::Goto(inv_post_block));
+                .set_successor(inv_pre_block, vir::Successor::Goto(inv_post_block_perms));
         {
             let stmts =
                 self.encode_loop_invariant_exhale_stmts(loop_head, before_invariant_block, false)?;
             self.cfg_method.add_stmts(inv_pre_block, stmts);
         }
         // We'll add later more statements at the end of inv_pre_block, to havoc local variables
+        let fnspec_span = {
+            let (stmts, fnspec_span) =
+                self.encode_loop_invariant_inhale_fnspec_stmts(loop_head, before_invariant_block, false)?;
+            self.cfg_method.add_stmts(inv_post_block_fnspc, stmts); fnspec_span
+        };
         {
             let stmts =
-                self.encode_loop_invariant_inhale_stmts(loop_head, before_invariant_block, false)?;
-            self.cfg_method.add_stmts(inv_post_block, stmts);
+                self.encode_loop_invariant_inhale_perm_stmts(loop_head, before_invariant_block, false).with_span(fnspec_span)?;
+            self.cfg_method.add_stmts(inv_post_block_perms, stmts);
+        }
+
+        let old_len = self.cfg_method.basic_blocks.len();
+        // Encode the mid G group (start - G - B1 - invariant_perm - *G* - B1 - invariant_fnspec - B2 - G - B1 - end)
+        let (mid_g_head, mid_g_edges) = self.encode_blocks_group(
+            &format!("{}_group2a_", loop_label_prefix),
+            loop_guard_evaluation,
+            loop_depth,
+            return_block,
+        )?;
+        let mut preconds = mid_g_head.map(|cbi| self.block_preconditions(&cbi)).unwrap_or_default();
+
+        // Encode the mid B1 group (start - G - B1 - invariant_perm - G - *B1* - invariant_fnspec - B2 - G - B1 - end)
+        let (mid_b1_head, mid_b1_edges) = self.encode_blocks_group(
+            &format!("{}_group2b_", loop_label_prefix),
+            loop_body_before_inv,
+            loop_depth,
+            return_block,
+        )?;
+        preconds.extend(mid_b1_head.map(|cbi| self.block_preconditions(&cbi)).unwrap_or_default());
+
+        if preconds.len() != 0 {
+            // Cannot add loop guard to loop invariant
+            let warning_msg = "the loop guard was not automatically added as a `body_invariant` \
+                (it requires the viper preconditions: [".to_string() + &preconds.iter().map(|pe|
+                    format!("{}", pe)
+                ).collect::<Vec<_>>().join(", ") + "] to hold)";
+            // Span of loop guard
+            let span_lg = loop_guard_evaluation.last().map(|bb| self.mir_encoder.get_span_of_basic_block(*bb));
+            // Span of entire loop body before inv; the last elem (if any) will be the `body_invariant!(...)` bb
+            let span_lb = loop_body_before_inv.iter().rev().skip(1).map(|bb| self.mir_encoder.get_span_of_basic_block(*bb))
+                .fold(None, |acc: Option<Span>, span| Some(acc.map(|other| 
+                    if span.ctxt() == other.ctxt() { span.to(other) } else { other }
+                ).unwrap_or(span)) );
+            // Multispan to highlight both
+            let span = MultiSpan::from_spans(vec![span_lg, span_lb].into_iter().filter_map(|span| span).collect());
+            // It's only a warning so we might as well emit it straight away
+            PrustiError::loop_invariant(warning_msg, span).emit(self.encoder.env());
+
+            // Delete unrolled blocks
+            for i in old_len..self.cfg_method.basic_blocks.len() {
+                self.cfg_method.basic_blocks[i].stmts = vec![];
+                self.cfg_method.basic_blocks[i].successor = Successor::Return;
+            }
         }
 
         // Encode the last B2 group (start - G - B1 - invariant - *B2* - G - B1 - end)
@@ -762,10 +923,55 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             }
         })?);
 
+        if preconds.len() == 0 {
+            let mid_b1_block = mid_b1_head.unwrap_or(inv_post_block_fnspc);
+            // Link edges of "invariant_perm" (start - G - B1 - *invariant_perm* - G - B1 - invariant_fnspec - B2 - G - B1 - end)
+            self.cfg_method
+                .set_successor(inv_post_block_perms, vir::Successor::Goto(mid_g_head.unwrap_or(mid_b1_block)));
+
+            for (curr_block, target) in &mid_g_edges {
+                if self.loop_encoder.get_loop_depth(*target) < loop_depth {
+                    self.cfg_method.set_successor(*curr_block, Successor::Return);
+                }
+            }
+            let mid_g_edges = mid_g_edges.into_iter().filter(|(_, target)|
+                self.loop_encoder.get_loop_depth(*target) >= loop_depth
+            ).collect::<Vec<_>>();
+            // Link edges from the mid G group (start - G - B1 - invariant_perm - *G* - B1 - invariant_fnspec - B2 - G - B1 - end)
+            still_unresolved_edges.extend(self.encode_unresolved_edges(mid_g_edges, |bb| {
+                if bb == after_guard_block {
+                    Some(mid_b1_block)
+                } else {
+                    None
+                }
+            })?);
+
+            for (curr_block, target) in &mid_b1_edges {
+                if self.loop_encoder.get_loop_depth(*target) < loop_depth {
+                    self.cfg_method.set_successor(*curr_block, Successor::Return);
+                }
+            }
+            let mid_b1_edges = mid_b1_edges.into_iter().filter(|(_, target)|
+                self.loop_encoder.get_loop_depth(*target) >= loop_depth
+            ).collect::<Vec<_>>();
+            // Link edges from the mid B1 group (start - G - B1 - invariant_perm - G - *B1* - invariant_fnspec - B2 - G - B1 - end)
+            still_unresolved_edges.extend(self.encode_unresolved_edges(mid_b1_edges, |bb| {
+                if bb == after_inv_block {
+                    Some(inv_post_block_fnspc)
+                } else {
+                    None
+                }
+            })?);
+        } else {
+            // Link edges of "invariant_perm" (start - G - B1 - *invariant_perm* - invariant_fnspec - B2 - G - B1 - end)
+            self.cfg_method
+                .set_successor(inv_post_block_perms, vir::Successor::Goto(inv_post_block_fnspc));
+        }
+
         // Link edges of "invariant" (start - G - B1 - *invariant* - B2 - G - B1 - end)
         let following_block = heads[4..].iter().find(|x| x.is_some()).unwrap().unwrap();
         self.cfg_method
-            .set_successor(inv_post_block, vir::Successor::Goto(following_block));
+            .set_successor(inv_post_block_fnspc, vir::Successor::Goto(following_block));
 
         // Link edges from the last B2 group (start - G - B1 - invariant - *B2* - G - B1 - end)
         let following_block = heads[5..].iter().find(|x| x.is_some()).unwrap().unwrap();
@@ -826,7 +1032,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
 
         // Done. Phew!
         Ok((start_block, still_unresolved_edges))
-}
+    }
 
     /// Encode a block.
     ///
@@ -5031,28 +5237,25 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         Ok(stmts)
     }
 
-    fn encode_loop_invariant_inhale_stmts(
+    fn encode_loop_invariant_inhale_perm_stmts(
         &mut self,
         loop_head: BasicBlockIndex,
         loop_inv_block: BasicBlockIndex,
         after_loop: bool,
-    ) -> SpannedEncodingResult<Vec<vir::Stmt>> {
+    ) -> EncodingResult<Vec<vir::Stmt>> {
         trace!(
-            "[enter] encode_loop_invariant_inhale_stmts loop_head={:?} after_loop={}",
+            "[enter] encode_loop_invariant_inhale_perm_stmts loop_head={:?} after_loop={}",
             loop_head,
             after_loop
         );
-        let (func_spec, func_spec_span) =
-            self.encode_loop_invariant_specs(loop_head, loop_inv_block)?;
         let (permissions, equalities, invs_spec) =
-            self.encode_loop_invariant_permissions(loop_head, loop_inv_block, true)
-                .with_span(func_spec_span)?;
+            self.encode_loop_invariant_permissions(loop_head, loop_inv_block, true)?;
 
         let permission_expr = permissions.into_iter().conjoin();
         let equality_expr = equalities.into_iter().conjoin();
 
         let mut stmts = vec![vir::Stmt::comment(format!(
-            "Inhale the loop invariant of block {:?}",
+            "Inhale the loop permissions invariant of block {:?}",
             loop_head
         ))];
         stmts.push(vir::Stmt::Inhale( vir::Inhale {
@@ -5064,10 +5267,31 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         stmts.push(vir::Stmt::Inhale( vir::Inhale {
             expr: invs_spec.into_iter().conjoin(),
         }));
+        Ok(stmts)
+    }
+
+    fn encode_loop_invariant_inhale_fnspec_stmts(
+        &mut self,
+        loop_head: BasicBlockIndex,
+        loop_inv_block: BasicBlockIndex,
+        after_loop: bool,
+    ) -> SpannedEncodingResult<(Vec<vir::Stmt>, MultiSpan)> {
+        trace!(
+            "[enter] encode_loop_invariant_inhale_fnspec_stmts loop_head={:?} after_loop={}",
+            loop_head,
+            after_loop
+        );
+        let (func_spec, func_spec_span) =
+            self.encode_loop_invariant_specs(loop_head, loop_inv_block)?;
+
+        let mut stmts = vec![vir::Stmt::comment(format!(
+            "Inhale the loop fnspec invariant of block {:?}",
+            loop_head
+        ))];
         stmts.push(vir::Stmt::Inhale( vir::Inhale {
             expr: func_spec.into_iter().conjoin(),
         }));
-        Ok(stmts)
+        Ok((stmts, func_spec_span))
     }
 
     fn encode_prusti_local(&self, local: Local) -> vir::LocalVar {

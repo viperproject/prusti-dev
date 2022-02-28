@@ -105,7 +105,9 @@ pub fn compute_identifier(
 ) -> String {
     let mut identifier = name.to_string();
     // Include the signature of the function in the function name
-    identifier.push_str("__$TY$__");
+    if type_arguments.len() > 0 {
+        identifier.push_str("__$TY$__");
+    }
     fn type_name(typ: &Type) -> String {
         match typ {
             Type::Int => "$int$".to_string(),
