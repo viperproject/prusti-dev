@@ -1616,4 +1616,34 @@ impl<'b, 'a: 'b> FallibleExprFolder for ExprReplacer<'b, 'a> {
             Ok(result)
         }
     }
+    fn fallible_fold_forall(&mut self, expr: vir::ForAll) -> Result<vir::Expr, Self::Error> {
+        let vir::ForAll {
+            variables,
+            triggers,
+            body,
+            position,
+        } = expr;
+        Ok(vir::Expr::ForAll(vir::ForAll {
+            variables,
+            // triggers should be skipped
+            triggers,
+            body: self.fallible_fold_boxed(body)?,
+            position,
+        }))
+    }
+    fn fallible_fold_exists(&mut self, expr: vir::Exists) -> Result<vir::Expr, Self::Error> {
+        let vir::Exists {
+            variables,
+            triggers,
+            body,
+            position,
+        } = expr;
+        Ok(vir::Expr::Exists(vir::Exists {
+            variables,
+            // triggers should be skipped
+            triggers,
+            body: self.fallible_fold_boxed(body)?,
+            position,
+        }))
+    }
 }
