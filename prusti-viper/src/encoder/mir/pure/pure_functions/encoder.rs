@@ -10,7 +10,10 @@ use crate::encoder::{
     encoder::SubstMap,
     errors::{ErrorCtxt, SpannedEncodingError, SpannedEncodingResult, WithSpan},
     high::{generics::HighGenericsEncoderInterface, types::HighTypeEncoderInterface},
-    mir::pure::{PureEncodingContext, SpecificationEncoderInterface},
+    mir::{
+        pure::{PureEncodingContext, SpecificationEncoderInterface},
+        specifications::SpecificationsInterface,
+    },
     mir_encoder::PlaceEncoder,
     mir_interpreter::run_backward_interpretation,
     snapshot::interface::SnapshotEncoderInterface,
@@ -37,7 +40,7 @@ pub(super) struct PureFunctionEncoder<'p, 'v: 'p, 'tcx: 'v> {
     mir: &'p mir::Body<'tcx>,
     interpreter: PureFunctionBackwardInterpreter<'p, 'v, 'tcx>,
     parent_def_id: DefId,
-    tymap: &'p SubstMap<'tcx>,
+    tymap: SubstMap<'tcx>,
     substs: &'p SubstsRef<'tcx>,
 }
 
@@ -52,6 +55,50 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
         substs: &'p SubstsRef<'tcx>,
     ) -> Self {
         trace!("PureFunctionEncoder constructor: {:?}", proc_def_id);
+
+        let mut tymap = tymap.clone();
+        if encoder.has_extern_spec(proc_def_id) {
+            // FIXME: this is a little bit hacky while tymap exists, but it
+            //        makes sure that if we are encoding an extern specced
+            //        function with a Self type we translate our placeholder
+            //        into the actual Self type
+            // TODO: generics and associated types still aren't mapped properly;
+            //       they exist in wrapper_substs but we need to figure out the
+            //       mapping to target, i.e. given `Prusti_T_FooA` we need to
+            //       construct `Self::FooA` (ideally without string ops...)
+            let wrapper_def_id = encoder.get_wrapper_def_id(proc_def_id);
+
+            // try to find the Prusti_T_Self generic
+            let wrapper_self = ty::List::identity_for_item(encoder.env().tcx(), wrapper_def_id)
+                .iter()
+                .find(|subst| {
+                    if let ty::TyKind::Param(param) = subst.expect_ty().kind() {
+                        param.name.as_str() == "Prusti_T_Self"
+                    } else {
+                        false
+                    }
+                });
+
+            // try to find the Self generic
+            let target_self = ty::List::identity_for_item(encoder.env().tcx(), proc_def_id)
+                .iter()
+                .find(|subst| {
+                    if let ty::TyKind::Param(param) = subst.expect_ty().kind() {
+                        param.name.as_str() == "Self"
+                    } else {
+                        false
+                    }
+                });
+
+            // if we found both Prusti_T_Self and Self, make Prusti_T_Self
+            // substitute to the same type as Self
+            if let (Some(wrapper_self), Some(target_self)) = (wrapper_self, target_self) {
+                if let Some(self_subst) = tymap.get(&target_self.expect_ty()).cloned() {
+                    tymap.insert(wrapper_self.expect_ty(), self_subst);
+                }
+            }
+        }
+
         let interpreter = PureFunctionBackwardInterpreter::new(
             encoder,
             mir,
@@ -86,7 +133,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
         );
         let substs = &self
             .encoder
-            .type_substitution_polymorphic_type_map(self.tymap)
+            .type_substitution_polymorphic_type_map(&self.tymap)
             .with_span(self.mir.span)?;
         let patched_body_expr = body_expr.patch_types(substs);
         Ok(patched_body_expr)
@@ -129,7 +176,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
         if self.encode_function_return_type()?.is_snapshot() {
             let ty = self
                 .encoder
-                .resolve_typaram(self.mir.return_ty(), self.tymap);
+                .resolve_typaram(self.mir.return_ty(), &self.tymap);
             let return_span = self.get_local_span(mir::RETURN_PLACE);
 
             let param_env = self.encoder.env().tcx().param_env(self.proc_def_id);
@@ -177,7 +224,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
             None,
             true,
             self.parent_def_id,
-            self.tymap,
+            &self.tymap,
             self.substs,
         )?;
         self.encoder.error_manager().set_error(
@@ -296,7 +343,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
         // Patch snapshots
         function = self
             .encoder
-            .patch_snapshots_function(function, self.tymap)
+            .patch_snapshots_function(function, &self.tymap)
             .with_span(self.mir.span)?;
 
         // Add folding/unfolding
@@ -346,7 +393,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
                 None,
                 true,
                 self.parent_def_id,
-                self.tymap,
+                &self.tymap,
                 self.substs,
             )?;
             self.encoder
@@ -386,7 +433,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
                 Some(&encoded_return.clone().into()),
                 true,
                 self.parent_def_id,
-                self.tymap,
+                &self.tymap,
                 self.substs,
             )?;
             self.encoder
@@ -422,7 +469,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
             .encoder
             .encode_snapshot_type(
                 self.interpreter.mir_encoder().get_local_ty(local),
-                self.tymap,
+                &self.tymap,
             )
             .with_span(var_span)?;
         Ok(vir::LocalVar::new(var_name, var_type))
@@ -439,7 +486,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
     pub fn encode_function_return_type(&self) -> SpannedEncodingResult<vir::Type> {
         let ty = self
             .encoder
-            .resolve_typaram(self.mir.return_ty(), self.tymap);
+            .resolve_typaram(self.mir.return_ty(), &self.tymap);
         let return_span = self.get_local_span(mir::RETURN_PLACE);
 
         // Return an error for unsupported return types
@@ -454,19 +501,19 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
         let return_local = mir::Place::return_place().as_local().unwrap();
         let span = self.interpreter.mir_encoder().get_local_span(return_local);
         self.encoder
-            .encode_snapshot_type(ty, self.tymap)
+            .encode_snapshot_type(ty, &self.tymap)
             .with_span(span)
     }
 
     fn encode_substs(&self) -> SpannedEncodingResult<FxHashMap<vir::TypeVar, vir::Type>> {
         self.encoder
-            .type_substitution_polymorphic_type_map(self.tymap)
+            .type_substitution_polymorphic_type_map(&self.tymap)
             .with_span(self.mir.span)
     }
 
     fn encode_type_arguments(&self) -> SpannedEncodingResult<Vec<vir::Type>> {
         self.encoder
-            .encode_generic_arguments(self.proc_def_id, self.tymap)
+            .encode_generic_arguments(self.proc_def_id, &self.tymap)
             .with_span(self.mir.span)
     }
 
@@ -487,7 +534,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
             }
             let var_type = self
                 .encoder
-                .encode_snapshot_type(mir_type, self.tymap)
+                .encode_snapshot_type(mir_type, &self.tymap)
                 .with_span(var_span)?;
             let var_type = var_type.patch(&substs);
             formal_args.push(vir::LocalVar::new(var_name, var_type))
