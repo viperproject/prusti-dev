@@ -100,7 +100,7 @@ impl PrustiError {
         )
     }
 
-    /// Issue with loop invariants (e.g. cannot automatically include loop guard)
+    /// Report a non-fatal issue (e.g. cannot automatically include loop guard as an invariant)
     pub fn warning<S: ToString>(message: S, span: MultiSpan) -> Self {
         check_message(message.to_string());
         let mut err = PrustiError::new(
