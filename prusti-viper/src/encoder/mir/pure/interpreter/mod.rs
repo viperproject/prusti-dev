@@ -15,6 +15,7 @@ use crate::encoder::{
         generics::MirGenericsEncoderInterface,
         places::PlacesEncoderInterface,
         pure::{PureFunctionEncoderInterface, SpecificationEncoderInterface},
+        specifications::SpecificationsInterface,
         types::MirTypeEncoderInterface,
     },
     mir_encoder::MirEncoder,

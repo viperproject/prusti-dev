@@ -3,7 +3,10 @@ use crate::encoder::{Encoder, borrows::ProcedureContract};
 use crate::encoder::errors::{ErrorCtxt, SpannedEncodingResult, WithSpan};
 use crate::encoder::borrows::compute_procedure_contract;
 use crate::encoder::mir_encoder::{MirEncoder, PlaceEncoder};
-use crate::encoder::mir::pure::SpecificationEncoderInterface;
+use crate::encoder::mir::{
+    pure::SpecificationEncoderInterface,
+    specifications::SpecificationsInterface,
+};
 use prusti_interface::{
     environment::{
         Procedure
