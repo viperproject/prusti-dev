@@ -50,7 +50,6 @@ use rustc_middle::mir;
 use rustc_middle::mir::{TerminatorKind};
 use rustc_middle::ty::{self, layout::IntegerExt, ParamEnv, subst::SubstsRef};
 use rustc_target::abi::Integer;
-use rustc_hir::def_id::LocalDefId;
 use rustc_hash::{FxHashMap, FxHashSet};
 use rustc_attr::IntType::SignedInt;
 use rustc_span::{MultiSpan, Span};
@@ -59,11 +58,13 @@ use ::log::{trace, debug};
 use prusti_interface::environment::borrowck::regions::PlaceRegionsError;
 use crate::encoder::errors::EncodingErrorKind;
 use std::convert::TryInto;
+use prusti_interface::specs::typed::{Pledge, SpecificationItem};
 use vir_crate::polymorphic::Float;
 use crate::utils::is_reference;
 use crate::encoder::mir::pure::PureFunctionEncoderInterface;
 use crate::encoder::mir::types::MirTypeEncoderInterface;
 use crate::encoder::mir::pure::SpecificationEncoderInterface;
+use crate::encoder::mir::specifications::SpecificationsInterface;
 use super::encoder::SubstMap;
 use super::high::generics::HighGenericsEncoderInterface;
 
@@ -232,10 +233,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
 
     fn procedure_contract(&self) -> &ProcedureContract<'tcx> {
         self.procedure_contract.as_ref().unwrap()
-    }
-
-    fn mut_contract(&mut self) -> &mut ProcedureContract<'tcx> {
-        self.procedure_contract.as_mut().unwrap()
     }
 
     pub fn encode(mut self) -> SpannedEncodingResult<vir::CfgMethod> {
@@ -3434,8 +3431,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             .iter()
             .map(|local| self.encode_prusti_local(*local).into())
             .collect();
-        let func_precondition = contract.functional_precondition();
-        for assertion in func_precondition {
+        for assertion in contract.functional_precondition() {
             // FIXME
             let value = self.encoder.encode_assertion(
                 assertion,
@@ -3450,8 +3446,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             func_spec.push(value);
         }
         let precondition_spans = MultiSpan::from_spans(
-            func_precondition
-                .iter()
+            contract.functional_precondition()
                 .map(|ts| self.encoder.env().tcx().def_span(ts.to_def_id()))
                 .collect(),
         );
@@ -3479,7 +3474,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
     }
 
     fn encode_spec_refinement(
-        &mut self,
+        &self,
         pre_label: &str,
     ) -> SpannedEncodingResult<(
         Option<vir::Expr>, // precondition weakening
@@ -3498,165 +3493,95 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         let tymap = FxHashMap::default();
         let substs = ty::List::empty();
         debug!("procedure_contract: {:?}", self.procedure_contract());
-        //trace!("def_id of proc: {:?}", &self.proc_def_id);
-        let impl_def_id = self.encoder.env().tcx().impl_of_method(self.proc_def_id);
-        //trace!("def_id of impl: {:?}", &impl_def_id);
-        if let Some(id) = impl_def_id {
-            let def_id_trait = self.encoder.env().tcx().trait_id_of_impl(id);
-            trace!("def_id of trait: {:?}", &def_id_trait);
-            // Trait implementation method refinement
-            // Choosing alternative C as discussed in
-            // https://ethz.ch/content/dam/ethz/special-interest/infk/chair-program-method/pm/documents/Education/Theses/Matthias_Erdin_MA_report.pdf
-            // pp 19-23
-            if let Some(id) = def_id_trait {
-                let proc_name = self
-                    .encoder
-                    .env()
-                    .tcx()
-                    .item_name(self.proc_def_id);
-                if let Some(assoc_item) = self.encoder.env().get_assoc_item(id, proc_name) {
-                    let procedure_trait_contract = self
-                        .encoder
-                        .get_procedure_contract_for_def(assoc_item.def_id)
-                        .with_span(self.mir.span)?;
-                    let typed::ProcedureSpecification {
-                        pres: proc_pre_specs,
-                        posts: proc_post_specs,
-                        pledges: proc_pledge_specs,
-                        ..
-                    } = self.procedure_contract().specification.expect_procedure();
 
-                    let mut extend_pre: Option<&[LocalDefId]> = None;
-                    let mut extend_post: Option<&[LocalDefId]> = None;
-                    let mut extend_pledge: Option<&[typed::Pledge]> = None;
-                    let mut weakening: Option<vir::Expr> = None;
-                    let mut strengthening: Option<vir::Expr> = None;
-                    if proc_pre_specs.is_empty() {
-                        extend_pre = Some(procedure_trait_contract
-                            .functional_precondition());
-                    } else {
-                        let proc_pre = proc_pre_specs
-                            .iter()
-                            .map(|spec| self.encoder.encode_assertion(
-                                spec,
-                                None,
-                                &encoded_args,
-                                None,
-                                false,
-                                self.proc_def_id,
-                                &tymap,
-                                &substs,
-                            ))
-                            .collect::<Result<Vec<_>, _>>()?
-                            .into_iter()
-                            .conjoin();
-                        let proc_trait_pre = procedure_trait_contract
-                            .functional_precondition()
-                            .iter()
-                            .map(|spec| self.encoder.encode_assertion(
-                                spec,
-                                None,
-                                &encoded_args,
-                                None,
-                                false,
-                                self.proc_def_id,
-                                &tymap,
-                                &substs,
-                            ))
-                            .collect::<Result<Vec<_>, _>>()?
-                            .into_iter()
-                            .conjoin();
-                        weakening = Some(vir_expr! {
-                            [proc_trait_pre] ==> [proc_pre]
-                        });
+        let procedure_spec = self.procedure_contract().specification.expect_procedure();
 
-                        // TODO: set error context
-                        /* ErrorCtxt::AssertMethodPreconditionWeakening(
-                            precondition_spans.clone() //
-                        ), */
-                    }
+        let mut weakening: Option<vir::Expr> = None;
+        let mut strengthening: Option<vir::Expr> = None;
 
-                    if proc_post_specs.is_empty() && proc_pledge_specs.is_empty() {
-                        extend_post = Some(procedure_trait_contract
-                            .functional_postcondition());
-                        extend_pledge = Some(procedure_trait_contract
-                            .pledges());
-                    } else {
-                        if !proc_pledge_specs.is_empty() {
-                            unimplemented!("Refining specifications with pledges is not supported");
-                        }
-                        let proc_post = proc_post_specs
-                            .iter()
-                            .map(|spec| self.encoder.encode_assertion(
-                                spec,
-                                Some(pre_label),
-                                &encoded_args,
-                                Some(&encoded_return),
-                                false,
-                                self.proc_def_id,
-                                &tymap,
-                                &substs,
-                            ))
-                            .collect::<Result<Vec<_>, _>>()?
-                            .into_iter()
-                            .conjoin();
-                        let proc_trait_post = procedure_trait_contract
-                            .functional_postcondition()
-                            .iter()
-                            .map(|spec| self.encoder.encode_assertion(
-                                spec,
-                                Some(pre_label),
-                                &encoded_args,
-                                Some(&encoded_return),
-                                false,
-                                self.proc_def_id,
-                                &tymap,
-                                &substs,
-                            ))
-                            .collect::<Result<Vec<_>, _>>()?
-                            .into_iter()
-                            .conjoin();
-                        strengthening = Some(self.wrap_arguments_into_old(
-                            vir_expr! {
-                                [proc_post] ==> [proc_trait_post]
-                            },
-                            pre_label,
-                            self.procedure_contract(),
-                            &encoded_args,
-                        )?);
-                        // TODO: set error context
-                        /* ErrorCtxt::AssertMethodPostconditionStrengthening(
-                            postcondition_span.clone() //
-                        ), */
-                    }
+        if let SpecificationItem::Refined(from, to) = &procedure_spec.pres {
+            let from_pre = from.iter()
+                .map(|spec| self.encoder.encode_assertion(
+                    spec,
+                    None,
+                    &encoded_args,
+                    None,
+                    false,
+                    self.proc_def_id,
+                    &tymap,
+                    &substs,
+                ))
+                .collect::<Result<Vec<_>, _>>()?
+                .into_iter()
+                .conjoin();
 
-                    // if the implementation has no specs but the trait does,
-                    // supplement the contract of the implementation with the
-                    // trait specs
-                    // FIXME: this could be done more cleanly where the contract
-                    //        for the implementation is created in the first
-                    //        place
-                    let typed::ProcedureSpecification {
-                        pres: ref mut proc_pre_specs,
-                        posts: ref mut proc_post_specs,
-                        pledges: ref mut proc_pledge_specs,
-                        ..
-                    } = self.mut_contract().specification.expect_mut_procedure();
-                    if let Some(pre) = extend_pre {
-                        proc_pre_specs.extend_from_slice(pre);
-                    }
-                    if let Some(post) = extend_post {
-                        proc_post_specs.extend_from_slice(post);
-                    }
-                    if let Some(pledge) = extend_pledge {
-                        proc_pledge_specs.extend_from_slice(pledge);
-                    }
+            let to_pre = to.iter()
+                .map(|spec| self.encoder.encode_assertion(
+                    spec,
+                    None,
+                    &encoded_args,
+                    None,
+                    false,
+                    self.proc_def_id,
+                    &tymap,
+                    &substs,
+                ))
+                .collect::<Result<Vec<_>, _>>()?
+                .into_iter()
+                .conjoin();
 
-                    return Ok((weakening, strengthening));
-                }
-            }
+            weakening = Some(vir_expr! {
+                [from_pre] ==> [to_pre]
+            });
         }
-        Ok((None, None))
+
+        if let SpecificationItem::Refined(from, to) = &procedure_spec.posts {
+            let from_post = from
+                .iter()
+                .map(|spec| self.encoder.encode_assertion(
+                    spec,
+                    Some(pre_label),
+                    &encoded_args,
+                    Some(&encoded_return),
+                    false,
+                    self.proc_def_id,
+                    &tymap,
+                    &substs,
+                ))
+                .collect::<Result<Vec<_>, _>>()?
+                .into_iter()
+                .conjoin();
+            let to_post = to
+                .iter()
+                .map(|spec| self.encoder.encode_assertion(
+                    spec,
+                    Some(pre_label),
+                    &encoded_args,
+                    Some(&encoded_return),
+                    false,
+                    self.proc_def_id,
+                    &tymap,
+                    &substs,
+                ))
+                .collect::<Result<Vec<_>, _>>()?
+                .into_iter()
+                .conjoin();
+
+            strengthening = Some(self.wrap_arguments_into_old(
+                vir_expr!{
+                    [to_post] ==> [from_post]
+                },
+                pre_label,
+                self.procedure_contract(),
+                &encoded_args,
+            )?);
+        }
+
+        if let SpecificationItem::Refined(_, _) = &procedure_spec.pledges {
+            unimplemented!("Refining specifications with pledges is not supported");
+        }
+
+        Ok((weakening, strengthening))
     }
 
     /// Encode precondition inhale on the definition side.
@@ -3752,7 +3677,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 "We can have at most one magic wand in the postcondition."
             );
             let borrow_info = &borrow_infos[0];
-            let pledges = contract.pledges();
+            let pledges: Vec<&Pledge> = contract.pledges().collect();
             assert!(
                 pledges.len() <= 1,
                 "There can be at most one pledge in the function postcondition."

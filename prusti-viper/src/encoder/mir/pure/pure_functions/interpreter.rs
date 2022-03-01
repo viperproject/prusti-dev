@@ -13,6 +13,7 @@ use crate::encoder::{
     mir::{
         generics::MirGenericsEncoderInterface,
         pure::{specifications::SpecificationEncoderInterface, PureEncodingContext},
+        specifications::SpecificationsInterface,
         types::MirTypeEncoderInterface,
     },
     mir_encoder::{MirEncoder, PlaceEncoder, PlaceEncoding, PRECONDITION_LABEL, WAND_LHS_LABEL},
