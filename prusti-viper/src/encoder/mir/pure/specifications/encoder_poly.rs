@@ -133,7 +133,7 @@ pub(super) fn encode_quantifier<'tcx>(
 
     let mut encoded_qvars = vec![];
     let mut bounds = vec![];
-    for (arg_idx, arg_ty) in args.iter().enumerate() {
+    for (arg_idx, arg_ty) in args.into_iter().enumerate() {
         let qvar_ty = encoder.encode_type(arg_ty).unwrap();
         let qvar_name = format!(
             "_{}_quant_{}",
@@ -154,10 +154,10 @@ pub(super) fn encode_quantifier<'tcx>(
     }
 
     let mut encoded_trigger_sets = vec![];
-    for (trigger_set_idx, ty_trigger_set) in substs.type_at(0).tuple_fields().enumerate() {
+    for (trigger_set_idx, ty_trigger_set) in substs.type_at(0).tuple_fields().into_iter().enumerate() {
         let mut encoded_triggers = vec![];
         let mut set_spans = vec![];
-        for (trigger_idx, ty_trigger) in ty_trigger_set.tuple_fields().enumerate() {
+        for (trigger_idx, ty_trigger) in ty_trigger_set.tuple_fields().into_iter().enumerate() {
             let (trigger_def_id, trigger_span, _, _) = extract_closure_from_ty(tcx, ty_trigger);
             let set_field = encoder
                 .encode_raw_ref_field(format!("tuple_{}", trigger_set_idx), ty_trigger_set)

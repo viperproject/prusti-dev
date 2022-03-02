@@ -61,9 +61,9 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
         format!("fndef${}", self.encoder.encode_item_name(did))
     }
 
-    fn compute_array_len(&self, size: &ty::Const<'tcx>) -> u64 {
+    fn compute_array_len(&self, size: ty::Const<'tcx>) -> u64 {
         self.encoder
-            .const_eval_intlike(&size.val)
+            .const_eval_intlike(size.val())
             .unwrap()
             .to_u64()
             .unwrap()
@@ -95,10 +95,10 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
             ty::TyKind::Float(ty::FloatTy::F64) => vir::Type::Float(vir::ty::Float::F64),
 
             ty::TyKind::RawPtr(ty::TypeAndMut { ty, .. }) => {
-                vir::Type::pointer(self.encoder.encode_type_high(ty)?)
+                vir::Type::pointer(self.encoder.encode_type_high(*ty)?)
             }
 
-            ty::TyKind::Ref(_, ty, _) => vir::Type::reference(self.encoder.encode_type_high(ty)?),
+            ty::TyKind::Ref(_, ty, _) => vir::Type::reference(self.encoder.encode_type_high(*ty)?),
 
             ty::TyKind::Adt(adt_def, substs) if adt_def.is_struct() => vir::Type::struct_(
                 encode_struct_name(self.encoder, adt_def.did),
@@ -134,7 +134,7 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
             ty::TyKind::Tuple(elems) => vir::Type::tuple(
                 elems
                     .iter()
-                    .filter_map(|ty| self.encoder.encode_type_high(ty.expect_ty()).ok())
+                    .filter_map(|ty| self.encoder.encode_type_high(ty).ok())
                     .collect(),
             ),
 
@@ -143,11 +143,11 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
             ty::TyKind::Str => vir::Type::Str,
 
             ty::TyKind::Array(elem_ty, size) => {
-                let array_len = self.compute_array_len(size);
-                vir::Type::array(array_len, self.encoder.encode_type_high(elem_ty)?)
+                let array_len = self.compute_array_len(*size);
+                vir::Type::array(array_len, self.encoder.encode_type_high(*elem_ty)?)
             }
 
-            ty::TyKind::Slice(elem_ty) => vir::Type::slice(self.encoder.encode_type_high(elem_ty)?),
+            ty::TyKind::Slice(elem_ty) => vir::Type::slice(self.encoder.encode_type_high(*elem_ty)?),
 
             ty::TyKind::Closure(def_id, _substs) => vir::Type::closure(
                 self.encode_closure_name(*def_id),
@@ -273,7 +273,7 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
                 }
                 if config::encode_unsigned_num_constraint() && lower_bound.is_none() {
                     if let ty::TyKind::Uint(_) = self.ty.kind() {
-                        lower_bound = Some(Box::new(0.into()));
+                        lower_bound = Some(Box::new(0usize.into()));
                     }
                 }
                 vir::TypeDecl::int(lower_bound, upper_bound)
@@ -290,13 +290,13 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
                 vir::TypeDecl::float(lower_bound, upper_bound)
             }
             ty::TyKind::Ref(_, ty, _) => {
-                let target_type = self.encoder.encode_type_high(ty)?;
+                let target_type = self.encoder.encode_type_high(*ty)?;
                 vir::TypeDecl::reference(target_type)
             }
             ty::TyKind::Tuple(elems) => vir::TypeDecl::tuple(
                 elems
-                    .iter()
-                    .filter_map(|ty| self.encoder.encode_type_high(ty.expect_ty()).ok())
+                    .into_iter()
+                    .filter_map(|ty| self.encoder.encode_type_high(ty).ok())
                     .collect(),
             ),
             ty::TyKind::Adt(adt_def, substs) => {
@@ -316,8 +316,8 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
                 vir::TypeDecl::closure(name, arguments)
             }
             ty::TyKind::Array(elem_ty, size) => {
-                let array_len = self.compute_array_len(size);
-                vir::TypeDecl::array(array_len, self.encoder.encode_type_high(elem_ty)?)
+                let array_len = self.compute_array_len(*size);
+                vir::TypeDecl::array(array_len, self.encoder.encode_type_high(*elem_ty)?)
             }
             ref ty_variant => {
                 debug!("Encoding of type '{:?}' is incomplete", ty_variant);
@@ -380,7 +380,7 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
     //             "tuple",
     //             elems
     //                 .iter()
-    //                 .filter_map(|ty| self.encoder.encode_type(ty.expect_ty()).ok())
+    //                 .filter_map(|ty| self.encoder.encode_type(ty).ok())
     //                 .collect(),
     //         ),
 
@@ -660,7 +660,9 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
             ty::TyKind::Param(_param_ty) => None,
             _ => {
                 // FIXME: This looks very fishy!!!
-                let value = self.ty as *const ty::TyS<'tcx> as usize;
+                // It relies on the implementation detail that each `ty::TyS` instance has its own
+                // `TyKind` instance; not an interned one.
+                let value = self.ty.kind() as *const _ as usize;
                 Some(value.into())
             }
         };
