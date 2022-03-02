@@ -68,10 +68,10 @@ pub fn expand_struct_place<'tcx>(
                 }
             }
             ty::Tuple(slice) => {
-                for (index, arg) in slice.iter().enumerate() {
+                for (index, ty) in slice.iter().enumerate() {
                     if Some(index) != without_field {
                         let field = mir::Field::from_usize(index);
-                        let field_place = tcx.mk_place_field(*place, field, arg.expect_ty());
+                        let field_place = tcx.mk_place_field(*place, field, ty);
                         places.push(field_place);
                     }
                 }

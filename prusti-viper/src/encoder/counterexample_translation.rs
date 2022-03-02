@@ -238,17 +238,17 @@ impl<'ce, 'tcx> CounterexampleTranslator<'ce, 'tcx> {
             }
             (ty::TyKind::Ref(_, typ, _), Some(ModelEntry::Ref(_, map)))
                 => Entry::Ref(box self.translate_silicon_entry(
-                    typ,
+                    *typ,
                     map.get("val_ref"),
                     format!("{}.val_ref", vir_name),
                     silicon_ce_entries,
                 ).unwrap_or_default()),
             (ty::TyKind::Ref(..), _) => Entry::Ref(box Entry::Unknown),
             (ty::TyKind::Tuple(subst), Some(ModelEntry::Ref(_, map))) => {
-                let len = subst.types().count();
+                let len = subst.len();
                 let mut fields = vec![];
                 for i in 0..len {
-                    let typ = subst.type_at(i);
+                    let typ = subst[i];
                     let field_id = format!("tuple_{}", i);
                     let field_entry = map.get(&field_id);
                     fields.push(self.translate_silicon_entry(

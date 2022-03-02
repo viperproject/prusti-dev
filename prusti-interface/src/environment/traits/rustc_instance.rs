@@ -102,8 +102,8 @@ impl<'tcx> TypeVisitor<'tcx> for BoundVarsCollector<'tcx> {
     }
 
     fn visit_region(&mut self, r: ty::Region<'tcx>) -> ControlFlow<Self::BreakTy> {
-        match r {
-            ty::ReLateBound(index, br) if *index == self.binder_index => {
+        match r.kind() {
+            ty::ReLateBound(index, br) if index == self.binder_index => {
                 match self.vars.entry(br.var.as_u32()) {
                     Entry::Vacant(entry) => {
                         entry.insert(ty::BoundVariableKind::Region(br.kind));

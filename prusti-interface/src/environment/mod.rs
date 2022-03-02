@@ -292,7 +292,7 @@ impl<'tcx> Environment<'tcx> {
         let mut res = HashSet::new();
         let traits = self.tcx().all_traits();
         for trait_id in traits {
-            self.tcx().for_each_relevant_impl(trait_id, ty, |impl_id| {
+            self.tcx().for_each_relevant_impl(trait_id, *ty, |impl_id| {
                 if let Some(relevant_trait_id) = self.tcx().trait_id_of_impl(impl_id) {
                     res.insert(relevant_trait_id);
                 }

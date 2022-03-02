@@ -259,8 +259,8 @@ impl<'v, 'tcx: 'v> HighTypeEncoderInterface<'tcx> for super::super::super::Encod
         tymap: &SubstMap<'tcx>,
     ) -> EncodingResult<FxHashMap<vir_poly::TypeVar, vir_poly::Type>> {
         tymap
-            .iter()
-            .map(|(typ, subst)| {
+            .into_iter()
+            .map(|(&typ, &subst)| {
                 let type_var = self.encode_type(typ)?.get_type_var().unwrap();
                 let substitution = self.encode_type(subst);
 

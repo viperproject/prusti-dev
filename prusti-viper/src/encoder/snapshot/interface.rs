@@ -182,10 +182,10 @@ impl<'v, 'tcx: 'v> SnapshotEncoderInterface<'tcx> for super::super::Encoder<'v, 
             ty::TyKind::Tuple(substs) if substs.is_empty() => vec![],
             _ => {
                 let const_val = match expr.literal {
-                    mir::ConstantKind::Ty(ty::Const { val, .. }) => *val,
+                    mir::ConstantKind::Ty(ty::Const(ty_val)) => ty_val.val,
                     mir::ConstantKind::Val(val, _) => ty::ConstKind::Value(val),
                 };
-                vec![self.encode_const_expr(expr.ty(), &const_val)?]
+                vec![self.encode_const_expr(expr.ty(), const_val)?]
             }
         };
         self.encode_snapshot(expr.ty(), None, args, &SubstMap::default())

@@ -148,7 +148,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ArrayTypesEncoder<'tcx> {
 
         let slice_pred_type = encoder.encode_type(slice_ty_rs)?;
         let elem_ty_rs = match slice_ty_rs.kind() {
-            ty::TyKind::Slice(elem_ty) => elem_ty,
+            ty::TyKind::Slice(elem_ty) => *elem_ty,
             ty::TyKind::Str => return Err(
                 EncodingError::unsupported("Encoding of Str slice type".to_string())
             ),
@@ -180,7 +180,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ArrayTypesEncoder<'tcx> {
 
         // type predicates
         let (elem_ty_rs, len) = if let ty::TyKind::Array(elem_ty, len) = array_ty_rs.kind() {
-            (elem_ty, len)
+            (*elem_ty, len)
         } else {
             unreachable!()
         };
@@ -189,7 +189,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ArrayTypesEncoder<'tcx> {
         let array_pred_type = encoder.encode_type(array_ty_rs)?;
         let elem_pred_type = encoder.encode_type(elem_ty_rs)?;
 
-        let array_len = encoder.const_eval_intlike(&len.val)?
+        let array_len = encoder.const_eval_intlike(len.val())?
             .to_u64().unwrap().try_into().unwrap();
 
         let encoded = EncodedArrayTypes {

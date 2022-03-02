@@ -105,7 +105,7 @@ pub(super) fn encode_quantifier_high<'tcx>(
 
     let mut encoded_qvars = vec![];
     let mut bounds = vec![];
-    for (arg_idx, arg_ty) in args.iter().enumerate() {
+    for (arg_idx, arg_ty) in args.into_iter().enumerate() {
         let qvar_ty = encoder.encode_type_high(arg_ty).unwrap();
         let qvar_name = format!("_{}_quant_{}", arg_idx, body_def_id.index.index());
         let encoded_qvar = VariableDecl::new(qvar_name, qvar_ty);
@@ -122,9 +122,9 @@ pub(super) fn encode_quantifier_high<'tcx>(
 
     // TODO: implement trigger and trigger set checks
     let mut encoded_trigger_sets = vec![];
-    for (trigger_set_idx, ty_trigger_set) in substs.type_at(0).tuple_fields().enumerate() {
+    for (trigger_set_idx, ty_trigger_set) in substs.type_at(0).tuple_fields().into_iter().enumerate() {
         let mut encoded_triggers = vec![];
-        for (trigger_idx, ty_trigger) in ty_trigger_set.tuple_fields().enumerate() {
+        for (trigger_idx, ty_trigger) in ty_trigger_set.tuple_fields().into_iter().enumerate() {
             let (trigger_def_id, _, _, _) = extract_closure_from_ty(tcx, ty_trigger);
             let set_field = FieldDecl::new(
                 format!("tuple_{}", trigger_set_idx),
