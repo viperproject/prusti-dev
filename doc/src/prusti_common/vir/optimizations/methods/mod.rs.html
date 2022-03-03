@@ -59,6 +59,8 @@
 <span id="54">54</span>
 <span id="55">55</span>
 <span id="56">56</span>
+<span id="57">57</span>
+<span id="58">58</span>
 </pre><pre class="rust"><code><span class="comment">// © 2019, ETH Zurich</span>
 <span class="comment">//</span>
 <span class="comment">// This Source Code Form is subject to the terms of the Mozilla Public</span>
@@ -72,22 +74,23 @@
 <span class="kw">mod</span> <a class="ident" href="../../../../../src/prusti_common/vir/optimizations/methods/empty_if_remover.rs.html#7-37">empty_if_remover</a>;
 <span class="kw">mod</span> <a class="ident" href="../../../../../src/prusti_common/vir/optimizations/methods/purifier.rs.html#7-499">purifier</a>;
 <span class="kw">mod</span> <a class="ident" href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#7-336">quantifier_fixer</a>;
+<span class="kw">mod</span> <a class="ident" href="../../../../../src/prusti_common/vir/optimizations/methods/unfolding_fixer.rs.html#1-113">unfolding_fixer</a>;
 <span class="kw">mod</span> <a class="ident" href="../../../../../src/prusti_common/vir/optimizations/methods/var_remover.rs.html#7-148">var_remover</a>;
 
 <span class="kw">use</span> <a class="ident" href="../../../../../src/prusti_common/vir/optimizations/mod.rs.html#24-29"><span class="kw">super</span>::log_method</a>;
-<span class="kw">use</span> <span class="kw">crate</span>::{<a class="ident" href="../../../../../src/prusti_common/config.rs.html#15-25">config::Optimizations</a>, <a class="ident" href="../../../../../prusti_common/vir/polymorphic_vir/struct.CfgMethod.html">vir::polymorphic_vir::cfg::CfgMethod</a>};
+<span class="kw">use</span> <span class="kw">crate</span>::{<a class="ident" href="../../../../../src/prusti_common/config.rs.html#15-26">config::Optimizations</a>, <a class="ident" href="../../../../../prusti_common/vir/polymorphic_vir/struct.CfgMethod.html">vir::polymorphic_vir::cfg::CfgMethod</a>};
 
 <span class="kw">use</span> <span class="self">self</span>::{
     <a class="ident" href="../../../../../src/prusti_common/vir/optimizations/methods/assert_remover.rs.html#15">assert_remover::remove_trivial_assertions</a>, <a class="ident" href="../../../../../src/prusti_common/vir/optimizations/methods/cfg_cleaner.rs.html#6">cfg_cleaner::clean_cfg</a>,
     <a class="ident" href="../../../../../src/prusti_common/vir/optimizations/methods/empty_if_remover.rs.html#17">empty_if_remover::remove_empty_if</a>, <a class="ident" href="../../../../../src/prusti_common/vir/optimizations/methods/purifier.rs.html#24">purifier::purify_vars</a>, <a class="ident" href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#20">quantifier_fixer::fix_quantifiers</a>,
-    <a class="ident" href="../../../../../src/prusti_common/vir/optimizations/methods/var_remover.rs.html#13">var_remover::remove_unused_vars</a>,
+    <a class="ident" href="../../../../../src/prusti_common/vir/optimizations/methods/unfolding_fixer.rs.html#14">unfolding_fixer::fix_unfoldings</a>, <a class="ident" href="../../../../../src/prusti_common/vir/optimizations/methods/var_remover.rs.html#13">var_remover::remove_unused_vars</a>,
 };
 
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::let_and_return</span>)]</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">optimize_method_encoding</span>(
     <span class="ident">cfg</span>: <a class="ident" href="../../../../../prusti_common/vir/polymorphic_vir/struct.CfgMethod.html">CfgMethod</a>,
     <span class="ident">source_file_name</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>,
-    <span class="ident">optimizations</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../../src/prusti_common/config.rs.html#15-25">Optimizations</a>,
+    <span class="ident">optimizations</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../../src/prusti_common/config.rs.html#15-26">Optimizations</a>,
 ) -&gt; <a class="ident" href="../../../../../prusti_common/vir/polymorphic_vir/struct.CfgMethod.html">CfgMethod</a> {
     <span class="macro">macro_rules!</span> <span class="ident">apply</span> {
         (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">optimization</span>: <span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">cfg</span>: <span class="ident">ident</span>) =&gt; {
@@ -107,13 +110,14 @@
         };
     }
     <span class="kw">let</span> <span class="ident">cfg</span> <span class="op">=</span> <span class="macro">apply!</span>(<span class="ident">purify_vars</span>, <span class="ident">cfg</span>);
+    <span class="kw">let</span> <span class="ident">cfg</span> <span class="op">=</span> <span class="macro">apply!</span>(<span class="ident">fix_unfoldings</span>, <span class="ident">cfg</span>);
     <span class="kw">let</span> <span class="ident">cfg</span> <span class="op">=</span> <span class="macro">apply!</span>(<span class="ident">fix_quantifiers</span>, <span class="ident">cfg</span>);
     <span class="kw">let</span> <span class="ident">cfg</span> <span class="op">=</span> <span class="macro">apply!</span>(<span class="ident">remove_empty_if</span>, <span class="ident">cfg</span>);
     <span class="kw">let</span> <span class="ident">cfg</span> <span class="op">=</span> <span class="macro">apply!</span>(<span class="ident">remove_unused_vars</span>, <span class="ident">cfg</span>);
     <span class="kw">let</span> <span class="ident">cfg</span> <span class="op">=</span> <span class="macro">apply!</span>(<span class="ident">remove_trivial_assertions</span>, <span class="ident">cfg</span>);
     <span class="kw">let</span> <span class="ident">cfg</span> <span class="op">=</span> <span class="macro">apply!</span>(<span class="ident">clean_cfg</span>, <span class="ident">cfg</span>);
 
-    <a class="ident" href="../../../../../src/prusti_common/vir/optimizations/methods/mod.rs.html#53">cfg</a>
+    <a class="ident" href="../../../../../src/prusti_common/vir/optimizations/methods/mod.rs.html#55">cfg</a>
 }
 </code></pre></div>
 </section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../../../../" data-current-crate="prusti_common" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.60.0-nightly (c5c610aad 2022-02-14)" ></div>
