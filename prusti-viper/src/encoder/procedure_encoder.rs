@@ -2031,26 +2031,14 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 ..
             } => {
                 if let ty::TyKind::FnDef(def_id, substs) = ty.kind() {
+                    debug!("Encode function call {:?} with substs {:?}", def_id, substs);
+
                     let def_id = *def_id;
                     let full_func_proc_name: &str =
                         &self.encoder.env().tcx().def_path_str(def_id);
                         // &self.encoder.env().tcx().absolute_item_path_str(def_id);
 
-                    let own_substs =
-                        ty::List::identity_for_item(self.encoder.env().tcx(), def_id);
-
-                    // FIXME: this is a hack to support generics. See issue #187.
-                    let mut tymap = FxHashMap::default();
-
-                    for (kind1, kind2) in own_substs.iter().zip(substs.iter()) {
-                        if let (
-                            ty::subst::GenericArgKind::Type(ty1),
-                            ty::subst::GenericArgKind::Type(ty2),
-                        ) = (kind1.unpack(), kind2.unpack())
-                        {
-                            tymap.insert(ty1, ty2);
-                        }
-                    }
+                    let tymap = self.build_tymap_for_function_call(def_id, substs);
 
                     match full_func_proc_name {
                         "std::rt::begin_panic"
@@ -2359,6 +2347,26 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             | TerminatorKind::InlineAsm { .. } => unimplemented!("{:?}", term.kind),
         };
         Ok(result)
+    }
+
+    // FIXME: this is a hack to support generics. See issue #187.
+    // TODO hansenj: Might wanna move this
+    fn build_tymap_for_function_call(&self, def_id: ProcedureDefId, call_substs: SubstsRef<'tcx>) -> FxHashMap<ty::Ty<'tcx>, ty::Ty<'tcx>> {
+        let env = self.encoder.env();
+        let mut tymap = FxHashMap::default();
+        let own_substs = ty::List::identity_for_item(env.tcx(), def_id);
+        for (kind1, kind2) in own_substs.iter().zip(call_substs.iter()) {
+            if let (
+                ty::subst::GenericArgKind::Type(ty1),
+                ty::subst::GenericArgKind::Type(ty2),
+            ) = (kind1.unpack(), kind2.unpack())
+            {
+                tymap.insert(ty1, ty2);
+            }
+        }
+
+        tymap.extend(self.encoder.env().map_generics_to_substs(def_id, call_substs).into_iter());
+        tymap
     }
 
     fn encode_slice_len_call(
@@ -2725,7 +2733,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             .tcx()
             .def_path_str(called_def_id);
             // .absolute_item_path_str(called_def_id);
-        debug!("Encoding non-pure function call '{}' with args {:?}", full_func_proc_name, mir_args);
+        debug!("Encoding non-pure function call '{}' with args {:?} and substs {:?}", full_func_proc_name, mir_args, substs);
 
         // First we construct the "operands" vector. This construction differs
         // for closure calls, where we need to unpack a tuple into the actual

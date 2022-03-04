@@ -4,7 +4,7 @@ use crate::encoder::{
     mir::types::MirTypeEncoderInterface,
 };
 
-use rustc_hash::FxHashMap;
+use rustc_hash::{FxHashMap, FxHashSet};
 use rustc_hir::def_id::DefId;
 use rustc_middle::ty;
 use rustc_span::symbol::Symbol;
@@ -45,6 +45,8 @@ impl<'v, 'tcx: 'v> MirGenericsEncoderInterface<'tcx> for super::super::super::En
         function_def_id: DefId,
         substs: ty::subst::SubstsRef<'tcx>,
     ) -> EncodingResult<SubstMap<'tcx>> {
+        // TODO hansenj: Before or after?
+        tymap.extend(self.env().map_generics_to_substs(function_def_id, substs));
         let own_substs = ty::List::identity_for_item(self.env().tcx(), function_def_id);
         for (kind1, kind2) in own_substs.iter().zip(substs.iter()) {
             if let (ty::subst::GenericArgKind::Type(ty), ty::subst::GenericArgKind::Type(subst)) =
@@ -113,7 +115,23 @@ impl<'v, 'tcx: 'v> MirGenericsEncoderInterface<'tcx> for super::super::super::En
             let index = generics.param_def_id_to_index[&generic.def_id];
             let type_var = ty::ParamTy { index, name };
             let type_var_type = type_var.to_ty(self.env().tcx());
-            let argument = if let Some(subst) = tymap.get(type_var_type) {
+
+            // TODO hansenj: Is this working?
+            let mut maybe_subst = tymap.get(type_var_type);
+            let mut visited: FxHashSet<ty::Ty<'tcx>> = FxHashSet::default(); // Break cycles
+            while let Some(subst) = maybe_subst {
+                if visited.contains(subst) {
+                    break;
+                }
+                visited.insert(subst);
+                if tymap.contains_key(subst) {
+                    maybe_subst = tymap.get(subst);
+                } else {
+                    break;
+                }
+            }
+
+            let argument = if let Some(subst) = maybe_subst {
                 self.encode_type_high(subst)?
             } else {
                 vir_high::ty::Type::TypeVar(self.encode_param(name, index))

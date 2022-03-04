@@ -27,7 +27,13 @@ use prusti_common::vir_local;
 use rustc_hash::FxHashMap;
 
 use rustc_hir::def_id::DefId;
-use rustc_middle::{mir, span_bug, ty, ty::subst::SubstsRef};
+use rustc_middle::{
+    mir, span_bug, ty,
+    ty::{
+        fold::TypeFoldable,
+        subst::{Subst, SubstsRef},
+    },
+};
 
 use std::{convert::TryInto, mem};
 use vir_crate::polymorphic::{self as vir};
@@ -412,7 +418,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                 ..
             } => {
                 if let ty::TyKind::FnDef(def_id, substs) = ty.kind() {
-                    trace!("apply_terminator for function call {:?}", def_id);
+                    trace!(
+                        "apply_terminator for function call {:?} with substs {:?}",
+                        def_id,
+                        substs
+                    );
                     let def_id = *def_id;
                     let tcx = self.encoder.env().tcx();
                     let full_func_proc_name: &str = &tcx.def_path_str(def_id);
@@ -614,10 +624,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                             _ => {
                                 let own_substs = ty::List::identity_for_item(tcx, def_id);
                                 trace!("Function call has substs = {:?}, declared substs = {:?}, existing/outer substs: {:?}", substs, own_substs, self.substs);
-                                let substs = if self.substs.is_empty() {
-                                    substs
+                                let substs = if substs.needs_subst() && !self.substs.is_empty() {
+                                    substs.subst(tcx, self.substs)
                                 } else {
-                                    substs.rebase_onto(tcx, def_id, self.substs)
+                                    substs
                                 };
                                 trace!("Merged substs for function call lookup = {:?}", substs);
 
@@ -626,6 +636,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                                     .env()
                                     .find_impl_of_trait_method_call(def_id, substs)
                                     .unwrap_or(def_id);
+                                trace!("Resolved function call: {:?}", def_id);
 
                                 let is_pure_function = self.encoder.is_pure(def_id);
                                 let (function_name, return_type) = if is_pure_function {

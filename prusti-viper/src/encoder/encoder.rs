@@ -27,7 +27,7 @@ use rustc_hir::def_id::DefId;
 use rustc_middle::mir;
 use rustc_middle::ty;
 use std::cell::{Cell, RefCell, RefMut, Ref};
-use rustc_hash::{FxHashMap};
+use rustc_hash::{FxHashMap, FxHashSet};
 use std::io::Write;
 use std::rc::Rc;
 use crate::encoder::stub_procedure_encoder::StubProcedureEncoder;
@@ -839,15 +839,27 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
                 self.tcx
             }
             fn fold_ty(&mut self, ty: ty::Ty<'tcx>) -> ty::Ty<'tcx> {
-                let rep = self.tymap.get(&ty).unwrap_or(&ty);
+                let mut rep = self.tymap.get(&ty).unwrap_or(&ty);
+
+                // TODO hansenj: Is this working?
+                let mut visited: FxHashSet<ty::Ty<'tcx>> = FxHashSet::default(); // Break cycles
+                visited.insert(rep);
+                while self.tymap.contains_key(rep) {
+                    rep = self.tymap.get(rep).unwrap();
+                    if visited.contains(rep) { break; }
+                    visited.insert(rep);
+                }
+
                 rep.super_fold_with(self)
             }
         }
-        ty.fold_with(&mut Resolver {
+        let resolved = ty.fold_with(&mut Resolver {
             tcx: self.env().tcx(),
             // TODO: creating each time a current_tymap might be slow. This can be optimized.
             tymap//: self.current_tymap(),
-        })
+        });
+        trace!("Resolving {:?} with map {:?} -> {:?}", ty, tymap, resolved);
+        resolved
     }
 
     pub fn encode_spec_func_name(&self, def_id: ProcedureDefId, kind: SpecFunctionKind) -> String {
