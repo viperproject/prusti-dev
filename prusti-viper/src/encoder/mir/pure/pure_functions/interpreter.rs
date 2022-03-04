@@ -561,13 +561,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                                     "std::ops::RangeFrom" | "core::ops::RangeFrom" |
                                     "std::ops::RangeFull" | "core::ops::RangeFull" => {
                                         if base_ty.peel_refs().is_array() {
-                                            let array_len = self.encoder.encode_array_types(base_ty.peel_refs()).with_span(span)?.array_len;
+                                            let array_len = self.encoder.encode_sequence_types(base_ty.peel_refs()).with_span(span)?.sequence_len.unwrap();
                                             vir::Expr::from(array_len)
                                         } else if base_ty.is_slice() {
                                             let base = self.mir_encoder.encode_operand_place(&args[0]).with_span(span)?.unwrap();
                                             let base_expr = self.encoder.encode_value_expr(base, base_ty).with_span(span)?;
-                                            let slice_types_base = self.encoder.encode_slice_types(base_ty.peel_refs()).with_span(span)?;
-                                            slice_types_base.encode_slice_len_call(self.encoder, base_expr)
+                                            let slice_types_base = self.encoder.encode_sequence_types(base_ty.peel_refs()).with_span(span)?;
+                                            slice_types_base.len(self.encoder, base_expr)
                                         } else { todo!("Get last idx for {}", base_ty) }
                                     }
                                     _ => unreachable!("{}", idx_ident)
@@ -1198,8 +1198,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                         let place_ty = self.encode_place(place).with_span(span)?.1;
                         match place_ty.kind() {
                             ty::TyKind::Array(..) => {
-                                let array_types = self.encoder.encode_array_types(place_ty).with_span(span)?;
-                                state.substitute_value(&opt_lhs_value_place.unwrap(), array_types.array_len.into());
+                                let array_types = self.encoder.encode_sequence_types(place_ty).with_span(span)?;
+                                state.substitute_value(&opt_lhs_value_place.unwrap(), array_types.sequence_len.unwrap().into());
                             }
                             ty::TyKind::Slice(..) => {
                                 let snap_len = self.encoder.encode_snapshot_slice_len(
