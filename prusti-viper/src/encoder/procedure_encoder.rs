@@ -5113,7 +5113,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         let old = |e| { vir::Expr::labelled_old(&label, e) };
 
         // inhale that len unchanged
-        let len_eq = vir_expr!{ [ sequence_len.clone() ] == [ old(sequence_len.clone()) ] };
+        let len_eq = vir_expr!{ [ sequence_len ] == [ old(sequence_len.clone()) ] };
         stmts.push(vir_stmt!{ inhale [len_eq] });
 
         let idx_val_int = self.encoder.patch_snapshots(vir::Expr::snap_app(index), &tymap).with_span(span)?;
