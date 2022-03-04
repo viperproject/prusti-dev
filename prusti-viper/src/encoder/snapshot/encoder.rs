@@ -840,10 +840,10 @@ impl SnapshotEncoder {
 
             ty::TyKind::Array(elem_ty, ..) => {
                 let elem_snap_ty = self.encode_type(encoder, elem_ty, tymap)?;
-                let array_types = encoder.encode_array_types(ty)?;
+                let array_types = encoder.encode_sequence_types(ty)?;
 
-                let domain_name = format!("Snap${}", &array_types.array_pred_type.name());
-                let snap_type = array_types.array_pred_type.convert_to_snapshot();
+                let domain_name = format!("Snap${}", &array_types.sequence_pred_type.name());
+                let snap_type = array_types.sequence_pred_type.convert_to_snapshot();
                 let seq_type = Type::Seq(vir::SeqType {
                     typ: box elem_snap_ty.clone(),
                 });
@@ -867,9 +867,9 @@ impl SnapshotEncoder {
                 };
 
                 let array_collect_func = self.encode_seq_collect_func(
-                    array_types.array_pred_type.clone(),
+                    array_types.sequence_pred_type.clone(),
                     elem_snap_ty.clone(),
-                    Expr::from(array_types.array_len),
+                    Expr::from(array_types.sequence_len.unwrap()),
                     |self_expr, idx, elem_snap_ty| {
                         array_types.encode_lookup_pure_call(encoder, self_expr, idx, elem_snap_ty)
                     },
@@ -905,7 +905,7 @@ impl SnapshotEncoder {
                         i.clone(),
                     ]);
 
-                    let indices = vir_expr! { ([Expr::from(0)] <= [i]) && ([i] < [Expr::from(array_types.array_len)]) };
+                    let indices = vir_expr! { ([Expr::from(0)] <= [i]) && ([i] < [Expr::from(array_types.sequence_len.unwrap())]) };
 
                     vir_expr! { forall i: Int :: { [read_call], [lookup_call] } ([indices] ==> ([read_call] == [lookup_call])) }
                 };
@@ -916,7 +916,7 @@ impl SnapshotEncoder {
                     formal_args: vec![arg_self],
                     return_type: snap_type.clone(),
                     pres: vec![Expr::predicate_access_predicate(
-                        array_types.array_pred_type,
+                        array_types.sequence_pred_type,
                         arg_expr,
                         PermAmount::Read,
                     )],
@@ -928,7 +928,7 @@ impl SnapshotEncoder {
                     snap_type.clone(),
                     elem_snap_ty,
                     read.clone(),
-                    array_types.array_len.into(),
+                    array_types.sequence_len.unwrap().into(),
                 );
 
                 let constructor_inj = {
@@ -1065,9 +1065,9 @@ impl SnapshotEncoder {
             }
 
             ty::TyKind::Slice(elem_ty) => {
-                let slice_types = encoder.encode_slice_types(ty)?;
-                let domain_name = format!("Snap${}", &slice_types.slice_pred_type.name());
-                let slice_snap_ty = slice_types.slice_pred_type.convert_to_snapshot();
+                let slice_types = encoder.encode_sequence_types(ty)?;
+                let domain_name = format!("Snap${}", &slice_types.sequence_pred_type.name());
+                let slice_snap_ty = slice_types.sequence_pred_type.convert_to_snapshot();
                 let elem_snap_ty = self.encode_type(encoder, elem_ty, tymap)?;
                 let seq_type = Type::Seq(vir::SeqType {
                     typ: box elem_snap_ty.clone(),
@@ -1112,9 +1112,9 @@ impl SnapshotEncoder {
                     domain_name: domain_name.clone(),
                 };
 
-                let slice_len = slice_types.encode_slice_len_call(encoder, arg_expr.clone());
+                let slice_len = slice_types.len(encoder, arg_expr.clone());
                 let slice_collect_func = self.encode_seq_collect_func(
-                    slice_types.slice_pred_type.clone(),
+                    slice_types.sequence_pred_type.clone(),
                     elem_snap_ty.clone(),
                     slice_len.clone(),
                     |self_expr, idx, elem_snap_ty| {
@@ -1154,7 +1154,7 @@ impl SnapshotEncoder {
                     formal_args: vec![arg_self],
                     return_type: slice_snap_ty.clone(),
                     pres: vec![Expr::predicate_access_predicate(
-                        slice_types.slice_pred_type,
+                        slice_types.sequence_pred_type,
                         arg_expr,
                         PermAmount::Read,
                     )],
