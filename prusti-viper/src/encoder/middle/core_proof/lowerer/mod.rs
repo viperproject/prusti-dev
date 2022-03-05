@@ -5,12 +5,13 @@ use self::{
     predicates::PredicatesLowererState, variables::VariablesLowererState,
 };
 use super::{
+    adts::AdtsState,
     builtin_methods::BuiltinMethodsState,
     compute_address::ComputeAddressState,
     into_low::IntoLow,
     predicates_memory_block::PredicatesMemoryBlockState,
     predicates_owned::{PredicatesOwnedInterface, PredicatesOwnedState},
-    snapshots::{SnapshotsInterface, SnapshotsState},
+    snapshots::{SnapshotVariablesInterface, SnapshotsState},
     types::TypesState,
 };
 use crate::encoder::{errors::SpannedEncodingResult, Encoder};
@@ -62,6 +63,7 @@ pub(super) struct Lowerer<'p, 'v: 'p, 'tcx: 'v> {
     pub(super) compute_address_state: ComputeAddressState,
     pub(super) snapshots_state: SnapshotsState,
     pub(super) types_state: TypesState,
+    pub(super) adts_state: AdtsState,
 }
 
 impl<'p, 'v: 'p, 'tcx: 'v> Lowerer<'p, 'v, 'tcx> {
@@ -80,6 +82,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> Lowerer<'p, 'v, 'tcx> {
             snapshots_state: Default::default(),
             types_state: Default::default(),
             predicates_owned_state: Default::default(),
+            adts_state: Default::default(),
         }
     }
     pub(super) fn lower_procedure(

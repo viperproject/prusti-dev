@@ -1,7 +1,21 @@
 use super::super::ast::{
     field::FieldDecl,
-    type_decl::{Struct, Tuple},
+    ty::Type,
+    type_decl::{Enum, Struct, Tuple, TypeDecl},
 };
+
+impl Enum {
+    pub fn variant(&self, variant_name: &str) -> Option<&Struct> {
+        self.variants
+            .iter()
+            .find(|variant| variant.name == variant_name)
+    }
+    pub fn into_variant(self, variant_name: &str) -> Option<Struct> {
+        self.variants
+            .into_iter()
+            .find(|variant| variant.name == variant_name)
+    }
+}
 
 impl Tuple {
     pub fn iter_fields(&self) -> impl Iterator<Item = std::borrow::Cow<'_, FieldDecl>> {

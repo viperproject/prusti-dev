@@ -2,7 +2,9 @@ pub(crate) use super::{
     super::{cfg::procedure::BasicBlockId, operations_internal::ty::Typed, Expression, Position},
     predicate::Predicate,
     rvalue::Rvalue,
+    ty::VariantIndex,
 };
+use crate::common::display;
 
 #[derive_helpers]
 #[derive_visitors]
@@ -17,6 +19,7 @@ pub enum Statement {
     UnfoldOwned(UnfoldOwned),
     JoinBlock(JoinBlock),
     SplitBlock(SplitBlock),
+    ConvertOwnedIntoMemoryBlock(ConvertOwnedIntoMemoryBlock),
     MovePlace(MovePlace),
     CopyPlace(CopyPlace),
     WritePlace(WritePlace),
@@ -50,7 +53,11 @@ pub struct Assert {
     pub position: Position,
 }
 
-#[display(fmt = "fold {}", place)]
+#[display(
+    fmt = "fold{} {}",
+    "display::option_foreach!(condition, \"<{}>\", \"{},\", \"\")",
+    place
+)]
 /// Fold `OwnedNonAliased(place)`.
 pub struct FoldOwned {
     pub place: Expression,
@@ -58,7 +65,11 @@ pub struct FoldOwned {
     pub position: Position,
 }
 
-#[display(fmt = "unfold {}", place)]
+#[display(
+    fmt = "unfold{} {}",
+    "display::option_foreach!(condition, \"<{}>\", \"{},\", \"\")",
+    place
+)]
 /// Unfold `OwnedNonAliased(place)`.
 pub struct UnfoldOwned {
     pub place: Expression,
@@ -66,17 +77,43 @@ pub struct UnfoldOwned {
     pub position: Position,
 }
 
-#[display(fmt = "join {}", place)]
+#[display(
+    fmt = "join{} {}{}",
+    "display::option_foreach!(condition, \"<{}>\", \"{},\", \"\")",
+    place,
+    "display::option!(enum_variant, \"[{}]\", \"\")"
+)]
 /// Join `MemoryBlock(place)`.
 pub struct JoinBlock {
     pub place: Expression,
     pub condition: Option<Vec<BasicBlockId>>,
+    /// If we are joining ex-enum, then we need to know for which variant.
+    pub enum_variant: Option<VariantIndex>,
     pub position: Position,
 }
 
-#[display(fmt = "split {}", place)]
+#[display(
+    fmt = "split{} {}{}",
+    "display::option_foreach!(condition, \"<{}>\", \"{},\", \"\")",
+    place,
+    "display::option!(enum_variant, \"[{}]\", \"\")"
+)]
 /// Split `MemoryBlock(place)`.
 pub struct SplitBlock {
+    pub place: Expression,
+    pub condition: Option<Vec<BasicBlockId>>,
+    /// If we are splitting for enum, then we need to know for which variant.
+    pub enum_variant: Option<VariantIndex>,
+    pub position: Position,
+}
+
+/// Convert `Owned(place)` into `MemoryBlock(place)`.
+#[display(
+    fmt = "convert-owned-memory-block{} {}",
+    "display::option_foreach!(condition, \"<{}>\", \"{},\", \"\")",
+    place
+)]
+pub struct ConvertOwnedIntoMemoryBlock {
     pub place: Expression,
     pub condition: Option<Vec<BasicBlockId>>,
     pub position: Position,

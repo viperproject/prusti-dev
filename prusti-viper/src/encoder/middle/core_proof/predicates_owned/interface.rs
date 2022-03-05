@@ -6,14 +6,21 @@ use crate::encoder::{
         lowerer::Lowerer,
         places::PlacesInterface,
         predicates_memory_block::PredicatesMemoryBlockInterface,
-        snapshots::{IntoSnapshot, SnapshotsInterface},
+        snapshots::{
+            IntoSnapshot, SnapshotBytesInterface, SnapshotValidityInterface,
+            SnapshotValuesInterface,
+        },
         type_layouts::TypeLayoutsInterface,
         types::TypesInterface,
     },
 };
 use rustc_hash::FxHashSet;
 use std::borrow::Cow;
-use vir_crate::{common::expression::ExpressionIterator, low as vir_low, middle as vir_mid};
+use vir_crate::{
+    common::expression::ExpressionIterator,
+    low::{self as vir_low, operations::ToLow},
+    middle as vir_mid,
+};
 
 #[derive(Default)]
 pub(in super::super) struct PredicatesOwnedState {
@@ -24,7 +31,9 @@ pub(in super::super) trait Private {
     fn encode_owned_non_aliased(
         &mut self,
         ty: &vir_mid::Type,
-    ) -> SpannedEncodingResult<vir_low::PredicateDecl>;
+        unfolded_owned_non_aliased_predicates: &FxHashSet<vir_mid::Type>,
+        encoded_predicates: &mut FxHashSet<vir_mid::Type>,
+    ) -> SpannedEncodingResult<Vec<vir_low::PredicateDecl>>;
     fn encode_owned_non_aliased_with_fields<'a>(
         &mut self,
         ty: &vir_mid::Type,
@@ -39,7 +48,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
     fn encode_owned_non_aliased(
         &mut self,
         ty: &vir_mid::Type,
-    ) -> SpannedEncodingResult<vir_low::PredicateDecl> {
+        unfolded_owned_non_aliased_predicates: &FxHashSet<vir_mid::Type>,
+        encoded_predicates: &mut FxHashSet<vir_mid::Type>,
+    ) -> SpannedEncodingResult<Vec<vir_low::PredicateDecl>> {
+        if encoded_predicates.contains(ty) {
+            return Ok(Vec::new());
+        }
+        encoded_predicates.insert(ty.clone());
         self.encode_compute_address(ty)?;
         use vir_low::macros::*;
         let type_decl = self.encoder.get_type_decl_mid(ty)?;
@@ -52,11 +67,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
         }
         let compute_address = ty!(Address);
         let to_bytes = ty! { Bytes };
-        let validity = self.encode_snapshot_validity_expression(snapshot.clone().into(), ty)?;
+        let validity = self.encode_snapshot_valid_call_for_type(snapshot.clone().into(), ty)?;
         let size_of = self.encode_type_size_expression(ty)?;
         let compute_address = expr! { ComputeAddress::compute_address(place, root_address) };
         let bytes =
             self.encode_memory_block_bytes_expression(compute_address.clone(), size_of.clone())?;
+        let mut predicates = Vec::new();
         let predicate = match &type_decl {
             vir_mid::TypeDecl::Bool | vir_mid::TypeDecl::Int(_) | vir_mid::TypeDecl::Float(_) => {
                 predicate! {
@@ -83,7 +99,73 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
                 validity,
                 struct_decl.iter_fields(),
             )?,
-            // vir_mid::TypeDecl::Enum(Enum) => {},
+            vir_mid::TypeDecl::Enum(decl) => {
+                let position = Default::default();
+                let mut variant_predicates = Vec::new();
+                let discriminant_call =
+                    self.obtain_enum_discriminant(snapshot.clone().into(), ty, position)?;
+                for (discriminant, variant) in decl.discriminant_values.iter().zip(&decl.variants) {
+                    let variant_index = variant.name.clone().into();
+                    let variant_place = self.encode_enum_variant_place(
+                        ty,
+                        &variant_index,
+                        place.clone().into(),
+                        position,
+                    )?;
+                    let variant_snapshot = self.obtain_enum_variant_snapshot(
+                        ty,
+                        &variant_index,
+                        snapshot.clone().into(),
+                        position,
+                    )?;
+                    let variant_type = ty.clone().variant(variant_index);
+                    if !unfolded_owned_non_aliased_predicates.contains(&variant_type) {
+                        // TODO: Optimization: This variant is never unfolded,
+                        // encode it as abstract predicate.
+                        predicates.extend(self.encode_owned_non_aliased(
+                            &variant_type,
+                            unfolded_owned_non_aliased_predicates,
+                            encoded_predicates,
+                        )?);
+                    }
+                    let variant_type = &variant_type;
+                    let acc = expr! {
+                        ([ discriminant_call.clone() ] == [ discriminant.clone().to_low(self)? ]) ==>
+                        (acc(OwnedNonAliased<variant_type>(
+                            [variant_place], root_address, [variant_snapshot]
+                        )))
+                    };
+                    variant_predicates.push(acc);
+                }
+                let discriminant_type = &decl.discriminant_type;
+                if !unfolded_owned_non_aliased_predicates.contains(discriminant_type) {
+                    // TODO: Optimization: The discriminant is never unfolded,
+                    // encode it as abstract predicate.
+                    predicates.extend(self.encode_owned_non_aliased(
+                        discriminant_type,
+                        unfolded_owned_non_aliased_predicates,
+                        encoded_predicates,
+                    )?);
+                }
+                let discriminant_field = decl.discriminant_field();
+                let discriminant_place =
+                    self.encode_field_place(ty, &discriminant_field, place.into(), position)?;
+                let discriminant_snapshot = self.construct_constant_snapshot(
+                    discriminant_type,
+                    discriminant_call,
+                    position,
+                )?;
+                predicate! {
+                    OwnedNonAliased<ty>(place: Place, root_address: Address, snapshot: {snapshot_type})
+                    {(
+                        ([validity]) &&
+                        (acc(OwnedNonAliased<discriminant_type>(
+                            [discriminant_place], root_address, [discriminant_snapshot]
+                        ))) &&
+                        ([variant_predicates.into_iter().conjoin()])
+                    )}
+                }
+            }
             // vir_mid::TypeDecl::Array(Array) => {},
             // vir_mid::TypeDecl::Reference(Reference) => {},
             // vir_mid::TypeDecl::Never => {},
@@ -91,7 +173,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
             // vir_mid::TypeDecl::Unsupported(Unsupported) => {},
             x => unimplemented!("{}", x),
         };
-        Ok(predicate)
+        predicates.push(predicate);
+        Ok(predicates)
     }
     #[allow(unused_parens)] // Our macros require to put parenthesis around, but currently there is no way of putting this inside the macro.
     fn encode_owned_non_aliased_with_fields<'a>(
@@ -111,7 +194,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
         for field in fields {
             let field_place =
                 self.encode_field_place(ty, &field, place.clone().into(), Default::default())?;
-            let field_value = self.encode_field_snapshot(
+            let field_value = self.obtain_struct_field_snapshot(
                 ty,
                 &field,
                 snapshot.clone().into(),
@@ -187,12 +270,18 @@ impl<'p, 'v: 'p, 'tcx: 'v> PredicatesOwnedInterface for Lowerer<'p, 'v, 'tcx> {
         &mut self,
     ) -> SpannedEncodingResult<Vec<vir_low::PredicateDecl>> {
         let mut predicates = Vec::new();
-        for ty in std::mem::take(
+        let unfolded_predicates = std::mem::take(
             &mut self
                 .predicates_owned_state
                 .unfolded_owned_non_aliased_predicates,
-        ) {
-            predicates.push(self.encode_owned_non_aliased(&ty)?);
+        );
+        let mut encoded_predicates = Default::default();
+        for ty in &unfolded_predicates {
+            predicates.extend(self.encode_owned_non_aliased(
+                ty,
+                &unfolded_predicates,
+                &mut encoded_predicates,
+            )?);
         }
         Ok(predicates)
     }

@@ -45,6 +45,13 @@ impl Type {
     pub fn is_heap_primitive(&self) -> bool {
         self.is_bool() || self.is_int() || self.is_float()
     }
+    pub fn has_variants(&self) -> bool {
+        if let Type::Enum(enum_ty) = self {
+            enum_ty.variant.is_none()
+        } else {
+            false
+        }
+    }
 }
 
 impl AsRef<str> for VariantIndex {
@@ -70,6 +77,16 @@ impl super::super::ast::type_decl::Enum {
                     .unwrap_or(false)
             })
         }
+    }
+    pub fn get_discriminant(&self, variant_index: &VariantIndex) -> Option<&Expression> {
+        self.iter_discriminant_variants()
+            .find(|(_, variant)| variant_index.as_ref() == variant.name)
+            .map(|(discriminant, _)| discriminant)
+    }
+    pub fn iter_discriminant_variants(
+        &self,
+    ) -> impl Iterator<Item = (&Expression, &super::super::ast::type_decl::Struct)> {
+        self.discriminant_values.iter().zip(&self.variants)
     }
 }
 

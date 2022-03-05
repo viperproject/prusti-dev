@@ -1,17 +1,19 @@
-use super::lowerer::Lowerer;
-use crate::encoder::errors::SpannedEncodingResult;
+mod adts;
+mod bytes;
+mod domains;
+mod into_snapshot;
+mod state;
+mod validity;
+mod values;
+mod variables;
 
-mod expression;
-mod interface;
-mod ty;
-mod variable;
-
-pub(super) use self::interface::{SnapshotsInterface, SnapshotsState};
-
-pub(super) trait IntoSnapshot {
-    type Target;
-    fn create_snapshot<'p, 'v: 'p, 'tcx: 'v>(
-        &self,
-        lowerer: &mut Lowerer<'p, 'v, 'tcx>,
-    ) -> SpannedEncodingResult<Self::Target>;
-}
+pub(super) use self::{
+    adts::SnapshotAdtsInterface,
+    bytes::SnapshotBytesInterface,
+    domains::SnapshotDomainsInterface,
+    into_snapshot::IntoSnapshot,
+    state::SnapshotsState,
+    validity::{valid_call, valid_call2, SnapshotValidityInterface},
+    values::SnapshotValuesInterface,
+    variables::SnapshotVariablesInterface,
+};
