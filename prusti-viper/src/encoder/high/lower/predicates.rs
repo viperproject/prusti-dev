@@ -139,7 +139,8 @@ impl IntoPredicates for vir_high::type_decl::Enum {
     ) -> Predicates {
         let lower_type = ty.lower(encoder);
 
-        let discriminant_field = vir_high::FieldDecl::discriminant().lower(encoder);
+        let discriminant_field =
+            vir_high::FieldDecl::discriminant(vir_high::Type::MInt).lower(encoder);
         let this = Predicate::construct_this(lower_type);
         let discriminant_loc = vir_poly::Expr::from(this.clone()).field(discriminant_field.clone());
 

@@ -2,7 +2,7 @@ use super::{ensurer::ensure_required_permissions, state::FoldUnfoldState};
 use crate::encoder::{
     errors::SpannedEncodingResult,
     high::procedures::inference::{
-        action::{Action, ActionState},
+        action::{Action, ConversionState, FoldingActionState},
         permission::PermissionKind,
         semantics::collect_permission_changes,
     },
@@ -14,7 +14,7 @@ use rustc_hash::FxHashSet;
 use rustc_hir::def_id::DefId;
 use std::collections::{btree_map::Entry, BTreeMap};
 use vir_crate::{
-    common::position::Positioned,
+    common::{display::cjoin, position::Positioned},
     high::{self as vir_high},
     middle::{
         self as vir_mid,
@@ -164,46 +164,67 @@ impl<'p, 'v, 'tcx> Visitor<'p, 'v, 'tcx> {
             statement
         );
         let (consumed_permissions, produced_permissions) = collect_permission_changes(&statement)?;
-        debug!("lower_statement {}: {:?}", statement, consumed_permissions);
+        debug!(
+            "lower_statement {}: {}",
+            statement,
+            cjoin(&consumed_permissions)
+        );
         let actions = ensure_required_permissions(self, state, consumed_permissions.clone())?;
         for action in actions {
             let statement = match action {
-                Action::Unfold(ActionState {
+                Action::Unfold(FoldingActionState {
                     kind: PermissionKind::Owned,
                     place,
+                    enum_variant: _,
                     condition,
                 }) => vir_mid::Statement::unfold_owned(
                     place.to_middle_expression(self.encoder)?,
                     condition,
                     statement.position(),
                 ),
-                Action::Fold(ActionState {
+                Action::Fold(FoldingActionState {
                     kind: PermissionKind::Owned,
                     place,
+                    enum_variant: _,
                     condition,
                 }) => vir_mid::Statement::fold_owned(
                     place.to_middle_expression(self.encoder)?,
                     condition,
                     statement.position(),
                 ),
-                Action::Unfold(ActionState {
+                Action::Unfold(FoldingActionState {
                     kind: PermissionKind::MemoryBlock,
                     place,
+                    enum_variant,
                     condition,
                 }) => vir_mid::Statement::split_block(
                     place.to_middle_expression(self.encoder)?,
                     condition,
+                    enum_variant
+                        .map(|variant| variant.to_middle_expression(self.encoder))
+                        .transpose()?,
                     statement.position(),
                 ),
-                Action::Fold(ActionState {
+                Action::Fold(FoldingActionState {
                     kind: PermissionKind::MemoryBlock,
                     place,
+                    enum_variant,
                     condition,
                 }) => vir_mid::Statement::join_block(
                     place.to_middle_expression(self.encoder)?,
                     condition,
+                    enum_variant
+                        .map(|variant| variant.to_middle_expression(self.encoder))
+                        .transpose()?,
                     statement.position(),
                 ),
+                Action::OwnedIntoMemoryBlock(ConversionState { place, condition }) => {
+                    vir_mid::Statement::convert_owned_into_memory_block(
+                        place.to_middle_expression(self.encoder)?,
+                        condition,
+                        statement.position(),
+                    )
+                }
             };
             self.current_statements.push(statement);
         }

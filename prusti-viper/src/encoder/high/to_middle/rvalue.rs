@@ -3,7 +3,7 @@ use vir_crate::{
     high as vir_high,
     middle::{
         self as vir_mid,
-        operations::{ToMiddleExpression, ToMiddleRvalueLowerer},
+        operations::{ToMiddleExpression, ToMiddleRvalueLowerer, ToMiddleType},
     },
 };
 
@@ -29,5 +29,9 @@ impl<'v, 'tcx> ToMiddleRvalueLowerer for crate::encoder::Encoder<'v, 'tcx> {
         kind: vir_high::UnaryOpKind,
     ) -> Result<vir_mid::UnaryOpKind, Self::Error> {
         kind.to_middle_expression(self)
+    }
+
+    fn to_middle_rvalue_type(&self, ty: vir_high::Type) -> Result<vir_mid::Type, Self::Error> {
+        ty.to_middle_type(self)
     }
 }
