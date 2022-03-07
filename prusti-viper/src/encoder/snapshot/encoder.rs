@@ -141,7 +141,7 @@ impl SnapshotEncoder {
         method: vir::CfgMethod,
     ) -> EncodingResult<vir::CfgMethod> {
         debug!("[snap] method: {:?}", method.name());
-        let tymap = FxHashMap::default();
+        let tymap = SubstMap::default();
         let mut patcher = SnapshotPatcher {
             snapshot_encoder: self,
             encoder,

@@ -94,7 +94,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
             // substitute to the same type as Self
             if let (Some(wrapper_self), Some(target_self)) = (wrapper_self, target_self) {
                 if let Some(self_subst) = tymap.get(&target_self.expect_ty()).cloned() {
-                    tymap.insert(wrapper_self.expect_ty(), self_subst);
+                    tymap.insert_ty(wrapper_self.expect_ty(), self_subst);
                 }
             }
         }

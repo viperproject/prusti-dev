@@ -64,7 +64,7 @@ pub fn purify_method(
         candidates
     );
 
-    let tymap = FxHashMap::default();
+    let tymap = SubstMap::default();
     let mut purifier = Purifier::new(encoder, candidates, tymap);
 
     for block in &mut method.basic_blocks {

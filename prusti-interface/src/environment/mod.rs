@@ -13,16 +13,15 @@ use rustc_hir::hir_id::HirId;
 use rustc_hir::def_id::{DefId, LocalDefId};
 use rustc_middle::ty::{self, TyCtxt};
 use rustc_middle::ty::subst::SubstsRef;
-use rustc_trait_selection::infer::{TyCtxtInferExt, InferCtxtExt};
+use rustc_trait_selection::infer::{InferCtxtExt, TyCtxtInferExt};
 use std::path::PathBuf;
 
-use rustc_span::{Span, MultiSpan, symbol::Symbol};
+use rustc_span::{MultiSpan, Span, symbol::Symbol};
 use std::collections::HashSet;
 use log::{debug, trace};
 use std::rc::Rc;
 use std::collections::HashMap;
 use std::cell::RefCell;
-use rustc_hash::FxHashMap;
 
 pub mod borrowck;
 mod collect_prusti_spec_visitor;
@@ -38,6 +37,7 @@ pub mod polonius_info;
 mod procedure;
 pub mod mir_dump;
 mod traits;
+pub mod tymap;
 
 use self::collect_prusti_spec_visitor::CollectPrustiSpecVisitor;
 use self::collect_closure_defs_visitor::CollectClosureDefsVisitor;
@@ -389,47 +389,5 @@ impl<'tcx> Environment<'tcx> {
                 .type_implements_trait(trait_def_id, ty, ty::List::empty(), param_env)
                 .must_apply_considering_regions()
         )
-    }
-
-    // TODO hansenj: Docs
-    // TODO hansenj: Only useful for traits?
-    // TODO hansenj: Debugging
-    pub fn map_generics_to_substs(&self, def_id: ProcedureDefId, call_substs: SubstsRef<'tcx>) -> FxHashMap<ty::Ty<'tcx>, ty::Ty<'tcx>> {
-        let mut generic_mapping = FxHashMap::default();
-
-        if call_substs.len() == 0 { // TODO: Why?
-            return generic_mapping;
-        }
-
-        if let Some(impl_did) = self.find_impl_of_trait_method_call(def_id, call_substs) {
-            let trait_did = self.tcx.trait_of_item(def_id).unwrap();
-
-            let trait_ref = ty::TraitRef::from_method(self.tcx, trait_did, call_substs);
-            let trait_binder = ty::Binder::bind_with_vars(trait_ref, ty::List::empty());
-            let param_env = self.tcx.param_env(impl_did);
-            let obligation = traits::codegen_fulfill_obligation(self.tcx,(param_env, trait_binder));
-
-            if let Ok(rustc_middle::traits::ImplSource::UserDefined(ud)) = obligation {
-                let own_substs_impl = ty::List::identity_for_item(self.tcx, impl_did);
-                let obligation_substs = ud.substs;
-
-                for (impl_arg, call_arg) in own_substs_impl.iter().zip(obligation_substs) {
-                    if let (
-                        ty::subst::GenericArgKind::Type(call_ty),
-                        ty::subst::GenericArgKind::Type(impl_ty),
-                    ) = (call_arg.unpack(), impl_arg.unpack())
-                    {
-                        if call_ty == impl_ty { // TODO: Nope
-                            continue;
-                        }
-                        if let ty::TyKind::Param(_) = impl_ty.kind() { // only insert if impl_ty is a generic param
-                            generic_mapping.insert(impl_ty, call_ty);
-                        }
-                    }
-                }
-            }
-        }
-
-        generic_mapping
     }
 }
