@@ -13,7 +13,7 @@ pub struct SubstMap<'tcx> {
 }
 
 impl<'tcx> SubstMap<'tcx> {
-    /// Builds a SubstMap from a call to a function.
+    /// Builds a SubstMap from a call to a method.
     /// The built tymap considers whether the called function resolves to a trait implementation
     /// and adds the necessary substitutions.
     pub fn build<'a>(
@@ -45,6 +45,23 @@ impl<'tcx> SubstMap<'tcx> {
         };
 
         if let Some(impl_did) = maybe_impl_did {
+            /*
+                The implementation of the trait might itself be generic, e.g.
+                `impl<A, B> TheTrait for TheStruct<A, B> { ... }`.
+                The to-be-built tymap also needs corresponding mappings from these generics
+                to the actually provided arguments on callsite (A = ?, B = ?),
+                so that the encoding of the implementation method can succeed.
+
+                Effectively, the call substitutions (coming from callsite) already contain these
+                information, albeit in a different format (e.g. substs = [TheStruct<..., ...>]),
+                the encoder however needs a concrete mapping (A = ..., B = ...).
+
+                In order to compute these concrete mappings, we use the same logic as rustc
+                internally uses to resolve to the to-be-called method.
+                Because the trait method resolves to some implementation method,
+                there _are_ substitutions S which "fully qualify" the implementation method.
+                We then use S to make the concrete mappings.
+             */
             let impl_own_substs = ty::List::identity_for_item(env.tcx(), impl_did);
             let trait_did = env.tcx().trait_of_item(def_id).unwrap();
             let trait_ref = ty::TraitRef::from_method(env.tcx(), trait_did, call_substs);
@@ -52,6 +69,9 @@ impl<'tcx> SubstMap<'tcx> {
             let param_env = env.tcx().param_env(impl_did);
             let obligation =
                 traits::codegen_fulfill_obligation(env.tcx(), (param_env, trait_binder));
+
+            // The substitutions that are used to resolve to the implementation method
+            // (with call_substs as fallback)
             let obligation_substs =
                 if let Ok(rustc_middle::traits::ImplSource::UserDefined(ud)) = obligation {
                     trace!(
