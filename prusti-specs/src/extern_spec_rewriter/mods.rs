@@ -8,6 +8,7 @@
 use crate::specifications::common::generate_mod_name;
 use proc_macro2::{Group, TokenStream, TokenTree};
 use quote::{quote, ToTokens};
+use syn::parse_quote_spanned;
 use syn::spanned::Spanned;
 
 

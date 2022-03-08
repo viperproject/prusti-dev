@@ -4,7 +4,7 @@ use prusti_contracts::*;
 use std::vec::Vec;
 
 #[model]
-struct Vec<T> { //~ ERROR: cannot find type `T` in this scope [E0412]
+struct Vec<T> { //~ ERROR: Type parameters must be annotated with exactly one of #[generic] or #[concrete]
     fld: i32,
 }
 

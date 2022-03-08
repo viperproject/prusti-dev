@@ -4,7 +4,7 @@ use prusti_contracts::*;
 use std::vec::Vec;
 
 #[model]
-struct Vec<i32> {
+struct Vec<#[concrete] i32> {
     elems: usize,
 }
 
